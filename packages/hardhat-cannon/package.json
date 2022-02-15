@@ -1,9 +1,9 @@
 {
-  "name": "hardhat-ts-plugin-boilerplate",
+  "name": "hardhat-cannon",
   "version": "0.0.1",
-  "description": "Hardhat TypeScript plugin boilerplate",
-  "repository": "github:nomiclabs/hardhat-ts-plugin-boilerplate",
-  "author": "Nomic Labs LLC",
+  "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
+  "repository": "github:Synthetixio/cannon",
+  "author": "Synthetix",
   "license": "MIT",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -28,19 +28,14 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/chai": "^4.1.7",
+    "@types/chai": "^4.3.0",
     "@types/fs-extra": "^5.0.4",
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^9.1.0",
     "@types/node": "^8.10.38",
-    "chai": "^4.2.0",
-    "hardhat": "^2.0.0",
-    "mocha": "^7.1.2",
-    "prettier": "2.0.5",
-    "ts-node": "^8.1.0",
-    "tslint": "^5.16.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^4.0.3"
+    "hardhat": "^2.8.4",
+    "mocha": "^9.2.0",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
   },
   "peerDependencies": {
     "hardhat": "^2.0.0"

@@ -1,4 +1,5 @@
 /dist
+.vscode
 
 # Logs
 logs

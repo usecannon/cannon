@@ -1,0 +1,1 @@
+{"version":3,"file":"hardhat.config.js","sourceRoot":"","sources":["../../../../test/fixture-projects/hardhat-project/hardhat.config.ts"],"names":[],"mappings":";;AAGA,8BAA4B;AAE5B,MAAM,MAAM,GAAsB;IAChC,QAAQ,EAAE,OAAO;IACjB,cAAc,EAAE,SAAS;IACzB,KAAK,EAAE;QACL,OAAO,EAAE,KAAK;KACf;CACF,CAAC;AAEF,kBAAe,MAAM,CAAC"}
