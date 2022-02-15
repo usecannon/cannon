@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "commonjs",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "strict": true,
-    "rootDirs": ["./src", "./test"],
-    "esModuleInterop": true
-  },
-  "exclude": ["dist", "node_modules"],
-  "include": [
-    "./test",
-    "./src"
-  ]
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "module": "esnext",
+    "outDir": "./build",
+    "target": "es6",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "baseUrl": "src",
+    "lib": ["ESNext"]
+  }
 }
