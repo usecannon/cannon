@@ -1,0 +1,21 @@
+variable "feedurl" {}
+variable "property" {}
+variable "heartbeat" {
+    type = "integer"
+}
+
+data "existing_contract" {
+    deploy = "deployment/"
+}
+
+resource "btc_oracle" {
+    contract = "ChainlinkOracle"
+}
+
+resource "other_oracle" {
+    script = ""
+}
+
+keeper "runtime_price_feeder" {
+    script = "./deploy.js ${feedurl} ${btc_oracle.address}"
+}
