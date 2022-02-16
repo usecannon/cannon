@@ -42,6 +42,9 @@
     "hardhat": "^2.0.0"
   },
   "dependencies": {
-    "toml": "^3.0.0"
+    "@iarna/toml": "^3.0.0",
+    "@types/lodash": "^4.14.178",
+    "ajv": "^8.10.0",
+    "lodash": "^4.17.21"
   }
 }

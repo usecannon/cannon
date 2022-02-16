@@ -1,0 +1,26 @@
+[settings.feedurl]
+[settings.property]
+[settings.heartbeat]
+type = "integer"
+
+[imports.btc_oracle]
+source = "chainlink:latest"
+options.feedurl = "${settings.feedurl}"
+
+[imports.other_oracle]
+source = "chainlink:latest"
+options.feedurl = "${settings.feedurl}"
+
+[contract.my_simple_contract]
+artifact = "MySimpleContract"
+args = ["hello", 47]
+detect.folder = "deployments/${network}"
+
+[run.apply_settings]
+script = "./"
+args = []
+env.SET_VALUE = "${settings.property}"
+
+[keepers.custom_price_feeder]
+script = "./deploy.js"
+args = ["${feedurl}", "${btc_oracle.address}"]

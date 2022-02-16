@@ -1,7 +1,7 @@
 import path from "path";
 import { task, subtask } from "hardhat/config";
 import { HardhatPluginError } from "hardhat/plugins";
-import { SUBTASK_CANNON_LOAD_DEPLOY_FILE, TASK_CANNON } from "../task-names";
+import { SUBTASK_CANNON_LOAD_DEPLOY_FILE, TASK_NODE } from "../task-names";
 
 subtask(SUBTASK_CANNON_LOAD_DEPLOY_FILE).setAction(async ({ file }, hre) => {
   const filepath = path.resolve(hre.config.paths.root, file);
@@ -19,7 +19,7 @@ subtask(SUBTASK_CANNON_LOAD_DEPLOY_FILE).setAction(async ({ file }, hre) => {
   }
 });
 
-task(TASK_CANNON, "Provision the current deploy.json file using Cannon")
+task(TASK_NODE, "Provision the current deploy.json file using Cannon")
   .addOptionalParam("file", "Custom cannon deployment file.", "deploy.json")
   .setAction(async ({ file }, hre) => {
     const deploy = await hre.run(SUBTASK_CANNON_LOAD_DEPLOY_FILE, { file });

@@ -1,4 +1,7 @@
+import hre from 'hardhat';
 
+
+import { HardhatNetworkProvider } from "hardhat/src/internal/hardhat-network/provider/provider";
 import { HardhatNode } from "hardhat/src/internal/hardhat-network/provider/node";
 
 import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
@@ -14,80 +17,91 @@ interface SerializableNodeState {
     minTimestamp: number
 }
 
-// @ts-ignore
-export class PersistableHardhatNode extends HardhatNode {
-    protected async dumpStorage(): Promise<{ [key: string]: any }> {
+export function accessHreNode(): HardhatNode {
+    const provider = hre.network.provider;
+    if (provider instanceof HardhatNetworkProvider) {
+        // @ts-ignore
+        return provider._node;
+    }
 
-        const storage: { [key: string]: any } = {};
+    throw new Error('Hardhat Network must be in use to perform this operation');
+}
+
+export async function dumpState(): Promise<Buffer> {
+    const node = accessHreNode();
+
+    const state: SerializableNodeState = {
+        // note: would be best if `dumpState` or a similar function was supported within the state manager
+        // itnode, but we have to hack it a bit here
+        storage: await dumpStorage(node),
+        minTimestamp: node.getTimeIncrement().toNumber(),
+    };
+
+    return JSON.stringify(state);
+}
+
+export async function loadState(rawState: Buffer): Promise<boolean> {
+    const node = accessHreNode();
+
+    const state: SerializableNodeState = JSON.parse(rawState.toString('utf8'));
+
+    // We add storage to the state, and ensure the timestamp is at least
+    // later than the specified state
+
+    importStorage(node, state.storage);
+
+    const minTimestamp = new BN(state.minTimestamp);
+
+    if (node.getNextBlockTimestamp().lt(minTimestamp as any)) {
+        node.setNextBlockTimestamp(state.minTimestamp as any);
+    }
+
+    return true;
+}
+
+async function dumpStorage(node: HardhatNode): Promise<{ [key: string]: any }> {
+
+    const storage: { [key: string]: any } = {};
+
+    // @ts-ignore
+    if (node._stateManager instanceof ForkStateManager) {
+        // @ts-ignore
+        for (const account of node._stateManager._state.entries()) {
+            storage[account[0]] = 
+        }
+
+    // @ts-ignore
+    } else if (node._stateManager instanceof DefaultStateManager) { // DefaultStateManager
+        // @ts-ignore
+        const t = node._stateManager._trie.db._leveldb.iterator({
+            keyAsBuffer: false,
+            valueAsBuffer: true
+        });
+
+        storage.rootTrie = [];
+        
+        //.iterator({ keyAsBuffer: false, valueAsBuffer: false })
 
         // @ts-ignore
-        if (this._stateManager instanceof ForkStateManager) {
+        for (const k in node._stateManager._storageTries) {
             // @ts-ignore
-            for (const account of this._stateManager._state.entries()) {
-                storage[account[0]] = 
-            }
-
-        // @ts-ignore
-        } else if (this._stateManager instanceof DefaultStateManager) { // DefaultStateManager
-            // @ts-ignore
-            const t = this._stateManager._trie.db._leveldb.iterator({
+            const t = node._stateManager._trie.db._leveldb.iterator({
                 keyAsBuffer: false,
                 valueAsBuffer: true
             });
 
-            storage.rootTrie = [];
-            
-            //.iterator({ keyAsBuffer: false, valueAsBuffer: false })
-
-            // @ts-ignore
-            for (const k in this._stateManager._storageTries) {
-                // @ts-ignore
-                const t = this._stateManager._trie.db._leveldb.iterator({
-                    keyAsBuffer: false,
-                    valueAsBuffer: true
-                });
-
-                storage[k] = [];
-            }
-        }
-
-        return storage;
-    }
-
-    protected async importStorage(storage: { [key: string]: any }) {
-        // @ts-ignore
-        if (this._stateManager instanceof ForkStateManager) {
-            
-        } else { // DefaultStateManager
-
+            storage[k] = [];
         }
     }
-    
-    public async dumpState(): Promise<string> {
-        const state: SerializableNodeState = {
-            // note: would be best if `dumpState` or a similar function was supported within the state manager
-            // itself, but we have to hack it a bit here
-            storage: await this.dumpStorage(),
-            minTimestamp: this.getTimeIncrement().toNumber(),
-        };
 
-        return JSON.stringify(state);
-    }
+    return storage;
+}
 
-    public async loadState(rawState: string): Promise<boolean> {
-        const state: SerializableNodeState = JSON.parse(rawState);
+async function importStorage(node: HardhatNode, storage: { [key: string]: any }) {
+    // @ts-ignore
+    if (node._stateManager instanceof ForkStateManager) {
+        
+    } else { // DefaultStateManager
 
-        // We add storage to the state, and ensure the timestamp is at least
-        // later than the specified state
-
-        this.importStorage(state.storage);
-
-        const minTimestamp = new BN(state.minTimestamp);
-
-        if (this.getNextBlockTimestamp().lt(minTimestamp as any)) {
-            this.setNextBlockTimestamp(state.minTimestamp as any);
-        }
-
-        return true;
     }
 }
