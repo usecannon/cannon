@@ -1,9 +1,4 @@
-// Save on IPFS by filter on the given repo:tag folder
-/*
-  Base folder should be /ipfs/cannon/repo/tag
-    * Canonfile.toml
-    * cache (D)
-*/
+
 
 import fs from 'fs/promises';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
