@@ -1,5 +1,12 @@
 <template>
-  <CBox py="20" maxWidth="containers.lg" mx="auto" px="4">
+  <CBox
+    py="20"
+    maxWidth="containers.lg"
+    mx="auto"
+    px="4"
+    position="relative"
+    zIndex="1"
+  >
     <CSimpleGrid
       :columns="[null, 2]"
       spacing="40px"
@@ -24,13 +31,16 @@
             textDecoration="underline"
             >Hardhat</CLink
           >
-          plug-in inspired by Docker and Terraform. Cannonfiles are composable
-          and configurable deploy scripts. The CLI comes with a built-in package
-          manager.</CText
+          plug-in inspired by Docker and Terraform. Cannonfiles define all of
+          the protocols you'd like deploy to your chain and how you'd like to
+          configure them. Cannon comes with a built-in package manager, so you
+          can download and share Cannonfiles for existing protocols.</CText
         >
         <CText as="p"
           >For example, you may be working on a smart contract that depends on
-          Chainlink oracles and Uniswap. With Cannon, you can ____.</CText
+          Chainlink oracles and Uniswap across two chains. With Cannon, you can
+          automate setting up a development chain with these contracts to
+          develop and test with.</CText
         >
       </CBox>
       <CBox>

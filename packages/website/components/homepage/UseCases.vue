@@ -1,43 +1,79 @@
 <template>
-  <CBox py="20" maxWidth="containers.lg" mx="auto" px="4" textAlign="center">
+  <CBox
+    :py="[10, 20]"
+    maxWidth="containers.lg"
+    mx="auto"
+    px="4"
+    textAlign="center"
+  >
     <CHeading
       as="h3"
       size="lg"
       textTransform="uppercase"
       fontWeight="normal"
       letterSpacing="1px"
-      mb="3"
+      mb="12"
       >Use Cases</CHeading
     >
 
-    <CSimpleGrid
-      :columns="[null, 4]"
-      spacing="40px"
-      width="100%"
-      alignItems="center"
-    >
+    <CSimpleGrid :columns="[null, 2, 4]" spacing="40px" width="100%">
       <CBox>
-        illustration/icon
-        <CHeading size="sm" mb="1">Testing</CHeading>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_1.png')"
+          alt="Testing"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
+        <CText fontSize="sm">
+          Speed up your integration tests and reduce flakes by recording your
+          deployments to a snapshot.
+        </CText>
+      </CBox>
+      <CBox>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_2.png')"
+          alt="Proof of Concept"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px"
+          >Proof of Concepts</CHeading
+        >
         <CText fontSize="sm"
-          >Fork tests can be slow and difficult to isolate issues/reason about.
-          Define a deterministic state for your deployment.</CText
+          >Rapidly create development environments with existing protocols on
+          multiple chains.</CText
         >
       </CBox>
       <CBox>
-        illustration/icon
-        <CHeading size="sm" mb="1">Proof of Concepts</CHeading>
-        <CText fontSize="sm">Especially multichain</CText>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_3.png')"
+          alt="Simulations"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px">Simulations</CHeading>
+        <CText fontSize="sm"
+          >Create scenarios to simulate different behaviors from keepers and
+          oracles.
+        </CText>
       </CBox>
       <CBox>
-        illustration/icon
-        <CHeading size="sm" mb="1">Simulations</CHeading>
-        <CText fontSize="sm">Oracles...</CText>
-      </CBox>
-      <CBox>
-        illustration/icon
-        <CHeading size="sm" mb="1">Deploy Pipelines</CHeading>
-        <CText fontSize="sm">Prodcution use case</CText>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_4.png')"
+          alt="Deployment"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px">Deployment</CHeading>
+        <CText fontSize="sm"
+          >When you're ready to deploy your protocol, use the same pipeline for
+          production.</CText
+        >
       </CBox>
     </CSimpleGrid>
   </CBox>

@@ -14,9 +14,46 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
 }
 
 .prose {
-    h1 {}
-    h2 {}
-    h3 {}
-    h4 {}
-    p {}
+    h1 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 36px;
+        line-height: 45px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+    h2 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 30px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+    h3 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 25px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    h4 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    p {
+        margin-bottom: 12px;
+    }
+    ul {
+        margin-bottom: 12px;
+        margin-left: 15px;
+        li {
+            margin-bottom: 4px;
+        }
+    }
 }

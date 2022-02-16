@@ -1,5 +1,5 @@
 <template>
-  <CBox py="5" maxWidth="containers.lg" mx="auto" px="4">
+  <CBox maxWidth="containers.lg" mx="auto" px="4">
     <CGrid
       template-columns="repeat(12, 1fr)"
       gap="6"

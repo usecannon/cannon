@@ -1,13 +1,21 @@
 <template>
   <CBox position="relative">
     <div class="purple-burst" />
-    <CBox py="20" maxWidth="containers.lg" mx="auto" px="4">
+    <CBox
+      py="20"
+      maxWidth="containers.lg"
+      mx="auto"
+      px="4"
+      position="relative"
+      zIndex="1"
+    >
       <CHeading as="h1" size="xl" mb="3"
         >Cannon manages protocol deployment on blockchains</CHeading
       >
-      <CHeading as="h2" size="lg" fontWeight="normal" mb="6"
-        >Easily deploy your smart contract with existing protocols configured
-        however you want them.</CHeading
+      <CHeading as="h2" size="lg" fontWeight="normal" mb="6" lineHeight="1.5"
+        >Easily build and test your smart contract alongside existing protocols
+        configured however you’d like. Then use Cannon to deploy to production
+        with the live protocols.</CHeading
       >
       <CBox>
         <CButton
@@ -16,7 +24,7 @@
           mr="6"
           variant-color="teal"
           bg="teal.600"
-          mb="3"
+          mb="5"
           ><div
             style="
               transform: scale(0.8) translateY(-1px);
@@ -30,7 +38,7 @@
           as="nuxt-link"
           to="/docs"
           variant-color="teal"
-          mb="3"
+          mb="5"
           bg="teal.600"
           ><div
             style="
