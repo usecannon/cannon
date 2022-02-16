@@ -1,6 +1,7 @@
 export default {
     fonts: {
-        heading: '"Miriam Libre", sans-serif'
+        heading: '"Miriam Libre", sans-serif',
+        body: 'Inter, system-ui, sans-serif',
     },
     colors: {
         blue: {

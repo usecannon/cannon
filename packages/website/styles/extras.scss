@@ -5,6 +5,8 @@ div[data-chakra-component="CTag"]  {
     padding: 0.1rem 0.3rem;
     min-height: 0;
     background: #9cafc9;
+    font-weight: 600;
+    letter-spacing: 0.5px;;
 }
 
 input:not(:checked) + div[data-chakra-component="CControlBox"] {

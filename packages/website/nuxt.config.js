@@ -54,7 +54,8 @@ export default {
 
   googleFonts: {
     families: {
-      'Miriam+Libre': true
+      'Miriam+Libre': true,
+      Inter: true
     }
   }
 }

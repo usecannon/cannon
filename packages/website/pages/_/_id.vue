@@ -40,7 +40,7 @@
       </CTabList>
       <CTabPanels>
         <CTabPanel py="4">
-          <p>readme</p>
+          <p>README here</p>
         </CTabPanel>
         <CTabPanel py="4">
           <p>Cannonfile (Nuxt Content already imports Prism)</p>

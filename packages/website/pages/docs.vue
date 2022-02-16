@@ -7,7 +7,6 @@
       maxWidth="containers.lg"
       mx="auto"
       spacing="40px"
-      alignItems="center"
     >
       <CGridItem :col-span="[12, 3]">
         <ul>
