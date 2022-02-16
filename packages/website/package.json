@@ -1,0 +1,32 @@
+{
+  "name": "cannon",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint:prettier": "prettier --check .",
+    "lint": "yarn lint:prettier",
+    "lintfix": "prettier --write --list-different ."
+  },
+  "dependencies": {
+    "@chakra-ui/nuxt": "^0.4.2",
+    "@chakra-ui/vue": "^0.11.0",
+    "@nuxt/content": "^1.15.1",
+    "@nuxtclub/feathericons": "^1.0.0",
+    "@nuxtjs/emotion": "^0.1.0",
+    "core-js": "^3.19.3",
+    "nuxt": "^2.15.8",
+    "vue": "^2.6.14",
+    "vue-server-renderer": "^2.6.14",
+    "vue-template-compiler": "^2.6.14",
+    "webpack": "^4.46.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/google-fonts": "^1.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.5.1"
+  }
+}
