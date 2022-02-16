@@ -1,2 +1,2 @@
-import "./tasks/cannon";
-import "./tasks/provision";
+import './tasks/node';
+import './tasks/provision';

@@ -14,7 +14,7 @@ task(TASK_PROVISION, "Assemble a defined chain and save it to to a state which c
 
     console.log(JSON.stringify(def, null, 2));
 
-    const builder = new ChainBuilder(def);
+    // const builder = new ChainBuilder(def);
 
-    const node = await builder.build();
+    // const node = await builder.build();
 });

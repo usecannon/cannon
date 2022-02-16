@@ -1,5 +1,3 @@
-
-
 import fs from 'fs/promises';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 
