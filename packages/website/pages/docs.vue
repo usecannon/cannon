@@ -20,7 +20,7 @@
           </li>
         </ul>
       </CGridItem>
-      <CGridItem :col-span="[12, 9]" class="chakra-styles">
+      <CGridItem :col-span="[12, 9]" class="prose">
         <nuxt-content :document="page" />
       </CGridItem>
     </CGrid>

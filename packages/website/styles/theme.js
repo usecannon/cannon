@@ -20,12 +20,7 @@ export default {
             900: '#00171f',
         }
     },
-
     baseStyles: {
-        /**
-         * Applies the styles to all the `CButton`
-         * components.
-         **/
         CButton: ({ theme }) => ({
             fontFamily: theme.fonts.heading,
             textTransform: "uppercase",
@@ -33,26 +28,4 @@ export default {
             paddingTop: "0.3rem"
         })
     },
-
-    // vue version might just not have this
-    /*
-    styles: {
-        global: (props) => ({
-            '.nuxt-content': props
-        }),
-                global: {
-                    '.nuxt-content': {
-                        h1: {
-                            fontSize: 'xl',
-                            mb: '4',
-                        },
-                        p: {
-                            fontSize: 'sm',
-                            lineHeight: '1.4',
-                        },
-                    },
-                },
-                
-    }
-    */
 }

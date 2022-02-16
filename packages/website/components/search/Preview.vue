@@ -13,8 +13,8 @@
     <CHeading as="h4" size="md" mb="1">Title Here</CHeading>
     <CText color="gray.300" mb="3">Description goes here...</CText>
     <CBox mb="2">
-      <CTag size="sm" variantColor="blue">DEXes</CTag>
-      <CTag size="sm" variantColor="blue">Lending</CTag>
+      <CTag size="sm" variantColor="blue" mr="1">DEXes</CTag>
+      <CTag size="sm" variantColor="blue" mr="1">Lending</CTag>
     </CBox>
     <CText color="gray.300" fontSize="xs" fontFamily="mono"
       >version 1.2.1 published by 0x123 14 days ago</CText
@@ -28,7 +28,7 @@ export default {
   name: 'Preview',
   props: {
       id: {
-          type: "String"
+          type: String
       }
   }
 }

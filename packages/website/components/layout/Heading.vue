@@ -10,15 +10,21 @@
     mx="auto"
     alignContent="center"
   >
-    <CFlex align="center" mr="5">
-      <CHeading as="h1" size="lg" letterSpacing="2px"
+    <CFlex align="center">
+      <CText
+        as="h1"
+        fontWeight="bold"
+        fontFamily="'Miriam Libre'"
+        size="lg"
+        fontSize="26px"
+        letterSpacing="2.5px"
         ><NuxtLink to="/"
           ><CImage
             d="inline-block"
             style="transform: translate(-3.5px, -2.5px) scale(1.6)"
             :src="require('@/static/logomark.svg')"
           />CANNON</NuxtLink
-        ></CHeading
+        ></CText
       >
     </CFlex>
 
@@ -40,7 +46,7 @@
         letterSpacing="1px"
         d="inline-block"
         to="/docs"
-        >Documentation</CLink
+        >Docs</CLink
       >
     </CBox>
   </CFlex>

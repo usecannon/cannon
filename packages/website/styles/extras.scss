@@ -1,0 +1,20 @@
+/* Some stuff isn't well supported by Chakra UI Vue so we're hacking it here */
+
+div[data-chakra-component="CTag"]  {
+    font-size: .75rem !important;
+    padding: 0.1rem 0.3rem;
+    min-height: 0;
+    background: #9cafc9;
+}
+
+input:not(:checked) + div[data-chakra-component="CControlBox"] {
+    color: transparent;
+}
+
+.prose {
+    h1 {}
+    h2 {}
+    h3 {}
+    h4 {}
+    p {}
+}

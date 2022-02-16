@@ -1,5 +1,5 @@
 <template>
-  <CBox textAlign="center" fontSize="sm" mt="20" p="4">
+  <CBox opacity="0.8" textAlign="center" fontSize="sm" mt="20" p="4">
     Built for ETHDenver 2022 by
     <CLink
       textDecoration="underline"

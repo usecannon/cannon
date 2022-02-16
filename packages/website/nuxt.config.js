@@ -1,4 +1,4 @@
-import customTheme from './custom-theme.js'
+import customTheme from './styles/theme.js'
 
 export default {
   // Target: https://go.nuxtjs.dev/config-target
@@ -20,7 +20,9 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [],
+  css: [
+    '@/styles/extras.scss'
+  ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [],
@@ -52,7 +54,7 @@ export default {
 
   googleFonts: {
     families: {
-      'Miram+Libre': true
+      'Miriam+Libre': true
     }
   }
 }
