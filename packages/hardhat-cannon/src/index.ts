@@ -1,1 +1,1 @@
-import './tasks/cannon';
+import "./tasks/cannon";

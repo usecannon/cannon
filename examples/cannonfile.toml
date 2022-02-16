@@ -1,21 +1,26 @@
-variable "feedurl" {}
-variable "property" {}
-variable "heartbeat" {
-    type = "integer"
-}
+[settings.feedurl]
+[settings.property]
+[settings.heartbeat]
+type = "integer"
 
-data "existing_contract" {
-    deploy = "deployment/"
-}
+[imports.btc_oracle]
+source = "chainlink:latest"
+options.feedurl = "${settings.feedurl}"
 
-resource "btc_oracle" {
-    contract = "ChainlinkOracle"
-}
+[imports.other_oracle]
+source = "chainlink:latest"
+options.feedurl = "${settings.feedurl}"
 
-resource "other_oracle" {
-    script = ""
-}
+[contract.my_simple_contract]
+artifact = "MySimpleContract"
+args = ["hello", 47]
+detect.folder = "deployments/${network}"
 
-keeper "runtime_price_feeder" {
-    script = "./deploy.js ${feedurl} ${btc_oracle.address}"
-}
+[run.apply_settings]
+script = "./"
+args = []
+env.SET_VALUE = "${settings.property}"
+
+[keepers.custom_price_feeder]
+script = "./deploy.js"
+args = ["${feedurl}" "${btc_oracle.address}"]
