@@ -9,15 +9,19 @@
       spacing="40px"
     >
       <CGridItem :col-span="[12, 3]">
-        <ul>
-          <li
-            v-for="link of page.toc"
-            :key="link.id"
-            :class="{ toc2: link.depth === 2, toc3: link.depth === 3 }"
-          >
-            <NuxtLink :to="`#${link.id}`">{{ link.text }}</NuxtLink>
-          </li>
-        </ul>
+        <CLink
+          v-for="link of page.toc"
+          :key="link.id"
+          as="nuxt-link"
+          fontFamily="'Miriam Libre'"
+          textTransform="uppercase"
+          letterSpacing="1px"
+          d="block"
+          mb="4"
+          :to="`#${link.id}`"
+          :class="{ toc2: link.depth === 2, toc3: link.depth === 3 }"
+          >{{ link.text }}</CLink
+        >
       </CGridItem>
       <CGridItem :col-span="[12, 9]" class="prose">
         <nuxt-content :document="page" />

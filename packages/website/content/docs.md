@@ -2,8 +2,8 @@
 
 ## Getting Started
 
+_Coming soon_
+
 ## Cannonfile Specification
 
-* A list!
-* A list!
-* A list!
+_Coming soon_

@@ -31,16 +31,18 @@
             textDecoration="underline"
             >Hardhat</CLink
           >
-          plug-in inspired by Docker and Terraform. Cannonfiles define all of
-          the protocols you'd like deploy to your chain and how you'd like to
-          configure them. Cannon comes with a built-in package manager, so you
+          plug-in inspired by Docker and Terraform.
+        </CText>
+        <CText as="p" mb="3"
+          >Cannonfiles define all of the protocols that your smart contracts
+          interact with. Cannon comes with a built-in package manager, so you
           can download and share Cannonfiles for existing protocols.</CText
         >
         <CText as="p"
-          >For example, you may be working on a smart contract that depends on
-          Chainlink oracles and Uniswap across two chains. With Cannon, you can
-          automate setting up a development chain with these contracts to
-          develop and test with.</CText
+          >For example, if your smart contract depends on Chainlink oracles and
+          Uniswap across multiple chains, Cannon automates the deployment of a
+          local environment with these contracts for development and
+          testing.</CText
         >
       </CBox>
       <CBox>

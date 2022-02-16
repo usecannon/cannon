@@ -14,8 +14,8 @@
       >
       <CHeading as="h2" size="lg" fontWeight="normal" mb="6" lineHeight="1.5"
         >Easily build and test your smart contract alongside existing protocols
-        configured however you’d like. Then use Cannon to deploy to production
-        with the live protocols.</CHeading
+        configured however you’d like. Then use Cannon to seamlessly deploy to
+        production.</CHeading
       >
       <CBox>
         <CButton
