@@ -46,7 +46,7 @@
             IPFS) so you can easily include existing protocols.</CText
           >
           <CText :fontSize="['lg', 'xl']" as="p" :mb="[5, 0]"
-            >For example, if your smart contract depends on Chainlink keepers
+            >For example, if your smart contract depends on a Chainlink keeper
             and Synthetix across multiple chains, Cannon automates the
             deployment of a local environment with these contracts for
             development and testing.</CText

@@ -19,7 +19,7 @@
         isExternal
         href="https://github.com/noahlitvin"
         >noahlitvin</CLink
-      >. This project is not actively maintained. View on
+      >. View on
       <CLink
         isExternal
         href="https://github.com/Synthetixio/cannon"
