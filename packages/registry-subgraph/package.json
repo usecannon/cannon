@@ -1,0 +1,16 @@
+{
+  "name": "cannon-registry",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry",
+    "create-local": "graph create --node http://localhost:8020/ noahlitvin/cannon-registry",
+    "remove-local": "graph remove --node http://localhost:8020/ noahlitvin/cannon-registry",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 noahlitvin/cannon-registry"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.26.0",
+    "@graphprotocol/graph-ts": "0.24.1"
+  }
+}

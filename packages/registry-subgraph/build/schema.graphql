@@ -1,0 +1,6 @@
+type Package @entity {
+  id: ID!
+  name: String!
+  version: String!
+  url: String!
+}

@@ -189,9 +189,4 @@ export default {
 .my-editor ::v-deep span.token.operator {
   background: transparent !important;
 }
-
-/* optional class for removing the outline */
-.prism-editor__textarea:focus {
-  outline: none;
-}
 </style>
