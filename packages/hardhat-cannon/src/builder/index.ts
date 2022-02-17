@@ -50,6 +50,8 @@ export const validateChainDefinition = ajv.compileParser(ChainDefinitionSchema);
 export interface ChainBuilderContext {
     fork: boolean,
     settings: ChainBuilderOptions,
+    network: string,
+    chainId: number,
 
     outputs: {
         self: ChainBuilderOptions
@@ -61,6 +63,8 @@ interface ChainBuilderOptions { [key: string]: OptionTypesTs };
 
 const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
     fork: false,
+    network: '',
+    chainId: 31337,
 
     settings: {},
     outputs: { self: {} }
@@ -85,6 +89,9 @@ export class ChainBuilder {
 
         const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
+        ctx.network = this.hre.network.name;
+        ctx.chainId = this.hre.network.config.chainId || 31337;
+
         // TODO: this downcast shouldn't work in JS, ideas how to work around?
         // almost might be better to not extend the class like this.
         //const node = createdNode[1] as PersistableHardhatNode;
@@ -93,46 +100,39 @@ export class ChainBuilder {
         debug('populate settings');
         this.populateSettings(ctx, opts);
 
-        // 2. read all imports
-        const key = this.cacheKey(ctx, 0);
-
-        if (this.def.import && await this.hasCache(key)) {
-            debug('load imports from cache', key);
-            await this.loadCache(key);
-        }
-        else if (this.def.import) {
-            // todo: parallelization can be utilized here
-            for (const imp in (this.def.import)) {
-                await importSpec.exec(this.hre, importSpec.configInject(ctx, this.def.import[imp]));
-            }
-
-            await this.putCache(key);
-        }
 
 
+        // 3. do steps
 
-        // 3. complete `contract` and then `run` steps, adjusting for priority given
-        const steppedContracts = _.groupBy(this.def.contract, 'step');
-        const steppedRuns = _.groupBy(this.def.run, 'step');
+        const steppedImports = _.groupBy(this.def.import, c => c.step || 0);
+        const steppedContracts = _.groupBy(this.def.contract, c => c.step || 0);
+        const steppedRuns = _.groupBy(this.def.run, c => c.step || 0);
 
-        const steps = _.union(_.keys(steppedContracts), _.keys(steppedContracts));
+        const steps = _.map(_.union(_.keys(steppedContracts), _.keys(steppedContracts)), parseInt);
+
+        console.log('steps', steps);
 
         for (const s of steps.sort()) {
             debug('step', s);
-            const key = this.cacheKey(ctx, parseInt(s));
+            const key = this.cacheKey(ctx, s);
 
             if (await this.hasCache(key)) {
                 debug(`load step ${s} from cache`, key);
                 await this.loadCache(key);
             }
             else {
-                debug(`deploy contracts step ${s}`);
+                debug(`imports step ${s}`);
+                for (const doImport of (steppedImports[s] || [])) {
+                    await importSpec.exec(this.hre, importSpec.configInject(ctx, doImport));
+                }
+
+                debug(`contracts step ${s}`);
                 // todo: parallelization can be utilized here
                 for (const doContract of (steppedContracts[s] || [])) {
                     await contractSpec.exec(this.hre, contractSpec.configInject(ctx, doContract));
                 }
 
-                debug(`deploy scripts step ${s}`);
+                debug(`scripts step ${s}`);
                 for (const doScript of (steppedRuns[s] || [])) {
                     await scriptSpec.exec(this.hre, scriptSpec.configInject(ctx, doScript));
                 }
@@ -140,8 +140,6 @@ export class ChainBuilder {
                 await this.putCache(key);
             }
         }
-
-        console.log('THE CODE', await this.hre.ethers.provider.getCode('0x5fbdb2315678afecb367f032d93f642f64180aa3'));
 
         //// TEMP
         const greeter = await this.hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
@@ -190,15 +188,23 @@ export class ChainBuilder {
 
     cacheKey(ctx: ChainBuilderContext, step: number = Number.MAX_VALUE) {
 
+        console.log('uno', this.def.contract);
+        console.log(_.filter(this.def.contract, c => {
+            console.log(c, step);
+            return (c.step || 0) <= step
+        }));
+
         // the purpose of this string is to indicate the state of the chain without accounting for
         // derivative factors (ex. contract addreseses, outputs)
         const str = JSON.stringify([
             // todo: record values here need to be sorted, perhaps put into pairs
             this.def.setting,
             _.mapValues(this.def.import, d => importSpec.configInject(ctx, d)),
-            _.map(_.filter(this.def.contract, c => (c.step || 0) < step), d => contractSpec.configInject(ctx, d)),
-            _.map(_.filter(this.def.run, c => (c.step || 0) < step), d => scriptSpec.configInject(ctx, d))
+            _.map(_.filter(this.def.contract, c => (c.step || 0) <= step), d => contractSpec.configInject(ctx, d)),
+            _.map(_.filter(this.def.run, c => (c.step || 0) <= step), d => scriptSpec.configInject(ctx, d))
         ]);
+
+        console.log('cache str', str);
 
         return crypto.createHash('md5').update(str).digest('hex');
     }

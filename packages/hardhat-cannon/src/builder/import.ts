@@ -13,7 +13,8 @@ const config = {
     optionalProperties: {
         options: {
             values: { type: 'string' }
-        }
+        },
+        step: { type: 'int32' }
     }
 } as const;
 

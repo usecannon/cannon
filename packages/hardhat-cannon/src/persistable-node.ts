@@ -6,7 +6,7 @@ import { Address } from 'ethereumjs-util';
 
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 
-import { SecureTrie as Trie } from 'merkle-patricia-tree';
+import { SecureTrie as Trie, CheckpointTrie } from 'merkle-patricia-tree';
 
 import BN from 'bn.js';
 import { HardforkHistoryConfig, HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -147,20 +147,13 @@ export async function loadState(hre: HardhatRuntimeEnvironment, rawState: Buffer
     // @ts-ignore
     const node = provider._node;
 
-    const beforeRoot = await node._stateManager.getStateRoot();
-
     await importStorage(node, state.storage);
-
-    const afterRoot = await node._stateManager.getStateRoot();
-
-    console.log('before, after', beforeRoot.toString('hex'), afterRoot.toString('hex'));
-
     await node._persistIrregularWorldState();
 
 
 
 
-    console.log('reached end of load function');
+    //console.log('reached end of load function');
 
 
 
@@ -239,17 +232,17 @@ async function dumpStorage(node: HardhatNode): Promise<{ [key: string]: any }> {
         // @ts-ignore
         // before dumping we run `getStateRoot` which triggers a flush to the backend
 
-        console.log('recording state root', await node._stateManager.getStateRoot());
+        //console.log('recording state root', await node._stateManager.getStateRoot());
 
         // @ts-ignore
         const acc = await node._stateManager.getAccount(Address.fromString('0x5fbdb2315678afecb367f032d93f642f64180aa3'));
-        console.log('dump storage', acc);
+        /*console.log('dump storage', acc);
 
         console.log('fun', acc.codeHash.toString('hex'));
         // @ts-ignore
         console.log('codehash', await node._stateManager._trie.db.get(acc.codeHash));
         // @ts-ignore
-        console.log('codehash2', Buffer.from(await node._stateManager._trie.db._leveldb.get(acc.codeHash, { keyEncoding: 'binary', valueEncoding: 'binary' }), 'binary'));
+        console.log('codehash2', Buffer.from(await node._stateManager._trie.db._leveldb.get(acc.codeHash, { keyEncoding: 'binary', valueEncoding: 'binary' }), 'binary'));*/
         
         // @ts-ignore
         storage.db = await trieDbDump(node._stateManager._trie);
@@ -272,8 +265,6 @@ function trieDbDump(trie: Trie): Promise<[string, string][]> {
     return new Promise((resolve, reject) => {
         trie.db._leveldb.createReadStream({ keyEncoding: 'binary', valueEncoding: 'binary' })
             .on('data', async (d: { key: string, value: string}) => {
-                console.log(Buffer.from(d.key, 'binary').toString('hex'));
-                console.log(await trie.db._leveldb.get(Buffer.from(d.key), { keyEncoding: 'binary', valueEncoding: 'binary'}));
                 dbData.push([Buffer.from(d.key, 'binary').toString('hex'), Buffer.from(d.value, 'binary').toString('hex')])
             })
             .on('end', () => {
@@ -313,9 +304,12 @@ async function importStorage(node: HardhatNode, storage: { [key: string]: any })
 
         //await trieImport
 
-        console.log('SANITY');
+        /*console.log('SANITY');
         // @ts-ignore
-        console.log('the storage', (await node._stateManager._trie.get(Buffer.from('44e659e60b21cc961f64ad47f20523c1d329d4bbda245ef3940a76dc89d0911b', 'hex'))).toString('hex'));
+        //console.log('the storage', (await node._stateManager._trie.get(Buffer.from('44e659e60b21cc961f64ad47f20523c1d329d4bbda245ef3940a76dc89d0911b', 'hex'))).toString('hex'));
+
+        // @ts-ignore
+        console.log('the storage2', (await node._stateManager._trie.get(Address.fromString('0x5fbdb2315678afecb367f032d93f642f64180aa3').buf)));
         // @ts-ignore
         const acc = await node._stateManager.getAccount(Address.fromString('0x5fbdb2315678afecb367f032d93f642f64180aa3'));
         console.log('dump storage', acc);
@@ -324,7 +318,7 @@ async function importStorage(node: HardhatNode, storage: { [key: string]: any })
         // @ts-ignore
         console.log('codehash', await node._stateManager._trie.db.get(acc.codeHash));
         // @ts-ignore
-        console.log('codehash2', Buffer.from(await node._stateManager._trie.db._leveldb.get(acc.codeHash, { keyEncoding: 'binary', valueEncoding: 'binary' }), 'binary'));
+        console.log('codehash2', Buffer.from(await node._stateManager._trie.db._leveldb.get(acc.codeHash, { keyEncoding: 'binary', valueEncoding: 'binary' }), 'binary'));*/
 
         /*for (const k in storage) {
             if (k == 'root') {
@@ -348,16 +342,14 @@ async function importStorage(node: HardhatNode, storage: { [key: string]: any })
 }
 
 async function trieDbImport(trie: Trie, data: [string, string][]): Promise<void> {
-    console.log('import count db', data.length);
     for (const [k, v] of data) {
         await trie.db._leveldb.put(Buffer.from(k, 'hex'), Buffer.from(v, 'hex'), { keyEncoding: 'binary', valueEncoding: 'binary'});
     }
 }
 
 async function trieImport(trie: Trie, data: [string, string][]): Promise<void> {
-    console.log('import count', data.length);
     for (const [k, v] of data) {
-        await trie.put(Buffer.from(k, 'hex'), Buffer.from(v, 'hex'));
+        await CheckpointTrie.prototype.put.call(trie, Buffer.from(k, 'hex'), Buffer.from(v, 'hex'));
     }
 }
 
