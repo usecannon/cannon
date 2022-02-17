@@ -14,7 +14,6 @@
     "@babel/plugin-transform-runtime": "7.13.10",
     "@babel/preset-env": "7.13.10",
     "@babel/preset-typescript": "7.13.0",
-    "@types/jest": "^26.0.24",
     "@types/memdown": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
@@ -26,19 +25,6 @@
     "lerna": "^4.0.0",
     "memdown": "^6.1.1",
     "typescript": "^4.5.5"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.ts?$": "babel-jest"
-    },
-    "coverageThreshold": {
-      "global": {
-        "branches": 70,
-        "functions": 70,
-        "lines": 80,
-        "statements": 80
-      }
-    }
   },
   "husky": {
     "hooks": {
