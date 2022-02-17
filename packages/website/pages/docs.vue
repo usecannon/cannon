@@ -2,7 +2,7 @@
   <CBox maxWidth="containers.lg" mx="auto" px="4">
     <CGrid
       template-columns="repeat(12, 1fr)"
-      gap="6"
+      gap="10"
       py="10"
       maxWidth="containers.lg"
       mx="auto"
@@ -58,5 +58,9 @@ a.docsnav:hover {
 }
 a.docsnav:focus {
   box-shadow: none !important;
+}
+a.docsnav.toc3 {
+  font-size: 0.8rem;
+  padding-left: 20px;
 }
 </style>

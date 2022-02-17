@@ -37,7 +37,7 @@
           </CText>
           <CText :fontSize="['lg', 'xl']" as="p" mb="3"
             >Configure your protocol's scripts, keepers, and on-chain
-            dependencies in your <code>canon.json</code> file for
+            dependencies in your <code>cannon.json</code> file for
             <strong>automated deployments on local and live chains.</strong>
           </CText>
           <CText :fontSize="['lg', 'xl']" as="p" mb="5">
@@ -63,11 +63,11 @@
             px="3"
             width="100%"
             mb="6"
-            >npm install hardhat-canon</CCode
+            >npm install hardhat-cannon</CCode
           >
 
           <CText fontWeight="semibold" mb="1"
-            >2. Add this to your <code>hardhat.config.json</code></CText
+            >2. Add this to your <code>hardhat.config.js</code></CText
           >
           <CCode
             variant-color="black"
@@ -80,7 +80,7 @@
           >
 
           <CText fontWeight="semibold" mb="1"
-            >3. Define a <code>canon.json</code> file</CText
+            >3. Define a <code>cannon.json</code> file</CText
           >
           <CBox mb="6">
             <client-only :placeholder="code">
