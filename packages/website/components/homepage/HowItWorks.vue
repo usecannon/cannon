@@ -92,14 +92,14 @@
             </client-only>
           </CBox>
 
-          <CText fontWeight="semibold" mb="1">4. Provision a local node</CText>
+          <CText fontWeight="semibold" mb="1">4. Provision local nodes</CText>
           <CCode
             variant-color="black"
             background="black"
             py="1"
             px="3"
             width="100%"
-            >npm hardhat cannon</CCode
+            >npx hardhat cannon</CCode
           >
         </CGridItem>
       </CGrid>
@@ -141,7 +141,10 @@ export default {
             "chainId": 10
         },
         {
-            "deploy": ["synthetix:2.62"],
+            "deploy": [
+              "mySampleProject:latest",
+              "synthetix:2.62"
+            ],
             "chainId": 100
         }
     ]

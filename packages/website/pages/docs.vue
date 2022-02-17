@@ -51,7 +51,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 a.docsnav:hover {
   text-decoration: none !important;
   opacity: 0.8;
@@ -62,5 +62,18 @@ a.docsnav:focus {
 a.docsnav.toc3 {
   font-size: 0.8rem;
   padding-left: 20px;
+}
+::v-deep .nuxt-content-highlight {
+  font-size: 14px;
+  margin-bottom: 12px;
+
+  span.token.operator {
+    background: transparent !important;
+  }
+
+  pre.line-numbers {
+    border: 0;
+    background: #000;
+  }
 }
 </style>
