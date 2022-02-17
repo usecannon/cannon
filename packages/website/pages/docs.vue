@@ -2,7 +2,7 @@
   <CBox maxWidth="containers.lg" mx="auto" px="4">
     <CGrid
       template-columns="repeat(12, 1fr)"
-      gap="6"
+      gap="10"
       py="10"
       maxWidth="containers.lg"
       mx="auto"
@@ -19,7 +19,11 @@
           d="block"
           mb="4"
           :to="`#${link.id}`"
-          :class="{ toc2: link.depth === 2, toc3: link.depth === 3 }"
+          :class="{
+            docsnav: true,
+            toc2: link.depth === 2,
+            toc3: link.depth === 3,
+          }"
           >{{ link.text }}</CLink
         >
       </CGridItem>
@@ -46,3 +50,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+a.docsnav:hover {
+  text-decoration: none !important;
+  opacity: 0.8;
+}
+a.docsnav:focus {
+  box-shadow: none !important;
+}
+a.docsnav.toc3 {
+  font-size: 0.8rem;
+  padding-left: 20px;
+}
+</style>

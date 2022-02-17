@@ -56,4 +56,7 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
             margin-bottom: 4px;
         }
     }
+    a {
+        text-decoration: underline;
+    }
 }
