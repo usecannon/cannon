@@ -92,7 +92,7 @@
             </client-only>
           </CBox>
 
-          <CText fontWeight="semibold" mb="1">4. Deploy to a local node</CText>
+          <CText fontWeight="semibold" mb="1">4. Provision a local node</CText>
           <CCode
             variant-color="black"
             background="black"
