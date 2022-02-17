@@ -7,3 +7,8 @@ type Package @entity {
   added: BigInt!
   publisher: String!
 }
+
+type Tag @entity {
+  id: ID!
+  count: BigInt!
+}

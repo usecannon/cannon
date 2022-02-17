@@ -46,11 +46,7 @@
         >Filter</CHeading
       >
       <CCheckboxGroup>
-        <CCheckbox>Lending</CCheckbox>
-        <CCheckbox>DEXes</CCheckbox>
-        <CCheckbox>Derivatives</CCheckbox>
-        <CCheckbox>Payments</CCheckbox>
-        <CCheckbox>Assets</CCheckbox>
+        <CCheckbox v-for="t in tags" :key="t.id">{{ t.id }}</CCheckbox>
       </CCheckboxGroup>
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
@@ -67,7 +63,8 @@ export default {
   name: 'Search',
   data() {
     return {
-      packages: []
+      packages: [],
+      tags: [],
     }
   },
   components: {
@@ -75,8 +72,8 @@ export default {
   },
   apollo: {
     packages: {
-      query: gql`query getPackage {
-        packages(orderDirection: desc, orderBy: added){
+      query: gql`query getPackages {
+        packages: packages(first: 20, orderDirection: desc, orderBy: added){
           id
           name
           description
@@ -84,6 +81,14 @@ export default {
           url
           added
           publisher
+        }
+      }`
+    },
+    tags: {
+      query: gql`query getTags {
+        tags: tags(first: 10, orderDirection: desc, orderBy: count){
+          id
+          count
         }
       }`
     }
