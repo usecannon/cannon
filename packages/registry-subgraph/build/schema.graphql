@@ -1,6 +1,7 @@
 type Package @entity {
   id: ID!
   name: String!
+  description: String!
   version: String!
   url: String!
   added: BigInt!

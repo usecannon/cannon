@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { ipfs, json, log } from "@graphprotocol/graph-ts"
 import {
   CannonRegistry,
   ProtocolPublish
@@ -23,6 +23,16 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   entity.url = event.params.url;
   entity.added = event.block.timestamp;
   entity.publisher = event.transaction.from.toHexString();
+
+  let path = entity.url.slice(7) + '/cannon-metadata.json';
+  let data = ipfs.cat(path);
+  if(data) {
+    let obj = json.fromBytes(data).toObject();
+    let description = obj.get('description');
+    if(description){
+      entity.description = description.toString();
+    }
+  }
 
   // Entities can be written to the store with `.save()`
   entity.save();

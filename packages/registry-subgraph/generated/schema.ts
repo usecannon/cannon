@@ -17,6 +17,7 @@ export class Package extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("name", Value.fromString(""));
+    this.set("description", Value.fromString(""));
     this.set("version", Value.fromString(""));
     this.set("url", Value.fromString(""));
     this.set("added", Value.fromBigInt(BigInt.zero()));
@@ -56,6 +57,15 @@ export class Package extends Entity {
 
   set name(value: string) {
     this.set("name", Value.fromString(value));
+  }
+
+  get description(): string {
+    let value = this.get("description");
+    return value!.toString();
+  }
+
+  set description(value: string) {
+    this.set("description", Value.fromString(value));
   }
 
   get version(): string {

@@ -11,7 +11,7 @@
     transition="0.12s"
   >
     <CHeading as="h4" size="md" mb="1">{{ p.name }}</CHeading>
-    <CText color="gray.300" mb="3">Description goes here...</CText>
+    <CText color="gray.300" mb="3">{{ p.description }}</CText>
     <CBox mb="2">
       <CTag size="sm" variantColor="blue" mr="1">DEXes</CTag>
       <CTag size="sm" variantColor="blue" mr="1">Lending</CTag>

@@ -12,7 +12,7 @@
       >
         <CGridItem :col-span="[12, 9]">
           <CHeading as="h4" size="md" mb="1">{{ package.name }}</CHeading>
-          <CText color="gray.300" mb="3">Description goes here...</CText>
+          <CText color="gray.300" mb="3">{{ package.description }}</CText>
           <CBox mb="2">
             <CTag size="sm" variantColor="blue">DEXes</CTag>
             <CTag size="sm" variantColor="blue">Lending</CTag>
@@ -81,6 +81,7 @@ export default {
         packages(first: 1, orderDirection: desc, orderBy: added, where: {name: $name}){
           id
           name
+          description
           version
           url,
           added,

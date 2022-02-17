@@ -79,9 +79,10 @@ export default {
         packages(orderDirection: desc, orderBy: added){
           id
           name
+          description
           version
-          url,
-          added,
+          url
+          added
           publisher
         }
       }`
