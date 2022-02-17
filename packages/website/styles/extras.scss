@@ -1,0 +1,59 @@
+/* Some stuff isn't well supported by Chakra UI Vue so we're hacking it here */
+
+div[data-chakra-component="CTag"]  {
+    font-size: .75rem !important;
+    padding: 0.1rem 0.3rem;
+    min-height: 0;
+    background: #9cafc9;
+    font-weight: 600;
+    letter-spacing: 0.5px;;
+}
+
+input:not(:checked) + div[data-chakra-component="CControlBox"] {
+    color: transparent;
+}
+
+.prose {
+    h1 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 36px;
+        line-height: 45px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+    h2 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 30px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+    h3 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 25px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    h4 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    p {
+        margin-bottom: 12px;
+    }
+    ul {
+        margin-bottom: 12px;
+        margin-left: 15px;
+        li {
+            margin-bottom: 4px;
+        }
+    }
+}

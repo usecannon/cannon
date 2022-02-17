@@ -1,3 +1,6 @@
+name = "sample-project"
+version = "0.0.1"
+
 [settings.feedurl]
 [settings.property]
 [settings.heartbeat]
@@ -23,4 +26,4 @@ env.SET_VALUE = "${settings.property}"
 
 [keepers.custom_price_feeder]
 script = "./deploy.js"
-args = ["${feedurl}" "${btc_oracle.address}"]
+args = ["${feedurl}", "${btc_oracle.address}"]
