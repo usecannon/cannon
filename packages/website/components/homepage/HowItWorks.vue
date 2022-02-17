@@ -63,11 +63,24 @@
             px="3"
             width="100%"
             mb="6"
-            >npx install hardhat-canon</CCode
+            >npm install hardhat-canon</CCode
           >
 
           <CText fontWeight="semibold" mb="1"
-            >2. Define a <code>canon.json</code> file</CText
+            >2. Add this to your <code>hardhat.config.json</code></CText
+          >
+          <CCode
+            variant-color="black"
+            background="black"
+            py="1"
+            px="3"
+            width="100%"
+            mb="6"
+            >require('hardhat-cannon');</CCode
+          >
+
+          <CText fontWeight="semibold" mb="1"
+            >3. Define a <code>canon.json</code> file</CText
           >
           <CBox mb="6">
             <client-only :placeholder="code">
@@ -79,14 +92,14 @@
             </client-only>
           </CBox>
 
-          <CText fontWeight="semibold" mb="1">3. Deploy to a local node</CText>
+          <CText fontWeight="semibold" mb="1">4. Deploy to a local node</CText>
           <CCode
             variant-color="black"
             background="black"
             py="1"
             px="3"
             width="100%"
-            >npx hardhat cannon</CCode
+            >npm hardhat cannon</CCode
           >
         </CGridItem>
       </CGrid>
