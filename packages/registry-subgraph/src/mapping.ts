@@ -21,6 +21,8 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   entity.name = event.params.name.toString();
   entity.version = event.params.version.toString();
   entity.url = event.params.url;
+  entity.added = event.block.timestamp;
+  entity.publisher = event.transaction.from.toHexString();
 
   // Entities can be written to the store with `.save()`
   entity.save();

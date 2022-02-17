@@ -19,6 +19,8 @@ export class Package extends Entity {
     this.set("name", Value.fromString(""));
     this.set("version", Value.fromString(""));
     this.set("url", Value.fromString(""));
+    this.set("added", Value.fromBigInt(BigInt.zero()));
+    this.set("publisher", Value.fromString(""));
   }
 
   save(): void {
@@ -72,5 +74,23 @@ export class Package extends Entity {
 
   set url(value: string) {
     this.set("url", Value.fromString(value));
+  }
+
+  get added(): BigInt {
+    let value = this.get("added");
+    return value!.toBigInt();
+  }
+
+  set added(value: BigInt) {
+    this.set("added", Value.fromBigInt(value));
+  }
+
+  get publisher(): string {
+    let value = this.get("publisher");
+    return value!.toString();
+  }
+
+  set publisher(value: string) {
+    this.set("publisher", Value.fromString(value));
   }
 }

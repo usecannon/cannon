@@ -54,19 +54,38 @@
       </CCheckboxGroup>
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
-      <Preview id="placeholder" />
-      <Preview id="placeholder" />
+      <Preview v-for="p in packages" :key="p.id" :p="p" />
     </CGridItem>
   </CGrid>
 </template>
 
 <script lang="js">
+import gql from 'graphql-tag'
 import Preview from "../components/search/Preview"
 
 export default {
   name: 'Search',
+  data() {
+    return {
+      packages: []
+    }
+  },
   components: {
     Preview
+  },
+  apollo: {
+    packages: {
+      query: gql`query getPackage {
+        packages(orderDirection: desc, orderBy: added){
+          id
+          name
+          version
+          url,
+          added,
+          publisher
+        }
+      }`
+    }
   }
 }
 </script>

@@ -3,4 +3,6 @@ type Package @entity {
   name: String!
   version: String!
   url: String!
+  added: BigInt!
+  publisher: String!
 }
