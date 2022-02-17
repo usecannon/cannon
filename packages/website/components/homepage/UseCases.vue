@@ -5,6 +5,8 @@
     mx="auto"
     px="4"
     textAlign="center"
+    position="relative"
+    zIndex="1"
   >
     <CHeading
       as="h3"

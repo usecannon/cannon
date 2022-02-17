@@ -13,8 +13,8 @@
         >Cannon manages protocol deployment on blockchains</CHeading
       >
       <CHeading as="h2" size="lg" fontWeight="normal" mb="6" lineHeight="1.5"
-        >Easily build and test your smart contract alongside existing protocols
-        configured however you’d like. Then use Cannon to seamlessly deploy to
+        >Develop and test your smart contracts alongside existing protocols,
+        configured however you like. Then use Cannon to seamlessly deploy to
         production.</CHeading
       >
       <CBox>
@@ -32,7 +32,7 @@
             "
             v-html="$feathericons['package'].toSvg()"
           />
-          Browse Cannonfiles</CButton
+          Browse packages</CButton
         >
         <CButton
           as="nuxt-link"
