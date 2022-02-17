@@ -19,7 +19,11 @@
           d="block"
           mb="4"
           :to="`#${link.id}`"
-          :class="{ toc2: link.depth === 2, toc3: link.depth === 3 }"
+          :class="{
+            docsnav: true,
+            toc2: link.depth === 2,
+            toc3: link.depth === 3,
+          }"
           >{{ link.text }}</CLink
         >
       </CGridItem>
@@ -46,3 +50,13 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+a.docsnav:hover {
+  text-decoration: none !important;
+  opacity: 0.8;
+}
+a.docsnav:focus {
+  box-shadow: none !important;
+}
+</style>

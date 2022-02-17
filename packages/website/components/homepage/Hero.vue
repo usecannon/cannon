@@ -2,7 +2,7 @@
   <CBox position="relative">
     <div class="purple-burst" />
     <CBox
-      py="20"
+      :py="[8, 20]"
       maxWidth="containers.lg"
       mx="auto"
       px="4"
