@@ -1,26 +1,11 @@
-[settings.feedurl]
-[settings.property]
-[settings.heartbeat]
-type = "integer"
+[contract.greeter]
+artifact = "Greeter"
+args = ["this is un"]
+detect.method = "folder"
+detect.path = "deployments/${network}"
 
-[imports.btc_oracle]
-source = "chainlink:latest"
-options.feedurl = "${settings.feedurl}"
-
-[imports.other_oracle]
-source = "chainlink:latest"
-options.feedurl = "${settings.feedurl}"
-
-[contract.my_simple_contract]
-artifact = "MySimpleContract"
-args = ["hello", 47]
-detect.folder = "deployments/${network}"
-
-[run.apply_settings]
-script = "./"
-args = []
-env.SET_VALUE = "${settings.property}"
-
-[keepers.custom_price_feeder]
-script = "./deploy.js"
-args = ["${feedurl}", "${btc_oracle.address}"]
+[contract.greeter2]
+artifact = "Greeter"
+args = ["this is another greeter!"]
+detect.method = "folder"
+detect.path = "deployments/${network}"

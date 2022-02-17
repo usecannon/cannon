@@ -1,76 +1,26 @@
-import Ajv from "ajv";
+import Ajv from "ajv/dist/jtd";
 import _ from 'lodash';
 
-import hre from 'hardhat';
-
-import fs from 'fs';
-import path from 'path';
+import fs from 'fs-extra';
+import path, { dirname } from 'path';
 import crypto from 'crypto';
 
-import type { JSONSchemaType } from "ajv";
 import { JTDDataType } from "ajv/dist/core";
-import { HardhatNode } from "hardhat/src/internal/hardhat-network/provider/node";
 import * as persistableNode from "../persistable-node";
+
+import contractSpec from './contract';
+import importSpec from './import';
+import scriptSpec from './run';
+import keeperSpec from './keeper';
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import Debug from 'debug';
+const debug = Debug('cannon:builder');
 
 const ajv = new Ajv();
 
 type OptionTypes = 'number'|'string'|'boolean';
 type OptionTypesTs = string|number|boolean;
-export interface ChainDefinitionOld {
-    setting?: {
-        [key: string]: {
-            type?: OptionTypes,
-            defaultValue?: OptionTypesTs
-        }
-    },
-    import?: {
-        [key: string]: {
-            source: string,
-            options?: {
-                [key: string]: OptionTypesTs
-            }
-        }
-    },
-    contract?: {
-        [key: string]: {
-            artifact: string,
-            args?: OptionTypesTs[]
-            detect?: {
-                folder: string
-            }|{
-                script: string
-            }
-        }
-    },
-    run?: {
-        [key: string]: {
-            script: string,
-            args?: string[],
-            env?: {
-                [key: string]: string
-            }
-        }
-    },
-    keeper?: {
-        [key: string]: {
-            script: string,
-            args?: string[],
-            env?: {
-                [key: string]: string
-            }
-        }
-    }
-}
-
-const ChainDefinitionScriptSchema = {
-    properties: {
-        exec: { type: 'string' },
-    },
-    optionalProperties: {
-        args: { elements: { type: 'string' } },
-        env: { elements: { type: 'string' } }
-    }
-};
 
 const ChainDefinitionSchema = {
     optionalProperties: {
@@ -83,52 +33,19 @@ const ChainDefinitionSchema = {
 
             }
         },
-        import: {
-            values: {
-                properties: {
-                    source: { type: 'string' },
-                },
-                optionalProperties: {
-                    options: {
-                        values: {}
-                    }
-                }
-            }
-        },
-        contract: {
-            values: {
-                properties: {
-                    artifact: { type: 'string' },
-                },
-                optionalProperties: {
-                    args: { elements: {} },
-                    detect: {
-                        discriminator: 'method',
-                        mapping: {
-                            'folder': { properties: { path: { type: 'string' }}},
-                            'script': ChainDefinitionScriptSchema
-                        }
-                    },
-                    order: { type: 'int32' }
-                }
-
-            }
-        },
-        run: {
-            values: _.merge({
-                optionalProperties: { order: { type: 'int32' }}
-            }, ChainDefinitionScriptSchema)
-        },
-        keeper: {
-            values: ChainDefinitionScriptSchema
-        },
+        import: { values: importSpec.validate },
+        contract: { values: contractSpec.validate },
+        run: { values: scriptSpec.validate },
+        keeper: { values: keeperSpec.validate },
     }
 } as const
 
 
 export type ChainDefinition = JTDDataType<typeof ChainDefinitionSchema>
 
-export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
+export type BuildOptions = { [val: string]: string };
+
+export const validateChainDefinition = ajv.compileParser(ChainDefinitionSchema);
 
 export interface ChainBuilderContext {
     fork: boolean,
@@ -153,14 +70,19 @@ export class ChainBuilder {
 
     readonly label: string;
     readonly def: ChainDefinition;
+    readonly hre: HardhatRuntimeEnvironment;
 
-    constructor(label: string, def: ChainDefinition) {
+    constructor(label: string, def: ChainDefinition, hre: HardhatRuntimeEnvironment) {
         this.label = label;
         this.def = def;
+
+        this.hre = hre/* || require('hardhat');*/
     }
 
 
-    async build(opts: { [val: string]: string }): Promise<void> {
+    async build(opts: BuildOptions): Promise<ChainBuilder> {
+        debug('build');
+
         const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
         // TODO: this downcast shouldn't work in JS, ideas how to work around?
@@ -168,22 +90,63 @@ export class ChainBuilder {
         //const node = createdNode[1] as PersistableHardhatNode;
 
         // 1. read all settings
-        this.populateSettings();
+        debug('populate settings');
+        this.populateSettings(ctx, opts);
 
         // 2. read all imports
-        for (const imp in (this.def.import || {})) {
-            // TODO
+        const key = this.cacheKey(ctx, 0);
+
+        if (this.def.import && await this.hasCache(key)) {
+            debug('load imports from cache', key);
+            await this.loadCache(key);
+        }
+        else if (this.def.import) {
+            // todo: parallelization can be utilized here
+            for (const imp in (this.def.import)) {
+                await importSpec.exec(this.hre, importSpec.configInject(ctx, this.def.import[imp]));
+            }
+
+            await this.putCache(key);
         }
 
-        await this.putCache( JSON.stringify(ctx));
 
 
-        // 3. complete rest of steps in order given: contracts, runs, keeper config
+        // 3. complete `contract` and then `run` steps, adjusting for priority given
+        const steppedContracts = _.groupBy(this.def.contract, 'step');
+        const steppedRuns = _.groupBy(this.def.run, 'step');
 
-        for (let i = 0;i < 0;i++) {
-            await this.putCache()
+        const steps = _.union(_.keys(steppedContracts), _.keys(steppedContracts));
 
+        for (const s of steps.sort()) {
+            debug('step', s);
+            const key = this.cacheKey(ctx, parseInt(s));
+
+            if (await this.hasCache(key)) {
+                debug(`load step ${s} from cache`, key);
+                await this.loadCache(key);
+            }
+            else {
+                debug(`deploy contracts step ${s}`);
+                // todo: parallelization can be utilized here
+                for (const doContract of (steppedContracts[s] || [])) {
+                    await contractSpec.exec(this.hre, contractSpec.configInject(ctx, doContract));
+                }
+
+                debug(`deploy scripts step ${s}`);
+                for (const doScript of (steppedRuns[s] || [])) {
+                    await scriptSpec.exec(this.hre, scriptSpec.configInject(ctx, doScript));
+                }
+    
+                await this.putCache(key);
+            }
         }
+
+        console.log('THE CODE', await this.hre.ethers.provider.getCode('0x5fbdb2315678afecb367f032d93f642f64180aa3'));
+
+        //// TEMP
+        const greeter = await this.hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
+
+        console.log(await greeter.greet());
 
         // create/export cached snapshot after step 2, and again for every operation in step 3
 
@@ -196,17 +159,14 @@ export class ChainBuilder {
 
         // construct full context
         const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
-        this.populateSettings(ctx);
-
-
+        this.populateSettings(ctx, opts);
 
         // load the cache (note: will fail if `build()` has not been called first)
-        this.loadCache(this.cacheKey(ctx));
-
-        await hre.run('node');
+        await this.loadCache(this.cacheKey(ctx));
+        await this.hre.run('node');
     }
 
-    populateSettings(ctx: ChainBuilderContext) {
+    populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
         for (const s in (this.def.setting || {})) {
 
             let value = this.def.setting![s].defaultValue;
@@ -225,38 +185,56 @@ export class ChainBuilder {
     }
 
     cacheFile(key: string) {
-        return path.join(hre.config.paths.cache, 'cannon', this.label, key);
+        return path.join(this.hre.config.paths.cache, 'cannon', this.label, key);
     }
 
-    cacheKey(ctx: ChainBuilderContext) {
+    cacheKey(ctx: ChainBuilderContext, step: number = Number.MAX_VALUE) {
+
         // the purpose of this string is to indicate the state of the chain without accounting for
         // derivative factors (ex. contract addreseses, outputs)
-        const str = [
-            ctx.fork,
-            _.map(ctx.settings, (k, v) => `${k},${v}`).join(';'),
-            Object.keys(ctx.outputs).join(',')
-        ].join(';');
+        const str = JSON.stringify([
+            // todo: record values here need to be sorted, perhaps put into pairs
+            this.def.setting,
+            _.mapValues(this.def.import, d => importSpec.configInject(ctx, d)),
+            _.map(_.filter(this.def.contract, c => (c.step || 0) < step), d => contractSpec.configInject(ctx, d)),
+            _.map(_.filter(this.def.run, c => (c.step || 0) < step), d => scriptSpec.configInject(ctx, d))
+        ]);
 
         return crypto.createHash('md5').update(str).digest('hex');
     }
 
     clearCache() {
-        fs.rmdirSync(path.join(hre.config.paths.cache, 'cannon', this.label));
+        fs.rmdirSync(path.join(this.hre.config.paths.cache, 'cannon', this.label));
+    }
+
+    async hasCache(key: string) {
+        try {
+            const stat = await fs.stat(this.cacheFile(key));
+            return stat.isFile();
+        } catch(err) {}
+
+        return false;
     }
 
     async loadCache(key: string) {
+        debug('load cache', key);
+
         const cacheFile = this.cacheFile(key);
 
-        const cacheData = fs.readFileSync(cacheFile);
+        const cacheData = await fs.readFile(cacheFile);
 
-        await persistableNode.loadState(cacheData);
+        await persistableNode.loadState(this.hre, cacheData);
     }
 
     async putCache(key: string) {
+
         const cacheFile = this.cacheFile(key);
 
-        const data = await persistableNode.dumpState();
+        const data = await persistableNode.dumpState(this.hre);
 
-        fs.writeFileSync(cacheFile, data);
+        debug('put cache', key, cacheFile);
+
+        await fs.ensureDir(dirname(cacheFile));
+        await fs.writeFile(cacheFile, data);
     }
 }
