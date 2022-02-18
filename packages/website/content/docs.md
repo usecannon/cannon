@@ -13,7 +13,7 @@ For more advanced usage, you can set up either of both of the following files:
 ### Install Cannon
 
 After you've installed Hardhat, install `hardhat-cannon`.
-```
+```bash
 npm install hardhat-cannon
 ```
 
@@ -31,9 +31,7 @@ import 'hardhat-cannon';
 
 ### Provision a Custom Chain
 
-If you'd like to run a local node with an existing protocol, you can rely on the built-in package manager.
-
-For example, the following command will start a local node (similar to running `npx hardhat node`) with a simple `Greeter.sol` contract already deployed.
+If you'd like to run a local node with an existing protocol, you can rely on the built-in package manager. For example, the following command will start a local node (similar to running `npx hardhat node`) with a simple `Greeter.sol` contract already deployed.
 ```bash
 npx hardhat cannon greeter 
 ```
@@ -77,7 +75,7 @@ Once you've created your `cannon.json` file, run `npx hardhat cannon` and Cannon
 
 See [cannon.json Specification](#cannonjson-specification) for more details on how to set up this file.
 
-### Define a Cannonfile
+### Create Cannonfile.toml
 
 If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`.
 
@@ -131,10 +129,10 @@ See [cannonfile.toml Specification](#cannonfiletoml-specification) for more deta
 
 ## Using the Package Manager
 
-The examples above demonstrate how to read from the package manager using a `canon.json` file or via the CLI.
+The examples above demonstrate how to read from the package manager using a `cannon.json` file or via the CLI.
 
 Here is an example of how you could publish the above Cannonfile to the registery, backed on Ethereum and IPFS:
-```
+```bash
 npx hardhat compile
 npx hardhat cannon:build myStorageCannon:latest
 npx hardhat cannon:publish myStorageCannon
@@ -142,7 +140,7 @@ npx hardhat cannon:publish myStorageCannon
 
 ## cannonfile.toml Specification
 
-Cannonfiles contain a series of actions which are executed at run-time. See [Define a Cannonfile](##define-a-cannonfile) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
+Cannonfiles contain a series of actions which are executed at run-time. See [Define a Cannonfile](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
 
 ### contract
 
@@ -153,63 +151,63 @@ The `contract` action deploys a contract to a chain.
 
 **Optional Inputs** 
 * `args` - Specifies the arguments to provide the constructor function
-* `detect` -
+* `detect` - ___
 
 **Outputs** 
-* `abi` -
-* `address` -
-* `deployTxnHash` -
+* `abi` - The ABI of the deployed contract
+* `address` - The address fo the deployed contract
+* `deployTxnHash` - The transaction hash of the deployment
 
 ### import
 
-The `import` action ___
+The `import` action allows for composability by letting you specify another cannonfile to be built on your chain.
 
 **Required Inputs** 
-* `source` -
+* `source` - The name of the package to import.
 
 **Optional Inputs** 
-* `options` -
+* `options` - The options to be used when initializing this cannonfile.
 
 **Outputs** 
 * `__` - __
 
 ### invoke
 
-The `invoke` action ___
+The `invoke` action calls a specified function on-chain.
 
 **Required Inputs** 
-* `address` -
-* `abi` -
-* `func` -
+* `address` - The address of the contract to call
+* `abi` - The ABI of the contract to call
+* `func` - The name of the function to call
 
 **Optional Inputs** 
-* `args` -
-* `from` -
-* `detect` -
+* `args` - The arguments to use when invoking this call
+* `from` - The calling address to use when invoking this call
+* `detect` - ___
 
 **Outputs** 
-* `hash` - __
+* `hash` - The transaction hash of the execution
 
 ### keeper
 
-The `keeper` action ___
+The `keeper` action defines a keeper to be used on this chain. This does not effect the chain build.
 
-t.b.d.
+___
 
 ### run
 
-The `run` action ___
+The `run` action executes a custom script.
 
 **Required Inputs** 
-* `exec` -
-* `func` -
+* `exec` - ___
+* `func` - ___
 
 **Optional Inputs** 
-* `args` -
-* `env` -
+* `args` - The arguments to pass the script
+* `env` - ___
 
 **Outputs** 
-* `__` - __
+* `__` - ___
 
 ## cannon.json Specification
 
