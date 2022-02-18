@@ -35,6 +35,10 @@ task(
         remotePath: `${name}/cannonfile.toml`,
         localPath: filepath,
       },
+      // {
+      //   remotePath: `${name}/README.md`,
+      //   localPath: filepath,
+      // },
       {
         remotePath: `${name}/cache`,
         localPath: builder.getCacheDir(),
