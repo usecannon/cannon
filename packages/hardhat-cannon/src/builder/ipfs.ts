@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import path from 'path/posix';
 import { IPFSHTTPClient, create, globSource } from 'ipfs-http-client';
 
 type IPFSFileContent = {
@@ -61,8 +62,10 @@ async function* _openFiles(files: IPFSFile[]) {
 
       if (stat.isDirectory()) {
         for await (const child of globSource(localFile.localPath, '**/*')) {
-          console.log('->', child.content.path);
-          // yield _openFile(localFile);
+          yield {
+            path: path.join(file.remotePath, child.path),
+            content: child.content,
+          };
         }
       } else {
         yield _openFile(localFile);
