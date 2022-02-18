@@ -50,14 +50,6 @@ task(
 
     printBundledChainBuilderOutput(builder.getOutputs());
 
-    // TEMP
-    const greeter = await hre.ethers.getContractAt(
-      'Greeter',
-      '0x5fbdb2315678afecb367f032d93f642f64180aa3'
-    );
-
-    console.log(await greeter.greet());
-
     return {
       filepath,
       builder,
