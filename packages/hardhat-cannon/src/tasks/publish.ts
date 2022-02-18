@@ -1,7 +1,6 @@
-import path from 'path';
-import { readFile } from 'fs/promises';
 import { task } from 'hardhat/config';
 
+import CannonRegistry from '../builder/registry';
 import IPFS from '../builder/ipfs';
 import { TASK_BUILD, TASK_PUBLISH } from '../task-names';
 
@@ -20,6 +19,7 @@ task(
   )
   .setAction(async ({ file, options }, hre) => {
     const ipfs = new IPFS();
+    const registry = new CannonRegistry(hre);
 
     const { filepath, builder } = await hre.run(TASK_BUILD, {
       file,
@@ -48,27 +48,7 @@ task(
 
     const url = `ipfs://${folderHash}`;
 
-    console.log(`Protocol available at ${url}`);
+    console.log(`Publishing ${name}@${version} with url "${url}"`);
 
-    console.log(`Publishing ${name}@${version}`);
-
-    const abi = JSON.parse(
-      await readFile(
-        path.resolve(__dirname, '..', 'abis', 'CannonRegistry.json')
-      ).then((r) => r.toString())
-    );
-
-    const CannonRegistry = await hre.ethers.getContractAt(
-      abi,
-      hre.config.cannon.registryAddress
-    );
-
-    //@ts-ignore
-    const tx = await CannonRegistry.publish(
-      hre.ethers.utils.formatBytes32String(name),
-      hre.ethers.utils.formatBytes32String(version),
-      url
-    );
-
-    await tx.wait();
+    await registry.publish(name, version, url);
   });
