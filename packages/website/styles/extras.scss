@@ -29,7 +29,6 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 30px;
         margin-bottom: 12px;
         letter-spacing: 1px;
-        padding-top:24px;
     }
     h3 {
         font-family: 'Miriam Libre', sans-serif;
@@ -38,7 +37,6 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 25px;
         margin-bottom: 12px;
         letter-spacing: 0.5px;
-        padding-top:24px;
     }
     h4 {
         font-family: 'Miriam Libre', sans-serif;
@@ -47,6 +45,8 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 20px;
         margin-bottom: 12px;
         letter-spacing: 0.5px;
+    }
+    h1:not(:first-child),h2:not(:first-child),h3:not(:first-child),h4:not(:first-child) {
         padding-top:24px;
     }
     p {
@@ -74,6 +74,10 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
           border: 0;
           background: #000;
         }
+    }
+    pre[class*="language-"] {
+        border: 0 !important;
+        background: #000 !important;
     }
 }
 

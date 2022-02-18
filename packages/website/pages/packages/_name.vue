@@ -11,7 +11,7 @@
         alignItems="center"
       >
         <CGridItem
-          :col-span="[12, 9]"
+          :col-span="[12, 8]"
           py="2"
           :pr="[0, 4]"
           :borderRight="[null, '1px solid rgba(255,255,255,0.25)']"
@@ -33,26 +33,31 @@
             {{ timeAgo }}</CText
           >
         </CGridItem>
-        <CGridItem :col-span="[12, 3]">
-          <CText size="sm" mb="1">Copy and paste to something</CText>
+        <CGridItem :col-span="[12, 4]">
+          <CText size="sm" mb="1" fontWeight="bold">Quick start</CText>
           <CCode
             variant-color="black"
             background="black"
             py="1"
             px="3"
             width="100%"
-            >npx hardhat cannon</CCode
+            mb="2"
+            >npx hardhat cannon {{ p.name }}</CCode
+          >
+          <CText size="xs"
+            >Review the <nuxt-link to="/docs">docs</nuxt-link> for information
+            on how to...</CText
           >
         </CGridItem>
       </CGrid>
       <CTabs variant-color="teal">
         <CTabList>
           <CTab v-if="p.readme.length">Readme</CTab>
-          <CTab v-if="p.cannonfile.length">cannonfile</CTab>
+          <CTab v-if="p.cannonfile.length">Cannonfile</CTab>
         </CTabList>
         <CTabPanels>
-          <CTabPanel py="4" class="prose">
-            {{ p.readme }}
+          <CTabPanel py="8">
+            <div v-html="readme" class="prose" />
           </CTabPanel>
           <CTabPanel py="4">
             <client-only :placeholder="p.cannonfile">
@@ -84,11 +89,14 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-toml';
 import 'prismjs/themes/prism-dark.css'; // import syntax highlighting styles
 
+var markdown = require('remarked');
+
 export default {
   name: 'Package',
   data() {
     return {
-      packages: []
+      packages: [],
+      readme: ''
     }
   },
   components: {
@@ -105,6 +113,11 @@ export default {
     },
     timeAgo(){
       return formatDistanceToNow(new Date(this.p.added * 1000), { addSuffix: true });
+    }
+  },
+  watch: {
+    p(){
+      this.readme = markdown(this.p.readme);
     }
   },
   apollo: {
