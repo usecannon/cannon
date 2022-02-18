@@ -142,15 +142,79 @@ npx hardhat cannon:publish myStorageCannon
 
 ## cannonfile.toml Specification
 
-_Coming soon_
-Check builder folder
+Cannonfiles contain a series of actions which are executed at run-time. See [Define a Cannonfile](##define-a-cannonfile) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
+
+### contract
+
+The `contract` action deploys a contract to a chain.
+
+**Required Inputs** 
+* `artifact` - Specifies the name of the contract to be deployed
+
+**Optional Inputs** 
+* `args` - Specifies the arguments to provide the constructor function
+* `detect` -
+
+**Outputs** 
+* `abi` -
+* `address` -
+* `deployTxnHash` -
+
+### import
+
+The `import` action ___
+
+**Required Inputs** 
+* `source` -
+
+**Optional Inputs** 
+* `options` -
+
+**Outputs** 
+* `__` - __
+
+### invoke
+
+The `invoke` action ___
+
+**Required Inputs** 
+* `address` -
+* `abi` -
+* `func` -
+
+**Optional Inputs** 
+* `args` -
+* `from` -
+* `detect` -
+
+**Outputs** 
+* `hash` - __
+
+### keeper
+
+The `keeper` action ___
+
+t.b.d.
+
+### run
+
+The `run` action ___
+
+**Required Inputs** 
+* `exec` -
+* `func` -
+
+**Optional Inputs** 
+* `args` -
+* `env` -
+
+**Outputs** 
+* `__` - __
 
 ## cannon.json Specification
 
-_Coming soon_
-same as above
-
-items in deploy can be an array with length 2, where the second item is an object containing options (like initialValue: 42)
-
-can specify port number
-port: after chainId
+* `name` *<small>string</small>* - This is the name of your protocol, which you can reference in the `deploy` section of this file.
+* `chains` *<small>array</small>* - This defines each of the chains you plan to deploy on and the protocols to be deployed on each of them.
+  * `chainId` *<small>integer</small>* - The id of the chain this will ultimately be deployed to. See [Chainlist](https://chainlist.org/) for reference.
+  * `deploy` *<small>array</small>* - This is an array of Cannonfiles to provision on this chain. It can be the `name` field for your protocol or the name of a package from the [registry](/search). The items in the array can also be arrays with a length of two, where the first item is the name of the package to use and the second item is an object with options to use when running this Cannonfile.
+  * `port` *<small>integer</small>* - Optionally, specify a port use for this node.

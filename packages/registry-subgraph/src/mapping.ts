@@ -24,7 +24,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   entity.added = event.block.timestamp;
   entity.publisher = event.transaction.from.toHexString();
 
-  let metadata_path = entity.url.slice(7) + '/cannon-metadata.json';
+  let metadata_path = entity.url.slice(7) + '/cache/cannonfile.json';
   let metadata_data = ipfs.cat(metadata_path);
   if(metadata_data) {
     let obj = json.fromBytes(metadata_data).toObject();
