@@ -68,6 +68,8 @@ function addTag(tagId:string, packageId:string): void{
   let join_entity = PackageTag.load(packageId + "-" + tagId);
   if (!join_entity) {
     join_entity = new PackageTag(packageId + "-" + tagId);
+    join_entity.cannon_package = packageId;
+    join_entity.tag = tagId;
     join_entity.save();
   }
 }

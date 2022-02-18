@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
-import { IPFSHTTPClient, create } from 'ipfs-http-client';
+import path from 'path/posix';
+import { IPFSHTTPClient, create, globSource } from 'ipfs-http-client';
 
 type IPFSFileContent = {
   remotePath: string;
@@ -49,13 +50,26 @@ async function _openFile(file: IPFSFileRemote) {
 async function* _openFiles(files: IPFSFile[]) {
   for (const file of files) {
     const fileWithContent = file as IPFSFileContent;
+
     if (fileWithContent.content) {
       yield {
         path: fileWithContent.remotePath,
         content: fileWithContent.content,
       };
     } else {
-      yield _openFile(file as IPFSFileRemote);
+      const localFile = file as IPFSFileRemote;
+      const stat = await fs.stat(localFile.localPath);
+
+      if (stat.isDirectory()) {
+        for await (const child of globSource(localFile.localPath, '**/*')) {
+          yield {
+            path: path.join(file.remotePath, child.path),
+            content: child.content,
+          };
+        }
+      } else {
+        yield _openFile(localFile);
+      }
     }
   }
 }

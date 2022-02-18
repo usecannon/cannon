@@ -1,5 +1,5 @@
 <template>
-  <CBox py="5" maxWidth="containers.lg" mx="auto" px="4">
+  <CBox py="2" maxWidth="containers.lg" mx="auto" px="4">
     <div v-if="p">
       <CGrid
         template-columns="repeat(12, 1fr)"
@@ -22,19 +22,26 @@
             <CTag
               size="sm"
               variantColor="blue"
-              mr="1"
+              mr="2"
               v-for="t in p.tags"
-              :key="t"
-              >{{ t }}</CTag
+              :key="t.tag.id"
+              >{{ t.tag.id }}</CTag
             >
           </CBox>
           <CText color="gray.300" fontSize="xs" fontFamily="mono"
-            >version {{ p.version }} published by {{ p.publisher }}
+            >version {{ p.version }} published by
+            <CLink
+              isExternal
+              textDecoration="underline"
+              :href="`https://etherscan.io/address/${p.publisher}`"
+              class="truncate"
+              >{{ p.publisher }}</CLink
+            >
             {{ timeAgo }}</CText
           >
         </CGridItem>
         <CGridItem :col-span="[12, 4]">
-          <CText size="sm" mb="1" fontWeight="bold">Quick start</CText>
+          <CText size="sm" mb="1" fontWeight="bold">Quick Start</CText>
           <CCode
             variant-color="black"
             background="black"
@@ -44,10 +51,15 @@
             mb="2"
             >npx hardhat cannon {{ p.name }}</CCode
           >
-          <CText size="xs"
-            >Review the <nuxt-link to="/docs">docs</nuxt-link> for information
-            on how to...</CText
-          >
+          <CText fontSize="12px"
+            ><CLink
+              as="nuxt-link"
+              to="/docs#install-cannon"
+              textDecoration="underline"
+              >Add Cannon to your project</CLink
+            >
+            and use this command to start a local node with this package.
+          </CText>
         </CGridItem>
       </CGrid>
       <CTabs variant-color="teal">
@@ -133,6 +145,11 @@ export default {
           publisher
           readme
           cannonfile
+          tags {
+            tag {
+              id
+            }           
+          }
         }
       }`,
       variables () {
@@ -144,3 +161,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+div[data-chakra-component='CTabList'] {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+::v-deep button[aria-selected='true'] {
+  color: #00bce6;
+  border-bottom: 1px solid #00bce6;
+  margin-bottom: -1px;
+}
+::v-deep button[data-chakra-component='CTab']:focus {
+  box-shadow: none;
+}
+::v-deep button[data-chakra-component='CTab']:active {
+  background: transparent;
+}
+</style>

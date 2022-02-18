@@ -13,11 +13,11 @@ const config: HardhatUserConfig = {
       url:
         process.env.NETWORK_ENDPOINT ||
         'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-      accounts: process.env.DEPLOYER_KEY ? [`${process.env.DEPLOYER_KEY}`] : [],
+      accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API || '',
+    apiKey: process.env.ETHERSCAN_API_KEY || '',
   },
 };
 

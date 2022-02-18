@@ -3,31 +3,33 @@
     <CGrid
       template-columns="repeat(12, 1fr)"
       gap="10"
-      py="10"
+      py="2"
       maxWidth="containers.lg"
       mx="auto"
       spacing="40px"
     >
       <CGridItem :col-span="[12, 3]">
-        <CLink
-          v-for="link of page.toc"
-          :key="link.id"
-          as="nuxt-link"
-          fontFamily="'Miriam Libre'"
-          textTransform="uppercase"
-          letterSpacing="1px"
-          d="block"
-          mb="4"
-          :to="`#${link.id}`"
-          :class="{
-            docsnav: true,
-            toc2: link.depth === 2,
-            toc3: link.depth === 3,
-          }"
-          >{{ link.text }}</CLink
-        >
+        <CBox top="0" position="sticky" :pt="[0, 8]">
+          <CLink
+            v-for="link of page.toc"
+            :key="link.id"
+            as="nuxt-link"
+            fontFamily="'Miriam Libre'"
+            textTransform="uppercase"
+            letterSpacing="1px"
+            d="block"
+            mb="4"
+            :to="`#${link.id}`"
+            :class="{
+              docsnav: true,
+              toc2: link.depth === 2,
+              toc3: link.depth === 3,
+            }"
+            >{{ link.text }}</CLink
+          >
+        </CBox>
       </CGridItem>
-      <CGridItem :col-span="[12, 9]" class="prose">
+      <CGridItem :col-span="[12, 9]" class="prose" :pt="[0, 8]">
         <nuxt-content :document="page" />
       </CGridItem>
     </CGrid>
