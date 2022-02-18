@@ -35,7 +35,6 @@ import { makeForkClient } from 'hardhat/internal/hardhat-network/provider/utils/
 import { makeForkCommon } from 'hardhat/internal/hardhat-network/provider/utils/makeForkCommon';
 import { makeStateTrie } from 'hardhat/internal/hardhat-network/provider/utils/makeStateTrie';
 import { putGenesisBlock } from 'hardhat/internal/hardhat-network/provider/utils/putGenesisBlock';
-import { resolve } from 'url';
 
 const Codec = require('level-codec');
 

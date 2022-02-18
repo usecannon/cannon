@@ -1,4 +1,5 @@
 {
+  "root": true,
   "env": {
     "browser": true,
     "es2021": true,
@@ -19,7 +20,7 @@
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error",
+    "prettier/prettier": ["error", { "singleQuote": true }],
     "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
     "comma-dangle": [
       "error",
