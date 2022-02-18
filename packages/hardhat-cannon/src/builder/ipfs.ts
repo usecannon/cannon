@@ -1,10 +1,23 @@
 import fs from 'fs/promises';
 import { IPFSHTTPClient, create } from 'ipfs-http-client';
 
-export interface IPFSFile {
+type IPFSFileContent = {
+  remotePath: string;
+  content:
+    | string
+    | InstanceType<typeof String>
+    | ArrayBufferView
+    | ArrayBuffer
+    | Blob
+    | ReadableStream<Uint8Array>;
+};
+
+type IPFSFileRemote = {
   remotePath: string;
   localPath: string;
-}
+};
+
+export type IPFSFile = IPFSFileContent | IPFSFileRemote;
 
 export default class IPFS {
   client: IPFSHTTPClient;
@@ -24,7 +37,7 @@ export default class IPFS {
   }
 }
 
-async function _openFile(file: IPFSFile) {
+async function _openFile(file: IPFSFileRemote) {
   const fileHandler = await fs.open(file.localPath, 'r');
 
   return {
@@ -35,6 +48,14 @@ async function _openFile(file: IPFSFile) {
 
 async function* _openFiles(files: IPFSFile[]) {
   for (const file of files) {
-    yield _openFile(file);
+    const fileWithContent = file as IPFSFileContent;
+    if (fileWithContent.content) {
+      yield {
+        path: fileWithContent.remotePath,
+        content: fileWithContent.content,
+      };
+    } else {
+      yield _openFile(file as IPFSFileRemote);
+    }
   }
 }

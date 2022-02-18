@@ -57,8 +57,8 @@ export async function accessHreProvider(
   // seacrh for node
   // @ts-ignore
   while (!provider._node) {
-    // @ts-ignore
     provider =
+      // @ts-ignore
       provider._provider || provider._wrapped || provider._wrappedProvider;
 
     if (!provider) {

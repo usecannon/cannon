@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import fs from 'fs-extra';
+import path from 'path';
 import toml from '@iarna/toml';
+import { HardhatPluginError } from 'hardhat/plugins';
 import { task } from 'hardhat/config';
 
 import { ChainBuilder } from '../builder';
@@ -22,8 +24,18 @@ task(
     'Key values of chain which should be built'
   )
   .setAction(async ({ label, file, options }, hre) => {
-    console.log('file', file);
-    const def = toml.parse(fs.readFileSync(file).toString('utf8'));
+    const filepath = path.resolve(hre.config.paths.root, file);
+
+    console.log('file', filepath);
+
+    if (!fs.existsSync(filepath)) {
+      throw new HardhatPluginError(
+        'cannon',
+        `Cannon file '${filepath}' not found.`
+      );
+    }
+
+    const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
 
     //console.log(JSON.stringify(def, null, 2));
 
@@ -46,5 +58,8 @@ task(
 
     console.log(await greeter.greet());
 
-    return builder;
+    return {
+      filepath,
+      builder,
+    };
   });
