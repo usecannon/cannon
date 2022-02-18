@@ -122,9 +122,13 @@ export class ChainBuilder {
                 doLoad = s;
             }
             else {
-                if (doLoad) {
+                if (doLoad !== null) {
                     debug(`load step ${s} from cache`);
                     await this.loadLayer(doLoad);
+
+                    // repopulate settings since they may differ on this run.
+                    // outputs we want to keep though
+                    this.populateSettings(this.ctx, opts);
                     doLoad = null;
                 }
 
@@ -152,10 +156,9 @@ export class ChainBuilder {
         }
 
         //// TEMP
-        if (doLoad) {
+        if (doLoad !== null) {
             await this.loadLayer(doLoad);
         }
-        //await this.loadLayer(2);
 
         const greeter = await this.hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
 

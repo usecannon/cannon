@@ -148,7 +148,7 @@ export async function loadState(hre: HardhatRuntimeEnvironment, rawState: Buffer
     const node = provider._node;
 
     await importStorage(node, state.storage);
-    await node._persistIrregularWorldState();
+    //await node._persistIrregularWorldState();
 
 
 
