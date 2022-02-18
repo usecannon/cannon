@@ -1,7 +1,8 @@
-import { JTDDataType } from 'ajv/dist/core';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
 import Debug from 'debug';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { JTDDataType } from 'ajv/dist/core';
+
 import { ChainBuilderContext } from './';
 
 const debug = Debug('cannon:builder:invoke');
@@ -10,7 +11,7 @@ const config = {
   properties: {
     address: { type: 'string' },
     abi: { type: 'string' },
-    func: { type: 'string' },,
+    func: { type: 'string' },
   },
   optionalProperties: {
     args: { elements: {} },
@@ -18,13 +19,13 @@ const config = {
     detect: {
       properties: {
         func: { type: 'string' },
-        value: { type: 'string' },,
+        value: { type: 'string' },
       },
       optionalProperties: {
         args: { elements: {} },
-      },,
+      },
     },
-    step: { type: 'int32' },,
+    step: { type: 'int32' },
   },
 } as const;
 
@@ -69,7 +70,7 @@ export default {
     const receipt = await txn.wait();
 
     return {
-      hash: receipt.transactionHash,,
+      hash: receipt.transactionHash,
     };
-  },,
+  },
 };

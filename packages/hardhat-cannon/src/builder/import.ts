@@ -1,6 +1,8 @@
-import { JTDDataType } from 'ajv/dist/core';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
+import Debug from 'debug';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { JTDDataType } from 'ajv/dist/core';
+
 import {
   BundledChainBuilderOutputs,
   ChainBuilder,
@@ -8,7 +10,6 @@ import {
   ChainBuilderOutputs,
 } from './';
 
-import Debug from 'debug';
 const debug = Debug('cannon:builder:import');
 
 const config = {
@@ -17,10 +18,10 @@ const config = {
   },
   optionalProperties: {
     options: {
-      values: { type: 'string' },,
+      values: { type: 'string' },
     },
-    step: { type: 'int32' },,
-  },,
+    step: { type: 'int32' },
+  },
 } as const;
 
 export type Config = JTDDataType<typeof config>;
@@ -62,5 +63,5 @@ export default {
     await builder.build(config.options || {});
 
     return builder.getOutputs();
-  },,
+  },
 };

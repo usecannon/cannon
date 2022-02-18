@@ -1,21 +1,19 @@
-import Ajv from 'ajv/dist/jtd';
 import _ from 'lodash';
-
+import Ajv from 'ajv/dist/jtd';
+import Debug from 'debug';
+import crypto from 'crypto';
 import fs from 'fs-extra';
 import path, { dirname } from 'path';
-import crypto from 'crypto';
-
-import { JTDDataType } from 'ajv/dist/core';
-import * as persistableNode from '../persistable-node';
-
-import contractSpec from './contract';
-import invokeSpec from './invoke';
-import importSpec from './import';
-import scriptSpec from './run';
-import keeperSpec from './keeper';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { JTDDataType } from 'ajv/dist/core';
 
-import Debug from 'debug';
+import * as persistableNode from '../persistable-node';
+import contractSpec from './contract';
+import importSpec from './import';
+import invokeSpec from './invoke';
+import keeperSpec from './keeper';
+import scriptSpec from './run';
+
 const debug = Debug('cannon:builder');
 
 const ajv = new Ajv();
@@ -29,17 +27,17 @@ const ChainDefinitionSchema = {
       values: {
         optionalProperties: {
           type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: {},,
-        },,
-      },,
+          defaultValue: {},
+        },
+      },
     },
     import: { values: importSpec.validate },
     contract: { values: contractSpec.validate },
     invoke: { values: invokeSpec.validate },
     run: { values: scriptSpec.validate },
     keeper: { values: keeperSpec.validate },
-  },,
-} as const;;
+  },
+} as const;
 
 export type ChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
 
@@ -78,7 +76,7 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   chainId: 31337,
 
   settings: {},
-  outputs: { self: {} },,
+  outputs: { self: {} },
 };
 
 export class ChainBuilder {
@@ -268,7 +266,7 @@ export class ChainBuilder {
 
   async getTopLayer(): Promise<[number, ChainBuilderContext]> {
     // try to load highest file in dir
-    const dirToScan = dirname(this.getLayerFiles(0).metadata);;
+    const dirToScan = dirname(this.getLayerFiles(0).metadata);
     let fileList: string[] = [];
     try {
       fileList = await fs.readdir(dirToScan);
@@ -279,7 +277,7 @@ export class ChainBuilder {
         .filter((n) => n.match(/[0-9]*-.*.json/))
         .map((n) => {
           const num = parseFloat(n.match(/^([0-9]*)-/)![1]);
-          return { n: num, name: n };;
+          return { n: num, name: n };
         }),
       'n'
     );
@@ -289,7 +287,7 @@ export class ChainBuilder {
       return [
         item.n,
         JSON.parse(
-          (await fs.readFile(path.join(dirToScan, item.name))).toString();
+          (await fs.readFile(path.join(dirToScan, item.name))).toString()
         ),
       ];
     } else {
@@ -303,7 +301,7 @@ export class ChainBuilder {
 
   async hasLayer(n: number) {
     try {
-      await fs.stat(this.getLayerFiles(n).chain);;
+      await fs.stat(this.getLayerFiles(n).chain);
 
       return true;
     } catch {}
@@ -318,7 +316,7 @@ export class ChainBuilder {
   getLayerFiles(n: number) {
     const filename = n + '-' + this.layerHash(n);
 
-    const basename = path.join(this.getCacheDir(), filename);;
+    const basename = path.join(this.getCacheDir(), filename);
 
     return {
       cannonfile: path.join(
@@ -328,7 +326,7 @@ export class ChainBuilder {
         'cannonfile.json'
       ),
       chain: basename + '.chain',
-      metadata: basename + '.json',,
+      metadata: basename + '.json',
     };
   }
 
@@ -345,7 +343,7 @@ export class ChainBuilder {
       ),
       _.map(
         _.filter(this.def.run, (c) => (c.step || 0) <= step),
-        (d) => scriptSpec.configInject(this.ctx, d),
+        (d) => scriptSpec.configInject(this.ctx, d)
       ),
     ]);
 

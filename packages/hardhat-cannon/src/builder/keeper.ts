@@ -1,6 +1,7 @@
-import { JTDDataType } from 'ajv/dist/core';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { JTDDataType } from 'ajv/dist/core';
+
 import { ChainBuilderContext } from './';
 import { ChainDefinitionScriptSchema } from './util';
 
@@ -38,5 +39,5 @@ export default {
 
   async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
     return {};
-  },,
+  },
 };

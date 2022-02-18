@@ -1,7 +1,8 @@
-import { JTDDataType } from 'ajv/dist/core';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
 import Debug from 'debug';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { JTDDataType } from 'ajv/dist/core';
+
 import { ChainBuilderContext } from './';
 import { ChainDefinitionScriptSchema } from './util';
 
@@ -17,13 +18,13 @@ const config = {
       discriminator: 'method',
       mapping: {
         folder: { properties: { path: { type: 'string' } } },
-        script: ChainDefinitionScriptSchema,,
-      },,
+        script: ChainDefinitionScriptSchema,
+      },
     },
     step: { type: 'int32' },
 
     // used to force new copy of a contract (not actually used)
-    salt: { type: 'string' },,
+    salt: { type: 'string' },
   },
 } as const;
 
@@ -71,7 +72,7 @@ export default {
         hre.ethers.utils.FormatTypes.json
       ) as string,
       address: deployed.address,
-      deployTxnHash: deployed.deployTransaction.hash,,
+      deployTxnHash: deployed.deployTransaction.hash,
     };
-  },,
+  },
 };
