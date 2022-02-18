@@ -7,10 +7,15 @@
         background="blue.900"
         minHeight="100vh"
         color="white"
+        d="flex"
+        flexDirection="column"
       >
         <CReset />
-        <Heading />
-        <Nuxt />
+        <CBox flex="1">
+          <Heading />
+          <Nuxt />
+        </CBox>
+        <Footer />
       </CBox>
     </CColorModeProvider>
   </CThemeProvider>
@@ -18,11 +23,13 @@
 
 <script>
 import Heading from '../components/layout/Heading'
+import Footer from '../components/layout/Footer'
 
 export default {
   name: 'DefaultLayout',
   components: {
     Heading,
+    Footer,
   },
 }
 </script>

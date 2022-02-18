@@ -3,7 +3,7 @@ import {
   CannonRegistry,
   ProtocolPublish
 } from "../generated/CannonRegistry/CannonRegistry"
-import { Package, Tag } from "../generated/schema"
+import { Package, Tag, PackageTag } from "../generated/schema"
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
   // Entities can be loaded from the store using a string ID; this ID
@@ -24,10 +24,10 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   entity.added = event.block.timestamp;
   entity.publisher = event.transaction.from.toHexString();
 
-  let path = entity.url.slice(7) + '/cannon-metadata.json';
-  let data = ipfs.cat(path);
-  if(data) {
-    let obj = json.fromBytes(data).toObject();
+  let metadata_path = entity.url.slice(7) + '/cannon-metadata.json';
+  let metadata_data = ipfs.cat(metadata_path);
+  if(metadata_data) {
+    let obj = json.fromBytes(metadata_data).toObject();
     let description = obj.get('description');
     if(description){
       entity.description = description.toString();
@@ -37,21 +37,37 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
     if(tags){
       let tagsArray = tags.toArray();
       for (let i = 0; i < tagsArray.length; ++i) {
-        addTag(tagsArray[i].toString());
+        addTag(tagsArray[i].toString(), id);
       }
     }
   }
 
-  // Entities can be written to the store with `.save()`
+  let readme_path = entity.url.slice(7) + '/README.md';
+  let readme_data = ipfs.cat(readme_path);
+  if(readme_data) {
+    entity.readme = readme_data.toString();
+  }
+
+  let toml_path = entity.url.slice(7) + '/cannonfile.toml';
+  let toml_data = ipfs.cat(toml_path);
+  if(toml_data) {
+    entity.cannonfile = toml_data.toString();
+  }
+
   entity.save();
 }
 
-function addTag(tag:string): void{
-  let entity = Tag.load(tag);
+function addTag(tagId:string, packageId:string): void{
+  let entity = Tag.load(tagId);
   if (!entity) {
-    entity = new Tag(tag);
+    entity = new Tag(tagId);
   }
-
   entity.count = entity.count.plus(BigInt.fromI32(1));
   entity.save();
+
+  let join_entity = PackageTag.load(packageId + "-" + tagId);
+  if (!join_entity) {
+    join_entity = new PackageTag(packageId + "-" + tagId);
+    join_entity.save();
+  }
 }

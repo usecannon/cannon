@@ -2,20 +2,19 @@
   <CBox position="relative">
     <div class="purple-burst" />
     <CBox
-      :py="[8, 20]"
+      :py="[4, 20]"
       maxWidth="containers.lg"
       mx="auto"
       px="4"
       position="relative"
       zIndex="1"
     >
-      <CHeading as="h1" size="xl" mb="3"
+      <CHeading as="h1" size="xl" mb="2"
         >Cannon manages protocol deployment on blockchains</CHeading
       >
-      <CHeading as="h2" size="lg" fontWeight="normal" mb="6" lineHeight="1.5"
-        >Develop and test your smart contracts alongside existing protocols,
-        configured however you like. Then use Cannon to seamlessly deploy to
-        production.</CHeading
+      <CHeading as="h2" size="md" fontWeight="normal" mb="6" lineHeight="1.5"
+        >Develop and test your smart contracts alongside existing protocols
+        configured however you like.</CHeading
       >
       <CBox>
         <CButton

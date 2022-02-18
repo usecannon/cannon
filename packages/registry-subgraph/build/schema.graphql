@@ -6,9 +6,19 @@ type Package @entity {
   url: String!
   added: BigInt!
   publisher: String!
+  readme: String!
+  cannonfile: String!
+  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
 }
 
 type Tag @entity {
   id: ID!
   count: BigInt!
+  packages: [PackageTag!] @derivedFrom(field: "tag")
+}
+
+type PackageTag @entity {
+  id: ID!
+  cannon_package: Package!
+  tag: Tag!
 }

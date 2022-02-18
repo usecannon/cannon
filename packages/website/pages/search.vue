@@ -81,6 +81,9 @@ export default {
           url
           added
           publisher
+          tags {
+            id
+          }
         }
       }`
     },

@@ -3,7 +3,6 @@
     <Hero />
     <HowItWorks />
     <UseCases />
-    <About />
   </CBox>
 </template>
 
@@ -11,15 +10,13 @@
 import Hero from "../components/homepage/Hero"
 import HowItWorks from "../components/homepage/HowItWorks"
 import UseCases from "../components/homepage/UseCases"
-import About from "../components/homepage/About"
 
 export default {
   name: 'Homepage',
   components: {
     Hero,
     HowItWorks,
-    UseCases,
-    About
+    UseCases
   }
 }
 </script>

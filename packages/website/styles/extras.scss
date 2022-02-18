@@ -29,6 +29,7 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 30px;
         margin-bottom: 12px;
         letter-spacing: 1px;
+        padding-top:24px;
     }
     h3 {
         font-family: 'Miriam Libre', sans-serif;
@@ -37,6 +38,7 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 25px;
         margin-bottom: 12px;
         letter-spacing: 0.5px;
+        padding-top:24px;
     }
     h4 {
         font-family: 'Miriam Libre', sans-serif;
@@ -45,6 +47,7 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         line-height: 20px;
         margin-bottom: 12px;
         letter-spacing: 0.5px;
+        padding-top:24px;
     }
     p {
         margin-bottom: 12px;
@@ -59,4 +62,35 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     a {
         text-decoration: underline;
     }
+    .nuxt-content-highlight {
+        font-size: 14px;
+        margin-bottom: 12px;
+      
+        span.token.operator {
+          background: transparent !important;
+        }
+      
+        pre.line-numbers {
+          border: 0;
+          background: #000;
+        }
+    }
+}
+
+.code-editor {
+    border-radius: 4px;
+    padding: 12px;
+  
+    /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
+    background: #000;
+    color: #ccc;
+  
+    /* you must provide font-family font-size line-height. Example: */
+    font-family: Menlo, Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+  
+  span.token.operator {
+    background: transparent !important;
+  }
 }

@@ -85,7 +85,7 @@
           <CBox mb="6">
             <client-only :placeholder="code">
               <prism-editor
-                class="my-editor"
+                class="code-editor"
                 v-model="code"
                 :highlight="highlighter"
               ></prism-editor>
@@ -169,24 +169,5 @@ export default {
     rgba(26, 214, 255, 0.1) 0%,
     rgba(26, 214, 255, 0) 50%
   );
-}
-
-/* required class */
-.my-editor {
-  border-radius: 4px;
-  padding: 12px;
-
-  /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
-  background: #000;
-  color: #ccc;
-
-  /* you must provide font-family font-size line-height. Example: */
-  font-family: Menlo, Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.my-editor ::v-deep span.token.operator {
-  background: transparent !important;
 }
 </style>

@@ -22,6 +22,8 @@ export class Package extends Entity {
     this.set("url", Value.fromString(""));
     this.set("added", Value.fromBigInt(BigInt.zero()));
     this.set("publisher", Value.fromString(""));
+    this.set("readme", Value.fromString(""));
+    this.set("cannonfile", Value.fromString(""));
   }
 
   save(): void {
@@ -103,6 +105,41 @@ export class Package extends Entity {
   set publisher(value: string) {
     this.set("publisher", Value.fromString(value));
   }
+
+  get readme(): string {
+    let value = this.get("readme");
+    return value!.toString();
+  }
+
+  set readme(value: string) {
+    this.set("readme", Value.fromString(value));
+  }
+
+  get cannonfile(): string {
+    let value = this.get("cannonfile");
+    return value!.toString();
+  }
+
+  set cannonfile(value: string) {
+    this.set("cannonfile", Value.fromString(value));
+  }
+
+  get tags(): Array<string> | null {
+    let value = this.get("tags");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set tags(value: Array<string> | null) {
+    if (!value) {
+      this.unset("tags");
+    } else {
+      this.set("tags", Value.fromStringArray(<Array<string>>value));
+    }
+  }
 }
 
 export class Tag extends Entity {
@@ -146,5 +183,76 @@ export class Tag extends Entity {
 
   set count(value: BigInt) {
     this.set("count", Value.fromBigInt(value));
+  }
+
+  get packages(): Array<string> | null {
+    let value = this.get("packages");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set packages(value: Array<string> | null) {
+    if (!value) {
+      this.unset("packages");
+    } else {
+      this.set("packages", Value.fromStringArray(<Array<string>>value));
+    }
+  }
+}
+
+export class PackageTag extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("cannon_package", Value.fromString(""));
+    this.set("tag", Value.fromString(""));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save PackageTag entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save PackageTag entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("PackageTag", id.toString(), this);
+    }
+  }
+
+  static load(id: string): PackageTag | null {
+    return changetype<PackageTag | null>(store.get("PackageTag", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get cannon_package(): string {
+    let value = this.get("cannon_package");
+    return value!.toString();
+  }
+
+  set cannon_package(value: string) {
+    this.set("cannon_package", Value.fromString(value));
+  }
+
+  get tag(): string {
+    let value = this.get("tag");
+    return value!.toString();
+  }
+
+  set tag(value: string) {
+    this.set("tag", Value.fromString(value));
   }
 }
