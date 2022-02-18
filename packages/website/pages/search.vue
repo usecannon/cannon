@@ -82,7 +82,9 @@ export default {
           added
           publisher
           tags {
-            id
+            tag {
+              id
+            }           
           }
         }
       }`

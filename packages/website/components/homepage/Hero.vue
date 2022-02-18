@@ -13,7 +13,7 @@
         >Cannon manages protocol deployment on blockchains</CHeading
       >
       <CHeading as="h2" size="md" fontWeight="normal" mb="6" lineHeight="1.5"
-        >Develop and test your smart contracts alongside existing protocols
+        >Develop and test your smart contracts with existing protocols
         configured however you like.</CHeading
       >
       <CBox>
