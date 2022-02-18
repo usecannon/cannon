@@ -23,7 +23,8 @@
       >
     </CBox>
     <CText color="gray.300" fontSize="xs" fontFamily="mono"
-      >version {{ p.version }} published by {{ p.publisher }}
+      >version {{ p.version }} published by
+      <span class="truncate">{{ p.publisher }}</span>
       {{ timeAgo }}</CText
     >
   </CBox>

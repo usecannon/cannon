@@ -98,3 +98,12 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     background: transparent !important;
   }
 }
+
+.truncate {
+    display:inline-block;
+    vertical-align: bottom;
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

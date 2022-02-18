@@ -29,7 +29,14 @@
             >
           </CBox>
           <CText color="gray.300" fontSize="xs" fontFamily="mono"
-            >version {{ p.version }} published by {{ p.publisher }}
+            >version {{ p.version }} published by
+            <CLink
+              isExternal
+              textDecoration="underline"
+              :href="`https://etherscan.io/address/${p.publisher}`"
+              class="truncate"
+              >{{ p.publisher }}</CLink
+            >
             {{ timeAgo }}</CText
           >
         </CGridItem>
@@ -154,3 +161,20 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+div[data-chakra-component='CTabList'] {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+::v-deep button[aria-selected='true'] {
+  color: #00bce6;
+  border-bottom: 1px solid #00bce6;
+  margin-bottom: -1px;
+}
+::v-deep button[data-chakra-component='CTab']:focus {
+  box-shadow: none;
+}
+::v-deep button[data-chakra-component='CTab']:active {
+  background: transparent;
+}
+</style>
