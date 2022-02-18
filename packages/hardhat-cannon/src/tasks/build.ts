@@ -4,10 +4,11 @@ import toml from '@iarna/toml';
 import { task } from 'hardhat/config';
 
 import { ChainBuilder } from '../builder';
-import { TASK_PROVISION } from '../task-names';
+import { TASK_BUILD } from '../task-names';
+import { printBundledChainBuilderOutput } from '../printer';
 
 task(
-  TASK_PROVISION,
+  TASK_BUILD,
   'Assemble a defined chain and save it to to a state which can be used later'
 )
   .addOptionalParam(
@@ -34,6 +35,8 @@ task(
     );
 
     await builder.build(mappedOptions);
+
+    printBundledChainBuilderOutput(builder.getOutputs());
 
     // TEMP
     const greeter = await hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');

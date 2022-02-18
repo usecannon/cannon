@@ -53,8 +53,9 @@
     "debug": "^4.3.3",
     "ethereumjs-util": "^7.1.4",
     "fs-extra": "^10.0.0",
-    "level-codec": "^10.0.0",
     "ipfs-http-client": "^56.0.1",
-    "lodash": "^4.17.21"
+    "level-codec": "^10.0.0",
+    "lodash": "^4.17.21",
+    "table": "^6.8.0"
   }
 }

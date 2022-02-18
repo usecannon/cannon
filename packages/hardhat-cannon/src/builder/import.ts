@@ -1,7 +1,7 @@
 import { JTDDataType } from 'ajv/dist/core';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
-import { ChainBuilder, ChainBuilderContext } from './';
+import { BundledChainBuilderOutputs, ChainBuilder, ChainBuilderContext, ChainBuilderOutputs } from './';
 
 import Debug from 'debug';
 const debug = Debug('cannon:builder:import');
@@ -45,7 +45,7 @@ export default {
     },
 
 
-    async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
+    async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<BundledChainBuilderOutputs> {
         debug('exec', config);
 
         // download if necessary upstream

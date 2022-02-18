@@ -55,10 +55,19 @@ export interface ChainBuilderContext {
     network: string,
     chainId: number,
 
-    outputs: {
-        self: ChainBuilderOptions
-        [module: string]: ChainBuilderOptions
-    }
+    outputs: BundledChainBuilderOutputs
+}
+
+export interface BundledChainBuilderOutputs {
+    self: ChainBuilderOutputs
+    [module: string]: ChainBuilderOutputs
+}
+
+export interface ChainBuilderOutputs {
+    contracts?: { [key: string]: ChainBuilderOptions },
+    imports?: { [key: string]: ChainBuilderOptions },
+    invokes?: { [key: string]: ChainBuilderOptions },
+    runs?: { [key: string]: ChainBuilderOptions },
 }
 
 interface ChainBuilderOptions { [key: string]: OptionTypesTs };
@@ -135,7 +144,7 @@ export class ChainBuilder {
 
                 debug(`imports step ${s}`);
                 for (const [name, doImport] of (steppedImports[s] || [])) {
-                    const output = await importSpec.exec(this.hre, importSpec.configInject(this.ctx, doImport));
+                    const output: { [key: string]: any } = await importSpec.exec(this.hre, importSpec.configInject(this.ctx, doImport));
 
                     output[name] = output.self;
                     delete output.self;
@@ -160,7 +169,7 @@ export class ChainBuilder {
                 debug(`scripts step ${s}`);
                 for (const [name, doScript] of (steppedRuns[s] || [])) {
                     const output = await scriptSpec.exec(this.hre, scriptSpec.configInject(this.ctx, doScript));
-                    _.set(this.ctx.outputs.self, `contracts.${name}`, output);
+                    _.set(this.ctx.outputs.self, `runs.${name}`, output);
                 }
     
                 await this.dumpLayer(s);
@@ -204,11 +213,7 @@ export class ChainBuilder {
     }
 
     getOutputs() {
-        const outputs: { [name: string]: any } = _.cloneDeep(this.ctx.outputs);
-        //outputs[this.label] = outputs.self;
-        //delete outputs.self;
-
-        return outputs;
+        return _.cloneDeep(this.ctx.outputs);
     }
 
     populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
