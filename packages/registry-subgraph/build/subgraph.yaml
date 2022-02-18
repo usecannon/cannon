@@ -6,7 +6,7 @@ dataSources:
     name: CannonRegistry
     network: rinkeby
     source:
-      address: "0xC06ABfc95f5BD6D38e94A182Cdd37590FB5d178c"
+      address: "0x805519fE0Aa8903F2CA72835A3A1FA3d0a17D5A2"
       abi: CannonRegistry
       startBlock: 10000000
     mapping:

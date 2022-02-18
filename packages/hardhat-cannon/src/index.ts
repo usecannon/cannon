@@ -14,7 +14,7 @@ extendConfig(
     // TODO: grab default value from registry/deployments/${network}.json file
     const registryAddress =
       userConfig.cannon?.registryAddress ||
-      '0xC06ABfc95f5BD6D38e94A182Cdd37590FB5d178c';
+      '0x805519fE0Aa8903F2CA72835A3A1FA3d0a17D5A2';
 
     config.cannon = { registryAddress };
   }
