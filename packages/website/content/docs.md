@@ -22,7 +22,7 @@ Include Cannon at the top of your `hardhat.config.js`.
 require('hardhat-cannon');
 ```
 
-If your project uses Typescript, include Canon in `hardhat.config.ts`.
+If your project uses Typescript, include Cannon in `hardhat.config.ts`.
 ```ts
 import 'hardhat-cannon';
 ```
@@ -132,7 +132,7 @@ npx hardhat cannon:build myStorageCannon
 now you can run with
 ```
 npx hardhat cannon myStorageCannon initialValue="24"
-``
+```
 
 See specification section below for all of the 
 

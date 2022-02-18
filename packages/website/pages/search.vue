@@ -33,6 +33,7 @@
           size="sm"
           borderColor="gray.500"
           mb="6"
+          v-model="query"
         />
       </CInputGroup>
 
@@ -50,6 +51,12 @@
       </CCheckboxGroup>
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
+      <CBox v-if="$apollo.loading" py="20" textAlign="center">
+        <CSpinner />
+      </CBox>
+      <CBox textAlign="center" v-else-if="packages.length == 0" py="20"
+        >No packages found.</CBox
+      >
       <Preview v-for="p in packages" :key="p.id" :p="p" />
     </CGridItem>
   </CGrid>
@@ -65,15 +72,23 @@ export default {
     return {
       packages: [],
       tags: [],
+      query: '',
     }
   },
   components: {
     Preview
   },
+  watch: {
+    query() {
+      this.$apollo.queries.packages.setVariables({
+        query: this.query
+      })
+    }
+  },
   apollo: {
     packages: {
-      query: gql`query getPackages {
-        packages: packages(first: 20, orderDirection: desc, orderBy: added){
+      query: gql`query getPackages($query: String!) {
+        packages: packages(first: 20, orderDirection: desc, orderBy: added, where: {name_contains: $query}){
           id
           name
           description
@@ -87,7 +102,10 @@ export default {
             }           
           }
         }
-      }`
+      }`,
+      variables: {
+        query: ''
+      }
     },
     tags: {
       query: gql`query getTags {
