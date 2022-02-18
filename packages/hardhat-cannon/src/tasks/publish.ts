@@ -23,12 +23,11 @@ task(
 
     const label = readPackageJson(hre).name;
 
-    const filepath = path.resolve(hre.config.paths.root, file);
-    // const { filepath, builder } = await hre.run(TASK_BUILD, {
-    //   label,
-    //   file,
-    //   options,
-    // });
+    const { filepath, builder } = await hre.run(TASK_BUILD, {
+      label,
+      file,
+      options,
+    });
 
     const metadata = {
       name: label,
@@ -44,10 +43,10 @@ task(
         remotePath: `${label}/cannon-metadata.json`,
         content: JSON.stringify(metadata, null, 2),
       },
-      // {
-      //   remotePath: `${label}/cache`,
-      //   localPath: builder.getCacheDir(),
-      // },
+      {
+        remotePath: `${label}/cache`,
+        localPath: builder.getCacheDir(),
+      },
     ]);
 
     const folderHash = result
