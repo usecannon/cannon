@@ -1,7 +1,7 @@
 import { JTDDataType } from 'ajv/dist/core';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
-import { ChainBuilderContext } from './';
+import { ChainBuilder, ChainBuilderContext } from './';
 
 import Debug from 'debug';
 const debug = Debug('cannon:builder:import');
@@ -50,7 +50,10 @@ export default {
 
         // download if necessary upstream
         // then provision a builder and build the cannonfile
-        // or use cached if available
-        return {};
+        const builder = new ChainBuilder(config.source, hre);
+
+        await builder.build(config.options || {});
+
+        return builder.getOutputs();
     }
 }

@@ -1,0 +1,20 @@
+[setting.change_greeting2]
+defaultValue = "new greeting!"
+
+[import.greeters]
+source = "greeter"
+options.salt = "first"
+options.change_msg = "a message from first greeter set"
+
+[import.more_greeters]
+source = "greeter"
+options.salt = "second"
+options.change_msg = "a message from second greeter set"
+
+
+[invoke.change_greeting2]
+address = "<%= outputs.greeters.contracts.greeter.address %>"
+abi = "<%= outputs.greeters.contracts.greeter.abi %>"
+func = "setGreeting"
+args = ["<%= settings.change_greeting2 %>"]
+step = 1

@@ -3,6 +3,9 @@ version = "0.2.0"
 description = "Simple project to verify the functionality of cannon"
 tags = ["sample", "greeter"]
 
+[setting.salt]
+defaultValue = "greeter"
+
 [setting.greeting]
 defaultValue = "this is default greeting"
 
@@ -11,6 +14,7 @@ defaultValue = "this is default greeting"
 [contract.greeter]
 artifact = "Greeter"
 args = ["<%= settings.greeting %>"]
+salt = "<%= settings.salt %>"
 detect.method = "folder"
 detect.path = "deployments/${network}"
 
@@ -24,5 +28,6 @@ step = 1
 artifact = "Greeter"
 args = ["this is another greeter!"]
 step = 2
+salt = "<%= settings.salt %>"
 detect.method = "folder"
 detect.path = "deployments/${network}"

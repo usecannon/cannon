@@ -21,11 +21,12 @@ task(
     'Key values of chain which should be built'
   )
   .setAction(async ({ label, file, options }, hre) => {
+    console.log('file', file);
     const def = toml.parse(fs.readFileSync(file).toString('utf8'));
 
-    console.log(JSON.stringify(def, null, 2));
+    //console.log(JSON.stringify(def, null, 2));
 
-    const builder = new ChainBuilder(label, def, hre);
+    const builder = new ChainBuilder(label, hre, def);
 
     // options can be passed through commandline, or environment
     const mappedOptions: { [key: string]: string } = _.fromPairs(
@@ -33,4 +34,9 @@ task(
     );
 
     await builder.build(mappedOptions);
+
+    // TEMP
+    const greeter = await hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
+
+    console.log(await greeter.greet());
   });

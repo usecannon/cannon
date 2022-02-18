@@ -3,28 +3,29 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
 import Debug from 'debug';
 import { ChainBuilderContext } from './';
-import { ChainDefinitionScriptSchema } from './util';
 
 
-const debug = Debug('cannon:builder:contract');
+const debug = Debug('cannon:builder:invoke');
 
 const config = {
     properties: {
-        artifact: { type: 'string' },
+        address: { type: 'string' },
+        abi: { type: 'string' },
+        func: { type: 'string' }
     },
     optionalProperties: {
         args: { elements: {} },
+        from: { type: 'string' },
         detect: {
-            discriminator: 'method',
-            mapping: {
-                'folder': { properties: { path: { type: 'string' }}},
-                'script': ChainDefinitionScriptSchema
+            properties: {
+                func: { type: 'string' },
+                value: { type: 'string' }
+            },
+            optionalProperties: {
+                args: { elements: {} },
             }
         },
-        step: { type: 'int32' },
-
-        // used to force new copy of a contract (not actually used)
-        salt: { type: 'string' }
+        step: { type: 'int32' }
     }
 
 } as const;
@@ -32,9 +33,7 @@ const config = {
 export type Config = JTDDataType<typeof config>;
 
 export interface Outputs {
-    abi: string,
-    address: string,
-    deployTxnHash: string,
+    hash: string
 };
 
 // ensure the specified contract is already deployed
@@ -46,16 +45,14 @@ export default {
     configInject(ctx: ChainBuilderContext, config: Config) {
         config = _.cloneDeep(config);
 
-        config.artifact = _.template(config.artifact)(ctx);
+        config.address = _.template(config.address)(ctx);
+        config.abi = _.template(config.abi)(ctx);
+        config.func = _.template(config.func)(ctx);
 
         if (config.args) {
-            config.args = config.args.map(a => {
+            config.args = _.map(config.args, a => {
                 return typeof a == 'string' ? _.template(a)(ctx) : a;
             });
-        }
-
-        if (config.salt) {
-            config.salt = _.template(config.salt)(ctx);
         }
 
         return config;
@@ -65,14 +62,13 @@ export default {
     async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
         debug('exec', config);
 
-        const factory = await hre.ethers.getContractFactory(config.artifact);
+        const contract = new hre.ethers.Contract(config.address, JSON.parse(config.abi), (await hre.ethers.getSigners())[0]);
 
-        const deployed = await factory.deploy(...(config.args || []));
+        const txn = await contract[config.func](...(config.args || []));
+        const receipt = await txn.wait();
 
         return {
-            abi: factory.interface.format(hre.ethers.utils.FormatTypes.json) as string,
-            address: deployed.address,
-            deployTxnHash: deployed.deployTransaction.hash
+            hash: receipt.transactionHash
         };
     }
 }

@@ -9,6 +9,7 @@ import { JTDDataType } from "ajv/dist/core";
 import * as persistableNode from "../persistable-node";
 
 import contractSpec from './contract';
+import invokeSpec from './invoke';
 import importSpec from './import';
 import scriptSpec from './run';
 import keeperSpec from './keeper';
@@ -35,6 +36,7 @@ const ChainDefinitionSchema = {
         },
         import: { values: importSpec.validate },
         contract: { values: contractSpec.validate },
+        invoke: { values: invokeSpec.validate },
         run: { values: scriptSpec.validate },
         keeper: { values: keeperSpec.validate },
     }
@@ -78,16 +80,17 @@ export class ChainBuilder {
 
     private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
-    constructor(label: string, def: ChainDefinition, hre: HardhatRuntimeEnvironment) {
+    constructor(label: string, hre: HardhatRuntimeEnvironment, def?: ChainDefinition) {
         this.label = label;
-        this.def = def;
-
-        this.hre = hre/* || require('hardhat');*/
+        this.hre = hre;
+        this.def = def ?? this.loadCannonfile();
     }
 
 
     async build(opts: BuildOptions): Promise<ChainBuilder> {
         debug('build');
+
+        await this.writeCannonfile();
 
         const latestLayer = await this.getTopLayer();
 
@@ -106,9 +109,10 @@ export class ChainBuilder {
         // 3. do layers
         const steppedImports = _.groupBy(_.toPairs(this.def.import), c => c[1].step || 0);
         const steppedContracts = _.groupBy(_.toPairs(this.def.contract), c => c[1].step || 0);
+        const steppedInvokes = _.groupBy(_.toPairs(this.def.invoke), c => c[1].step || 0);
         const steppedRuns = _.groupBy(_.toPairs(this.def.run), c => c[1].step || 0);
 
-        const steps = _.map(_.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedRuns)), parseFloat);
+        const steps = _.map(_.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedInvokes), _.keys(steppedRuns)), parseFloat);
         
         let doLoad: number|null = null;
 
@@ -116,9 +120,6 @@ export class ChainBuilder {
             debug('step', s);
 
             if (await this.hasLayer(s)) {
-                // load metadata which is used to process data for next layers
-                console.log(`has layer ${s}`);
-
                 doLoad = s;
             }
             else {
@@ -135,7 +136,11 @@ export class ChainBuilder {
                 debug(`imports step ${s}`);
                 for (const [name, doImport] of (steppedImports[s] || [])) {
                     const output = await importSpec.exec(this.hre, importSpec.configInject(this.ctx, doImport));
-                    this.ctx.outputs[name] = output;
+
+                    output[name] = output.self;
+                    delete output.self;
+
+                    this.ctx.outputs = { ...this.ctx.outputs,  ...output } as any;
                 }
 
                 debug(`contracts step ${s}`);
@@ -143,6 +148,13 @@ export class ChainBuilder {
                 for (const [name, doContract] of (steppedContracts[s] || [])) {
                     const output = await contractSpec.exec(this.hre, contractSpec.configInject(this.ctx, doContract));
                     _.set(this.ctx.outputs.self, `contracts.${name}`, output);
+                }
+
+                debug(`invoke step ${s}`);
+                // todo: parallelization can be utilized here
+                for (const [name, doInvoke] of (steppedInvokes[s] || [])) {
+                    const output = await invokeSpec.exec(this.hre, invokeSpec.configInject(this.ctx, doInvoke));
+                    _.set(this.ctx.outputs.self, `invokes.${name}`, output);
                 }
 
                 debug(`scripts step ${s}`);
@@ -159,15 +171,6 @@ export class ChainBuilder {
         if (doLoad !== null) {
             await this.loadLayer(doLoad);
         }
-
-        const greeter = await this.hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
-
-        console.log(await greeter.greet());
-
-        // create/export cached snapshot after step 2, and again for every operation in step 3
-
-        // return value hands reigns of running network to whatever called this
-
         return this;
     }
 
@@ -198,6 +201,14 @@ export class ChainBuilder {
             throw new Error('top layer is not built. Call `build` in order to execute this chain.');
         }
 
+    }
+
+    getOutputs() {
+        const outputs: { [name: string]: any } = _.cloneDeep(this.ctx.outputs);
+        //outputs[this.label] = outputs.self;
+        //delete outputs.self;
+
+        return outputs;
     }
 
     populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
@@ -256,12 +267,17 @@ export class ChainBuilder {
         return false;
     }
 
+    getCacheDir() {
+        return path.join(this.hre.config.paths.cache, 'cannon', this.label);
+    }
+
     getLayerFiles(n: number) {
         const filename = n + '-' + this.layerHash(n);
 
-        const basename = path.join(this.hre.config.paths.cache, 'cannon', this.label, filename)
+        const basename = path.join(this.getCacheDir(), filename)
 
         return {
+            cannonfile: path.join(this.hre.config.paths.cache, 'cannon', this.label, 'cannonfile.json'),
             chain: basename + '.chain',
             metadata: basename + '.json'
         };
@@ -320,5 +336,16 @@ export class ChainBuilder {
         await fs.writeFile(chain, data);
         await fs.ensureDir(dirname(metadata));
         await fs.writeFile(metadata, JSON.stringify(this.ctx));
+    }
+
+    async writeCannonfile() {
+        const { cannonfile } = this.getLayerFiles(0);
+        await fs.ensureDir(dirname(cannonfile));
+        await fs.writeFile(cannonfile, JSON.stringify(this.def));
+    }
+
+    loadCannonfile() {
+        const file = path.join(this.getCacheDir(), 'cannonfile.json');
+        return JSON.parse(fs.readFileSync(file).toString('utf8'));
     }
 }
