@@ -135,7 +135,7 @@ export default {
         {
             "deploy": [
               "mySampleProject:latest",
-              "synthetix:2.60",
+              "synthetix:2.62",
               "keeper:snapshot-keeper"
             ],
             "chainId": 10
