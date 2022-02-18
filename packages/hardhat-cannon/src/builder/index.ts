@@ -76,6 +76,8 @@ export class ChainBuilder {
     readonly def: ChainDefinition;
     readonly hre: HardhatRuntimeEnvironment;
 
+    private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
+
     constructor(label: string, def: ChainDefinition, hre: HardhatRuntimeEnvironment) {
         this.label = label;
         this.def = def;
@@ -87,10 +89,9 @@ export class ChainBuilder {
     async build(opts: BuildOptions): Promise<ChainBuilder> {
         debug('build');
 
-        const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
+        const latestLayer = await this.getTopLayer();
 
-        ctx.network = this.hre.network.name;
-        ctx.chainId = this.hre.network.config.chainId || 31337;
+        this.ctx = latestLayer[1];
 
         // TODO: this downcast shouldn't work in JS, ideas how to work around?
         // almost might be better to not extend the class like this.
@@ -98,50 +99,64 @@ export class ChainBuilder {
 
         // 1. read all settings
         debug('populate settings');
-        this.populateSettings(ctx, opts);
+        this.populateSettings(this.ctx, opts);
 
 
 
-        // 3. do steps
+        // 3. do layers
+        const steppedImports = _.groupBy(_.toPairs(this.def.import), c => c[1].step || 0);
+        const steppedContracts = _.groupBy(_.toPairs(this.def.contract), c => c[1].step || 0);
+        const steppedRuns = _.groupBy(_.toPairs(this.def.run), c => c[1].step || 0);
 
-        const steppedImports = _.groupBy(this.def.import, c => c.step || 0);
-        const steppedContracts = _.groupBy(this.def.contract, c => c.step || 0);
-        const steppedRuns = _.groupBy(this.def.run, c => c.step || 0);
-
-        const steps = _.map(_.union(_.keys(steppedContracts), _.keys(steppedContracts)), parseInt);
-
-        console.log('steps', steps);
+        const steps = _.map(_.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedRuns)), parseFloat);
+        
+        let doLoad: number|null = null;
 
         for (const s of steps.sort()) {
             debug('step', s);
-            const key = this.cacheKey(ctx, s);
 
-            if (await this.hasCache(key)) {
-                debug(`load step ${s} from cache`, key);
-                await this.loadCache(key);
+            if (await this.hasLayer(s)) {
+                // load metadata which is used to process data for next layers
+                console.log(`has layer ${s}`);
+
+                doLoad = s;
             }
             else {
+                if (doLoad) {
+                    debug(`load step ${s} from cache`);
+                    await this.loadLayer(doLoad);
+                    doLoad = null;
+                }
+
                 debug(`imports step ${s}`);
-                for (const doImport of (steppedImports[s] || [])) {
-                    await importSpec.exec(this.hre, importSpec.configInject(ctx, doImport));
+                for (const [name, doImport] of (steppedImports[s] || [])) {
+                    const output = await importSpec.exec(this.hre, importSpec.configInject(this.ctx, doImport));
+                    this.ctx.outputs[name] = output;
                 }
 
                 debug(`contracts step ${s}`);
                 // todo: parallelization can be utilized here
-                for (const doContract of (steppedContracts[s] || [])) {
-                    await contractSpec.exec(this.hre, contractSpec.configInject(ctx, doContract));
+                for (const [name, doContract] of (steppedContracts[s] || [])) {
+                    const output = await contractSpec.exec(this.hre, contractSpec.configInject(this.ctx, doContract));
+                    _.set(this.ctx.outputs.self, `contracts.${name}`, output);
                 }
 
                 debug(`scripts step ${s}`);
-                for (const doScript of (steppedRuns[s] || [])) {
-                    await scriptSpec.exec(this.hre, scriptSpec.configInject(ctx, doScript));
+                for (const [name, doScript] of (steppedRuns[s] || [])) {
+                    const output = await scriptSpec.exec(this.hre, scriptSpec.configInject(this.ctx, doScript));
+                    _.set(this.ctx.outputs.self, `contracts.${name}`, output);
                 }
     
-                await this.putCache(key);
+                await this.dumpLayer(s);
             }
         }
 
         //// TEMP
+        if (doLoad) {
+            await this.loadLayer(doLoad);
+        }
+        //await this.loadLayer(2);
+
         const greeter = await this.hre.ethers.getContractAt('Greeter', '0x5fbdb2315678afecb367f032d93f642f64180aa3');
 
         console.log(await greeter.greet());
@@ -160,8 +175,26 @@ export class ChainBuilder {
         this.populateSettings(ctx, opts);
 
         // load the cache (note: will fail if `build()` has not been called first)
-        await this.loadCache(this.cacheKey(ctx));
-        await this.hre.run('node');
+        const topLayer = await this.getTopLayer();
+
+        this.ctx = topLayer[1];
+        
+        if (await this.hasLayer(topLayer[0])) {
+            await this.loadLayer(topLayer[0]);
+
+            // run keepers
+            for (const n in (this.def.keeper || [])) {
+                debug('running keeper', n);
+                keeperSpec.exec(this.hre, keeperSpec.configInject(this.ctx, this.def.keeper![n]));
+            }
+
+            // run node
+            await this.hre.run('node');
+        }
+        else {
+            throw new Error('top layer is not built. Call `build` in order to execute this chain.');
+        }
+
     }
 
     populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
@@ -175,36 +208,72 @@ export class ChainBuilder {
             }
 
             if (!value) {
-                throw new Error(`undefined setting: ${value}`);
+                throw new Error(`setting not provided: ${s}`);
             }
 
             ctx.settings[s] = value as OptionTypesTs;
         }
     }
 
-    cacheFile(key: string) {
-        return path.join(this.hre.config.paths.cache, 'cannon', this.label, key);
+    async getTopLayer(): Promise<[number, ChainBuilderContext]> {
+        // try to load highest file in dir
+        const dirToScan = dirname(this.getLayerFiles(0).metadata)
+        let fileList: string[] = [];
+        try {
+            fileList = await fs.readdir(dirToScan);
+        } catch {} 
+
+        const sortedFileList = _.sortBy(fileList
+            .filter(n => n.match(/[0-9]*-.*.json/))
+            .map(n => {
+                const num = parseFloat(n.match(/^([0-9]*)-/)![1]);
+                return { n: num, name: n }
+            }), 'n');
+
+        if (sortedFileList.length) {
+            const item = _.last(sortedFileList)!;
+            return [item.n, JSON.parse((await fs.readFile(path.join(dirToScan, item.name))).toString())]
+        }
+        else {
+            const newCtx = INITIAL_CHAIN_BUILDER_CONTEXT;
+            newCtx.network = this.hre.network.name;
+            newCtx.chainId = this.hre.network.config.chainId || 31337;
+
+            return [0, newCtx];
+        }
     }
 
-    cacheKey(ctx: ChainBuilderContext, step: number = Number.MAX_VALUE) {
+    async hasLayer(n: number) {
+        try {
+            await fs.stat(this.getLayerFiles(n).chain)
 
-        console.log('uno', this.def.contract);
-        console.log(_.filter(this.def.contract, c => {
-            console.log(c, step);
-            return (c.step || 0) <= step
-        }));
+            return true;
+        } catch {}
 
+        return false;
+    }
+
+    getLayerFiles(n: number) {
+        const filename = n + '-' + this.layerHash(n);
+
+        const basename = path.join(this.hre.config.paths.cache, 'cannon', this.label, filename)
+
+        return {
+            chain: basename + '.chain',
+            metadata: basename + '.json'
+        };
+    }
+
+    layerHash(step: number = Number.MAX_VALUE) {
         // the purpose of this string is to indicate the state of the chain without accounting for
         // derivative factors (ex. contract addreseses, outputs)
         const str = JSON.stringify([
             // todo: record values here need to be sorted, perhaps put into pairs
             this.def.setting,
-            _.mapValues(this.def.import, d => importSpec.configInject(ctx, d)),
-            _.map(_.filter(this.def.contract, c => (c.step || 0) <= step), d => contractSpec.configInject(ctx, d)),
-            _.map(_.filter(this.def.run, c => (c.step || 0) <= step), d => scriptSpec.configInject(ctx, d))
+            _.mapValues(this.def.import, d => importSpec.configInject(this.ctx, d)),
+            _.map(_.filter(this.def.contract, c => (c.step || 0) <= step), d => contractSpec.configInject(this.ctx, d)),
+            _.map(_.filter(this.def.run, c => (c.step || 0) <= step), d => scriptSpec.configInject(this.ctx, d))
         ]);
-
-        console.log('cache str', str);
 
         return crypto.createHash('md5').update(str).digest('hex');
     }
@@ -213,34 +282,40 @@ export class ChainBuilder {
         fs.rmdirSync(path.join(this.hre.config.paths.cache, 'cannon', this.label));
     }
 
-    async hasCache(key: string) {
+    async verifyLayerContext(n: number) {
         try {
-            const stat = await fs.stat(this.cacheFile(key));
+            const stat = await fs.stat(this.getLayerFiles(n).metadata);
             return stat.isFile();
         } catch(err) {}
 
         return false;
     }
 
-    async loadCache(key: string) {
-        debug('load cache', key);
+    async loadLayer(n: number) {
+        debug('load cache', n);
 
-        const cacheFile = this.cacheFile(key);
+        const { chain, metadata } = this.getLayerFiles(n);
 
-        const cacheData = await fs.readFile(cacheFile);
+        const cacheData = await fs.readFile(chain);
+
+        this.ctx = JSON.parse((await fs.readFile(metadata)).toString('utf8')) as ChainBuilderContext;
 
         await persistableNode.loadState(this.hre, cacheData);
+
+        
     }
 
-    async putCache(key: string) {
+    async dumpLayer(n: number) {
 
-        const cacheFile = this.cacheFile(key);
+        const { chain, metadata } = this.getLayerFiles(n);
 
         const data = await persistableNode.dumpState(this.hre);
 
-        debug('put cache', key, cacheFile);
+        debug('put cache', n);
 
-        await fs.ensureDir(dirname(cacheFile));
-        await fs.writeFile(cacheFile, data);
+        await fs.ensureDir(dirname(chain));
+        await fs.writeFile(chain, data);
+        await fs.ensureDir(dirname(metadata));
+        await fs.writeFile(metadata, JSON.stringify(this.ctx));
     }
 }

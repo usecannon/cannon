@@ -1,11 +1,28 @@
+name = "sample-project"
+version = "0.2.0"
+description = "Simple project to verify the functionality of cannon"
+tags = ["sample", "greeter"]
+
+[setting.greeting]
+defaultValue = "this is default greeting"
+
+[setting.change_msg]
+
 [contract.greeter]
 artifact = "Greeter"
-args = ["this is un"]
+args = ["<%= settings.greeting %>"]
 detect.method = "folder"
 detect.path = "deployments/${network}"
+
+[run.change_greeter2]
+exec = "./deploy/change-greeting"
+func = "exec"
+args = ["<%= outputs.self.contracts.greeter.address %>", "<%= settings.change_msg %>"]
+step = 1
 
 [contract.greeter2]
 artifact = "Greeter"
 args = ["this is another greeter!"]
+step = 2
 detect.method = "folder"
 detect.path = "deployments/${network}"

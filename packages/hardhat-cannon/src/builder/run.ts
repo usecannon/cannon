@@ -1,12 +1,16 @@
 import { JTDDataType } from 'ajv/dist/core';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import _ from 'lodash';
+import { dirname, join } from 'path';
 import { ChainBuilderContext } from './';
-import { ChainDefinitionScriptSchema } from './util';
+
+import Debug from 'debug';
+const debug = Debug('cannon:builder:run');
 
 const config = {
     properties: {
         exec: { type: 'string' },
+        func: { type: 'string' },
     },
     optionalProperties: {
         args: { elements: { type: 'string' } },
@@ -49,6 +53,9 @@ export default {
 
 
     async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
-        return {};
+        debug('exec', config);
+
+        const runfile = require(join(dirname(hre.config.paths.configFile), config.exec));
+        return await runfile[config.func](...(config.args || []));
     }
 }
