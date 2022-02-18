@@ -41,6 +41,10 @@ export interface Outputs {
 export default {
   validate: config,
 
+  async getState(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config, storage: string) {
+    return this.configInject(ctx, config);
+  },
+
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 

@@ -51,6 +51,8 @@ export interface ChainBuilderContext {
   network: string;
   chainId: number;
 
+  repositoryBuild: boolean;
+
   outputs: BundledChainBuilderOutputs;
 }
 
@@ -75,6 +77,8 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   network: '',
   chainId: 31337,
 
+  repositoryBuild: false,
+
   settings: {},
   outputs: { self: {} },
 };
@@ -83,6 +87,8 @@ export class ChainBuilder {
   readonly label: string;
   readonly def: ChainDefinition;
   readonly hre: HardhatRuntimeEnvironment;
+
+  readonly repositoryBuild: boolean;
 
   private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
@@ -94,10 +100,14 @@ export class ChainBuilder {
     this.label = label;
     this.hre = hre;
     this.def = def ?? this.loadCannonfile();
+    
+    this.repositoryBuild = !!def;
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilder> {
     debug('build');
+    
+    this.populateSettings(this.ctx, opts);
 
     await this.writeCannonfile();
 
@@ -105,13 +115,14 @@ export class ChainBuilder {
 
     this.ctx = latestLayer[1];
 
+    // have to populate settings again
+    this.populateSettings(this.ctx, opts);
+
     // TODO: this downcast shouldn't work in JS, ideas how to work around?
     // almost might be better to not extend the class like this.
     //const node = createdNode[1] as PersistableHardhatNode;
 
     // 1. read all settings
-    debug('populate settings');
-    this.populateSettings(this.ctx, opts);
 
     // 3. do layers
     const steppedImports = _.groupBy(
@@ -177,7 +188,9 @@ export class ChainBuilder {
         for (const [name, doContract] of steppedContracts[s] || []) {
           const output = await contractSpec.exec(
             this.hre,
-            contractSpec.configInject(this.ctx, doContract)
+            contractSpec.configInject(this.ctx, doContract),
+            this.getAuxilleryFilePath('contracts'),
+            this.repositoryBuild
           );
           _.set(this.ctx.outputs.self, `contracts.${name}`, output);
         }
@@ -262,11 +275,13 @@ export class ChainBuilder {
 
       ctx.settings[s] = value as OptionTypesTs;
     }
+
+    this.ctx.repositoryBuild = this.repositoryBuild;
   }
 
   async getTopLayer(): Promise<[number, ChainBuilderContext]> {
     // try to load highest file in dir
-    const dirToScan = dirname(this.getLayerFiles(0).metadata);
+    const dirToScan = dirname((await this.getLayerFiles(0)).metadata);
     let fileList: string[] = [];
     try {
       fileList = await fs.readdir(dirToScan);
@@ -301,7 +316,7 @@ export class ChainBuilder {
 
   async hasLayer(n: number) {
     try {
-      await fs.stat(this.getLayerFiles(n).chain);
+      await fs.stat((await this.getLayerFiles(n)).chain);
 
       return true;
     } catch {}
@@ -313,8 +328,8 @@ export class ChainBuilder {
     return path.join(this.hre.config.paths.cache, 'cannon', this.label);
   }
 
-  getLayerFiles(n: number) {
-    const filename = n + '-' + this.layerHash(n);
+  async getLayerFiles(n: number) {
+    const filename = n + '-' + await this.layerHash(n);
 
     const basename = path.join(this.getCacheDir(), filename);
 
@@ -330,24 +345,29 @@ export class ChainBuilder {
     };
   }
 
-  layerHash(step: number = Number.MAX_VALUE) {
-    // the purpose of this string is to indicate the state of the chain without accounting for
+  async layerHash(step: number = Number.MAX_VALUE) {
+    // the purpose of this is to indicate the state of the chain without accounting for
     // derivative factors (ex. contract addreseses, outputs)
-    const str = JSON.stringify([
-      // todo: record values here need to be sorted, perhaps put into pairs
-      this.def.setting,
-      _.mapValues(this.def.import, (d) => importSpec.configInject(this.ctx, d)),
-      _.map(
-        _.filter(this.def.contract, (c) => (c.step || 0) <= step),
-        (d) => contractSpec.configInject(this.ctx, d)
-      ),
-      _.map(
-        _.filter(this.def.run, (c) => (c.step || 0) <= step),
-        (d) => scriptSpec.configInject(this.ctx, d)
-      ),
-    ]);
 
-    return crypto.createHash('md5').update(str).digest('hex');
+    const obj: any[] = [];
+
+    for (const d of _.filter(this.def.import, (c) => (c.step || 0) <= step)) {
+        obj.push(await importSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('imports')));
+    }
+
+    for (const d of _.filter(this.def.contract, (c) => (c.step || 0) <= step)) {
+        obj.push(await contractSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('contracts')));
+    }
+
+    for (const d of _.filter(this.def.invoke, (c) => (c.step || 0) <= step)) {
+        obj.push(await invokeSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('invokes')));
+    }
+
+    for (const d of _.filter(this.def.run, (c) => (c.step || 0) <= step)) {
+        obj.push(await scriptSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('scripts')));
+    }
+
+    return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
   }
 
   clearCache() {
@@ -356,7 +376,7 @@ export class ChainBuilder {
 
   async verifyLayerContext(n: number) {
     try {
-      const stat = await fs.stat(this.getLayerFiles(n).metadata);
+      const stat = await fs.stat((await this.getLayerFiles(n)).metadata);
       return stat.isFile();
     } catch (err) {}
 
@@ -366,7 +386,7 @@ export class ChainBuilder {
   async loadLayer(n: number) {
     debug('load cache', n);
 
-    const { chain, metadata } = this.getLayerFiles(n);
+    const { chain, metadata } = await this.getLayerFiles(n);
 
     const cacheData = await fs.readFile(chain);
 
@@ -378,7 +398,7 @@ export class ChainBuilder {
   }
 
   async dumpLayer(n: number) {
-    const { chain, metadata } = this.getLayerFiles(n);
+    const { chain, metadata } = await this.getLayerFiles(n);
 
     const data = await persistableNode.dumpState(this.hre);
 
@@ -391,7 +411,7 @@ export class ChainBuilder {
   }
 
   async writeCannonfile() {
-    const { cannonfile } = this.getLayerFiles(0);
+    const { cannonfile } = await this.getLayerFiles(0);
     await fs.ensureDir(dirname(cannonfile));
     await fs.writeFile(cannonfile, JSON.stringify(this.def));
   }
@@ -399,5 +419,9 @@ export class ChainBuilder {
   loadCannonfile() {
     const file = path.join(this.getCacheDir(), 'cannonfile.json');
     return JSON.parse(fs.readFileSync(file).toString('utf8'));
+  }
+
+  getAuxilleryFilePath(category: string) {
+    return path.join(this.getCacheDir(), category);
   }
 }
