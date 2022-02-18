@@ -18,15 +18,17 @@ task(
     'TOML definition of the chain to assemble',
     'cannonfile.toml'
   )
-  .addPositionalParam('label', 'Name of the image which is built')
   .addOptionalVariadicPositionalParam(
     'options',
     'Key values of chain which should be built'
   )
-  .setAction(async ({ label, file, options }, hre) => {
+  .setAction(async ({ file, options }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
 
-    console.log('file', filepath);
+    console.log(
+      'Building cannonfile: ',
+      path.relative(process.cwd(), filepath)
+    );
 
     if (!fs.existsSync(filepath)) {
       throw new HardhatPluginError(
@@ -37,9 +39,7 @@ task(
 
     const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
 
-    //console.log(JSON.stringify(def, null, 2));
-
-    const builder = new ChainBuilder(label, hre, def);
+    const builder = new ChainBuilder(def.name as string, hre, def);
 
     // options can be passed through commandline, or environment
     const mappedOptions: { [key: string]: string } = _.fromPairs(

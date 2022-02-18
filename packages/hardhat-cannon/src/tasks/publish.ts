@@ -1,4 +1,3 @@
-import path from 'path';
 import { task } from 'hardhat/config';
 
 import IPFS from '../builder/ipfs';
@@ -21,36 +20,26 @@ task(
   .setAction(async ({ file, options }, hre) => {
     const ipfs = new IPFS();
 
-    const label = readPackageJson(hre).name;
-
     const { filepath, builder } = await hre.run(TASK_BUILD, {
-      label,
       file,
       options,
     });
 
-    const metadata = {
-      name: label,
-      version: readPackageJson(hre).version,
-    };
+    const { name } = builder.def;
 
     const result = await ipfs.add([
       {
-        remotePath: `${label}/cannonfile.toml`,
+        remotePath: `${name}/cannonfile.toml`,
         localPath: filepath,
       },
       {
-        remotePath: `${label}/cannon-metadata.json`,
-        content: JSON.stringify(metadata, null, 2),
-      },
-      {
-        remotePath: `${label}/cache`,
+        remotePath: `${name}/cache`,
         localPath: builder.getCacheDir(),
       },
     ]);
 
     const folderHash = result
-      .find((file) => file.path === label)
+      .find((file) => file.path === name)
       ?.cid.toV0()
       .toString();
 

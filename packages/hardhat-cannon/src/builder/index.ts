@@ -18,7 +18,6 @@ const debug = Debug('cannon:builder');
 
 const ajv = new Ajv();
 
-type OptionTypes = 'number' | 'string' | 'boolean';
 type OptionTypesTs = string | number | boolean;
 
 const ChainDefinitionSchema = {
@@ -100,13 +99,23 @@ export class ChainBuilder {
     this.label = label;
     this.hre = hre;
     this.def = def ?? this.loadCannonfile();
-    
+
     this.repositoryBuild = !!def;
+
+    //@ts-ignore
+    if (!this.def.name) {
+      throw new Error('Missing "name" property on cannonfile.toml');
+    }
+
+    //@ts-ignore
+    if (!this.def.version) {
+      throw new Error('Missing "version" property on cannonfile.toml');
+    }
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilder> {
     debug('build');
-    
+
     this.populateSettings(this.ctx, opts);
 
     await this.writeCannonfile();
@@ -329,7 +338,7 @@ export class ChainBuilder {
   }
 
   async getLayerFiles(n: number) {
-    const filename = n + '-' + await this.layerHash(n);
+    const filename = n + '-' + (await this.layerHash(n));
 
     const basename = path.join(this.getCacheDir(), filename);
 
@@ -352,19 +361,47 @@ export class ChainBuilder {
     const obj: any[] = [];
 
     for (const d of _.filter(this.def.import, (c) => (c.step || 0) <= step)) {
-        obj.push(await importSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('imports')));
+      obj.push(
+        await importSpec.getState(
+          this.hre,
+          this.ctx,
+          d,
+          this.getAuxilleryFilePath('imports')
+        )
+      );
     }
 
     for (const d of _.filter(this.def.contract, (c) => (c.step || 0) <= step)) {
-        obj.push(await contractSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('contracts')));
+      obj.push(
+        await contractSpec.getState(
+          this.hre,
+          this.ctx,
+          d,
+          this.getAuxilleryFilePath('contracts')
+        )
+      );
     }
 
     for (const d of _.filter(this.def.invoke, (c) => (c.step || 0) <= step)) {
-        obj.push(await invokeSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('invokes')));
+      obj.push(
+        await invokeSpec.getState(
+          this.hre,
+          this.ctx,
+          d,
+          this.getAuxilleryFilePath('invokes')
+        )
+      );
     }
 
     for (const d of _.filter(this.def.run, (c) => (c.step || 0) <= step)) {
-        obj.push(await scriptSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('scripts')));
+      obj.push(
+        await scriptSpec.getState(
+          this.hre,
+          this.ctx,
+          d,
+          this.getAuxilleryFilePath('scripts')
+        )
+      );
     }
 
     return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
