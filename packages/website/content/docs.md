@@ -33,12 +33,12 @@ import 'hardhat-cannon';
 
 If you'd like to run a local node with an existing protocol, you can rely on the built-in package manager. For example, the following command will start a local node (similar to running `npx hardhat node`) with a simple `Greeter.sol` contract already deployed.
 ```bash
-npx hardhat cannon greeter 
+npx hardhat cannon greeter:latest
 ```
 
 If you'd like to customize this deployment, you can specify options.
 ```bash
-npx hardhat cannon greeter msg="Hello from Cannon"
+npx hardhat cannon greeter:latest msg="Hello from Cannon"
 ```
 
 Review the a package's README for more information on the options available and other usage instructions.
@@ -99,7 +99,7 @@ To deploy the contract and set an initial value, you could create the following 
 name = "myStorageCannon"
 description = "Simple project to deploy a Storage contract"
 version = "0.0.1"
-tags = ["example","fun"]
+tags = ["fun", "example"]
 
 [setting.initialValue] # Create an overridable setting
 defaultValue = "420" # This is the value to use if none is specified when the function is invoked.
@@ -119,7 +119,7 @@ step = 1 # Ensure this action is taken after the previous action
 Then build and run your Cannonfile: 
 ```bash
 npx hardhat compile
-npx hardhat cannon:build myStorageCannon
+npx hardhat cannon:build
 npx hardhat cannon myStorageCannon initialValue="69"
 ```
 
@@ -134,9 +134,11 @@ The examples above demonstrate how to read from the package manager using a `can
 Here is an example of how you could publish the above Cannonfile to the registery, backed on Ethereum and IPFS:
 ```bash
 npx hardhat compile
-npx hardhat cannon:build myStorageCannon:latest
-npx hardhat cannon:publish myStorageCannon
+npx hardhat cannon:build
+npx hardhat cannon:publish
 ```
+
+If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.
 
 ## cannonfile.toml Specification
 
@@ -151,7 +153,7 @@ The `contract` action deploys a contract to a chain.
 
 **Optional Inputs** 
 * `args` - Specifies the arguments to provide the constructor function
-* `detect` - ___
+* `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
 **Outputs** 
 * `abi` - The ABI of the deployed contract
@@ -163,13 +165,13 @@ The `contract` action deploys a contract to a chain.
 The `import` action allows for composability by letting you specify another cannonfile to be built on your chain.
 
 **Required Inputs** 
-* `source` - The name of the package to import.
+* `source` - The name of the package to import
 
 **Optional Inputs** 
-* `options` - The options to be used when initializing this cannonfile.
+* `options` - The options to be used when initializing this cannonfile
 
 **Outputs** 
-* `__` - __
+The outputs of the imported cannonfile are provided under the namespace of the import action. For example, if a uniswap cannonfile imported as `uniswap_eth_snx` has a contract `pair` which outputs `address`, it would be accessible at `outputs.uniswap_eth_snx.contracts.pair.address`. Any output from the current module comes out of `outputs.self.*` following the same pattern as other modules.
 
 ### invoke
 
@@ -183,7 +185,7 @@ The `invoke` action calls a specified function on-chain.
 **Optional Inputs** 
 * `args` - The arguments to use when invoking this call
 * `from` - The calling address to use when invoking this call
-* `detect` - ___
+* `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
 **Outputs** 
 * `hash` - The transaction hash of the execution
@@ -192,22 +194,22 @@ The `invoke` action calls a specified function on-chain.
 
 The `keeper` action defines a keeper to be used on this chain. This does not effect the chain build.
 
-___
+*Coming soon.*
 
 ### run
 
 The `run` action executes a custom script.
 
 **Required Inputs** 
-* `exec` - ___
-* `func` - ___
+* `exec` - The javascript (or typescript) file to load
+* `func` - The function to call in this file
 
 **Optional Inputs** 
 * `args` - The arguments to pass the script
-* `env` - ___
+* `env` - Environment variables to be set on the script
 
-**Outputs** 
-* `__` - ___
+**Outputs**
+If the script returns a JSON object, the outputs of this action will consist of those values as key-value pairs.
 
 ## cannon.json Specification
 

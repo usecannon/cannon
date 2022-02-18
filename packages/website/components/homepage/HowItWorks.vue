@@ -85,9 +85,17 @@
             py="1"
             px="3"
             width="100%"
-            mb="6"
+            mb="1"
             >npx hardhat cannon synthetix:latest</CCode
           >
+          <CText fontSize="sm" mb="6">
+            <small
+              ><CLink as="nuxt-link" to="/search" textDecoration="underline"
+                >Browse packages</CLink
+              >
+              for other protocols you can quickly deploy.</small
+            >
+          </CText>
         </CGridItem>
       </CGrid>
     </CBox>
