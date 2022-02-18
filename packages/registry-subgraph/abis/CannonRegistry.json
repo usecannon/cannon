@@ -1,6 +1,14 @@
 [
-  { "inputs": [], "name": "InvalidUrl", "type": "error" },
-  { "inputs": [], "name": "Unauthorized", "type": "error" },
+  {
+    "inputs": [],
+    "name": "InvalidUrl",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Unauthorized",
+    "type": "error"
+  },
   {
     "anonymous": false,
     "inputs": [
@@ -36,27 +44,75 @@
     "inputs": [],
     "name": "getProtocols",
     "outputs": [
-      { "internalType": "bytes32[]", "name": "", "type": "bytes32[]" }
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "_protocolName", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "_protocolName",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_protocolVersion",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getUrl",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_protocolName",
+        "type": "bytes32"
+      }
     ],
     "name": "getVersions",
     "outputs": [
-      { "internalType": "bytes32[]", "name": "", "type": "bytes32[]" }
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "_name", "type": "bytes32" },
-      { "internalType": "bytes32", "name": "_version", "type": "bytes32" },
-      { "internalType": "string", "name": "_url", "type": "string" }
+      {
+        "internalType": "bytes32",
+        "name": "_name",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_version",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_url",
+        "type": "string"
+      }
     ],
     "name": "publish",
     "outputs": [],
