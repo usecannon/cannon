@@ -1,9 +1,9 @@
 import fs from 'fs/promises';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { IPFSHTTPClient, create } from 'ipfs-http-client';
 
 export interface IPFSFile {
-  remotePath: string
-  localPath: string
+  remotePath: string;
+  localPath: string;
 }
 
 export default class IPFS {

@@ -1,4 +1,3 @@
-
 export const TASK_PREFIX = 'cannon';
 
 export const TASK_CANNON = TASK_PREFIX;

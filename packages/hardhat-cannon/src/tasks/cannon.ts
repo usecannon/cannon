@@ -1,16 +1,13 @@
-import { HardhatPluginError } from 'hardhat/plugins';
 import { task } from 'hardhat/config';
 
-import CannonRegistry from '../builder/registry';
 import { CannonDeploy } from '../types';
-import { SUBTASK_CANNON_LOAD_DEPLOY, TASK_CANNON } from '../task-names';
 import { ChainBuilder } from '../builder';
+import { SUBTASK_CANNON_LOAD_DEPLOY, TASK_CANNON } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
 
 task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
   .addOptionalParam('file', 'Custom cannon deployment file.', 'cannon.json')
   .setAction(async ({ file }, hre) => {
-
     const deploy = (await hre.run(SUBTASK_CANNON_LOAD_DEPLOY, {
       file,
     })) as CannonDeploy;
@@ -22,13 +19,14 @@ task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
         if (typeof provision == 'string') {
           builder = new ChainBuilder(provision, hre);
           await builder.build({});
-        }
-        else {
+        } else {
           builder = new ChainBuilder(provision[0], hre);
           await builder.build(provision[1]);
         }
 
-        console.log(`${typeof provision == 'string' ? provision : provision[0]} outputs:`);
+        console.log(
+          `${typeof provision == 'string' ? provision : provision[0]} outputs:`
+        );
         printBundledChainBuilderOutput(builder.getOutputs());
 
         /*const [repository, tag = 'latest'] = image.split(':');

@@ -1,11 +1,12 @@
 import path from 'path';
-import { subtask } from 'hardhat/config';
 import { HardhatPluginError } from 'hardhat/plugins';
-import { SUBTASK_CANNON_LOAD_DEPLOY } from '../task-names';
-import { CannonDeploy } from '../types';
+import { subtask } from 'hardhat/config';
 
-subtask(SUBTASK_CANNON_LOAD_DEPLOY)
-  .setAction(async ({ file }, hre): Promise<CannonDeploy> => {
+import { CannonDeploy } from '../types';
+import { SUBTASK_CANNON_LOAD_DEPLOY } from '../task-names';
+
+subtask(SUBTASK_CANNON_LOAD_DEPLOY).setAction(
+  async ({ file }, hre): Promise<CannonDeploy> => {
     const filepath = path.resolve(hre.config.paths.root, file);
 
     try {
@@ -19,4 +20,5 @@ subtask(SUBTASK_CANNON_LOAD_DEPLOY)
       }
       throw err;
     }
-  });
+  }
+);
