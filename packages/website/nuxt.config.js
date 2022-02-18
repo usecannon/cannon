@@ -43,6 +43,7 @@ export default {
     '@nuxtjs/emotion',
     '@nuxt/content',
     '@nuxtclub/feathericons',
+    '@nuxtjs/apollo',
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
@@ -56,6 +57,14 @@ export default {
     families: {
       'Miriam+Libre': true,
       Inter: true
+    }
+  },
+
+  apollo: {
+    clientConfigs: {
+      default: {
+        httpEndpoint: 'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry',
+      }
     }
   }
 }

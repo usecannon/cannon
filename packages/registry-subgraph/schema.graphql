@@ -1,0 +1,14 @@
+type Package @entity {
+  id: ID!
+  name: String!
+  description: String!
+  version: String!
+  url: String!
+  added: BigInt!
+  publisher: String!
+}
+
+type Tag @entity {
+  id: ID!
+  count: BigInt!
+}

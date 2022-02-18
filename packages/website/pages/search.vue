@@ -46,27 +46,52 @@
         >Filter</CHeading
       >
       <CCheckboxGroup>
-        <CCheckbox>Lending</CCheckbox>
-        <CCheckbox>DEXes</CCheckbox>
-        <CCheckbox>Derivatives</CCheckbox>
-        <CCheckbox>Payments</CCheckbox>
-        <CCheckbox>Assets</CCheckbox>
+        <CCheckbox v-for="t in tags" :key="t.id">{{ t.id }}</CCheckbox>
       </CCheckboxGroup>
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
-      <Preview id="placeholder" />
-      <Preview id="placeholder" />
+      <Preview v-for="p in packages" :key="p.id" :p="p" />
     </CGridItem>
   </CGrid>
 </template>
 
 <script lang="js">
+import gql from 'graphql-tag'
 import Preview from "../components/search/Preview"
 
 export default {
   name: 'Search',
+  data() {
+    return {
+      packages: [],
+      tags: [],
+    }
+  },
   components: {
     Preview
+  },
+  apollo: {
+    packages: {
+      query: gql`query getPackages {
+        packages: packages(first: 20, orderDirection: desc, orderBy: added){
+          id
+          name
+          description
+          version
+          url
+          added
+          publisher
+        }
+      }`
+    },
+    tags: {
+      query: gql`query getTags {
+        tags: tags(first: 10, orderDirection: desc, orderBy: count){
+          id
+          count
+        }
+      }`
+    }
   }
 }
 </script>

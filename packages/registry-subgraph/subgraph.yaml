@@ -1,0 +1,24 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CannonRegistry
+    network: rinkeby
+    source:
+      address: "0xC06ABfc95f5BD6D38e94A182Cdd37590FB5d178c"
+      abi: CannonRegistry
+      startBlock: 10000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ProtocolPublish
+      abis:
+        - name: CannonRegistry
+          file: ./abis/CannonRegistry.json
+      eventHandlers:
+        - event: ProtocolPublish(bytes32,bytes32,string,address)
+          handler: handleProtocolPublish
+      file: ./src/mapping.ts
