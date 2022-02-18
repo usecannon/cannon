@@ -7,7 +7,7 @@ contract CannonRegistry {
 
   event ProtocolPublish(bytes32 name, bytes32 version, string url, address owner);
 
-  mapping(bytes32 => mapping(bytes32 => string)) images;
+  mapping(bytes32 => mapping(bytes32 => string)) urls;
   mapping(bytes32 => address) owners;
 
   bytes32[] protocols;
@@ -27,11 +27,11 @@ contract CannonRegistry {
       protocols.push(_name);
     }
 
-    if (bytes(images[_name][_version]).length == 0) {
+    if (bytes(urls[_name][_version]).length == 0) {
       versions[_name].push(_version);
     }
 
-    images[_name][_version] = _url;
+    urls[_name][_version] = _url;
 
     emit ProtocolPublish(_name, _version, _url, msg.sender);
   }
@@ -42,5 +42,9 @@ contract CannonRegistry {
 
   function getVersions(bytes32 _protocolName) view external returns (bytes32[] memory) {
     return versions[_protocolName];
+  }
+
+  function getUrl(bytes32 _protocolName, bytes32 _protocolVersion) view external returns (string memory) {
+    return urls[_protocolName][_protocolVersion];
   }
 }

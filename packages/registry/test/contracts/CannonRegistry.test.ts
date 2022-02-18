@@ -39,6 +39,13 @@ describe('CannonRegistry', function () {
 
     equal(events.length, 1);
     equal(events[0].event, 'ProtocolPublish');
+
+    const resultUrl = await registry.getUrl(
+      toBytes32('some-module'),
+      toBytes32('0.0.1')
+    );
+
+    equal(resultUrl, 'ipfs://some-module-hash@0.0.1');
   });
 
   it('should be able to publish new version', async function () {
