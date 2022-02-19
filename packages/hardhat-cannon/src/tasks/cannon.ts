@@ -2,7 +2,11 @@ import { task } from 'hardhat/config';
 
 import { CannonDeploy } from '../types';
 import { ChainBuilder } from '../builder';
-import { SUBTASK_CANNON_LOAD_DEPLOY, TASK_CANNON } from '../task-names';
+import {
+  SUBTASK_DOWNLOAD,
+  SUBTASK_LOAD_DEPLOY,
+  TASK_CANNON,
+} from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
 
 task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
@@ -11,7 +15,7 @@ task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
   .setAction(async ({ file, label }, hre) => {
     let deploy: CannonDeploy | null = null;
     if (file) {
-      deploy = (await hre.run(SUBTASK_CANNON_LOAD_DEPLOY, {
+      deploy = (await hre.run(SUBTASK_LOAD_DEPLOY, {
         file,
       })) as CannonDeploy;
     } else if (label) {
@@ -32,10 +36,12 @@ task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
         let builder;
         if (typeof provision == 'string') {
           const [name, version] = provision.split(':');
+          await hre.run(SUBTASK_DOWNLOAD, { images: [provision] });
           builder = new ChainBuilder({ name, version, hre });
           await builder.build({});
         } else {
           const [name, version] = provision[0].split(':');
+          await hre.run(SUBTASK_DOWNLOAD, { images: [provision[0]] });
           builder = new ChainBuilder({ name, version, hre });
           await builder.build(provision[1]);
         }

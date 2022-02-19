@@ -3,9 +3,9 @@ import { HardhatPluginError } from 'hardhat/plugins';
 import { subtask } from 'hardhat/config';
 
 import { CannonDeploy } from '../types';
-import { SUBTASK_CANNON_LOAD_DEPLOY } from '../task-names';
+import { SUBTASK_LOAD_DEPLOY } from '../task-names';
 
-subtask(SUBTASK_CANNON_LOAD_DEPLOY).setAction(
+subtask(SUBTASK_LOAD_DEPLOY).setAction(
   async ({ file }, hre): Promise<CannonDeploy> => {
     const filepath = path.resolve(hre.config.paths.root, file);
 

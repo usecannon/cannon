@@ -4,7 +4,7 @@ import { task } from 'hardhat/config';
 
 import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder } from '../builder';
-import { TASK_BUILD } from '../task-names';
+import { SUBTASK_DOWNLOAD, TASK_BUILD } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
 
 task(
@@ -32,6 +32,11 @@ task(
     const { name, version } = def;
 
     const builder = new ChainBuilder({ name, version, hre, def });
+    const dependencies = builder.getDependencies();
+
+    if (dependencies.length > 0) {
+      await hre.run(SUBTASK_DOWNLOAD, { images: dependencies });
+    }
 
     // options can be passed through commandline, or environment
     const mappedOptions: { [key: string]: string } = _.fromPairs(

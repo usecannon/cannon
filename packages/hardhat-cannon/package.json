@@ -34,6 +34,8 @@
     "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.1.0",
     "@types/node": "^16.0.0",
+    "@types/tar-fs": "^2.0.1",
+    "@types/tar-stream": "^2.2.2",
     "bn.js": "^5.2.0",
     "hardhat": "^2.8.4",
     "mocha": "^9.2.0",
@@ -55,8 +57,12 @@
     "fs-extra": "^10.0.0",
     "ipfs-http-client": "56.0.1",
     "ipfs-utils": "9.0.2",
+    "it-pipe": "^2.0.3",
+    "it-tar": "^4.0.0",
     "level-codec": "^10.0.0",
     "lodash": "^4.17.21",
-    "table": "^6.8.0"
+    "stream-to-it": "^0.2.4",
+    "table": "^6.8.0",
+    "tar-fs": "^2.1.1"
   }
 }
