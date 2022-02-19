@@ -83,7 +83,8 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
 };
 
 export class ChainBuilder {
-  readonly label: string;
+  readonly name: string;
+  readonly version: string;
   readonly def: ChainDefinition;
   readonly hre: HardhatRuntimeEnvironment;
 
@@ -91,12 +92,19 @@ export class ChainBuilder {
 
   private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
-  constructor(
-    label: string,
-    hre: HardhatRuntimeEnvironment,
-    def?: ChainDefinition
-  ) {
-    this.label = label;
+  constructor({
+    name,
+    version,
+    hre,
+    def,
+  }: {
+    name: string;
+    version: string;
+    hre: HardhatRuntimeEnvironment;
+    def?: ChainDefinition;
+  }) {
+    this.name = name;
+    this.version = version;
     this.hre = hre;
     this.def = def ?? this.loadCannonfile();
 
@@ -333,8 +341,16 @@ export class ChainBuilder {
     return false;
   }
 
+  static getCacheDir(cacheFolder: string, name: string, version: string) {
+    return path.join(cacheFolder, 'cannon', name, version);
+  }
+
   getCacheDir() {
-    return path.join(this.hre.config.paths.cache, 'cannon', this.label);
+    return ChainBuilder.getCacheDir(
+      this.hre.config.paths.cache,
+      this.name,
+      this.version
+    );
   }
 
   async getLayerFiles(n: number) {
@@ -343,12 +359,7 @@ export class ChainBuilder {
     const basename = path.join(this.getCacheDir(), filename);
 
     return {
-      cannonfile: path.join(
-        this.hre.config.paths.cache,
-        'cannon',
-        this.label,
-        'cannonfile.json'
-      ),
+      cannonfile: path.join(this.getCacheDir(), 'cannonfile.json'),
       chain: basename + '.chain',
       metadata: basename + '.json',
     };
@@ -408,7 +419,7 @@ export class ChainBuilder {
   }
 
   clearCache() {
-    fs.rmdirSync(path.join(this.hre.config.paths.cache, 'cannon', this.label));
+    fs.rmdirSync(this.getCacheDir());
   }
 
   async verifyLayerContext(n: number) {

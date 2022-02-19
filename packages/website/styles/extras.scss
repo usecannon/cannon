@@ -79,6 +79,14 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
         border: 0 !important;
         background: #000 !important;
     }
+    code {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+    }
 }
 
 .code-editor {

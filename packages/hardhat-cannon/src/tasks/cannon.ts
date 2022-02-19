@@ -31,10 +31,12 @@ task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
       for (const provision of chainData.deploy) {
         let builder;
         if (typeof provision == 'string') {
-          builder = new ChainBuilder(provision, hre);
+          const [name, version] = provision.split(':');
+          builder = new ChainBuilder({ name, version, hre });
           await builder.build({});
         } else {
-          builder = new ChainBuilder(provision[0], hre);
+          const [name, version] = provision[0].split(':');
+          builder = new ChainBuilder({ name, version, hre });
           await builder.build(provision[1]);
         }
 

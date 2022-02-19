@@ -67,7 +67,8 @@ export default {
 
     // download if necessary upstream
     // then provision a builder and build the cannonfile
-    const builder = new ChainBuilder(config.source, hre);
+    const [name, version] = config.source.split(':');
+    const builder = new ChainBuilder({ name, version, hre });
 
     await builder.build(config.options || {});
 

@@ -1,10 +1,8 @@
 import _ from 'lodash';
-import fs from 'fs-extra';
 import path from 'path';
-import toml from '@iarna/toml';
-import { HardhatPluginError } from 'hardhat/plugins';
 import { task } from 'hardhat/config';
 
+import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder } from '../builder';
 import { TASK_BUILD } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
@@ -30,16 +28,10 @@ task(
       path.relative(process.cwd(), filepath)
     );
 
-    if (!fs.existsSync(filepath)) {
-      throw new HardhatPluginError(
-        'cannon',
-        `Cannon file '${filepath}' not found.`
-      );
-    }
+    const def = loadCannonfile(filepath);
+    const { name, version } = def;
 
-    const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
-
-    const builder = new ChainBuilder(def.name as string, hre, def);
+    const builder = new ChainBuilder({ name, version, hre, def });
 
     // options can be passed through commandline, or environment
     const mappedOptions: { [key: string]: string } = _.fromPairs(
