@@ -29,7 +29,11 @@ task(
     });
 
     const ipfs = new IPFS();
-    const registry = new CannonRegistry(hre);
+    const registry = new CannonRegistry({
+      endpoint: hre.config.cannon.registryEndpoint,
+      address: hre.config.cannon.registryAddress,
+      privateKey: hre.config.cannon.registryPrivateKey,
+    });
 
     console.log('Uploading files to IPFS...');
 

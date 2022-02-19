@@ -22,19 +22,9 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-
 const config: HardhatUserConfig = {
   solidity: '0.8.4',
-  networks: {
-    rinkeby: {
-      url:
-        process.env.NETWORK_ENDPOINT ||
-        'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
-  },
+  networks: {},
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: 'USD',
@@ -42,6 +32,9 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
+  cannon: {
+    registryPrivateKey: process.env.PRIVATE_KEY,
+  }
 };
 
 export default config;

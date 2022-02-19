@@ -1,44 +1,64 @@
 import path from 'path';
-import { Contract } from 'ethers';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { ethers } from 'ethers';
 import { readFileSync } from 'fs';
 
 export default class CannonRegistry {
-  hre: HardhatRuntimeEnvironment;
-  contract?: Contract;
+  provider?: ethers.providers.JsonRpcProvider;
+  contract?: ethers.Contract;
+  wallet?: ethers.Wallet;
   abi: any[];
 
-  inited = false;
-
-  constructor(hre: HardhatRuntimeEnvironment) {
-    this.hre = hre;
+  constructor({
+    endpoint,
+    address,
+    privateKey,
+  }: {
+    endpoint: string;
+    address: string;
+    privateKey?: string;
+  }) {
     this.abi = JSON.parse(
       readFileSync(
         path.resolve(__dirname, '..', 'abis', 'CannonRegistry.json')
       ).toString()
     );
-  }
 
-  async init() {
-    if (this.inited) return;
-    this.inited = true;
+    this.provider = new ethers.providers.JsonRpcProvider(endpoint);
+    this.contract = new ethers.Contract(address, this.abi, this.provider);
 
-    this.contract = await this.hre.ethers.getContractAt(
-      this.abi,
-      this.hre.config.cannon.registryAddress
-    );
+    if (privateKey) {
+      this.wallet = new ethers.Wallet(privateKey, this.provider);
+    }
   }
 
   async publish(name: string, version: string, url: string) {
-    if (!this.inited) await this.init();
+    if (!this.contract) {
+      throw new Error('Contract not initialized');
+    }
 
-    //@ts-ignore
-    const tx = await this.contract.publish(
-      this.hre.ethers.utils.formatBytes32String(name),
-      this.hre.ethers.utils.formatBytes32String(version),
-      url
-    );
+    if (!this.wallet) {
+      throw new Error('Missing cannon.registryPrivateKey configuration');
+    }
+
+    const tx = await this.contract
+      .connect(this.wallet)
+      .publish(
+        ethers.utils.formatBytes32String(name),
+        ethers.utils.formatBytes32String(version),
+        url
+      );
 
     return await tx.wait();
+  }
+
+  async getUrl(name: string, version: string) {
+    if (!this.contract) {
+      throw new Error('Contract not initialized');
+    }
+
+    return await this.contract.getUrl(
+      ethers.utils.formatBytes32String(name),
+      ethers.utils.formatBytes32String(version)
+    );
   }
 }
