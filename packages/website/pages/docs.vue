@@ -30,7 +30,9 @@
         </CBox>
       </CGridItem>
       <CGridItem :col-span="[12, 9]" class="prose" :pt="[0, 8]">
-        <nuxt-content :document="page" />
+        <client-only>
+          <nuxt-content :document="page" />
+        </client-only>
       </CGridItem>
     </CGrid>
   </CBox>
