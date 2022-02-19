@@ -1,8 +1,11 @@
+import path from 'path';
 import { task } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
 import IPFS from '../builder/ipfs';
-import { TASK_BUILD, TASK_PUBLISH } from '../task-names';
+import loadCannonfile from '../internal/load-cannonfile';
+import { ChainBuilder } from '../builder';
+import { TASK_PUBLISH } from '../task-names';
 
 task(
   TASK_PUBLISH,
@@ -13,20 +16,19 @@ task(
     'TOML definition of the chain to assemble',
     'cannonfile.toml'
   )
-  .addOptionalVariadicPositionalParam(
-    'options',
-    'Key values of chain which should be built'
-  )
-  .setAction(async ({ file, options }, hre) => {
-    const ipfs = new IPFS();
-    const registry = new CannonRegistry(hre);
-
-    const { filepath, builder } = await hre.run(TASK_BUILD, {
-      file,
-      options,
+  .setAction(async ({ file }, hre) => {
+    const filepath = path.resolve(hre.config.paths.root, file);
+    const def = loadCannonfile(filepath);
+    const { name, version } = def;
+    const builder = new ChainBuilder({
+      name,
+      version,
+      hre,
+      def,
     });
 
-    const { name, version } = builder.def;
+    const ipfs = new IPFS();
+    const registry = new CannonRegistry(hre);
 
     console.log('Uploading files to IPFS...');
 
