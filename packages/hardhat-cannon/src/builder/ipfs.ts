@@ -23,7 +23,7 @@ export type IPFSFile = IPFSFileContent | IPFSFileRemote;
 export default class IPFS {
   client: IPFSHTTPClient;
 
-  constructor({ url = 'http://localhost:5001/api/v0' } = {}) {
+  constructor({ url = 'http://127.0.0.1:5001/api/v0' } = {}) {
     this.client = create({ url });
   }
 
