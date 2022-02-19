@@ -68,10 +68,10 @@
           <CTab v-if="p.cannonfile.length">Cannonfile</CTab>
         </CTabList>
         <CTabPanels>
-          <CTabPanel py="8">
+          <CTabPanel v-if="p.readme.length" py="8">
             <div v-html="readme" class="prose" />
           </CTabPanel>
-          <CTabPanel py="4">
+          <CTabPanel py="4" v-if="p.cannonfile.length">
             <client-only :placeholder="p.cannonfile">
               <prism-editor
                 class="code-editor"
@@ -116,7 +116,7 @@ export default {
   },
   methods: {
     highlighter(code) {
-      return  highlight(code, languages.json);
+      return  highlight(code, languages.toml);
     },
   },
   computed: {
@@ -129,7 +129,7 @@ export default {
   },
   watch: {
     p(){
-      this.readme = markdown(this.p.readme);
+      this.readme = this.p.readme ? markdown(this.p.readme) : ''
     }
   },
   apollo: {

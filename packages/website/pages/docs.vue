@@ -2,14 +2,14 @@
   <CBox maxWidth="containers.lg" mx="auto" px="4">
     <CGrid
       template-columns="repeat(12, 1fr)"
-      gap="10"
+      gap="6"
       py="2"
       maxWidth="containers.lg"
       mx="auto"
       spacing="40px"
     >
       <CGridItem :col-span="[12, 3]">
-        <CBox top="0" position="sticky" :pt="[0, 8]">
+        <CBox top="0" :position="[null, 'sticky']" :pt="[0, 8]">
           <CLink
             v-for="link of page.toc"
             :key="link.id"

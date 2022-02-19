@@ -65,6 +65,7 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     .nuxt-content-highlight {
         font-size: 14px;
         margin-bottom: 12px;
+        max-width:360px;
       
         span.token.operator {
           background: transparent !important;
@@ -78,6 +79,14 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     pre[class*="language-"] {
         border: 0 !important;
         background: #000 !important;
+    }
+    code {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
     }
 }
 
