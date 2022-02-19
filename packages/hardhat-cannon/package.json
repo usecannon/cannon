@@ -17,7 +17,7 @@
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "test": "mocha --exit --recursive 'test/**/*.test.ts'",
-    "build": "tsc",
+    "build": "tsc && cp -r src/abis dist/src/abis",
     "watch": "tsc -w",
     "prepublishOnly": "npm run build"
   },
