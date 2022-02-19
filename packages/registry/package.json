@@ -1,6 +1,7 @@
 {
   "name": "cannon-registry",
   "version": "0.0.1",
+  "private": true,
   "description": "Contract registry for Cannon images",
   "main": "hardhat.config.js",
   "scripts": {

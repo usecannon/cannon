@@ -1,5 +1,7 @@
 {
   "name": "cannon-registry-subgraph",
+  "version": "0.0.1",
+  "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
