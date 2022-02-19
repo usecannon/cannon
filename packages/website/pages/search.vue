@@ -57,7 +57,7 @@
       <CBox textAlign="center" v-else-if="packages.length == 0" py="20"
         >No packages found.</CBox
       >
-      <Preview v-for="p in packages" :key="p.id" :p="p" />
+      <Preview v-else v-for="p in packages" :key="p.id" :p="p" />
     </CGridItem>
   </CGrid>
 </template>
@@ -72,6 +72,7 @@ export default {
     return {
       packages: [],
       tags: [],
+      selectedTags: [],
       query: '',
     }
   },

@@ -31,8 +31,8 @@
           >Proof of Concepts</CHeading
         >
         <CText fontSize="sm"
-          >Rapidly create development environments with existing protocols on
-          multiple chains.</CText
+          >Rapidly create development environments with existing protocols
+          across multiple chains.</CText
         >
       </CBox>
       <CBox>

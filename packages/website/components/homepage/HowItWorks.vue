@@ -31,8 +31,8 @@
             plug-in inspired by Docker and Terraform.
           </CText>
           <CText as="p" mb="3"
-            >Configure your protocol's scripts, keepers, and on-chain
-            dependencies in a <code>cannonfile.toml</code> file for
+            >Use existing packages or define your protocol’s scripts, keepers,
+            and on-chain dependencies in configuration files for
             <strong
               >automated deployments on multiple local and live chains.</strong
             >
@@ -45,6 +45,15 @@
           </CText>
         </CGridItem>
         <CGridItem :col-span="[12, 6]">
+          <CHeading
+            as="h4"
+            size="sm"
+            textTransform="uppercase"
+            fontWeight="normal"
+            letterSpacing="1px"
+            mb="4"
+            >Quick Start</CHeading
+          >
           <CText fontWeight="semibold" mb="1"
             >1. Install the Hardhat plug-in</CText
           >
@@ -80,7 +89,7 @@
             py="1"
             px="3"
             width="100%"
-            mb="1"
+            mb="2"
             >npx hardhat cannon synthetix:latest</CCode
           >
           <CText fontSize="sm" :mb="[6, 0]">

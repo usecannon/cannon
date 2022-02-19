@@ -2,7 +2,8 @@
   <CBox position="relative">
     <div class="purple-burst" />
     <CBox
-      :py="[3, 20]"
+      :pt="[0, 20]"
+      :pb="[10, 20]"
       maxWidth="containers.lg"
       mx="auto"
       px="4"
@@ -23,7 +24,7 @@
           mr="6"
           variant-color="teal"
           bg="teal.600"
-          mb="5"
+          mb="6"
           ><div
             style="
               transform: scale(0.8) translateY(-1px);
@@ -37,7 +38,7 @@
           as="nuxt-link"
           to="/docs"
           variant-color="teal"
-          mb="5"
+          mb="6"
           bg="teal.600"
           ><div
             style="

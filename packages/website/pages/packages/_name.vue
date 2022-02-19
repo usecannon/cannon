@@ -4,15 +4,15 @@
       <CGrid
         template-columns="repeat(12, 1fr)"
         gap="6"
-        py="10"
+        py="8"
         maxWidth="containers.lg"
         mx="auto"
         spacing="40px"
         alignItems="center"
       >
         <CGridItem
-          :col-span="[12, 8]"
-          py="2"
+          :col-span="[12, 7]"
+          py="6"
           :pr="[0, 4]"
           :borderRight="[null, '1px solid rgba(255,255,255,0.25)']"
         >
@@ -40,8 +40,16 @@
             {{ timeAgo }}</CText
           >
         </CGridItem>
-        <CGridItem :col-span="[12, 4]">
-          <CText size="sm" mb="1" fontWeight="bold">Quick Start</CText>
+        <CGridItem :col-span="[12, 5]">
+          <CHeading
+            as="h4"
+            size="sm"
+            textTransform="uppercase"
+            fontWeight="normal"
+            letterSpacing="1px"
+            mb="2"
+            >Quick Start</CHeading
+          >
           <CCode
             variant-color="black"
             background="black"
@@ -49,7 +57,7 @@
             px="3"
             width="100%"
             mb="2"
-            >npx hardhat cannon {{ p.name }}</CCode
+            >npx hardhat cannon {{ p.name }}:{{ p.version }}</CCode
           >
           <CText fontSize="12px"
             ><CLink

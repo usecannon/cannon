@@ -2,11 +2,11 @@
 
 Cannon is a [Hardhat](https://hardhat.org/]) plug-in that allows you to configure your protocol's scripts, keepers, and on-chain dependencies for automated provisioning and deployment. It is inspired by [Docker](https://www.docker.com/) and [Terraform](https://www.terraform.io/).
 
-You can use Cannon by specifying a package you'd like to deploy on a local node. This command can be used instead of `npx hardhat node`.
+There are three ways you can use Cannon:
 
-For more advanced usage, you can set up either of both of the following files:
-* **`cannon.json`** - This file defines the chains where you'll deploy your smart contracts and your dependencies on those chains.
-* **`cannonfile.toml`** - This file defines the scripts that should be executed and configurations relevant to your smart contracts.
+* **Use a Package** - After installing, call `npx hardhat cannon <package-name:version>`. This is similar to running `npx hardhat node`, except the specified package will be automatically provisioned.
+* **`cannon.json`** - Create this file to define the chains where you'll deploy your smart contracts and your dependencies on those chains.
+* **`cannonfile.toml`** - Create this file to define the scripts that should be executed and configurations relevant to your smart contracts.
 
 ## Getting Started
 
@@ -17,19 +17,17 @@ After you've installed Hardhat, install `hardhat-cannon`.
 npm install hardhat-cannon
 ```
 
-### Update Your Hardhat Configuration
-
-Include Cannon at the top of your `hardhat.config.js`.
+Then, include Cannon at the top of your `hardhat.config.js`.
 ```js
 require('hardhat-cannon');
 ```
 
-If your project uses Typescript, include Cannon in `hardhat.config.ts`.
+If your project uses Typescript instead, include Cannon in `hardhat.config.ts`.
 ```js
 import 'hardhat-cannon';
 ```
 
-### Provision a Custom Chain
+### Use a Package
 
 If you'd like to run a local node with an existing protocol, you can rely on the built-in package manager. For example, the following command will start a local node (similar to running `npx hardhat node`) with a simple `Greeter.sol` contract already deployed.
 ```bash
@@ -41,13 +39,13 @@ If you'd like to customize this deployment, you can specify options.
 npx hardhat cannon greeter:latest msg="Hello from Cannon"
 ```
 
-Review the a package's README for more information on the options available and other usage instructions.
+Review a package's README for more information on the options available and other usage instructions.
 
 ### Create cannon.json
 
 The example above is great for simple scenarios, but if your protocol depends on multiple protocols or multiple chains, then you can create a `cannon.json` file in the same directory as your `hardhat.config.js`.
 
-Here's an example. 
+Here's an example `canon.json` file for a project where a smart contract will be deployed to Mainnet and Optimism that will interact with Synthetix on both networks and anticipate a keeper on Mainnet.
 ```json
 {
     "name": "mySampleProject:latest",
@@ -58,14 +56,14 @@ Here's an example.
               "synthetix:2.62",
               "keeper:snapshot-keeper"
             ],
-            "chainId": 10
+            "chainId": 1
         },
         {
             "deploy": [
               "mySampleProject:latest",
               "synthetix:2.62"
             ],
-            "chainId": 100
+            "chainId": 10
         }
     ]
 }
@@ -77,7 +75,7 @@ See [cannon.json Specification](#cannonjson-specification) for more details on h
 
 ### Create Cannonfile.toml
 
-If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`.
+If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`. This can be set up in addition to a `canon.json` file, or without one.
 
 Suppose we have the following contract that we'd like to deploy.
 ```solidity
@@ -123,15 +121,13 @@ npx hardhat cannon:build
 npx hardhat cannon myStorageCannon initialValue="69"
 ```
 
-*Note that you could simplify the example above by removing the dynamic option. This would entail removing the `[setting.initialValue]` section and set args with `args=["69"]`*
+*Note that you could simplify the example above by removing the dynamic option. This would entail removing the `[setting.initialValue]` section and setting args with `args=["69"]`*
 
 See [cannonfile.toml Specification](#cannonfiletoml-specification) for more details on how to set up this file.
 
-## Using the Package Manager
+## Publish a Package
 
-The examples above demonstrate how to read from the package manager using a `cannon.json` file or via the CLI.
-
-Here is an example of how you could publish the above Cannonfile to the registery, backed on Ethereum and IPFS:
+Cannonfiles can be published to the registry, backed on Ethereum and IPFS. From the same directory as `cannonfile.toml`, you can run the following commands to publish a package:
 ```bash
 npx hardhat compile
 npx hardhat cannon:build
@@ -142,7 +138,7 @@ If you have multiple Cannonfiles in your project, you can pass `--file` with the
 
 ## cannonfile.toml Specification
 
-Cannonfiles contain a series of actions which are executed at run-time. See [Define a Cannonfile](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
+Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
 
 ### contract
 
