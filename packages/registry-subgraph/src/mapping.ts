@@ -41,18 +41,24 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
         addTag(tagsArray[i].toString(), id);
       }
     }
+  }else{
+    log.warning("Couldn't retrieve metadata for {}", [id])
   }
 
   const readme_path = entity.url.slice(7) + '/README.md';
   const readme_data = ipfs.cat(readme_path);
   if (readme_data) {
     entity.readme = readme_data.toString();
+  }else{
+    log.warning("Couldn't retrieve readme for {}", [id])
   }
 
   const toml_path = entity.url.slice(7) + '/cannonfile.toml';
   const toml_data = ipfs.cat(toml_path);
   if (toml_data) {
     entity.cannonfile = toml_data.toString();
+  }else{
+    log.warning("Couldn't retrieve cannonfile for {}", [id])
   }
 
   entity.save();

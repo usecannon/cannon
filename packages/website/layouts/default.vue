@@ -6,7 +6,7 @@
         as="main"
         background="blue.900"
         minHeight="100vh"
-        color="white"
+        color="rgba(255,255,255,0.85)"
         d="flex"
         flexDirection="column"
       >

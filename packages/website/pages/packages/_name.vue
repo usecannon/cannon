@@ -96,10 +96,8 @@ import { formatDistanceToNow } from 'date-fns'
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
-// import highlighting library (you can use any library you want just return html string)
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-toml';
-import 'prismjs/themes/prism-dark.css'; // import syntax highlighting styles
 
 var markdown = require('remarked');
 

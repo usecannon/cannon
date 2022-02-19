@@ -78,14 +78,16 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     pre[class*="language-"] {
         border: 0 !important;
         background: #000 !important;
+        text-shadow: none !important;
+        color: #fff;
     }
     code {
-  overflow-x: auto;
-  white-space: pre-wrap;
-  white-space: -moz-pre-wrap;
-  white-space: -pre-wrap;
-  white-space: -o-pre-wrap;
-  word-wrap: break-word;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
     }
 }
 

@@ -25,7 +25,7 @@ require('hardhat-cannon');
 ```
 
 If your project uses Typescript, include Cannon in `hardhat.config.ts`.
-```ts
+```js
 import 'hardhat-cannon';
 ```
 

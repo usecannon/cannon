@@ -22,20 +22,6 @@
       <CBox>
         <CImage
           size="80px"
-          :src="require('@/static/usecases_1.png')"
-          alt="Testing"
-          mx="auto"
-          mb="6"
-        />
-        <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
-        <CText fontSize="sm">
-          Speed up your integration tests and reduce flakes by recording your
-          deployments to a snapshot.
-        </CText>
-      </CBox>
-      <CBox>
-        <CImage
-          size="80px"
           :src="require('@/static/usecases_2.png')"
           alt="Proof of Concept"
           mx="auto"
@@ -48,6 +34,20 @@
           >Rapidly create development environments with existing protocols on
           multiple chains.</CText
         >
+      </CBox>
+      <CBox>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_1.png')"
+          alt="Testing"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
+        <CText fontSize="sm">
+          Speed up your integration tests and reduce flakes by recording your
+          deployments to a snapshot.
+        </CText>
       </CBox>
       <CBox>
         <CImage

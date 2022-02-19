@@ -59,9 +59,16 @@ export default {
   apollo: {
     clientConfigs: {
       default: {
-        httpEndpoint:
-          'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry',
-      },
-    },
+        httpEndpoint: 'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry',
+      }
+    }
   },
+
+  content: {
+    markdown: {
+      prism: {
+        theme: 'prism-themes/themes/prism-one-dark.css'
+      }
+    }
+  }
 }

@@ -9,12 +9,7 @@
       position="relative"
       zIndex="1"
     >
-      <CGrid
-        template-columns="repeat(12, 1fr)"
-        gap="6"
-        width="100%"
-        alignItems="center"
-      >
+      <CGrid template-columns="repeat(12, 1fr)" gap="6" alignItems="center">
         <CGridItem :col-span="[12, 6]">
           <CHeading
             as="h3"
@@ -88,7 +83,7 @@
             mb="1"
             >npx hardhat cannon synthetix:latest</CCode
           >
-          <CText fontSize="sm" mb="6">
+          <CText fontSize="sm" :mb="[6, 0]">
             <small
               ><CLink as="nuxt-link" to="/search" textDecoration="underline"
                 >Browse packages</CLink
