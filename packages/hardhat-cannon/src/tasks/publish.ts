@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { task } from 'hardhat/config';
 
@@ -32,20 +33,26 @@ task(
 
     console.log('Uploading files to IPFS...');
 
-    const result = await ipfs.add([
+    const files = [
       {
         remotePath: `${name}/cannonfile.toml`,
         localPath: filepath,
       },
-      // {
-      //   remotePath: `${name}/README.md`,
-      //   localPath: filepath,
-      // },
       {
         remotePath: `${name}/cache`,
         localPath: builder.getCacheDir(),
       },
-    ]);
+    ];
+
+    const readmePath = path.resolve(hre.config.paths.root, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      files.push({
+        remotePath: `${name}/README.md`,
+        localPath: readmePath,
+      });
+    }
+
+    const result = await ipfs.add(files);
 
     const folderHash = result
       .find((file) => file.path === name)
