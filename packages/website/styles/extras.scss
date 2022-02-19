@@ -49,8 +49,11 @@ input:not(:checked) + div[data-chakra-component="CControlBox"] {
     h1:not(:first-child),h2:not(:first-child),h3:not(:first-child),h4:not(:first-child) {
         padding-top:24px;
     }
-    p {
+    p, img {
         margin-bottom: 12px;
+    }
+    hr {
+        opacity: 0.5;
     }
     ul {
         margin-bottom: 12px;

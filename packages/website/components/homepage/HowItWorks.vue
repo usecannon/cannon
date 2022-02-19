@@ -32,7 +32,7 @@
           </CText>
           <CText as="p" mb="3"
             >Configure your protocol's scripts, keepers, and on-chain
-            dependencies in your <code>cannon.json</code> file for
+            dependencies in a <code>cannonfile.toml</code> file for
             <strong
               >automated deployments on multiple local and live chains.</strong
             >
