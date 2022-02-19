@@ -4,7 +4,7 @@ Cannon is a [Hardhat](https://hardhat.org/]) plug-in that allows you to configur
 
 There are three ways you can use Cannon:
 
-* **Use a Package** - After installing, call `npx hardhat cannon <package-name:version>`. This is similar to running `npx hardhat node`, except the specified package will be automatically provisioned.
+* **Use a Package** - After installing Cannon, call `npx hardhat cannon <package-name:version>`. This is similar to running `npx hardhat node`, except the specified package will be automatically provisioned.
 * **`cannon.json`** - Create this file to define the chains where you'll deploy your smart contracts and your dependencies on those chains.
 * **`cannonfile.toml`** - Create this file to define the scripts that should be executed and configurations relevant to your smart contracts.
 
@@ -121,7 +121,7 @@ npx hardhat cannon:build
 npx hardhat cannon myStorageCannon initialValue="69"
 ```
 
-*Note that you could simplify the example above by removing the dynamic option. This would entail removing the `[setting.initialValue]` section and setting args with `args=["69"]`*
+*Note that you could simplify the example above by removing the `initialValue` option. This would entail removing the `[setting.initialValue]` section and setting args with `args=["69"]`*
 
 See [cannonfile.toml Specification](#cannonfiletoml-specification) for more details on how to set up this file.
 
@@ -135,6 +135,14 @@ npx hardhat cannon:publish
 ```
 
 If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.
+
+## cannon.json Specification
+
+* `name` *<small>string</small>* - This is the name of your protocol, which you can reference in the `deploy` section of this file.
+* `chains` *<small>array</small>* - This defines each of the chains you plan to deploy on and the protocols to be deployed on each of them.
+  * `chainId` *<small>integer</small>* - The id of the chain this will ultimately be deployed to. See [Chainlist](https://chainlist.org/) for reference.
+  * `deploy` *<small>array</small>* - This is an array of Cannonfiles to provision on this chain. It can be the `name` field for your protocol or the name of a package from the [registry](/search). The items in the array can also be arrays with a length of two, where the first item is the name of the package to use and the second item is an object with options to use when running this Cannonfile.
+  * `port` *<small>integer</small>* - Optionally, specify a port use for this node.
 
 ## cannonfile.toml Specification
 
@@ -206,11 +214,3 @@ The `run` action executes a custom script.
 
 **Outputs**
 If the script returns a JSON object, the outputs of this action will consist of those values as key-value pairs.
-
-## cannon.json Specification
-
-* `name` *<small>string</small>* - This is the name of your protocol, which you can reference in the `deploy` section of this file.
-* `chains` *<small>array</small>* - This defines each of the chains you plan to deploy on and the protocols to be deployed on each of them.
-  * `chainId` *<small>integer</small>* - The id of the chain this will ultimately be deployed to. See [Chainlist](https://chainlist.org/) for reference.
-  * `deploy` *<small>array</small>* - This is an array of Cannonfiles to provision on this chain. It can be the `name` field for your protocol or the name of a package from the [registry](/search). The items in the array can also be arrays with a length of two, where the first item is the name of the package to use and the second item is an object with options to use when running this Cannonfile.
-  * `port` *<small>integer</small>* - Optionally, specify a port use for this node.
