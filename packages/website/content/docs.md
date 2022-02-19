@@ -73,7 +73,7 @@ Once you've created your `cannon.json` file, run `npx hardhat cannon` and Cannon
 
 See [cannon.json Specification](#cannonjson-specification) for more details on how to set up this file.
 
-### Create Cannonfile.toml
+### Create cannonfile.toml
 
 If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`. This can be set up in addition to a `canon.json` file, or without one.
 
@@ -125,9 +125,41 @@ npx hardhat cannon myStorageCannon initialValue="69"
 
 See [cannonfile.toml Specification](#cannonfiletoml-specification) for more details on how to set up this file.
 
+## Deploy to Production
+
+**Coming soon**
+
+Make sure `detect` is set in `cannonfile.toml` for all your on-chain dependencies.
+
+Then run 
+```bash
+npx hardhat --network <network name> cannon:build
+```
+
 ## Publish a Package
 
-Cannonfiles can be published to the registry, backed on Ethereum and IPFS. From the same directory as `cannonfile.toml`, you can run the following commands to publish a package:
+Cannonfiles can be published to the registry, backed on Ethereum and IPFS. 
+
+We recommend using Infura to pin on IPFS using their API, though you can use any IPFS node. Create an Infura account and an IPFS project. You'll retrieve the `INFURA_IPFS_ID` and `INFURA_IPFS_SECRET` values from their dashboard to use below.
+
+`PRIVATE_KEY` is the private key of an Ethereum wallet that will pay the gas to add the entry to the  on-chain registry.
+
+Add this section to your hardhat.config.json:
+```json
+cannon: {
+    publisherPrivateKey: process.env.PRIVATE_KEY,
+    ipfsConnection: {
+      protocol: 'https',
+      host: 'ipfs.infura.io',
+      port: 5001,
+      headers: {
+        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString('base64')}`
+      },
+    }
+  }
+```
+
+Then use the following commands to publish your package:
 ```bash
 npx hardhat compile
 npx hardhat cannon:build

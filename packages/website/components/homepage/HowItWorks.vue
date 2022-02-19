@@ -17,10 +17,10 @@
             textTransform="uppercase"
             fontWeight="normal"
             letterSpacing="1px"
-            mb="5"
+            mb="3"
             >How it works</CHeading
           >
-          <CText as="p" mb="5">
+          <CText as="p" mb="3">
             <strong>Cannon</strong> is a
             <CLink
               isExternal

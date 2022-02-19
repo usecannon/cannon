@@ -2,7 +2,7 @@
   <CBox position="relative">
     <div class="purple-burst" />
     <CBox
-      :pt="[0, 20]"
+      :pt="[4, 20]"
       :pb="[10, 20]"
       maxWidth="containers.lg"
       mx="auto"
