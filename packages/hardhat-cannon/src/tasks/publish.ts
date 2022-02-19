@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { globSync } from 'hardhat/internal/util/glob';
 import { task } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
@@ -28,7 +29,7 @@ task(
       def,
     });
 
-    const ipfs = new IPFS();
+    const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
     const registry = new CannonRegistry({
       endpoint: hre.config.cannon.registryEndpoint,
       address: hre.config.cannon.registryAddress,
@@ -42,10 +43,6 @@ task(
         remotePath: `${name}/cannonfile.toml`,
         localPath: filepath,
       },
-      {
-        remotePath: `${name}/cache`,
-        localPath: builder.getCacheDir(),
-      },
     ];
 
     const readmePath = path.resolve(hre.config.paths.root, 'README.md');
@@ -55,6 +52,11 @@ task(
         localPath: readmePath,
       });
     }
+
+    files.push({
+      remotePath: `${name}/cache`,
+      localPath: builder.getCacheDir(),
+    });
 
     const result = await ipfs.add(files);
 

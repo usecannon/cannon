@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path/posix';
-import { IPFSHTTPClient, create, globSource } from 'ipfs-http-client';
+import { IPFSHTTPClient, Options, create, globSource } from 'ipfs-http-client';
 
 type IPFSFileContent = {
   remotePath: string;
@@ -23,14 +23,16 @@ export type IPFSFile = IPFSFileContent | IPFSFileRemote;
 export default class IPFS {
   client: IPFSHTTPClient;
 
-  constructor({ url = 'http://127.0.0.1:5001/api/v0' } = {}) {
-    this.client = create({ url });
+  constructor(options: Options = { url: 'http://127.0.0.1:5001/api/v0' }) {
+    this.client = create(options);
   }
 
   async add(files: IPFSFile[]) {
     const results = [];
 
-    for await (const result of this.client.addAll(_openFiles(files))) {
+    for await (const result of this.client.addAll(_openFiles(files), {
+      pin: true,
+    })) {
       results.push(result);
     }
 

@@ -16,11 +16,17 @@ extendConfig(
       registryEndpoint:
         userConfig.cannon?.registryEndpoint ||
         'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+
       // TODO: grab default value from registry/deployments/${network}.json file
       registryAddress:
         userConfig.cannon?.registryAddress ||
         '0x805519fE0Aa8903F2CA72835A3A1FA3d0a17D5A2',
+
       registryPrivateKey: userConfig.cannon?.registryPrivateKey,
+
+      ipfsConnection: userConfig.cannon?.ipfsConnection || {
+        url: 'http://127.0.0.1:5001/api/v0',
+      },
     };
   }
 );

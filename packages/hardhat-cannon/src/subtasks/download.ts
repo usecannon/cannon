@@ -11,7 +11,7 @@ import { SUBTASK_DOWNLOAD } from '../task-names';
 
 subtask(SUBTASK_DOWNLOAD).setAction(
   async ({ images }: { images: string[] }, hre) => {
-    const ipfs = new IPFS();
+    const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
     const registry = new CannonRegistry({
       endpoint: hre.config.cannon.registryEndpoint,
       address: hre.config.cannon.registryAddress,

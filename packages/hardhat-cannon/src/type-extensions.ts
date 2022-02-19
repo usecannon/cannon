@@ -1,11 +1,14 @@
 import 'hardhat/types/config';
 
+import { Options as IPFSConnectionOptions } from 'ipfs-http-client';
+
 declare module 'hardhat/types/config' {
   export interface HardhatUserConfig {
     cannon?: {
       registryEndpoint?: string;
       registryAddress?: string;
       registryPrivateKey?: string;
+      ipfsConnection?: IPFSConnectionOptions;
     };
   }
 
@@ -14,6 +17,7 @@ declare module 'hardhat/types/config' {
       registryEndpoint: string;
       registryAddress: string;
       registryPrivateKey?: string;
+      ipfsConnection: IPFSConnectionOptions;
     };
   }
 }
