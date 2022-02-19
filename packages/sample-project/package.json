@@ -1,6 +1,6 @@
 {
   "name": "sample-project",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
