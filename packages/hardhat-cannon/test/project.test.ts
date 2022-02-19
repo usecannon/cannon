@@ -1,3 +1,3 @@
-describe("Cannon", function () {
-  it("is not tested", function () {});
+describe('Cannon', function () {
+  it('is not tested', function () {});
 });

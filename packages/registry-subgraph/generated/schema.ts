@@ -8,124 +8,124 @@ import {
   store,
   Bytes,
   BigInt,
-  BigDecimal
-} from "@graphprotocol/graph-ts";
+  BigDecimal,
+} from '@graphprotocol/graph-ts';
 
 export class Package extends Entity {
   constructor(id: string) {
     super();
-    this.set("id", Value.fromString(id));
+    this.set('id', Value.fromString(id));
 
-    this.set("name", Value.fromString(""));
-    this.set("description", Value.fromString(""));
-    this.set("version", Value.fromString(""));
-    this.set("url", Value.fromString(""));
-    this.set("added", Value.fromBigInt(BigInt.zero()));
-    this.set("publisher", Value.fromString(""));
-    this.set("readme", Value.fromString(""));
-    this.set("cannonfile", Value.fromString(""));
+    this.set('name', Value.fromString(''));
+    this.set('description', Value.fromString(''));
+    this.set('version', Value.fromString(''));
+    this.set('url', Value.fromString(''));
+    this.set('added', Value.fromBigInt(BigInt.zero()));
+    this.set('publisher', Value.fromString(''));
+    this.set('readme', Value.fromString(''));
+    this.set('cannonfile', Value.fromString(''));
   }
 
   save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Package entity without an ID");
+    const id = this.get('id');
+    assert(id != null, 'Cannot save Package entity without an ID');
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save Package entity with non-string ID. " +
+        'Cannot save Package entity with non-string ID. ' +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("Package", id.toString(), this);
+      store.set('Package', id.toString(), this);
     }
   }
 
   static load(id: string): Package | null {
-    return changetype<Package | null>(store.get("Package", id));
+    return changetype<Package | null>(store.get('Package', id));
   }
 
   get id(): string {
-    let value = this.get("id");
+    const value = this.get('id');
     return value!.toString();
   }
 
   set id(value: string) {
-    this.set("id", Value.fromString(value));
+    this.set('id', Value.fromString(value));
   }
 
   get name(): string {
-    let value = this.get("name");
+    const value = this.get('name');
     return value!.toString();
   }
 
   set name(value: string) {
-    this.set("name", Value.fromString(value));
+    this.set('name', Value.fromString(value));
   }
 
   get description(): string {
-    let value = this.get("description");
+    const value = this.get('description');
     return value!.toString();
   }
 
   set description(value: string) {
-    this.set("description", Value.fromString(value));
+    this.set('description', Value.fromString(value));
   }
 
   get version(): string {
-    let value = this.get("version");
+    const value = this.get('version');
     return value!.toString();
   }
 
   set version(value: string) {
-    this.set("version", Value.fromString(value));
+    this.set('version', Value.fromString(value));
   }
 
   get url(): string {
-    let value = this.get("url");
+    const value = this.get('url');
     return value!.toString();
   }
 
   set url(value: string) {
-    this.set("url", Value.fromString(value));
+    this.set('url', Value.fromString(value));
   }
 
   get added(): BigInt {
-    let value = this.get("added");
+    const value = this.get('added');
     return value!.toBigInt();
   }
 
   set added(value: BigInt) {
-    this.set("added", Value.fromBigInt(value));
+    this.set('added', Value.fromBigInt(value));
   }
 
   get publisher(): string {
-    let value = this.get("publisher");
+    const value = this.get('publisher');
     return value!.toString();
   }
 
   set publisher(value: string) {
-    this.set("publisher", Value.fromString(value));
+    this.set('publisher', Value.fromString(value));
   }
 
   get readme(): string {
-    let value = this.get("readme");
+    const value = this.get('readme');
     return value!.toString();
   }
 
   set readme(value: string) {
-    this.set("readme", Value.fromString(value));
+    this.set('readme', Value.fromString(value));
   }
 
   get cannonfile(): string {
-    let value = this.get("cannonfile");
+    const value = this.get('cannonfile');
     return value!.toString();
   }
 
   set cannonfile(value: string) {
-    this.set("cannonfile", Value.fromString(value));
+    this.set('cannonfile', Value.fromString(value));
   }
 
   get tags(): Array<string> | null {
-    let value = this.get("tags");
+    const value = this.get('tags');
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -135,9 +135,9 @@ export class Package extends Entity {
 
   set tags(value: Array<string> | null) {
     if (!value) {
-      this.unset("tags");
+      this.unset('tags');
     } else {
-      this.set("tags", Value.fromStringArray(<Array<string>>value));
+      this.set('tags', Value.fromStringArray(<Array<string>>value));
     }
   }
 }
@@ -145,48 +145,48 @@ export class Package extends Entity {
 export class Tag extends Entity {
   constructor(id: string) {
     super();
-    this.set("id", Value.fromString(id));
+    this.set('id', Value.fromString(id));
 
-    this.set("count", Value.fromBigInt(BigInt.zero()));
+    this.set('count', Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Tag entity without an ID");
+    const id = this.get('id');
+    assert(id != null, 'Cannot save Tag entity without an ID');
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save Tag entity with non-string ID. " +
+        'Cannot save Tag entity with non-string ID. ' +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("Tag", id.toString(), this);
+      store.set('Tag', id.toString(), this);
     }
   }
 
   static load(id: string): Tag | null {
-    return changetype<Tag | null>(store.get("Tag", id));
+    return changetype<Tag | null>(store.get('Tag', id));
   }
 
   get id(): string {
-    let value = this.get("id");
+    const value = this.get('id');
     return value!.toString();
   }
 
   set id(value: string) {
-    this.set("id", Value.fromString(value));
+    this.set('id', Value.fromString(value));
   }
 
   get count(): BigInt {
-    let value = this.get("count");
+    const value = this.get('count');
     return value!.toBigInt();
   }
 
   set count(value: BigInt) {
-    this.set("count", Value.fromBigInt(value));
+    this.set('count', Value.fromBigInt(value));
   }
 
   get packages(): Array<string> | null {
-    let value = this.get("packages");
+    const value = this.get('packages');
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -196,9 +196,9 @@ export class Tag extends Entity {
 
   set packages(value: Array<string> | null) {
     if (!value) {
-      this.unset("packages");
+      this.unset('packages');
     } else {
-      this.set("packages", Value.fromStringArray(<Array<string>>value));
+      this.set('packages', Value.fromStringArray(<Array<string>>value));
     }
   }
 }
@@ -206,53 +206,53 @@ export class Tag extends Entity {
 export class PackageTag extends Entity {
   constructor(id: string) {
     super();
-    this.set("id", Value.fromString(id));
+    this.set('id', Value.fromString(id));
 
-    this.set("cannon_package", Value.fromString(""));
-    this.set("tag", Value.fromString(""));
+    this.set('cannon_package', Value.fromString(''));
+    this.set('tag', Value.fromString(''));
   }
 
   save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save PackageTag entity without an ID");
+    const id = this.get('id');
+    assert(id != null, 'Cannot save PackageTag entity without an ID');
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save PackageTag entity with non-string ID. " +
+        'Cannot save PackageTag entity with non-string ID. ' +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("PackageTag", id.toString(), this);
+      store.set('PackageTag', id.toString(), this);
     }
   }
 
   static load(id: string): PackageTag | null {
-    return changetype<PackageTag | null>(store.get("PackageTag", id));
+    return changetype<PackageTag | null>(store.get('PackageTag', id));
   }
 
   get id(): string {
-    let value = this.get("id");
+    const value = this.get('id');
     return value!.toString();
   }
 
   set id(value: string) {
-    this.set("id", Value.fromString(value));
+    this.set('id', Value.fromString(value));
   }
 
   get cannon_package(): string {
-    let value = this.get("cannon_package");
+    const value = this.get('cannon_package');
     return value!.toString();
   }
 
   set cannon_package(value: string) {
-    this.set("cannon_package", Value.fromString(value));
+    this.set('cannon_package', Value.fromString(value));
   }
 
   get tag(): string {
-    let value = this.get("tag");
+    const value = this.get('tag');
     return value!.toString();
   }
 
   set tag(value: string) {
-    this.set("tag", Value.fromString(value));
+    this.set('tag', Value.fromString(value));
   }
 }

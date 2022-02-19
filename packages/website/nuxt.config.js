@@ -20,9 +20,7 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [
-    '@/styles/extras.scss'
-  ],
+  css: ['@/styles/extras.scss'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [],
@@ -31,9 +29,7 @@ export default {
   components: true,
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
-  buildModules: [
-    '@nuxtjs/google-fonts'
-  ],
+  buildModules: ['@nuxtjs/google-fonts'],
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
@@ -50,21 +46,22 @@ export default {
   build: {},
 
   chakra: {
-    extendTheme: customTheme
+    extendTheme: customTheme,
   },
 
   googleFonts: {
     families: {
       'Miriam+Libre': true,
-      Inter: true
-    }
+      Inter: true,
+    },
   },
 
   apollo: {
     clientConfigs: {
       default: {
-        httpEndpoint: 'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry',
-      }
-    }
-  }
+        httpEndpoint:
+          'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry',
+      },
+    },
+  },
 }

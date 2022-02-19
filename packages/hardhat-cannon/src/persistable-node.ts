@@ -1,3 +1,9 @@
+import { deflate, inflate } from 'zlib';
+const { promisify } = require('util');
+
+const deflatePromise = promisify(deflate);
+const inflatePromise = promisify(inflate);
+
 import BN from 'bn.js';
 import Common from '@ethereumjs/common';
 import VM from '@ethereumjs/vm';
@@ -94,14 +100,20 @@ export async function dumpState(
     minTimestamp: node.getTimeIncrement().toNumber(),
   };
 
-  return Buffer.from(JSON.stringify(state));
+  // TODO: would be way better to utilize streaming here
+  return deflatePromise(Buffer.from(JSON.stringify(state)));
 }
 
 export async function loadState(
   hre: HardhatRuntimeEnvironment,
   rawState: Buffer
 ): Promise<boolean> {
-  const state: SerializableNodeState = JSON.parse(rawState.toString('utf8'));
+  // TODO: would be way better to utilize streaming here
+  const deflatedState = await inflatePromise(rawState);
+
+  const state: SerializableNodeState = JSON.parse(
+    deflatedState.toString('utf8')
+  );
 
   /*hre.network.provider.send('evm_mine');
 

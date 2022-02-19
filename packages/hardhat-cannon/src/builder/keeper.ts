@@ -17,7 +17,12 @@ export interface Outputs {
 export default {
   validate: ChainDefinitionScriptSchema,
 
-  async getState(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config, storage: string) {
+  async getState(
+    hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
+    config: Config,
+    storage: string
+  ) {
     return this.configInject(ctx, config);
   },
 

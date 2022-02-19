@@ -32,7 +32,12 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config, storage: string) {
+  async getState(
+    hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
+    config: Config,
+    storage: string
+  ) {
     return this.configInject(ctx, config);
   },
 

@@ -28,13 +28,30 @@ function printChainBuilderOutput(output: ChainBuilderOutputs) {
   }
 
   if (output.runs) {
-    const formattedData = _.map(output.runs, (v, k) => {
-      const neatValues = _.map(v, (v, k) => `${k}: ${v}`);
+    const formattedData = _.sortBy(
+      _.flatten(
+        _.map(output.runs, (v, runName) => {
+          // prevent extremely long values from clogging the terminal
+          const neatValues = _.map(v, (v, k) => [
+            `${runName}.${k}`,
+            `${ellipsize(v.toString(), 70)}`,
+          ]);
 
-      return [k, neatValues];
-    });
+          return neatValues;
+        })
+      ),
+      '0'
+    );
 
     console.log('RUN OUTPUTS:');
     console.log(table(formattedData));
   }
+}
+
+function ellipsize(str: string, maxLength: number, ellipsizeText = '...') {
+  if (str.length > maxLength) {
+    return str.substr(0, maxLength - ellipsizeText.length) + ellipsizeText;
+  }
+
+  return str;
 }

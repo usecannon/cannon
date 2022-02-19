@@ -7,8 +7,8 @@ import {
   Entity,
   Bytes,
   Address,
-  BigInt
-} from "@graphprotocol/graph-ts";
+  BigInt,
+} from '@graphprotocol/graph-ts';
 
 export class ProtocolPublish extends ethereum.Event {
   get params(): ProtocolPublish__Params {
@@ -42,46 +42,46 @@ export class ProtocolPublish__Params {
 
 export class CannonRegistry extends ethereum.SmartContract {
   static bind(address: Address): CannonRegistry {
-    return new CannonRegistry("CannonRegistry", address);
+    return new CannonRegistry('CannonRegistry', address);
   }
 
   getProtocols(): Array<Bytes> {
-    let result = super.call("getProtocols", "getProtocols():(bytes32[])", []);
+    const result = super.call('getProtocols', 'getProtocols():(bytes32[])', []);
 
     return result[0].toBytesArray();
   }
 
   try_getProtocols(): ethereum.CallResult<Array<Bytes>> {
-    let result = super.tryCall(
-      "getProtocols",
-      "getProtocols():(bytes32[])",
+    const result = super.tryCall(
+      'getProtocols',
+      'getProtocols():(bytes32[])',
       []
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
-    let value = result.value;
+    const value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
 
   getVersions(_protocolName: Bytes): Array<Bytes> {
-    let result = super.call("getVersions", "getVersions(bytes32):(bytes32[])", [
-      ethereum.Value.fromFixedBytes(_protocolName)
-    ]);
+    const result = super.call('getVersions', 'getVersions(bytes32):(bytes32[])', [
+      [ethereum.Value.fromFixedBytes(_protocolName)]
+    );
 
     return result[0].toBytesArray();
   }
 
   try_getVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
-    let result = super.tryCall(
-      "getVersions",
-      "getVersions(bytes32):(bytes32[])",
+    const result = super.tryCall(
+      'getVersions',
+      'getVersions(bytes32):(bytes32[])',
       [ethereum.Value.fromFixedBytes(_protocolName)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
-    let value = result.value;
+    const value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
 }
