@@ -22,7 +22,7 @@ extendConfig(
         userConfig.cannon?.registryAddress ||
         '0x805519fE0Aa8903F2CA72835A3A1FA3d0a17D5A2',
 
-      registryPrivateKey: userConfig.cannon?.registryPrivateKey,
+      publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
       ipfsConnection: userConfig.cannon?.ipfsConnection || {
         url: 'http://127.0.0.1:5001/api/v0',

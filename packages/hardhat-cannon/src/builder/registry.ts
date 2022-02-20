@@ -37,7 +37,7 @@ export default class CannonRegistry {
     }
 
     if (!this.wallet) {
-      throw new Error('Missing cannon.registryPrivateKey configuration');
+      throw new Error('Missing cannon.publisherPrivateKey configuration');
     }
 
     const tx = await this.contract
