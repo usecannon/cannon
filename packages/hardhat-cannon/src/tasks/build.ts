@@ -45,8 +45,6 @@ task(
 
     await builder.build(mappedOptions);
 
-    console.log('-->', builder.getCacheDir());
-
     printBundledChainBuilderOutput(builder.getOutputs());
 
     return {
