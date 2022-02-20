@@ -44,6 +44,7 @@
         fontWeight="normal"
         letterSpacing="1px"
         mb="2"
+        v-if="tags.length"
         >Filter</CHeading
       >
       <CCheckboxGroup>
