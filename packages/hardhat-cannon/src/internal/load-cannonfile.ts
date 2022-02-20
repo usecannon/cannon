@@ -17,13 +17,25 @@ export default function loadCannonfile(filepath: string) {
     throw new Error('Invalid "name" property on cannonfile.toml');
   }
 
-  ethers.utils.formatBytes32String(def.name);
+  try {
+    ethers.utils.formatBytes32String(def.name);
+  } catch (err) {
+    let msg = 'Invalid "name" property on cannonfile.toml. ';
+    if (err instanceof Error) msg += err.message;
+    throw new Error(msg);
+  }
 
   if (!def.version || typeof def.version !== 'string') {
     throw new Error('Invalid "version" property on cannonfile.toml');
   }
 
-  ethers.utils.formatBytes32String(def.version);
+  try {
+    ethers.utils.formatBytes32String(def.version);
+  } catch (err) {
+    let msg = 'Invalid "version" property on cannonfile.toml. ';
+    if (err instanceof Error) msg += err.message;
+    throw new Error(msg);
+  }
 
   return def as any;
 }
