@@ -20,7 +20,7 @@ extendConfig(
       // TODO: grab default value from registry/deployments/${network}.json file
       registryAddress:
         userConfig.cannon?.registryAddress ||
-        '0x87a366adf9307cfcaC1EcB6ed07f1fb212180C2e',
+        '0xa7F19685A1970A84Da7212ed3D74Cc5237408813',
 
       publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
