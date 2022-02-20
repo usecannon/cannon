@@ -7,7 +7,7 @@ declare module 'hardhat/types/config' {
     cannon?: {
       registryEndpoint?: string;
       registryAddress?: string;
-      registryPrivateKey?: string;
+      publisherPrivateKey?: string;
       ipfsConnection?: IPFSConnectionOptions;
     };
   }
@@ -16,7 +16,7 @@ declare module 'hardhat/types/config' {
     cannon: {
       registryEndpoint: string;
       registryAddress: string;
-      registryPrivateKey?: string;
+      publisherPrivateKey?: string;
       ipfsConnection: IPFSConnectionOptions;
     };
   }

@@ -33,7 +33,7 @@ task(
     const registry = new CannonRegistry({
       endpoint: hre.config.cannon.registryEndpoint,
       address: hre.config.cannon.registryAddress,
-      privateKey: hre.config.cannon.registryPrivateKey,
+      privateKey: hre.config.cannon.publisherPrivateKey,
     });
 
     console.log('Uploading files to IPFS...');

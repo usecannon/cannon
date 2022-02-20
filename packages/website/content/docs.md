@@ -146,7 +146,8 @@ We recommend using Infura to pin on IPFS using their API, though you can use any
 
 Add this section to your hardhat.config.json:
 ```json
-cannon: {
+{
+  cannon: {
     publisherPrivateKey: process.env.PRIVATE_KEY,
     ipfsConnection: {
       protocol: 'https',
@@ -157,6 +158,7 @@ cannon: {
       },
     }
   }
+}
 ```
 
 Then use the following commands to publish your package:
