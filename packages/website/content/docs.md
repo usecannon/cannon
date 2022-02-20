@@ -118,7 +118,7 @@ Then build and run your Cannonfile:
 ```bash
 npx hardhat compile
 npx hardhat cannon:build
-npx hardhat cannon:0.0.1 myStorageCannon initialValue="69"
+npx hardhat cannon myStorageCannon:0.0.1 initialValue="69"
 ```
 
 *Note that you could simplify the example above by removing the `initialValue` option. This would entail removing the `[setting.initialValue]` section and setting args with `args=["69"]`*
