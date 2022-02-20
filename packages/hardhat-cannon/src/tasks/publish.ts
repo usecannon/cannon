@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
-import { globSync } from 'hardhat/internal/util/glob';
+import { existsSync } from 'fs';
 import { task } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
@@ -38,27 +38,19 @@ task(
 
     console.log('Uploading files to IPFS...');
 
-    const files = [
-      {
-        remotePath: `${name}/cannonfile.toml`,
-        localPath: filepath,
-      },
-    ];
+    await fs.cp(filepath, path.join(builder.getCacheDir(), 'cannonfile.toml'));
 
     const readmePath = path.resolve(hre.config.paths.root, 'README.md');
-    if (fs.existsSync(readmePath)) {
-      files.push({
-        remotePath: `${name}/README.md`,
-        localPath: readmePath,
-      });
+    if (existsSync(readmePath)) {
+      await fs.cp(readmePath, path.join(builder.getCacheDir(), 'README.md'));
     }
 
-    files.push({
-      remotePath: `${name}/cache`,
-      localPath: builder.getCacheDir(),
-    });
-
-    const result = await ipfs.add(files);
+    const result = await ipfs.add([
+      {
+        remotePath: name,
+        localPath: builder.getCacheDir(),
+      },
+    ]);
 
     const folderHash = result
       .find((file) => file.path === name)
