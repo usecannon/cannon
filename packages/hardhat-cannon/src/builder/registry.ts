@@ -31,7 +31,7 @@ export default class CannonRegistry {
     }
   }
 
-  async publish(name: string, version: string, url: string) {
+  async publish(name: string, version: string, tags: string[], url: string) {
     if (!this.contract) {
       throw new Error('Contract not initialized');
     }
@@ -40,13 +40,12 @@ export default class CannonRegistry {
       throw new Error('Missing cannon.publisherPrivateKey configuration');
     }
 
-    const tx = await this.contract
-      .connect(this.wallet)
-      .publish(
-        ethers.utils.formatBytes32String(name),
-        ethers.utils.formatBytes32String(version),
-        url
-      );
+    const tx = await this.contract.connect(this.wallet).publish(
+      ethers.utils.formatBytes32String(name),
+      ethers.utils.formatBytes32String(version),
+      tags.map((t) => ethers.utils.formatBytes32String(t)),
+      url
+    );
 
     return await tx.wait();
   }

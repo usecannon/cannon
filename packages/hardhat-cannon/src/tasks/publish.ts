@@ -18,7 +18,12 @@ task(
     'TOML definition of the chain to assemble',
     'cannonfile.toml'
   )
-  .setAction(async ({ file }, hre) => {
+  .addOptionalParam(
+    'tags',
+    'Comma separated list of labels for your package to be uploaded with.',
+    'latest'
+  )
+  .setAction(async ({ file, tags }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(filepath);
     const { name, version } = def;
@@ -61,5 +66,5 @@ task(
 
     console.log(`Publishing ${name}@${version} with url "${url}"`);
 
-    await registry.publish(name, version, url);
+    await registry.publish(name, version, tags.split(','), url);
   });
