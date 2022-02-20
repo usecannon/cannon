@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { task } from 'hardhat/config';
 
 import { CannonDeploy } from '../types';
@@ -8,9 +9,8 @@ import {
   TASK_CANNON,
 } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
-import _ from 'lodash';
 
-task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
+task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
   .addOptionalParam('file', 'Custom cannon deployment file.')
   .addOptionalPositionalParam('label', 'Label of a chain to load')
   .addOptionalVariadicPositionalParam('opts', 'Settings to use for execution')
