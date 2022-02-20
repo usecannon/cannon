@@ -24,7 +24,11 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 const config: HardhatUserConfig = {
   solidity: '0.8.4',
-  networks: {},
+  networks: {
+    local: {
+      url: 'http://127.0.0.1:8545/'
+    }
+  },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: 'USD',
