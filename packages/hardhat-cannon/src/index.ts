@@ -25,7 +25,7 @@ extendConfig(
       publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
       ipfsConnection: userConfig.cannon?.ipfsConnection || {
-        url: 'http://127.0.0.1:5001/api/v0',
+        url: 'https://ipfs.infura.io:5001/api/v0',
       },
     };
   }
