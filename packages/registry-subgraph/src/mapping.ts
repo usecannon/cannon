@@ -7,14 +7,10 @@ import {
 import { Package, PackageTag, Tag } from '../generated/schema';
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
   const id =
     event.params.name.toString() + '@' + event.params.version.toString();
   let entity = Package.load(id);
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
   if (!entity) {
     entity = new Package(id);
   }

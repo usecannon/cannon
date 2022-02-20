@@ -31,12 +31,16 @@ export class ProtocolPublish__Params {
     return this._event.parameters[1].value.toBytes();
   }
 
+  get tags(): Bytes {
+    return this._event.parameters[2].value.toBytes();
+  }
+
   get url(): string {
-    return this._event.parameters[2].value.toString();
+    return this._event.parameters[3].value.toString();
   }
 
   get owner(): Address {
-    return this._event.parameters[3].value.toAddress();
+    return this._event.parameters[4].value.toAddress();
   }
 }
 
@@ -108,6 +112,152 @@ export class CannonRegistry extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
+
+  nominatedOwner(param0: Bytes): Address {
+    let result = super.call(
+      "nominatedOwner",
+      "nominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(param0)]
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_nominatedOwner(param0: Bytes): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "nominatedOwner",
+      "nominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(param0)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  owners(param0: Bytes): Address {
+    let result = super.call("owners", "owners(bytes32):(address)", [
+      ethereum.Value.fromFixedBytes(param0)
+    ]);
+
+    return result[0].toAddress();
+  }
+
+  try_owners(param0: Bytes): ethereum.CallResult<Address> {
+    let result = super.tryCall("owners", "owners(bytes32):(address)", [
+      ethereum.Value.fromFixedBytes(param0)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  protocols(param0: BigInt): Bytes {
+    let result = super.call("protocols", "protocols(uint256):(bytes32)", [
+      ethereum.Value.fromUnsignedBigInt(param0)
+    ]);
+
+    return result[0].toBytes();
+  }
+
+  try_protocols(param0: BigInt): ethereum.CallResult<Bytes> {
+    let result = super.tryCall("protocols", "protocols(uint256):(bytes32)", [
+      ethereum.Value.fromUnsignedBigInt(param0)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  urls(param0: Bytes, param1: Bytes): string {
+    let result = super.call("urls", "urls(bytes32,bytes32):(string)", [
+      ethereum.Value.fromFixedBytes(param0),
+      ethereum.Value.fromFixedBytes(param1)
+    ]);
+
+    return result[0].toString();
+  }
+
+  try_urls(param0: Bytes, param1: Bytes): ethereum.CallResult<string> {
+    let result = super.tryCall("urls", "urls(bytes32,bytes32):(string)", [
+      ethereum.Value.fromFixedBytes(param0),
+      ethereum.Value.fromFixedBytes(param1)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+}
+
+export class AcceptOwnershipCall extends ethereum.Call {
+  get inputs(): AcceptOwnershipCall__Inputs {
+    return new AcceptOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): AcceptOwnershipCall__Outputs {
+    return new AcceptOwnershipCall__Outputs(this);
+  }
+}
+
+export class AcceptOwnershipCall__Inputs {
+  _call: AcceptOwnershipCall;
+
+  constructor(call: AcceptOwnershipCall) {
+    this._call = call;
+  }
+
+  get _name(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+}
+
+export class AcceptOwnershipCall__Outputs {
+  _call: AcceptOwnershipCall;
+
+  constructor(call: AcceptOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class NominateNewOwnerCall extends ethereum.Call {
+  get inputs(): NominateNewOwnerCall__Inputs {
+    return new NominateNewOwnerCall__Inputs(this);
+  }
+
+  get outputs(): NominateNewOwnerCall__Outputs {
+    return new NominateNewOwnerCall__Outputs(this);
+  }
+}
+
+export class NominateNewOwnerCall__Inputs {
+  _call: NominateNewOwnerCall;
+
+  constructor(call: NominateNewOwnerCall) {
+    this._call = call;
+  }
+
+  get _name(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get _newOwner(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class NominateNewOwnerCall__Outputs {
+  _call: NominateNewOwnerCall;
+
+  constructor(call: NominateNewOwnerCall) {
+    this._call = call;
+  }
 }
 
 export class PublishCall extends ethereum.Call {
@@ -135,8 +285,12 @@ export class PublishCall__Inputs {
     return this._call.inputValues[1].value.toBytes();
   }
 
+  get _tags(): Array<Bytes> {
+    return this._call.inputValues[2].value.toBytesArray();
+  }
+
   get _url(): string {
-    return this._call.inputValues[2].value.toString();
+    return this._call.inputValues[3].value.toString();
   }
 }
 
