@@ -1,0 +1,10 @@
+name = "registry"
+version = "0.0.1"
+
+[setting.salt]
+defaultValue = "registry"
+
+
+[contract.registry]
+artifact = "CannonRegistry"
+salt = "<%= settings.salt %>"
