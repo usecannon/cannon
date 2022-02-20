@@ -13,7 +13,11 @@ import _ from 'lodash';
 task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
   .addOptionalParam('file', 'Custom cannon deployment file.')
   .addOptionalPositionalParam('label', 'Label of a chain to load')
-  .addOptionalVariadicPositionalParam('opts', 'Settings to use for execution')
+  .addOptionalVariadicPositionalParam(
+    'opts',
+    'Settings to use for execution',
+    []
+  )
   .setAction(async ({ file, label, opts }, hre) => {
     let deploy: CannonDeploy | null = null;
     if (file) {
@@ -31,8 +35,6 @@ task(TASK_CANNON, 'Provision the current deploy.json file using Cannon')
           },
         ],
       };
-
-      console.log('hello');
     } else {
       // TODO: read from cannonfile
     }

@@ -67,4 +67,6 @@ task(
     console.log(`Publishing ${name}@${version} with url "${url}"`);
 
     await registry.publish(name, version, tags.split(','), url);
+
+    console.log('Complete!');
   });

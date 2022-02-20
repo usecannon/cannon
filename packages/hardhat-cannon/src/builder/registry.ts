@@ -47,6 +47,8 @@ export default class CannonRegistry {
       url
     );
 
+    console.log('Registry Tx Hash:', tx.hash);
+
     return await tx.wait();
   }
 
