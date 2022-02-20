@@ -19,19 +19,23 @@ subtask(SUBTASK_DOWNLOAD).setAction(
 
     const sources = images.map((image) => image.split(':'));
 
-    const entries = await Promise.all(
-      sources.map(async ([name, version]) => {
-        const url = await registry.getUrl(name, version);
-        return { name, version, url };
-      })
-    );
+    for (const [name, version] of sources) {
+      const target = path.join(hre.config.paths.cache, 'cannon', name, version);
 
-    for (const { name, version, url } of entries) {
-      console.log(`Downloading dependency ${name}@${version} from ${url}...`);
+      const exists = await fs
+        .stat(target)
+        .then((stat) => stat.isDirectory())
+        .catch(() => false);
+
+      if (exists) continue;
+
+      const url = await registry.getUrl(name, version);
+
+      console.log(`Downloading dependency ${name}@${version} from ${url}`);
 
       const hash = url.replace(/^ipfs:\/\//, '');
+
       const temp = path.join(hre.config.paths.cache, 'cannon', name);
-      const target = path.join(hre.config.paths.cache, 'cannon', name, version);
 
       await fs.mkdir(temp, { recursive: true });
 
