@@ -1,9 +1,10 @@
 import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
+
 import {
   CannonRegistry,
   ProtocolPublish,
 } from '../generated/CannonRegistry/CannonRegistry';
-import { Package, Tag, PackageTag } from '../generated/schema';
+import { Package, PackageTag, Tag } from '../generated/schema';
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
   // Entities can be loaded from the store using a string ID; this ID
@@ -25,7 +26,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   entity.added = event.block.timestamp;
   entity.publisher = event.transaction.from.toHexString();
 
-  const metadata_path = entity.url.slice(7) + '/cache/cannonfile.json';
+  const metadata_path = entity.url.slice(7) + '/cannonfile.json';
   const metadata_data = ipfs.cat(metadata_path);
   if (metadata_data) {
     const obj = json.fromBytes(metadata_data).toObject();
@@ -41,24 +42,24 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
         addTag(tagsArray[i].toString(), id);
       }
     }
-  }else{
-    log.warning("Couldn't retrieve metadata for {}", [id])
+  } else {
+    log.warning('Couldn\'t retrieve metadata for {}', [id]);
   }
 
   const readme_path = entity.url.slice(7) + '/README.md';
   const readme_data = ipfs.cat(readme_path);
   if (readme_data) {
     entity.readme = readme_data.toString();
-  }else{
-    log.warning("Couldn't retrieve readme for {}", [id])
+  } else {
+    log.warning('Couldn\'t retrieve readme for {}', [id]);
   }
 
   const toml_path = entity.url.slice(7) + '/cannonfile.toml';
   const toml_data = ipfs.cat(toml_path);
   if (toml_data) {
     entity.cannonfile = toml_data.toString();
-  }else{
-    log.warning("Couldn't retrieve cannonfile for {}", [id])
+  } else {
+    log.warning('Couldn\'t retrieve cannonfile for {}', [id]);
   }
 
   entity.save();
