@@ -45,7 +45,7 @@ Review a package's README for more information on the options available and othe
 
 The example above is great for simple scenarios, but if your protocol depends on multiple protocols or multiple chains, then you can create a `cannon.json` file in the same directory as your `hardhat.config.js`.
 
-Here's an example `canon.json` file for a project where a smart contract will be deployed to Mainnet and Optimism that will interact with Synthetix on both networks and anticipate a keeper on Mainnet.
+Here's an example `cannon.json` file for a project where a smart contract will be deployed to Mainnet and Optimism that will interact with Synthetix on both networks and anticipate a keeper on Mainnet.
 ```json
 {
     "name": "mySampleProject:latest",
@@ -75,7 +75,7 @@ See [cannon.json Specification](#cannonjson-specification) for more details on h
 
 ### Create cannonfile.toml
 
-If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`. This can be set up in addition to a `canon.json` file, or without one.
+If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`. This can be set up in addition to a `cannon.json` file, or without one.
 
 Suppose we have the following contract that we'd like to deploy.
 ```solidity
@@ -114,7 +114,7 @@ args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to 
 step = 1 # Ensure this action is taken after the previous action
 ```
 
-Then build and run your Cannonfile: 
+Then build and run your Cannonfile:
 ```bash
 npx hardhat compile
 npx hardhat cannon:build
@@ -131,14 +131,14 @@ See [cannonfile.toml Specification](#cannonfiletoml-specification) for more deta
 
 Make sure `detect` is set in `cannonfile.toml` for all your on-chain dependencies.
 
-Then run 
+Then run
 ```bash
 npx hardhat --network <network name> cannon:build
 ```
 
 ## Publish a Package
 
-Cannonfiles can be published to the registry, backed on Ethereum and IPFS. 
+Cannonfiles can be published to the registry, backed on Ethereum and IPFS.
 
 We recommend using Infura to pin on IPFS using their API, though you can use any IPFS node. Create an Infura account and an IPFS project. You'll retrieve the `INFURA_IPFS_ID` and `INFURA_IPFS_SECRET` values from their dashboard to use below.
 
@@ -186,14 +186,14 @@ Cannonfiles contain a series of actions which are executed at run-time. See [Cre
 
 The `contract` action deploys a contract to a chain.
 
-**Required Inputs** 
+**Required Inputs**
 * `artifact` - Specifies the name of the contract to be deployed
 
-**Optional Inputs** 
+**Optional Inputs**
 * `args` - Specifies the arguments to provide the constructor function
 * `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
-**Outputs** 
+**Outputs**
 * `abi` - The ABI of the deployed contract
 * `address` - The address fo the deployed contract
 * `deployTxnHash` - The transaction hash of the deployment
@@ -202,30 +202,30 @@ The `contract` action deploys a contract to a chain.
 
 The `import` action allows for composability by letting you specify another cannonfile to be built on your chain.
 
-**Required Inputs** 
+**Required Inputs**
 * `source` - The name of the package to import
 
-**Optional Inputs** 
+**Optional Inputs**
 * `options` - The options to be used when initializing this cannonfile
 
-**Outputs** 
+**Outputs**
 The outputs of the imported cannonfile are provided under the namespace of the import action. For example, if a uniswap cannonfile imported as `uniswap_eth_snx` has a contract `pair` which outputs `address`, it would be accessible at `outputs.uniswap_eth_snx.contracts.pair.address`. Any output from the current module comes out of `outputs.self.*` following the same pattern as other modules.
 
 ### invoke
 
 The `invoke` action calls a specified function on-chain.
 
-**Required Inputs** 
+**Required Inputs**
 * `address` - The address of the contract to call
 * `abi` - The ABI of the contract to call
 * `func` - The name of the function to call
 
-**Optional Inputs** 
+**Optional Inputs**
 * `args` - The arguments to use when invoking this call
 * `from` - The calling address to use when invoking this call
 * `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
-**Outputs** 
+**Outputs**
 * `hash` - The transaction hash of the execution
 
 ### keeper
@@ -238,11 +238,11 @@ The `keeper` action defines a keeper to be used on this chain. This does not eff
 
 The `run` action executes a custom script.
 
-**Required Inputs** 
+**Required Inputs**
 * `exec` - The javascript (or typescript) file to load
 * `func` - The function to call in this file
 
-**Optional Inputs** 
+**Optional Inputs**
 * `args` - The arguments to pass the script
 * `env` - Environment variables to be set on the script
 
