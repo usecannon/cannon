@@ -11,7 +11,7 @@
     letterSpacing="0.25"
   >
     <big style="display: inline-block; transform: translateY(1px)">⚠️</big>
-    This project under active development. The package registry will be reset
+    This project is under active development. The package registry will be reset
     soon.
   </CBox>
 </template>
