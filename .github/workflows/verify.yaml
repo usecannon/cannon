@@ -30,4 +30,4 @@ jobs:
     - run: npx lerna bootstrap
     - run: npm run build
     #- run: npm test
-    - run: ./packages/sample-project/run-test.sh
+    - run: cd ./packages/sample-project && ./run-test.sh
