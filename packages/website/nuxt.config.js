@@ -74,4 +74,6 @@ export default {
       },
     },
   },
+
+  telemetry: true
 }
