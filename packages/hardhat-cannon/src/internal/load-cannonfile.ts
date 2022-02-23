@@ -3,7 +3,13 @@ import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { ethers } from 'ethers';
 
-export default function loadCannonfile(filepath: string) {
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import path from 'path';
+
+export default function loadCannonfile(
+  hre: HardhatRuntimeEnvironment,
+  filepath: string
+) {
   if (!fs.existsSync(filepath)) {
     throw new HardhatPluginError(
       'cannon',
@@ -13,8 +19,19 @@ export default function loadCannonfile(filepath: string) {
 
   const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
 
+  let pkg: any = {};
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    pkg = require(path.join(hre.config.paths.root, 'package.json'));
+  } catch (err) {
+    console.warn(
+      'package.json file not found! Cannot use field for cannonfile inference'
+    );
+  }
+
   if (!def.name || typeof def.name !== 'string') {
-    throw new Error('Invalid "name" property on cannonfile.toml');
+    def.name = pkg.name as string;
+    //throw new Error('Invalid "name" property on cannonfile.toml');
   }
 
   try {
@@ -26,7 +43,7 @@ export default function loadCannonfile(filepath: string) {
   }
 
   if (!def.version || typeof def.version !== 'string') {
-    throw new Error('Invalid "version" property on cannonfile.toml');
+    def.version = pkg.version as string;
   }
 
   try {

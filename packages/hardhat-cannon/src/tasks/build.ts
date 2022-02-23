@@ -28,7 +28,7 @@ task(
       path.relative(process.cwd(), filepath)
     );
 
-    const def = loadCannonfile(filepath);
+    const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
 
     const builder = new ChainBuilder({ name, version, hre, def });

@@ -52,6 +52,8 @@ export interface ChainBuilderContext {
 
   repositoryBuild: boolean;
 
+  package: any;
+
   outputs: BundledChainBuilderOutputs;
 }
 
@@ -77,6 +79,8 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   chainId: 31337,
 
   repositoryBuild: false,
+
+  package: {},
 
   settings: {},
   outputs: { self: {} },
@@ -283,6 +287,7 @@ export class ChainBuilder {
   }
 
   populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
+
     for (const s in this.def.setting || {}) {
       let value = this.def.setting![s].defaultValue;
 
@@ -299,6 +304,17 @@ export class ChainBuilder {
     }
 
     this.ctx.repositoryBuild = this.repositoryBuild;
+
+    try {
+      this.ctx.package = require(path.join(
+        this.hre.config.paths.root,
+        'package.json'
+      ));
+    } catch {
+      console.warn(
+        'package.json file not found. Cannot add to chain builder context.'
+      );
+    }
   }
 
   async getTopLayer(): Promise<[number, ChainBuilderContext]> {

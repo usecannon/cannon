@@ -25,7 +25,7 @@ task(
   )
   .setAction(async ({ file, tags }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
-    const def = loadCannonfile(filepath);
+    const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
     const builder = new ChainBuilder({
       name,

@@ -1,5 +1,4 @@
-name = "sample-project"
-version = "0.2.0"
+name = "greeter"
 description = "Simple project to verify the functionality of cannon"
 tags = ["sample", "greeter"]
 
