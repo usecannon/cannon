@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from 'fs-extra';
 import path from 'path';
 import tar from 'tar-fs';
 import { Readable } from 'stream';

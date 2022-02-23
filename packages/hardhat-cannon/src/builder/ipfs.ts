@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from 'fs-extra';
 import path from 'path';
 import { IPFSHTTPClient, Options, create, globSource } from 'ipfs-http-client';
 
@@ -41,11 +41,11 @@ export default class IPFS {
 }
 
 async function _openFile(file: IPFSFileRemote) {
-  const fileHandler = await fs.open(file.localPath, 'r');
+  const fileHandler = fs.createReadStream(file.localPath);
 
   return {
     path: file.remotePath,
-    content: fileHandler.createReadStream(),
+    content: fileHandler,
   };
 }
 

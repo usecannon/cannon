@@ -1,6 +1,5 @@
-import fs from 'fs/promises';
+import fs from 'fs-extra';
 import path from 'path';
-import { existsSync } from 'fs';
 import { task } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
@@ -43,11 +42,16 @@ task(
 
     console.log('Uploading files to IPFS...');
 
-    await fs.cp(filepath, path.join(builder.getCacheDir(), 'cannonfile.toml'));
+    await fs.copy(
+      filepath,
+      path.join(builder.getCacheDir(), 'cannonfile.toml')
+    );
 
     const readmePath = path.resolve(hre.config.paths.root, 'README.md');
-    if (existsSync(readmePath)) {
-      await fs.cp(readmePath, path.join(builder.getCacheDir(), 'README.md'));
+    try {
+      await fs.copy(readmePath, path.join(builder.getCacheDir(), 'README.md'));
+    } catch (err) {
+      console.warn('failed to copy README.md');
     }
 
     const result = await ipfs.add([
