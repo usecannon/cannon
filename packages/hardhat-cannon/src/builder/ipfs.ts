@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import path from 'path/posix';
+import path from 'path';
 import { IPFSHTTPClient, Options, create, globSource } from 'ipfs-http-client';
 
 type IPFSFileContent = {
