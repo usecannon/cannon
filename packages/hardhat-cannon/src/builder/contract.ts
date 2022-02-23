@@ -8,7 +8,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext } from './';
 import { ChainDefinitionScriptSchema } from './util';
-import { dirname } from 'path/posix';
+import { dirname } from 'path';
 
 const debug = Debug('cannon:builder:contract');
 
