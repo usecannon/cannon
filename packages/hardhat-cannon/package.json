@@ -55,6 +55,7 @@
     "ajv": "^8.10.0",
     "debug": "^4.3.3",
     "ethereumjs-util": "^7.1.4",
+    "ethers": "^5.5.4",
     "fs-extra": "^10.0.0",
     "ipfs-http-client": "56.0.1",
     "ipfs-utils": "9.0.2",
