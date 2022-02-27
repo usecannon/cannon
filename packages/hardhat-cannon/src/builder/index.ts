@@ -7,12 +7,12 @@ import path, { dirname } from 'path';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import * as persistableNode from '../persistable-node';
 import contractSpec from './contract';
 import importSpec from './import';
 import invokeSpec from './invoke';
 import keeperSpec from './keeper';
 import scriptSpec from './run';
+import { HardhatNetworkProvider } from 'hardhat/internal/hardhat-network/provider/provider';
 
 const debug = Debug('cannon:builder');
 
@@ -287,7 +287,6 @@ export class ChainBuilder {
   }
 
   populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
-
     for (const s in this.def.setting || {}) {
       let value = this.def.setting![s].defaultValue;
 
@@ -323,7 +322,9 @@ export class ChainBuilder {
     let fileList: string[] = [];
     try {
       fileList = await fs.readdir(dirToScan);
-    } catch {}
+    } catch {
+      // empty
+    }
 
     const sortedFileList = _.sortBy(
       fileList
@@ -357,7 +358,9 @@ export class ChainBuilder {
       await fs.stat((await this.getLayerFiles(n)).chain);
 
       return true;
-    } catch {}
+    } catch {
+      // empty
+    }
 
     return false;
   }
@@ -447,36 +450,53 @@ export class ChainBuilder {
     try {
       const stat = await fs.stat((await this.getLayerFiles(n)).metadata);
       return stat.isFile();
-    } catch (err) {}
+    } catch (err) {
+      // empty
+    }
 
     return false;
   }
 
   async loadLayer(n: number) {
-    debug('load cache', n);
+    try {
+      debug('load cache', n);
 
-    const { chain, metadata } = await this.getLayerFiles(n);
+      const { chain, metadata } = await this.getLayerFiles(n);
 
-    const cacheData = await fs.readFile(chain);
+      const cacheData = await fs.readFile(chain);
 
-    this.ctx = JSON.parse(
-      (await fs.readFile(metadata)).toString('utf8')
-    ) as ChainBuilderContext;
+      this.ctx = JSON.parse(
+        (await fs.readFile(metadata)).toString('utf8')
+      ) as ChainBuilderContext;
 
-    await persistableNode.loadState(this.hre, cacheData);
+      await this.hre.network.provider.request({
+        method: 'hardhat_importState',
+        params: ['0x' + cacheData.toString('hex')],
+      });
+    } catch (err) {
+      // todo: verify if error is due to network or etc.
+      console.log('failed to load layer:', err);
+    }
   }
 
   async dumpLayer(n: number) {
     const { chain, metadata } = await this.getLayerFiles(n);
 
-    const data = await persistableNode.dumpState(this.hre);
+    try {
+      const data = await this.hre.network.provider.request({
+        method: 'hardhat_dumpState',
+      });
 
-    debug('put cache', n);
+      debug('put cache', n);
 
-    await fs.ensureDir(dirname(chain));
-    await fs.writeFile(chain, data);
-    await fs.ensureDir(dirname(metadata));
-    await fs.writeFile(metadata, JSON.stringify(this.ctx));
+      await fs.ensureDir(dirname(chain));
+      await fs.writeFile(chain, data);
+      await fs.ensureDir(dirname(metadata));
+      await fs.writeFile(metadata, JSON.stringify(this.ctx));
+    } catch (err) {
+      // todo: verify if error is due to network or etc.
+      console.log('failed to dump layer:', err);
+    }
   }
 
   async writeCannonfile() {
