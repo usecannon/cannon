@@ -8,7 +8,7 @@ contract CannonRegistry {
 
   event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
 
-  uint constant MIN_PACKAGE_NAME_LENGTH = 3;
+  uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
 
   mapping(bytes32 => mapping(bytes32 => string)) public urls;
   mapping(bytes32 => address) public owners;
@@ -37,10 +37,10 @@ contract CannonRegistry {
       }
 
       // must be in valid character set
-      if ((name[i] < "0" && name[i] > "9") ||
-          (name[i] < "a" && name[i] > "z") ||
+      if ((name[i] < "0" || name[i] > "9") &&
+          (name[i] < "a" || name[i] > "z") &&
           // first character cannot be `-`
-          (i != 0 && name[i] != "-")
+          (i == 0 || name[i] != "-")
       ) {
         return false;
       }
