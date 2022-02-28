@@ -3,9 +3,12 @@ pragma solidity ^0.8.11;
 
 contract CannonRegistry {
   error Unauthorized();
-  error InvalidUrl();
+  error InvalidUrl(string url);
+  error InvalidName(bytes32 name);
 
   event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
+
+  uint constant MIN_PACKAGE_NAME_LENGTH = 3;
 
   mapping(bytes32 => mapping(bytes32 => string)) public urls;
   mapping(bytes32 => address) public owners;
@@ -15,9 +18,40 @@ contract CannonRegistry {
 
   mapping(bytes32 => address) public nominatedOwner;
 
+  function validateName(bytes32 name) public pure returns (bool) {
+    // each character must be in the supported charset
+
+    for (uint i = 0;i < 32;i++) {
+      if (name[i] == bytes1(0)) {
+        // must be long enough
+        if (i < MIN_PACKAGE_NAME_LENGTH) {
+          return false;
+        }
+
+        // last character cannot be `-`
+        if (name[i - 1] == "-") {
+          return false;
+        }
+
+        break;
+      }
+
+      // must be in valid character set
+      if ((name[i] < "0" && name[i] > "9") ||
+          (name[i] < "a" && name[i] > "z") ||
+          // first character cannot be `-`
+          (i != 0 && name[i] != "-")
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   function publish(bytes32 _name, bytes32 _version, bytes32[] memory _tags, string memory _url) external {
     if (bytes(_url).length == 0) {
-      revert InvalidUrl();
+      revert InvalidUrl(_url);
     }
 
     if (owners[_name] != address(0) && owners[_name] != msg.sender) {
@@ -25,6 +59,11 @@ contract CannonRegistry {
     }
 
     if (owners[_name] == address(0)) {
+
+      if (!validateName(_name)) {
+        revert InvalidName(_name);
+      }
+
       owners[_name] = msg.sender;
       protocols.push(_name);
     }

@@ -471,7 +471,7 @@ export class ChainBuilder {
 
       await this.hre.network.provider.request({
         method: 'hardhat_importState',
-        params: ['0x' + cacheData.toString('hex')],
+        params: ['0x' + cacheData.toString('hex')], // for some reason I have to do this
       });
     } catch (err) {
       // todo: verify if error is due to network or etc.

@@ -20,6 +20,20 @@ describe('CannonRegistry', function () {
     [user1, user2, user3] = await ethers.getSigners();
   });
 
+  describe('validateName', () => {
+    it('only allows lowercase letters, numbers, and dashes', async () => {
+
+    });
+
+    it('does not allow dash at beginning or end', () => {
+
+    });
+
+    it('enforces minimum length', () => {
+
+    });
+  });
+
   describe('publish()', () => {
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
@@ -30,6 +44,17 @@ describe('CannonRegistry', function () {
           ''
         );
       }, 'InvalidUrl()');
+    });
+
+    it('should not allow invalid name', async function () {
+      await assertRevert(async () => {
+        await registry.publish(
+          toBytes32('some-module-'),
+          toBytes32('0.0.1'),
+          [],
+          ''
+        );
+      }, 'InvalidName()');
     });
 
     it('should create the first protocol and assign the owner', async function () {
