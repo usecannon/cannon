@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 
+import "./Library.sol";
+
 contract Greeter {
     string private greeting;
 
@@ -12,6 +14,7 @@ contract Greeter {
     }
 
     function greet() public view returns (string memory) {
+        Library.testLibraryFunction();
         return greeting;
     }
 
