@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext } from './';
+import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -69,10 +70,12 @@ export default {
   async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
     debug('exec', config);
 
+    const signer = await getExecutionSigner(hre, '');
+
     const contract = new hre.ethers.Contract(
       config.address,
       JSON.parse(config.abi),
-      (await hre.ethers.getSigners())[0]
+      signer
     );
 
     const txn = await contract[config.func](...(config.args || []));

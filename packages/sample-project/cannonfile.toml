@@ -8,9 +8,15 @@ defaultValue = "greeter"
 [setting.msg]
 defaultValue = "Hello world!"
 
+[contract.library]
+artifact = "Library"
+
 [contract.greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
+libraries.Library = ["<%= outputs.self.contracts.library.address %>"]
 salt = "<%= settings.salt %>"
 detect.method = "folder"
 detect.path = "deployments/${network}"
+
+step = 1
