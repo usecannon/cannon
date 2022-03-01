@@ -1,10 +1,9 @@
 import fs from 'fs';
+import path from 'path';
 import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
-import { ethers } from 'ethers';
-
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import path from 'path';
+import { ethers } from 'ethers';
 
 export default function loadCannonfile(
   hre: HardhatRuntimeEnvironment,
@@ -21,7 +20,6 @@ export default function loadCannonfile(
 
   let pkg: any = {};
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     pkg = require(path.join(hre.config.paths.root, 'package.json'));
   } catch (err) {
     console.warn(
@@ -31,7 +29,6 @@ export default function loadCannonfile(
 
   if (!def.name || typeof def.name !== 'string') {
     def.name = pkg.name as string;
-    //throw new Error('Invalid "name" property on cannonfile.toml');
   }
 
   try {

@@ -1,16 +1,13 @@
-import fs from 'fs-extra';
-import path from 'path';
-import crypto from 'crypto';
-
 import _ from 'lodash';
 import Debug from 'debug';
+import fs from 'fs-extra';
+import path from 'path';
 import { Artifact, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
+import { dirname } from 'path';
 
 import { ChainBuilderContext } from './';
 import { ChainDefinitionScriptSchema, getExecutionSigner } from './util';
-import { dirname } from 'path';
-import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -61,11 +58,18 @@ async function loadArtifactFile(
     // add this artifact to the cannonfile data
     await fs.ensureDir(dirname(artifactFile));
     await fs.writeFile(artifactFile, JSON.stringify(artifactData));
-  } else {
-    artifactData = JSON.parse((await fs.readFile(artifactFile)).toString());
-  }
 
-  return artifactData!;
+    return artifactData;
+  } else {
+    const artifactContent = await fs.readFile(artifactFile);
+    artifactData = JSON.parse(artifactContent.toString());
+
+    if (!artifactData) {
+      throw new Error(`Invalid artifact for "${name}"`);
+    }
+
+    return artifactData;
+  }
 }
 
 // ensure the specified contract is already deployed
@@ -82,7 +86,6 @@ export default {
   ) {
     const parsedConfig = this.configInject(ctx, config);
 
-    const artifactFile = path.join(storage, config.artifact + '.json');
     return {
       bytecode: (
         await loadArtifactFile(
@@ -138,7 +141,6 @@ export default {
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {
       for (const lib in artifactData.linkReferences[file]) {
-
         // get the lib from the config
         const libraryAddress = _.get(config, `libraries.${lib}`);
 

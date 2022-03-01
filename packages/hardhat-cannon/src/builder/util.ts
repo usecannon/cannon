@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
 import crypto from 'crypto';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { ethers } from 'ethers';
 
 export const ChainDefinitionScriptSchema = {
   properties: {
@@ -26,7 +26,6 @@ export async function getExecutionSigner(
     address,
     hre.ethers.utils.parseEther('2').toHexString(),
   ]);
-
 
   const signer = hre.ethers.getSigner(address);
 
