@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+import crypto from 'crypto';
 
 import _ from 'lodash';
 import Debug from 'debug';
@@ -7,8 +8,9 @@ import { Artifact, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext } from './';
-import { ChainDefinitionScriptSchema } from './util';
+import { ChainDefinitionScriptSchema, getExecutionSigner } from './util';
 import { dirname } from 'path';
+import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -18,6 +20,7 @@ const config = {
   },
   optionalProperties: {
     args: { elements: {} },
+    libraries: { values: { type: 'string' } },
     detect: {
       discriminator: 'method',
       mapping: {
@@ -104,6 +107,12 @@ export default {
       });
     }
 
+    if (config.libraries) {
+      config.libraries = _.mapValues(config.libraries, (a) => {
+        return _.template(a)(ctx);
+      });
+    }
+
     if (config.salt) {
       config.salt = _.template(config.salt)(ctx);
     }
@@ -119,8 +128,6 @@ export default {
   ): Promise<Outputs> {
     debug('exec', config);
 
-    const signer = (await hre.ethers.getSigners())[0];
-
     const artifactData = await loadArtifactFile(
       hre,
       storage,
@@ -128,20 +135,56 @@ export default {
       repositoryBuild
     );
 
+    let injectedBytecode = artifactData.bytecode;
+    for (const file in artifactData.linkReferences) {
+      for (const lib in artifactData.linkReferences[file]) {
+
+        // get the lib from the config
+        const libraryAddress = _.get(config, `libraries.${lib}`);
+
+        if (!libraryAddress) {
+          throw new Error(
+            `library for contract ${config.artifact} not defined: ${lib}`
+          );
+        }
+
+        debug('lib ref', lib, libraryAddress);
+
+        // afterwards, inject link references
+        const linkReferences = artifactData.linkReferences[file][lib];
+
+        for (const ref of linkReferences) {
+          injectedBytecode =
+            injectedBytecode.substr(0, 2 + ref.start * 2) +
+            libraryAddress.substr(2) +
+            injectedBytecode.substr(2 + (ref.start + ref.length) * 2);
+        }
+      }
+    }
+
+    // finally, deploy
     const factory = new hre.ethers.ContractFactory(
-      artifactData!.abi,
-      artifactData!.bytecode,
-      signer
+      artifactData.abi,
+      injectedBytecode
     );
 
-    const deployed = await factory.deploy(...(config.args || []));
+    const txn = factory.getDeployTransaction(...(config.args || []));
+
+    const signer = await getExecutionSigner(
+      hre,
+      txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex')
+    );
+
+    const txnData = await signer.sendTransaction(txn);
+
+    const receipt = await txnData.wait();
 
     return {
       abi: factory.interface.format(
         hre.ethers.utils.FormatTypes.json
       ) as string,
-      address: deployed.address,
-      deployTxnHash: deployed.deployTransaction.hash,
+      address: receipt.contractAddress,
+      deployTxnHash: receipt.transactionHash,
     };
   },
 };
