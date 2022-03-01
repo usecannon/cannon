@@ -6,6 +6,7 @@ import { ChainBuilder } from '../builder';
 import {
   SUBTASK_DOWNLOAD,
   SUBTASK_LOAD_DEPLOY,
+  SUBTASK_WRITE_DEPLOYMENTS,
   TASK_CANNON,
 } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
@@ -54,10 +55,9 @@ task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
           await builder.build(provision[1]);
         }
 
-        console.log(
-          `${typeof provision == 'string' ? provision : provision[0]} outputs:`
-        );
-        printBundledChainBuilderOutput(builder.getOutputs());
+        await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
+          outputs: builder.getOutputs(),
+        });
       }
 
       await hre.run('node');

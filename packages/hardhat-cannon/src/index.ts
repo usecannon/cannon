@@ -5,6 +5,7 @@ import './tasks/build';
 import './tasks/publish';
 import './subtasks/download';
 import './subtasks/load-deploy';
+import './subtasks/write-deployments';
 import './type-extensions';
 
 import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
@@ -12,6 +13,8 @@ import { extendConfig } from 'hardhat/config';
 
 extendConfig(
   (config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
+    config.paths.deployments = userConfig.paths?.deployments ?? 'deployments';
+
     config.cannon = {
       registryEndpoint:
         userConfig.cannon?.registryEndpoint ||
