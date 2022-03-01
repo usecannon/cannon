@@ -20,6 +20,36 @@ describe('CannonRegistry', function () {
     [user1, user2, user3] = await ethers.getSigners();
   });
 
+  describe('validateName', () => {
+    it('only allows lowercase letters, numbers, and dashes', async () => {
+      equal(await registry.validateName(toBytes32('some--mo-du9le')), true);
+      equal(await registry.validateName(toBytes32('some_-mo-du9le')), false);
+      equal(await registry.validateName(toBytes32('some--mo-du9lE')), false);
+      // todo: use some hidden character or something
+    });
+
+    it('does not allow dash at beginning or end', async () => {
+      equal(await registry.validateName(toBytes32('some--module-')), false);
+      equal(await registry.validateName(toBytes32('-some--module')), false);
+    });
+
+    it('enforces minimum length', async () => {
+      const testName = 'abcdefghijk';
+      const minLength = await registry.MIN_PACKAGE_NAME_LENGTH();
+
+      equal(
+        await registry.validateName(toBytes32(testName.slice(0, minLength))),
+        true
+      );
+      equal(
+        await registry.validateName(
+          toBytes32(testName.slice(0, minLength - 1))
+        ),
+        false
+      );
+    });
+  });
+
   describe('publish()', () => {
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
@@ -29,7 +59,18 @@ describe('CannonRegistry', function () {
           [],
           ''
         );
-      }, 'InvalidUrl()');
+      }, 'InvalidUrl("")');
+    });
+
+    it('should not allow invalid name', async function () {
+      await assertRevert(async () => {
+        await registry.publish(
+          toBytes32('some-module-'),
+          toBytes32('0.0.1'),
+          [],
+          'ipfs://some-module-hash@0.0.1'
+        );
+      }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 
     it('should create the first protocol and assign the owner', async function () {
