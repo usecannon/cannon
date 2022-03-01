@@ -1,22 +1,12 @@
-import { deflate, inflate } from 'zlib';
-const { promisify } = require('util');
-
-const deflatePromise = promisify(deflate);
-const inflatePromise = promisify(inflate);
-
 import BN from 'bn.js';
 import Common from '@ethereumjs/common';
 import VM from '@ethereumjs/vm';
 import { Address } from 'ethereumjs-util';
-import { Block, HeaderData } from '@ethereumjs/block';
 import { CheckpointTrie, SecureTrie as Trie } from 'merkle-patricia-tree';
 import { DefaultStateManager, StateManager } from '@ethereumjs/vm/dist/state';
 import { ForkBlockchain } from 'hardhat/internal/hardhat-network/provider/fork/ForkBlockchain';
 import { ForkStateManager } from 'hardhat/internal/hardhat-network/provider/fork/ForkStateManager';
-import {
-  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
-  HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
-} from 'hardhat/internal/core/config/default-config';
+import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from 'hardhat/internal/core/config/default-config';
 import {
   HardforkHistoryConfig,
   HardhatRuntimeEnvironment,
@@ -35,14 +25,17 @@ import {
   isForkedNodeConfig,
 } from 'hardhat/internal/hardhat-network/provider/node-types';
 import { TxPool } from 'hardhat/internal/hardhat-network/provider/TxPool';
+import { deflate, inflate } from 'zlib';
 import { getDifferenceInSeconds } from 'hardhat/internal/util/date';
 import { makeCommon } from 'hardhat/internal/hardhat-network/provider/utils/makeCommon';
 import { makeForkClient } from 'hardhat/internal/hardhat-network/provider/utils/makeForkClient';
 import { makeForkCommon } from 'hardhat/internal/hardhat-network/provider/utils/makeForkCommon';
 import { makeStateTrie } from 'hardhat/internal/hardhat-network/provider/utils/makeStateTrie';
+import { promisify } from 'util';
 import { putGenesisBlock } from 'hardhat/internal/hardhat-network/provider/utils/putGenesisBlock';
 
-const Codec = require('level-codec');
+const deflatePromise = promisify(deflate);
+const inflatePromise = promisify(inflate);
 
 interface SerializableNodeState {
   storage: { [key: string]: any };
