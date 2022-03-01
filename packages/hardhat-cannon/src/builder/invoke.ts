@@ -43,10 +43,11 @@ export default {
   validate: config,
 
   async getState(
-    hre: HardhatRuntimeEnvironment,
+    _: HardhatRuntimeEnvironment,
     ctx: ChainBuilderContext,
     config: Config,
-    storage: string
+    // Leaving storage param for future usage
+    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
     return this.configInject(ctx, config);
   },

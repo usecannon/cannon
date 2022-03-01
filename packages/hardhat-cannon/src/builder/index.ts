@@ -265,12 +265,11 @@ export class ChainBuilder {
       await this.loadLayer(topLayer[0]);
 
       // run keepers
-      for (const n in this.def.keeper || []) {
-        debug('running keeper', n);
-        keeperSpec.exec(
-          this.hre,
-          keeperSpec.configInject(this.ctx, this.def.keeper![n])
-        );
+      if (Array.isArray(this.def.keeper)) {
+        for (const k of this.def.keeper) {
+          debug('running keeper', k);
+          keeperSpec.exec(this.hre, keeperSpec.configInject(this.ctx, k));
+        }
       }
 
       // run node
@@ -287,9 +286,12 @@ export class ChainBuilder {
   }
 
   populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
-
     for (const s in this.def.setting || {}) {
-      let value = this.def.setting![s].defaultValue;
+      if (!this.def.setting?.[s]) {
+        throw new Error(`Missing setting "${s}"`);
+      }
+
+      let value = this.def.setting[s].defaultValue;
 
       // check if the value has been supplied
       if (opts[s]) {
@@ -320,23 +322,26 @@ export class ChainBuilder {
   async getTopLayer(): Promise<[number, ChainBuilderContext]> {
     // try to load highest file in dir
     const dirToScan = dirname((await this.getLayerFiles(0)).metadata);
-    let fileList: string[] = [];
-    try {
-      fileList = await fs.readdir(dirToScan);
-    } catch {}
+    const fileList =
+      (await fs.pathExists(dirToScan)) &&
+      (await fs.stat(dirToScan)).isDirectory()
+        ? await fs.readdir(dirToScan)
+        : [];
 
     const sortedFileList = _.sortBy(
       fileList
-        .filter((n) => n.match(/[0-9]*-.*.json/))
+        .filter((n) => /^[0-9]*-.*.json$/.test(n))
         .map((n) => {
-          const num = parseFloat(n.match(/^([0-9]*)-/)![1]);
-          return { n: num, name: n };
+          const m = n.match(/^([0-9]*)-/);
+          if (!m) throw new Error(`Invalid file format "${n}"`);
+          return { n: parseFloat(m[0]), name: n };
         }),
       'n'
     );
 
-    if (sortedFileList.length) {
-      const item = _.last(sortedFileList)!;
+    if (sortedFileList.length > 0) {
+      const item = sortedFileList[sortedFileList.length - 1];
+
       return [
         item.n,
         JSON.parse(
@@ -355,11 +360,10 @@ export class ChainBuilder {
   async hasLayer(n: number) {
     try {
       await fs.stat((await this.getLayerFiles(n)).chain);
-
       return true;
-    } catch {}
-
-    return false;
+    } catch {
+      return false;
+    }
   }
 
   static getCacheDir(cacheFolder: string, name: string, version: string) {
@@ -447,9 +451,9 @@ export class ChainBuilder {
     try {
       const stat = await fs.stat((await this.getLayerFiles(n)).metadata);
       return stat.isFile();
-    } catch (err) {}
-
-    return false;
+    } catch (err) {
+      return false;
+    }
   }
 
   async loadLayer(n: number) {

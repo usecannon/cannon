@@ -9,7 +9,6 @@ import {
   SUBTASK_WRITE_DEPLOYMENTS,
   TASK_CANNON,
 } from '../task-names';
-import { printBundledChainBuilderOutput } from '../printer';
 
 task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
   .addOptionalParam('file', 'Custom cannon deployment file.')
