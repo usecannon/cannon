@@ -10,22 +10,20 @@
     "publish": "lerna publish"
   },
   "devDependencies": {
-    "@babel/core": "7.11.0",
-    "@babel/plugin-transform-runtime": "7.13.10",
-    "@babel/preset-env": "7.13.10",
-    "@babel/preset-typescript": "7.13.0",
-    "@types/memdown": "^3.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.12.0",
-    "@typescript-eslint/parser": "^5.12.0",
-    "eslint": "^8.9.0",
-    "eslint-config-prettier": "^8.3.0",
+    "@babel/core": "^7.17.5",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-typescript": "^7.16.7",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "eslint": "^8.10.0",
+    "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "7.0.4",
     "lerna": "^4.0.0",
-    "memdown": "^6.1.1",
     "prettier": "2.5.1",
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.2"
   },
   "husky": {
     "hooks": {
