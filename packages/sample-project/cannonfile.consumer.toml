@@ -17,7 +17,7 @@ options.salt = "second"
 options.change_msg = "a message from second greeter set"
 
 [invoke.change_greeting2]
-address = "<%= outputs.greeters.contracts.greeter.address %>"
+addresses = ["<%= outputs.greeters.contracts.greeter.address %>"]
 abi = "<%= outputs.greeters.contracts.greeter.abi %>"
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
