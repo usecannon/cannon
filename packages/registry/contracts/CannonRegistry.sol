@@ -14,14 +14,14 @@ contract CannonRegistry {
   mapping(bytes32 => address) public owners;
 
   bytes32[] public protocols;
-  mapping(bytes32 => bytes32[]) versions;
+  mapping(bytes32 => bytes32[]) public versions;
 
   mapping(bytes32 => address) public nominatedOwner;
 
   function validateName(bytes32 name) public pure returns (bool) {
     // each character must be in the supported charset
 
-    for (uint i = 0;i < 32;i++) {
+    for (uint i = 0; i < 32; i++) {
       if (name[i] == bytes1(0)) {
         // must be long enough
         if (i < MIN_PACKAGE_NAME_LENGTH) {
@@ -37,10 +37,11 @@ contract CannonRegistry {
       }
 
       // must be in valid character set
-      if ((name[i] < "0" || name[i] > "9") &&
-          (name[i] < "a" || name[i] > "z") &&
-          // first character cannot be `-`
-          (i == 0 || name[i] != "-")
+      if (
+        (name[i] < "0" || name[i] > "9") &&
+        (name[i] < "a" || name[i] > "z") &&
+        // first character cannot be `-`
+        (i == 0 || name[i] != "-")
       ) {
         return false;
       }
@@ -49,7 +50,12 @@ contract CannonRegistry {
     return true;
   }
 
-  function publish(bytes32 _name, bytes32 _version, bytes32[] memory _tags, string memory _url) external {
+  function publish(
+    bytes32 _name,
+    bytes32 _version,
+    bytes32[] memory _tags,
+    string memory _url
+  ) external {
     if (bytes(_url).length == 0) {
       revert InvalidUrl(_url);
     }
@@ -59,7 +65,6 @@ contract CannonRegistry {
     }
 
     if (owners[_name] == address(0)) {
-
       if (!validateName(_name)) {
         revert InvalidName(_name);
       }
@@ -74,7 +79,7 @@ contract CannonRegistry {
 
     urls[_name][_version] = _url;
 
-    for (uint i = 0;i < _tags.length;i++) {
+    for (uint i = 0; i < _tags.length; i++) {
       urls[_name][_tags[i]] = _url;
     }
 
@@ -100,15 +105,15 @@ contract CannonRegistry {
     nominatedOwner[_name] = address(0);
   }
 
-  function getProtocols() view external returns (bytes32[] memory) {
+  function getProtocols() external view returns (bytes32[] memory) {
     return protocols;
   }
 
-  function getVersions(bytes32 _protocolName) view external returns (bytes32[] memory) {
+  function getVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
     return versions[_protocolName];
   }
 
-  function getUrl(bytes32 _protocolName, bytes32 _protocolVersion) view external returns (string memory) {
+  function getUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
     return urls[_protocolName][_protocolVersion];
   }
 }

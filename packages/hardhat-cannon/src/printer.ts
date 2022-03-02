@@ -3,9 +3,7 @@ import { table } from 'table';
 
 import { BundledChainBuilderOutputs, ChainBuilderOutputs } from './builder';
 
-export function printBundledChainBuilderOutput(
-  output: BundledChainBuilderOutputs
-) {
+export function printBundledChainBuilderOutput(output: BundledChainBuilderOutputs) {
   printChainBuilderOutput(output.self);
 
   console.log('====');
@@ -32,10 +30,7 @@ function printChainBuilderOutput(output: ChainBuilderOutputs) {
       _.flatten(
         _.map(output.runs, (v, runName) => {
           // prevent extremely long values from clogging the terminal
-          const neatValues = _.map(v, (v, k) => [
-            `${runName}.${k}`,
-            `${ellipsize(v.toString(), 70)}`,
-          ]);
+          const neatValues = _.map(v, (v, k) => [`${runName}.${k}`, `${ellipsize(v.toString(), 70)}`]);
 
           return neatValues;
         })

@@ -8,20 +8,8 @@ export default class CannonRegistry {
   wallet?: ethers.Wallet;
   abi: any[];
 
-  constructor({
-    endpoint,
-    address,
-    privateKey,
-  }: {
-    endpoint: string;
-    address: string;
-    privateKey?: string;
-  }) {
-    this.abi = JSON.parse(
-      readFileSync(
-        path.resolve(__dirname, '..', 'abis', 'CannonRegistry.json')
-      ).toString()
-    );
+  constructor({ endpoint, address, privateKey }: { endpoint: string; address: string; privateKey?: string }) {
+    this.abi = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'abis', 'CannonRegistry.json')).toString());
 
     this.provider = new ethers.providers.JsonRpcProvider(endpoint);
     this.contract = new ethers.Contract(address, this.abi, this.provider);
@@ -57,9 +45,6 @@ export default class CannonRegistry {
       throw new Error('Contract not initialized');
     }
 
-    return await this.contract.getUrl(
-      ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version)
-    );
+    return await this.contract.getUrl(ethers.utils.formatBytes32String(name), ethers.utils.formatBytes32String(version));
   }
 }

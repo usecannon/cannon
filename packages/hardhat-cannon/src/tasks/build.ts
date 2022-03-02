@@ -7,26 +7,13 @@ import { ChainBuilder } from '../builder';
 import { SUBTASK_DOWNLOAD, TASK_BUILD } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
 
-task(
-  TASK_BUILD,
-  'Assemble a defined chain and save it to to a state which can be used later'
-)
-  .addOptionalParam(
-    'file',
-    'TOML definition of the chain to assemble',
-    'cannonfile.toml'
-  )
-  .addOptionalVariadicPositionalParam(
-    'options',
-    'Key values of chain which should be built'
-  )
+task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
+  .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
+  .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
   .setAction(async ({ file, options }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
 
-    console.log(
-      'Building cannonfile: ',
-      path.relative(process.cwd(), filepath)
-    );
+    console.log('Building cannonfile: ', path.relative(process.cwd(), filepath));
 
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
@@ -39,9 +26,7 @@ task(
     }
 
     // options can be passed through commandline, or environment
-    const mappedOptions: { [key: string]: string } = _.fromPairs(
-      (options || []).map((kv: string) => kv.split('='))
-    );
+    const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
 
     await builder.build(mappedOptions);
 

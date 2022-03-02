@@ -73,11 +73,7 @@ export default {
 
     const signer = await getExecutionSigner(hre, '');
 
-    const contract = new hre.ethers.Contract(
-      config.address,
-      JSON.parse(config.abi),
-      signer
-    );
+    const contract = new hre.ethers.Contract(config.address, JSON.parse(config.abi), signer);
 
     const txn = await contract[config.func](...(config.args || []));
     const receipt = await txn.wait();

@@ -64,9 +64,7 @@ export default {
   async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
     debug('exec', config);
 
-    const runfile = await import(
-      join(dirname(hre.config.paths.configFile), config.exec)
-    );
+    const runfile = await import(join(dirname(hre.config.paths.configFile), config.exec));
 
     return await runfile[config.func](...(config.args || []));
   },
