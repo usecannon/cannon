@@ -107,9 +107,13 @@ export default {
       let txn: ethers.ContractTransaction;
 
       if (config.fromCall) {
-        const address = contract[config.fromCall.func](
-          ...(config.fromCall?.args || [])
-        );
+        debug('resolve from address', contract.address);
+
+        const address = await contract
+          .connect(hre.ethers.provider)
+          [config.fromCall.func](...(config.fromCall?.args || []));
+
+        debug('owner for call', address);
 
         const callSigner = await initializeSigner(hre, address);
 
