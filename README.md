@@ -1,8 +1,8 @@
-# cannon
+# Cannon
 
-This is the monorepo for the cannon hardhat plugin. If you are just trying to use the project, we reccomend [visiting our website](https://usecannon.com).
+This is the monorepo for the Cannon Hardhat plugin. If you’re just interested in using the project, [visit the website](https://usecannon.com).
 
-For more information, please see documentation in one of the modules listed below:
+For more information, please see documentation in the modules listed below:
 
 * [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
 * [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
