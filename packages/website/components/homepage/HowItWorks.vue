@@ -64,7 +64,8 @@
             px="3"
             width="100%"
             mb="6"
-            >npm install hardhat-cannon</CCode
+            ><span style="color: #61afef">npm install</span>
+            hardhat-cannon</CCode
           >
 
           <CText fontWeight="semibold" mb="1"
@@ -77,7 +78,10 @@
             px="3"
             width="100%"
             mb="6"
-            >require('hardhat-cannon');</CCode
+            ><span style="color: #61afef">require</span>(<span
+              style="color: #98c379"
+              >'hardhat-cannon'</span
+            >);</CCode
           >
 
           <CText fontWeight="semibold" mb="1"
@@ -90,7 +94,8 @@
             px="3"
             width="100%"
             mb="2"
-            >npx hardhat cannon synthetix:latest</CCode
+            ><span style="color: #61afef">npx</span> hardhat cannon
+            synthetix:latest</CCode
           >
           <CText fontSize="sm" :mb="[6, 0]">
             <small
