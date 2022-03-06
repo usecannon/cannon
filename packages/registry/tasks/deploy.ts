@@ -19,7 +19,5 @@ task('deploy').setAction(async (_, hre) => {
     address: contract.address,
   });
 
-  console.log(
-    `Contract verified: https://${hre.network.name}.etherscan.io/address/${contract.address}`
-  );
+  console.log(`Contract verified: https://${hre.network.name}.etherscan.io/address/${contract.address}`);
 });

@@ -97,9 +97,7 @@ export default {
     const hashes = [];
     const events: EncodedTxnEvents[] = [];
 
-    const mainSigner = config.from
-      ? await initializeSigner(hre, config.from)
-      : await getExecutionSigner(hre, '');
+    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '');
 
     for (const address of config.addresses) {
       const contract = new hre.ethers.Contract(address, JSON.parse(config.abi));
@@ -109,21 +107,15 @@ export default {
       if (config.fromCall) {
         debug('resolve from address', contract.address);
 
-        const address = await contract
-          .connect(hre.ethers.provider)
-          [config.fromCall.func](...(config.fromCall?.args || []));
+        const address = await contract.connect(hre.ethers.provider)[config.fromCall.func](...(config.fromCall?.args || []));
 
         debug('owner for call', address);
 
         const callSigner = await initializeSigner(hre, address);
 
-        txn = await contract
-          .connect(callSigner)
-          [config.func](...(config.args || []));
+        txn = await contract.connect(callSigner)[config.func](...(config.args || []));
       } else {
-        txn = await contract
-          .connect(mainSigner)
-          [config.func](...(config.args || []));
+        txn = await contract.connect(mainSigner)[config.func](...(config.args || []));
       }
 
       const receipt = await txn.wait();

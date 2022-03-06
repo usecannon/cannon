@@ -4,13 +4,7 @@ import { IPFSHTTPClient, Options, create, globSource } from 'ipfs-http-client';
 
 type IPFSFileContent = {
   remotePath: string;
-  content:
-    | string
-    | InstanceType<typeof String>
-    | ArrayBufferView
-    | ArrayBuffer
-    | Blob
-    | ReadableStream<Uint8Array>;
+  content: string | InstanceType<typeof String> | ArrayBufferView | ArrayBuffer | Blob | ReadableStream<Uint8Array>;
 };
 
 type IPFSFileRemote = {

@@ -12,23 +12,14 @@ export const ChainDefinitionScriptSchema = {
   },
 } as const;
 
-export async function initializeSigner(
-  hre: HardhatRuntimeEnvironment,
-  address: string
-): Promise<ethers.Signer> {
+export async function initializeSigner(hre: HardhatRuntimeEnvironment, address: string): Promise<ethers.Signer> {
   await hre.ethers.provider.send('hardhat_impersonateAccount', [address]);
-  await hre.ethers.provider.send('hardhat_setBalance', [
-    address,
-    hre.ethers.utils.parseEther('2').toHexString(),
-  ]);
+  await hre.ethers.provider.send('hardhat_setBalance', [address, hre.ethers.utils.parseEther('2').toHexString()]);
 
   return hre.ethers.getSigner(address);
 }
 
-export async function getExecutionSigner(
-  hre: HardhatRuntimeEnvironment,
-  seed: string
-): Promise<ethers.Signer> {
+export async function getExecutionSigner(hre: HardhatRuntimeEnvironment, seed: string): Promise<ethers.Signer> {
   const hasher = crypto.createHash('sha256');
 
   const size = 32;

@@ -1,0 +1,6 @@
+**/node_modules/**
+artifacts/
+cache/
+node_modules/
+packages/hardhat-cannon/dist
+packages/registry-subgraph/generated

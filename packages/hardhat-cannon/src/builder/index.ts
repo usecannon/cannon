@@ -49,6 +49,7 @@ export interface ChainBuilderContext {
   settings: ChainBuilderOptions;
   network: string;
   chainId: number;
+  timestamp: string;
 
   repositoryBuild: boolean;
 
@@ -77,6 +78,7 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   fork: false,
   network: '',
   chainId: 31337,
+  timestamp: '0',
 
   repositoryBuild: false,
 
@@ -133,7 +135,7 @@ export class ChainBuilder {
   async build(opts: BuildOptions): Promise<ChainBuilder> {
     debug('build');
 
-    this.populateSettings(this.ctx, opts);
+    await this.populateSettings(this.ctx, opts);
 
     await this.writeCannonfile();
 
@@ -142,7 +144,7 @@ export class ChainBuilder {
     this.ctx = latestLayer[1];
 
     // have to populate settings again
-    this.populateSettings(this.ctx, opts);
+    await this.populateSettings(this.ctx, opts);
 
     // TODO: this downcast shouldn't work in JS, ideas how to work around?
     // almost might be better to not extend the class like this.
@@ -151,30 +153,13 @@ export class ChainBuilder {
     // 1. read all settings
 
     // 3. do layers
-    const steppedImports = _.groupBy(
-      _.toPairs(this.def.import),
-      (c) => c[1].step || 0
-    );
-    const steppedContracts = _.groupBy(
-      _.toPairs(this.def.contract),
-      (c) => c[1].step || 0
-    );
-    const steppedInvokes = _.groupBy(
-      _.toPairs(this.def.invoke),
-      (c) => c[1].step || 0
-    );
-    const steppedRuns = _.groupBy(
-      _.toPairs(this.def.run),
-      (c) => c[1].step || 0
-    );
+    const steppedImports = _.groupBy(_.toPairs(this.def.import), (c) => c[1].step || 0);
+    const steppedContracts = _.groupBy(_.toPairs(this.def.contract), (c) => c[1].step || 0);
+    const steppedInvokes = _.groupBy(_.toPairs(this.def.invoke), (c) => c[1].step || 0);
+    const steppedRuns = _.groupBy(_.toPairs(this.def.run), (c) => c[1].step || 0);
 
     const steps = _.map(
-      _.union(
-        _.keys(steppedImports),
-        _.keys(steppedContracts),
-        _.keys(steppedInvokes),
-        _.keys(steppedRuns)
-      ),
+      _.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedInvokes), _.keys(steppedRuns)),
       parseFloat
     );
 
@@ -192,7 +177,7 @@ export class ChainBuilder {
 
           // repopulate settings since they may differ on this run.
           // outputs we want to keep though
-          this.populateSettings(this.ctx, opts);
+          await this.populateSettings(this.ctx, opts);
           doLoad = null;
         }
 
@@ -224,19 +209,13 @@ export class ChainBuilder {
         debug(`invoke step ${s}`);
         // todo: parallelization can be utilized here
         for (const [name, doInvoke] of steppedInvokes[s] || []) {
-          const output = await invokeSpec.exec(
-            this.hre,
-            invokeSpec.configInject(this.ctx, doInvoke)
-          );
+          const output = await invokeSpec.exec(this.hre, invokeSpec.configInject(this.ctx, doInvoke));
           _.set(this.ctx.outputs.self, `invokes.${name}`, output);
         }
 
         debug(`scripts step ${s}`);
         for (const [name, doScript] of steppedRuns[s] || []) {
-          const output = await scriptSpec.exec(
-            this.hre,
-            scriptSpec.configInject(this.ctx, doScript)
-          );
+          const output = await scriptSpec.exec(this.hre, scriptSpec.configInject(this.ctx, doScript));
           _.set(this.ctx.outputs.self, `runs.${name}`, output);
         }
 
@@ -254,7 +233,7 @@ export class ChainBuilder {
   async exec(opts: { [val: string]: string }) {
     // construct full context
     const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
-    this.populateSettings(ctx, opts);
+    await this.populateSettings(ctx, opts);
 
     // load the cache (note: will fail if `build()` has not been called first)
     const topLayer = await this.getTopLayer();
@@ -275,9 +254,7 @@ export class ChainBuilder {
       // run node
       await this.hre.run('node');
     } else {
-      throw new Error(
-        'top layer is not built. Call `build` in order to execute this chain.'
-      );
+      throw new Error('top layer is not built. Call `build` in order to execute this chain.');
     }
   }
 
@@ -285,37 +262,40 @@ export class ChainBuilder {
     return _.cloneDeep(this.ctx.outputs);
   }
 
-  populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
+  async populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
+    const provider = this.hre.ethers.provider;
+    this.ctx.timestamp = (await provider.getBlock(await provider.getBlockNumber())).timestamp.toString();
+
+    this.ctx.repositoryBuild = this.repositoryBuild;
+
+    try {
+      this.ctx.package = require(path.join(this.hre.config.paths.root, 'package.json'));
+    } catch {
+      console.warn('package.json file not found. Cannot add to chain builder context.');
+    }
+
     for (const s in this.def.setting || {}) {
       if (!this.def.setting?.[s]) {
         throw new Error(`Missing setting "${s}"`);
       }
 
-      let value = this.def.setting[s].defaultValue;
+      const def = this.def.setting[s];
+
+      let value = null;
+      if (def.defaultValue !== undefined) {
+        value = typeof def.defaultValue === 'string' ? _.template(def.defaultValue || '')(ctx) : def.defaultValue;
+      }
 
       // check if the value has been supplied
       if (opts[s]) {
         value = opts[s];
       }
 
-      if (!value) {
+      if (!value && def.defaultValue === undefined) {
         throw new Error(`setting not provided: ${s}`);
       }
 
       ctx.settings[s] = value as OptionTypesTs;
-    }
-
-    this.ctx.repositoryBuild = this.repositoryBuild;
-
-    try {
-      this.ctx.package = require(path.join(
-        this.hre.config.paths.root,
-        'package.json'
-      ));
-    } catch {
-      console.warn(
-        'package.json file not found. Cannot add to chain builder context.'
-      );
     }
   }
 
@@ -323,10 +303,7 @@ export class ChainBuilder {
     // try to load highest file in dir
     const dirToScan = dirname((await this.getLayerFiles(0)).metadata);
     const fileList =
-      (await fs.pathExists(dirToScan)) &&
-      (await fs.stat(dirToScan)).isDirectory()
-        ? await fs.readdir(dirToScan)
-        : [];
+      (await fs.pathExists(dirToScan)) && (await fs.stat(dirToScan)).isDirectory() ? await fs.readdir(dirToScan) : [];
 
     const sortedFileList = _.sortBy(
       fileList
@@ -342,12 +319,7 @@ export class ChainBuilder {
     if (sortedFileList.length > 0) {
       const item = sortedFileList[sortedFileList.length - 1];
 
-      return [
-        item.n,
-        JSON.parse(
-          (await fs.readFile(path.join(dirToScan, item.name))).toString()
-        ),
-      ];
+      return [item.n, JSON.parse((await fs.readFile(path.join(dirToScan, item.name))).toString())];
     } else {
       const newCtx = INITIAL_CHAIN_BUILDER_CONTEXT;
       newCtx.network = this.hre.network.name;
@@ -371,11 +343,7 @@ export class ChainBuilder {
   }
 
   getCacheDir() {
-    return ChainBuilder.getCacheDir(
-      this.hre.config.paths.cache,
-      this.name,
-      this.version
-    );
+    return ChainBuilder.getCacheDir(this.hre.config.paths.cache, this.name, this.version);
   }
 
   async getLayerFiles(n: number) {
@@ -397,47 +365,19 @@ export class ChainBuilder {
     const obj: any[] = [];
 
     for (const d of _.filter(this.def.import, (c) => (c.step || 0) <= step)) {
-      obj.push(
-        await importSpec.getState(
-          this.hre,
-          this.ctx,
-          d,
-          this.getAuxilleryFilePath('imports')
-        )
-      );
+      obj.push(await importSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('imports')));
     }
 
     for (const d of _.filter(this.def.contract, (c) => (c.step || 0) <= step)) {
-      obj.push(
-        await contractSpec.getState(
-          this.hre,
-          this.ctx,
-          d,
-          this.getAuxilleryFilePath('contracts')
-        )
-      );
+      obj.push(await contractSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('contracts')));
     }
 
     for (const d of _.filter(this.def.invoke, (c) => (c.step || 0) <= step)) {
-      obj.push(
-        await invokeSpec.getState(
-          this.hre,
-          this.ctx,
-          d,
-          this.getAuxilleryFilePath('invokes')
-        )
-      );
+      obj.push(await invokeSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('invokes')));
     }
 
     for (const d of _.filter(this.def.run, (c) => (c.step || 0) <= step)) {
-      obj.push(
-        await scriptSpec.getState(
-          this.hre,
-          this.ctx,
-          d,
-          this.getAuxilleryFilePath('scripts')
-        )
-      );
+      obj.push(await scriptSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('scripts')));
     }
 
     return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
@@ -463,9 +403,7 @@ export class ChainBuilder {
 
     const cacheData = await fs.readFile(chain);
 
-    this.ctx = JSON.parse(
-      (await fs.readFile(metadata)).toString('utf8')
-    ) as ChainBuilderContext;
+    this.ctx = JSON.parse((await fs.readFile(metadata)).toString('utf8')) as ChainBuilderContext;
 
     await persistableNode.loadState(this.hre, cacheData);
   }
