@@ -411,6 +411,10 @@ export class ChainBuilder {
   async dumpLayer(n: number) {
     const { chain, metadata } = await this.getLayerFiles(n);
 
+    if (!this.repositoryBuild) {
+      return; // never save state outside of repository build
+    }
+
     const data = await persistableNode.dumpState(this.hre);
 
     debug('put cache', n);
