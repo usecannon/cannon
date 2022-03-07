@@ -1,3 +1,4 @@
+import path from 'path';
 import '@nomiclabs/hardhat-ethers';
 
 import './tasks/cannon';
@@ -12,7 +13,9 @@ import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig } from 'hardhat/config';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
-  config.paths.deployments = userConfig.paths?.deployments ?? 'deployments';
+  config.paths.deployments = userConfig.paths?.deployments
+    ? path.resolve(config.paths.root, userConfig.paths.deployments)
+    : path.join(config.paths.root, 'deployments');
 
   config.cannon = {
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',

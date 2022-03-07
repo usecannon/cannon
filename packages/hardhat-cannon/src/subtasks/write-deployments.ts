@@ -36,5 +36,5 @@ subtask(SUBTASK_WRITE_DEPLOYMENTS)
     // neatly print also
     printBundledChainBuilderOutput(outputs);
 
-    console.log('wrote deployment artifacts:', deploymentPath);
+    console.log('wrote deployment artifacts:', path.relative(process.cwd(), deploymentPath));
   });
