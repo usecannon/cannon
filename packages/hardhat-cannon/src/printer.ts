@@ -13,7 +13,9 @@ export function printBundledChainBuilderOutput(output: BundledChainBuilderOutput
       continue;
     }
 
+    console.log(`PACKAGE: ${k}`);
     printChainBuilderOutput(output[k]);
+    console.log('====');
   }
 }
 

@@ -4,19 +4,28 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext } from './';
-import { getExecutionSigner } from './util';
+import { getExecutionSigner, initializeSigner } from './util';
+import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:invoke');
 
 const config = {
   properties: {
-    address: { type: 'string' },
+    addresses: { elements: { type: 'string' } },
     abi: { type: 'string' },
     func: { type: 'string' },
   },
   optionalProperties: {
     args: { elements: {} },
     from: { type: 'string' },
+    fromCall: {
+      properties: {
+        func: { type: 'string' },
+      },
+      optionalProperties: {
+        args: { elements: {} },
+      },
+    },
     detect: {
       properties: {
         func: { type: 'string' },
@@ -32,8 +41,11 @@ const config = {
 
 export type Config = JTDDataType<typeof config>;
 
+export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
+
 export interface Outputs {
-  hash: string;
+  hashes: string[];
+  events?: EncodedTxnEvents[];
 }
 
 // ensure the specified contract is already deployed
@@ -55,12 +67,23 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    config.address = _.template(config.address)(ctx);
+    config.addresses = config.addresses.map((a) => _.template(a)(ctx));
     config.abi = _.template(config.abi)(ctx);
     config.func = _.template(config.func)(ctx);
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
+        return typeof a == 'string' ? _.template(a)(ctx) : a;
+      });
+    }
+
+    if (config.from) {
+      config.from = _.template(config.from)(ctx);
+    }
+
+    if (config.fromCall) {
+      config.fromCall.func = _.template(config.fromCall.func)(ctx);
+      config.fromCall.args = _.map(config.fromCall.args, (a) => {
         return typeof a == 'string' ? _.template(a)(ctx) : a;
       });
     }
@@ -71,15 +94,57 @@ export default {
   async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
     debug('exec', config);
 
-    const signer = await getExecutionSigner(hre, '');
+    const hashes = [];
+    const events: EncodedTxnEvents[] = [];
 
-    const contract = new hre.ethers.Contract(config.address, JSON.parse(config.abi), signer);
+    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '');
 
-    const txn = await contract[config.func](...(config.args || []));
-    const receipt = await txn.wait();
+    for (const address of config.addresses) {
+      const contract = new hre.ethers.Contract(address, JSON.parse(config.abi));
+
+      let txn: ethers.ContractTransaction;
+
+      if (config.fromCall) {
+        debug('resolve from address', contract.address);
+
+        const address = await contract.connect(hre.ethers.provider)[config.fromCall.func](...(config.fromCall?.args || []));
+
+        debug('owner for call', address);
+
+        const callSigner = await initializeSigner(hre, address);
+
+        txn = await contract.connect(callSigner)[config.func](...(config.args || []));
+      } else {
+        txn = await contract.connect(mainSigner)[config.func](...(config.args || []));
+      }
+
+      const receipt = await txn.wait();
+
+      // get events
+      const txnEvents = _.groupBy(
+        _.filter(
+          receipt.events?.map((e) => {
+            if (!e.event || !e.args) {
+              return null;
+            }
+
+            return {
+              name: e.event,
+              args: e.args as any[],
+            };
+          }),
+          _.isObject
+        ),
+        'name'
+      );
+
+      hashes.push(receipt.transactionHash);
+      events.push(txnEvents as EncodedTxnEvents);
+    }
 
     return {
-      hash: receipt.transactionHash,
+      hashes,
+      events,
     };
   },
 };

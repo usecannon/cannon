@@ -49,6 +49,7 @@ export interface ChainBuilderContext {
   settings: ChainBuilderOptions;
   network: string;
   chainId: number;
+  timestamp: string;
 
   repositoryBuild: boolean;
 
@@ -77,6 +78,7 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   fork: false,
   network: '',
   chainId: 31337,
+  timestamp: '0',
 
   repositoryBuild: false,
 
@@ -133,7 +135,7 @@ export class ChainBuilder {
   async build(opts: BuildOptions): Promise<ChainBuilder> {
     debug('build');
 
-    this.populateSettings(this.ctx, opts);
+    await this.populateSettings(this.ctx, opts);
 
     await this.writeCannonfile();
 
@@ -142,7 +144,7 @@ export class ChainBuilder {
     this.ctx = latestLayer[1];
 
     // have to populate settings again
-    this.populateSettings(this.ctx, opts);
+    await this.populateSettings(this.ctx, opts);
 
     // TODO: this downcast shouldn't work in JS, ideas how to work around?
     // almost might be better to not extend the class like this.
@@ -175,7 +177,7 @@ export class ChainBuilder {
 
           // repopulate settings since they may differ on this run.
           // outputs we want to keep though
-          this.populateSettings(this.ctx, opts);
+          await this.populateSettings(this.ctx, opts);
           doLoad = null;
         }
 
@@ -231,7 +233,7 @@ export class ChainBuilder {
   async exec(opts: { [val: string]: string }) {
     // construct full context
     const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
-    this.populateSettings(ctx, opts);
+    await this.populateSettings(ctx, opts);
 
     // load the cache (note: will fail if `build()` has not been called first)
     const topLayer = await this.getTopLayer();
@@ -260,25 +262,9 @@ export class ChainBuilder {
     return _.cloneDeep(this.ctx.outputs);
   }
 
-  populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
-    for (const s in this.def.setting || {}) {
-      if (!this.def.setting?.[s]) {
-        throw new Error(`Missing setting "${s}"`);
-      }
-
-      let value = this.def.setting[s].defaultValue;
-
-      // check if the value has been supplied
-      if (opts[s]) {
-        value = opts[s];
-      }
-
-      if (!value) {
-        throw new Error(`setting not provided: ${s}`);
-      }
-
-      ctx.settings[s] = value as OptionTypesTs;
-    }
+  async populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
+    const provider = this.hre.ethers.provider;
+    this.ctx.timestamp = (await provider.getBlock(await provider.getBlockNumber())).timestamp.toString();
 
     this.ctx.repositoryBuild = this.repositoryBuild;
 
@@ -286,6 +272,30 @@ export class ChainBuilder {
       this.ctx.package = require(path.join(this.hre.config.paths.root, 'package.json'));
     } catch {
       console.warn('package.json file not found. Cannot add to chain builder context.');
+    }
+
+    for (const s in this.def.setting || {}) {
+      if (!this.def.setting?.[s]) {
+        throw new Error(`Missing setting "${s}"`);
+      }
+
+      const def = this.def.setting[s];
+
+      let value = null;
+      if (def.defaultValue !== undefined) {
+        value = typeof def.defaultValue === 'string' ? _.template(def.defaultValue || '')(ctx) : def.defaultValue;
+      }
+
+      // check if the value has been supplied
+      if (opts[s]) {
+        value = opts[s];
+      }
+
+      if (!value && def.defaultValue === undefined) {
+        throw new Error(`setting not provided: ${s}`);
+      }
+
+      ctx.settings[s] = value as OptionTypesTs;
     }
   }
 

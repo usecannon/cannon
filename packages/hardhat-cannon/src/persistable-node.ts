@@ -4,6 +4,7 @@ import { HardhatNode } from 'hardhat/internal/hardhat-network/provider/node.js';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { deflate, inflate } from 'zlib';
 import { promisify } from 'util';
+import { BN } from 'bn.js';
 
 const deflatePromise = promisify(deflate);
 const inflatePromise = promisify(inflate);
@@ -45,14 +46,16 @@ export async function storeHreNode(hre: HardhatRuntimeEnvironment, node: Hardhat
 }
 
 export async function dumpState(hre: HardhatRuntimeEnvironment): Promise<Buffer> {
+  const provider = await accessHreProvider(hre);
+
   // @ts-ignore
-  const node = (await accessHreProvider(hre))._node;
+  const node: HardhatNode = provider._node;
 
   const state: SerializableNodeState = {
     // note: would be best if `dumpState` or a similar function was supported within the state manager
     // itnode, but we have to hack it a bit here
     storage: await dumpStorage(node),
-    minTimestamp: node.getTimeIncrement().toNumber(),
+    minTimestamp: (await node.getLatestBlock()).header.timestamp.toNumber(),
   };
 
   // TODO: would be way better to utilize streaming here
@@ -68,9 +71,13 @@ export async function loadState(hre: HardhatRuntimeEnvironment, rawState: Buffer
   const provider = await accessHreProvider(hre);
 
   // @ts-ignore
-  const node = provider._node;
+  const node: HardhatNode = provider._node;
 
   await importStorage(node, state.storage);
+
+  const curTimestamp = (await node.getLatestBlock()).header.timestamp.toNumber();
+
+  node.setNextBlockTimestamp(new BN(Math.max(curTimestamp, state.minTimestamp)));
 
   return true;
 }
