@@ -54,6 +54,7 @@
     "ethereumjs-util": "^7.1.4",
     "ethers": "^5.5.4",
     "fs-extra": "^10.0.1",
+    "merkle-patricia-tree": "^4.2.3",
     "ipfs-http-client": "56.0.1",
     "ipfs-utils": "9.0.2",
     "lodash": "^4.17.21",

@@ -129,7 +129,7 @@ export class ChainBuilder {
 
   getDependencies() {
     if (!this.def.import) return [];
-    return _.uniq(Object.values(this.def.import).map((d) => d.source));
+    return _.uniq(Object.values(this.def.import).map((d) => importSpec.configInject(this.ctx, d).source));
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilder> {
