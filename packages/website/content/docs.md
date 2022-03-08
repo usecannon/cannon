@@ -107,7 +107,7 @@ artifact = "Storage" # Specifies the name of the contract to be deployed
 step = 0 # Ensure this action is taken first
 
 [invoke.changeStorage] # Declares an action to set the initial value
-address = "<%= outputs.self.contracts.myStorage.address %>" # Sets the address of the contract to invoke
+addresses = ["<%= outputs.self.contracts.myStorage.address %>"] # Sets the address of the contract to invoke
 abi = "<%= outputs.self.contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
 func = "store" # Sets the name of the function to invoke
 args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to the function
@@ -216,7 +216,7 @@ The outputs of the imported cannonfile are provided under the namespace of the i
 The `invoke` action calls a specified function on-chain.
 
 **Required Inputs**
-* `address` - The address of the contract to call
+* `addresses` - List of all addresses for which the same call should be executed
 * `abi` - The ABI of the contract to call
 * `func` - The name of the function to call
 
