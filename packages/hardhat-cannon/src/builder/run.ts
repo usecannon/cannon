@@ -33,10 +33,10 @@ export default {
   validate: config,
 
   async getState(
-    hre: HardhatRuntimeEnvironment,
+    _: HardhatRuntimeEnvironment,
     ctx: ChainBuilderContext,
     config: Config,
-    storage: string
+    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
     return this.configInject(ctx, config);
   },
@@ -64,9 +64,7 @@ export default {
   async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
     debug('exec', config);
 
-    const runfile = await import(
-      join(dirname(hre.config.paths.configFile), config.exec)
-    );
+    const runfile = await import(join(dirname(hre.config.paths.configFile), config.exec));
 
     return await runfile[config.func](...(config.args || []));
   },

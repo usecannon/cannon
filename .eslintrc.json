@@ -20,7 +20,7 @@
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": ["error", { "singleQuote": true }],
+    "prettier/prettier": ["error", { "singleQuote": true, "printWidth": 125 }],
     "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
     "comma-dangle": [
       "error",

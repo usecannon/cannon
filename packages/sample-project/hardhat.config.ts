@@ -7,6 +7,8 @@ import '@nomiclabs/hardhat-ethers';
 
 import '../hardhat-cannon/src/index';
 
+import 'hardhat-interact';
+
 import * as dotenv from 'dotenv';
 import { HardhatUserConfig, task } from 'hardhat/config';
 
@@ -26,8 +28,8 @@ const config: HardhatUserConfig = {
   solidity: '0.8.4',
   networks: {
     local: {
-      url: 'http://127.0.0.1:8545/'
-    }
+      url: 'http://127.0.0.1:8545/',
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
@@ -43,10 +45,12 @@ const config: HardhatUserConfig = {
       host: 'ipfs.infura.io',
       port: 5001,
       headers: {
-        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString('base64')}`
+        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
+          'base64'
+        )}`,
       },
-    }
-  }
+    },
+  },
 };
 
 export default config;

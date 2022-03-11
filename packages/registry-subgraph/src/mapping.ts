@@ -1,14 +1,10 @@
 import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import {
-  CannonRegistry,
-  ProtocolPublish,
-} from '../generated/CannonRegistry/CannonRegistry';
 import { Package, PackageTag, Tag } from '../generated/schema';
+import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
-  const id =
-    event.params.name.toString() + '@' + event.params.version.toString();
+  const id = event.params.name.toString() + '@' + event.params.version.toString();
   let entity = Package.load(id);
 
   if (!entity) {
@@ -39,7 +35,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
       }
     }
   } else {
-    log.warning('Couldn\'t retrieve metadata for {}', [id]);
+    log.warning('Could not retrieve metadata for {}', [id]);
   }
 
   const readme_path = entity.url.slice(7) + '/README.md';
@@ -47,7 +43,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   if (readme_data) {
     entity.readme = readme_data.toString();
   } else {
-    log.warning('Couldn\'t retrieve readme for {}', [id]);
+    log.warning('Could not retrieve readme for {}', [id]);
   }
 
   const toml_path = entity.url.slice(7) + '/cannonfile.toml';
@@ -55,7 +51,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   if (toml_data) {
     entity.cannonfile = toml_data.toString();
   } else {
-    log.warning('Couldn\'t retrieve cannonfile for {}', [id]);
+    log.warning('Could not retrieve cannonfile for {}', [id]);
   }
 
   entity.save();

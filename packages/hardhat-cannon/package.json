@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "0.1.4",
+  "version": "0.2.2",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:Synthetixio/cannon",
   "author": "Synthetix",
@@ -30,17 +30,18 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.5",
     "@types/chai": "^4.3.0",
+    "@types/debug": "^4.1.7",
     "@types/fs-extra": "^9.0.13",
-    "@types/lodash": "^4.14.178",
+    "@types/lodash": "^4.14.179",
     "@types/mocha": "^9.1.0",
     "@types/node": "^16.0.0",
     "@types/tar-fs": "^2.0.1",
     "@types/tar-stream": "^2.2.2",
     "bn.js": "^5.2.0",
     "hardhat": "^2.8.4",
-    "mocha": "^9.2.0",
-    "ts-node": "^10.5.0",
-    "typescript": "^4.5.5"
+    "mocha": "^9.2.1",
+    "ts-node": "^10.6.0",
+    "typescript": "^4.6.2"
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
@@ -48,22 +49,15 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@types/debug": "^4.1.7",
-    "@types/glob": "^7.2.0",
-    "@types/level-codec": "^9.0.1",
-    "@types/lodash": "^4.14.178",
     "ajv": "^8.10.0",
     "debug": "^4.3.3",
     "ethereumjs-util": "^7.1.4",
     "ethers": "^5.5.4",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^10.0.1",
     "ipfs-http-client": "56.0.1",
     "ipfs-utils": "9.0.2",
-    "it-pipe": "^2.0.3",
-    "it-tar": "^4.0.0",
-    "level-codec": "^10.0.0",
     "lodash": "^4.17.21",
-    "stream-to-it": "^0.2.4",
+    "merkle-patricia-tree": "^4.2.3",
     "table": "^6.8.0",
     "tar-fs": "^2.1.1"
   }

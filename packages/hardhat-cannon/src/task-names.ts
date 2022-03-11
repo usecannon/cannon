@@ -6,3 +6,4 @@ export const TASK_PUBLISH = `${TASK_PREFIX}:publish`;
 
 export const SUBTASK_LOAD_DEPLOY = `${TASK_PREFIX}:load-deploy`;
 export const SUBTASK_DOWNLOAD = `${TASK_PREFIX}:download`;
+export const SUBTASK_WRITE_DEPLOYMENTS = `${TASK_PREFIX}:write-deployments`;

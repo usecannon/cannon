@@ -8,20 +8,9 @@ import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder } from '../builder';
 import { TASK_PUBLISH } from '../task-names';
 
-task(
-  TASK_PUBLISH,
-  'Provision and publish to the registry the current Cannonfile.toml'
-)
-  .addOptionalParam(
-    'file',
-    'TOML definition of the chain to assemble',
-    'cannonfile.toml'
-  )
-  .addOptionalParam(
-    'tags',
-    'Comma separated list of labels for your package to be uploaded with.',
-    'latest'
-  )
+task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
+  .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
+  .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .setAction(async ({ file, tags }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
@@ -42,10 +31,7 @@ task(
 
     console.log('Uploading files to IPFS...');
 
-    await fs.copy(
-      filepath,
-      path.join(builder.getCacheDir(), 'cannonfile.toml')
-    );
+    await fs.copy(filepath, path.join(builder.getCacheDir(), 'cannonfile.toml'));
 
     const readmePath = path.resolve(hre.config.paths.root, 'README.md');
     try {

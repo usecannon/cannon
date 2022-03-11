@@ -21,4 +21,4 @@ while true; do
 	sleep 1;
 done
 
-#pkill node
+pkill node
