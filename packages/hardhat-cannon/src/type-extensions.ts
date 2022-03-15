@@ -6,6 +6,7 @@ declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
     deployments?: string;
   }
+
   export interface HardhatUserConfig {
     cannon?: {
       registryEndpoint?: string;

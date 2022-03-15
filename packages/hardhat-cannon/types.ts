@@ -6,3 +6,9 @@ export interface CannonDeploy {
     port?: number;
   }[];
 }
+
+export interface DeploymentArtifact {
+  abi: any[];
+  address: string;
+  deployTxnHash: string;
+}

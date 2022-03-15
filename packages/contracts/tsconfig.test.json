@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "files": ["./node_modules/hardhat-cannon/src/type-extensions.ts"]
+}

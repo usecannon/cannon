@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import path from 'path';
 import { task } from 'hardhat/config';
+import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder } from '../builder';
@@ -8,9 +9,14 @@ import { SUBTASK_DOWNLOAD, TASK_BUILD } from '../task-names';
 import { printBundledChainBuilderOutput } from '../printer';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
+  .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
-  .setAction(async ({ file, options }, hre) => {
+  .setAction(async ({ noCompile, file, options }, hre) => {
+    if (!noCompile) {
+      await hre.run(TASK_COMPILE);
+    }
+
     const filepath = path.resolve(hre.config.paths.root, file);
 
     console.log('Building cannonfile: ', path.relative(process.cwd(), filepath));
