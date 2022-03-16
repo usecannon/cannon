@@ -129,7 +129,11 @@ export class ChainBuilder {
 
   getDependencies() {
     if (!this.def.import) return [];
-    return _.uniq(Object.values(this.def.import).map((d) => importSpec.configInject(this.ctx, d).source));
+
+    // we have to apply templating here, only to the `source`
+    // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
+    // can do about this right now
+    return _.uniq(Object.values(this.def.import).map((d) => _.template(d.source)(this.ctx)));
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilder> {
