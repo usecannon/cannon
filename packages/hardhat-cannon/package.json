@@ -60,5 +60,6 @@
     "merkle-patricia-tree": "^4.2.3",
     "table": "^6.8.0",
     "tar-fs": "^2.1.1"
-  }
+  },
+  "gitHead": "2bf293b553448ad08a9c1cbdbade20223c181f9c"
 }
