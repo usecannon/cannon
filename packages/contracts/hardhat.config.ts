@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'hardhat-cannon';
 
@@ -14,6 +15,19 @@ const config: HardhatUserConfig = {
         // and we want all generated code to be deterministic
         // https://docs.soliditylang.org/en/v0.7.6/metadata.html
         bytecodeHash: 'none',
+      },
+    },
+  },
+  cannon: {
+    publisherPrivateKey: process.env.PRIVATE_KEY,
+    ipfsConnection: {
+      protocol: 'https',
+      host: 'ipfs.infura.io',
+      port: 5001,
+      headers: {
+        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
+          'base64'
+        )}`,
       },
     },
   },
