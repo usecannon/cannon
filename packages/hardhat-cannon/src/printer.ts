@@ -40,8 +40,10 @@ function printChainBuilderOutput(output: ChainBuilderOutputs) {
       '0'
     );
 
-    console.log('RUN OUTPUTS:');
-    console.log(table(formattedData));
+    if (formattedData.length > 0) {
+      console.log('RUN OUTPUTS:');
+      console.log(table(formattedData));
+    }
   }
 }
 
