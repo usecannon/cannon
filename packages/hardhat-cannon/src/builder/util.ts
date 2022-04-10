@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 
+import fs from 'fs-extra';
+
 export const ChainDefinitionScriptSchema = {
   properties: {
     exec: { type: 'string' },
@@ -12,6 +14,26 @@ export const ChainDefinitionScriptSchema = {
   },
 } as const;
 
+export function hashDirectory(path: string): Buffer {
+  const dirHasher = crypto.createHash('sha256');
+
+  // iterate through every file at path and build a checksum
+  const subpaths = fs.readdirSync(path);
+
+  for (const subpath of subpaths) {
+    const fullname = `${path}/${subpath}`;
+    const info = fs.statSync(fullname);
+    if (info.isDirectory()) {
+      dirHasher.update(hashDirectory(fullname));
+    } else if (info.isFile()) {
+      const hasher = crypto.createHash('sha256');
+      dirHasher.update(hasher.update(fs.readFileSync(fullname)).digest());
+    }
+  }
+
+  return dirHasher.digest();
+}
+
 export async function initializeSigner(hre: HardhatRuntimeEnvironment, address: string): Promise<ethers.Signer> {
   await hre.ethers.provider.send('hardhat_impersonateAccount', [address]);
   await hre.ethers.provider.send('hardhat_setBalance', [address, hre.ethers.utils.parseEther('2').toHexString()]);
@@ -19,7 +41,17 @@ export async function initializeSigner(hre: HardhatRuntimeEnvironment, address: 
   return hre.ethers.getSigner(address);
 }
 
-export async function getExecutionSigner(hre: HardhatRuntimeEnvironment, seed: string): Promise<ethers.Signer> {
+export async function getExecutionSigner(
+  hre: HardhatRuntimeEnvironment,
+  seed: string,
+  fork: boolean
+): Promise<ethers.Signer> {
+  if (fork) {
+    // TODO: support for getting a different signer from the chain
+    const [signer] = await hre.ethers.getSigners();
+    return signer;
+  }
+
   const hasher = crypto.createHash('sha256');
 
   const size = 32;

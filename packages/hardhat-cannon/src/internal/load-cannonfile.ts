@@ -4,6 +4,7 @@ import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
+import { validateChainDefinition } from '../builder';
 
 export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
   if (!fs.existsSync(filepath)) {
@@ -41,6 +42,16 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     let msg = 'Invalid "version" property on cannonfile.toml. ';
     if (err instanceof Error) msg += err.message;
     throw new Error(msg);
+  }
+
+  if(!validateChainDefinition(def)) {
+    console.error('cannonfile failed parse:');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    for (const error of validateChainDefinition.errors || []) {
+      console.log(`> at .${error.schemaPath}: ${error.message} (${JSON.stringify(error.params)})`);
+    }
+
+    throw new Error('failed to parse cannonfile');
   }
 
   return def as any;

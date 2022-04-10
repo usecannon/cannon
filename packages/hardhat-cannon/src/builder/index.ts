@@ -18,10 +18,25 @@ const debug = Debug('cannon:builder');
 
 const ajv = new Ajv();
 
+const LAYER_VERSION = 2;
+
 type OptionTypesTs = string | number | boolean;
 
+type ContractMap = {
+  [label: string]: {
+    address: string;
+    abi: any[];
+  };
+};
+
 const ChainDefinitionSchema = {
+  properties: {
+    name: { type: 'string' },
+    version: { type: 'string' },
+  },
   optionalProperties: {
+    description: { type: 'string' },
+    tags: { elements: { type: 'string' } },
     setting: {
       values: {
         optionalProperties: {
@@ -42,7 +57,7 @@ export type ChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
 
 export type BuildOptions = { [val: string]: string };
 
-export const validateChainDefinition = ajv.compileParser(ChainDefinitionSchema);
+export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
 
 export interface ChainBuilderContext {
   fork: boolean;
@@ -54,6 +69,8 @@ export interface ChainBuilderContext {
   repositoryBuild: boolean;
 
   package: any;
+
+  contracts: ContractMap;
 
   outputs: BundledChainBuilderOutputs;
 }
@@ -68,6 +85,11 @@ export interface ChainBuilderOutputs {
   imports?: { [key: string]: ChainBuilderOptions };
   invokes?: { [key: string]: ChainBuilderOptions };
   runs?: { [key: string]: ChainBuilderOptions };
+}
+
+export interface InternalOutputs<T> {
+  contracts: ContractMap;
+  outputs: T;
 }
 
 interface ChainBuilderOptions {
@@ -85,6 +107,8 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   package: {},
 
   settings: {},
+  contracts: {},
+
   outputs: { self: {} },
 };
 
@@ -172,7 +196,7 @@ export class ChainBuilder {
     for (const s of steps.sort()) {
       debug('step', s);
 
-      if (await this.hasLayer(s)) {
+      if (await this.layerMatches(s)) {
         doLoad = s;
       } else {
         if (doLoad !== null) {
@@ -195,7 +219,8 @@ export class ChainBuilder {
           output[name] = output.self;
           delete output.self;
 
-          this.ctx.outputs = { ...this.ctx.outputs, ...output } as any;
+          this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          this.ctx.outputs = { ...this.ctx.outputs, ...output.outputs } as any;
         }
 
         debug(`contracts step ${s}`);
@@ -205,22 +230,44 @@ export class ChainBuilder {
             this.hre,
             contractSpec.configInject(this.ctx, doContract),
             this.getAuxilleryFilePath('contracts'),
-            this.repositoryBuild
+            this.repositoryBuild,
+            name,
+            this.ctx.fork
           );
-          _.set(this.ctx.outputs.self, `contracts.${name}`, output);
+
+          this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          _.set(this.ctx.outputs.self, `contracts.${name}`, output.outputs);
         }
 
         debug(`invoke step ${s}`);
         // todo: parallelization can be utilized here
         for (const [name, doInvoke] of steppedInvokes[s] || []) {
-          const output = await invokeSpec.exec(this.hre, invokeSpec.configInject(this.ctx, doInvoke));
-          _.set(this.ctx.outputs.self, `invokes.${name}`, output);
+          const output = await invokeSpec.exec(
+            this.hre,
+            invokeSpec.configInject(this.ctx, doInvoke),
+            this.ctx.contracts,
+            this.ctx.fork
+          );
+
+          this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          _.set(this.ctx.outputs.self, `invokes.${name}`, output.outputs);
         }
 
         debug(`scripts step ${s}`);
         for (const [name, doScript] of steppedRuns[s] || []) {
-          const output = await scriptSpec.exec(this.hre, scriptSpec.configInject(this.ctx, doScript));
-          _.set(this.ctx.outputs.self, `runs.${name}`, output);
+          const config = scriptSpec.configInject(this.ctx, doScript);
+
+          // normally shouldn't be able to get here
+          if (!config) {
+            throw new Error(
+              'tried to build step without all required files. Please contact the developer of this chain and ask them to make sure config does not affect run steps.'
+            );
+          }
+
+          const output = await scriptSpec.exec(this.hre, config);
+
+          this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          _.set(this.ctx.outputs.self, `runs.${name}`, output.outputs);
         }
 
         await this.dumpLayer(s);
@@ -244,7 +291,7 @@ export class ChainBuilder {
 
     this.ctx = topLayer[1];
 
-    if (await this.hasLayer(topLayer[0])) {
+    if (await this.layerMatches(topLayer[0])) {
       await this.loadLayer(topLayer[0]);
 
       // run keepers
@@ -264,6 +311,10 @@ export class ChainBuilder {
 
   getOutputs() {
     return _.cloneDeep(this.ctx.outputs);
+  }
+
+  getContracts() {
+    return _.cloneDeep(this.ctx.contracts);
   }
 
   async populateSettings(ctx: ChainBuilderContext, opts: BuildOptions) {
@@ -311,11 +362,11 @@ export class ChainBuilder {
 
     const sortedFileList = _.sortBy(
       fileList
-        .filter((n) => /^[0-9]*-.*.json$/.test(n))
+        .filter((n) => /^[0-9]*-[0-9]*.json$/.test(n))
         .map((n) => {
-          const m = n.match(/^([0-9]*)-/);
+          const m = n.match(/^([0-9]*)-([0-9]*)/);
           if (!m) throw new Error(`Invalid file format "${n}"`);
-          return { n: parseFloat(m[0]), name: n };
+          return { n: parseFloat(m[1]), name: n };
         }),
       'n'
     );
@@ -323,19 +374,57 @@ export class ChainBuilder {
     if (sortedFileList.length > 0) {
       const item = sortedFileList[sortedFileList.length - 1];
 
-      return [item.n, JSON.parse((await fs.readFile(path.join(dirToScan, item.name))).toString())];
+      const contents = JSON.parse((await fs.readFile(path.join(dirToScan, item.name))).toString());
+
+      if (contents.version !== LAYER_VERSION) {
+        throw new Error('cannon file format not supported');
+      }
+
+      return [item.n, contents.ctx];
     } else {
       const newCtx = INITIAL_CHAIN_BUILDER_CONTEXT;
       newCtx.network = this.hre.network.name;
-      newCtx.chainId = this.hre.network.config.chainId || 31337;
+
+      if (this.hre.network.name === 'hardhat') {
+        newCtx.chainId = this.hre.network.config.chainId || 31337;
+
+        // TODO: if we are forking, we probably want to get the chainId of the forked network instead
+        newCtx.fork = !!this.hre.config.networks.hardhat.forking;
+      } else {
+        if (!this.hre.network.config.chainId) {
+          throw new Error('chainId must be defined in selected hardhat network');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        newCtx.chainId = this.hre.network.config.chainId!;
+
+        // we can verify if its a fork by trying to call `evm_mine`
+        try {
+          await this.hre.network.provider.send('evm_mine');
+          newCtx.fork = true;
+        } catch (err) {
+          newCtx.fork = false;
+        }
+      }
 
       return [0, newCtx];
     }
   }
 
-  async hasLayer(n: number) {
+  async layerMatches(n: number) {
     try {
-      await fs.stat((await this.getLayerFiles(n)).chain);
+      const contents = JSON.parse((await fs.readFile((await this.getLayerFiles(n)).metadata)).toString('utf8'));
+
+      const newHashes = await this.layerHashes(n);
+
+      for (const [i, hash] of newHashes.entries()) {
+        if (!hash) {
+          continue; // assumed this is a free to skip check
+        } else if (contents.hash.indexOf(hash) === -1) {
+          return false;
+        }
+      }
+
       return true;
     } catch {
       return false;
@@ -351,7 +440,7 @@ export class ChainBuilder {
   }
 
   async getLayerFiles(n: number) {
-    const filename = n + '-' + (await this.layerHash(n));
+    const filename = `${this.ctx.chainId}-${n}`;
 
     const basename = path.join(this.getCacheDir(), filename);
 
@@ -362,7 +451,7 @@ export class ChainBuilder {
     };
   }
 
-  async layerHash(step: number = Number.MAX_VALUE) {
+  async layerHashes(step: number = Number.MAX_VALUE) {
     // the purpose of this is to indicate the state of the chain without accounting for
     // derivative factors (ex. contract addreseses, outputs)
 
@@ -384,7 +473,13 @@ export class ChainBuilder {
       obj.push(await scriptSpec.getState(this.hre, this.ctx, d, this.getAuxilleryFilePath('scripts')));
     }
 
-    return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
+    return obj.map((v) => {
+      if (!v) {
+        return null;
+      } else {
+        return crypto.createHash('md5').update(JSON.stringify(v)).digest('hex');
+      }
+    });
   }
 
   clearCache() {
@@ -407,7 +502,13 @@ export class ChainBuilder {
 
     const cacheData = await fs.readFile(chain);
 
-    this.ctx = JSON.parse((await fs.readFile(metadata)).toString('utf8')) as ChainBuilderContext;
+    const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
+
+    if (contents.version !== LAYER_VERSION) {
+      throw new Error('cannon file format not supported: ' + (contents.version || 1));
+    }
+
+    this.ctx = contents.ctx;
 
     await persistableNode.loadState(this.hre, cacheData);
   }
@@ -419,14 +520,23 @@ export class ChainBuilder {
       return; // never save state outside of repository build
     }
 
-    const data = await persistableNode.dumpState(this.hre);
-
     debug('put cache', n);
 
-    await fs.ensureDir(dirname(chain));
-    await fs.writeFile(chain, data);
     await fs.ensureDir(dirname(metadata));
-    await fs.writeFile(metadata, JSON.stringify(this.ctx));
+    await fs.writeFile(
+      metadata,
+      JSON.stringify({
+        version: LAYER_VERSION,
+        hash: await this.layerHashes(n),
+        ctx: this.ctx,
+      })
+    );
+
+    if (this.hre.network.name === 'hardhat') {
+      const data = await persistableNode.dumpState(this.hre);
+      await fs.ensureDir(dirname(chain));
+      await fs.writeFile(chain, data);
+    }
   }
 
   async writeCannonfile() {
