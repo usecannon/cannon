@@ -3,6 +3,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 
 import fs from 'fs-extra';
+import { ChainBuilderContext, InternalOutputs } from './types';
 
 export const ChainDefinitionScriptSchema = {
   properties: {
@@ -46,7 +47,7 @@ export async function getExecutionSigner(
   seed: string,
   fork: boolean
 ): Promise<ethers.Signer> {
-  if (fork) {
+  if (!fork) {
     // TODO: support for getting a different signer from the chain
     const [signer] = await hre.ethers.getSigners();
     return signer;
@@ -63,4 +64,21 @@ export async function getExecutionSigner(
   const address = '0x' + hash.slice(0, 40);
 
   return initializeSigner(hre, address);
+}
+
+export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
+  const pathPieces = path.split('.');
+
+  let importsBase: InternalOutputs = ctx;
+  for (const p of pathPieces.slice(0, -1)) {
+    importsBase = ctx.imports[p];
+  }
+
+  const c = importsBase?.contracts?.[pathPieces[pathPieces.length - 1]];
+
+  if (c) {
+    return new ethers.Contract(c.address, c.abi);
+  }
+
+  return null;
 }

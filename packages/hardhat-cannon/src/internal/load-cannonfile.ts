@@ -44,7 +44,7 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     throw new Error(msg);
   }
 
-  if(!validateChainDefinition(def)) {
+  if (!validateChainDefinition(def)) {
     console.error('cannonfile failed parse:');
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     for (const error of validateChainDefinition.errors || []) {

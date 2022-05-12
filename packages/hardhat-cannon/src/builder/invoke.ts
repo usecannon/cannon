@@ -3,8 +3,8 @@ import Debug from 'debug';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, InternalOutputs } from './';
-import { getExecutionSigner, initializeSigner } from './util';
+import { ChainBuilderContext, InternalOutputs, TransactionMap } from './types';
+import { getContractFromPath, getExecutionSigner, initializeSigner } from './util';
 import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:invoke');
@@ -141,24 +141,30 @@ export default {
 
   async exec(
     hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
     config: Config,
-    deployedContracts: { [label: string]: { address: string; abi: any[] } },
-    fork: boolean
-  ): Promise<InternalOutputs<InvokeOutputs>> {
+    _storage: string,
+    selfLabel: string
+  ): Promise<InternalOutputs> {
     debug('exec', config);
 
-    const hashes = [];
-    const events: EncodedTxnEvents[] = [];
+    const txns: TransactionMap = {};
 
-    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '', fork);
+    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '', ctx.fork);
 
     for (const contractOn of config.on || []) {
-      const contract = new hre.ethers.Contract(deployedContracts[contractOn].address, deployedContracts[contractOn].abi);
+      const contract = getContractFromPath(ctx, contractOn);
+
+      if (!contract) {
+        throw new Error(`field on: contract at path ${contractOn} not found. Please double check input and try again!`);
+      }
 
       const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner);
 
-      hashes.push(receipt.transactionHash);
-      events.push(txnEvents);
+      txns[`${selfLabel}_${contractOn}`] = {
+        hash: receipt.transactionHash,
+        events: txnEvents,
+      };
     }
 
     for (const address of config.addresses || []) {
@@ -170,16 +176,15 @@ export default {
 
       const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner);
 
-      hashes.push(receipt.transactionHash);
-      events.push(txnEvents);
+      txns[`${selfLabel}_${address}`] = {
+        hash: receipt.transactionHash,
+        events: txnEvents,
+      };
     }
 
     return {
       contracts: {},
-      outputs: {
-        hashes,
-        events,
-      },
+      txns,
     };
   },
 };

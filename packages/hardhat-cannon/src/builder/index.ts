@@ -1,11 +1,9 @@
 import _ from 'lodash';
-import Ajv from 'ajv/dist/jtd';
 import Debug from 'debug';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path, { dirname } from 'path';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { JTDDataType } from 'ajv/dist/core';
 
 import * as persistableNode from '../persistable-node';
 import contractSpec from './contract';
@@ -14,87 +12,13 @@ import invokeSpec from './invoke';
 import keeperSpec from './keeper';
 import scriptSpec from './run';
 
+import { ChainBuilderContext, ChainDefinition, BuildOptions, OptionTypesTs } from './types';
+
+export { validateChainDefinition } from './types';
+
 const debug = Debug('cannon:builder');
 
-const ajv = new Ajv();
-
 const LAYER_VERSION = 2;
-
-type OptionTypesTs = string | number | boolean;
-
-type ContractMap = {
-  [label: string]: {
-    address: string;
-    abi: any[];
-  };
-};
-
-const ChainDefinitionSchema = {
-  properties: {
-    name: { type: 'string' },
-    version: { type: 'string' },
-  },
-  optionalProperties: {
-    description: { type: 'string' },
-    tags: { elements: { type: 'string' } },
-    setting: {
-      values: {
-        optionalProperties: {
-          type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: {},
-        },
-      },
-    },
-    import: { values: importSpec.validate },
-    contract: { values: contractSpec.validate },
-    invoke: { values: invokeSpec.validate },
-    run: { values: scriptSpec.validate },
-    keeper: { values: keeperSpec.validate },
-  },
-} as const;
-
-export type ChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
-
-export type BuildOptions = { [val: string]: string };
-
-export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
-
-export interface ChainBuilderContext {
-  fork: boolean;
-  settings: ChainBuilderOptions;
-  network: string;
-  chainId: number;
-  timestamp: string;
-
-  repositoryBuild: boolean;
-
-  package: any;
-
-  contracts: ContractMap;
-
-  outputs: BundledChainBuilderOutputs;
-}
-
-export interface BundledChainBuilderOutputs {
-  self: ChainBuilderOutputs;
-  [module: string]: ChainBuilderOutputs;
-}
-
-export interface ChainBuilderOutputs {
-  contracts?: { [key: string]: ChainBuilderOptions };
-  imports?: { [key: string]: ChainBuilderOptions };
-  invokes?: { [key: string]: ChainBuilderOptions };
-  runs?: { [key: string]: ChainBuilderOptions };
-}
-
-export interface InternalOutputs<T> {
-  contracts: ContractMap;
-  outputs: T;
-}
-
-interface ChainBuilderOptions {
-  [key: string]: OptionTypesTs;
-}
 
 const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   fork: false,
@@ -109,7 +33,9 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   settings: {},
   contracts: {},
 
-  outputs: { self: {} },
+  txns: {},
+
+  imports: {},
 };
 
 export class ChainBuilder {
@@ -213,14 +139,11 @@ export class ChainBuilder {
         for (const [name, doImport] of steppedImports[s] || []) {
           const output: { [key: string]: any } = await importSpec.exec(
             this.hre,
+            this.ctx,
             importSpec.configInject(this.ctx, doImport)
           );
 
-          output[name] = output.self;
-          delete output.self;
-
-          this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
-          this.ctx.outputs = { ...this.ctx.outputs, ...output.outputs } as any;
+          this.ctx.imports[name] = output;
         }
 
         debug(`contracts step ${s}`);
@@ -228,15 +151,13 @@ export class ChainBuilder {
         for (const [name, doContract] of steppedContracts[s] || []) {
           const output = await contractSpec.exec(
             this.hre,
+            this.ctx,
             contractSpec.configInject(this.ctx, doContract),
             this.getAuxilleryFilePath('contracts'),
-            this.repositoryBuild,
-            name,
-            this.ctx.fork
+            name
           );
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
-          _.set(this.ctx.outputs.self, `contracts.${name}`, output.outputs);
         }
 
         debug(`invoke step ${s}`);
@@ -244,17 +165,17 @@ export class ChainBuilder {
         for (const [name, doInvoke] of steppedInvokes[s] || []) {
           const output = await invokeSpec.exec(
             this.hre,
+            this.ctx,
             invokeSpec.configInject(this.ctx, doInvoke),
-            this.ctx.contracts,
-            this.ctx.fork
+            this.getAuxilleryFilePath('contracts'),
+            name
           );
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
-          _.set(this.ctx.outputs.self, `invokes.${name}`, output.outputs);
         }
 
         debug(`scripts step ${s}`);
-        for (const [name, doScript] of steppedRuns[s] || []) {
+        for (const [, doScript] of steppedRuns[s] || []) {
           const config = scriptSpec.configInject(this.ctx, doScript);
 
           // normally shouldn't be able to get here
@@ -264,10 +185,9 @@ export class ChainBuilder {
             );
           }
 
-          const output = await scriptSpec.exec(this.hre, config);
+          const output = await scriptSpec.exec(this.hre, this.ctx, config);
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
-          _.set(this.ctx.outputs.self, `runs.${name}`, output.outputs);
         }
 
         await this.dumpLayer(s);
@@ -310,7 +230,7 @@ export class ChainBuilder {
   }
 
   getOutputs() {
-    return _.cloneDeep(this.ctx.outputs);
+    return _.cloneDeep(this.ctx);
   }
 
   getContracts() {
@@ -322,6 +242,10 @@ export class ChainBuilder {
     this.ctx.timestamp = (await provider.getBlock(await provider.getBlockNumber())).timestamp.toString();
 
     this.ctx.repositoryBuild = this.repositoryBuild;
+
+    const networkInfo = await this.hre.ethers.provider.getNetwork();
+
+    this.ctx.chainId = networkInfo.chainId;
 
     try {
       this.ctx.package = require(path.join(this.hre.config.paths.root, 'package.json'));
@@ -360,11 +284,13 @@ export class ChainBuilder {
     const fileList =
       (await fs.pathExists(dirToScan)) && (await fs.stat(dirToScan)).isDirectory() ? await fs.readdir(dirToScan) : [];
 
+    const fileFilter = new RegExp(`^${this.ctx.chainId}-([0-9]*).json$`);
+
     const sortedFileList = _.sortBy(
       fileList
-        .filter((n) => /^[0-9]*-[0-9]*.json$/.test(n))
+        .filter((n) => fileFilter.test(n))
         .map((n) => {
-          const m = n.match(/^([0-9]*)-([0-9]*)/);
+          const m = n.match(fileFilter);
           if (!m) throw new Error(`Invalid file format "${n}"`);
           return { n: parseFloat(m[1]), name: n };
         }),
@@ -417,7 +343,7 @@ export class ChainBuilder {
 
       const newHashes = await this.layerHashes(n);
 
-      for (const [i, hash] of newHashes.entries()) {
+      for (const hash of newHashes.values()) {
         if (!hash) {
           continue; // assumed this is a free to skip check
         } else if (contents.hash.indexOf(hash) === -1) {
@@ -500,8 +426,6 @@ export class ChainBuilder {
 
     const { chain, metadata } = await this.getLayerFiles(n);
 
-    const cacheData = await fs.readFile(chain);
-
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
     if (contents.version !== LAYER_VERSION) {
@@ -510,7 +434,10 @@ export class ChainBuilder {
 
     this.ctx = contents.ctx;
 
-    await persistableNode.loadState(this.hre, cacheData);
+    if (this.hre.network.name === 'hardhat') {
+      const cacheData = await fs.readFile(chain);
+      await persistableNode.loadState(this.hre, cacheData);
+    }
   }
 
   async dumpLayer(n: number) {

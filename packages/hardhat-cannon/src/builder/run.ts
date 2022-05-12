@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 import { dirname, join } from 'path';
 
-import { ChainBuilderContext, InternalOutputs } from './';
+import { ChainBuilderContext, InternalOutputs } from './types';
 import { hashDirectory } from './util';
 
 const debug = Debug('cannon:builder:run');
@@ -23,10 +23,6 @@ const config = {
 } as const;
 
 export type Config = JTDDataType<typeof config>;
-
-export interface RunOutputs {
-  [key: string]: string;
-}
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -81,7 +77,7 @@ export default {
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<InternalOutputs<RunOutputs>> {
+  async exec(hre: HardhatRuntimeEnvironment, _ctx: ChainBuilderContext, config: Config): Promise<InternalOutputs> {
     debug('exec', config);
 
     const runfile = await import(join(dirname(hre.config.paths.configFile), config.exec));

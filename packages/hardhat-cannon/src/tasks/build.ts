@@ -5,8 +5,8 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder } from '../builder';
-import { SUBTASK_DOWNLOAD, TASK_BUILD } from '../task-names';
-import { printBundledChainBuilderOutput } from '../printer';
+import { SUBTASK_DOWNLOAD, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
+import { printChainBuilderOutput } from '../printer';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -36,7 +36,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     await builder.build(mappedOptions);
 
-    printBundledChainBuilderOutput(builder.getOutputs());
+    printChainBuilderOutput(builder.getOutputs());
+
+    await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
+      outputs: builder.getOutputs(),
+    });
 
     return {
       filepath,

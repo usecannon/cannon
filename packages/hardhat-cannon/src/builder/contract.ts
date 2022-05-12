@@ -6,7 +6,7 @@ import { Artifact, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 import { dirname } from 'path';
 
-import { ChainBuilderContext, InternalOutputs } from './';
+import { ChainBuilderContext, InternalOutputs } from './types';
 import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:contract');
@@ -106,15 +106,14 @@ export default {
 
   async exec(
     hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
     config: Config,
     storage: string,
-    repositoryBuild: boolean,
-    selfLabel: string,
-    fork: boolean
-  ): Promise<InternalOutputs<ContractOutputs>> {
+    selfLabel: string
+  ): Promise<InternalOutputs> {
     debug('exec', config);
 
-    const artifactData = await loadArtifactFile(hre, storage, config.artifact, repositoryBuild);
+    const artifactData = await loadArtifactFile(hre, storage, config.artifact, ctx.repositoryBuild);
 
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {
@@ -145,7 +144,11 @@ export default {
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = await getExecutionSigner(hre, txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex'), fork);
+    const signer = await getExecutionSigner(
+      hre,
+      txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex'),
+      ctx.fork
+    );
 
     const txnData = await signer.sendTransaction(txn);
 
@@ -156,12 +159,8 @@ export default {
         [selfLabel]: {
           address: receipt.contractAddress,
           abi: JSON.parse(factory.interface.format(hre.ethers.utils.FormatTypes.json) as string),
+          deployTxnHash: receipt.transactionHash,
         },
-      },
-      outputs: {
-        abi: factory.interface.format(hre.ethers.utils.FormatTypes.json) as string,
-        address: receipt.contractAddress,
-        deployTxnHash: receipt.transactionHash,
       },
     };
   },
