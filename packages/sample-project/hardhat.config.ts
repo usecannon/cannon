@@ -5,6 +5,8 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import '@nomiclabs/hardhat-ethers';
 
+import 'hardhat-interact';
+
 import '../hardhat-cannon/src/index';
 
 import * as dotenv from 'dotenv';
@@ -25,8 +27,26 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: '0.8.4',
   networks: {
+    hardhat: {
+      chainId: 31338,
+    },
     local: {
       url: 'http://127.0.0.1:8545/',
+      chainId: 31338,
+    },
+    ropsten: {
+      url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 3,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    rinkeby: {
+      url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 4,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    mainnet: {
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 1,
     },
   },
   gasReporter: {

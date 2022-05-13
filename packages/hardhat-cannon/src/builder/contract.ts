@@ -6,8 +6,8 @@ import { Artifact, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 import { dirname } from 'path';
 
-import { ChainBuilderContext } from './';
-import { ChainDefinitionScriptSchema, getExecutionSigner } from './util';
+import { ChainBuilderContext, InternalOutputs } from './types';
+import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -18,13 +18,6 @@ const config = {
   optionalProperties: {
     args: { elements: {} },
     libraries: { values: { type: 'string' } },
-    detect: {
-      discriminator: 'method',
-      mapping: {
-        folder: { properties: { path: { type: 'string' } } },
-        script: ChainDefinitionScriptSchema,
-      },
-    },
     step: { type: 'int32' },
 
     // used to force new copy of a contract (not actually used)
@@ -34,7 +27,7 @@ const config = {
 
 export type Config = JTDDataType<typeof config>;
 
-export interface Outputs {
+export interface ContractOutputs {
   abi: string;
   address: string;
   deployTxnHash: string;
@@ -111,10 +104,16 @@ export default {
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, config: Config, storage: string, repositoryBuild: boolean): Promise<Outputs> {
+  async exec(
+    hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
+    config: Config,
+    storage: string,
+    selfLabel: string
+  ): Promise<InternalOutputs> {
     debug('exec', config);
 
-    const artifactData = await loadArtifactFile(hre, storage, config.artifact, repositoryBuild);
+    const artifactData = await loadArtifactFile(hre, storage, config.artifact, ctx.repositoryBuild);
 
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {
@@ -145,16 +144,24 @@ export default {
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = await getExecutionSigner(hre, txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex'));
+    const signer = await getExecutionSigner(
+      hre,
+      txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex'),
+      ctx.fork
+    );
 
     const txnData = await signer.sendTransaction(txn);
 
     const receipt = await txnData.wait();
 
     return {
-      abi: factory.interface.format(hre.ethers.utils.FormatTypes.json) as string,
-      address: receipt.contractAddress,
-      deployTxnHash: receipt.transactionHash,
+      contracts: {
+        [selfLabel]: {
+          address: receipt.contractAddress,
+          abi: JSON.parse(factory.interface.format(hre.ethers.utils.FormatTypes.json) as string),
+          deployTxnHash: receipt.transactionHash,
+        },
+      },
     };
   },
 };

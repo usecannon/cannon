@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext } from './';
+import { ChainBuilderContext } from './types';
 import { ChainDefinitionScriptSchema } from './util';
 
 export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;

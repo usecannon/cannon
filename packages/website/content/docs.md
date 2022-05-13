@@ -127,14 +127,29 @@ See [cannonfile.toml Specification](#cannonfiletoml-specification) for more deta
 
 ## Deploy to Production
 
-**Coming soon**
+Cannon uses Hardhat's internal network to load settings required to deploy to your desired network. At minimum, you must supply:
+* JSON-RPC URL which can receive submitted transactions for the network
+* Signer . To submit transactions to this network, you will need to 
 
-Make sure `detect` is set in `cannonfile.toml` for all your on-chain dependencies.
+When everything is ready, you can deploy to a live network:
 
-Then run
 ```bash
 npx hardhat --network <network name> cannon:build
 ```
+
+Artifacts for your deployment will be written to `deployments`, and if you choose to publish your package (see below),
+it will be 
+
+### Test Deployment on a Fork
+
+You can verify the steps cannon would take when deploying to a live network. No "fake" signers are required.
+Just run the build command:
+
+```
+npx hardhat --network <network name> cannon:build --dry-run --run 8545
+```
+
+After the run is complete, a forked `hardhat` remains running on the port specified above, so you can run on-chain tests in a separate terminal.
 
 ## Publish a Package
 
@@ -206,6 +221,7 @@ The `import` action allows for composability by letting you specify another cann
 * `source` - The name of the package to import
 
 **Optional Inputs**
+* `chainId` - Override network to load contract/txn configurations for. Useful for cross-chain contract configuration.
 * `options` - The options to be used when initializing this cannonfile
 
 **Outputs**
@@ -215,8 +231,11 @@ The outputs of the imported cannonfile are provided under the namespace of the i
 
 The `invoke` action calls a specified function on-chain.
 
+In addition to required inputs below, of these 2 inputs must be provided:
+* `on` - List of names for previously deployed contracts to invoke. If contract is within a `import`ed module, it can be referenced using dot notion (i.e. a module imported earlier like `[import.fun]` could call a function using `fun.mycontract`) Cannot be used with `addresses`
+* `addresses` - List of addresses for which the same call should be executed. Cannot be used with `on`
+
 **Required Inputs**
-* `addresses` - List of all addresses for which the same call should be executed
 * `abi` - The ABI of the contract to call
 * `func` - The name of the function to call
 
