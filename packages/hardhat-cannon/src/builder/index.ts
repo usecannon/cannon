@@ -291,7 +291,7 @@ export class ChainBuilder {
     const fileList =
       (await fs.pathExists(dirToScan)) && (await fs.stat(dirToScan)).isDirectory() ? await fs.readdir(dirToScan) : [];
 
-    const fileFilter = new RegExp(`^${this.ctx.chainId}-([0-9]*).json$`);
+    const fileFilter = new RegExp(`^${this.ctx.chainId}-([0-9]+).json$`);
 
     const sortedFileList = _.sortBy(
       fileList
