@@ -38,6 +38,8 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   imports: {},
 };
 
+export type StorageMode = 'full' | 'metadata' | 'none';
+
 export class ChainBuilder {
   readonly name: string;
   readonly version: string;
@@ -45,6 +47,7 @@ export class ChainBuilder {
   readonly hre: HardhatRuntimeEnvironment;
 
   readonly repositoryBuild: boolean;
+  readonly storageMode: StorageMode;
 
   private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
 
@@ -53,11 +56,13 @@ export class ChainBuilder {
     version,
     hre,
     def,
+    storageMode,
   }: {
     name: string;
     version: string;
     hre: HardhatRuntimeEnvironment;
     def?: ChainDefinition;
+    storageMode?: StorageMode;
   }) {
     this.name = name;
     this.version = version;
@@ -75,6 +80,8 @@ export class ChainBuilder {
     if (!this.def.version) {
       throw new Error('Missing "version" property on cannonfile.toml');
     }
+
+    this.storageMode = storageMode || 'none';
   }
 
   getDependencies() {
@@ -434,7 +441,7 @@ export class ChainBuilder {
 
     this.ctx = contents.ctx;
 
-    if (this.hre.network.name === 'hardhat') {
+    if (this.storageMode === 'full') {
       const cacheData = await fs.readFile(chain);
       await persistableNode.loadState(this.hre, cacheData);
     }
@@ -443,8 +450,8 @@ export class ChainBuilder {
   async dumpLayer(n: number) {
     const { chain, metadata } = await this.getLayerFiles(n);
 
-    if (!this.repositoryBuild) {
-      return; // never save state outside of repository build
+    if (this.storageMode === 'none') {
+      return;
     }
 
     debug('put cache', n);
@@ -459,7 +466,7 @@ export class ChainBuilder {
       })
     );
 
-    if (this.hre.network.name === 'hardhat') {
+    if (this.storageMode === 'full') {
       const data = await persistableNode.dumpState(this.hre);
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, data);

@@ -44,6 +44,10 @@ const config: HardhatUserConfig = {
       chainId: 4,
       accounts: [process.env.PRIVATE_KEY || ''],
     },
+    mainnet: {
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 1,
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
