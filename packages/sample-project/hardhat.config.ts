@@ -37,12 +37,12 @@ const config: HardhatUserConfig = {
     ropsten: {
       url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 3,
-      accounts: [process.env.PRIVATE_KEY || ''],
+      accounts: process.env.PRIVATE_KEY?.split(','),
     },
     rinkeby: {
       url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 4,
-      accounts: [process.env.PRIVATE_KEY || ''],
+      accounts: process.env.PRIVATE_KEY?.split(','),
     },
     mainnet: {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
