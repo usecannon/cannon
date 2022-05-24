@@ -13,6 +13,7 @@ import keeperSpec from './keeper';
 import scriptSpec from './run';
 
 import { ChainBuilderContext, ChainDefinition, BuildOptions, OptionTypesTs } from './types';
+import { printInternalOutputs } from './util';
 
 export { validateChainDefinition } from './types';
 
@@ -164,6 +165,8 @@ export class ChainBuilder {
             name
           );
 
+          printInternalOutputs(output);
+
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
         }
 
@@ -177,6 +180,8 @@ export class ChainBuilder {
             this.getAuxilleryFilePath('contracts'),
             name
           );
+
+          printInternalOutputs(output);
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
         }
@@ -194,6 +199,8 @@ export class ChainBuilder {
 
           const output = await scriptSpec.exec(this.hre, this.ctx, config);
 
+          printInternalOutputs(output);
+
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
         }
 
@@ -201,10 +208,6 @@ export class ChainBuilder {
       }
     }
 
-    //// TEMP
-    if (doLoad !== null) {
-      await this.loadLayer(doLoad);
-    }
     return this;
   }
 

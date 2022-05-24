@@ -82,3 +82,20 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
 
   return null;
 }
+
+export function printInternalOutputs(outputs: InternalOutputs) {
+  for (const c in outputs.contracts) {
+    console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
+  }
+
+  for (const t in outputs.txns) {
+    const txn = outputs.txns[t];
+
+    console.log(`execed\t${t} (${txn.hash})`);
+
+    // decode events
+    for (const e in txn.events) {
+      console.log(`\t-> ${e}(${txn.events[e].map((s) => s.toString()).join(',')})`);
+    }
+  }
+}
