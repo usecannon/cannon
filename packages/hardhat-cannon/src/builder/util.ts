@@ -47,7 +47,7 @@ export async function getExecutionSigner(
   seed: string,
   fork: boolean
 ): Promise<ethers.Signer> {
-  if (!fork) {
+  if (hre.network.name !== 'hardhat' || fork) {
     // TODO: support for getting a different signer from the chain
     const [signer] = await hre.ethers.getSigners();
     return signer;
@@ -94,8 +94,10 @@ export function printInternalOutputs(outputs: InternalOutputs) {
     console.log(`execed\t${t} (${txn.hash})`);
 
     // decode events
-    for (const e in txn.events) {
-      console.log(`\t-> ${e}(${txn.events[e].map((s) => s.toString()).join(',')})`);
+    for (const n in txn.events) {
+      for (const e of txn.events[n]) {
+        console.log(`\t-> ${n}(${e.args.map((s) => s.toString()).join(',')})`);
+      }
     }
   }
 }

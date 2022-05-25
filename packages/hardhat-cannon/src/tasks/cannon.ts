@@ -42,7 +42,7 @@ task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
         const [name, version] = image.split(':');
 
         await hre.run(SUBTASK_DOWNLOAD, { images: [image] });
-        const builder = new ChainBuilder({ name, version, hre });
+        const builder = new ChainBuilder({ name, version, hre, storageMode: 'full' });
         await builder.build(options);
 
         await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {

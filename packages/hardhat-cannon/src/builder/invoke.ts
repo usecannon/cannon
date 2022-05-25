@@ -28,6 +28,16 @@ const config = {
         args: { elements: {} },
       },
     },
+    factory: {
+      elements: {
+        properties: {
+          name: { type: 'string' },
+          event: { type: 'string' },
+          arg: { type: 'int32' },
+          artifact: { type: 'string' },
+        },
+      },
+    },
     step: { type: 'int32' },
   },
 } as const;
@@ -136,6 +146,17 @@ export default {
       });
     }
 
+    if (config.factory) {
+      config.factory = config.factory.map((f) => {
+        return {
+          name: _.template(f.name)(ctx),
+          event: _.template(f.event)(ctx),
+          arg: f.arg, //_.template(f.arg)(ctx),
+          artifact: _.template(f.artifact)(ctx),
+        };
+      });
+    }
+
     return config;
   },
 
@@ -182,8 +203,32 @@ export default {
       };
     }
 
+    const contracts: InternalOutputs['contracts'] = {};
+
+    if (config.factory) {
+      for (const n in txns) {
+        for (const factory of config.factory) {
+          const abi = (await hre.artifacts.readArtifact(factory.artifact)).abi;
+
+          for (const [i, e] of _.entries(txns[n].events[factory.event])) {
+            const addr = e.args[factory.arg];
+
+            if (!addr) {
+              throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
+            }
+
+            contracts[`${factory.name}.${n}.${i}`] = {
+              address: addr,
+              abi: abi,
+              deployTxnHash: txns[n].hash,
+            };
+          }
+        }
+      }
+    }
+
     return {
-      contracts: {},
+      contracts,
       txns,
     };
   },
