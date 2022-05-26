@@ -1,12 +1,11 @@
-import fs from 'fs-extra';
 import path from 'path';
 import { task } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
-import IPFS from '../builder/ipfs';
+import IPFS from '../ipfs';
 import loadCannonfile from '../internal/load-cannonfile';
-import { ChainBuilder } from '../builder';
 import { TASK_PUBLISH } from '../task-names';
+import { exportChain } from '../builder/storage';
 
 task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
@@ -15,12 +14,6 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
-    const builder = new ChainBuilder({
-      name,
-      version,
-      hre,
-      def,
-    });
 
     const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
     const registry = new CannonRegistry({
@@ -29,28 +22,15 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
       privateKey: hre.config.cannon.publisherPrivateKey,
     });
 
-    console.log('Uploading files to IPFS...');
+    const exported = await exportChain(hre, name, version);
 
-    await fs.copy(filepath, path.join(builder.getCacheDir(), 'cannonfile.toml'));
+    console.log(`Uploading chain to IPFS (${exported.length})...`);
 
-    const readmePath = path.resolve(hre.config.paths.root, 'README.md');
-    try {
-      await fs.copy(readmePath, path.join(builder.getCacheDir(), 'README.md'));
-    } catch (err) {
-      console.warn('failed to copy README.md');
-    }
+    const result = await ipfs.client.add({
+      content: exported,
+    });
 
-    const result = await ipfs.add([
-      {
-        remotePath: name,
-        localPath: builder.getCacheDir(),
-      },
-    ]);
-
-    const folderHash = result
-      .find((file) => file.path === name)
-      ?.cid.toV0()
-      .toString();
+    const folderHash = result.cid.toV0().toString();
 
     const url = `ipfs://${folderHash}`;
 
