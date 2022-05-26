@@ -14,6 +14,7 @@ import scriptSpec from './run';
 
 import { ChainBuilderContext, ChainDefinition, BuildOptions, OptionTypesTs } from './types';
 import { printInternalOutputs } from './util';
+import { getCacheDir, getLayerFiles } from './storage';
 
 export { validateChainDefinition } from './types';
 
@@ -298,7 +299,7 @@ export class ChainBuilder {
 
   async getTopLayer(): Promise<[number, ChainBuilderContext]> {
     // try to load highest file in dir
-    const dirToScan = dirname((await this.getLayerFiles(0)).metadata);
+    const dirToScan = dirname(getLayerFiles(this.getCacheDir(), this.ctx.chainId, 0).metadata);
     const fileList =
       (await fs.pathExists(dirToScan)) && (await fs.stat(dirToScan)).isDirectory() ? await fs.readdir(dirToScan) : [];
 
@@ -357,7 +358,9 @@ export class ChainBuilder {
 
   async layerMatches(n: number) {
     try {
-      const contents = JSON.parse((await fs.readFile((await this.getLayerFiles(n)).metadata)).toString('utf8'));
+      const contents = JSON.parse(
+        (await fs.readFile(getLayerFiles(this.getCacheDir(), this.ctx.chainId, n).metadata)).toString('utf8')
+      );
 
       const newHashes = await this.layerHashes(n);
 
@@ -375,24 +378,8 @@ export class ChainBuilder {
     }
   }
 
-  static getCacheDir(cacheFolder: string, name: string, version: string) {
-    return path.join(cacheFolder, 'cannon', name, version);
-  }
-
   getCacheDir() {
-    return ChainBuilder.getCacheDir(this.hre.config.paths.cache, this.name, this.version);
-  }
-
-  async getLayerFiles(n: number) {
-    const filename = `${this.ctx.chainId}-${n}`;
-
-    const basename = path.join(this.getCacheDir(), filename);
-
-    return {
-      cannonfile: path.join(this.getCacheDir(), 'cannonfile.json'),
-      chain: basename + '.chain',
-      metadata: basename + '.json',
-    };
+    return getCacheDir(this.hre.config.paths.cache, this.name, this.version);
   }
 
   async layerHashes(step: number = Number.MAX_VALUE) {
@@ -432,7 +419,7 @@ export class ChainBuilder {
 
   async verifyLayerContext(n: number) {
     try {
-      const stat = await fs.stat((await this.getLayerFiles(n)).metadata);
+      const stat = await fs.stat(getLayerFiles(this.getCacheDir(), this.ctx.chainId, n).metadata);
       return stat.isFile();
     } catch (err) {
       return false;
@@ -442,7 +429,7 @@ export class ChainBuilder {
   async loadLayer(n: number) {
     debug('load cache', n);
 
-    const { chain, metadata } = await this.getLayerFiles(n);
+    const { chain, metadata } = getLayerFiles(this.getCacheDir(), this.ctx.chainId, n);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
@@ -460,13 +447,13 @@ export class ChainBuilder {
   }
 
   async dumpLayer(n: number) {
-    const { chain, metadata } = await this.getLayerFiles(n);
-
     if (this.storageMode === 'none' || this.storageMode === 'read-full') {
       return;
     }
 
     debug('put cache', n);
+
+    const { chain, metadata } = getLayerFiles(this.getCacheDir(), this.ctx.chainId, n);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
@@ -487,7 +474,7 @@ export class ChainBuilder {
   }
 
   async writeCannonfile() {
-    const { cannonfile } = await this.getLayerFiles(0);
+    const { cannonfile } = getLayerFiles(this.getCacheDir(), this.ctx.chainId, 0);
     await fs.ensureDir(dirname(cannonfile));
     await fs.writeFile(cannonfile, JSON.stringify(this.def));
   }

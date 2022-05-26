@@ -1,13 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
-import tar from 'tar-fs';
 import { Readable } from 'stream';
-import { createReadStream, createWriteStream } from 'fs';
 import { subtask } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
-import IPFS from '../builder/ipfs';
+import IPFS from '../ipfs';
 import { SUBTASK_DOWNLOAD } from '../task-names';
+import { importChain } from '../builder/storage';
 
 subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre) => {
   const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
@@ -34,27 +33,20 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
 
     const hash = url.replace(/^ipfs:\/\//, '');
 
-    const temp = path.join(hre.config.paths.cache, 'cannon', name);
-
-    await fs.mkdir(temp, { recursive: true });
+    const bufs: Buffer[] = [];
 
     await new Promise((resolve, reject) => {
-      const readable = Readable.from(ipfs.client.get(hash)).pipe(createWriteStream(`${target}.tar`));
+      const readable = Readable.from(ipfs.client.cat(hash));
 
-      readable.on('finish', resolve);
+      readable.on('data', (b) => bufs.push(b));
+      readable.on('end', resolve);
       readable.on('error', reject);
     });
 
-    await fs.rm(target, { recursive: true, force: true });
+    const buf = Buffer.concat(bufs);
 
-    await new Promise((resolve, reject) => {
-      const stream = createReadStream(`${target}.tar`).pipe(tar.extract(temp));
+    await importChain(hre, buf);
 
-      stream.on('finish', resolve);
-      stream.on('error', reject);
-    });
-
-    await fs.rename(path.join(temp, hash), target);
-    await fs.rm(`${target}.tar`);
+    console.log(`Finished import (${buf.length})`);
   }
 });
