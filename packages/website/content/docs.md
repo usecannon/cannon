@@ -247,6 +247,34 @@ In addition to required inputs below, of these 2 inputs must be provided:
 **Outputs**
 * `hash` - The transaction hash of the execution
 
+#### Contract "Factory" functions
+
+It is sometimes the case that calling a function on a contract will cause another contract to be deployed. To allow for
+this contract to be tracked by cannon, a facility is provided to define this output within your cannonfile.
+
+Write your `invoke` definition like this:
+
+```toml
+[invoke.deployment]
+on = ["myContract"]
+func = "deploySomething"
+
+[[invoke.deployment.factory]]
+name = "MyDeployment"
+event = "NewDeployment"
+arg = 0
+artifact = "Deployment"
+```
+
+For the example above, a deployed contract will be accessible by the key `MyDeployment.myContract.0` (if the call was executed
+on multiple contracts or resulted in multiple contract deployments they would be named correspondingly).
+
+**Required Inputs**
+* `name` - Label by which this contract can be accessed
+* `event` - Name of the event which contains the deployed contract's address
+* `arg` - Argument index where the deployed contract's address is set. `0` is the first argument.
+* `artifact` - Hardhat contract corresponding to the contract which was deployed within the invoked function
+
 ### keeper
 
 The `keeper` action defines a keeper to be used on this chain. This does not effect the chain build.

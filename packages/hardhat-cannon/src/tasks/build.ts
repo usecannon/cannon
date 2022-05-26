@@ -6,7 +6,6 @@ import { TASK_COMPILE, TASK_NODE_SERVER_READY } from 'hardhat/builtin-tasks/task
 import loadCannonfile from '../internal/load-cannonfile';
 import { ChainBuilder, StorageMode } from '../builder';
 import { SUBTASK_DOWNLOAD, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
-import { printChainBuilderOutput } from '../printer';
 import { HardhatRuntimeEnvironment, HttpNetworkConfig } from 'hardhat/types';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
@@ -86,7 +85,7 @@ async function buildCannon(hre: HardhatRuntimeEnvironment, options: string[], fi
 
   await builder.build(mappedOptions);
 
-  printChainBuilderOutput(builder.getOutputs());
+  //console.log(builder.getOutputs());
 
   await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
     outputs: builder.getOutputs(),

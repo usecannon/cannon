@@ -43,6 +43,7 @@ const ChainDefinitionSchema = {
     setting: {
       values: {
         optionalProperties: {
+          description: { type: 'string' },
           type: { enum: ['number', 'string', 'boolean'] },
           defaultValue: {},
         },

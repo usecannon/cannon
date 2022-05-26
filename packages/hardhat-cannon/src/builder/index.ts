@@ -39,7 +39,7 @@ const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
   imports: {},
 };
 
-export type StorageMode = 'full' | 'metadata' | 'none';
+export type StorageMode = 'full' | 'read-full' | 'metadata' | 'none';
 
 export class ChainBuilder {
   readonly name: string;
@@ -82,7 +82,7 @@ export class ChainBuilder {
       throw new Error('Missing "version" property on cannonfile.toml');
     }
 
-    this.storageMode = storageMode || 'none';
+    this.storageMode = storageMode || (hre.network.name === 'hardhat' ? 'read-full' : 'none');
   }
 
   getDependencies() {
@@ -168,6 +168,7 @@ export class ChainBuilder {
           printInternalOutputs(output);
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          this.ctx.txns = { ...this.ctx.txns, ...output.txns };
         }
 
         debug(`invoke step ${s}`);
@@ -184,6 +185,7 @@ export class ChainBuilder {
           printInternalOutputs(output);
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          this.ctx.txns = { ...this.ctx.txns, ...output.txns };
         }
 
         debug(`scripts step ${s}`);
@@ -202,10 +204,16 @@ export class ChainBuilder {
           printInternalOutputs(output);
 
           this.ctx.contracts = { ...this.ctx.contracts, ...output.contracts };
+          this.ctx.txns = { ...this.ctx.txns, ...output.txns };
         }
 
         await this.dumpLayer(s);
       }
+    }
+
+    // if no layers were loaded, we should load the last one
+    if (doLoad !== null) {
+      await this.loadLayer(doLoad);
     }
 
     return this;
@@ -444,7 +452,8 @@ export class ChainBuilder {
 
     this.ctx = contents.ctx;
 
-    if (this.storageMode === 'full') {
+    if (this.storageMode === 'full' || this.storageMode === 'read-full') {
+      debug('load state', n);
       const cacheData = await fs.readFile(chain);
       await persistableNode.loadState(this.hre, cacheData);
     }
@@ -453,7 +462,7 @@ export class ChainBuilder {
   async dumpLayer(n: number) {
     const { chain, metadata } = await this.getLayerFiles(n);
 
-    if (this.storageMode === 'none') {
+    if (this.storageMode === 'none' || this.storageMode === 'read-full') {
       return;
     }
 
@@ -470,6 +479,7 @@ export class ChainBuilder {
     );
 
     if (this.storageMode === 'full') {
+      debug('put state', n);
       const data = await persistableNode.dumpState(this.hre);
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, data);
