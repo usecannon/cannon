@@ -23,8 +23,18 @@ export async function exportChain(hre: HardhatRuntimeEnvironment, name: string, 
   const zip = new AdmZip();
 
   await zip.addLocalFolderPromise(getCacheDir(hre.config.paths.cache, name, version), {});
-  zip.addLocalFile(path.join(hre.config.paths.root, 'README.md'));
-  zip.addLocalFile(path.join(hre.config.paths.root, 'cannonfile.toml'));
+
+  try {
+    zip.addLocalFile(path.join(hre.config.paths.root, 'README.md'));
+  } catch (err) {
+    console.warn('WARN: Could not add README.md to cannon chain archive', err);
+  }
+
+  try {
+    zip.addLocalFile(path.join(hre.config.paths.root, 'cannonfile.toml'));
+  } catch (err) {
+    console.warn('WARN: Could not add original cannonfile.toml to cannon chain archive', err);
+  }
 
   return zip.toBufferPromise();
 }
