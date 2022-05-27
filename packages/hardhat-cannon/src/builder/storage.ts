@@ -64,5 +64,9 @@ export async function associateTag(hre: HardhatRuntimeEnvironment, name: string,
     return;
   }
 
-  await fs.link(mainCacheDir, tagCacheDir);
+  if (await fs.pathExists(tagCacheDir)) {
+    await fs.unlink(tagCacheDir);
+  }
+
+  await fs.symlink(mainCacheDir, tagCacheDir);
 }
