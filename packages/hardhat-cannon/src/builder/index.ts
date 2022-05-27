@@ -22,23 +22,25 @@ const debug = Debug('cannon:builder');
 
 const LAYER_VERSION = 2;
 
-const INITIAL_CHAIN_BUILDER_CONTEXT: ChainBuilderContext = {
-  fork: false,
-  network: '',
-  chainId: 31337,
-  timestamp: '0',
+function getInitialChainBuilderContext() {
+  return {
+    fork: false,
+    network: '',
+    chainId: 31337,
+    timestamp: '0',
 
-  repositoryBuild: false,
+    repositoryBuild: false,
 
-  package: {},
+    package: {},
 
-  settings: {},
-  contracts: {},
+    settings: {},
+    contracts: {},
 
-  txns: {},
+    txns: {},
 
-  imports: {},
-};
+    imports: {},
+  };
+}
 
 export type StorageMode = 'full' | 'read-full' | 'metadata' | 'none';
 
@@ -51,7 +53,7 @@ export class ChainBuilder {
   readonly repositoryBuild: boolean;
   readonly storageMode: StorageMode;
 
-  private ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
+  private ctx: ChainBuilderContext = getInitialChainBuilderContext();
 
   constructor({
     name,
@@ -223,7 +225,7 @@ export class ChainBuilder {
 
   async exec(opts: { [val: string]: string }) {
     // construct full context
-    const ctx: ChainBuilderContext = INITIAL_CHAIN_BUILDER_CONTEXT;
+    const ctx: ChainBuilderContext = getInitialChainBuilderContext();
     await this.populateSettings(ctx, opts);
 
     // load the cache (note: will fail if `build()` has not been called first)
@@ -328,7 +330,7 @@ export class ChainBuilder {
 
       return [item.n, contents.ctx];
     } else {
-      const newCtx = INITIAL_CHAIN_BUILDER_CONTEXT;
+      const newCtx = getInitialChainBuilderContext();
       newCtx.network = this.hre.network.name;
 
       if (this.hre.network.name === 'hardhat') {

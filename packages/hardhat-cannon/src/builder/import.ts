@@ -70,6 +70,7 @@ export default {
 
     return {
       contracts: outputs.contracts,
+      txns: outputs.txns,
       imports: outputs.imports,
     };
   },
