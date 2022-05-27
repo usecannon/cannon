@@ -1,12 +1,11 @@
 import fs from 'fs-extra';
-import path from 'path';
 import { Readable } from 'stream';
 import { subtask } from 'hardhat/config';
 
 import CannonRegistry from '../builder/registry';
 import IPFS from '../ipfs';
 import { SUBTASK_DOWNLOAD } from '../task-names';
-import { importChain } from '../builder/storage';
+import { importChain, associateTag, getCacheDir } from '../builder/storage';
 
 subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre) => {
   const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
@@ -17,8 +16,8 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
 
   const sources = images.map((image) => image.split(':'));
 
-  for (const [name, version] of sources) {
-    const target = path.join(hre.config.paths.cache, 'cannon', name, version);
+  for (const [name, tag] of sources) {
+    const target = getCacheDir(hre.config.paths.cache, name, tag);
 
     const exists = await fs
       .stat(target)
@@ -27,9 +26,13 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
 
     if (exists) continue;
 
-    const url = await registry.getUrl(name, version);
+    const url = await registry.getUrl(name, tag);
 
-    console.log(`Downloading dependency ${name}@${version} from ${url}`);
+    if (!url) {
+      throw new Error(`dependency not found: ${name}:${tag}. please check that the requested package exists and try again.`);
+    }
+
+    console.log(`Downloading dependency ${name}:${tag} from ${url}`);
 
     const hash = url.replace(/^ipfs:\/\//, '');
 
@@ -45,7 +48,10 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
 
     const buf = Buffer.concat(bufs);
 
-    await importChain(hre, buf);
+    const info = await importChain(hre, buf);
+
+    // imported chain may be of a different version from the actual requested tag. Make sure we link if necessary
+    await associateTag(hre, info.name, info.version, tag);
 
     console.log(`Finished import (${buf.length})`);
   }

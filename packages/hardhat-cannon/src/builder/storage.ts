@@ -1,3 +1,4 @@
+import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -49,4 +50,19 @@ export async function importChain(hre: HardhatRuntimeEnvironment, buf: Buffer): 
   await zip.extractAllTo(cacheDir, true);
 
   return manifest as ChainDefinition;
+}
+
+export async function associateTag(hre: HardhatRuntimeEnvironment, name: string, version: string, tag: string) {
+  const mainCacheDir = getCacheDir(hre.config.paths.cache, name, version);
+  const tagCacheDir = getCacheDir(hre.config.paths.cache, name, tag);
+
+  if (!(await fs.pathExists(mainCacheDir))) {
+    throw new Error(`could not associate tag: cache dir for ${name}:${version} does not exist`);
+  }
+
+  if (version === tag) {
+    return;
+  }
+
+  await fs.link(mainCacheDir, tagCacheDir);
 }

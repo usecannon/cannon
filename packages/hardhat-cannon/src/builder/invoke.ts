@@ -217,7 +217,7 @@ export default {
               throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
             }
 
-            contracts[`${factory.name}.${n}.${i}`] = {
+            contracts[`${factory.name}_${n}_${i}`] = {
               address: addr,
               abi: abi,
               deployTxnHash: txns[n].hash,
