@@ -100,15 +100,15 @@ version = "0.0.1"
 tags = ["fun", "example"]
 
 [setting.initialValue] # Create an overridable setting
-defaultValue = "420" # This is the value to use if none is specified when the function is invoked.
+defaultValue = "420" # This is the value to use if none is specified when npx hardhat cannon:build is called
 
-[contract.myStorage] # Declares an action, the output of which to be referenced below as outputs.self.contracts.myStorage
+[contract.myStorage] # Declares an action, the output of which can be referenced below as contracts.myStorage
 artifact = "Storage" # Specifies the name of the contract to be deployed
 step = 0 # Ensure this action is taken first
 
 [invoke.changeStorage] # Declares an action to set the initial value
-addresses = ["<%= outputs.self.contracts.myStorage.address %>"] # Sets the address of the contract to invoke
-abi = "<%= outputs.self.contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
+addresses = ["<%= contracts.myStorage.address %>"] # Sets the address of the contract to invoke
+abi = "<%= contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
 func = "store" # Sets the name of the function to invoke
 args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to the function
 step = 1 # Ensure this action is taken after the previous action
@@ -137,19 +137,17 @@ When everything is ready, you can deploy to a live network:
 npx hardhat --network <network name> cannon:build
 ```
 
-Artifacts for your deployment will be written to `deployments`, and if you choose to publish your package (see below),
-it will be 
+Artifacts for your deployment will be written to a folder named `deployments`. Here you will be able to find the address and ABI for each contract as JSON files.
 
 ### Test Deployment on a Fork
 
-You can verify the steps cannon would take when deploying to a live network. No "fake" signers are required.
-Just run the build command:
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example:
 
 ```
 npx hardhat --network <network name> cannon:build --dry-run --run 8545
 ```
 
-After the run is complete, a forked `hardhat` remains running on the port specified above, so you can run on-chain tests in a separate terminal.
+After the run is complete, the node remains running on the port specified with the `--run` flag, so you can run on-chain tests in a separate terminal.
 
 ## Publish a Package
 
@@ -197,16 +195,27 @@ If you have multiple Cannonfiles in your project, you can pass `--file` with the
 
 Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
 
+Each action has a type and a name. Each type accepts a specific set of inputs and generates outputs. The outputs are accessible by actions executed at a later step by referencing the action’s name, and by other cannonfiles which `import` it.
+
+For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.)
+
+```toml
+[contract.myStorage]
+artifact = "Storage"
+step = 0
+```
+
+When specifying inputs, you can use outputs from actions in previous steps (including those from imported cannonfiles). Outputs are namespaced under a pluralized version of the action type, followed by the name of the action. For example, you could reference the address where the above `Storage` contract is deployed with `<%= contracts.myStorage.address %>`.
+
 ### contract
 
-The `contract` action deploys a contract to a chain.
+The `contract` action deploys a contract.
 
 **Required Inputs**
 * `artifact` - Specifies the name of the contract to be deployed
 
 **Optional Inputs**
 * `args` - Specifies the arguments to provide the constructor function
-* `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
 **Outputs**
 * `abi` - The ABI of the deployed contract
@@ -215,44 +224,56 @@ The `contract` action deploys a contract to a chain.
 
 ### import
 
-The `import` action allows for composability by letting you specify another cannonfile to be built on your chain.
+The `import` action will import a cannonfile from a package hosted with the package manager. **Third-party packages can execute arbitrary code when imported. Only import packages that you trust.**
 
 **Required Inputs**
 * `source` - The name of the package to import
 
 **Optional Inputs**
-* `chainId` - Override network to load contract/txn configurations for. Useful for cross-chain contract configuration.
 * `options` - The options to be used when initializing this cannonfile
 
 **Outputs**
-The outputs of the imported cannonfile are provided under the namespace of the import action. For example, if a uniswap cannonfile imported as `uniswap_eth_snx` has a contract `pair` which outputs `address`, it would be accessible at `outputs.uniswap_eth_snx.contracts.pair.address`. Any output from the current module comes out of `outputs.self.*` following the same pattern as other modules.
+The outputs of the imported cannonfile are provided under the namespace of the import action. For example, if a package is imported with `[import.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
+
+### run
+
+The `run` action executes a custom script.
+
+**Required Inputs**
+* `exec` - The javascript (or typescript) file to load
+* `func` - The function to call in this file
+
+**Optional Inputs**
+* `args` *<array>* - The arguments to pass the script
+* `env` - Environment variables to be set on the script
+
+**Outputs**
+If the script returns a JSON object, it will be provided as the output. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
 
 ### invoke
 
-The `invoke` action calls a specified function on-chain.
-
-In addition to required inputs below, of these 2 inputs must be provided:
-* `on` - List of names for previously deployed contracts to invoke. If contract is within a `import`ed module, it can be referenced using dot notion (i.e. a module imported earlier like `[import.fun]` could call a function using `fun.mycontract`) Cannot be used with `addresses`
-* `addresses` - List of addresses for which the same call should be executed. Cannot be used with `on`
+The `invoke` action calls a specified function on your node.
 
 **Required Inputs**
 * `abi` - The ABI of the contract to call
 * `func` - The name of the function to call
 
+The invoke action also requires one (and only one) of the following two inputs:  
+* `on` - An array of contracts to call, reference by the name of the `contract` action which deployed them. If the contract was deployed from an imported package, it will be namespaced under the import action’s name using dot notation. For example, if a package were imported with `[import.uniswap]` and this package's cannonfile deploys a contract with `[contract.pair]`, you could call could call a function on this contract by passing `["uniswap.pair"]` into this input.
+* `addresses` - An array of addresses to call.
+
 **Optional Inputs**
 * `args` - The arguments to use when invoking this call
 * `from` - The calling address to use when invoking this call
-* `detect` - *Coming soon.* When deploying to a live network, this specifies the address of the live version of this contract
 
 **Outputs**
 * `hash` - The transaction hash of the execution
 
-#### Contract "Factory" functions
+#### Referencing Factory-deployed Contracts
 
-It is sometimes the case that calling a function on a contract will cause another contract to be deployed. To allow for
-this contract to be tracked by cannon, a facility is provided to define this output within your cannonfile.
+Smart contracts may have functions which deploy other smart contracts. These are typically referred to as factory contracts. You can reference contracts deployed by factories in your cannonfile.
 
-Write your `invoke` definition like this:
+For example, if the `deploySomething` function below deploys a contract, the following invoke command registers that contract based on event data emitted from that call.
 
 ```toml
 [invoke.deployment]
@@ -266,32 +287,10 @@ arg = 0
 artifact = "Deployment"
 ```
 
-For the example above, a deployed contract will be accessible by the key `MyDeployment.myContract.0` (if the call was executed
-on multiple contracts or resulted in multiple contract deployments they would be named correspondingly).
+Here, the deployed contract can be referenced with `MyDeployment.myContract.0`. (If the call was executed on multiple contracts or resulted in multiple contract deployments, the trailing 0 would be incremented accordingly.)
 
 **Required Inputs**
 * `name` - Label by which this contract can be accessed
 * `event` - Name of the event which contains the deployed contract's address
 * `arg` - Argument index where the deployed contract's address is set. `0` is the first argument.
 * `artifact` - Hardhat contract corresponding to the contract which was deployed within the invoked function
-
-### keeper
-
-The `keeper` action defines a keeper to be used on this chain. This does not effect the chain build.
-
-*Coming soon.*
-
-### run
-
-The `run` action executes a custom script.
-
-**Required Inputs**
-* `exec` - The javascript (or typescript) file to load
-* `func` - The function to call in this file
-
-**Optional Inputs**
-* `args` - The arguments to pass the script
-* `env` - Environment variables to be set on the script
-
-**Outputs**
-If the script returns a JSON object, the outputs of this action will consist of those values as key-value pairs.
