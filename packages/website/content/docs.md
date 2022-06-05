@@ -216,6 +216,7 @@ The `contract` action deploys a contract.
 
 **Optional Inputs**
 * `args` - Specifies the arguments to provide the constructor function
+* `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
 **Outputs**
 * `abi` - The ABI of the deployed contract
@@ -244,8 +245,9 @@ The `run` action executes a custom script.
 * `func` - The function to call in this file
 
 **Optional Inputs**
-* `args` *<array>* - The arguments to pass the script
+* `args` - The arguments to pass the script
 * `env` - Environment variables to be set on the script
+* `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
 **Outputs**
 If the script returns a JSON object, it will be provided as the output. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
