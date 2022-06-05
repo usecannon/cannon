@@ -277,7 +277,7 @@ For example, if the `deployPool` function below deploys a contract, the followin
 
 ```toml
 [invoke.deployment]
-target = "myContract"
+target = "PoolFactory"
 func = "deployPool"
 factory.MyPoolDeployment.artifact = "Pool"
 factory.MyPoolDeployment.event = "NewDeployment"
