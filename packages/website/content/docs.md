@@ -257,12 +257,9 @@ If the script returns a JSON object, it will be provided as the output. For exam
 The `invoke` action calls a specified function on your node.
 
 **Required Inputs**
-* `abi` - The ABI of the contract to call
+* `target` - The name of the contract action that deployed the contract to call or the address of the contract. If the contract was deployed from an imported package, it will be namespaced under the import action’s name using dot notation. For example, if a package were imported with `[import.uniswap]` and this package's cannonfile deploys a contract with `[contract.pair]`, you could call could call a function on this contract by passing `["uniswap.pair"]` into this input.
+* `abi` - The ABI of the contract to call. This is optional if the target contains a contract action name rather than an address.
 * `func` - The name of the function to call
-
-The invoke action also requires one (and only one) of the following two inputs:  
-* `on` - An array of contracts to call, reference by the name of the `contract` action which deployed them. If the contract was deployed from an imported package, it will be namespaced under the import action’s name using dot notation. For example, if a package were imported with `[import.uniswap]` and this package's cannonfile deploys a contract with `[contract.pair]`, you could call could call a function on this contract by passing `["uniswap.pair"]` into this input.
-* `addresses` - An array of addresses to call.
 
 **Optional Inputs**
 * `args` - The arguments to use when invoking this call
