@@ -7,7 +7,7 @@ tags = ["sample", "consumer"]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter:0.3.0"
+source = "greeter:<%= package.version %>"
 
 [import.more_greeters]
 source = "greeter:<%= package.version %>"
