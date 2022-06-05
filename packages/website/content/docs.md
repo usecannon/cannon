@@ -264,32 +264,26 @@ The `invoke` action calls a specified function on your node.
 **Optional Inputs**
 * `args` - The arguments to use when invoking this call
 * `from` - The calling address to use when invoking this call
+* `factory` - See *Referencing Factory-deployed Contracts* below.
 
 **Outputs**
 * `hash` - The transaction hash of the execution
 
 #### Referencing Factory-deployed Contracts
 
-Smart contracts may have functions which deploy other smart contracts. These are typically referred to as factory contracts. You can reference contracts deployed by factories in your cannonfile.
+Smart contracts may have functions which deploy other smart contracts. Contracts which deploy others are typically referred to as factory contracts. You can reference contracts deployed by factories in your cannonfile.
 
-For example, if the `deploySomething` function below deploys a contract, the following invoke command registers that contract based on event data emitted from that call.
+For example, if the `deployPool` function below deploys a contract, the following invoke command registers that contract based on event data emitted from that call.
 
 ```toml
 [invoke.deployment]
-on = ["myContract"]
-func = "deploySomething"
-
-[[invoke.deployment.factory]]
-name = "MyDeployment"
-event = "NewDeployment"
-arg = 0
-artifact = "Deployment"
+target = "myContract"
+func = "deployPool"
+factory.MyPoolDeployment.artifact = "Pool"
+factory.MyPoolDeployment.event = "NewDeployment"
+factory.MyPoolDeployment.arg = 0
 ```
 
-Here, the deployed contract can be referenced with `MyDeployment.myContract.0`. (If the call was executed on multiple contracts or resulted in multiple contract deployments, the trailing 0 would be incremented accordingly.)
+Specifically, this would anticipate this invoke call will emit an event named *NewDeployment* with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = "MyPoolDeployment"`.
 
-**Required Inputs**
-* `name` - Label by which this contract can be accessed
-* `event` - Name of the event which contains the deployed contract's address
-* `arg` - Argument index where the deployed contract's address is set. `0` is the first argument.
-* `artifact` - Hardhat contract corresponding to the contract which was deployed within the invoked function
+If the invoke call has target set to an array and/or there are multiple events emitted, you can specify them by index. For example `"factory.MyDeployment.2.event.4"` would reference the third item in the array passed to target, and the fifth time the specified event is emitted.
