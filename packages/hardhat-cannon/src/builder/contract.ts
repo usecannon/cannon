@@ -159,6 +159,7 @@ export default {
         [selfLabel]: {
           address: receipt.contractAddress,
           abi: JSON.parse(factory.interface.format(hre.ethers.utils.FormatTypes.json) as string),
+          constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
         },
       },

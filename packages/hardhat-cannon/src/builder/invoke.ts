@@ -14,8 +14,7 @@ const config = {
     func: { type: 'string' },
   },
   optionalProperties: {
-    on: { elements: { type: 'string' } },
-    addresses: { elements: { type: 'string' } },
+    target: { elements: { type: 'string' } },
     abi: { type: 'string' },
 
     args: { elements: {} },
@@ -29,12 +28,14 @@ const config = {
       },
     },
     factory: {
-      elements: {
+      values: {
         properties: {
-          name: { type: 'string' },
           event: { type: 'string' },
           arg: { type: 'int32' },
           artifact: { type: 'string' },
+        },
+        optionalProperties: {
+          constructorArgs: { elements: {} },
         },
       },
     },
@@ -115,12 +116,8 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    if (config.on) {
-      config.on = config.on.map((a) => _.template(a)(ctx));
-    }
-
-    if (config.addresses) {
-      config.addresses = config.addresses.map((a) => _.template(a)(ctx));
+    if (config.target) {
+      config.target = config.target.map((v) => _.template(v)(ctx));
     }
 
     if (config.abi) {
@@ -146,15 +143,11 @@ export default {
       });
     }
 
-    if (config.factory) {
-      config.factory = config.factory.map((f) => {
-        return {
-          name: _.template(f.name)(ctx),
-          event: _.template(f.event)(ctx),
-          arg: f.arg, //_.template(f.arg)(ctx),
-          artifact: _.template(f.artifact)(ctx),
-        };
-      });
+    for (const name in config.factory) {
+      const f = config.factory[name];
+
+      f.event = _.template(f.event)(ctx);
+      f.artifact = _.template(f.artifact)(ctx);
     }
 
     return config;
@@ -173,31 +166,27 @@ export default {
 
     const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '', ctx.fork);
 
-    for (const contractOn of config.on || []) {
-      const contract = getContractFromPath(ctx, contractOn);
+    for (const t of config.target || []) {
+      let contract: ethers.Contract | null;
+      if (ethers.utils.isAddress(t)) {
+        if (!config.abi) {
+          throw new Error('abi must be defined if addresses is used for target');
+        }
+
+        contract = new hre.ethers.Contract(t, JSON.parse(config.abi));
+      } else {
+        contract = getContractFromPath(ctx, t);
+      }
 
       if (!contract) {
-        throw new Error(`field on: contract at path ${contractOn} not found. Please double check input and try again!`);
+        throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
       }
 
       const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner);
 
-      txns[`${selfLabel}_${contractOn}`] = {
-        hash: receipt.transactionHash,
-        events: txnEvents,
-      };
-    }
+      const label = config.target?.length === 1 ? selfLabel : `${selfLabel}_${t}`;
 
-    for (const address of config.addresses || []) {
-      if (!config.abi) {
-        throw new Error('abi must be defined if addresses is defined');
-      }
-
-      const contract = new hre.ethers.Contract(address, JSON.parse(config.abi));
-
-      const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner);
-
-      txns[`${selfLabel}_${address}`] = {
+      txns[label] = {
         hash: receipt.transactionHash,
         events: txnEvents,
       };
@@ -207,20 +196,32 @@ export default {
 
     if (config.factory) {
       for (const n in txns) {
-        for (const factory of config.factory) {
+        for (const [name, factory] of Object.entries(config.factory)) {
           const abi = (await hre.artifacts.readArtifact(factory.artifact)).abi;
 
-          for (const [i, e] of _.entries(txns[n].events[factory.event])) {
+          const events = _.entries(txns[n].events[factory.event]);
+          for (const [i, e] of events) {
             const addr = e.args[factory.arg];
 
             if (!addr) {
               throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
             }
 
-            contracts[`${factory.name}_${n}_${i}`] = {
+            let label = name;
+
+            if ((config.target || []).length > 1) {
+              label += '_' + n;
+            }
+
+            if (events.length > 1) {
+              label += '_' + i;
+            }
+
+            contracts[label] = {
               address: addr,
               abi: abi,
               deployTxnHash: txns[n].hash,
+              constructorArgs: factory.constructorArgs,
             };
           }
         }
