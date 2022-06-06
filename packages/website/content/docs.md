@@ -243,7 +243,7 @@ The `import` action will import a cannonfile from a package hosted with the pack
 * `options` - The options to be used when initializing this cannonfile
 
 **Outputs**
-The return object from the imported cannonfile are provided under the namespace of the import action. For example, if a package is imported with `[import.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
+This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
 
 ### run
 
