@@ -226,7 +226,7 @@ The `contract` action deploys a contract.
 * `args` - Specifies the arguments to provide the constructor function
 * `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
-**Outputs**
+**Outputs**  
 This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
 * `abi` - The ABI of the deployed contract
 * `address` - The address fo the deployed contract
@@ -242,7 +242,7 @@ The `import` action will import a cannonfile from a package hosted with the pack
 **Optional Inputs**
 * `options` - The options to be used when initializing this cannonfile
 
-**Outputs**
+**Outputs**  
 This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
 
 ### run
@@ -258,7 +258,7 @@ The `run` action executes a custom script.
 * `env` - Environment variables to be set on the script
 * `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
-**Outputs**
+**Outputs**  
 This action updates the return object by adding an entry to the `runs` key with the action’s name. The value of the entry is the value returned by the script. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
 
 If the script returns an object with the key `cannon`, the corresponding value will be merged into the return object. This is particularly useful if the script being run is deploying a contract, as this can return the same outputs that would be returned by a `contract` action.
@@ -277,7 +277,7 @@ The `invoke` action calls a specified function on your node.
 * `from` - The calling address to use when invoking this call
 * `factory` - See *Referencing Factory-deployed Contracts* below.
 
-**Outputs**
+**Outputs**  
 This action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
 
 #### Referencing Factory-deployed Contracts
