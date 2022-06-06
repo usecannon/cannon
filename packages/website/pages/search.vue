@@ -47,9 +47,17 @@
         v-if="tags.length"
         >Filter</CHeading
       >
-      <CCheckboxGroup>
+      <CCheckboxGroup mb="4">
         <CCheckbox v-for="t in tags" :key="t.id">{{ t.id }}</CCheckbox>
       </CCheckboxGroup>
+      <!--
+      <CFormControl>
+        <CSwitch size="sm" id="testnet" />
+        <CFormLabel size="sm" html-for="testnet">
+          Show testnet packages</CFormLabel
+        >
+      </CFormControl>
+      -->
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
       <CBox v-if="$apollo.loading" py="20" textAlign="center">
