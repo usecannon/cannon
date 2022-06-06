@@ -213,7 +213,7 @@ step = 0
 
 This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = "<%= contracts.myStorage.address %>"`.
 
-There are four types of actions you can use in a Cannonfile: `contract`, `import`, `run`, and `invoke`.
+There are five types of actions you can use in a Cannonfile: `contract`, `import`, `run`, `invoke`, and `setting`.
 
 ### contract
 
@@ -300,3 +300,13 @@ Specifically, this would anticipate this invoke call will emit an event named *N
 If the invoke call has target set to an array and/or there are multiple events emitted, you can specify them by index. For example `"factory.MyDeployment.2.event.4"` would reference the third item in the array passed to target, and the fifth time the specified event is emitted.
 
 These contracts are added to the return object as they would be if deployed by a `contract` action.
+
+### setting
+
+The `setting` action defines a user-configurable option that can be referenced in other actions’ inputs. For example, a cannonfile may define `[setting.sampleSetting]` and then reference `sampleValue` as `"<%= settings.sampleSetting %>"` after running `npx hardhat cannon sampleSetting="sampleValue"`
+
+**Optional Inputs**
+* `defaultValue` - Specifies the value to be used by this setting if the user doesn’t provide a value at run time.
+
+**Outputs**  
+This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used, if specified.
