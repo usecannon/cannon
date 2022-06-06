@@ -1,6 +1,6 @@
 # Cannon Documentation
 
-Cannon is a [Hardhat](https://hardhat.org/]) plug-in that allows you to configure your protocol's scripts, keepers, and on-chain dependencies for automated provisioning and deployment. It is inspired by [Docker](https://www.docker.com/) and [Terraform](https://www.terraform.io/).
+Cannon is a [Hardhat](https://hardhat.org/]) plug-in that allows you to configure your protocol's scripts, keepers, and on-chain dependencies for automated provisioning and deployment. It is inspired by [Terraform](https://www.terraform.io/), [Docker](https://www.docker.com/), and [Docker Hub](https://hub.docker.com/search).
 
 There are three ways you can use Cannon:
 
@@ -114,40 +114,46 @@ args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to 
 step = 1 # Ensure this action is taken after the previous action
 ```
 
-Then build and run your Cannonfile:
+Then build your Cannonfile and run it on a local node:
 ```bash
 npx hardhat compile
 npx hardhat cannon:build
 npx hardhat cannon myStorageCannon:0.0.1 initialValue="69"
 ```
 
-*Note that you could simplify the example above by removing the `initialValue` option. This would entail removing the `[setting.initialValue]` section and setting args with `args=["69"]`*
-
 See [cannonfile.toml Specification](#cannonfiletoml-specification) for more details on how to set up this file.
 
-## Deploy to Production
+## Deploy a Cannonfile
 
-Cannon uses Hardhat's internal network to load settings required to deploy to your desired network. At minimum, you must supply:
-* JSON-RPC URL which can receive submitted transactions for the network
-* Signer . To submit transactions to this network, you will need to 
+You can build and deploy a Cannonfile on a local node or a remote network with the `npx hardhat cannon:build` command.
 
-When everything is ready, you can deploy to a live network:
+Artifacts for your deployment will be written to a folder named `deployments`. This includes JSON files with the address and ABI for each of the deployed contracts.
+
+### Local Node
+
+You can run a cannonfile with the command `npx hardhat cannon <package name>:<package version>` followed by any settings. The package references can be that of a cannonfile you've built locally or one available in the package manager. If you don't specify a package name, Cannon will deploy the cannonfile for the current project by default.
+
+#### Test Deployments on a Fork
+
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of mainnet and then run your cannonfile on it.
 
 ```bash
-npx hardhat --network <network name> cannon:build
+npx hardhat --network mainnet cannon:build --dry-run --port 8545
 ```
 
-Artifacts for your deployment will be written to a folder named `deployments`. Here you will be able to find the address and ABI for each contract as JSON files.
+### Remote Network
 
-### Test Deployment on a Fork
+To deploy to a remote network, first [add a `network` entry to your `hardhat.config.js` file](https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks). Then, specify a network with your build command. For example, this command would deploy your cannonfile to rinkeby:
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example:
-
-```
-npx hardhat --network <network name> cannon:build --dry-run --run 8545
+```bash
+npx hardhat --network rinkeby cannon:build
 ```
 
-After the run is complete, the node remains running on the port specified with the `--run` flag, so you can run on-chain tests in a separate terminal.
+#### Verify on Etherscan
+
+After deploying to a live network, you can use the `cannon:verify` command to verify all of the deployed contracts on [Etherscan](https://www.etherscan.com).
+
+First, install [hardhat-etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan) in your project. Then, run `npx hardhat --network <network name> cannon:verify`.
 
 ## Publish a Package
 
@@ -157,7 +163,7 @@ We recommend using Infura to pin on IPFS using their API, though you can use any
 
 `PRIVATE_KEY` is the private key of an Ethereum wallet that will pay the gas to add the entry to the  on-chain registry.
 
-Add this section to your hardhat.config.json:
+Add this section to your `hardhat.config.json`:
 ```json
 {
   cannon: {
@@ -195,9 +201,9 @@ If you have multiple Cannonfiles in your project, you can pass `--file` with the
 
 Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
 
-Each action has a type and a name. Each type accepts a specific set of inputs and generates outputs. The outputs are accessible by actions executed at a later step by referencing the action’s name, and by other cannonfiles which `import` it.
+Each action has a type and a name. Each type accepts a specific set of inputs and modifies a return object. The return object is accessible in actions executed at later steps. The resulting return object is provided to any cannonfile that imports it with the `import` action.
 
-For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.)
+For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.) It will be executed first because it has specified `step` as 0.
 
 ```toml
 [contract.myStorage]
@@ -205,7 +211,9 @@ artifact = "Storage"
 step = 0
 ```
 
-When specifying inputs, you can use outputs from actions in previous steps (including those from imported cannonfiles). Outputs are namespaced under a pluralized version of the action type, followed by the name of the action. For example, you could reference the address where the above `Storage` contract is deployed with `<%= contracts.myStorage.address %>`.
+This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = "<%= contracts.myStorage.address %>"`.
+
+There are five types of actions you can use in a Cannonfile: `contract`, `import`, `run`, `invoke`, and `setting`.
 
 ### contract
 
@@ -218,7 +226,8 @@ The `contract` action deploys a contract.
 * `args` - Specifies the arguments to provide the constructor function
 * `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
-**Outputs**
+**Outputs**  
+This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
 * `abi` - The ABI of the deployed contract
 * `address` - The address fo the deployed contract
 * `deployTxnHash` - The transaction hash of the deployment
@@ -233,8 +242,8 @@ The `import` action will import a cannonfile from a package hosted with the pack
 **Optional Inputs**
 * `options` - The options to be used when initializing this cannonfile
 
-**Outputs**
-The outputs of the imported cannonfile are provided under the namespace of the import action. For example, if a package is imported with `[import.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
+**Outputs**  
+This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
 
 ### run
 
@@ -249,8 +258,10 @@ The `run` action executes a custom script.
 * `env` - Environment variables to be set on the script
 * `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
-**Outputs**
-If the script returns a JSON object, it will be provided as the output. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
+**Outputs**  
+This action updates the return object by adding an entry to the `runs` key with the action’s name. The value of the entry is the value returned by the script. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
+
+If the script returns an object with the key `cannon`, the corresponding value will be merged into the return object. This is particularly useful if the script being run is deploying a contract, as this can return the same outputs that would be returned by a `contract` action.
 
 ### invoke
 
@@ -266,8 +277,8 @@ The `invoke` action calls a specified function on your node.
 * `from` - The calling address to use when invoking this call
 * `factory` - See *Referencing Factory-deployed Contracts* below.
 
-**Outputs**
-* `hash` - The transaction hash of the execution
+**Outputs**  
+This action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
 
 #### Referencing Factory-deployed Contracts
 
@@ -287,3 +298,15 @@ factory.MyPoolDeployment.arg = 0
 Specifically, this would anticipate this invoke call will emit an event named *NewDeployment* with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = "MyPoolDeployment"`.
 
 If the invoke call has target set to an array and/or there are multiple events emitted, you can specify them by index. For example `"factory.MyDeployment.2.event.4"` would reference the third item in the array passed to target, and the fifth time the specified event is emitted.
+
+These contracts are added to the return object as they would be if deployed by a `contract` action.
+
+### setting
+
+The `setting` action defines a user-configurable option that can be referenced in other actions’ inputs. For example, a cannonfile may define `[setting.sampleSetting]` and then reference `sampleValue` as `"<%= settings.sampleSetting %>"` after running `npx hardhat cannon sampleSetting="sampleValue"`
+
+**Optional Inputs**
+* `defaultValue` - Specifies the value to be used by this setting if the user doesn’t provide a value at run time.
+
+**Outputs**  
+This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used, if specified.
