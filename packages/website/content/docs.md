@@ -203,6 +203,8 @@ Cannonfiles contain a series of actions which are executed at run-time. See [Cre
 
 Each action has a type and a name. Each type accepts a specific set of inputs and modifies a return object. The return object is accessible in actions executed at later steps. The resulting return object is provided to any cannonfile that imports it with the `import` action.
 
+Every action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
+
 For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.) It will be executed first because it has specified `step` as 0.
 
 ```toml
@@ -211,7 +213,7 @@ artifact = "Storage"
 step = 0
 ```
 
-This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = "<%= contracts.myStorage.address %>"`.
+This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = ["<%= contracts.myStorage.address %>"]`.
 
 There are five types of actions you can use in a Cannonfile: `contract`, `import`, `run`, `invoke`, and `setting`.
 
@@ -259,9 +261,7 @@ The `run` action executes a custom script.
 * `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
 **Outputs**  
-This action updates the return object by adding an entry to the `runs` key with the action’s name. The value of the entry is the value returned by the script. For example, if a script is run with `[run.custom_deploy]` and the function specified returns `{"exampleKey": "myDynamicOutput"}`, *myDynamicOutput* would be accessible at `<%= runs.custom_deploy.exampleKey %>`.
-
-If the script returns an object with the key `cannon`, the corresponding value will be merged into the return object. This is particularly useful if the script being run is deploying a contract, as this can return the same outputs that would be returned by a `contract` action.
+This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
 
 ### invoke
 
@@ -278,7 +278,7 @@ The `invoke` action calls a specified function on your node.
 * `factory` - See *Referencing Factory-deployed Contracts* below.
 
 **Outputs**  
-This action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
+This action only updates the return object by adding an entry to the `txns` key.
 
 #### Referencing Factory-deployed Contracts
 
@@ -288,16 +288,16 @@ For example, if the `deployPool` function below deploys a contract, the followin
 
 ```toml
 [invoke.deployment]
-target = "PoolFactory"
+target = ["PoolFactory"]
 func = "deployPool"
 factory.MyPoolDeployment.artifact = "Pool"
 factory.MyPoolDeployment.event = "NewDeployment"
 factory.MyPoolDeployment.arg = 0
 ```
 
-Specifically, this would anticipate this invoke call will emit an event named *NewDeployment* with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = "MyPoolDeployment"`.
+Specifically, this would anticipate this invoke call will emit an event named *NewDeployment* with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = ["MyPoolDeployment"]`.
 
-If the invoke call has target set to an array and/or there are multiple events emitted, you can specify them by index. For example `"factory.MyDeployment.2.event.4"` would reference the third item in the array passed to target, and the fifth time the specified event is emitted.
+If the invoke action emits multiple events, you can specify them by index. For example `"MyPoolDeployment.PoolFactory.NewDeployment.4"` would reference the fifth time the specified event is emitted.
 
 These contracts are added to the return object as they would be if deployed by a `contract` action.
 
@@ -309,4 +309,4 @@ The `setting` action defines a user-configurable option that can be referenced i
 * `defaultValue` - Specifies the value to be used by this setting if the user doesn’t provide a value at run time.
 
 **Outputs**  
-This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used, if specified.
+This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
