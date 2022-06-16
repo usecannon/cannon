@@ -91,6 +91,8 @@ export class ChainBuilder {
   async getDependencies(opts: BuildOptions) {
     if (!this.def.import) return [];
 
+    await this.populateSettings(this.ctx, opts);
+
     // we have to apply templating here, only to the `source`
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now

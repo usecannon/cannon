@@ -76,6 +76,9 @@ async function buildCannon(hre: HardhatRuntimeEnvironment, options: string[], fi
   const def = loadCannonfile(hre, filepath);
   const { name, version } = def;
 
+  // options can be passed through commandline, or environment
+  const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
+
   const builder = new ChainBuilder({ name, version, hre, def, storageMode });
   const dependencies = await builder.getDependencies(mappedOptions);
 
