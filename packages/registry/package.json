@@ -1,6 +1,6 @@
 {
   "name": "cannon-registry",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": true,
   "description": "Contract registry for Cannon images",
   "main": "hardhat.config.js",
@@ -31,6 +31,6 @@
     "typescript": "4.5.5"
   },
   "dependencies": {
-    "hardhat-cannon": "^0.5.2"
+    "hardhat-cannon": "^0.5.3"
   }
 }
