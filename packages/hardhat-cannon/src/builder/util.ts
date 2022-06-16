@@ -35,11 +35,29 @@ export function hashDirectory(path: string): Buffer {
   return dirHasher.digest();
 }
 
-export async function initializeSigner(hre: HardhatRuntimeEnvironment, address: string): Promise<ethers.Signer> {
-  await hre.ethers.provider.send('hardhat_impersonateAccount', [address]);
-  await hre.ethers.provider.send('hardhat_setBalance', [address, hre.ethers.utils.parseEther('2').toHexString()]);
+export async function initializeSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string,
+  fork: boolean
+): Promise<ethers.Signer> {
+  if (hre.network.name === 'hardhat' || fork) {
+    try {
+      await hre.ethers.provider.send('hardhat_impersonateAccount', [address]);
+      await hre.ethers.provider.send('hardhat_setBalance', [address, hre.ethers.utils.parseEther('2').toHexString()]);
+    } catch (err) {
+      throw new Error(`could not impersonate and fund account on local network. Please double check configuration. ${err}`);
+    }
+  }
 
-  return hre.ethers.getSigner(address);
+  const signer = await hre.ethers.getSigner(address);
+
+  if (!signer) {
+    throw new Error(
+      `could not find signer for requested address ${address}, plaese make sure its defined in hardhat config.`
+    );
+  }
+
+  return signer;
 }
 
 export async function getExecutionSigner(
@@ -63,7 +81,7 @@ export async function getExecutionSigner(
   const hash = hasher.digest('hex');
   const address = '0x' + hash.slice(0, 40);
 
-  return initializeSigner(hre, address);
+  return initializeSigner(hre, address, fork);
 }
 
 export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
