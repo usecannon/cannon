@@ -56,7 +56,8 @@ async function runTxn(
   hre: HardhatRuntimeEnvironment,
   config: Config,
   contract: ethers.Contract,
-  signer: ethers.Signer
+  signer: ethers.Signer,
+  fork: boolean
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
 
@@ -67,7 +68,7 @@ async function runTxn(
 
     debug('owner for call', address);
 
-    const callSigner = await initializeSigner(hre, address);
+    const callSigner = await initializeSigner(hre, address, fork);
 
     txn = await contract.connect(callSigner)[config.func](...(config.args || []));
   } else {
@@ -164,7 +165,9 @@ export default {
 
     const txns: TransactionMap = {};
 
-    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '', ctx.fork);
+    const mainSigner = config.from
+      ? await initializeSigner(hre, config.from, ctx.fork)
+      : await getExecutionSigner(hre, '', ctx.fork);
 
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
@@ -182,7 +185,7 @@ export default {
         throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
       }
 
-      const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner);
+      const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner, ctx.fork);
 
       const label = config.target?.length === 1 ? selfLabel : `${selfLabel}_${t}`;
 
