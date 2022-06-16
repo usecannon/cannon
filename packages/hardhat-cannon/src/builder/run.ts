@@ -36,7 +36,7 @@ export default {
     config: Config,
     storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
-    if (ctx.repositoryBuild) {
+    if (!ctx.repositoryBuild) {
       return null; // skip consistency check
       // todo: might want to do consistency check for config but not files, will see
     }

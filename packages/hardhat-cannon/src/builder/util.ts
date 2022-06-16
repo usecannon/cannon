@@ -117,5 +117,7 @@ export function printInternalOutputs(outputs: InternalOutputs) {
         console.log(`\t-> ${n}(${e.args.map((s) => s.toString()).join(',')})`);
       }
     }
+
+    console.log();
   }
 }
