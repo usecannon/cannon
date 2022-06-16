@@ -56,13 +56,18 @@ export default {
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, _ctx: ChainBuilderContext, config: Config): Promise<InternalOutputs> {
+  async exec(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config): Promise<InternalOutputs> {
     debug('exec', config);
 
     // download if necessary upstream
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
-    const builder = new ChainBuilder({ name, version, hre });
+    const builder = new ChainBuilder({
+      name,
+      version,
+      hre,
+      storageMode: hre.network.name !== 'hardhat' || ctx.fork ? 'metadata' : 'read-full',
+    });
 
     await builder.build(config.options || {});
 
