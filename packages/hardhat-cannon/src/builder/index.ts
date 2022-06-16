@@ -86,8 +86,10 @@ export class ChainBuilder {
     this.storageMode = storageMode || (hre.network.name === 'hardhat' ? 'read-full' : 'none');
   }
 
-  getDependencies() {
+  async getDependencies(opts: BuildOptions) {
     if (!this.def.import) return [];
+
+    await this.populateSettings(this.ctx, opts);
 
     // we have to apply templating here, only to the `source`
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
