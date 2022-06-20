@@ -2,7 +2,7 @@ import path from 'path';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { subtask } from 'hardhat/config';
 
-import { CannonDeploy } from '../types';
+import { CannonDeploy } from '../../types';
 import { SUBTASK_LOAD_DEPLOY } from '../task-names';
 
 subtask(SUBTASK_LOAD_DEPLOY).setAction(async ({ file }, hre): Promise<CannonDeploy> => {

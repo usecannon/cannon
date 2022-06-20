@@ -8,17 +8,24 @@ defaultValue = "new greeting!"
 
 [import.greeters]
 source = "greeter:<%= package.version %>"
-options.salt = "first"
-options.change_msg = "a message from first greeter set"
 
 [import.more_greeters]
 source = "greeter:<%= package.version %>"
 options.salt = "second"
-options.change_msg = "a message from second greeter set"
+options.msg = "a message from second greeter set"
 
 [invoke.change_greeting2]
-addresses = ["<%= outputs.greeters.contracts.greeter.address %>"]
-abi = "<%= outputs.greeters.contracts.greeter.abi %>"
+target = ["greeters.greeter"]
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
 step = 1
+
+# test for factory functionality
+[invoke.clone]
+target = ["greeters.greeter"]
+func = "doCloning"
+step = 1
+
+factory.cloned.event = "NewClonedGreeter"
+factory.cloned.arg = 0
+factory.cloned.artifact = "Greeter"

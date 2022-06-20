@@ -37,52 +37,21 @@ describe('CannonRegistry', function () {
       const testName = 'abcdefghijk';
       const minLength = await registry.MIN_PACKAGE_NAME_LENGTH();
 
-<<<<<<< HEAD
-      equal(
-        await registry.validateName(toBytes32(testName.slice(0, minLength))),
-        true
-      );
-      equal(
-        await registry.validateName(
-          toBytes32(testName.slice(0, minLength - 1))
-        ),
-        false
-      );
-=======
       equal(await registry.validateName(toBytes32(testName.slice(0, minLength))), true);
       equal(await registry.validateName(toBytes32(testName.slice(0, minLength - 1))), false);
->>>>>>> origin/main
     });
   });
 
   describe('publish()', () => {
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
-<<<<<<< HEAD
-        await registry.publish(
-          toBytes32('some-module'),
-          toBytes32('0.0.1'),
-          [],
-          ''
-        );
-=======
         await registry.publish(toBytes32('some-module'), toBytes32('0.0.1'), [], '');
->>>>>>> origin/main
       }, 'InvalidUrl("")');
     });
 
     it('should not allow invalid name', async function () {
       await assertRevert(async () => {
-<<<<<<< HEAD
-        await registry.publish(
-          toBytes32('some-module-'),
-          toBytes32('0.0.1'),
-          [],
-          'ipfs://some-module-hash@0.0.1'
-        );
-=======
         await registry.publish(toBytes32('some-module-'), toBytes32('0.0.1'), [], 'ipfs://some-module-hash@0.0.1');
->>>>>>> origin/main
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 import "./Library.sol";
+import "./ClonedGreeter.sol";
 
 contract Greeter {
   string public greeting;
@@ -22,4 +23,13 @@ contract Greeter {
     console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
     greeting = _greeting;
   }
+
+  function doCloning() public {
+    console.log("CALLED THE CLONE");
+    ClonedGreeter g = new ClonedGreeter(greeting);
+
+    emit NewClonedGreeter(address(g));
+  }
+
+  event NewClonedGreeter(address cloned);
 }

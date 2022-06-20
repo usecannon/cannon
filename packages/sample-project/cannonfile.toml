@@ -14,9 +14,7 @@ artifact = "Library"
 [contract.greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
-libraries.Library = ["<%= outputs.self.contracts.library.address %>"]
+libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
-detect.method = "folder"
-detect.path = "deployments/${network}"
 
 step = 1

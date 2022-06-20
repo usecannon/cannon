@@ -3,19 +3,20 @@ import Debug from 'debug';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext } from './';
-import { getExecutionSigner, initializeSigner } from './util';
+import { ChainBuilderContext, InternalOutputs, TransactionMap } from './types';
+import { getContractFromPath, getExecutionSigner, initializeSigner } from './util';
 import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:invoke');
 
 const config = {
   properties: {
-    addresses: { elements: { type: 'string' } },
-    abi: { type: 'string' },
     func: { type: 'string' },
   },
   optionalProperties: {
+    target: { elements: { type: 'string' } },
+    abi: { type: 'string' },
+
     args: { elements: {} },
     from: { type: 'string' },
     fromCall: {
@@ -26,13 +27,16 @@ const config = {
         args: { elements: {} },
       },
     },
-    detect: {
-      properties: {
-        func: { type: 'string' },
-        value: { type: 'string' },
-      },
-      optionalProperties: {
-        args: { elements: {} },
+    factory: {
+      values: {
+        properties: {
+          event: { type: 'string' },
+          arg: { type: 'int32' },
+          artifact: { type: 'string' },
+        },
+        optionalProperties: {
+          constructorArgs: { elements: {} },
+        },
       },
     },
     step: { type: 'int32' },
@@ -43,9 +47,55 @@ export type Config = JTDDataType<typeof config>;
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
-export interface Outputs {
+export interface InvokeOutputs {
   hashes: string[];
   events?: EncodedTxnEvents[];
+}
+
+async function runTxn(
+  hre: HardhatRuntimeEnvironment,
+  config: Config,
+  contract: ethers.Contract,
+  signer: ethers.Signer,
+  fork: boolean
+): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
+  let txn: ethers.ContractTransaction;
+
+  if (config.fromCall) {
+    debug('resolve from address', contract.address);
+
+    const address = await contract.connect(hre.ethers.provider)[config.fromCall.func](...(config.fromCall?.args || []));
+
+    debug('owner for call', address);
+
+    const callSigner = await initializeSigner(hre, address, fork);
+
+    txn = await contract.connect(callSigner)[config.func](...(config.args || []));
+  } else {
+    txn = await contract.connect(signer)[config.func](...(config.args || []));
+  }
+
+  const receipt = await txn.wait();
+
+  // get events
+  const txnEvents = _.groupBy(
+    _.filter(
+      receipt.events?.map((e) => {
+        if (!e.event || !e.args) {
+          return null;
+        }
+
+        return {
+          name: e.event,
+          args: e.args as any[],
+        };
+      }),
+      _.isObject
+    ),
+    'name'
+  );
+
+  return [receipt, txnEvents as EncodedTxnEvents];
 }
 
 // ensure the specified contract is already deployed
@@ -67,8 +117,14 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    config.addresses = config.addresses.map((a) => _.template(a)(ctx));
-    config.abi = _.template(config.abi)(ctx);
+    if (config.target) {
+      config.target = config.target.map((v) => _.template(v)(ctx));
+    }
+
+    if (config.abi) {
+      config.abi = _.template(config.abi)(ctx);
+    }
+
     config.func = _.template(config.func)(ctx);
 
     if (config.args) {
@@ -88,63 +144,96 @@ export default {
       });
     }
 
+    for (const name in config.factory) {
+      const f = config.factory[name];
+
+      f.event = _.template(f.event)(ctx);
+      f.artifact = _.template(f.artifact)(ctx);
+    }
+
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
+  async exec(
+    hre: HardhatRuntimeEnvironment,
+    ctx: ChainBuilderContext,
+    config: Config,
+    _storage: string,
+    selfLabel: string
+  ): Promise<InternalOutputs> {
     debug('exec', config);
 
-    const hashes = [];
-    const events: EncodedTxnEvents[] = [];
+    const txns: TransactionMap = {};
 
-    const mainSigner = config.from ? await initializeSigner(hre, config.from) : await getExecutionSigner(hre, '');
+    const mainSigner = config.from
+      ? await initializeSigner(hre, config.from, ctx.fork)
+      : await getExecutionSigner(hre, '', ctx.fork);
 
-    for (const address of config.addresses) {
-      const contract = new hre.ethers.Contract(address, JSON.parse(config.abi));
+    for (const t of config.target || []) {
+      let contract: ethers.Contract | null;
+      if (ethers.utils.isAddress(t)) {
+        if (!config.abi) {
+          throw new Error('abi must be defined if addresses is used for target');
+        }
 
-      let txn: ethers.ContractTransaction;
-
-      if (config.fromCall) {
-        debug('resolve from address', contract.address);
-
-        const address = await contract.connect(hre.ethers.provider)[config.fromCall.func](...(config.fromCall?.args || []));
-
-        debug('owner for call', address);
-
-        const callSigner = await initializeSigner(hre, address);
-
-        txn = await contract.connect(callSigner)[config.func](...(config.args || []));
+        contract = new hre.ethers.Contract(t, JSON.parse(config.abi));
       } else {
-        txn = await contract.connect(mainSigner)[config.func](...(config.args || []));
+        contract = getContractFromPath(ctx, t);
       }
 
-      const receipt = await txn.wait();
+      if (!contract) {
+        throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
+      }
 
-      // get events
-      const txnEvents = _.groupBy(
-        _.filter(
-          receipt.events?.map((e) => {
-            if (!e.event || !e.args) {
-              return null;
+      const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner, ctx.fork);
+
+      const label = config.target?.length === 1 ? selfLabel : `${selfLabel}_${t}`;
+
+      txns[label] = {
+        hash: receipt.transactionHash,
+        events: txnEvents,
+      };
+    }
+
+    const contracts: InternalOutputs['contracts'] = {};
+
+    if (config.factory) {
+      for (const n in txns) {
+        for (const [name, factory] of Object.entries(config.factory)) {
+          const abi = (await hre.artifacts.readArtifact(factory.artifact)).abi;
+
+          const events = _.entries(txns[n].events[factory.event]);
+          for (const [i, e] of events) {
+            const addr = e.args[factory.arg];
+
+            if (!addr) {
+              throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
             }
 
-            return {
-              name: e.event,
-              args: e.args as any[],
-            };
-          }),
-          _.isObject
-        ),
-        'name'
-      );
+            let label = name;
 
-      hashes.push(receipt.transactionHash);
-      events.push(txnEvents as EncodedTxnEvents);
+            if ((config.target || []).length > 1) {
+              label += '_' + n;
+            }
+
+            if (events.length > 1) {
+              label += '_' + i;
+            }
+
+            contracts[label] = {
+              address: addr,
+              abi: abi,
+              deployTxnHash: txns[n].hash,
+              constructorArgs: factory.constructorArgs,
+            };
+          }
+        }
+      }
     }
 
     return {
-      hashes,
-      events,
+      contracts,
+      txns,
     };
   },
 };

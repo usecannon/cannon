@@ -1,54 +1,32 @@
 import _ from 'lodash';
 import { table } from 'table';
 
-import { BundledChainBuilderOutputs, ChainBuilderOutputs } from './builder';
+import { ChainBuilderContext } from './builder/types';
 
-export function printBundledChainBuilderOutput(output: BundledChainBuilderOutputs) {
-  printChainBuilderOutput(output.self);
-
-  console.log('====');
-
-  for (const k in output) {
-    if (k == 'self') {
-      continue;
-    }
-
-    console.log(`PACKAGE: ${k}`);
-    printChainBuilderOutput(output[k]);
-    console.log('====');
-  }
-}
-
-function printChainBuilderOutput(output: ChainBuilderOutputs) {
+export function printChainBuilderOutput(output: ChainBuilderContext) {
   if (output.contracts) {
     const formattedData = _.map(output.contracts, (v, k) => [k, v.address]);
 
-    console.log('CONTRACTS:');
-    console.log(table(formattedData));
+    if (formattedData.length) {
+      console.log('CONTRACTS:');
+      console.log(table(formattedData));
+    }
   }
 
-  if (output.runs) {
-    const formattedData = _.sortBy(
-      _.flatten(
-        _.map(output.runs, (v, runName) => {
-          // prevent extremely long values from clogging the terminal
-          const neatValues = _.map(v, (v, k) => [`${runName}.${k}`, `${ellipsize(v.toString(), 70)}`]);
+  if (output.txns) {
+    const formattedData = _.map(output.txns, (v, k) => [k, v.hash]);
 
-          return neatValues;
-        })
-      ),
-      '0'
-    );
-
-    console.log('RUN OUTPUTS:');
-    console.log(table(formattedData));
+    if (formattedData.length) {
+      console.log('TRANSACTIONS:');
+      console.log(table(formattedData));
+    }
   }
 }
 
-function ellipsize(str: string, maxLength: number, ellipsizeText = '...') {
+/*function ellipsize(str: string, maxLength: number, ellipsizeText = '...') {
   if (str.length > maxLength) {
     return str.substr(0, maxLength - ellipsizeText.length) + ellipsizeText;
   }
 
   return str;
-}
+}*/

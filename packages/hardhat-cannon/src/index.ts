@@ -3,7 +3,10 @@ import '@nomiclabs/hardhat-ethers';
 
 import './tasks/cannon';
 import './tasks/build';
+import './tasks/verify';
 import './tasks/publish';
+import './tasks/import';
+import './tasks/export';
 import './subtasks/download';
 import './subtasks/load-deploy';
 import './subtasks/write-deployments';

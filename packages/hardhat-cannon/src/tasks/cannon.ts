@@ -1,22 +1,18 @@
 import _ from 'lodash';
 import { task } from 'hardhat/config';
 
-import { CannonDeploy } from '../types';
+import { CannonDeploy } from '../../types';
 import { ChainBuilder } from '../builder';
 import { SUBTASK_DOWNLOAD, SUBTASK_LOAD_DEPLOY, SUBTASK_WRITE_DEPLOYMENTS, TASK_CANNON } from '../task-names';
 
 task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
-  .addOptionalParam('file', 'Custom cannon deployment file.')
+  .addOptionalParam('file', 'Custom cannon deployment file.', 'cannon.json')
   .addOptionalPositionalParam('label', 'Label of a chain to load')
   .addOptionalVariadicPositionalParam('opts', 'Settings to use for execution', [])
   .setAction(async ({ file, label, opts }, hre) => {
     let deploy: CannonDeploy | null = null;
 
-    if (file) {
-      deploy = (await hre.run(SUBTASK_LOAD_DEPLOY, {
-        file,
-      })) as CannonDeploy;
-    } else if (label) {
+    if (label) {
       const options = _.fromPairs(opts.map((o: string) => o.split('=')));
 
       deploy = {
@@ -28,27 +24,26 @@ task(TASK_CANNON, 'Provision the current cannon.json file using Cannon')
         ],
       };
     } else {
-      // TODO: read from cannonfile
+      deploy = (await hre.run(SUBTASK_LOAD_DEPLOY, {
+        file,
+      })) as CannonDeploy;
     }
 
     if (!deploy) {
       throw new Error('Deploy configuration not found.');
     }
 
+    // TODO: implement multi chain compatibility (we're going to wait until hardhat
+    // has this functionality upstreamed).
     for (const chainData of deploy.chains) {
       for (const provision of chainData.deploy) {
-        let builder;
-        if (typeof provision == 'string') {
-          const [name, version] = provision.split(':');
-          await hre.run(SUBTASK_DOWNLOAD, { images: [provision] });
-          builder = new ChainBuilder({ name, version, hre });
-          await builder.build({});
-        } else {
-          const [name, version] = provision[0].split(':');
-          await hre.run(SUBTASK_DOWNLOAD, { images: [provision[0]] });
-          builder = new ChainBuilder({ name, version, hre });
-          await builder.build(provision[1]);
-        }
+        const image = typeof provision == 'string' ? provision : provision[0];
+        const options = typeof provision == 'string' ? {} : provision[1] ?? {};
+        const [name, version] = image.split(':');
+
+        await hre.run(SUBTASK_DOWNLOAD, { images: [image] });
+        const builder = new ChainBuilder({ name, version, hre, storageMode: 'full' });
+        await builder.build(options);
 
         await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
           outputs: builder.getOutputs(),

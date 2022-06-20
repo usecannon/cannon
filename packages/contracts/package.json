@@ -1,0 +1,28 @@
+{
+  "name": "@usecannon/contracts",
+  "version": "0.5.4",
+  "description": "Cannon builds for OpenZeppelin standard contract implementations for ERC20 & ERC721",
+  "main": "hardhat.config.ts",
+  "scripts": {
+    "test": "mocha --exit ./test/**/*.test.ts"
+  },
+  "keywords": [
+    "cannon",
+    "openzeppelin",
+    "erc20",
+    "erc721"
+  ],
+  "author": "Cannon",
+  "license": "MIT",
+  "devDependencies": {
+    "@openzeppelin/contracts": "^4.5.0",
+    "@types/mocha": "^9.1.0",
+    "dotenv": "^16.0.0",
+    "hardhat": "^2.9.1",
+    "hardhat-cannon": "^0.5.4",
+    "mocha": "^9.2.1",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  },
+  "gitHead": "2bf293b553448ad08a9c1cbdbade20223c181f9c"
+}
