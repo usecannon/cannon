@@ -245,7 +245,11 @@ This action updates the return object by adding an entry to the `contracts` key 
 
 ### import
 
-The `import` action will import a cannonfile from a package hosted with the package manager. **Third-party packages can execute arbitrary code when imported. Only import packages that you trust.**
+The `import` action will import a cannonfile from a package hosted with the package manager.
+
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ <strong>Third-party packages can execute arbitrary code on your computer when imported. Only import packages that you have verified or trust.</strong>
+</div>
 
 **Required Inputs**
 
