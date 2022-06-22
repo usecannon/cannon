@@ -29,7 +29,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       await hre.run(TASK_COMPILE);
     }
 
-    const storageMode: StorageMode = !dryRun && hre.network.name === 'hardhat' ? 'full' : dryRun ? 'none' : 'metadata';
+    const storageMode: StorageMode =
+      !dryRun && (hre.network.config.chainId === 31337 || hre.network.name === 'hardhat')
+        ? 'full'
+        : dryRun
+        ? 'none'
+        : 'metadata';
 
     subtask(TASK_NODE_SERVER_READY).setAction(async (_, hre) => {
       await buildCannon(hre, options, file, storageMode);

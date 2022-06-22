@@ -84,7 +84,7 @@ export class ChainBuilder {
       throw new Error('Missing "version" property on cannonfile.toml');
     }
 
-    this.storageMode = storageMode || (hre.network.name === 'hardhat' ? 'read-full' : 'none');
+    this.storageMode = storageMode || (hre.network.config.chainId === 31337 || hre.network.name === 'hardhat' ? 'read-full' : 'none');
   }
 
   async getDependencies(opts: BuildOptions) {
@@ -101,6 +101,7 @@ export class ChainBuilder {
 
   async build(opts: BuildOptions): Promise<ChainBuilder> {
     debug('build');
+    debug('storage mode', this.storageMode);
 
     await this.populateSettings(this.ctx, opts);
 
@@ -446,8 +447,9 @@ export class ChainBuilder {
     if (this.storageMode === 'full' || this.storageMode === 'read-full') {
       debug('load state', n);
       const cacheData = await fs.readFile(chain);
+      console.log('loadded cache data', cacheData.toString());
       await this.hre.network.provider.request({
-        method: 'hardhat_importState',
+        method: 'hardhat_loadState',
         params: ['0x' + cacheData.toString('hex')], // for some reason I have to do this
       });
     }
@@ -476,9 +478,9 @@ export class ChainBuilder {
       debug('put state', n);
       const data = await this.hre.network.provider.request({
         method: 'hardhat_dumpState',
-      });
+      }) as string;
       await fs.ensureDir(dirname(chain));
-      await fs.writeFile(chain, data);
+      await fs.writeFile(chain, Buffer.from(data.slice(2), 'hex'));
     }
   }
 
