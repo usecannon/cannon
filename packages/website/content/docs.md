@@ -258,24 +258,6 @@ The `import` action will import a cannonfile from a package hosted with the pack
 **Outputs**  
 This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
 
-### run
-
-The `run` action executes a custom script.
-
-**Required Inputs**
-
-- `exec` - The javascript (or typescript) file to load
-- `func` - The function to call in this file
-
-**Optional Inputs**
-
-- `args` - The arguments to pass the script
-- `env` - Environment variables to be set on the script
-- `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
-
-**Outputs**  
-This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
-
 ### invoke
 
 The `invoke` action calls a specified function on your node.
@@ -326,3 +308,25 @@ The `setting` action defines a user-configurable option that can be referenced i
 
 **Outputs**  
 This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
+
+### run
+
+The `run` action executes a custom script.
+
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ <strong>Avoid using the run step when possible, as this can negatively impact the ability for this cannonfile to be imported into other cannonfiles.</strong> (More information coming soon.)
+</div>
+
+**Required Inputs**
+
+- `exec` - The javascript (or typescript) file to load
+- `func` - The function to call in this file
+
+**Optional Inputs**
+
+- `args` - The arguments to pass the script
+- `env` - Environment variables to be set on the script
+- `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
+
+**Outputs**  
+This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
