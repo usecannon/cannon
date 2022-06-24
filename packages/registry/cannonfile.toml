@@ -4,7 +4,6 @@ version = "0.0.2"
 [setting.salt]
 defaultValue = "registry"
 
-
 [contract.registry]
 artifact = "CannonRegistry"
 salt = "<%= settings.salt %>"

@@ -1,7 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-contract CannonRegistry {
+import {Storage} from "./Storage.sol";
+
+contract CannonRegistry is Storage {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
@@ -9,14 +11,6 @@ contract CannonRegistry {
   event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
-
-  mapping(bytes32 => mapping(bytes32 => string)) public urls;
-  mapping(bytes32 => address) public owners;
-
-  bytes32[] public protocols;
-  mapping(bytes32 => bytes32[]) public versions;
-
-  mapping(bytes32 => address) public nominatedOwner;
 
   function validateName(bytes32 name) public pure returns (bool) {
     // each character must be in the supported charset
@@ -56,64 +50,74 @@ contract CannonRegistry {
     bytes32[] memory _tags,
     string memory _url
   ) external {
+    Store storage s = _store();
+
     if (bytes(_url).length == 0) {
       revert InvalidUrl(_url);
     }
 
-    if (owners[_name] != address(0) && owners[_name] != msg.sender) {
+    if (s.owners[_name] != address(0) && s.owners[_name] != msg.sender) {
       revert Unauthorized();
     }
 
-    if (owners[_name] == address(0)) {
+    if (s.owners[_name] == address(0)) {
       if (!validateName(_name)) {
         revert InvalidName(_name);
       }
 
-      owners[_name] = msg.sender;
-      protocols.push(_name);
+      s.owners[_name] = msg.sender;
+      s.protocols.push(_name);
     }
 
-    if (bytes(urls[_name][_version]).length == 0) {
-      versions[_name].push(_version);
+    if (bytes(s.urls[_name][_version]).length == 0) {
+      s.versions[_name].push(_version);
     }
 
-    urls[_name][_version] = _url;
+    s.urls[_name][_version] = _url;
 
     for (uint i = 0; i < _tags.length; i++) {
-      urls[_name][_tags[i]] = _url;
+      s.urls[_name][_tags[i]] = _url;
     }
 
     emit ProtocolPublish(_name, _version, _tags, _url, msg.sender);
   }
 
   function nominateNewOwner(bytes32 _name, address _newOwner) external {
-    if (owners[_name] != msg.sender) {
+    Store storage s = _store();
+
+    if (s.owners[_name] != msg.sender) {
       revert Unauthorized();
     }
 
-    nominatedOwner[_name] = _newOwner;
+    s.nominatedOwner[_name] = _newOwner;
   }
 
   function acceptOwnership(bytes32 _name) external {
-    address newOwner = nominatedOwner[_name];
+    Store storage s = _store();
+
+    address newOwner = s.nominatedOwner[_name];
 
     if (msg.sender != newOwner) {
       revert Unauthorized();
     }
 
-    owners[_name] = newOwner;
-    nominatedOwner[_name] = address(0);
+    s.owners[_name] = newOwner;
+    s.nominatedOwner[_name] = address(0);
+  }
+
+  function getNominatedOwner(bytes32 _protocolName) external view returns (address) {
+    return _store().nominatedOwner[_protocolName];
   }
 
   function getProtocols() external view returns (bytes32[] memory) {
-    return protocols;
+    return _store().protocols;
   }
 
   function getVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
-    return versions[_protocolName];
+    return _store().versions[_protocolName];
   }
 
   function getUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
-    return urls[_protocolName][_protocolVersion];
+    return _store().urls[_protocolName][_protocolVersion];
   }
 }
