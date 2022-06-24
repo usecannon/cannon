@@ -1,5 +1,5 @@
 import { Contract, Signer } from 'ethers';
-import { equal } from 'assert/strict';
+import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
 
 import assertRevert from '../helpers/assert-revert';
@@ -206,6 +206,27 @@ describe('CannonRegistry', function () {
 
     it('accepts ownership', async function () {
       await registry.connect(user2).acceptOwnership(toBytes32('some-module'));
+    });
+  });
+
+  describe('getProtocols()', () => {
+    it('returns created protocols', async function () {
+      const result = await registry.connect(user2).getProtocols();
+      ok(Array.isArray(result));
+    });
+  });
+
+  describe('getVersions()', () => {
+    it('returns protocol versions', async function () {
+      const result = await registry
+        .connect(user2)
+        .getVersions(toBytes32('some-module'));
+
+      deepEqual(result, [
+        toBytes32('0.0.1'),
+        toBytes32('0.0.2'),
+        toBytes32('0.0.3'),
+      ]);
     });
   });
 });

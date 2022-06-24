@@ -1,5 +1,6 @@
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
+import 'solidity-coverage';
 import 'hardhat-cannon';
 import 'dotenv/config';
 
