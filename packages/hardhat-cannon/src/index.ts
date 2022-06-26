@@ -20,6 +20,10 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     ? path.resolve(config.paths.root, userConfig.paths.deployments)
     : path.join(config.paths.root, 'deployments');
 
+  config.paths.deployments = userConfig.paths?.deployments
+    ? path.resolve(config.paths.root, userConfig.paths.deployments)
+    : path.join(config.paths.root, 'cannon');
+
   config.cannon = {
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
 

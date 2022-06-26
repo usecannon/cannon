@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
-import { ChainBuilderContext, InternalOutputs } from './types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
 import { hashDirectory } from './util';
 
 const debug = Debug('cannon:builder:run');
@@ -30,13 +29,8 @@ export type Config = JTDDataType<typeof config>;
 export default {
   validate: config,
 
-  async getState(
-    _: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
-  ) {
-    if (!ctx.repositoryBuild) {
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+    if (!runtime.baseDir) {
       return null; // skip consistency check
       // todo: might want to do consistency check for config but not files, will see
     }
@@ -77,16 +71,22 @@ export default {
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, _ctx: ChainBuilderContext, config: Config): Promise<InternalOutputs> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
-    const runfile = await import(join(dirname(hre.config.paths.configFile), config.exec));
+    if (!runtime.baseDir) {
+      throw new Error(
+        'run steps cannot be executed outside of their original project directory. This is likely a misconfiguration upstream.'
+      );
+    }
+
+    const runfile = await import(join(runtime.baseDir, config.exec));
 
     const outputs = await runfile[config.func](...(config.args || []));
 
     if (!outputs.contracts) {
       throw new Error(
-        'contracts not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed, return an empty object.'
+        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed, return an empty object.'
       );
     }
 

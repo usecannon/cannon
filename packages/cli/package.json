@@ -1,0 +1,30 @@
+{
+  "name": "@usecannon/cli",
+  "version": "0.5.4",
+  "description": "Utility for instantly loading cannon charts in standalone contexts",
+  "main": "hardhat.config.ts",
+  "scripts": {
+    "test": "mocha --exit ./test/**/*.test.ts"
+  },
+  "keywords": [
+    "cannon",
+    "openzeppelin",
+    "erc20",
+    "erc721"
+  ],
+  "author": "Cannon",
+  "license": "MIT",
+  "devDependencies": {
+    "chalk": "^5.0.1",
+    "commander": "^9.3.0",
+    "fs-extra": "^10.1.0",
+    "lodash": "^4.17.21",
+    "typescript": "^4.6.2"
+  },
+  "bin": {
+    "cannon": "dist/index.js"
+  },
+  "dependencies": {
+    "@usecannon/builder": "^0.5.4"
+  }
+}

@@ -1,11 +1,11 @@
 import path from 'path';
 import { task } from 'hardhat/config';
 
-import CannonRegistry from '../builder/registry';
+import { CannonRegistry } from '@usecannon/builder';
 import IPFS from '../ipfs';
 import loadCannonfile from '../internal/load-cannonfile';
 import { TASK_PUBLISH } from '../task-names';
-import { exportChain } from '../builder/storage';
+import { exportChain } from '@usecannon/builder';
 
 task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
@@ -22,7 +22,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
       privateKey: hre.config.cannon.publisherPrivateKey,
     });
 
-    const exported = await exportChain(hre, name, version);
+    const exported = await exportChain(hre.config.paths.cannon, name, version);
 
     console.log(`Uploading chain to IPFS (${exported.length})...`);
 

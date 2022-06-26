@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import { task } from 'hardhat/config';
 
 import { TASK_EXPORT } from '../task-names';
-import { exportChain } from '../builder/storage';
+import { exportChain } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
 import path from 'path';
 
@@ -24,7 +24,7 @@ task(TASK_EXPORT, 'Write a cannon chain from zip archive')
       chainVersion = def.version;
     }
 
-    const buf = await exportChain(hre, chainName, chainVersion);
+    const buf = await exportChain(hre.config.paths.cannon, chainName, chainVersion);
     await fs.writeFile(file, buf);
     console.log(`Exported ${chainName}@${chainVersion}`);
   });

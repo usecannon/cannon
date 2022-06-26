@@ -2,8 +2,9 @@ import _ from 'lodash';
 import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
-import { ChainBuilder } from '../builder';
+import { ChainBuilder } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
+import { ethers } from 'ethers';
 
 task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mainnet')
   .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
@@ -20,13 +21,25 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
     const [name, version] = label.split(':');
 
     // get the list of all deployed contracts
-    const builder = new ChainBuilder({ name, version, hre, storageMode: 'none' });
+    const builder = new ChainBuilder({
+      name,
+      version,
+      readMode: 'metadata',
+      provider: hre.ethers.provider as ethers.providers.BaseProvider,
+      async getSigner(addr: string) {
+        return hre.ethers.getSigner(addr);
+      },
+    });
 
     // TODO: prevent builder from taking any action here, it should
     // only be loading and validating everything
     const options: any = _.fromPairs(opts.map((o: string) => o.split('=')));
     await builder.build(options);
-    const outputs = builder.getOutputs();
+    const outputs = await builder.getOutputs();
+
+    if (!outputs) {
+      throw new Error('No chain outputs found. Has the requested chain already been built?');
+    }
 
     for (const c in outputs.contracts) {
       console.log('Verifying contract:', c);

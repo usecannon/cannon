@@ -5,7 +5,7 @@ import { subtask } from 'hardhat/config';
 import { SUBTASK_WRITE_DEPLOYMENTS } from '../task-names';
 import { printChainBuilderOutput } from '../printer';
 import { any } from 'hardhat/internal/core/params/argumentTypes';
-import { ChainBuilderContext, InternalOutputs } from '../builder/types';
+import { ChainBuilderContext, ChainArtifacts } from '@usecannon/builder';
 
 subtask(SUBTASK_WRITE_DEPLOYMENTS)
   .addParam('outputs', 'Output object from the chain builder', null, any)
@@ -26,7 +26,7 @@ subtask(SUBTASK_WRITE_DEPLOYMENTS)
 /**
  * Recursively writes all deployments for a chainbuilder output
  */
-async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: InternalOutputs) {
+async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
   if (prefix) {
     prefix = prefix + '.';
   }

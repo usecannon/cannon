@@ -1,8 +1,8 @@
 import path from 'path';
 import { ethers } from 'ethers';
-import { readFileSync } from 'fs';
+import { readFileSync } from 'fs-extra';
 
-export default class CannonRegistry {
+export class CannonRegistry {
   provider?: ethers.providers.JsonRpcProvider;
   contract?: ethers.Contract;
   wallet?: ethers.Wallet;

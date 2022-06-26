@@ -1,13 +1,10 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import fs from 'fs-extra';
-import path from 'path';
-import { Artifact, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
-import { dirname } from 'path';
 
-import { ChainBuilderContext, InternalOutputs } from './types';
-import { getExecutionSigner } from './util';
+import ethers from 'ethers';
+
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -33,49 +30,17 @@ export interface ContractOutputs {
   deployTxnHash: string;
 }
 
-async function loadArtifactFile(
-  hre: HardhatRuntimeEnvironment,
-  storage: string,
-  name: string,
-  repositoryBuild: boolean
-): Promise<Artifact> {
-  let artifactData: Artifact | null = null;
-
-  const artifactFile = path.join(storage, name + '.json');
-
-  // attempt to load artifact from prestored files
-  if (repositoryBuild) {
-    // attempt to load artifact from hardhat and save the module
-    artifactData = await hre.artifacts.readArtifact(name);
-
-    // add this artifact to the cannonfile data
-    await fs.ensureDir(dirname(artifactFile));
-    await fs.writeFile(artifactFile, JSON.stringify(artifactData));
-
-    return artifactData;
-  } else {
-    const artifactContent = await fs.readFile(artifactFile);
-    artifactData = JSON.parse(artifactContent.toString());
-
-    if (!artifactData) {
-      throw new Error(`Invalid artifact for "${name}"`);
-    }
-
-    return artifactData;
-  }
-}
-
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
 export default {
   validate: config,
 
-  async getState(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config, storage: string) {
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: (await loadArtifactFile(hre, storage, parsedConfig.artifact, ctx.repositoryBuild)).bytecode,
+      bytecode: (await runtime.getArtifact(parsedConfig.artifact)).bytecode,
       config: parsedConfig,
     };
   },
@@ -104,16 +69,10 @@ export default {
     return config;
   },
 
-  async exec(
-    hre: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    storage: string,
-    selfLabel: string
-  ): Promise<InternalOutputs> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
-    const artifactData = await loadArtifactFile(hre, storage, config.artifact, ctx.repositoryBuild);
+    const artifactData = await runtime.getArtifact(config.artifact);
 
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {
@@ -140,15 +99,11 @@ export default {
     }
 
     // finally, deploy
-    const factory = new hre.ethers.ContractFactory(artifactData.abi, injectedBytecode);
+    const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = await getExecutionSigner(
-      hre,
-      txn.data + Buffer.from(config.salt || '', 'utf8').toString('hex'),
-      ctx.fork
-    );
+    const signer = await runtime.getDefaultSigner(txn);
 
     const txnData = await signer.sendTransaction(txn);
 
@@ -156,9 +111,9 @@ export default {
 
     return {
       contracts: {
-        [selfLabel]: {
+        [runtime.currentLabel || '']: {
           address: receipt.contractAddress,
-          abi: JSON.parse(factory.interface.format(hre.ethers.utils.FormatTypes.json) as string),
+          abi: JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string),
           constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
         },

@@ -1,9 +1,9 @@
 import crypto from 'crypto';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 
 import fs from 'fs-extra';
-import { ChainBuilderContext, InternalOutputs } from './types';
+import path from 'path';
+import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
   properties: {
@@ -35,43 +35,25 @@ export function hashDirectory(path: string): Buffer {
   return dirHasher.digest();
 }
 
-export async function initializeSigner(
-  hre: HardhatRuntimeEnvironment,
-  address: string,
-  fork: boolean
-): Promise<ethers.Signer> {
-  if (hre.network.name === 'hardhat' || fork) {
-    try {
-      await hre.ethers.provider.send('hardhat_impersonateAccount', [address]);
-      await hre.ethers.provider.send('hardhat_setBalance', [address, hre.ethers.utils.parseEther('2').toHexString()]);
-    } catch (err) {
-      throw new Error(`could not impersonate and fund account on local network. Please double check configuration. ${err}`);
-    }
-  }
-
-  const signer = await hre.ethers.getSigner(address);
-
-  if (!signer) {
-    throw new Error(
-      `could not find signer for requested address ${address}, plaese make sure its defined in hardhat config.`
-    );
-  }
-
-  return signer;
-}
-
+/**
+ * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new
+ * usable signer on the fly and attempts to populate it with hardhat functions `impersonateAccount`.
+ * This will fail if running on a live network, so be sure to set your own `getDefaultSigner` if that
+ * situation applies to you.
+ * @param provider the provider set on the chain builder
+ * @param txn the transaction that is to be executed
+ * @param seed additional text which can be used to execute the same transaction with different addresses
+ * @returns ethers signer
+ */
 export async function getExecutionSigner(
-  hre: HardhatRuntimeEnvironment,
-  seed: string,
-  fork: boolean
+  provider: ethers.providers.BaseProvider,
+  txn: ethers.providers.TransactionRequest,
+  salt = ''
 ): Promise<ethers.Signer> {
-  if (hre.network.name !== 'hardhat' || fork) {
-    // TODO: support for getting a different signer from the chain
-    const [signer] = await hre.ethers.getSigners();
-    return signer;
-  }
-
   const hasher = crypto.createHash('sha256');
+
+  // create a hashable string out of relevant properties
+  const seed = (txn.to || '') + txn.data + (txn.value || '') + Buffer.from(salt || '', 'utf8').toString('hex');
 
   const size = 32;
   for (let i = 0; i < seed.length; i += size) {
@@ -81,13 +63,33 @@ export async function getExecutionSigner(
   const hash = hasher.digest('hex');
   const address = '0x' + hash.slice(0, 40);
 
-  return initializeSigner(hre, address, fork);
+  await provider.perform('hardhat_impersonateAccount', [address]);
+  await provider.perform('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
+
+  return await (provider as ethers.providers.JsonRpcProvider).getSigner(address);
+}
+
+/**
+ * Loads an artifact from the internal cannon storage.
+ * @param name name of the cached contract artifact
+ */
+export async function getStoredArtifact(chartDir: string, name: string) {
+  const artifactFile = path.join(chartDir, 'contracts', name + '.json');
+
+  const artifactContent = await fs.readFile(artifactFile);
+  const artifactData: ContractArtifact = JSON.parse(artifactContent.toString());
+
+  if (!artifactData) {
+    throw new Error(`Artifact not saved for "${name}"`);
+  }
+
+  return artifactData;
 }
 
 export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
   const pathPieces = path.split('.');
 
-  let importsBase: InternalOutputs = ctx;
+  let importsBase: ChainArtifacts = ctx;
   for (const p of pathPieces.slice(0, -1)) {
     importsBase = ctx.imports[p];
   }
@@ -101,7 +103,7 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
   return null;
 }
 
-export function printInternalOutputs(outputs: InternalOutputs) {
+export function printInternalOutputs(outputs: ChainArtifacts) {
   for (const c in outputs.contracts) {
     console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
   }

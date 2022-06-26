@@ -2,10 +2,10 @@ import fs from 'fs-extra';
 import { Readable } from 'stream';
 import { subtask } from 'hardhat/config';
 
-import CannonRegistry from '../builder/registry';
+import { CannonRegistry } from '@usecannon/builder';
 import IPFS from '../ipfs';
 import { SUBTASK_DOWNLOAD } from '../task-names';
-import { importChain, associateTag, getCacheDir } from '../builder/storage';
+import { importChain, associateTag, getChartDir } from '@usecannon/builder';
 
 subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre) => {
   const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
@@ -17,7 +17,7 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
   const sources = images.map((image) => image.split(':'));
 
   for (const [name, tag] of sources) {
-    const target = getCacheDir(hre.config.paths.cache, name, tag);
+    const target = getChartDir(hre.config.paths.cache, name, tag);
 
     const exists = await fs
       .stat(target)
@@ -48,10 +48,10 @@ subtask(SUBTASK_DOWNLOAD).setAction(async ({ images }: { images: string[] }, hre
 
     const buf = Buffer.concat(bufs);
 
-    const info = await importChain(hre, buf);
+    const info = await importChain(hre.config.paths.cannon, buf);
 
     // imported chain may be of a different version from the actual requested tag. Make sure we link if necessary
-    await associateTag(hre, info.name, info.version, tag);
+    await associateTag(hre.config.paths.cannon, info.name, info.version, tag);
 
     console.log(`Finished import (${buf.length})`);
   }

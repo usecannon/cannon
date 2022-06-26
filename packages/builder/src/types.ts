@@ -1,5 +1,9 @@
+import ethers from 'ethers';
+
 import Ajv from 'ajv/dist/jtd';
 import { JTDDataType } from 'ajv/dist/core';
+
+import { JsonFragment } from '@ethersproject/abi';
 
 import contractSpec from './contract';
 import importSpec from './import';
@@ -10,6 +14,20 @@ import scriptSpec from './run';
 const ajv = new Ajv();
 
 export type OptionTypesTs = string | number | boolean;
+
+export type ContractArtifact = {
+  contractName: string;
+  abi: JsonFragment[];
+  bytecode: string;
+  linkReferences: {
+    [fileName: string]: {
+      [contractName: string]: {
+        start: number;
+        length: number;
+      }[];
+    };
+  };
+};
 
 export type ContractMap = {
   [label: string]: {
@@ -65,13 +83,9 @@ export type BuildOptions = { [val: string]: string };
 export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
 
 export interface ChainBuilderContext {
-  fork: boolean;
   settings: ChainBuilderOptions;
-  network: string;
   chainId: number;
   timestamp: string;
-
-  repositoryBuild: boolean;
 
   package: any;
 
@@ -82,11 +96,38 @@ export interface ChainBuilderContext {
   imports: BundledChainBuilderOutputs;
 }
 
-export interface BundledChainBuilderOutputs {
-  [module: string]: InternalOutputs;
+export type StorageMode = 'all' | 'metadata' | 'none';
+
+export interface ChainBuilderRuntime {
+  // Interface to which all transactions should be sent and all state queried
+  provider: ethers.providers.BaseProvider;
+
+  // returns the signer associated with the given address. Reverts if the signer is not found or cannot be populated.
+  getSigner: (addr: string) => Promise<ethers.Signer>;
+
+  // returns a signer which should be used for sending the specified transaction.
+  getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+
+  // returns contract information from the specified artifact name.
+  getArtifact: (name: string) => Promise<ContractArtifact>;
+
+  // Directory where relative file resolutions should originate from. Usually the location of package.json for currently built project
+  baseDir: string | null;
+
+  // Directory where cannon chart is located
+  chartDir: string | null;
+
+  readMode: StorageMode;
+  writeMode: StorageMode;
+
+  currentLabel: string | null;
 }
 
-export type InternalOutputs = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns'>>;
+export interface BundledChainBuilderOutputs {
+  [module: string]: ChainArtifacts;
+}
+
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: OptionTypesTs;
