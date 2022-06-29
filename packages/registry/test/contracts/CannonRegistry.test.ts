@@ -25,17 +25,35 @@ describe('CannonRegistry', function () {
     [user1, user2, user3] = await ethers.getSigners();
   });
 
-  describe('validateName', () => {
+  describe('validateProtocolName()', () => {
     it('only allows lowercase letters, numbers, and dashes', async () => {
-      equal(await registry.validateName(toBytes32('some--mo-du9le')), true);
-      equal(await registry.validateName(toBytes32('some_-mo-du9le')), false);
-      equal(await registry.validateName(toBytes32('some--mo-du9lE')), false);
-      // todo: use some hidden character or something
+      equal(
+        await registry.validateProtocolName(toBytes32('some--mo-du9le')),
+        true
+      );
+      equal(
+        await registry.validateProtocolName(toBytes32('some_-mo-du9le')),
+        false
+      );
+      equal(
+        await registry.validateProtocolName(toBytes32('some--mo-du9lE')),
+        false
+      );
+      equal(
+        await registry.validateProtocolName(toBytes32('some$module')),
+        false
+      );
     });
 
     it('does not allow dash at beginning or end', async () => {
-      equal(await registry.validateName(toBytes32('some--module-')), false);
-      equal(await registry.validateName(toBytes32('-some--module')), false);
+      equal(
+        await registry.validateProtocolName(toBytes32('some--module-')),
+        false
+      );
+      equal(
+        await registry.validateProtocolName(toBytes32('-some--module')),
+        false
+      );
     });
 
     it('enforces minimum length', async () => {
@@ -43,11 +61,13 @@ describe('CannonRegistry', function () {
       const minLength = await registry.MIN_PACKAGE_NAME_LENGTH();
 
       equal(
-        await registry.validateName(toBytes32(testName.slice(0, minLength))),
+        await registry.validateProtocolName(
+          toBytes32(testName.slice(0, minLength))
+        ),
         true
       );
       equal(
-        await registry.validateName(
+        await registry.validateProtocolName(
           toBytes32(testName.slice(0, minLength - 1))
         ),
         false
@@ -93,7 +113,7 @@ describe('CannonRegistry', function () {
       equal(events.length, 1);
       equal(events[0].event, 'ProtocolPublish');
 
-      const resultUrl = await registry.getUrl(
+      const resultUrl = await registry.getProtocolUrl(
         toBytes32('some-module'),
         toBytes32('0.0.1')
       );
@@ -147,11 +167,17 @@ describe('CannonRegistry', function () {
       equal(events[0].event, 'ProtocolPublish');
 
       equal(
-        await registry.getUrl(toBytes32('some-module'), toBytes32('latest')),
+        await registry.getProtocolUrl(
+          toBytes32('some-module'),
+          toBytes32('latest')
+        ),
         'ipfs://updated-module-hash@0.0.3'
       );
       equal(
-        await registry.getUrl(toBytes32('some-module'), toBytes32('stable')),
+        await registry.getProtocolUrl(
+          toBytes32('some-module'),
+          toBytes32('stable')
+        ),
         'ipfs://updated-module-hash@0.0.3'
       );
     });
@@ -170,42 +196,55 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('nominateNewOwner()', () => {
+  describe('nominateProtocolOwner()', () => {
     it('should not allow nomination from non-owner', async function () {
       await assertRevert(async () => {
         await registry
           .connect(user2)
-          .nominateNewOwner(toBytes32('some-module'), await user2.getAddress());
+          .nominateProtocolOwner(
+            toBytes32('some-module'),
+            await user2.getAddress()
+          );
       }, 'Unauthorized()');
     });
 
     it('nominates', async function () {
       await registry
         .connect(user1)
-        .nominateNewOwner(toBytes32('some-module'), await user2.getAddress());
+        .nominateProtocolOwner(
+          toBytes32('some-module'),
+          await user2.getAddress()
+        );
 
       equal(
-        await registry.getNominatedOwner(toBytes32('some-module')),
+        await registry.getProtocolNominatedOwner(toBytes32('some-module')),
         await user2.getAddress()
       );
     });
   });
 
-  describe('acceptOwnership()', () => {
+  describe('acceptProtocolOwnership()', () => {
     before('nominate new owner', async () => {
       await registry
         .connect(user1)
-        .nominateNewOwner(toBytes32('some-module'), await user2.getAddress());
+        .nominateProtocolOwner(
+          toBytes32('some-module'),
+          await user2.getAddress()
+        );
     });
 
     it('only nominated owner can accept ownership', async function () {
       await assertRevert(async () => {
-        await registry.connect(user3).acceptOwnership(toBytes32('some-module'));
+        await registry
+          .connect(user3)
+          .acceptProtocolOwnership(toBytes32('some-module'));
       }, 'Unauthorized()');
     });
 
     it('accepts ownership', async function () {
-      await registry.connect(user2).acceptOwnership(toBytes32('some-module'));
+      await registry
+        .connect(user2)
+        .acceptProtocolOwnership(toBytes32('some-module'));
     });
   });
 
@@ -216,11 +255,11 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('getVersions()', () => {
+  describe('getProtocolVersions()', () => {
     it('returns protocol versions', async function () {
       const result = await registry
         .connect(user2)
-        .getVersions(toBytes32('some-module'));
+        .getProtocolVersions(toBytes32('some-module'));
 
       deepEqual(result, [
         toBytes32('0.0.1'),

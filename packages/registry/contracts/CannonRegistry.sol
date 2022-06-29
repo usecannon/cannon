@@ -12,7 +12,7 @@ contract CannonRegistry is Storage {
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
 
-  function validateName(bytes32 name) public pure returns (bool) {
+  function validateProtocolName(bytes32 name) public pure returns (bool) {
     // each character must be in the supported charset
 
     for (uint i = 0; i < 32; i++) {
@@ -61,7 +61,7 @@ contract CannonRegistry is Storage {
     }
 
     if (s.owners[_name] == address(0)) {
-      if (!validateName(_name)) {
+      if (!validateProtocolName(_name)) {
         revert InvalidName(_name);
       }
 
@@ -82,7 +82,7 @@ contract CannonRegistry is Storage {
     emit ProtocolPublish(_name, _version, _tags, _url, msg.sender);
   }
 
-  function nominateNewOwner(bytes32 _name, address _newOwner) external {
+  function nominateProtocolOwner(bytes32 _name, address _newOwner) external {
     Store storage s = _store();
 
     if (s.owners[_name] != msg.sender) {
@@ -92,7 +92,7 @@ contract CannonRegistry is Storage {
     s.nominatedOwner[_name] = _newOwner;
   }
 
-  function acceptOwnership(bytes32 _name) external {
+  function acceptProtocolOwnership(bytes32 _name) external {
     Store storage s = _store();
 
     address newOwner = s.nominatedOwner[_name];
@@ -105,7 +105,7 @@ contract CannonRegistry is Storage {
     s.nominatedOwner[_name] = address(0);
   }
 
-  function getNominatedOwner(bytes32 _protocolName) external view returns (address) {
+  function getProtocolNominatedOwner(bytes32 _protocolName) external view returns (address) {
     return _store().nominatedOwner[_protocolName];
   }
 
@@ -113,11 +113,11 @@ contract CannonRegistry is Storage {
     return _store().protocols;
   }
 
-  function getVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
+  function getProtocolVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
     return _store().versions[_protocolName];
   }
 
-  function getUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
+  function getProtocolUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
     return _store().urls[_protocolName][_protocolVersion];
   }
 }

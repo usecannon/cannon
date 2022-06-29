@@ -68,8 +68,8 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
 
-  getUrl(_protocolName: Bytes, _protocolVersion: Bytes): string {
-    let result = super.call("getUrl", "getUrl(bytes32,bytes32):(string)", [
+  getProtocolUrl(_protocolName: Bytes, _protocolVersion: Bytes): string {
+    let result = super.call("getProtocolUrl", "getProtocolUrl(bytes32,bytes32):(string)", [
       ethereum.Value.fromFixedBytes(_protocolName),
       ethereum.Value.fromFixedBytes(_protocolVersion)
     ]);
@@ -77,11 +77,11 @@ export class CannonRegistry extends ethereum.SmartContract {
     return result[0].toString();
   }
 
-  try_getUrl(
+  try_getProtocolUrl(
     _protocolName: Bytes,
     _protocolVersion: Bytes
   ): ethereum.CallResult<string> {
-    let result = super.tryCall("getUrl", "getUrl(bytes32,bytes32):(string)", [
+    let result = super.tryCall("getProtocolUrl", "getProtocolUrl(bytes32,bytes32):(string)", [
       ethereum.Value.fromFixedBytes(_protocolName),
       ethereum.Value.fromFixedBytes(_protocolVersion)
     ]);
@@ -92,18 +92,18 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toString());
   }
 
-  getVersions(_protocolName: Bytes): Array<Bytes> {
-    let result = super.call("getVersions", "getVersions(bytes32):(bytes32[])", [
+  getProtocolVersions(_protocolName: Bytes): Array<Bytes> {
+    let result = super.call("getProtocolVersions", "getProtocolVersions(bytes32):(bytes32[])", [
       ethereum.Value.fromFixedBytes(_protocolName)
     ]);
 
     return result[0].toBytesArray();
   }
 
-  try_getVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
+  try_getProtocolVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
     let result = super.tryCall(
-      "getVersions",
-      "getVersions(bytes32):(bytes32[])",
+      "getProtocolVersions",
+      "getProtocolVersions(bytes32):(bytes32[])",
       [ethereum.Value.fromFixedBytes(_protocolName)]
     );
     if (result.reverted) {
