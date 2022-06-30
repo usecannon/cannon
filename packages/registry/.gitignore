@@ -1,4 +1,6 @@
 artifacts/
 cache/
+deployments/hardhat
+deployments/localhost
 coverage.json
 .env

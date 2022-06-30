@@ -1,6 +1,16 @@
 {
-  "address": "0x5900BED899b2a3BAAdb507f99c907583401dEcED",
+  "address": "0x48b597510d165162A8AD3790d35DdceE95Dc161D",
   "abi": [
+    {
+      "type": "error",
+      "name": "ImplementationIsSterile",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "implementation"
+        }
+      ]
+    },
     {
       "type": "error",
       "name": "InvalidName",
@@ -23,8 +33,82 @@
     },
     {
       "type": "error",
+      "name": "NoChange",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NotAContract",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "contr"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "NotNominated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "addr"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "Unauthorized",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "addr"
+        }
+      ]
+    },
+    {
+      "type": "error",
       "name": "Unauthorized",
       "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "UpgradeSimulationFailed",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ZeroAddress",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "OwnerChanged",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "oldOwner",
+          "indexed": false
+        },
+        {
+          "type": "address",
+          "name": "newOwner",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "OwnerNominated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "newOwner",
+          "indexed": false
+        }
+      ]
     },
     {
       "type": "event",
@@ -59,6 +143,18 @@
       ]
     },
     {
+      "type": "event",
+      "anonymous": false,
+      "name": "Upgraded",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "implementation",
+          "indexed": false
+        }
+      ]
+    },
+    {
       "type": "function",
       "name": "MIN_PACKAGE_NAME_LENGTH",
       "constant": true,
@@ -73,6 +169,14 @@
     },
     {
       "type": "function",
+      "name": "acceptOwnership",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "acceptProtocolOwnership",
       "constant": false,
       "payable": false,
@@ -83,6 +187,19 @@
         }
       ],
       "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "getImplementation",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
     },
     {
       "type": "function",
@@ -157,6 +274,19 @@
     },
     {
       "type": "function",
+      "name": "nominateNewOwner",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "newNominatedOwner"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "nominateProtocolOwner",
       "constant": false,
       "payable": false,
@@ -171,6 +301,32 @@
         }
       ],
       "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "nominatedOwner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
     },
     {
       "type": "function",
@@ -199,6 +355,40 @@
     },
     {
       "type": "function",
+      "name": "renounceNomination",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "simulateUpgradeTo",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "newImplementation"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "upgradeTo",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "newImplementation"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "validateProtocolName",
       "constant": true,
       "stateMutability": "pure",
@@ -217,5 +407,5 @@
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "0x2abce8cb93226cff099a4ccee9b03d5279e0cf11f0fbdb378590b1dcd3c4ace0"
+  "deployTxnHash": "0x758656da0bfc5b9934a9a07a04f68483b094dbd76bbe8d8560997fad07f75838"
 }
