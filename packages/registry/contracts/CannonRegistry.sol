@@ -2,8 +2,9 @@
 pragma solidity ^0.8.11;
 
 import {Storage} from "./Storage.sol";
+import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.sol";
 
-contract CannonRegistry is Storage {
+contract CannonRegistry is Storage, Ownable {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);

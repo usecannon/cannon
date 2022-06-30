@@ -1,14 +1,19 @@
 import { Contract, Signer } from 'ethers';
 import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
+import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 
 import assertRevert from '../helpers/assert-revert';
 
 const toBytes32 = ethers.utils.formatBytes32String;
 
 describe('CannonRegistry', function () {
-  let registry: Contract;
+  let registry: TCannonRegistry;
   let user1: Signer, user2: Signer, user3: Signer;
+
+  before('identify signers', async function () {
+    [user1, user2, user3] = await ethers.getSigners();
+  });
 
   before('deploy contract', async function () {
     const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
@@ -18,11 +23,14 @@ describe('CannonRegistry', function () {
     const proxy = await Proxy.deploy(implementation.address);
     await proxy.deployed();
 
-    registry = await ethers.getContractAt('CannonRegistry', proxy.address);
-  });
+    registry = (await ethers.getContractAt(
+      'CannonRegistry',
+      proxy.address
+    )) as TCannonRegistry;
 
-  before('identify signers', async function () {
-    [user1, user2, user3] = await ethers.getSigners();
+    const owner = await user1.getAddress();
+    await registry.nominateNewOwner(owner).then((tx) => tx.wait());
+    await registry.acceptOwnership().then((tx) => tx.wait());
   });
 
   describe('validateProtocolName()', () => {
@@ -58,7 +66,7 @@ describe('CannonRegistry', function () {
 
     it('enforces minimum length', async () => {
       const testName = 'abcdefghijk';
-      const minLength = await registry.MIN_PACKAGE_NAME_LENGTH();
+      const minLength = Number(await registry.MIN_PACKAGE_NAME_LENGTH());
 
       equal(
         await registry.validateProtocolName(
@@ -110,8 +118,8 @@ describe('CannonRegistry', function () {
 
       const { events } = await tx.wait();
 
-      equal(events.length, 1);
-      equal(events[0].event, 'ProtocolPublish');
+      equal(events!.length, 1);
+      equal(events![0].event, 'ProtocolPublish');
 
       const resultUrl = await registry.getProtocolUrl(
         toBytes32('some-module'),
@@ -133,8 +141,8 @@ describe('CannonRegistry', function () {
 
       const { events } = await tx.wait();
 
-      equal(events.length, 1);
-      equal(events[0].event, 'ProtocolPublish');
+      equal(events!.length, 1);
+      equal(events![0].event, 'ProtocolPublish');
     });
 
     it('should be able to update an older version', async function () {
@@ -149,8 +157,8 @@ describe('CannonRegistry', function () {
 
       const { events } = await tx.wait();
 
-      equal(events.length, 1);
-      equal(events[0].event, 'ProtocolPublish');
+      equal(events!.length, 1);
+      equal(events![0].event, 'ProtocolPublish');
     });
 
     it('pushes tags', async function () {
@@ -163,8 +171,8 @@ describe('CannonRegistry', function () {
 
       const { events } = await tx.wait();
 
-      equal(events.length, 1);
-      equal(events[0].event, 'ProtocolPublish');
+      equal(events!.length, 1);
+      equal(events![0].event, 'ProtocolPublish');
 
       equal(
         await registry.getProtocolUrl(
