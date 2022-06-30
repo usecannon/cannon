@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IOwnable__factory } from "./IOwnable__factory";
+export { IUUPSImplementation__factory } from "./IUUPSImplementation__factory";

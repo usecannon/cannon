@@ -29,6 +29,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOwnable__factory>;
     getContractFactory(
+      name: "IUUPSImplementation",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUUPSImplementation__factory>;
+    getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
@@ -36,6 +40,10 @@ declare module "hardhat/types/runtime" {
       name: "AbstractProxy",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AbstractProxy__factory>;
+    getContractFactory(
+      name: "UUPSImplementation",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UUPSImplementation__factory>;
     getContractFactory(
       name: "UUPSProxy",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -70,6 +78,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IOwnable>;
     getContractAt(
+      name: "IUUPSImplementation",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUUPSImplementation>;
+    getContractAt(
       name: "Ownable",
       address: string,
       signer?: ethers.Signer
@@ -79,6 +92,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AbstractProxy>;
+    getContractAt(
+      name: "UUPSImplementation",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UUPSImplementation>;
     getContractAt(
       name: "UUPSProxy",
       address: string,

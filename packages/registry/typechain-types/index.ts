@@ -14,10 +14,14 @@ export type { ChangeError } from "./@synthetixio/core-contracts/contracts/errors
 export { ChangeError__factory } from "./factories/@synthetixio/core-contracts/contracts/errors/ChangeError__factory";
 export type { IOwnable } from "./@synthetixio/core-contracts/contracts/interfaces/IOwnable";
 export { IOwnable__factory } from "./factories/@synthetixio/core-contracts/contracts/interfaces/IOwnable__factory";
+export type { IUUPSImplementation } from "./@synthetixio/core-contracts/contracts/interfaces/IUUPSImplementation";
+export { IUUPSImplementation__factory } from "./factories/@synthetixio/core-contracts/contracts/interfaces/IUUPSImplementation__factory";
 export type { Ownable } from "./@synthetixio/core-contracts/contracts/ownership/Ownable";
 export { Ownable__factory } from "./factories/@synthetixio/core-contracts/contracts/ownership/Ownable__factory";
 export type { AbstractProxy } from "./@synthetixio/core-contracts/contracts/proxy/AbstractProxy";
 export { AbstractProxy__factory } from "./factories/@synthetixio/core-contracts/contracts/proxy/AbstractProxy__factory";
+export type { UUPSImplementation } from "./@synthetixio/core-contracts/contracts/proxy/UUPSImplementation";
+export { UUPSImplementation__factory } from "./factories/@synthetixio/core-contracts/contracts/proxy/UUPSImplementation__factory";
 export type { UUPSProxy } from "./@synthetixio/core-contracts/contracts/proxy/UUPSProxy";
 export { UUPSProxy__factory } from "./factories/@synthetixio/core-contracts/contracts/proxy/UUPSProxy__factory";
 export type { CannonRegistry } from "./contracts/CannonRegistry";

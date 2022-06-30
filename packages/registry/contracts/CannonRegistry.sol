@@ -3,8 +3,9 @@ pragma solidity ^0.8.11;
 
 import {Storage} from "./Storage.sol";
 import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.sol";
+import {UUPSImplementation} from "@synthetixio/core-contracts/contracts/proxy/UUPSImplementation.sol";
 
-contract CannonRegistry is Storage, Ownable {
+contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
@@ -12,6 +13,10 @@ contract CannonRegistry is Storage, Ownable {
   event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
+
+  function upgradeTo(address newImplementation) public override onlyOwner {
+    _upgradeTo(newImplementation);
+  }
 
   function validateProtocolName(bytes32 name) public pure returns (bool) {
     // each character must be in the supported charset

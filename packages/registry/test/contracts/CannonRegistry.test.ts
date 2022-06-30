@@ -1,4 +1,4 @@
-import { Contract, Signer } from 'ethers';
+import { Signer } from 'ethers';
 import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
@@ -33,8 +33,23 @@ describe('CannonRegistry', function () {
     await registry.acceptOwnership().then((tx) => tx.wait());
   });
 
-  describe('validateProtocolName()', () => {
-    it('only allows lowercase letters, numbers, and dashes', async () => {
+  describe('Upgradedability', function () {
+    let newImplementation: TCannonRegistry;
+
+    before('deploy new implementation', async function () {
+      const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
+      newImplementation = (await CannonRegistry.deploy()) as TCannonRegistry;
+      await newImplementation.deployed();
+    });
+
+    it('upgrades to a new implementation', async function () {
+      await registry.upgradeTo(newImplementation.address);
+      equal(await registry.getImplementation(), newImplementation.address);
+    });
+  });
+
+  describe('validateProtocolName()', function () {
+    it('only allows lowercase letters, numbers, and dashes', async function () {
       equal(
         await registry.validateProtocolName(toBytes32('some--mo-du9le')),
         true
@@ -53,7 +68,7 @@ describe('CannonRegistry', function () {
       );
     });
 
-    it('does not allow dash at beginning or end', async () => {
+    it('does not allow dash at beginning or end', async function () {
       equal(
         await registry.validateProtocolName(toBytes32('some--module-')),
         false
@@ -64,7 +79,7 @@ describe('CannonRegistry', function () {
       );
     });
 
-    it('enforces minimum length', async () => {
+    it('enforces minimum length', async function () {
       const testName = 'abcdefghijk';
       const minLength = Number(await registry.MIN_PACKAGE_NAME_LENGTH());
 
@@ -83,7 +98,7 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('publish()', () => {
+  describe('publish()', function () {
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
         await registry.publish(
@@ -204,7 +219,7 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('nominateProtocolOwner()', () => {
+  describe('nominateProtocolOwner()', function () {
     it('should not allow nomination from non-owner', async function () {
       await assertRevert(async () => {
         await registry
@@ -231,8 +246,8 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('acceptProtocolOwnership()', () => {
-    before('nominate new owner', async () => {
+  describe('acceptProtocolOwnership()', function () {
+    before('nominate new owner', async function () {
       await registry
         .connect(user1)
         .nominateProtocolOwner(
@@ -256,14 +271,14 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('getProtocols()', () => {
+  describe('getProtocols()', function () {
     it('returns created protocols', async function () {
       const result = await registry.connect(user2).getProtocols();
       ok(Array.isArray(result));
     });
   });
 
-  describe('getProtocolVersions()', () => {
+  describe('getProtocolVersions()', function () {
     it('returns protocol versions', async function () {
       const result = await registry
         .connect(user2)
