@@ -2,13 +2,43 @@ type Package @entity {
   id: ID!
   name: String!
   description: String!
-  version: String!
   url: String!
-  added: BigInt!
-  publisher: String!
+  tags: [PackageTag!] @derivedFrom(field: "package")
+  versions: [Version!]! @derivedFrom(field: "package")
+  publisher: [PackagePublisher!] @derivedFrom(field: "package")
+}
+
+type Publisher @entity {
+  id: ID!
+  address: String!
+  verifiers: [String!]! // could turn publisher into "account" and then this is also a many-to-many ?
+  package: [PackagePublisher!] @derivedFrom(field: "publisher")
+}
+
+type Version @entity {
+  id: ID!
+  name: String!
+  package: Package!
   readme: String!
   cannonfile: String!
-  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
+  added: BigInt!
+  dependents: [DependencyDependent!] @derivedFrom(field: "dependent")
+  dependencies: [DependencyDependent!] @derivedFrom(field: "dependency")
+  chains: [Chain!]! @derivedFrom(field: "version")
+}
+
+type Chain @entity {
+  id: ID!
+  name: String!
+  chain_id: BigInt!
+  version: Version!
+  presets: [Preset!]! @derivedFrom(field: "preset")
+}
+
+type Preset @entity {
+  id: ID!
+  name: String!
+  chain: Chain!
 }
 
 type Tag @entity {
@@ -17,8 +47,21 @@ type Tag @entity {
   packages: [PackageTag!] @derivedFrom(field: "tag")
 }
 
+// Join models
+type DependencyDependent @entity {
+  id: ID!
+  dependency: Preset!
+  dependent: Preset!
+}
+
 type PackageTag @entity {
   id: ID!
-  cannon_package: Package!
+  package: Package!
   tag: Tag!
+}
+
+type PackagePublisher @entity {
+  id: ID!
+  package: Package!
+  publisher: Publisher!
 }
