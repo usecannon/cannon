@@ -31,7 +31,7 @@ type Chain @entity {
   id: ID!
   name: String!
   chain_id: BigInt!
-  version: Version!
+  version: Version! // Should this be many-to-many, so there's only one entity per network?
   presets: [Preset!]! @derivedFrom(field: "preset")
 }
 
