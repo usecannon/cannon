@@ -13,11 +13,12 @@
     "hardhat",
     "hardhat-plugin"
   ],
+
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "test": "mocha --exit --recursive 'test/**/*.test.ts'",
-    "build": "tsc && cp -r src/abis dist/src/abis",
+    "build": "tsc",
     "watch": "tsc -w",
     "prepublishOnly": "npm run build"
   },
@@ -51,11 +52,12 @@
     "@types/adm-zip": "^0.5.0",
     "@types/archiver": "^5.3.1",
     "@types/yazl": "^2.4.2",
+    "@usecannon/builder": "^0.5.4",
     "adm-zip": "^0.5.9",
     "ajv": "^8.10.0",
     "debug": "^4.3.3",
     "ethereumjs-util": "^7.1.4",
-    "ethers": "^5.5.4",
+    "ethers": "^5.6.0",
     "fs-extra": "^10.0.1",
     "ipfs-http-client": "56.0.1",
     "ipfs-utils": "9.0.2",

@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, InternalOutputs, TransactionMap } from './types';
-import { getContractFromPath, getExecutionSigner, initializeSigner } from './util';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from './types';
+import { getContractFromPath } from './util';
 import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:invoke');
@@ -53,22 +52,21 @@ export interface InvokeOutputs {
 }
 
 async function runTxn(
-  hre: HardhatRuntimeEnvironment,
+  runtime: ChainBuilderRuntime,
   config: Config,
   contract: ethers.Contract,
-  signer: ethers.Signer,
-  fork: boolean
+  signer: ethers.Signer
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
 
   if (config.fromCall) {
     debug('resolve from address', contract.address);
 
-    const address = await contract.connect(hre.ethers.provider)[config.fromCall.func](...(config.fromCall?.args || []));
+    const address = await contract.connect(runtime.provider)[config.fromCall.func](...(config.fromCall?.args || []));
 
     debug('owner for call', address);
 
-    const callSigner = await initializeSigner(hre, address, fork);
+    const callSigner = await runtime.getSigner(address);
 
     txn = await contract.connect(callSigner)[config.func](...(config.args || []));
   } else {
@@ -104,13 +102,7 @@ async function runTxn(
 export default {
   validate: config,
 
-  async getState(
-    _: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    // Leaving storage param for future usage
-    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
-  ) {
+  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -154,20 +146,14 @@ export default {
     return config;
   },
 
-  async exec(
-    hre: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    _storage: string,
-    selfLabel: string
-  ): Promise<InternalOutputs> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const txns: TransactionMap = {};
 
-    const mainSigner = config.from
-      ? await initializeSigner(hre, config.from, ctx.fork)
-      : await getExecutionSigner(hre, '', ctx.fork);
+    const mainSigner: ethers.Signer = config.from
+      ? await runtime.getSigner(config.from)
+      : await runtime.getDefaultSigner({}, '');
 
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
@@ -176,7 +162,7 @@ export default {
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = new hre.ethers.Contract(t, JSON.parse(config.abi));
+        contract = new ethers.Contract(t, JSON.parse(config.abi));
       } else {
         contract = getContractFromPath(ctx, t);
       }
@@ -185,9 +171,11 @@ export default {
         throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
       }
 
-      const [receipt, txnEvents] = await runTxn(hre, config, contract, mainSigner, ctx.fork);
+      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);
 
-      const label = config.target?.length === 1 ? selfLabel : `${selfLabel}_${t}`;
+      const currentLabel = runtime.currentLabel?.split('.')[1];
+
+      const label = config.target?.length === 1 ? currentLabel || '' : `${currentLabel}_${t}`;
 
       txns[label] = {
         hash: receipt.transactionHash,
@@ -195,12 +183,12 @@ export default {
       };
     }
 
-    const contracts: InternalOutputs['contracts'] = {};
+    const contracts: ChainArtifacts['contracts'] = {};
 
     if (config.factory) {
       for (const n in txns) {
         for (const [name, factory] of Object.entries(config.factory)) {
-          const abi = (await hre.artifacts.readArtifact(factory.artifact)).abi;
+          const abi = (await runtime.getArtifact(factory.artifact)).abi;
 
           const events = _.entries(txns[n].events[factory.event]);
           for (const [i, e] of events) {

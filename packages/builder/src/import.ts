@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, InternalOutputs } from './types';
-import { ChainBuilder } from '.';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
+import { ChainBuilder } from './builder';
 
 const debug = Debug('cannon:builder:import');
 
@@ -13,6 +12,8 @@ const config = {
     source: { type: 'string' },
   },
   optionalProperties: {
+    chainId: { type: 'int32' },
+    preset: { type: 'string' },
     options: {
       values: { type: 'string' },
     },
@@ -32,13 +33,7 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(
-    _: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    // Leaving storage param for future usage
-    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
-  ) {
+  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -46,6 +41,7 @@ export default {
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
+    config.preset = _.template(config.preset)(ctx) || 'main';
 
     if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
@@ -56,22 +52,34 @@ export default {
     return config;
   },
 
-  async exec(hre: HardhatRuntimeEnvironment, ctx: ChainBuilderContext, config: Config): Promise<InternalOutputs> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     // download if necessary upstream
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
+
     const builder = new ChainBuilder({
       name,
       version,
-      hre,
-      storageMode: hre.network.name !== 'hardhat' || ctx.fork ? 'metadata' : 'read-full',
+      writeMode: 'none',
+      readMode: runtime.readMode,
+      provider: runtime.provider,
+      preset: config.preset,
+      chainId: config.chainId || runtime.chainId,
+      savedChartsDir: runtime.chartsDir,
+      getSigner: runtime.getSigner,
+      getDefaultSigner: runtime.getDefaultSigner,
     });
 
     await builder.build(config.options || {});
 
-    const outputs = builder.getOutputs();
+    const outputs = await builder.getOutputs();
+
+    if (!outputs) {
+      // shouldn't be able to happen
+      throw new Error('no chain outputs immediately after build');
+    }
 
     return {
       contracts: outputs.contracts,

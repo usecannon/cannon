@@ -1,12 +1,15 @@
 import _ from 'lodash';
 import path from 'path';
-import { subtask, task, types } from 'hardhat/config';
-import { TASK_COMPILE, TASK_NODE_SERVER_READY } from 'hardhat/builtin-tasks/task-names';
+import { task, types } from 'hardhat/config';
+import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import loadCannonfile from '../internal/load-cannonfile';
-import { ChainBuilder, StorageMode } from '../builder';
-import { SUBTASK_DOWNLOAD, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
-import { HardhatRuntimeEnvironment, HttpNetworkConfig } from 'hardhat/types';
+import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events, getChartDir, getSavedChartsDir } from '@usecannon/builder';
+import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
+import { HttpNetworkConfig } from 'hardhat/types';
+import { ethers } from 'ethers';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { existsSync } from 'fs';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -23,21 +26,24 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     undefined,
     types.int
   )
+  .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
+  .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, options, dryRun, port }, hre) => {
+  .setAction(async ({ noCompile, file, options, dryRun, port, preset, wipe }, hre) => {
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
     }
 
-    const storageMode: StorageMode = !dryRun && hre.network.name === 'hardhat' ? 'full' : dryRun ? 'none' : 'metadata';
+    const filepath = path.resolve(hre.config.paths.root, file);
 
-    subtask(TASK_NODE_SERVER_READY).setAction(async (_, hre) => {
-      await buildCannon(hre, options, file, storageMode);
+    // options can be passed through commandline, or environment
+    const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
+    const def = loadCannonfile(hre, filepath);
+    const { name, version } = def;
 
-      console.log('build complete. rpc now available on port', port);
-    });
-
+    let builder: ChainBuilder;
     if (dryRun) {
+      // local build with forked network
       if (hre.network.name != 'hardhat') throw new Error('Hardhat selected network must be `hardhat` in order to dryRun.');
 
       const network = hre.config.networks[dryRun] as HttpNetworkConfig;
@@ -46,48 +52,122 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (!network.chainId) throw new Error('Selected network must have chainId set in hardhat configuration');
 
-      hre.config.networks.hardhat.forking = {
-        enabled: true,
-        url: network.url,
-      };
+      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
 
-      // TODO: would be better to pass this as an option for the builder rather than messing with hh config here
-      hre.config.networks.hardhat.chainId = network.chainId;
+      builder = new ChainBuilder({
+        name,
+        version,
+        def,
+        preset,
+
+        readMode: wipe ? 'none' : 'metadata',
+        writeMode: 'none',
+
+        chainId: 31337,
+        provider,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
+        async getSigner(addr: string) {
+          return hre.ethers.getSigner(addr);
+        },
+
+        async getDefaultSigner() {
+          return (await hre.ethers.getSigners())[0];
+        },
+
+        async getArtifact(name: string) {
+          return hre.artifacts.readArtifact(name);
+        },
+      });
+    } else if (hre.network.name === 'hardhat') {
+      // clean hardhat network build
+      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
+
+      builder = new ChainBuilder({
+        name,
+        version,
+        def,
+        preset,
+
+        readMode: wipe ? 'none' : 'all',
+        writeMode: 'all',
+
+        provider,
+        chainId: 31337,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
+        async getSigner(addr: string) {
+          return hre.ethers.getSigner(addr);
+        },
+
+        async getArtifact(name: string) {
+          return hre.artifacts.readArtifact(name);
+        },
+      });
+    } else {
+      // deploy to live network
+      builder = new ChainBuilder({
+        name,
+        version,
+        def,
+        preset,
+
+        readMode: wipe ? 'none' : 'metadata',
+        writeMode: 'metadata',
+
+        provider: hre.ethers.provider as unknown as ethers.providers.JsonRpcProvider,
+        chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
+        async getSigner(addr: string) {
+          return hre.ethers.getSigner(addr);
+        },
+
+        async getDefaultSigner() {
+          return (await hre.ethers.getSigners())[0];
+        },
+
+        async getArtifact(name: string) {
+          return hre.artifacts.readArtifact(name);
+        },
+      });
     }
 
+    console.log('chart dirs', builder.chartsDir, builder.chartDir);
+
+    const registry = new CannonRegistry({
+      ipfsOptions: hre.config.cannon.ipfsConnection,
+      signerOrProvider: hre.config.cannon.registryEndpoint
+        ? new JsonRpcProvider(hre.config.cannon.registryEndpoint)
+        : hre.ethers.provider,
+      address: hre.config.cannon.registryAddress,
+    });
+
+    const dependencies = await builder.getDependencies(mappedOptions);
+
+    for (const dependency of dependencies) {
+      console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
+      await downloadPackagesRecursive(dependency.source, dependency.chainId, dependency.preset, registry, builder.chartsDir);
+    }
+
+    builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
+    builder.on(Events.DeployContract, (c) => console.log(`deployed contract ${c.address}`));
+    builder.on(Events.DeployTxn, (t) => console.log(`ran txn ${t.hash}`));
+
+    await builder.build(mappedOptions);
+
+    console.log('outputs', await builder.getOutputs());
+
+    await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
+      outputs: await builder.getOutputs(),
+    });
+
     if (port) {
-      // ensure forking configuration is set and ready
-      await hre.run('node', { port });
-    } else {
-      await buildCannon(hre, options, file, storageMode);
+      console.log('RPC Server open on port', port);
+
+      // dont exit
+      await new Promise(() => {});
     }
 
     return {};
   });
-
-async function buildCannon(hre: HardhatRuntimeEnvironment, options: string[], file: string, storageMode: StorageMode) {
-  const filepath = path.resolve(hre.config.paths.root, file);
-
-  // options can be passed through commandline, or environment
-  const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
-
-  console.log('Building cannonfile: ', path.relative(process.cwd(), filepath));
-
-  const def = loadCannonfile(hre, filepath);
-  const { name, version } = def;
-
-  const builder = new ChainBuilder({ name, version, hre, def, storageMode });
-  const dependencies = await builder.getDependencies(mappedOptions);
-
-  if (dependencies.length > 0) {
-    await hre.run(SUBTASK_DOWNLOAD, { images: dependencies });
-  }
-
-  await builder.build(mappedOptions);
-
-  //console.log(builder.getOutputs());
-
-  await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
-    outputs: builder.getOutputs(),
-  });
-}

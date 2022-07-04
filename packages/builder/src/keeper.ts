@@ -1,8 +1,7 @@
 import _ from 'lodash';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext } from './types';
+import { ChainBuilderContext, ChainBuilderRuntime } from './types';
 import { ChainDefinitionScriptSchema } from './util';
 
 export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;
@@ -17,13 +16,7 @@ export interface Outputs {
 export default {
   validate: ChainDefinitionScriptSchema,
 
-  async getState(
-    _: HardhatRuntimeEnvironment,
-    ctx: ChainBuilderContext,
-    config: Config,
-    // Leaving storage param for future usage
-    storage: string // eslint-disable-line @typescript-eslint/no-unused-vars
-  ) {
+  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -48,7 +41,7 @@ export default {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(hre: HardhatRuntimeEnvironment, config: Config): Promise<Outputs> {
+  async exec(_runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, _config: Config): Promise<Outputs> {
     return {};
   },
 };
