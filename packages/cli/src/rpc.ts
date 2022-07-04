@@ -1,16 +1,20 @@
-import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 
-import { subtask } from 'hardhat/config';
-import { reject } from 'lodash';
-import { debug } from 'util';
+import { spawn } from 'child_process';
 
-import { SUBTASK_RPC } from '../task-names';
+import Debug from 'debug';
 
-const ANVIL_START_TIMEOUT = 3000;
+const debug = Debug('cannon:cli:rpc');
 
-subtask(SUBTASK_RPC).setAction(({ port, forkUrl }): Promise<ethers.providers.JsonRpcProvider> => {
-  const opts = ['--port', port];
+type RpcOptions = {
+  port: number;
+  forkUrl: string;
+};
+
+export const ANVIL_START_TIMEOUT = 3000;
+
+export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
+  const opts = ['--port', port.toString()];
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
   }
@@ -31,16 +35,16 @@ subtask(SUBTASK_RPC).setAction(({ port, forkUrl }): Promise<ethers.providers.Jso
         if (state == 'spawning') {
           reject(
             new Error(`Anvil failed to start: ${err}
-
-Though it is not necessary for your hardhat project, Foundry is required to use Cannon. 
-
-Ensure you have foundry and anvil installed by running the following commands:
-
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
-
-For more info, see https://book.getfoundry.sh/getting-started/installation.html
-          `)
+  
+  Foundry is required to use Cannon CLI. 
+  
+  Ensure you have foundry and anvil installed by running the following commands:
+  
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  
+  For more info, see https://book.getfoundry.sh/getting-started/installation.html
+            `)
           );
         }
       });
@@ -56,7 +60,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
-        debug('cannon:hardhat:rpc', chunk);
+        debug('cannon:cli:rpc', chunk);
       });
 
       anvilInstance.stderr.on('data', (rawChunk) => {
@@ -68,4 +72,4 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
       setTimeout(() => reject(new Error('anvil failed to start')), ANVIL_START_TIMEOUT)
     ),
   ]);
-});
+}

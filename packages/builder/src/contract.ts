@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
 
@@ -111,7 +111,7 @@ export default {
 
     return {
       contracts: {
-        [runtime.currentLabel || '']: {
+        [runtime.currentLabel?.split('.')[1] || '']: {
           address: receipt.contractAddress,
           abi: JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string),
           constructorArgs: config.args || [],

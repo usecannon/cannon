@@ -146,13 +146,7 @@ export default {
     return config;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config,
-    _storage: string,
-    selfLabel: string
-  ): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const txns: TransactionMap = {};
@@ -179,7 +173,9 @@ export default {
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);
 
-      const label = config.target?.length === 1 ? selfLabel : `${selfLabel}_${t}`;
+      const currentLabel = runtime.currentLabel?.split('.')[1];
+
+      const label = config.target?.length === 1 ? currentLabel || '' : `${currentLabel}_${t}`;
 
       txns[label] = {
         hash: receipt.transactionHash,

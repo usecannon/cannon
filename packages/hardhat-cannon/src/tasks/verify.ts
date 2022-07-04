@@ -25,7 +25,8 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       name,
       version,
       readMode: 'metadata',
-      provider: hre.ethers.provider as ethers.providers.BaseProvider,
+      chainId: (await hre.ethers.provider.getNetwork()).chainId,
+      provider: hre.ethers.provider as ethers.providers.JsonRpcProvider,
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },

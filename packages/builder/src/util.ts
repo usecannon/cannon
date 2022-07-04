@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import { ethers } from 'ethers';
 
-import fs from 'fs-extra';
+import fs, { existsSync } from 'fs-extra';
 import path from 'path';
+import { CannonRegistry, ChainBuilder, getChartDir, getLayerFiles, getSavedChartsDir } from '.';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
@@ -46,7 +47,7 @@ export function hashDirectory(path: string): Buffer {
  * @returns ethers signer
  */
 export async function getExecutionSigner(
-  provider: ethers.providers.BaseProvider,
+  provider: ethers.providers.JsonRpcProvider,
   txn: ethers.providers.TransactionRequest,
   salt = ''
 ): Promise<ethers.Signer> {
@@ -63,8 +64,8 @@ export async function getExecutionSigner(
   const hash = hasher.digest('hex');
   const address = '0x' + hash.slice(0, 40);
 
-  await provider.perform('hardhat_impersonateAccount', [address]);
-  await provider.perform('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
+  await provider.send('hardhat_impersonateAccount', [address]);
+  await provider.send('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
 
   return await (provider as ethers.providers.JsonRpcProvider).getSigner(address);
 }
@@ -84,6 +85,24 @@ export async function getStoredArtifact(chartDir: string, name: string) {
   }
 
   return artifactData;
+}
+
+export async function passThroughArtifact(
+  chartDir: string,
+  getArtifact: (name: string) => Promise<ContractArtifact>,
+  name: string
+) {
+  const artifactFile = path.join(chartDir, 'contracts', name + '.json');
+  const artifact = await getArtifact(name);
+
+  await fs.mkdirp(path.dirname(artifactFile));
+  await fs.writeFile(artifactFile, JSON.stringify(artifact));
+
+  return artifact;
+}
+
+export async function clearArtifacts(chartDir: string) {
+  await fs.rm(chartDir, { recursive: true });
 }
 
 export function getContractFromPath(ctx: ChainBuilderContext, path: string) {

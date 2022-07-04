@@ -2,10 +2,9 @@ import path from 'path';
 import { task } from 'hardhat/config';
 
 import { CannonRegistry } from '@usecannon/builder';
-import IPFS from '../ipfs';
 import loadCannonfile from '../internal/load-cannonfile';
 import { TASK_PUBLISH } from '../task-names';
-import { exportChain } from '@usecannon/builder';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
@@ -15,28 +14,29 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
 
-    const ipfs = new IPFS(hre.config.cannon.ipfsConnection);
+    const signers = await hre.ethers.getSigners();
+
+    if (!signers || !signers.length) {
+      throw new Error('no signer configured for upload of artifacts');
+    }
+
+    console.log(
+      `Using wallet address ${signers[0].address} to register the package. To change this, check your hardhat configuration.`
+    );
+
     const registry = new CannonRegistry({
-      endpoint: hre.config.cannon.registryEndpoint,
+      ipfsOptions: hre.config.cannon.ipfsConnection,
+      signerOrProvider: signers[0],
       address: hre.config.cannon.registryAddress,
-      privateKey: hre.config.cannon.publisherPrivateKey,
     });
 
-    const exported = await exportChain(hre.config.paths.cannon, name, version);
+    const splitTags = tags.split(',');
 
-    console.log(`Uploading chain to IPFS (${exported.length})...`);
+    console.log(`Uploading and registering package ${name}:${version}...`);
 
-    const result = await ipfs.client.add({
-      content: exported,
-    });
+    const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, hre.config.paths.cannon);
 
-    const folderHash = result.cid.toV0().toString();
-
-    const url = `ipfs://${folderHash}`;
-
-    console.log(`Publishing ${name}@${version} with url "${url}"`);
-
-    await registry.publish(name, version, tags.split(','), url);
+    console.log('txn:', txn.transactionHash, txn.status);
 
     console.log('Complete!');
   });

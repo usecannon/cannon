@@ -4,10 +4,12 @@ import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import loadCannonfile from '../internal/load-cannonfile';
-import { ChainBuilder } from '@usecannon/builder';
-import { SUBTASK_DOWNLOAD, SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
+import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events, getChartDir, getSavedChartsDir } from '@usecannon/builder';
+import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { existsSync } from 'fs';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -24,8 +26,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     undefined,
     types.int
   )
+  .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
+  .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, options, dryRun, port }, hre) => {
+  .setAction(async ({ noCompile, file, options, dryRun, port, preset, wipe }, hre) => {
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
     }
@@ -54,11 +58,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         name,
         version,
         def,
+        preset,
 
-        readMode: 'metadata',
+        readMode: wipe ? 'none' : 'metadata',
         writeMode: 'none',
 
+        chainId: 31337,
         provider,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           return hre.ethers.getSigner(addr);
         },
@@ -79,11 +87,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         name,
         version,
         def,
+        preset,
 
-        readMode: 'all',
+        readMode: wipe ? 'none' : 'all',
         writeMode: 'all',
 
         provider,
+        chainId: 31337,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           return hre.ethers.getSigner(addr);
         },
@@ -93,15 +105,20 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
       });
     } else {
+      // deploy to live network
       builder = new ChainBuilder({
         name,
         version,
         def,
+        preset,
 
-        readMode: 'metadata',
+        readMode: wipe ? 'none' : 'metadata',
         writeMode: 'metadata',
 
-        provider: hre.ethers.provider as ethers.providers.BaseProvider,
+        provider: hre.ethers.provider as unknown as ethers.providers.JsonRpcProvider,
+        chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
+        baseDir: hre.config.paths.root,
+        savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           return hre.ethers.getSigner(addr);
         },
@@ -116,21 +133,40 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
+    console.log('chart dirs', builder.chartsDir, builder.chartDir);
+
+    const registry = new CannonRegistry({
+      ipfsOptions: hre.config.cannon.ipfsConnection,
+      signerOrProvider: hre.config.cannon.registryEndpoint
+        ? new JsonRpcProvider(hre.config.cannon.registryEndpoint)
+        : hre.ethers.provider,
+      address: hre.config.cannon.registryAddress,
+    });
+
     const dependencies = await builder.getDependencies(mappedOptions);
 
-    if (dependencies.length > 0) {
-      await hre.run(SUBTASK_DOWNLOAD, { images: dependencies });
+    for (const dependency of dependencies) {
+      console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
+      await downloadPackagesRecursive(dependency.source, dependency.chainId, dependency.preset, registry, builder.chartsDir);
     }
 
+    builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
+    builder.on(Events.DeployContract, (c) => console.log(`deployed contract ${c.address}`));
+    builder.on(Events.DeployTxn, (t) => console.log(`ran txn ${t.hash}`));
+
     await builder.build(mappedOptions);
+
+    console.log('outputs', await builder.getOutputs());
 
     await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
       outputs: await builder.getOutputs(),
     });
 
     if (port) {
-      // ensure forking configuration is set and ready
-      await hre.run('node', { port });
+      console.log('RPC Server open on port', port);
+
+      // dont exit
+      await new Promise(() => {});
     }
 
     return {};

@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 
 import Ajv from 'ajv/dist/jtd';
 import { JTDDataType } from 'ajv/dist/core';
@@ -100,7 +100,10 @@ export type StorageMode = 'all' | 'metadata' | 'none';
 
 export interface ChainBuilderRuntime {
   // Interface to which all transactions should be sent and all state queried
-  provider: ethers.providers.BaseProvider;
+  provider: ethers.providers.JsonRpcProvider;
+
+  // chainID to interact with
+  chainId: number;
 
   // returns the signer associated with the given address. Reverts if the signer is not found or cannot be populated.
   getSigner: (addr: string) => Promise<ethers.Signer>;
@@ -113,6 +116,9 @@ export interface ChainBuilderRuntime {
 
   // Directory where relative file resolutions should originate from. Usually the location of package.json for currently built project
   baseDir: string | null;
+
+  // Directory where cannon stores all of its charts. `chartDir` is derived from this
+  chartsDir: string;
 
   // Directory where cannon chart is located
   chartDir: string | null;
@@ -132,3 +138,33 @@ export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'cont
 export interface ChainBuilderOptions {
   [key: string]: OptionTypesTs;
 }
+
+export type DeploymentInfo = {
+  // setting overrides used to build this chain
+  options: ChainBuilderOptions;
+
+  // version of cannon that this was built with
+  buildVersion: number;
+
+  // basenames of the files which should be loaded to recreate the chain
+  heads: string[];
+
+  // location for the zip archive with the actual files for the chain/metadata
+  ipfsHash: string;
+};
+
+export type DeploymentManifest = {
+  // contents of cannonfile.toml stringified
+  def: ChainDefinition;
+
+  // archive which contains miscellaneus dependencies ex. documentation pages, contracts, etc.
+  misc: {
+    ipfsHash: string;
+  };
+
+  deploys: {
+    [chainId: string]: {
+      [preset: string]: DeploymentInfo;
+    };
+  };
+};

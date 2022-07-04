@@ -1,7 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import { ChainDefinition } from './types';
+import { ChainDefinition, DeploymentInfo, DeploymentManifest } from './types';
+import _ from 'lodash';
+
+const DEPLOY_FILE_INDENTATION = 4;
 
 export function getSavedChartsDir() {
   if (process.env.HOME) {
@@ -17,36 +20,79 @@ export function getChartDir(chartsDir: string, name: string, version: string) {
   return path.join(chartsDir, name, version);
 }
 
-export function getLayerFiles(chartDir: string, chainId: number, n: number) {
-  const filename = `${chainId}-${n}`;
+export function getDeploymentInfoFile(chartDir: string) {
+  return path.join(chartDir, 'deploy.json');
+}
+
+export async function getAllDeploymentInfos(chartDir: string): Promise<DeploymentManifest> {
+  const file = getDeploymentInfoFile(chartDir);
+
+  if (!fs.existsSync(file)) {
+    return { deploys: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
+  }
+
+  return (await fs.readJson(file)) as DeploymentManifest;
+}
+
+export async function getDeploymentInfo(chartDir: string, network: number, label: string): Promise<DeploymentInfo | null> {
+  const deployInfo = await getAllDeploymentInfos(chartDir);
+
+  return _.get(deployInfo.deploys, `${network}.${label}`, null) as unknown as DeploymentInfo | null;
+}
+
+export async function putDeploymentInfo(chartDir: string, chainId: number, label: string, info: DeploymentInfo) {
+  const deployInfo = await getAllDeploymentInfos(chartDir);
+
+  _.set(deployInfo.deploys, `${chainId}.${label}`, info);
+
+  await fs.writeFile(getDeploymentInfoFile(chartDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
+}
+
+export async function clearDeploymentInfo(chartDir: string, chainId: number, label: string) {
+  // delete associated files
+  const prefix = `${chainId}-${label}`;
+  for (const file in fs.readdir(chartDir)) {
+    if (file.startsWith(prefix)) {
+      await fs.rm(path.join(chartDir, file));
+    }
+  }
+
+  // delete entry in deploy file
+  const deployInfo = await getAllDeploymentInfos(chartDir);
+  delete deployInfo.deploys[chainId.toString()][label];
+  await fs.writeFile(getDeploymentInfoFile(chartDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
+}
+
+export function getLayerFiles(chartDir: string, chainId: number, label: string, n: number) {
+  const filename = `${chainId}-${label}/${n}`;
 
   const basename = path.join(chartDir, filename);
 
   return {
-    cannonfile: path.join(chartDir, 'cannonfile.json'),
     chain: basename + '.chain',
     metadata: basename + '.json',
+    basename,
   };
 }
 
 export async function exportChain(chartsDir: string, name: string, version: string): Promise<Buffer> {
   const zip = new AdmZip();
 
-  await zip.addLocalFolderPromise(getChartDir(chartsDir, name, version), {});
-
+  const folder = getChartDir(chartsDir, name, version);
+  await zip.addLocalFolderPromise(folder, {});
   return zip.toBufferPromise();
 }
 
 export async function importChain(chartsDir: string, buf: Buffer): Promise<ChainDefinition> {
   const zip = new AdmZip(buf);
 
-  const manifest = JSON.parse(zip.readAsText('cannonfile.json'));
+  const manifest = JSON.parse(zip.readAsText('deploy.json')) as DeploymentManifest;
 
   // manifest determines where to store the files
-  const cacheDir = getChartDir(chartsDir, manifest.name, manifest.version);
-  await zip.extractAllTo(cacheDir, true);
+  const dir = getChartDir(chartsDir, manifest.def.name, manifest.def.version);
+  await zip.extractAllTo(dir, true);
 
-  return manifest as ChainDefinition;
+  return manifest.def;
 }
 
 export async function associateTag(chartsDir: string, name: string, version: string, tag: string) {

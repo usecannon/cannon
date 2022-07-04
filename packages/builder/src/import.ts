@@ -12,6 +12,8 @@ const config = {
     source: { type: 'string' },
   },
   optionalProperties: {
+    chainId: { type: 'int32' },
+    preset: { type: 'string' },
     options: {
       values: { type: 'string' },
     },
@@ -39,6 +41,7 @@ export default {
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
+    config.preset = _.template(config.preset)(ctx) || 'main';
 
     if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
@@ -55,11 +58,18 @@ export default {
     // download if necessary upstream
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
+
     const builder = new ChainBuilder({
       name,
       version,
-      ...runtime,
       writeMode: 'none',
+      readMode: runtime.readMode,
+      provider: runtime.provider,
+      preset: config.preset,
+      chainId: config.chainId || runtime.chainId,
+      savedChartsDir: runtime.chartsDir,
+      getSigner: runtime.getSigner,
+      getDefaultSigner: runtime.getDefaultSigner,
     });
 
     await builder.build(config.options || {});
