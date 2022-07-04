@@ -2,3 +2,4 @@ artifacts/
 cache/
 typechain/
 deployments/
+cannon/

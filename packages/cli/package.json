@@ -5,6 +5,7 @@
   "main": "hardhat.config.ts",
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "mocha --exit ./test/**/*.test.ts",
     "start": "node dist/src/index.js"
   },
@@ -25,7 +26,7 @@
     "typescript": "^4.6.2"
   },
   "bin": {
-    "cannon": "dist/index.js"
+    "cannon": "dist/src/index.js"
   },
   "dependencies": {
     "@synthetixio/wei": "^2.74.1",
