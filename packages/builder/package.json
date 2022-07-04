@@ -31,5 +31,6 @@
     "ipfs-http-client": "^56.0.3",
     "lodash": "^4.17.21",
     "typescript": "^4.6.2"
-  }
+  },
+  "gitHead": "e4728fb693af8af493316a328a3660e40d996d25"
 }
