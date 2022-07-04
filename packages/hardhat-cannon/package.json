@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:Synthetixio/cannon",
   "author": "Synthetix",
@@ -13,7 +13,6 @@
     "hardhat",
     "hardhat-plugin"
   ],
-
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
@@ -52,7 +51,7 @@
     "@types/adm-zip": "^0.5.0",
     "@types/archiver": "^5.3.1",
     "@types/yazl": "^2.4.2",
-    "@usecannon/builder": "^0.5.4",
+    "@usecannon/builder": "^0.6.0",
     "adm-zip": "^0.5.9",
     "ajv": "^8.10.0",
     "debug": "^4.3.3",
