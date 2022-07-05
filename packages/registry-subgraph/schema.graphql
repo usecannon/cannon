@@ -6,12 +6,12 @@ type Package @entity {
   tags: [PackageTag!] @derivedFrom(field: "package")
   versions: [Version!]! @derivedFrom(field: "package")
   publisher: [PackagePublisher!] @derivedFrom(field: "package")
+  verifiers: [String!]!
 }
 
 type Publisher @entity {
   id: ID!
   address: String!
-  verifiers: [String!]! // could turn publisher into "account" and then this is also a many-to-many ?
   package: [PackagePublisher!] @derivedFrom(field: "publisher")
 }
 
