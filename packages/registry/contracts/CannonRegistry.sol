@@ -18,7 +18,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     _upgradeTo(newImplementation);
   }
 
-  function validateProtocolName(bytes32 name) public pure returns (bool) {
+  function validatePackageName(bytes32 name) public pure returns (bool) {
     // each character must be in the supported charset
 
     for (uint i = 0; i < 32; i++) {
@@ -67,12 +67,12 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     }
 
     if (s.owners[_name] == address(0)) {
-      if (!validateProtocolName(_name)) {
+      if (!validatePackageName(_name)) {
         revert InvalidName(_name);
       }
 
       s.owners[_name] = msg.sender;
-      s.protocols.push(_name);
+      s.packages.push(_name);
     }
 
     if (bytes(s.urls[_name][_version]).length == 0) {
@@ -116,7 +116,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   }
 
   function getPackages() external view returns (bytes32[] memory) {
-    return _store().protocols;
+    return _store().packages;
   }
 
   function getPackageVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {

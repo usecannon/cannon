@@ -3,7 +3,7 @@ pragma solidity ^0.8.11;
 
 contract Storage {
     struct Store {
-        bytes32[] protocols;
+        bytes32[] packages;
         mapping(bytes32 => mapping(bytes32 => string)) urls;
         mapping(bytes32 => address) owners;
         mapping(bytes32 => bytes32[]) versions;

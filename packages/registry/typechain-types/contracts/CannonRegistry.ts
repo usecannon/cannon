@@ -44,7 +44,7 @@ export interface CannonRegistryInterface extends utils.Interface {
     "renounceNomination()": FunctionFragment;
     "simulateUpgradeTo(address)": FunctionFragment;
     "upgradeTo(address)": FunctionFragment;
-    "validateProtocolName(bytes32)": FunctionFragment;
+    "validatePackageName(bytes32)": FunctionFragment;
   };
 
   getFunction(
@@ -65,7 +65,7 @@ export interface CannonRegistryInterface extends utils.Interface {
       | "renounceNomination"
       | "simulateUpgradeTo"
       | "upgradeTo"
-      | "validateProtocolName"
+      | "validatePackageName"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -135,7 +135,7 @@ export interface CannonRegistryInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "validateProtocolName",
+    functionFragment: "validatePackageName",
     values: [PromiseOrValue<BytesLike>]
   ): string;
 
@@ -195,7 +195,7 @@ export interface CannonRegistryInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "validateProtocolName",
+    functionFragment: "validatePackageName",
     data: BytesLike
   ): Result;
 
@@ -349,7 +349,7 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    validateProtocolName(
+    validatePackageName(
       name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -423,7 +423,7 @@ export interface CannonRegistry extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  validateProtocolName(
+  validatePackageName(
     name: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -493,7 +493,7 @@ export interface CannonRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    validateProtocolName(
+    validatePackageName(
       name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -597,7 +597,7 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    validateProtocolName(
+    validatePackageName(
       name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -674,7 +674,7 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    validateProtocolName(
+    validatePackageName(
       name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

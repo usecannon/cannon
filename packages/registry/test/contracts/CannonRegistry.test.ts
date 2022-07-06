@@ -55,33 +55,33 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('validateProtocolName()', function () {
+  describe('validatePackageName()', function () {
     it('only allows lowercase letters, numbers, and dashes', async function () {
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('some--mo-du9le')),
+        await CannonRegistry.validatePackageName(toBytes32('some--mo-du9le')),
         true
       );
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('some_-mo-du9le')),
+        await CannonRegistry.validatePackageName(toBytes32('some_-mo-du9le')),
         false
       );
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('some--mo-du9lE')),
+        await CannonRegistry.validatePackageName(toBytes32('some--mo-du9lE')),
         false
       );
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('some$module')),
+        await CannonRegistry.validatePackageName(toBytes32('some$module')),
         false
       );
     });
 
     it('does not allow dash at beginning or end', async function () {
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('some--module-')),
+        await CannonRegistry.validatePackageName(toBytes32('some--module-')),
         false
       );
       equal(
-        await CannonRegistry.validateProtocolName(toBytes32('-some--module')),
+        await CannonRegistry.validatePackageName(toBytes32('-some--module')),
         false
       );
     });
@@ -91,13 +91,13 @@ describe('CannonRegistry', function () {
       const minLength = Number(await CannonRegistry.MIN_PACKAGE_NAME_LENGTH());
 
       equal(
-        await CannonRegistry.validateProtocolName(
+        await CannonRegistry.validatePackageName(
           toBytes32(testName.slice(0, minLength))
         ),
         true
       );
       equal(
-        await CannonRegistry.validateProtocolName(
+        await CannonRegistry.validatePackageName(
           toBytes32(testName.slice(0, minLength - 1))
         ),
         false
