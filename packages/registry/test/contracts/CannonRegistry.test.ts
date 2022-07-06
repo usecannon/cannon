@@ -141,7 +141,7 @@ describe('CannonRegistry', function () {
       equal(events!.length, 1);
       equal(events![0].event, 'ProtocolPublish');
 
-      const resultUrl = await CannonRegistry.getProtocolUrl(
+      const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
         toBytes32('0.0.1')
       );
@@ -191,14 +191,14 @@ describe('CannonRegistry', function () {
       equal(events![0].event, 'ProtocolPublish');
 
       equal(
-        await CannonRegistry.getProtocolUrl(
+        await CannonRegistry.getPackageUrl(
           toBytes32('some-module'),
           toBytes32('latest')
         ),
         'ipfs://updated-module-hash@0.0.3'
       );
       equal(
-        await CannonRegistry.getProtocolUrl(
+        await CannonRegistry.getPackageUrl(
           toBytes32('some-module'),
           toBytes32('stable')
         ),
@@ -218,10 +218,10 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('nominateProtocolOwner()', function () {
+  describe('nominatePackageOwner()', function () {
     it('should not allow nomination from non-owner', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user2).nominateProtocolOwner(
+        await CannonRegistry.connect(user2).nominatePackageOwner(
           toBytes32('some-module'),
           await user2.getAddress()
         );
@@ -229,13 +229,13 @@ describe('CannonRegistry', function () {
     });
 
     it('nominates', async function () {
-      await CannonRegistry.connect(user1).nominateProtocolOwner(
+      await CannonRegistry.connect(user1).nominatePackageOwner(
         toBytes32('some-module'),
         await user2.getAddress()
       );
 
       equal(
-        await CannonRegistry.getProtocolNominatedOwner(
+        await CannonRegistry.getPackageNominatedOwner(
           toBytes32('some-module')
         ),
         await user2.getAddress()
@@ -243,9 +243,9 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('acceptProtocolOwnership()', function () {
+  describe('acceptPackageOwnership()', function () {
     before('nominate new owner', async function () {
-      await CannonRegistry.connect(user1).nominateProtocolOwner(
+      await CannonRegistry.connect(user1).nominatePackageOwner(
         toBytes32('some-module'),
         await user2.getAddress()
       );
@@ -253,29 +253,29 @@ describe('CannonRegistry', function () {
 
     it('only nominated owner can accept ownership', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user3).acceptProtocolOwnership(
+        await CannonRegistry.connect(user3).acceptPackageOwnership(
           toBytes32('some-module')
         );
       }, 'Unauthorized()');
     });
 
     it('accepts ownership', async function () {
-      await CannonRegistry.connect(user2).acceptProtocolOwnership(
+      await CannonRegistry.connect(user2).acceptPackageOwnership(
         toBytes32('some-module')
       );
     });
   });
 
-  describe('getProtocols()', function () {
+  describe('getPackages()', function () {
     it('returns created protocols', async function () {
-      const result = await CannonRegistry.connect(user2).getProtocols();
+      const result = await CannonRegistry.connect(user2).getPackages();
       ok(Array.isArray(result));
     });
   });
 
-  describe('getProtocolVersions()', function () {
+  describe('getPackageVersions()', function () {
     it('returns protocol versions', async function () {
-      const result = await CannonRegistry.connect(user2).getProtocolVersions(
+      const result = await CannonRegistry.connect(user2).getPackageVersions(
         toBytes32('some-module')
       );
 

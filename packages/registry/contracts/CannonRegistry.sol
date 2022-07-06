@@ -88,7 +88,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     emit ProtocolPublish(_name, _version, _tags, _url, msg.sender);
   }
 
-  function nominateProtocolOwner(bytes32 _name, address _newOwner) external {
+  function nominatePackageOwner(bytes32 _name, address _newOwner) external {
     Store storage s = _store();
 
     if (s.owners[_name] != msg.sender) {
@@ -98,7 +98,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     s.nominatedOwner[_name] = _newOwner;
   }
 
-  function acceptProtocolOwnership(bytes32 _name) external {
+  function acceptPackageOwnership(bytes32 _name) external {
     Store storage s = _store();
 
     address newOwner = s.nominatedOwner[_name];
@@ -111,19 +111,19 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     s.nominatedOwner[_name] = address(0);
   }
 
-  function getProtocolNominatedOwner(bytes32 _protocolName) external view returns (address) {
+  function getPackageNominatedOwner(bytes32 _protocolName) external view returns (address) {
     return _store().nominatedOwner[_protocolName];
   }
 
-  function getProtocols() external view returns (bytes32[] memory) {
+  function getPackages() external view returns (bytes32[] memory) {
     return _store().protocols;
   }
 
-  function getProtocolVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
+  function getPackageVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
     return _store().versions[_protocolName];
   }
 
-  function getProtocolUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
+  function getPackageUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
     return _store().urls[_protocolName][_protocolVersion];
   }
 }

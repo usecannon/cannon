@@ -61,7 +61,7 @@
   },
   {
     "inputs": [],
-    "name": "getProtocols",
+    "name": "getPackages",
     "outputs": [
       {
         "internalType": "bytes32[]",
