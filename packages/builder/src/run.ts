@@ -82,7 +82,7 @@ export default {
 
     const runfile = await import(join(runtime.baseDir, config.exec));
 
-    const outputs = await runfile[config.func](...(config.args || []));
+    const outputs = await runfile[config.func](runtime, ...(config.args || []));
 
     if (!outputs.contracts) {
       throw new Error(
