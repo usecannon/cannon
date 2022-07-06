@@ -2,8 +2,8 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
-import { ChainBuilder } from './builder';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { ChainBuilder } from '../builder';
 
 const debug = Debug('cannon:builder:import');
 
@@ -17,7 +17,7 @@ const config = {
     options: {
       values: { type: 'string' },
     },
-    step: { type: 'int32' },
+    depends: { elements: { type: 'string '} },
   },
 } as const;
 

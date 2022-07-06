@@ -17,7 +17,7 @@ const config = {
   optionalProperties: {
     args: { elements: { type: 'string' } },
     env: { elements: { type: 'string' } },
-    step: { type: 'int32' },
+    depends: { elements: { type: 'string '} },
   },
 } as const;
 

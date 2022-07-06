@@ -15,10 +15,11 @@ const config = {
   optionalProperties: {
     args: { elements: {} },
     libraries: { values: { type: 'string' } },
-    step: { type: 'int32' },
 
     // used to force new copy of a contract (not actually used)
     salt: { type: 'string' },
+    
+    depends: { elements: { type: 'string '} },
   },
 } as const;
 
