@@ -2,11 +2,10 @@ import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import hre from 'hardhat';
-import {ContractTransaction} from 'ethers';
 import { CannonRegistry as TCannonRegistry } from '../typechain-types/contracts/CannonRegistry';
 
 interface DeploymentArtifact {
-  abi: any[];
+  abi: unknown[];
   address: string;
   constructorArgs?: unknown[];
   deployTxnHash: string;
@@ -36,6 +35,14 @@ export async function deployOrUpgradeProxy(implementationAddress: string) {
     const ProxyFactory = await hre.ethers.getContractFactory('Proxy');
     const Proxy = await ProxyFactory.deploy(implementationAddress);
     await Proxy.deployed();
+
+    const CannonRegistry = await hre.ethers.getContractAt('CannonRegistry', Proxy.address) as TCannonRegistry;
+
+    const [owner] = await hre.ethers.getSigners();
+
+    console.log(`Registry owner: ${owner.address}`);
+    await CannonRegistry.nominateNewOwner(owner.address).then((tx) => tx.wait());
+    await CannonRegistry.acceptOwnership().then((tx) => tx.wait());
 
     const artifact = await hre.artifacts.readArtifact('CannonRegistry')
 
