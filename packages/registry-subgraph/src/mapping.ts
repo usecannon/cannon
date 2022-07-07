@@ -4,7 +4,8 @@ import { Package, PackageTag, Tag } from '../generated/schema';
 import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
-  const id = event.params.name.toString() + '@' + event.params.version.toString();
+  const id =
+    event.params.name.toString() + '@' + event.params.version.toString();
   let entity = Package.load(id);
 
   if (!entity) {
@@ -13,10 +14,10 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
 
   // Entity fields can be set based on event parameters
   entity.name = event.params.name.toString();
-  entity.version = event.params.version.toString();
+  //entity.version = event.params.version.toString();
   entity.url = event.params.url;
-  entity.added = event.block.timestamp;
-  entity.publisher = event.transaction.from.toHexString();
+  //entity.added = event.block.timestamp;
+  //entity.publisher = event.transaction.from.toHexString();
 
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
   const metadata_data = ipfs.cat(metadata_path);
@@ -41,7 +42,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   const readme_path = entity.url.slice(7) + '/README.md';
   const readme_data = ipfs.cat(readme_path);
   if (readme_data) {
-    entity.readme = readme_data.toString();
+    //entity.readme = readme_data.toString();
   } else {
     log.warning('Could not retrieve readme for {}', [id]);
   }
@@ -49,7 +50,7 @@ export function handleProtocolPublish(event: ProtocolPublish): void {
   const toml_path = entity.url.slice(7) + '/cannonfile.toml';
   const toml_data = ipfs.cat(toml_path);
   if (toml_data) {
-    entity.cannonfile = toml_data.toString();
+    //entity.cannonfile = toml_data.toString();
   } else {
     log.warning('Could not retrieve cannonfile for {}', [id]);
   }

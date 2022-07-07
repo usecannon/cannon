@@ -3,22 +3,22 @@ type Package @entity {
   name: String!
   description: String!
   url: String!
-  tags: [PackageTag!] @derivedFrom(field: "package")
-  versions: [Version!]! @derivedFrom(field: "package")
-  publisher: [PackagePublisher!] @derivedFrom(field: "package")
+  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
+  versions: [Version!]! @derivedFrom(field: "cannon_package")
+  publisher: [PackagePublisher!] @derivedFrom(field: "cannon_package")
   verifiers: [String!]!
 }
 
 type Publisher @entity {
   id: ID!
   address: String!
-  package: [PackagePublisher!] @derivedFrom(field: "publisher")
+  cannon_package: [PackagePublisher!] @derivedFrom(field: "publisher")
 }
 
 type Version @entity {
   id: ID!
   name: String!
-  package: Package!
+  cannon_package: Package!
   readme: String!
   cannonfile: String!
   added: BigInt!
@@ -31,8 +31,8 @@ type Chain @entity {
   id: ID!
   name: String!
   chain_id: BigInt!
-  version: Version! // Should this be many-to-many, so there's only one entity per network?
-  presets: [Preset!]! @derivedFrom(field: "preset")
+  version: Version! # Should this be many-to-many, so there's only one entity per network?
+  presets: [Preset!]! @derivedFrom(field: "chain")
 }
 
 type Preset @entity {
@@ -44,24 +44,24 @@ type Preset @entity {
 type Tag @entity {
   id: ID!
   count: BigInt!
-  packages: [PackageTag!] @derivedFrom(field: "tag")
+  cannon_packages: [PackageTag!] @derivedFrom(field: "tag")
 }
 
-// Join models
+# Join models
 type DependencyDependent @entity {
   id: ID!
-  dependency: Preset!
-  dependent: Preset!
+  dependency: Version!
+  dependent: Version!
 }
 
 type PackageTag @entity {
   id: ID!
-  package: Package!
+  cannon_package: Package!
   tag: Tag!
 }
 
 type PackagePublisher @entity {
   id: ID!
-  package: Package!
+  cannon_package: Package!
   publisher: Publisher!
 }

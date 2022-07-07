@@ -6,7 +6,7 @@ dataSources:
     name: CannonRegistry
     network: rinkeby
     source:
-      address: "0xa7F19685A1970A84Da7212ed3D74Cc5237408813"
+      address: "0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650"
       abi: CannonRegistry
       startBlock: 10000000
     mapping:
@@ -14,7 +14,7 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - ProtocolPublish
+        - Package
       abis:
         - name: CannonRegistry
           file: CannonRegistry/abis/CannonRegistry.json

@@ -2,23 +2,66 @@ type Package @entity {
   id: ID!
   name: String!
   description: String!
-  version: String!
   url: String!
-  added: BigInt!
-  publisher: String!
+  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
+  versions: [Version!]! @derivedFrom(field: "cannon_package")
+  publisher: [PackagePublisher!] @derivedFrom(field: "cannon_package")
+  verifiers: [String!]!
+}
+
+type Publisher @entity {
+  id: ID!
+  address: String!
+  cannon_package: [PackagePublisher!] @derivedFrom(field: "publisher")
+}
+
+type Version @entity {
+  id: ID!
+  name: String!
+  cannon_package: Package!
   readme: String!
   cannonfile: String!
-  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
+  added: BigInt!
+  dependents: [DependencyDependent!] @derivedFrom(field: "dependent")
+  dependencies: [DependencyDependent!] @derivedFrom(field: "dependency")
+  chains: [Chain!]! @derivedFrom(field: "version")
+}
+
+type Chain @entity {
+  id: ID!
+  name: String!
+  chain_id: BigInt!
+  version: Version! # Should this be many-to-many, so there's only one entity per network?
+  presets: [Preset!]! @derivedFrom(field: "chain")
+}
+
+type Preset @entity {
+  id: ID!
+  name: String!
+  chain: Chain!
 }
 
 type Tag @entity {
   id: ID!
   count: BigInt!
-  packages: [PackageTag!] @derivedFrom(field: "tag")
+  cannon_packages: [PackageTag!] @derivedFrom(field: "tag")
+}
+
+# Join models
+type DependencyDependent @entity {
+  id: ID!
+  dependency: Version!
+  dependent: Version!
 }
 
 type PackageTag @entity {
   id: ID!
   cannon_package: Package!
   tag: Tag!
+}
+
+type PackagePublisher @entity {
+  id: ID!
+  cannon_package: Package!
+  publisher: Publisher!
 }

@@ -10,6 +10,46 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
+export class OwnerChanged extends ethereum.Event {
+  get params(): OwnerChanged__Params {
+    return new OwnerChanged__Params(this);
+  }
+}
+
+export class OwnerChanged__Params {
+  _event: OwnerChanged;
+
+  constructor(event: OwnerChanged) {
+    this._event = event;
+  }
+
+  get oldOwner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newOwner(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class OwnerNominated extends ethereum.Event {
+  get params(): OwnerNominated__Params {
+    return new OwnerNominated__Params(this);
+  }
+}
+
+export class OwnerNominated__Params {
+  _event: OwnerNominated;
+
+  constructor(event: OwnerNominated) {
+    this._event = event;
+  }
+
+  get newOwner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class ProtocolPublish extends ethereum.Event {
   get params(): ProtocolPublish__Params {
     return new ProtocolPublish__Params(this);
@@ -44,47 +84,125 @@ export class ProtocolPublish__Params {
   }
 }
 
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class CannonRegistry extends ethereum.SmartContract {
   static bind(address: Address): CannonRegistry {
     return new CannonRegistry("CannonRegistry", address);
   }
 
-  getPackages(): Array<Bytes> {
-    let result = super.call("getPackages", "getPackages():(bytes32[])", []);
+  MIN_PACKAGE_NAME_LENGTH(): BigInt {
+    let result = super.call(
+      "MIN_PACKAGE_NAME_LENGTH",
+      "MIN_PACKAGE_NAME_LENGTH():(uint256)",
+      []
+    );
 
-    return result[0].toBytesArray();
+    return result[0].toBigInt();
   }
 
-  try_getProtocols(): ethereum.CallResult<Array<Bytes>> {
+  try_MIN_PACKAGE_NAME_LENGTH(): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "getPackages",
-      "getPackages():(bytes32[])",
+      "MIN_PACKAGE_NAME_LENGTH",
+      "MIN_PACKAGE_NAME_LENGTH():(uint256)",
       []
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBytesArray());
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getImplementation(): Address {
+    let result = super.call(
+      "getImplementation",
+      "getImplementation():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_getImplementation(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "getImplementation",
+      "getImplementation():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  getPackageNominatedOwner(_protocolName: Bytes): Address {
+    let result = super.call(
+      "getPackageNominatedOwner",
+      "getPackageNominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(_protocolName)]
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_getPackageNominatedOwner(
+    _protocolName: Bytes
+  ): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "getPackageNominatedOwner",
+      "getPackageNominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(_protocolName)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   getPackageUrl(_protocolName: Bytes, _protocolVersion: Bytes): string {
-    let result = super.call("getPackageUrl", "getPackageUrl(bytes32,bytes32):(string)", [
-      ethereum.Value.fromFixedBytes(_protocolName),
-      ethereum.Value.fromFixedBytes(_protocolVersion)
-    ]);
+    let result = super.call(
+      "getPackageUrl",
+      "getPackageUrl(bytes32,bytes32):(string)",
+      [
+        ethereum.Value.fromFixedBytes(_protocolName),
+        ethereum.Value.fromFixedBytes(_protocolVersion)
+      ]
+    );
 
     return result[0].toString();
   }
 
-  try_getProtocolUrl(
+  try_getPackageUrl(
     _protocolName: Bytes,
     _protocolVersion: Bytes
   ): ethereum.CallResult<string> {
-    let result = super.tryCall("getPackageUrl", "getPackageUrl(bytes32,bytes32):(string)", [
-      ethereum.Value.fromFixedBytes(_protocolName),
-      ethereum.Value.fromFixedBytes(_protocolVersion)
-    ]);
+    let result = super.tryCall(
+      "getPackageUrl",
+      "getPackageUrl(bytes32,bytes32):(string)",
+      [
+        ethereum.Value.fromFixedBytes(_protocolName),
+        ethereum.Value.fromFixedBytes(_protocolVersion)
+      ]
+    );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -93,14 +211,18 @@ export class CannonRegistry extends ethereum.SmartContract {
   }
 
   getPackageVersions(_protocolName: Bytes): Array<Bytes> {
-    let result = super.call("getPackageVersions", "getPackageVersions(bytes32):(bytes32[])", [
-      ethereum.Value.fromFixedBytes(_protocolName)
-    ]);
+    let result = super.call(
+      "getPackageVersions",
+      "getPackageVersions(bytes32):(bytes32[])",
+      [ethereum.Value.fromFixedBytes(_protocolName)]
+    );
 
     return result[0].toBytesArray();
   }
 
-  try_getProtocolVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
+  try_getPackageVersions(
+    _protocolName: Bytes
+  ): ethereum.CallResult<Array<Bytes>> {
     let result = super.tryCall(
       "getPackageVersions",
       "getPackageVersions(bytes32):(bytes32[])",
@@ -113,21 +235,32 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
 
-  nominatedOwner(param0: Bytes): Address {
-    let result = super.call(
-      "nominatedOwner",
-      "nominatedOwner(bytes32):(address)",
-      [ethereum.Value.fromFixedBytes(param0)]
-    );
+  getPackages(): Array<Bytes> {
+    let result = super.call("getPackages", "getPackages():(bytes32[])", []);
+
+    return result[0].toBytesArray();
+  }
+
+  try_getPackages(): ethereum.CallResult<Array<Bytes>> {
+    let result = super.tryCall("getPackages", "getPackages():(bytes32[])", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytesArray());
+  }
+
+  nominatedOwner(): Address {
+    let result = super.call("nominatedOwner", "nominatedOwner():(address)", []);
 
     return result[0].toAddress();
   }
 
-  try_nominatedOwner(param0: Bytes): ethereum.CallResult<Address> {
+  try_nominatedOwner(): ethereum.CallResult<Address> {
     let result = super.tryCall(
       "nominatedOwner",
-      "nominatedOwner(bytes32):(address)",
-      [ethereum.Value.fromFixedBytes(param0)]
+      "nominatedOwner():(address)",
+      []
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -136,18 +269,14 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  owners(param0: Bytes): Address {
-    let result = super.call("owners", "owners(bytes32):(address)", [
-      ethereum.Value.fromFixedBytes(param0)
-    ]);
+  owner(): Address {
+    let result = super.call("owner", "owner():(address)", []);
 
     return result[0].toAddress();
   }
 
-  try_owners(param0: Bytes): ethereum.CallResult<Address> {
-    let result = super.tryCall("owners", "owners(bytes32):(address)", [
-      ethereum.Value.fromFixedBytes(param0)
-    ]);
+  try_owner(): ethereum.CallResult<Address> {
+    let result = super.tryCall("owner", "owner():(address)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -155,44 +284,27 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  protocols(param0: BigInt): Bytes {
-    let result = super.call("protocols", "protocols(uint256):(bytes32)", [
-      ethereum.Value.fromUnsignedBigInt(param0)
-    ]);
+  validatePackageName(name: Bytes): boolean {
+    let result = super.call(
+      "validatePackageName",
+      "validatePackageName(bytes32):(bool)",
+      [ethereum.Value.fromFixedBytes(name)]
+    );
 
-    return result[0].toBytes();
+    return result[0].toBoolean();
   }
 
-  try_protocols(param0: BigInt): ethereum.CallResult<Bytes> {
-    let result = super.tryCall("protocols", "protocols(uint256):(bytes32)", [
-      ethereum.Value.fromUnsignedBigInt(param0)
-    ]);
+  try_validatePackageName(name: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "validatePackageName",
+      "validatePackageName(bytes32):(bool)",
+      [ethereum.Value.fromFixedBytes(name)]
+    );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBytes());
-  }
-
-  urls(param0: Bytes, param1: Bytes): string {
-    let result = super.call("urls", "urls(bytes32,bytes32):(string)", [
-      ethereum.Value.fromFixedBytes(param0),
-      ethereum.Value.fromFixedBytes(param1)
-    ]);
-
-    return result[0].toString();
-  }
-
-  try_urls(param0: Bytes, param1: Bytes): ethereum.CallResult<string> {
-    let result = super.tryCall("urls", "urls(bytes32,bytes32):(string)", [
-      ethereum.Value.fromFixedBytes(param0),
-      ethereum.Value.fromFixedBytes(param1)
-    ]);
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toString());
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 }
 
@@ -212,16 +324,42 @@ export class AcceptOwnershipCall__Inputs {
   constructor(call: AcceptOwnershipCall) {
     this._call = call;
   }
-
-  get _name(): Bytes {
-    return this._call.inputValues[0].value.toBytes();
-  }
 }
 
 export class AcceptOwnershipCall__Outputs {
   _call: AcceptOwnershipCall;
 
   constructor(call: AcceptOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class AcceptPackageOwnershipCall extends ethereum.Call {
+  get inputs(): AcceptPackageOwnershipCall__Inputs {
+    return new AcceptPackageOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): AcceptPackageOwnershipCall__Outputs {
+    return new AcceptPackageOwnershipCall__Outputs(this);
+  }
+}
+
+export class AcceptPackageOwnershipCall__Inputs {
+  _call: AcceptPackageOwnershipCall;
+
+  constructor(call: AcceptPackageOwnershipCall) {
+    this._call = call;
+  }
+
+  get _name(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+}
+
+export class AcceptPackageOwnershipCall__Outputs {
+  _call: AcceptPackageOwnershipCall;
+
+  constructor(call: AcceptPackageOwnershipCall) {
     this._call = call;
   }
 }
@@ -243,6 +381,36 @@ export class NominateNewOwnerCall__Inputs {
     this._call = call;
   }
 
+  get newNominatedOwner(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class NominateNewOwnerCall__Outputs {
+  _call: NominateNewOwnerCall;
+
+  constructor(call: NominateNewOwnerCall) {
+    this._call = call;
+  }
+}
+
+export class NominatePackageOwnerCall extends ethereum.Call {
+  get inputs(): NominatePackageOwnerCall__Inputs {
+    return new NominatePackageOwnerCall__Inputs(this);
+  }
+
+  get outputs(): NominatePackageOwnerCall__Outputs {
+    return new NominatePackageOwnerCall__Outputs(this);
+  }
+}
+
+export class NominatePackageOwnerCall__Inputs {
+  _call: NominatePackageOwnerCall;
+
+  constructor(call: NominatePackageOwnerCall) {
+    this._call = call;
+  }
+
   get _name(): Bytes {
     return this._call.inputValues[0].value.toBytes();
   }
@@ -252,10 +420,10 @@ export class NominateNewOwnerCall__Inputs {
   }
 }
 
-export class NominateNewOwnerCall__Outputs {
-  _call: NominateNewOwnerCall;
+export class NominatePackageOwnerCall__Outputs {
+  _call: NominatePackageOwnerCall;
 
-  constructor(call: NominateNewOwnerCall) {
+  constructor(call: NominatePackageOwnerCall) {
     this._call = call;
   }
 }
@@ -298,6 +466,92 @@ export class PublishCall__Outputs {
   _call: PublishCall;
 
   constructor(call: PublishCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceNominationCall extends ethereum.Call {
+  get inputs(): RenounceNominationCall__Inputs {
+    return new RenounceNominationCall__Inputs(this);
+  }
+
+  get outputs(): RenounceNominationCall__Outputs {
+    return new RenounceNominationCall__Outputs(this);
+  }
+}
+
+export class RenounceNominationCall__Inputs {
+  _call: RenounceNominationCall;
+
+  constructor(call: RenounceNominationCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceNominationCall__Outputs {
+  _call: RenounceNominationCall;
+
+  constructor(call: RenounceNominationCall) {
+    this._call = call;
+  }
+}
+
+export class SimulateUpgradeToCall extends ethereum.Call {
+  get inputs(): SimulateUpgradeToCall__Inputs {
+    return new SimulateUpgradeToCall__Inputs(this);
+  }
+
+  get outputs(): SimulateUpgradeToCall__Outputs {
+    return new SimulateUpgradeToCall__Outputs(this);
+  }
+}
+
+export class SimulateUpgradeToCall__Inputs {
+  _call: SimulateUpgradeToCall;
+
+  constructor(call: SimulateUpgradeToCall) {
+    this._call = call;
+  }
+
+  get newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SimulateUpgradeToCall__Outputs {
+  _call: SimulateUpgradeToCall;
+
+  constructor(call: SimulateUpgradeToCall) {
+    this._call = call;
+  }
+}
+
+export class UpgradeToCall extends ethereum.Call {
+  get inputs(): UpgradeToCall__Inputs {
+    return new UpgradeToCall__Inputs(this);
+  }
+
+  get outputs(): UpgradeToCall__Outputs {
+    return new UpgradeToCall__Outputs(this);
+  }
+}
+
+export class UpgradeToCall__Inputs {
+  _call: UpgradeToCall;
+
+  constructor(call: UpgradeToCall) {
+    this._call = call;
+  }
+
+  get newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class UpgradeToCall__Outputs {
+  _call: UpgradeToCall;
+
+  constructor(call: UpgradeToCall) {
     this._call = call;
   }
 }
