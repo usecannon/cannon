@@ -4,11 +4,7 @@ import _ from 'lodash';
 import { Command } from 'commander';
 import prompts from 'prompts';
 
-import {
-  CannonRegistry,
-  ChainBuilder,
-  downloadPackagesRecursive,
-} from '@usecannon/builder';
+import { CannonRegistry, ChainBuilder, downloadPackagesRecursive } from '@usecannon/builder';
 
 import pkg from '../package.json';
 
@@ -30,9 +26,7 @@ const debug = Debug('cannon:cli');
 const program = new Command();
 
 class ReadOnlyCannonRegistry extends CannonRegistry {
-  readonly ipfsOptions: ConstructorParameters<
-    typeof CannonRegistry
-  >[0]['ipfsOptions'];
+  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
 
   constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
     super(opts);
@@ -54,39 +48,23 @@ class ReadOnlyCannonRegistry extends CannonRegistry {
 program
   .name('cannon')
   .version(pkg.version)
-  .description(
-    'Utility for instantly loading cannon packages in standalone contexts.'
-  )
+  .description('Utility for instantly loading cannon packages in standalone contexts.')
   .usage('cannon <name>:<semver> [key=value]')
   .argument('<package>', 'Label and version of the cannon package to load')
   .argument('[settings...]', 'Arguments used to modify the given package')
   .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-  .option(
-    '-p --port <number>',
-    'Port which the JSON-RPC server will be exposed'
-  )
+  .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-  .option(
-    '--logs',
-    'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.'
-  )
+  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
 
+  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
-    '--registry-rpc',
-    'URL to use for eth JSON-RPC endpoint',
-    'http://cloudflare-eth.com/v1/mainnet'
-  )
-  .option(
-    '--registry-address',
+    '--registry-address <address>',
     'Address where the cannon registry is deployed',
     '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
-  .option(
-    '--ipfs-url',
-    'Host to pull IPFS resources from',
-    'https://cloudflare-ipfs.com'
-  );
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cloudflare-ipfs.com');
 
 async function run() {
   program.parse();
@@ -162,12 +140,7 @@ async function run() {
 
   console.log(magentaBright('Downloading package...'));
 
-  await downloadPackagesRecursive(
-    options.name + ':' + options.version,
-    networkInfo.chainId,
-    options.preset,
-    registry
-  );
+  await downloadPackagesRecursive(options.name + ':' + options.version, networkInfo.chainId, options.preset, registry);
 
   const builder = new ChainBuilder({
     name: options.name,
@@ -199,14 +172,10 @@ async function run() {
   debug('start interact');
   console.log(
     greenBright(
-      `${
-        options.name + ':' + options.version
-      } has been deployed to a local node running at ${provider.connection.url}`
+      `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
     )
   );
-  console.log(
-    green(`Press i to interact with these contracts via the command line.`)
-  );
+  console.log(green(`Press i to interact with these contracts via the command line.`));
 
   readline.emitKeypressEvents(process.stdin);
   process.stdin.setRawMode(true);
@@ -215,10 +184,7 @@ async function run() {
       await interact({
         provider,
         signer: signers[0],
-        contracts: _.mapValues(
-          outputs.contracts,
-          (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])
-        ),
+        contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
       });
     }
   });
