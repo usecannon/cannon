@@ -1,6 +1,6 @@
 import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import { Package, Version, PackageTag, Tag } from '../generated/schema';
+import { Package, Version, PackageKeyword, Keyword } from '../generated/schema';
 import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handlePublish(event: ProtocolPublish): void {
@@ -21,9 +21,6 @@ export function handlePublish(event: ProtocolPublish): void {
   version.added = event.block.timestamp;
   version.cannon_package = cannon_package.id;
 
-  cannon_package.save();
-  version.save();
-
   /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
   const metadata_data = ipfs.cat(metadata_path);
@@ -34,11 +31,11 @@ export function handlePublish(event: ProtocolPublish): void {
       entity.description = description.toString();
     }
 
-    const tags = obj.get('tags');
-    if (tags) {
-      const tagsArray = tags.toArray();
-      for (let i = 0; i < tagsArray.length; ++i) {
-        addTag(tagsArray[i].toString(), id);
+    const keywords = obj.get('keywords');
+    if (keywords) {
+      const keywordsArray = keywords.toArray();
+      for (let i = 0; i < keywordsArray.length; ++i) {
+        addKeyword(keywordsArray[i].toString(), id);
       }
     }
   } else {
@@ -64,20 +61,23 @@ export function handlePublish(event: ProtocolPublish): void {
   entity.save();
 }
 
-function addTag(tagId: string, packageId: string): void {
-  let entity = Tag.load(tagId);
+function addKeyword(keywordId: string, packageId: string): void {
+  let entity = Keyword.load(keywordId);
   if (!entity) {
-    entity = new Tag(tagId);
+    entity = new Keyword(keywordId);
   }
   entity.count = entity.count.plus(BigInt.fromI32(1));
   entity.save();
 
-  let join_entity = PackageTag.load(packageId + '-' + tagId);
+  let join_entity = PackageKeyword.load(packageId + '-' + keywordId);
   if (!join_entity) {
-    join_entity = new PackageTag(packageId + '-' + tagId);
+    join_entity = new PackageKeyword(packageId + '-' + keywordId);
     join_entity.cannon_package = packageId;
-    join_entity.tag = tagId;
+    join_entity.keyword = keywordId;
     join_entity.save();
   }
   */
+
+  cannon_package.save();
+  version.save();
 }

@@ -11,7 +11,7 @@ type Version @entity {
   readme: String
   cannonfile: String
   description: String
-  tags: [PackageTag!] @derivedFrom(field: "version")
+  keywords: [PackageKeyword!] @derivedFrom(field: "version")
   url: String!
   publisher: String!
   added: BigInt!
@@ -34,10 +34,10 @@ type Preset @entity {
   chain: Chain!
 }
 
-type Tag @entity {
+type Keyword @entity {
   id: ID!
   count: BigInt!
-  versions: [PackageTag!] @derivedFrom(field: "tag")
+  versions: [PackageKeyword!] @derivedFrom(field: "keyword")
 }
 
 # Join models
@@ -47,8 +47,8 @@ type DependencyDependent @entity {
   dependent: Version!
 }
 
-type PackageTag @entity {
+type PackageKeyword @entity {
   id: ID!
   version: Version!
-  tag: Tag!
+  keyword: Keyword!
 }

@@ -169,8 +169,8 @@ export class Version extends Entity {
     }
   }
 
-  get tags(): Array<string> | null {
-    let value = this.get("tags");
+  get keywords(): Array<string> | null {
+    let value = this.get("keywords");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -178,11 +178,11 @@ export class Version extends Entity {
     }
   }
 
-  set tags(value: Array<string> | null) {
+  set keywords(value: Array<string> | null) {
     if (!value) {
-      this.unset("tags");
+      this.unset("keywords");
     } else {
-      this.set("tags", Value.fromStringArray(<Array<string>>value));
+      this.set("keywords", Value.fromStringArray(<Array<string>>value));
     }
   }
 
@@ -383,7 +383,7 @@ export class Preset extends Entity {
   }
 }
 
-export class Tag extends Entity {
+export class Keyword extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -391,18 +391,18 @@ export class Tag extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Tag entity without an ID");
+    assert(id != null, "Cannot save Keyword entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Tag must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type Keyword must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("Tag", id.toString(), this);
+      store.set("Keyword", id.toString(), this);
     }
   }
 
-  static load(id: string): Tag | null {
-    return changetype<Tag | null>(store.get("Tag", id));
+  static load(id: string): Keyword | null {
+    return changetype<Keyword | null>(store.get("Keyword", id));
   }
 
   get id(): string {
@@ -493,7 +493,7 @@ export class DependencyDependent extends Entity {
   }
 }
 
-export class PackageTag extends Entity {
+export class PackageKeyword extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -501,18 +501,18 @@ export class PackageTag extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save PackageTag entity without an ID");
+    assert(id != null, "Cannot save PackageKeyword entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type PackageTag must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type PackageKeyword must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("PackageTag", id.toString(), this);
+      store.set("PackageKeyword", id.toString(), this);
     }
   }
 
-  static load(id: string): PackageTag | null {
-    return changetype<PackageTag | null>(store.get("PackageTag", id));
+  static load(id: string): PackageKeyword | null {
+    return changetype<PackageKeyword | null>(store.get("PackageKeyword", id));
   }
 
   get id(): string {
@@ -533,12 +533,12 @@ export class PackageTag extends Entity {
     this.set("version", Value.fromString(value));
   }
 
-  get tag(): string {
-    let value = this.get("tag");
+  get keyword(): string {
+    let value = this.get("keyword");
     return value!.toString();
   }
 
-  set tag(value: string) {
-    this.set("tag", Value.fromString(value));
+  set keyword(value: string) {
+    this.set("keyword", Value.fromString(value));
   }
 }
