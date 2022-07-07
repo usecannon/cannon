@@ -1,21 +1,26 @@
+
+import 'hardhat-cannon';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
-import 'hardhat-cannon';
+import '@typechain/hardhat';
+import 'solidity-coverage';
 import 'dotenv/config';
-
-import './tasks/deploy';
 
 import { HardhatUserConfig } from 'hardhat/config';
 
 const config: HardhatUserConfig = {
   solidity: '0.8.11',
   networks: {
+    local: {
+      chainId: 31337,
+      url: 'http://localhost:8545',
+    },
     rinkeby: {
+      chainId: 4,
       url: process.env.NETWORK_ENDPOINT || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
       accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
   },
-
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY || '',
   },

@@ -16,6 +16,6 @@
     "./test",
     "./src",
     "./src/abis/*.json",
-    "types.ts",
+    "types.ts", "../builder/src/ipfs.ts",
   ]
 }

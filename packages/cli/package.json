@@ -1,0 +1,45 @@
+{
+  "name": "@usecannon/cli",
+  "version": "0.6.13",
+  "description": "Utility for instantly loading cannon charts in standalone contexts",
+  "main": "hardhat.config.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "mocha --exit ./test/**/*.test.ts",
+    "start": "node dist/src/index.js"
+  },
+  "keywords": [
+    "cannon",
+    "openzeppelin",
+    "erc20",
+    "erc721"
+  ],
+  "author": "Cannon",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/big.js": "^6.1.4",
+    "@types/debug": "^4.1.7",
+    "@types/fs-extra": "^9.0.13",
+    "@types/lodash": "^4.14.182",
+    "@types/prompts": "^2.0.14",
+    "typescript": "^4.6.2"
+  },
+  "bin": {
+    "cannon": "dist/src/index.js"
+  },
+  "dependencies": {
+    "@synthetixio/wei": "^2.74.1",
+    "@types/node-fetch": "^2.6.2",
+    "@usecannon/builder": "^0.6.13",
+    "chalk": "^4.1.2",
+    "commander": "^9.3.0",
+    "debug": "^4.3.4",
+    "ethers": "^5.6.9",
+    "fs-extra": "^10.1.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "2",
+    "prompts": "^2.4.2"
+  },
+  "gitHead": "729281b410bc26420c9d0217a5b7b1d5e80f58fa"
+}

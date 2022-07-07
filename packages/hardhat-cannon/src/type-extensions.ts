@@ -5,6 +5,7 @@ import { Options as IPFSConnectionOptions } from 'ipfs-http-client';
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
     deployments?: string;
+    cannon?: string;
   }
 
   export interface HardhatUserConfig {
@@ -18,6 +19,7 @@ declare module 'hardhat/types/config' {
 
   export interface ProjectPathsConfig {
     deployments: string;
+    cannon: string;
   }
 
   export interface HardhatConfig {

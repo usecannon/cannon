@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { table } from 'table';
 
-import { ChainBuilderContext } from './builder/types';
+import { ChainBuilderContext } from '@usecannon/builder';
 
 export function printChainBuilderOutput(output: ChainBuilderContext) {
   if (output.contracts) {

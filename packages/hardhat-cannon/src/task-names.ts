@@ -8,5 +8,5 @@ export const TASK_IMPORT = `${TASK_PREFIX}:import`;
 export const TASK_EXPORT = `${TASK_PREFIX}:export`;
 
 export const SUBTASK_LOAD_DEPLOY = `${TASK_PREFIX}:load-deploy`;
-export const SUBTASK_DOWNLOAD = `${TASK_PREFIX}:download`;
 export const SUBTASK_WRITE_DEPLOYMENTS = `${TASK_PREFIX}:write-deployments`;
+export const SUBTASK_RPC = `${TASK_PREFIX}:rpc`;
