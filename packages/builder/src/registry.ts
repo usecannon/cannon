@@ -174,7 +174,12 @@ export class CannonRegistry {
 
     // upload the misc artifacts
     const miscZip = new AdmZip();
-    await miscZip.addLocalFolderPromise(path.join(chartDir, 'contracts'), { zipPath: 'contracts' });
+
+    // contracts may not be deployed in which case, contracts folder is not created
+    if (fs.existsSync(path.join(chartDir, 'contracts'))) {
+      await miscZip.addLocalFolderPromise(path.join(chartDir, 'contracts'), { zipPath: 'contracts' });
+    }
+
     const miscIpfsInfo = await this.ipfs.add(await miscZip.toBufferPromise());
 
     manifest.misc = { ipfsHash: miscIpfsInfo.cid.toV0().toString() };
