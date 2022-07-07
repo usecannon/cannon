@@ -1,5 +1,5 @@
 {
-  "address": "0x503979b2F74B918F9d798F83d894e7574658735c",
+  "address": "0xb114b48FC31caB081255cb50de39D777D01B646C",
   "abi": [
     {
       "type": "error",
@@ -55,6 +55,11 @@
           "name": "addr"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "PackageNotFound",
+      "inputs": []
     },
     {
       "type": "error",
@@ -229,19 +234,6 @@
     },
     {
       "type": "function",
-      "name": "addPackageVerifier",
-      "constant": false,
-      "payable": false,
-      "inputs": [
-        {
-          "type": "address",
-          "name": "_verifier"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
       "name": "getImplementation",
       "constant": true,
       "stateMutability": "view",
@@ -308,24 +300,6 @@
       "outputs": [
         {
           "type": "bytes32[]"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "isPackageVerifier",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "inputs": [
-        {
-          "type": "address",
-          "name": "_verifier"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "bool"
         }
       ]
     },
@@ -412,19 +386,6 @@
     },
     {
       "type": "function",
-      "name": "removePackageVerifier",
-      "constant": false,
-      "payable": false,
-      "inputs": [
-        {
-          "type": "address",
-          "name": "_verifier"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
       "name": "renounceNomination",
       "constant": false,
       "payable": false,
@@ -503,5 +464,5 @@
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "0x58c4fb86a6aefb00e28b06eab37b4f76285e3240c289bfeb8f68629588c49d54"
+  "deployTxnHash": "0x5e0b46dc4c9fbf0d713a07ac4786c6634738f23ef903c95f17c5812121a89dbe"
 }
