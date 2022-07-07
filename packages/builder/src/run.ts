@@ -4,7 +4,7 @@ import { JTDDataType } from 'ajv/dist/core';
 import { join } from 'path';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
-import { hashDirectory } from './util';
+import { hashFs } from './util';
 
 const debug = Debug('cannon:builder:run');
 
@@ -38,8 +38,11 @@ export default {
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan) => {
-      return hashDirectory(pathToScan).toString('hex');
+      return hashFs(pathToScan).toString('hex');
     });
+
+    // also hash the executed file itself
+    auxHashes.push(newConfig.exec);
 
     return {
       auxHashes,
