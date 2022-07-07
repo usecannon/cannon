@@ -25,7 +25,8 @@
     "dist/src/",
     "src/",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "types.ts"
   ],
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.5",

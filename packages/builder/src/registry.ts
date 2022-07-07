@@ -71,7 +71,7 @@ export class CannonRegistry {
       throw new Error('Contract not initialized');
     }
 
-    return await this.contract.getUrl(ethers.utils.formatBytes32String(name), ethers.utils.formatBytes32String(version));
+    return await this.contract.getPackageUrl(ethers.utils.formatBytes32String(name), ethers.utils.formatBytes32String(version));
   }
 
   readIpfs(urlOrHash: string): Promise<Buffer> {
