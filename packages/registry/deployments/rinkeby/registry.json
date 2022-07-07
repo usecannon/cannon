@@ -1,5 +1,5 @@
 {
-  "address": "0x0A0c8D583D22a4604881B3b5f31C94978Ba31dd6",
+  "address": "0x503979b2F74B918F9d798F83d894e7574658735c",
   "abi": [
     {
       "type": "error",
@@ -55,6 +55,11 @@
           "name": "addr"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "TooManyTags",
+      "inputs": []
     },
     {
       "type": "error",
@@ -145,6 +150,40 @@
     {
       "type": "event",
       "anonymous": false,
+      "name": "PackageUnverify",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "name",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "verifier",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "PackageVerify",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "name",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "verifier",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
       "name": "Upgraded",
       "inputs": [
         {
@@ -183,7 +222,20 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "addPackageVerifier",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_verifier"
         }
       ],
       "outputs": []
@@ -210,7 +262,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         }
       ],
       "outputs": [
@@ -228,11 +280,11 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         },
         {
           "type": "bytes32",
-          "name": "_protocolVersion"
+          "name": "_packageVersionName"
         }
       ],
       "outputs": [
@@ -250,7 +302,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         }
       ],
       "outputs": [
@@ -261,14 +313,19 @@
     },
     {
       "type": "function",
-      "name": "getPackages",
+      "name": "isPackageVerifier",
       "constant": true,
       "stateMutability": "view",
       "payable": false,
-      "inputs": [],
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_verifier"
+        }
+      ],
       "outputs": [
         {
-          "type": "bytes32[]"
+          "type": "bool"
         }
       ]
     },
@@ -293,11 +350,11 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
         },
         {
           "type": "address",
-          "name": "_newOwner"
+          "name": "_newPackageOwner"
         }
       ],
       "outputs": []
@@ -336,19 +393,32 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
         },
         {
           "type": "bytes32",
-          "name": "_version"
+          "name": "_packageVersionName"
         },
         {
           "type": "bytes32[]",
-          "name": "_tags"
+          "name": "_packageTags"
         },
         {
           "type": "string",
-          "name": "_url"
+          "name": "_packageVersionUrl"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "removePackageVerifier",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_verifier"
         }
       ],
       "outputs": []
@@ -376,13 +446,26 @@
     },
     {
       "type": "function",
+      "name": "unverifyPackage",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "_packageName"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "upgradeTo",
       "constant": false,
       "payable": false,
       "inputs": [
         {
           "type": "address",
-          "name": "newImplementation"
+          "name": "_newImplementation"
         }
       ],
       "outputs": []
@@ -396,7 +479,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "name"
+          "name": "_name"
         }
       ],
       "outputs": [
@@ -404,8 +487,21 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "type": "function",
+      "name": "verifyPackage",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "_packageName"
+        }
+      ],
+      "outputs": []
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "0x5947688a57d5b703a080d4fbefd812c95e04d67c8d211db43b281df15decb808"
+  "deployTxnHash": "0x58c4fb86a6aefb00e28b06eab37b4f76285e3240c289bfeb8f68629588c49d54"
 }
