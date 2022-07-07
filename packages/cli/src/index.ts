@@ -64,7 +64,7 @@ program
     'Address where the cannon registry is deployed',
     '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cloudflare-ipfs.com');
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io');
 
 async function run() {
   program.parse();
@@ -129,9 +129,9 @@ async function run() {
     address: options.registryAddress,
     signerOrProvider: new ethers.providers.JsonRpcProvider(options.registryRpc),
     ipfsOptions: {
-      protocol: parsedIpfs.protocol,
+      protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
       host: parsedIpfs.host,
-      port: parseInt(parsedIpfs.port),
+      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
       /*headers: {
         authorization: `Basic ${Buffer.from(parsedIpfs[2] + ':').toString('base64')}`,
       },*/

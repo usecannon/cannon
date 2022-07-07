@@ -278,22 +278,24 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
 
     // if no layers were loaded, we should load the last one
-    /*if (doLoad !== null) {
-      const newCtx = await this.loadLayer(ctx.chainId, doLoad);
+    if (doLoad !== null) {
+      const newCtx = await this.loadLayer(doLoad);
 
       if (!newCtx) {
         throw new Error(`could not load contet from layer ${doLoad}`);
       }
 
       ctx = newCtx;
-    }*/
+    }
 
-    await putDeploymentInfo(this.chartDir, ctx.chainId, this.preset, {
-      options: opts,
-      buildVersion: LAYER_VERSION,
-      heads: [getLayerFiles(this.chartDir, ctx.chainId, this.preset, steps.length - 1).basename],
-      ipfsHash: '', // empty string means it hasn't been uploaded to ipfs
-    });
+    if (this.readMode !== 'none') {
+      await putDeploymentInfo(this.chartDir, ctx.chainId, this.preset, {
+        options: opts,
+        buildVersion: LAYER_VERSION,
+        heads: [getLayerFiles(this.chartDir, ctx.chainId, this.preset, steps.length - 1).basename],
+        ipfsHash: '', // empty string means it hasn't been uploaded to ipfs
+      });
+    }
 
     return ctx;
   }
