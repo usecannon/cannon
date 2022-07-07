@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Assembles cannonfile.toml manifests into cannon charts.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
