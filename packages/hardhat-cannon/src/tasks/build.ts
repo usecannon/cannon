@@ -100,7 +100,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           // on test network any user can be conjured
           await provider.send('hardhat_impersonateAccount', [addr]);
           await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
-          return hre.ethers.getSigner(addr);
+          return provider.getSigner(addr);
         },
 
         async getArtifact(name: string) {
