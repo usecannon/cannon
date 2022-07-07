@@ -202,13 +202,13 @@ export interface CannonRegistryInterface extends utils.Interface {
   events: {
     "OwnerChanged(address,address)": EventFragment;
     "OwnerNominated(address)": EventFragment;
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)": EventFragment;
+    "PackagePublish(bytes32,bytes32,bytes32[],string,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerNominated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProtocolPublish"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PackagePublish"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
 }
 
@@ -233,19 +233,19 @@ export type OwnerNominatedEvent = TypedEvent<
 
 export type OwnerNominatedEventFilter = TypedEventFilter<OwnerNominatedEvent>;
 
-export interface ProtocolPublishEventObject {
+export interface PackagePublishEventObject {
   name: string;
   version: string;
   tags: string[];
   url: string;
   owner: string;
 }
-export type ProtocolPublishEvent = TypedEvent<
+export type PackagePublishEvent = TypedEvent<
   [string, string, string[], string, string],
-  ProtocolPublishEventObject
+  PackagePublishEventObject
 >;
 
-export type ProtocolPublishEventFilter = TypedEventFilter<ProtocolPublishEvent>;
+export type PackagePublishEventFilter = TypedEventFilter<PackagePublishEvent>;
 
 export interface UpgradedEventObject {
   implementation: string;
@@ -509,20 +509,20 @@ export interface CannonRegistry extends BaseContract {
     "OwnerNominated(address)"(newOwner?: null): OwnerNominatedEventFilter;
     OwnerNominated(newOwner?: null): OwnerNominatedEventFilter;
 
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)"(
+    "PackagePublish(bytes32,bytes32,bytes32[],string,address)"(
       name?: PromiseOrValue<BytesLike> | null,
       version?: PromiseOrValue<BytesLike> | null,
       tags?: PromiseOrValue<BytesLike>[] | null,
       url?: null,
       owner?: null
-    ): ProtocolPublishEventFilter;
-    ProtocolPublish(
+    ): PackagePublishEventFilter;
+    PackagePublish(
       name?: PromiseOrValue<BytesLike> | null,
       version?: PromiseOrValue<BytesLike> | null,
       tags?: PromiseOrValue<BytesLike>[] | null,
       url?: null,
       owner?: null
-    ): ProtocolPublishEventFilter;
+    ): PackagePublishEventFilter;
 
     "Upgraded(address)"(implementation?: null): UpgradedEventFilter;
     Upgraded(implementation?: null): UpgradedEventFilter;

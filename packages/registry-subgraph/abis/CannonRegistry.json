@@ -43,7 +43,7 @@
         "type": "address"
       }
     ],
-    "name": "ProtocolPublish",
+    "name": "PackagePublish",
     "type": "event"
   },
   {

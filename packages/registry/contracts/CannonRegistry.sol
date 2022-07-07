@@ -10,7 +10,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
 
-  event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
+  event PackagePublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
 
@@ -85,7 +85,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
       s.urls[_name][_tags[i]] = _url;
     }
 
-    emit ProtocolPublish(_name, _version, _tags, _url, msg.sender);
+    emit PackagePublish(_name, _version, _tags, _url, msg.sender);
   }
 
   function nominatePackageOwner(bytes32 _name, address _newOwner) external {

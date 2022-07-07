@@ -128,7 +128,7 @@ describe('CannonRegistry', function () {
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 
-    it('should create the first protocol and assign the owner', async function () {
+    it('should create the first package and assign the owner', async function () {
       const tx = await CannonRegistry.connect(user1).publish(
         toBytes32('some-module'),
         toBytes32('0.0.1'),
@@ -139,7 +139,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'ProtocolPublish');
+      equal(events![0].event, 'PackagePublish');
 
       const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
@@ -160,7 +160,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'ProtocolPublish');
+      equal(events![0].event, 'PackagePublish');
     });
 
     it('should be able to update an older version', async function () {
@@ -174,7 +174,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'ProtocolPublish');
+      equal(events![0].event, 'PackagePublish');
     });
 
     it('pushes tags', async function () {
@@ -188,7 +188,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'ProtocolPublish');
+      equal(events![0].event, 'PackagePublish');
 
       equal(
         await CannonRegistry.getPackageUrl(
@@ -206,7 +206,7 @@ describe('CannonRegistry', function () {
       );
     });
 
-    it('should not allow to modify protocol from another owner', async function () {
+    it('should not allow to modify package from another owner', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).publish(
           toBytes32('some-module'),
@@ -267,14 +267,14 @@ describe('CannonRegistry', function () {
   });
 
   describe('getPackages()', function () {
-    it('returns created protocols', async function () {
+    it('returns created packages', async function () {
       const result = await CannonRegistry.connect(user2).getPackages();
       ok(Array.isArray(result));
     });
   });
 
   describe('getPackageVersions()', function () {
-    it('returns protocol versions', async function () {
+    it('returns package versions', async function () {
       const result = await CannonRegistry.connect(user2).getPackageVersions(
         toBytes32('some-module')
       );

@@ -10,16 +10,16 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
-export class ProtocolPublish extends ethereum.Event {
-  get params(): ProtocolPublish__Params {
+export class PackagePublish extends ethereum.Event {
+  get params(): PackagePublish__Params {
     return new ProtocolPublish__Params(this);
   }
 }
 
-export class ProtocolPublish__Params {
-  _event: ProtocolPublish;
+export class PackagePublish__Params {
+  _event: PackagePublish;
 
-  constructor(event: ProtocolPublish) {
+  constructor(event: PackagePublish) {
     this._event = event;
   }
 
