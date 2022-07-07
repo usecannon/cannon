@@ -1,4 +1,4 @@
-import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
+import { ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
 import { Package, Version, PackageKeyword, Keyword } from '../generated/schema';
 import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
@@ -20,6 +20,7 @@ export function handlePublish(event: ProtocolPublish): void {
   version.publisher = event.params.owner.toHexString();
   version.added = event.block.timestamp;
   version.cannon_package = cannon_package.id;
+  //version.tags = event.params.tags
 
   /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
@@ -35,7 +36,7 @@ export function handlePublish(event: ProtocolPublish): void {
     if (keywords) {
       const keywordsArray = keywords.toArray();
       for (let i = 0; i < keywordsArray.length; ++i) {
-        addKeyword(keywordsArray[i].toString(), id);
+        addKeyword(keywordsArray[i].toString(), version.id);
       }
     }
   } else {
@@ -61,7 +62,7 @@ export function handlePublish(event: ProtocolPublish): void {
   entity.save();
 }
 
-function addKeyword(keywordId: string, packageId: string): void {
+function addKeyword(keywordId: string, versionId: string): void {
   let entity = Keyword.load(keywordId);
   if (!entity) {
     entity = new Keyword(keywordId);
@@ -69,10 +70,10 @@ function addKeyword(keywordId: string, packageId: string): void {
   entity.count = entity.count.plus(BigInt.fromI32(1));
   entity.save();
 
-  let join_entity = PackageKeyword.load(packageId + '-' + keywordId);
+  let join_entity = PackageKeyword.load(versionId + '-' + keywordId);
   if (!join_entity) {
-    join_entity = new PackageKeyword(packageId + '-' + keywordId);
-    join_entity.cannon_package = packageId;
+    join_entity = new PackageKeyword(versionId + '-' + keywordId);
+    join_entity.cannon_package = versionId;
     join_entity.keyword = keywordId;
     join_entity.save();
   }

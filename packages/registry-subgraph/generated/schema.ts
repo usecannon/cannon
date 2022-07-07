@@ -169,6 +169,23 @@ export class Version extends Entity {
     }
   }
 
+  get tags(): Array<string> | null {
+    let value = this.get("tags");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set tags(value: Array<string> | null) {
+    if (!value) {
+      this.unset("tags");
+    } else {
+      this.set("tags", Value.fromStringArray(<Array<string>>value));
+    }
+  }
+
   get keywords(): Array<string> | null {
     let value = this.get("keywords");
     if (!value || value.kind == ValueKind.NULL) {

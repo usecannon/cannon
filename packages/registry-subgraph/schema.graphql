@@ -11,6 +11,7 @@ type Version @entity {
   readme: String
   cannonfile: String
   description: String
+  tags: [String!]
   keywords: [PackageKeyword!] @derivedFrom(field: "version")
   url: String!
   publisher: String!
