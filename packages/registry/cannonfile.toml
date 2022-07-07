@@ -1,5 +1,5 @@
 name = "cannon-registry"
-version = "0.0.4"
+version = "0.0.5"
 
 [setting.salt]
 defaultValue = "registry"
