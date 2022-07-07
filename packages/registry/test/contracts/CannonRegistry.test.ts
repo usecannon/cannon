@@ -128,6 +128,17 @@ describe('CannonRegistry', function () {
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 
+    it('should not allow more than 5 tags', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.publish(
+          toBytes32('some-module'),
+          toBytes32('0.0.1'),
+          ['one', 'two', 'three', 'four', 'five', 'six'].map(toBytes32),
+          'ipfs://some-module-hash@0.0.1'
+        );
+      }, 'TooManyTags()');
+    });
+
     it('should create the first package and assign the owner', async function () {
       const tx = await CannonRegistry.connect(user1).publish(
         toBytes32('some-module'),
@@ -181,7 +192,7 @@ describe('CannonRegistry', function () {
       const tx = await CannonRegistry.connect(user1).publish(
         toBytes32('some-module'),
         toBytes32('0.0.3'),
-        ['latest', 'stable'].map((s) => toBytes32(s)),
+        ['latest', 'stable'].map(toBytes32),
         'ipfs://updated-module-hash@0.0.3'
       );
 
@@ -235,9 +246,7 @@ describe('CannonRegistry', function () {
       );
 
       equal(
-        await CannonRegistry.getPackageNominatedOwner(
-          toBytes32('some-module')
-        ),
+        await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')),
         await user2.getAddress()
       );
     });
@@ -266,13 +275,6 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('getPackages()', function () {
-    it('returns created packages', async function () {
-      const result = await CannonRegistry.connect(user2).getPackages();
-      ok(Array.isArray(result));
-    });
-  });
-
   describe('getPackageVersions()', function () {
     it('returns package versions', async function () {
       const result = await CannonRegistry.connect(user2).getPackageVersions(
@@ -283,6 +285,8 @@ describe('CannonRegistry', function () {
         toBytes32('0.0.1'),
         toBytes32('0.0.2'),
         toBytes32('0.0.3'),
+        toBytes32('latest'),
+        toBytes32('stable'),
       ]);
     });
   });
