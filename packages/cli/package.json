@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "0.6.3",
+  "version": "0.6.10",
   "description": "Utility for instantly loading cannon charts in standalone contexts",
   "main": "hardhat.config.ts",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "@synthetixio/wei": "^2.74.1",
     "@types/node-fetch": "^2.6.2",
-    "@usecannon/builder": "^0.6.2",
+    "@usecannon/builder": "^0.6.8",
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",

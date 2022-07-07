@@ -176,7 +176,7 @@ previous contract deployed at: ${ctx.contracts[contract].address} in step ${'tbd
         }
 
         ctx.contracts[contract] = output.contracts[contract];
-        this.emit(Events.DeployContract, output.contracts[contract]);
+        this.emit(Events.DeployContract, contract, output.contracts[contract]);
       }
 
       for (const txn in output.txns) {
@@ -190,7 +190,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
 
         ctx.txns[txn] = output.txns[txn];
-        this.emit(Events.DeployTxn, output.txns[txn]);
+        this.emit(Events.DeployTxn, txn, output.txns[txn]);
       }
     }
 

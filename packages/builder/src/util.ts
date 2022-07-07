@@ -16,20 +16,19 @@ export const ChainDefinitionScriptSchema = {
   },
 } as const;
 
-export function hashDirectory(path: string): Buffer {
+export function hashFs(path: string): Buffer {
   const dirHasher = crypto.createHash('sha256');
 
   // iterate through every file at path and build a checksum
-  const subpaths = fs.readdirSync(path);
+  if (fs.statSync(path).isFile()) {
+    const hasher = crypto.createHash('sha256');
+    dirHasher.update(hasher.update(fs.readFileSync(path)).digest());
+  } else {
+    const subpaths = fs.readdirSync(path);
 
-  for (const subpath of subpaths) {
-    const fullname = `${path}/${subpath}`;
-    const info = fs.statSync(fullname);
-    if (info.isDirectory()) {
-      dirHasher.update(hashDirectory(fullname));
-    } else if (info.isFile()) {
-      const hasher = crypto.createHash('sha256');
-      dirHasher.update(hasher.update(fs.readFileSync(fullname)).digest());
+    for (const subpath of subpaths) {
+      const fullname = `${path}/${subpath}`;
+      dirHasher.update(hashFs(fullname));
     }
   }
 

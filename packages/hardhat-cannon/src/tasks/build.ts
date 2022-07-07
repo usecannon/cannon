@@ -4,12 +4,11 @@ import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import loadCannonfile from '../internal/load-cannonfile';
-import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events, getChartDir, getSavedChartsDir } from '@usecannon/builder';
+import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { existsSync } from 'fs';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -97,7 +96,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         baseDir: hre.config.paths.root,
         savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
-          return hre.ethers.getSigner(addr);
+          // on test network any user can be conjured
+          await provider.send('hardhat_impersonateAccount', [addr]);
+          await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+          return provider.getSigner(addr);
         },
 
         async getArtifact(name: string) {
@@ -151,22 +153,20 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     }
 
     builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
-    builder.on(Events.DeployContract, (c) => console.log(`deployed contract ${c.address}`));
-    builder.on(Events.DeployTxn, (t) => console.log(`ran txn ${t.hash}`));
+    builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
+    builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
 
-    await builder.build(mappedOptions);
-
-    console.log('outputs', await builder.getOutputs());
+    const outputs = await builder.build(mappedOptions);
 
     await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
-      outputs: await builder.getOutputs(),
+      outputs,
     });
 
     if (port) {
       console.log('RPC Server open on port', port);
 
       // dont exit
-      await new Promise(() => {});
+      await new Promise(_.noop);
     }
 
     return {};

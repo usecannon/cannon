@@ -1,8 +1,9 @@
+
+import 'hardhat-cannon';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
-import '@typechain/hardhat'
+import '@typechain/hardhat';
 import 'solidity-coverage';
-import 'hardhat-cannon';
 import 'dotenv/config';
 
 import { HardhatUserConfig } from 'hardhat/config';
