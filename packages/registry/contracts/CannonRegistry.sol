@@ -10,6 +10,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
   error TooManyTags();
+  error PackageNotFound();
 
   event PackagePublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
@@ -19,18 +20,6 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
 
   function upgradeTo(address _newImplementation) public override onlyOwner {
     _upgradeTo(_newImplementation);
-  }
-
-  function addPackageVerifier(address _verifier) external onlyOwner {
-    _store().verifiers[_verifier] = true;
-  }
-
-  function removePackageVerifier(address _verifier) external onlyOwner {
-    _store().verifiers[_verifier] = false;
-  }
-
-  function isPackageVerifier(address _verifier) external view returns (bool) {
-    return _store().verifiers[_verifier];
   }
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
@@ -136,23 +125,19 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   }
 
   function verifyPackage(bytes32 _packageName) external {
-    address _verifier = msg.sender;
-
-    if (!_store().verifiers[_verifier]) {
-      revert Unauthorized();
+    if (_store().packages[_packageName].owner == address(0)) {
+      revert PackageNotFound();
     }
 
-    emit PackageVerify(_packageName, _verifier);
+    emit PackageVerify(_packageName, msg.sender);
   }
 
   function unverifyPackage(bytes32 _packageName) external {
-    address _verifier = msg.sender;
-
-    if (!_store().verifiers[_verifier]) {
-      revert Unauthorized();
+    if (_store().packages[_packageName].owner == address(0)) {
+      revert PackageNotFound();
     }
 
-    emit PackageUnverify(_packageName, _verifier);
+    emit PackageUnverify(_packageName, msg.sender);
   }
 
   function getPackageNominatedOwner(bytes32 _packageName) external view returns (address) {

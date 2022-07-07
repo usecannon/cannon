@@ -208,7 +208,7 @@ describe('CannonRegistry', function () {
 
   describe('getPackageVersions()', function () {
     it('returns package versions', async function () {
-      const result = await CannonRegistry.connect(user2).getPackageVersions(toBytes32('some-module'));
+      const result = await CannonRegistry.getPackageVersions(toBytes32('some-module'));
 
       deepEqual(result, [
         toBytes32('0.0.1'),
@@ -220,38 +220,17 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('package verifiers management', function () {
-    const verifier = ethers.Wallet.createRandom();
-
-    it('only allows the owner to manage verifiers', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.connect(user2).addPackageVerifier(verifier.address);
-      }, `Unauthorized("${await user2.getAddress()}")`);
-
-      await assertRevert(async () => {
-        await CannonRegistry.connect(user2).removePackageVerifier(verifier.address);
-      }, `Unauthorized("${await user2.getAddress()}")`);
-    });
-
-    it('can add and remove verifiers', async function () {
-      ok(!(await CannonRegistry.isPackageVerifier(verifier.address)));
-      await CannonRegistry.connect(owner).addPackageVerifier(verifier.address);
-      ok(await CannonRegistry.isPackageVerifier(verifier.address));
-      await CannonRegistry.connect(owner).removePackageVerifier(verifier.address);
-      ok(!(await CannonRegistry.isPackageVerifier(verifier.address)));
-    });
-  });
-
   describe('package verification', function () {
-    before('add verifier', async function () {
-      const address = await user2.getAddress();
-      await CannonRegistry.connect(owner).addPackageVerifier(address);
+    it('does not allow to verify unexistant packages', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.verifyPackage(toBytes32('invalid-package'));
+      }, 'PackageNotFound()');
     });
 
-    it('does not allow to verify to non-verifiers', async function () {
+    it('does not allow to unverify unexistant packages', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user3).verifyPackage(toBytes32('some-module'));
-      }, 'Unauthorized()');
+        await CannonRegistry.unverifyPackage(toBytes32('invalid-package'));
+      }, 'PackageNotFound()');
     });
 
     it('emits a verification event', async function () {
