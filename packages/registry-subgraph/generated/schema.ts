@@ -42,50 +42,6 @@ export class Package extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get name(): string {
-    let value = this.get("name");
-    return value!.toString();
-  }
-
-  set name(value: string) {
-    this.set("name", Value.fromString(value));
-  }
-
-  get description(): string {
-    let value = this.get("description");
-    return value!.toString();
-  }
-
-  set description(value: string) {
-    this.set("description", Value.fromString(value));
-  }
-
-  get url(): string {
-    let value = this.get("url");
-    return value!.toString();
-  }
-
-  set url(value: string) {
-    this.set("url", Value.fromString(value));
-  }
-
-  get tags(): Array<string> | null {
-    let value = this.get("tags");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set tags(value: Array<string> | null) {
-    if (!value) {
-      this.unset("tags");
-    } else {
-      this.set("tags", Value.fromStringArray(<Array<string>>value));
-    }
-  }
-
   get versions(): Array<string> {
     let value = this.get("versions");
     return value!.toStringArray();
@@ -95,75 +51,8 @@ export class Package extends Entity {
     this.set("versions", Value.fromStringArray(value));
   }
 
-  get publisher(): Array<string> | null {
-    let value = this.get("publisher");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set publisher(value: Array<string> | null) {
-    if (!value) {
-      this.unset("publisher");
-    } else {
-      this.set("publisher", Value.fromStringArray(<Array<string>>value));
-    }
-  }
-
-  get verifiers(): Array<string> {
+  get verifiers(): Array<string> | null {
     let value = this.get("verifiers");
-    return value!.toStringArray();
-  }
-
-  set verifiers(value: Array<string>) {
-    this.set("verifiers", Value.fromStringArray(value));
-  }
-}
-
-export class Publisher extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Publisher entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type Publisher must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Publisher", id.toString(), this);
-    }
-  }
-
-  static load(id: string): Publisher | null {
-    return changetype<Publisher | null>(store.get("Publisher", id));
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value!.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get address(): string {
-    let value = this.get("address");
-    return value!.toString();
-  }
-
-  set address(value: string) {
-    this.set("address", Value.fromString(value));
-  }
-
-  get cannon_package(): Array<string> | null {
-    let value = this.get("cannon_package");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -171,11 +60,11 @@ export class Publisher extends Entity {
     }
   }
 
-  set cannon_package(value: Array<string> | null) {
+  set verifiers(value: Array<string> | null) {
     if (!value) {
-      this.unset("cannon_package");
+      this.unset("verifiers");
     } else {
-      this.set("cannon_package", Value.fromStringArray(<Array<string>>value));
+      this.set("verifiers", Value.fromStringArray(<Array<string>>value));
     }
   }
 }
@@ -229,22 +118,90 @@ export class Version extends Entity {
     this.set("cannon_package", Value.fromString(value));
   }
 
-  get readme(): string {
+  get readme(): string | null {
     let value = this.get("readme");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set readme(value: string) {
-    this.set("readme", Value.fromString(value));
+  set readme(value: string | null) {
+    if (!value) {
+      this.unset("readme");
+    } else {
+      this.set("readme", Value.fromString(<string>value));
+    }
   }
 
-  get cannonfile(): string {
+  get cannonfile(): string | null {
     let value = this.get("cannonfile");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set cannonfile(value: string | null) {
+    if (!value) {
+      this.unset("cannonfile");
+    } else {
+      this.set("cannonfile", Value.fromString(<string>value));
+    }
+  }
+
+  get description(): string | null {
+    let value = this.get("description");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set description(value: string | null) {
+    if (!value) {
+      this.unset("description");
+    } else {
+      this.set("description", Value.fromString(<string>value));
+    }
+  }
+
+  get tags(): Array<string> | null {
+    let value = this.get("tags");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set tags(value: Array<string> | null) {
+    if (!value) {
+      this.unset("tags");
+    } else {
+      this.set("tags", Value.fromStringArray(<Array<string>>value));
+    }
+  }
+
+  get url(): string {
+    let value = this.get("url");
     return value!.toString();
   }
 
-  set cannonfile(value: string) {
-    this.set("cannonfile", Value.fromString(value));
+  set url(value: string) {
+    this.set("url", Value.fromString(value));
+  }
+
+  get publisher(): string {
+    let value = this.get("publisher");
+    return value!.toString();
+  }
+
+  set publisher(value: string) {
+    this.set("publisher", Value.fromString(value));
   }
 
   get added(): BigInt {
@@ -290,13 +247,21 @@ export class Version extends Entity {
     }
   }
 
-  get chains(): Array<string> {
+  get chains(): Array<string> | null {
     let value = this.get("chains");
-    return value!.toStringArray();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
   }
 
-  set chains(value: Array<string>) {
-    this.set("chains", Value.fromStringArray(value));
+  set chains(value: Array<string> | null) {
+    if (!value) {
+      this.unset("chains");
+    } else {
+      this.set("chains", Value.fromStringArray(<Array<string>>value));
+    }
   }
 }
 
@@ -458,8 +423,8 @@ export class Tag extends Entity {
     this.set("count", Value.fromBigInt(value));
   }
 
-  get cannon_packages(): Array<string> | null {
-    let value = this.get("cannon_packages");
+  get versions(): Array<string> | null {
+    let value = this.get("versions");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -467,11 +432,11 @@ export class Tag extends Entity {
     }
   }
 
-  set cannon_packages(value: Array<string> | null) {
+  set versions(value: Array<string> | null) {
     if (!value) {
-      this.unset("cannon_packages");
+      this.unset("versions");
     } else {
-      this.set("cannon_packages", Value.fromStringArray(<Array<string>>value));
+      this.set("versions", Value.fromStringArray(<Array<string>>value));
     }
   }
 }
@@ -559,13 +524,13 @@ export class PackageTag extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get cannon_package(): string {
-    let value = this.get("cannon_package");
+  get version(): string {
+    let value = this.get("version");
     return value!.toString();
   }
 
-  set cannon_package(value: string) {
-    this.set("cannon_package", Value.fromString(value));
+  set version(value: string) {
+    this.set("version", Value.fromString(value));
   }
 
   get tag(): string {
@@ -575,57 +540,5 @@ export class PackageTag extends Entity {
 
   set tag(value: string) {
     this.set("tag", Value.fromString(value));
-  }
-}
-
-export class PackagePublisher extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save PackagePublisher entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type PackagePublisher must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("PackagePublisher", id.toString(), this);
-    }
-  }
-
-  static load(id: string): PackagePublisher | null {
-    return changetype<PackagePublisher | null>(
-      store.get("PackagePublisher", id)
-    );
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value!.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get cannon_package(): string {
-    let value = this.get("cannon_package");
-    return value!.toString();
-  }
-
-  set cannon_package(value: string) {
-    this.set("cannon_package", Value.fromString(value));
-  }
-
-  get publisher(): string {
-    let value = this.get("publisher");
-    return value!.toString();
-  }
-
-  set publisher(value: string) {
-    this.set("publisher", Value.fromString(value));
   }
 }

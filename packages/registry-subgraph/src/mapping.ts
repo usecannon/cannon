@@ -1,24 +1,30 @@
 import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import { Package, PackageTag, Tag } from '../generated/schema';
+import { Package, Version, PackageTag, Tag } from '../generated/schema';
 import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
 
-export function handleProtocolPublish(event: ProtocolPublish): void {
-  const id =
-    event.params.name.toString() + '@' + event.params.version.toString();
-  let entity = Package.load(id);
-
-  if (!entity) {
-    entity = new Package(id);
+export function handlePublish(event: ProtocolPublish): void {
+  const id = event.params.name.toString();
+  let cannon_package = Package.load(id);
+  if (!cannon_package) {
+    cannon_package = new Package(id);
   }
 
-  // Entity fields can be set based on event parameters
-  entity.name = event.params.name.toString();
-  //entity.version = event.params.version.toString();
-  entity.url = event.params.url;
-  //entity.added = event.block.timestamp;
-  //entity.publisher = event.transaction.from.toHexString();
+  const version_string = event.params.version.toString();
+  let version = Version.load(id + ':' + version_string);
+  if (!version) {
+    version = new Version(id + ':' + version_string);
+  }
+  version.name = version_string;
+  version.url = event.params.url;
+  version.publisher = event.params.owner.toHexString();
+  version.added = event.block.timestamp;
+  version.cannon_package = cannon_package.id;
 
+  cannon_package.save();
+  version.save();
+
+  /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
   const metadata_data = ipfs.cat(metadata_path);
   if (metadata_data) {
@@ -73,4 +79,5 @@ function addTag(tagId: string, packageId: string): void {
     join_entity.tag = tagId;
     join_entity.save();
   }
+  */
 }

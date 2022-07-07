@@ -1,30 +1,23 @@
 type Package @entity {
   id: ID!
-  name: String!
-  description: String!
-  url: String!
-  tags: [PackageTag!] @derivedFrom(field: "cannon_package")
   versions: [Version!]! @derivedFrom(field: "cannon_package")
-  publisher: [PackagePublisher!] @derivedFrom(field: "cannon_package")
-  verifiers: [String!]!
-}
-
-type Publisher @entity {
-  id: ID!
-  address: String!
-  cannon_package: [PackagePublisher!] @derivedFrom(field: "publisher")
+  verifiers: [String!]
 }
 
 type Version @entity {
   id: ID!
   name: String!
   cannon_package: Package!
-  readme: String!
-  cannonfile: String!
+  readme: String
+  cannonfile: String
+  description: String
+  tags: [PackageTag!] @derivedFrom(field: "version")
+  url: String!
+  publisher: String!
   added: BigInt!
   dependents: [DependencyDependent!] @derivedFrom(field: "dependent")
   dependencies: [DependencyDependent!] @derivedFrom(field: "dependency")
-  chains: [Chain!]! @derivedFrom(field: "version")
+  chains: [Chain!] @derivedFrom(field: "version")
 }
 
 type Chain @entity {
@@ -44,7 +37,7 @@ type Preset @entity {
 type Tag @entity {
   id: ID!
   count: BigInt!
-  cannon_packages: [PackageTag!] @derivedFrom(field: "tag")
+  versions: [PackageTag!] @derivedFrom(field: "tag")
 }
 
 # Join models
@@ -56,12 +49,6 @@ type DependencyDependent @entity {
 
 type PackageTag @entity {
   id: ID!
-  cannon_package: Package!
+  version: Version!
   tag: Tag!
-}
-
-type PackagePublisher @entity {
-  id: ID!
-  cannon_package: Package!
-  publisher: Publisher!
 }

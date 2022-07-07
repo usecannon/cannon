@@ -23,5 +23,5 @@ dataSources:
           file: ./abis/CannonRegistry.json
       eventHandlers:
         - event: ProtocolPublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
-          handler: handleProtocolPublish
+          handler: handlePublish
       file: ./src/mapping.ts
