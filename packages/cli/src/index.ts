@@ -80,7 +80,7 @@ program
   .option(
     '--registry-address',
     'Address where the cannon registry is deployed',
-    '0xa7F19685A1970A84Da7212ed3D74Cc5237408813'
+    '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
   .option(
     '--ipfs-url',
