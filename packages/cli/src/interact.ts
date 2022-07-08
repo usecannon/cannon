@@ -30,19 +30,22 @@ export async function interact(ctx: InteractTaskArgs) {
 
   await printHeader(ctx);
 
+  let interacting = true;
   let pickedContract: string | null = null;
   let pickedFunction: string | null = null;
   let currentArgs: any[] | null = null;
   let txnValue: Wei = wei(0);
 
   // eslint-disable-next-line no-constant-condition
-  while (true) {
+  while (interacting) {
     if (!pickedContract) {
       pickedContract = await pickContract({
         contractNames: _.keys(ctx.contracts),
       });
 
-      if (!pickedContract) {
+      if (pickedContract == PROMPT_BACK_OPTION.title) {
+        interacting = false;
+      } else if (!pickedContract) {
         return null;
       }
     } else if (!pickedFunction) {
@@ -167,12 +170,15 @@ async function printHelpfulInfo(
 }
 
 async function pickContract({ contractNames }: { contractNames: string[] }) {
+  const choices = contractNames.sort().map((s) => ({ title: s }));
+  choices.unshift(PROMPT_BACK_OPTION);
+
   const { pickedContract } = await prompts.prompt([
     {
       type: 'autocomplete',
       name: 'pickedContract',
       message: 'Pick a CONTRACT:',
-      choices: contractNames.sort().map((s) => ({ title: s })),
+      choices,
       suggest: suggestBySubtring,
     },
   ]);
