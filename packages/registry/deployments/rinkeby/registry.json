@@ -1,5 +1,5 @@
 {
-  "address": "0x0A0c8D583D22a4604881B3b5f31C94978Ba31dd6",
+  "address": "0xb114b48FC31caB081255cb50de39D777D01B646C",
   "abi": [
     {
       "type": "error",
@@ -58,6 +58,16 @@
     },
     {
       "type": "error",
+      "name": "PackageNotFound",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "TooManyTags",
+      "inputs": []
+    },
+    {
+      "type": "error",
       "name": "Unauthorized",
       "inputs": [
         {
@@ -113,7 +123,7 @@
     {
       "type": "event",
       "anonymous": false,
-      "name": "ProtocolPublish",
+      "name": "PackagePublish",
       "inputs": [
         {
           "type": "bytes32",
@@ -139,6 +149,40 @@
           "type": "address",
           "name": "owner",
           "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "PackageUnverify",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "name",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "verifier",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "PackageVerify",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "name",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "verifier",
+          "indexed": true
         }
       ]
     },
@@ -183,7 +227,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
         }
       ],
       "outputs": []
@@ -210,7 +254,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         }
       ],
       "outputs": [
@@ -228,11 +272,11 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         },
         {
           "type": "bytes32",
-          "name": "_protocolVersion"
+          "name": "_packageVersionName"
         }
       ],
       "outputs": [
@@ -250,22 +294,9 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_protocolName"
+          "name": "_packageName"
         }
       ],
-      "outputs": [
-        {
-          "type": "bytes32[]"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "getPackages",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "inputs": [],
       "outputs": [
         {
           "type": "bytes32[]"
@@ -293,11 +324,11 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
         },
         {
           "type": "address",
-          "name": "_newOwner"
+          "name": "_newPackageOwner"
         }
       ],
       "outputs": []
@@ -336,19 +367,19 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "_name"
+          "name": "_packageName"
         },
         {
           "type": "bytes32",
-          "name": "_version"
+          "name": "_packageVersionName"
         },
         {
           "type": "bytes32[]",
-          "name": "_tags"
+          "name": "_packageTags"
         },
         {
           "type": "string",
-          "name": "_url"
+          "name": "_packageVersionUrl"
         }
       ],
       "outputs": []
@@ -376,13 +407,26 @@
     },
     {
       "type": "function",
+      "name": "unverifyPackage",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "_packageName"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "upgradeTo",
       "constant": false,
       "payable": false,
       "inputs": [
         {
           "type": "address",
-          "name": "newImplementation"
+          "name": "_newImplementation"
         }
       ],
       "outputs": []
@@ -396,7 +440,7 @@
       "inputs": [
         {
           "type": "bytes32",
-          "name": "name"
+          "name": "_name"
         }
       ],
       "outputs": [
@@ -404,8 +448,21 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "type": "function",
+      "name": "verifyPackage",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "_packageName"
+        }
+      ],
+      "outputs": []
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "0x5947688a57d5b703a080d4fbefd812c95e04d67c8d211db43b281df15decb808"
+  "deployTxnHash": "0x5e0b46dc4c9fbf0d713a07ac4786c6634738f23ef903c95f17c5812121a89dbe"
 }

@@ -12,6 +12,12 @@
         "bracketSpacing": false,
         "explicitTypes": "preserve"
       }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 125
+      }
     }
   ]
 }
