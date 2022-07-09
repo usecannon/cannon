@@ -17,7 +17,7 @@ const config = {
     options: {
       values: { type: 'string' },
     },
-    depends: { elements: { type: 'string '} },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 

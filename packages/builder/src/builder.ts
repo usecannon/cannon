@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import Debug from 'debug';
@@ -200,22 +201,30 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
   // runs any steps that can be immediately completed without iterating into deeper layers
   // returns the list of new steps completed.
-  async runSteps(opts: BuildOptions, alreadyDone: string[]): Promise<string[]> {
-    const sortedDone: {[group: string]: string[]} = _.mapValues(_.groupBy(alreadyDone, (k) => k.split('.')[0]), l => _.sortBy(l, _.identity));
+  async runSteps(opts: BuildOptions, alreadyDone: Map<string, ChainBuilderContext>): Promise<string[]> {
+    const doneActionNames = Array.from(alreadyDone.keys());
+    const sortedDone: { [group: string]: string[] } = _.mapValues(
+      _.groupBy(doneActionNames, (k) => k.split('.')[0]),
+      (l) => _.sortBy(l, _.identity)
+    );
 
     const newlyDone: string[] = [];
 
-    const runNextStepByType = async (t: 'contract'|'invoke'|'run'|'import') => {
-      const nextSteps = _.filter(
-        _.toPairs(this.def[t]), ([key, conf]) => 
+    const runNextStepByType = async (t: 'contract' | 'invoke' | 'run' | 'import') => {
+      const nextSteps: [string, { depends: string[] }][] = _.filter(
+        _.toPairs(this.def[t]),
+        ([key, conf]) =>
           _.sortedIndexOf(sortedDone[t], `${t}.${key}`) === -1 && // step itself is not already done
-          _.difference(conf.depends || [], alreadyDone).length === 0 // all dependencies are already done
+          _.difference(conf.depends || [], doneActionNames).length === 0 // all dependencies are already done
       );
-    
+
       for (const [key, conf] of nextSteps) {
+        // need to wipe chain state so we can load in new layers
         await this.clearNode();
+
         let ctx = await this.populateSettings(opts);
-        // load state for all dependencies
+
+        // load full state for all dependencies
         for (const dep of conf.depends) {
           const newCtx = await this.loadLayer(dep);
 
@@ -223,7 +232,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
             throw new Error(`could not load contet from layer ${dep}`);
           }
 
-          ctx = await this.augmentCtx(newCtx, opts);
+          ctx = await this.augmentCtx([ctx, newCtx], opts);
         }
 
         await this.runStep(t, key, ctx);
@@ -232,7 +241,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
         newlyDone.push(`${t}.${key}`);
       }
-    }
+    };
 
     await runNextStepByType('import');
     await runNextStepByType('contract');
@@ -240,6 +249,64 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     await runNextStepByType('run');
 
     return newlyDone;
+  }
+
+  getActionCount() {
+    let c = 0;
+    for (const kind in StepKinds) {
+      // TODO is there a better way to do this
+      c += Object.keys(this.def[kind as keyof typeof StepKinds] || {}).length;
+    }
+
+    return c;
+  }
+
+  getAllActions() {
+    let idx = 0;
+    const actions = new Array(this.getActionCount());
+    for (const kind in StepKinds) {
+      for (const n in this.def[kind as keyof typeof StepKinds]) {
+        actions[idx++] = `${kind}.${n}`;
+      }
+    }
+
+    return actions;
+  }
+
+  async getMatchingActions(
+    opts: BuildOptions,
+    actions = this.getAllActions(),
+    matchingActions = new Map<string, ChainBuilderContext>(),
+    unmatchingActions = new Set<string>()
+  ): Promise<[Map<string, ChainBuilderContext>, Set<string>]> {
+    for (const n in actions) {
+      if (matchingActions.has(n) || unmatchingActions.has(n)) {
+        continue;
+      }
+
+      const action = _.get(this.def, n);
+      // if any of the depended upon actions are unmatched, this is unmatched
+      let ctx = await this.populateSettings(opts);
+      for (const dep of action.depends || []) {
+        await this.getMatchingActions(opts, [dep], matchingActions, unmatchingActions);
+        if (unmatchingActions.has(dep)) {
+          unmatchingActions.add(n);
+          continue;
+        } else {
+          ctx = await this.augmentCtx([ctx, matchingActions.get(dep)!], opts);
+        }
+      }
+
+      // if layerMatches returns true, its matching
+      const curCtx = await this.layerMatches(ctx, n);
+      if (curCtx) {
+        matchingActions.set(n, curCtx);
+      } else {
+        unmatchingActions.add(n);
+      }
+    }
+
+    return [matchingActions, unmatchingActions];
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilderContext> {
@@ -257,32 +324,21 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       );
     }
 
-    const allSteps: string[] = [];
+    const [doneActions, undoneActions] = await this.getMatchingActions(opts);
 
+    const totalActions = doneActions.size + undoneActions.size;
 
-    for (const step of allSteps) {
-      // load ctx
-      const ctx = await this.populateSettings(opts);
-
-      if(!(await this.layerMatches(ctx, step))) {
-        return ctx;
-      }
-    }
-
-    let alreadyDone: string[] = [];
     let lastDone: string[] = [];
 
-    while(alreadyDone.length < allSteps.length) {
-      const lastDone = await this.runSteps(opts, alreadyDone);
+    while (doneActions.size < totalActions) {
+      lastDone = await this.runSteps(opts, doneActions);
 
       if (!lastDone.length) {
         throw new Error(
-          `cannonfile is invalid: the following steps form a dependency cycle and therefore cannot be loaded:
-${_.difference(allSteps, alreadyDone).join('\n')}`
-        )
+          `cannonfile is invalid: the following actions form a dependency cycle and therefore cannot be loaded:
+${_.difference(this.getAllActions(), Array.from(doneActions.keys())).join('\n')}`
+        );
       }
-
-      alreadyDone = alreadyDone.concat(lastDone);
     }
 
     await putDeploymentInfo(this.chartDir, this.chainId, this.preset, {
@@ -292,7 +348,11 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
       ipfsHash: '', // empty string means it hasn't been uploaded to ipfs
     });
 
-    return ctx;
+    // assemble the final context for the user
+    return this.augmentCtx(
+      lastDone.map((n) => doneActions.get(n)!),
+      opts
+    );
   }
 
   // clean any artifacts associated with the current
@@ -337,25 +397,29 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
     }
 
     return this.augmentCtx(
-      {
-        settings: {},
-        chainId: 0,
-        timestamp: '0',
+      [
+        {
+          settings: {},
+          chainId: 0,
+          timestamp: '0',
 
-        package: pkg,
+          package: pkg,
 
-        contracts: {},
+          contracts: {},
 
-        txns: {},
+          txns: {},
 
-        imports: {},
-      },
+          imports: {},
+        },
+      ],
       opts
     );
   }
 
-  async augmentCtx(ctx: ChainBuilderContext, opts: BuildOptions): Promise<ChainBuilderContext> {
+  async augmentCtx(ctxs: ChainBuilderContext[], opts: BuildOptions): Promise<ChainBuilderContext> {
     const resolvedOpts: ChainBuilderOptions = _.clone(opts);
+
+    const ctx = _.clone(ctxs[0]);
 
     for (const s in this.def.setting || {}) {
       if (!this.def.setting?.[s]) {
@@ -382,6 +446,13 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
     ctx.chainId = this.chainId;
     ctx.timestamp = (await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
 
+    // merge all blockchain outputs
+    for (const additionalCtx of ctxs.slice(1)) {
+      additionalCtx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
+      additionalCtx.txns = { ...ctx.txns, ...additionalCtx.txns };
+      additionalCtx.imports = { ...ctx.imports, ...additionalCtx.imports };
+    }
+
     return ctx;
   }
 
@@ -391,30 +462,26 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
     }
 
     try {
-      const contents: { hash: (string | null)[]; ctx: ChainBuilderContext } = await fs.readJson(getLayerFiles(this.chartDir, ctx.chainId, this.preset, stepName).metadata);
+      const contents: { hash: string | null; ctx: ChainBuilderContext } = await fs.readJson(
+        getLayerFiles(this.chartDir, ctx.chainId, this.preset, stepName).metadata
+      );
 
-      const newHashes = await this.layerHashes(ctx, stepName);
+      const newHash = await this.actionHash(ctx, stepName);
 
-      debug('comparing hashes for step', contents.hash, newHashes);
+      debug('comparing hashes for action', contents.hash, newHash);
 
-      for (const hash of newHashes.values()) {
-        if (!hash) {
-          continue; // assumed this is a free to skip check
-        } else if (contents.hash.indexOf(hash) === -1) {
-          return null;
-        }
+      if (!newHash || contents.hash === newHash) {
+        return contents.ctx;
       }
 
-      debug(`layer ${stepName} matches`);
-
-      return contents.ctx;
+      return null;
     } catch (err) {
       debug(`layer ${stepName} not loaded: ${err}`);
       return null;
     }
   }
 
-  async layerHashes(ctx: ChainBuilderContext, stepName: string) {
+  async actionHash(ctx: ChainBuilderContext, stepName: string) {
     // the purpose of this is to indicate the state of the chain without accounting for
     // derivative factors (ex. contract addreseses, outputs)
 
@@ -473,7 +540,7 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
       metadata,
       JSON.stringify({
         version: LAYER_VERSION,
-        hash: await this.layerHashes(ctx, stepName),
+        hash: await this.actionHash(ctx, stepName),
         ctx,
       })
     );
@@ -489,7 +556,9 @@ ${_.difference(allSteps, alreadyDone).join('\n')}`
   async clearNode() {
     if (this.writeMode === 'all') {
       debug('clear state');
-      const data = (await this.provider.send('hardhat_reset', [])) as string;
+
+      // revert is assumed hardcoded to the beginning chainstate on a clearable node
+      await this.provider.send('evm_revert', [0]);
     }
   }
 

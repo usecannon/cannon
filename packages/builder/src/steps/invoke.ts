@@ -38,7 +38,7 @@ const config = {
         },
       },
     },
-    depends: { elements: { type: 'string '} },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 

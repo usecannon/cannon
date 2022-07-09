@@ -11,6 +11,10 @@ const ANVIL_START_TIMEOUT = 3000;
 
 subtask(SUBTASK_RPC).setAction(({ port, forkUrl }): Promise<ethers.providers.JsonRpcProvider> => {
   const opts = ['--port', port];
+
+  // reduce image size by not creating unnecessary accounts
+  opts.push('--addresses', '0');
+
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
   }

@@ -19,7 +19,7 @@ const config = {
     // used to force new copy of a contract (not actually used)
     salt: { type: 'string' },
     
-    depends: { elements: { type: 'string '} },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 
