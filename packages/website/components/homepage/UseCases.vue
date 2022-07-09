@@ -31,8 +31,8 @@
           >Proof of Concepts</CHeading
         >
         <CText fontSize="sm"
-          >Rapidly create development environments with multiple existing
-          protocols.</CText
+          >Rapidly create dev environments with existing protocols configured
+          however you like.</CText
         >
       </CBox>
       <CBox>
@@ -61,7 +61,7 @@
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
         <CText fontSize="sm">
-          Instantly spin up nodes for integration/E2E testing. Cannon pairs well
+          Instantly spin up nodes for integration/e2e tests. Cannon pairs well
           with
           <u
             ><a href="https://github.com/Synthetixio/synpress" target="_blank"
