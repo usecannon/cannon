@@ -58,7 +58,9 @@ export async function interact(ctx: InteractTaskArgs) {
       }
     } else if (!currentArgs) {
       const argData = await pickFunctionArgs({
-        func: ctx.contracts[pickedContract].interface.getFunction(pickedFunction),
+        func: ctx.contracts[pickedContract].interface.getFunction(
+          pickedFunction
+        ),
       });
 
       if (!argData) {
@@ -105,10 +107,16 @@ async function printHeader(ctx: InteractTaskArgs) {
   // retrieve balance of the signer address
   // this isnt always necessary but it serves as a nice test that the provider is working
   // and prevents the UI from lurching later if its queried later
-  const signerBalance = ctx.signer ? wei(await ctx.signer.getBalance()) : wei(0);
+  const signerBalance = ctx.signer
+    ? wei(await ctx.signer.getBalance())
+    : wei(0);
 
   console.log('\n');
-  console.log(gray('================================================================================'));
+  console.log(
+    gray(
+      '================================================================================'
+    )
+  );
   console.log(gray('> Gas price: provider default'));
   console.log(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
 
@@ -120,21 +128,36 @@ async function printHeader(ctx: InteractTaskArgs) {
     } else if (signerBalance.gt(0.1)) {
       console.log(yellow(`> Signer Balance: ${signerBalance.toString(4)}`));
     } else {
-      console.log(red(`> WARNING! Low signer balance: ${signerBalance.toString(4)}`));
+      console.log(
+        red(`> WARNING! Low signer balance: ${signerBalance.toString(4)}`)
+      );
     }
   } else {
     console.log(gray('> Read Only'));
   }
 
-  console.log(gray('================================================================================'));
+  console.log(
+    gray(
+      '================================================================================'
+    )
+  );
   console.log('\n');
 }
 
-async function printHelpfulInfo(ctx: InteractTaskArgs, pickedContract: string | null) {
+async function printHelpfulInfo(
+  ctx: InteractTaskArgs,
+  pickedContract: string | null
+) {
   if (pickedContract) {
-    console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedContract].address}`));
+    console.log(
+      gray.inverse(
+        `${pickedContract} => ${ctx.contracts[pickedContract].address}`
+      )
+    );
   }
-  console.log(gray(`  * Signer: ${ctx.signer ? await ctx.signer.getAddress() : 'None'}`));
+  console.log(
+    gray(`  * Signer: ${ctx.signer ? await ctx.signer.getAddress() : 'None'}`)
+  );
   console.log('\n');
 
   /*console.log(gray('  * Recent contracts:'));
@@ -162,7 +185,9 @@ async function pickContract({ contractNames }: { contractNames: string[] }) {
 }
 
 async function pickFunction({ contract }: { contract: ethers.Contract }) {
-  const functionSignatures = _.keys(contract.functions).filter((f) => f.indexOf('(') != -1);
+  const functionSignatures = _.keys(contract.functions).filter(
+    (f) => f.indexOf('(') != -1
+  );
 
   const choices = functionSignatures.sort().map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
@@ -180,7 +205,11 @@ async function pickFunction({ contract }: { contract: ethers.Contract }) {
   return pickedFunction == PROMPT_BACK_OPTION.title ? null : pickedFunction;
 }
 
-async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment }) {
+async function pickFunctionArgs({
+  func,
+}: {
+  func: Ethers.utils.FunctionFragment;
+}) {
   const args: any[] = [];
   let value: ethers.BigNumber = wei(0).toBN();
 
@@ -237,7 +266,10 @@ async function query({
 
     console.log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      printReturnedValue(output, functionInfo.outputs!.length > 1 ? result[i] : result)
+      printReturnedValue(
+        output,
+        functionInfo.outputs!.length > 1 ? result[i] : result
+      )
     );
   }
 
@@ -257,7 +289,10 @@ async function execTxn({
   value: any;
   signer: Ethers.Signer;
 }) {
-  const callData = contract.interface.encodeFunctionData(functionSignature, args);
+  const callData = contract.interface.encodeFunctionData(
+    functionSignature,
+    args
+  );
 
   let txn: ethers.PopulatedTransaction | null = {};
 
@@ -266,16 +301,27 @@ async function execTxn({
     txn = await contract.populateTransaction[functionSignature](...args, {
       from: await signer.getAddress(),
     });
-    const estimatedGas = await contract.estimateGas[functionSignature](...args, {
-      from: await signer.getAddress(),
-    });
+    const estimatedGas = await contract.estimateGas[functionSignature](
+      ...args,
+      {
+        from: await signer.getAddress(),
+      }
+    );
 
     console.log(gray(`  > calldata: ${txn.data}`));
     console.log(gray(`  > estimated gas required: ${estimatedGas}`));
-    console.log(gray(`  > gas: ${JSON.stringify(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'))}`));
+    console.log(
+      gray(
+        `  > gas: ${JSON.stringify(
+          _.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas')
+        )}`
+      )
+    );
     console.log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
-    console.error(red('Error: Could not populate transaction (is it failing?)'));
+    console.error(
+      red('Error: Could not populate transaction (is it failing?)')
+    );
   }
 
   if (signer != null) {
@@ -349,7 +395,9 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
   let processed = isArray ? JSON.parse(rawValue) : rawValue;
   if (requiresBytes32Util) {
     if (isArray) {
-      processed = processed.map((item: string) => Ethers.utils.formatBytes32String(item));
+      processed = processed.map((item: string) =>
+        Ethers.utils.formatBytes32String(item)
+      );
     } else {
       processed = Ethers.utils.formatBytes32String(processed);
     }
@@ -371,7 +419,12 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
 
   //const processed = preprocessInput(input, type, hre);
   if (processed !== rawValue) {
-    console.log(gray(`  > processed inputs (${isArray ? processed.length : '1'}):`, processed));
+    console.log(
+      gray(
+        `  > processed inputs (${isArray ? processed.length : '1'}):`,
+        processed
+      )
+    );
   }
 
   // Encode user's input to validate it
@@ -388,14 +441,29 @@ function parseWeiValue(v: string): Ethers.BigNumber {
   }
 }
 
-function printReturnedValue(output: Ethers.utils.ParamType, value: any): string {
+function printReturnedValue(
+  output: Ethers.utils.ParamType,
+  value: any
+): string {
   if (output?.baseType === 'tuple') {
     // handle structs
-    return '\n' + output?.components.map((comp, ind) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`).join('\n');
+    return (
+      '\n' +
+      output?.components
+        .map(
+          (comp, ind) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`
+        )
+        .join('\n')
+    );
   } else if (output?.baseType === 'array' && Array.isArray(value)) {
     // handle arrays
-    return value.map((item) => printReturnedValue(output.arrayChildren, item)).join(', ');
-  } else if (output?.type.startsWith('uint') || output?.type.startsWith('int')) {
+    return value
+      .map((item) => printReturnedValue(output.arrayChildren, item))
+      .join(', ');
+  } else if (
+    output?.type.startsWith('uint') ||
+    output?.type.startsWith('int')
+  ) {
     return `${value.toString()} (${wei(value).toString(5)})`;
   } else if (output?.type.startsWith('bytes')) {
     return `${value} (${Buffer.from(value.slice(2), 'hex').toString('utf8')})`;
@@ -410,7 +478,10 @@ function boolify(value: any) {
   return value;
 }
 
-async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.TransactionReceipt) {
+async function logTxSucceed(
+  ctx: InteractTaskArgs,
+  receipt: Ethers.providers.TransactionReceipt
+) {
   console.log(green('  ✅ Success'));
   // console.log('receipt', JSON.stringify(receipt, null, 2));
 
@@ -436,12 +507,18 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
 
         for (let i = 0; i < (parsedLog.args.length || 0); i++) {
           const output = parsedLog.args[i];
-          const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+          const paramType = logContract.interface.getEvent(parsedLog.name)
+            .inputs[i];
 
-          console.log(cyan(`  ↪ ${output.name || ''}(${output.type}):`), printReturnedValue(paramType, output));
+          console.log(
+            cyan(`  ↪ ${output.name || ''}(${output.type}):`),
+            printReturnedValue(paramType, output)
+          );
         }
       } catch (err) {
-        console.log(gray(`    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
+        console.log(
+          gray(`    log ${i}: unable to decode log - ${JSON.stringify(log)}`)
+        );
       }
     }
   }

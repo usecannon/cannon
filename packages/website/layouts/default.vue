@@ -23,9 +23,9 @@
 </template>
 
 <script>
-import Heading from '../components/layout/Heading'
-import Footer from '../components/layout/Footer'
-import BetaBanner from '../components/layout/BetaBanner'
+import Heading from '../components/layout/Heading';
+import Footer from '../components/layout/Footer';
+import BetaBanner from '../components/layout/BetaBanner';
 
 export default {
   name: 'DefaultLayout',
@@ -34,5 +34,5 @@ export default {
     Footer,
     BetaBanner,
   },
-}
+};
 </script>

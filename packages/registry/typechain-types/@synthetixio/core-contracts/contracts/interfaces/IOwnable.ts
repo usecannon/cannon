@@ -11,68 +11,68 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from 'ethers';
+import type { FunctionFragment, Result } from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../../common";
+} from '../../../../common';
 
 export interface IOwnableInterface extends utils.Interface {
   functions: {
-    "acceptOwnership()": FunctionFragment;
-    "nominateNewOwner(address)": FunctionFragment;
-    "nominatedOwner()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "renounceNomination()": FunctionFragment;
+    'acceptOwnership()': FunctionFragment;
+    'nominateNewOwner(address)': FunctionFragment;
+    'nominatedOwner()': FunctionFragment;
+    'owner()': FunctionFragment;
+    'renounceNomination()': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "acceptOwnership"
-      | "nominateNewOwner"
-      | "nominatedOwner"
-      | "owner"
-      | "renounceNomination"
+      | 'acceptOwnership'
+      | 'nominateNewOwner'
+      | 'nominatedOwner'
+      | 'owner'
+      | 'renounceNomination'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "acceptOwnership",
+    functionFragment: 'acceptOwnership',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "nominateNewOwner",
+    functionFragment: 'nominateNewOwner',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "nominatedOwner",
+    functionFragment: 'nominatedOwner',
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'owner', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "renounceNomination",
+    functionFragment: 'renounceNomination',
     values?: undefined
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "acceptOwnership",
+    functionFragment: 'acceptOwnership',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nominateNewOwner",
+    functionFragment: 'nominateNewOwner',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nominatedOwner",
+    functionFragment: 'nominatedOwner',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'owner', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceNomination",
+    functionFragment: 'renounceNomination',
     data: BytesLike
   ): Result;
 

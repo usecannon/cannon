@@ -11,110 +11,110 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
+} from 'ethers';
 import type {
   FunctionFragment,
   Result,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../common";
+} from '../common';
 
 export interface CannonRegistryInterface extends utils.Interface {
   functions: {
-    "MIN_PACKAGE_NAME_LENGTH()": FunctionFragment;
-    "acceptOwnership()": FunctionFragment;
-    "acceptPackageOwnership(bytes32)": FunctionFragment;
-    "getImplementation()": FunctionFragment;
-    "getPackageNominatedOwner(bytes32)": FunctionFragment;
-    "getPackageUrl(bytes32,bytes32)": FunctionFragment;
-    "getPackageVersions(bytes32)": FunctionFragment;
-    "getPackages()": FunctionFragment;
-    "nominateNewOwner(address)": FunctionFragment;
-    "nominatePackageOwner(bytes32,address)": FunctionFragment;
-    "nominatedOwner()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "publish(bytes32,bytes32,bytes32[],string)": FunctionFragment;
-    "renounceNomination()": FunctionFragment;
-    "simulateUpgradeTo(address)": FunctionFragment;
-    "upgradeTo(address)": FunctionFragment;
-    "validatePackageName(bytes32)": FunctionFragment;
+    'MIN_PACKAGE_NAME_LENGTH()': FunctionFragment;
+    'acceptOwnership()': FunctionFragment;
+    'acceptPackageOwnership(bytes32)': FunctionFragment;
+    'getImplementation()': FunctionFragment;
+    'getPackageNominatedOwner(bytes32)': FunctionFragment;
+    'getPackageUrl(bytes32,bytes32)': FunctionFragment;
+    'getPackageVersions(bytes32)': FunctionFragment;
+    'getPackages()': FunctionFragment;
+    'nominateNewOwner(address)': FunctionFragment;
+    'nominatePackageOwner(bytes32,address)': FunctionFragment;
+    'nominatedOwner()': FunctionFragment;
+    'owner()': FunctionFragment;
+    'publish(bytes32,bytes32,bytes32[],string)': FunctionFragment;
+    'renounceNomination()': FunctionFragment;
+    'simulateUpgradeTo(address)': FunctionFragment;
+    'upgradeTo(address)': FunctionFragment;
+    'validatePackageName(bytes32)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "MIN_PACKAGE_NAME_LENGTH"
-      | "acceptOwnership"
-      | "acceptPackageOwnership"
-      | "getImplementation"
-      | "getPackageNominatedOwner"
-      | "getPackageUrl"
-      | "getPackageVersions"
-      | "getPackages"
-      | "nominateNewOwner"
-      | "nominatePackageOwner"
-      | "nominatedOwner"
-      | "owner"
-      | "publish"
-      | "renounceNomination"
-      | "simulateUpgradeTo"
-      | "upgradeTo"
-      | "validatePackageName"
+      | 'MIN_PACKAGE_NAME_LENGTH'
+      | 'acceptOwnership'
+      | 'acceptPackageOwnership'
+      | 'getImplementation'
+      | 'getPackageNominatedOwner'
+      | 'getPackageUrl'
+      | 'getPackageVersions'
+      | 'getPackages'
+      | 'nominateNewOwner'
+      | 'nominatePackageOwner'
+      | 'nominatedOwner'
+      | 'owner'
+      | 'publish'
+      | 'renounceNomination'
+      | 'simulateUpgradeTo'
+      | 'upgradeTo'
+      | 'validatePackageName'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "MIN_PACKAGE_NAME_LENGTH",
+    functionFragment: 'MIN_PACKAGE_NAME_LENGTH',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "acceptOwnership",
+    functionFragment: 'acceptOwnership',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "acceptPackageOwnership",
+    functionFragment: 'acceptPackageOwnership',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getImplementation",
+    functionFragment: 'getImplementation',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getPackageNominatedOwner",
+    functionFragment: 'getPackageNominatedOwner',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPackageUrl",
+    functionFragment: 'getPackageUrl',
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPackageVersions",
+    functionFragment: 'getPackageVersions',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPackages",
+    functionFragment: 'getPackages',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "nominateNewOwner",
+    functionFragment: 'nominateNewOwner',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "nominatePackageOwner",
+    functionFragment: 'nominatePackageOwner',
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "nominatedOwner",
+    functionFragment: 'nominatedOwner',
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'owner', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "publish",
+    functionFragment: 'publish',
     values: [
       PromiseOrValue<BytesLike>,
       PromiseOrValue<BytesLike>,
@@ -123,93 +123,93 @@ export interface CannonRegistryInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceNomination",
+    functionFragment: 'renounceNomination',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "simulateUpgradeTo",
+    functionFragment: 'simulateUpgradeTo',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "upgradeTo",
+    functionFragment: 'upgradeTo',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "validatePackageName",
+    functionFragment: 'validatePackageName',
     values: [PromiseOrValue<BytesLike>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "MIN_PACKAGE_NAME_LENGTH",
+    functionFragment: 'MIN_PACKAGE_NAME_LENGTH',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "acceptOwnership",
+    functionFragment: 'acceptOwnership',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "acceptPackageOwnership",
+    functionFragment: 'acceptPackageOwnership',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getImplementation",
+    functionFragment: 'getImplementation',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPackageNominatedOwner",
+    functionFragment: 'getPackageNominatedOwner',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPackageUrl",
+    functionFragment: 'getPackageUrl',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPackageVersions",
+    functionFragment: 'getPackageVersions',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPackages",
+    functionFragment: 'getPackages',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nominateNewOwner",
+    functionFragment: 'nominateNewOwner',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nominatePackageOwner",
+    functionFragment: 'nominatePackageOwner',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "nominatedOwner",
+    functionFragment: 'nominatedOwner',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "publish", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'owner', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'publish', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceNomination",
+    functionFragment: 'renounceNomination',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "simulateUpgradeTo",
+    functionFragment: 'simulateUpgradeTo',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'upgradeTo', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "validatePackageName",
+    functionFragment: 'validatePackageName',
     data: BytesLike
   ): Result;
 
   events: {
-    "OwnerChanged(address,address)": EventFragment;
-    "OwnerNominated(address)": EventFragment;
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)": EventFragment;
-    "Upgraded(address)": EventFragment;
+    'OwnerChanged(address,address)': EventFragment;
+    'OwnerNominated(address)': EventFragment;
+    'ProtocolPublish(bytes32,bytes32,bytes32[],string,address)': EventFragment;
+    'Upgraded(address)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnerChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnerNominated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProtocolPublish"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnerChanged'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnerNominated'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ProtocolPublish'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Upgraded'): EventFragment;
 }
 
 export interface OwnerChangedEventObject {
@@ -500,16 +500,16 @@ export interface CannonRegistry extends BaseContract {
   };
 
   filters: {
-    "OwnerChanged(address,address)"(
+    'OwnerChanged(address,address)'(
       oldOwner?: null,
       newOwner?: null
     ): OwnerChangedEventFilter;
     OwnerChanged(oldOwner?: null, newOwner?: null): OwnerChangedEventFilter;
 
-    "OwnerNominated(address)"(newOwner?: null): OwnerNominatedEventFilter;
+    'OwnerNominated(address)'(newOwner?: null): OwnerNominatedEventFilter;
     OwnerNominated(newOwner?: null): OwnerNominatedEventFilter;
 
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)"(
+    'ProtocolPublish(bytes32,bytes32,bytes32[],string,address)'(
       name?: PromiseOrValue<BytesLike> | null,
       version?: PromiseOrValue<BytesLike> | null,
       tags?: PromiseOrValue<BytesLike>[] | null,
@@ -524,7 +524,7 @@ export interface CannonRegistry extends BaseContract {
       owner?: null
     ): ProtocolPublishEventFilter;
 
-    "Upgraded(address)"(implementation?: null): UpgradedEventFilter;
+    'Upgraded(address)'(implementation?: null): UpgradedEventFilter;
     Upgraded(implementation?: null): UpgradedEventFilter;
   };
 

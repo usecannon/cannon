@@ -11,63 +11,63 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
+} from 'ethers';
 import type {
   FunctionFragment,
   Result,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../../common";
+} from '../../../../common';
 
 export interface UUPSImplementationInterface extends utils.Interface {
   functions: {
-    "getImplementation()": FunctionFragment;
-    "simulateUpgradeTo(address)": FunctionFragment;
-    "upgradeTo(address)": FunctionFragment;
+    'getImplementation()': FunctionFragment;
+    'simulateUpgradeTo(address)': FunctionFragment;
+    'upgradeTo(address)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "getImplementation"
-      | "simulateUpgradeTo"
-      | "upgradeTo"
+      | 'getImplementation'
+      | 'simulateUpgradeTo'
+      | 'upgradeTo'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "getImplementation",
+    functionFragment: 'getImplementation',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "simulateUpgradeTo",
+    functionFragment: 'simulateUpgradeTo',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "upgradeTo",
+    functionFragment: 'upgradeTo',
     values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "getImplementation",
+    functionFragment: 'getImplementation',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "simulateUpgradeTo",
+    functionFragment: 'simulateUpgradeTo',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'upgradeTo', data: BytesLike): Result;
 
   events: {
-    "Upgraded(address)": EventFragment;
+    'Upgraded(address)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Upgraded'): EventFragment;
 }
 
 export interface UpgradedEventObject {
@@ -144,7 +144,7 @@ export interface UUPSImplementation extends BaseContract {
   };
 
   filters: {
-    "Upgraded(address)"(implementation?: null): UpgradedEventFilter;
+    'Upgraded(address)'(implementation?: null): UpgradedEventFilter;
     Upgraded(implementation?: null): UpgradedEventFilter;
   };
 

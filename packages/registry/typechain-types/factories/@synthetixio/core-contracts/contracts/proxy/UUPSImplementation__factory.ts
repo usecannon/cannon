@@ -2,81 +2,81 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
 import type {
   UUPSImplementation,
   UUPSImplementationInterface,
-} from "../../../../../@synthetixio/core-contracts/contracts/proxy/UUPSImplementation";
+} from '../../../../../@synthetixio/core-contracts/contracts/proxy/UUPSImplementation';
 
 const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "implementation",
-        type: "address",
+        internalType: 'address',
+        name: 'implementation',
+        type: 'address',
       },
     ],
-    name: "ImplementationIsSterile",
-    type: "error",
+    name: 'ImplementationIsSterile',
+    type: 'error',
   },
   {
     inputs: [],
-    name: "UpgradeSimulationFailed",
-    type: "error",
+    name: 'UpgradeSimulationFailed',
+    type: 'error',
   },
   {
     anonymous: false,
     inputs: [
       {
         indexed: false,
-        internalType: "address",
-        name: "implementation",
-        type: "address",
+        internalType: 'address',
+        name: 'implementation',
+        type: 'address',
       },
     ],
-    name: "Upgraded",
-    type: "event",
+    name: 'Upgraded',
+    type: 'event',
   },
   {
     inputs: [],
-    name: "getImplementation",
+    name: 'getImplementation',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: 'address',
+        name: '',
+        type: 'address',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "newImplementation",
-        type: "address",
+        internalType: 'address',
+        name: 'newImplementation',
+        type: 'address',
       },
     ],
-    name: "simulateUpgradeTo",
+    name: 'simulateUpgradeTo',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "newImplementation",
-        type: "address",
+        internalType: 'address',
+        name: 'newImplementation',
+        type: 'address',
       },
     ],
-    name: "upgradeTo",
+    name: 'upgradeTo',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
 ];
 

@@ -16,7 +16,11 @@ export interface Outputs {
 export default {
   validate: ChainDefinitionScriptSchema,
 
-  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(
+    _runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: Config
+  ) {
     return this.configInject(ctx, config);
   },
 
@@ -41,7 +45,11 @@ export default {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(_runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, _config: Config): Promise<Outputs> {
+  async exec(
+    _runtime: ChainBuilderRuntime,
+    _ctx: ChainBuilderContext,
+    _config: Config
+  ): Promise<Outputs> {
     return {};
   },
 };

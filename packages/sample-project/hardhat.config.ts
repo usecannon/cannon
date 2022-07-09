@@ -37,17 +37,23 @@ const config: HardhatUserConfig = {
       chainId: 31337,
     },
     ropsten: {
-      url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
+      url:
+        process.env.PROVIDER_URL ||
+        `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 3,
       accounts: process.env.PRIVATE_KEY?.split(','),
     },
     rinkeby: {
-      url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      url:
+        process.env.PROVIDER_URL ||
+        `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 4,
       accounts: process.env.PRIVATE_KEY?.split(','),
     },
     mainnet: {
-      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      url:
+        process.env.PROVIDER_URL ||
+        `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 1,
     },
   },
@@ -65,9 +71,9 @@ const config: HardhatUserConfig = {
       host: 'ipfs.infura.io',
       port: 5001,
       headers: {
-        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
-          'base64'
-        )}`,
+        authorization: `Basic ${Buffer.from(
+          process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET
+        ).toString('base64')}`,
       },
     },
   },

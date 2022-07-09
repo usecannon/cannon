@@ -6,9 +6,15 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { validateChainDefinition } from '@usecannon/builder';
 
-export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
+export default function loadCannonfile(
+  hre: HardhatRuntimeEnvironment,
+  filepath: string
+) {
   if (!fs.existsSync(filepath)) {
-    throw new HardhatPluginError('cannon', `Cannon file '${filepath}' not found.`);
+    throw new HardhatPluginError(
+      'cannon',
+      `Cannon file '${filepath}' not found.`
+    );
   }
 
   const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
@@ -17,7 +23,9 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
   try {
     pkg = require(path.join(hre.config.paths.root, 'package.json'));
   } catch (err) {
-    console.warn('package.json file not found! Cannot use field for cannonfile inference');
+    console.warn(
+      'package.json file not found! Cannot use field for cannonfile inference'
+    );
   }
 
   if (!def.name || typeof def.name !== 'string') {
@@ -48,7 +56,11 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     console.error('cannonfile failed parse:');
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     for (const error of validateChainDefinition.errors || []) {
-      console.log(`> at .${error.schemaPath}: ${error.message} (${JSON.stringify(error.params)})`);
+      console.log(
+        `> at .${error.schemaPath}: ${error.message} (${JSON.stringify(
+          error.params
+        )})`
+      );
     }
 
     throw new Error('failed to parse cannonfile');

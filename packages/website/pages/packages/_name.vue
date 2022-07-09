@@ -154,7 +154,7 @@ export default {
           tags {
             tag {
               id
-            }           
+            }
           }
         }
       }`,

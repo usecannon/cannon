@@ -2,113 +2,113 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import {
   FactoryOptions,
   HardhatEthersHelpers as HardhatEthersHelpersBase,
-} from "@nomiclabs/hardhat-ethers/types";
+} from '@nomiclabs/hardhat-ethers/types';
 
-import * as Contracts from ".";
+import * as Contracts from '.';
 
-declare module "hardhat/types/runtime" {
+declare module 'hardhat/types/runtime' {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
-      name: "AccessError",
+      name: 'AccessError',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessError__factory>;
     getContractFactory(
-      name: "AddressError",
+      name: 'AddressError',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AddressError__factory>;
     getContractFactory(
-      name: "ChangeError",
+      name: 'ChangeError',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ChangeError__factory>;
     getContractFactory(
-      name: "IOwnable",
+      name: 'IOwnable',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOwnable__factory>;
     getContractFactory(
-      name: "IUUPSImplementation",
+      name: 'IUUPSImplementation',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUUPSImplementation__factory>;
     getContractFactory(
-      name: "Ownable",
+      name: 'Ownable',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
-      name: "AbstractProxy",
+      name: 'AbstractProxy',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AbstractProxy__factory>;
     getContractFactory(
-      name: "UUPSImplementation",
+      name: 'UUPSImplementation',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UUPSImplementation__factory>;
     getContractFactory(
-      name: "UUPSProxy",
+      name: 'UUPSProxy',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UUPSProxy__factory>;
     getContractFactory(
-      name: "CannonRegistry",
+      name: 'CannonRegistry',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CannonRegistry__factory>;
     getContractFactory(
-      name: "Proxy",
+      name: 'Proxy',
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Proxy__factory>;
 
     getContractAt(
-      name: "AccessError",
+      name: 'AccessError',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AccessError>;
     getContractAt(
-      name: "AddressError",
+      name: 'AddressError',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AddressError>;
     getContractAt(
-      name: "ChangeError",
+      name: 'ChangeError',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ChangeError>;
     getContractAt(
-      name: "IOwnable",
+      name: 'IOwnable',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IOwnable>;
     getContractAt(
-      name: "IUUPSImplementation",
+      name: 'IUUPSImplementation',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IUUPSImplementation>;
     getContractAt(
-      name: "Ownable",
+      name: 'Ownable',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
     getContractAt(
-      name: "AbstractProxy",
+      name: 'AbstractProxy',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AbstractProxy>;
     getContractAt(
-      name: "UUPSImplementation",
+      name: 'UUPSImplementation',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UUPSImplementation>;
     getContractAt(
-      name: "UUPSProxy",
+      name: 'UUPSProxy',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UUPSProxy>;
     getContractAt(
-      name: "CannonRegistry",
+      name: 'CannonRegistry',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CannonRegistry>;
     getContractAt(
-      name: "Proxy",
+      name: 'Proxy',
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Proxy>;

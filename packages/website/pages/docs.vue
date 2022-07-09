@@ -45,7 +45,7 @@ export default {
       .catch(err => {
         error({ statusCode: 404, message: "Page not found" });
       });
-      
+
     return {
       page
     };

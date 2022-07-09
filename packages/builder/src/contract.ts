@@ -4,7 +4,11 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
+import {
+  ChainBuilderContext,
+  ChainBuilderRuntime,
+  ChainArtifacts,
+} from './types';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -36,7 +40,11 @@ export interface ContractOutputs {
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: Config
+  ) {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
@@ -69,7 +77,11 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: Config
+  ): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const artifactData = await runtime.getArtifact(config.artifact);
@@ -81,7 +93,9 @@ export default {
         const libraryAddress = _.get(config, `libraries.${lib}`);
 
         if (!libraryAddress) {
-          throw new Error(`library for contract ${config.artifact} not defined: ${lib}`);
+          throw new Error(
+            `library for contract ${config.artifact} not defined: ${lib}`
+          );
         }
 
         debug('lib ref', lib, libraryAddress);
@@ -99,7 +113,10 @@ export default {
     }
 
     // finally, deploy
-    const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
+    const factory = new ethers.ContractFactory(
+      artifactData.abi,
+      injectedBytecode
+    );
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
@@ -113,7 +130,9 @@ export default {
       contracts: {
         [runtime.currentLabel?.split('.')[1] || '']: {
           address: receipt.contractAddress,
-          abi: JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string),
+          abi: JSON.parse(
+            factory.interface.format(ethers.utils.FormatTypes.json) as string
+          ),
           constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
         },

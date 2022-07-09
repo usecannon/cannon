@@ -235,9 +235,7 @@ describe('CannonRegistry', function () {
       );
 
       equal(
-        await CannonRegistry.getPackageNominatedOwner(
-          toBytes32('some-module')
-        ),
+        await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')),
         await user2.getAddress()
       );
     });

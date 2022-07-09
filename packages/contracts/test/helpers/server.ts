@@ -5,10 +5,12 @@ import { JsonRpcServer } from 'hardhat/types';
 
 const servers = new EventEmitter();
 
-subtask(TASK_NODE_SERVER_READY).setAction(async ({ server }: { server: JsonRpcServer }, hre, runSuper) => {
-  servers.emit('ready', server);
-  return await runSuper();
-});
+subtask(TASK_NODE_SERVER_READY).setAction(
+  async ({ server }: { server: JsonRpcServer }, hre, runSuper) => {
+    servers.emit('ready', server);
+    return await runSuper();
+  }
+);
 
 export default async function waitForServer(): Promise<JsonRpcServer> {
   return new Promise((resolve) => servers.once('ready', resolve));

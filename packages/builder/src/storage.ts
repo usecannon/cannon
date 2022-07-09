@@ -24,31 +24,57 @@ export function getDeploymentInfoFile(chartDir: string) {
   return path.join(chartDir, 'deploy.json');
 }
 
-export async function getAllDeploymentInfos(chartDir: string): Promise<DeploymentManifest> {
+export async function getAllDeploymentInfos(
+  chartDir: string
+): Promise<DeploymentManifest> {
   const file = getDeploymentInfoFile(chartDir);
 
   if (!fs.existsSync(file)) {
-    return { deploys: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
+    return {
+      deploys: {},
+      misc: { ipfsHash: '' },
+      def: { name: '', version: '' },
+    };
   }
 
   return (await fs.readJson(file)) as DeploymentManifest;
 }
 
-export async function getDeploymentInfo(chartDir: string, network: number, label: string): Promise<DeploymentInfo | null> {
+export async function getDeploymentInfo(
+  chartDir: string,
+  network: number,
+  label: string
+): Promise<DeploymentInfo | null> {
   const deployInfo = await getAllDeploymentInfos(chartDir);
 
-  return _.get(deployInfo.deploys, `${network}.${label}`, null) as unknown as DeploymentInfo | null;
+  return _.get(
+    deployInfo.deploys,
+    `${network}.${label}`,
+    null
+  ) as unknown as DeploymentInfo | null;
 }
 
-export async function putDeploymentInfo(chartDir: string, chainId: number, label: string, info: DeploymentInfo) {
+export async function putDeploymentInfo(
+  chartDir: string,
+  chainId: number,
+  label: string,
+  info: DeploymentInfo
+) {
   const deployInfo = await getAllDeploymentInfos(chartDir);
 
   _.set(deployInfo.deploys, `${chainId}.${label}`, info);
 
-  await fs.writeFile(getDeploymentInfoFile(chartDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
+  await fs.writeFile(
+    getDeploymentInfoFile(chartDir),
+    JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION)
+  );
 }
 
-export async function clearDeploymentInfo(chartDir: string, chainId: number, label: string) {
+export async function clearDeploymentInfo(
+  chartDir: string,
+  chainId: number,
+  label: string
+) {
   // delete associated files
   const prefix = `${chainId}-${label}`;
   for (const file in fs.readdir(chartDir)) {
@@ -60,10 +86,18 @@ export async function clearDeploymentInfo(chartDir: string, chainId: number, lab
   // delete entry in deploy file
   const deployInfo = await getAllDeploymentInfos(chartDir);
   delete deployInfo.deploys[chainId.toString()][label];
-  await fs.writeFile(getDeploymentInfoFile(chartDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
+  await fs.writeFile(
+    getDeploymentInfoFile(chartDir),
+    JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION)
+  );
 }
 
-export function getLayerFiles(chartDir: string, chainId: number, label: string, n: number) {
+export function getLayerFiles(
+  chartDir: string,
+  chainId: number,
+  label: string,
+  n: number
+) {
   const filename = `${chainId}-${label}/${n}`;
 
   const basename = path.join(chartDir, filename);
@@ -75,7 +109,11 @@ export function getLayerFiles(chartDir: string, chainId: number, label: string, 
   };
 }
 
-export async function exportChain(chartsDir: string, name: string, version: string): Promise<Buffer> {
+export async function exportChain(
+  chartsDir: string,
+  name: string,
+  version: string
+): Promise<Buffer> {
   const zip = new AdmZip();
 
   const folder = getChartDir(chartsDir, name, version);
@@ -83,10 +121,15 @@ export async function exportChain(chartsDir: string, name: string, version: stri
   return zip.toBufferPromise();
 }
 
-export async function importChain(chartsDir: string, buf: Buffer): Promise<ChainDefinition> {
+export async function importChain(
+  chartsDir: string,
+  buf: Buffer
+): Promise<ChainDefinition> {
   const zip = new AdmZip(buf);
 
-  const manifest = JSON.parse(zip.readAsText('deploy.json')) as DeploymentManifest;
+  const manifest = JSON.parse(
+    zip.readAsText('deploy.json')
+  ) as DeploymentManifest;
 
   // manifest determines where to store the files
   const dir = getChartDir(chartsDir, manifest.def.name, manifest.def.version);
@@ -95,12 +138,19 @@ export async function importChain(chartsDir: string, buf: Buffer): Promise<Chain
   return manifest.def;
 }
 
-export async function associateTag(chartsDir: string, name: string, version: string, tag: string) {
+export async function associateTag(
+  chartsDir: string,
+  name: string,
+  version: string,
+  tag: string
+) {
   const mainCacheDir = getChartDir(chartsDir, name, version);
   const tagCacheDir = getChartDir(chartsDir, name, tag);
 
   if (!(await fs.pathExists(mainCacheDir))) {
-    throw new Error(`could not associate tag: cache dir for ${name}:${version} does not exist`);
+    throw new Error(
+      `could not associate tag: cache dir for ${name}:${version} does not exist`
+    );
   }
 
   if (version === tag) {

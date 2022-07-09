@@ -2,52 +2,52 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from 'ethers';
+import type { Provider } from '@ethersproject/providers';
 import type {
   IUUPSImplementation,
   IUUPSImplementationInterface,
-} from "../../../../../@synthetixio/core-contracts/contracts/interfaces/IUUPSImplementation";
+} from '../../../../../@synthetixio/core-contracts/contracts/interfaces/IUUPSImplementation';
 
 const _abi = [
   {
     inputs: [],
-    name: "getImplementation",
+    name: 'getImplementation',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: 'address',
+        name: '',
+        type: 'address',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "newImplementation",
-        type: "address",
+        internalType: 'address',
+        name: 'newImplementation',
+        type: 'address',
       },
     ],
-    name: "simulateUpgradeTo",
+    name: 'simulateUpgradeTo',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "newImplementation",
-        type: "address",
+        internalType: 'address',
+        name: 'newImplementation',
+        type: 'address',
       },
     ],
-    name: "upgradeTo",
+    name: 'upgradeTo',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
 ];
 
