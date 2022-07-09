@@ -156,6 +156,7 @@ export default {
   display: block;
   position: absolute;
   width: 150%;
+  max-width: 100vw;
   height: 200%;
   left: 0;
   bottom: 0;
