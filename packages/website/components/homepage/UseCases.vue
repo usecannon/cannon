@@ -31,9 +31,25 @@
           >Proof of Concepts</CHeading
         >
         <CText fontSize="sm"
-          >Rapidly create development environments with existing protocols
-          across multiple chains.</CText
+          >Rapidly create development environments with multiple existing
+          protocols.</CText
         >
+      </CBox>
+      <CBox>
+        <CImage
+          size="80px"
+          :src="require('@/static/usecases_3.png')"
+          alt="Front-end Development"
+          mx="auto"
+          mb="6"
+        />
+        <CHeading size="sm" mb="2" letterSpacing="1px"
+          >Front-end Development</CHeading
+        >
+        <CText fontSize="sm"
+          >Build interfaces that interact with protocols. Addresses and ABIs are
+          automatically exported.
+        </CText>
       </CBox>
       <CBox>
         <CImage
@@ -45,22 +61,13 @@
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
         <CText fontSize="sm">
-          Speed up your integration tests and reduce flakes by recording your
-          deployments to a snapshot.
-        </CText>
-      </CBox>
-      <CBox>
-        <CImage
-          size="80px"
-          :src="require('@/static/usecases_3.png')"
-          alt="Simulations"
-          mx="auto"
-          mb="6"
-        />
-        <CHeading size="sm" mb="2" letterSpacing="1px">Simulations</CHeading>
-        <CText fontSize="sm"
-          >Create scenarios to simulate different behaviors from keepers and
-          oracles.
+          Instantly spin up nodes for integration/E2E testing. Cannon pairs well
+          with
+          <u
+            ><a href="https://github.com/Synthetixio/synpress" target="_blank"
+              >Synpress</a
+            ></u
+          >.
         </CText>
       </CBox>
       <CBox>
@@ -73,8 +80,8 @@
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Deployment</CHeading>
         <CText fontSize="sm"
-          >When you're ready to deploy your protocol, use the same pipeline for
-          production.</CText
+          >Include the name of a chain with the <code>--network</code> option to
+          deploy your protocol to a live network.</CText
         >
       </CBox>
     </CSimpleGrid>

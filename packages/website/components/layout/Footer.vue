@@ -1,7 +1,7 @@
 <template>
   <CBox textAlign="center" fontSize="sm" mt="20" py="2" px="4" bg="blue.975">
     <CText opacity="0.8">
-      Built for ETHDenver 2022 by
+      Winner of the ETHDenver 2022 Hackathon. Built by
       <CLink
         textDecoration="underline"
         isExternal
