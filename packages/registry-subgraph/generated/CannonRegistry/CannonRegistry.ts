@@ -10,16 +10,16 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
-export class ProtocolPublish extends ethereum.Event {
-  get params(): ProtocolPublish__Params {
+export class PackagePublish extends ethereum.Event {
+  get params(): PackagePublish__Params {
     return new ProtocolPublish__Params(this);
   }
 }
 
-export class ProtocolPublish__Params {
-  _event: ProtocolPublish;
+export class PackagePublish__Params {
+  _event: PackagePublish;
 
-  constructor(event: ProtocolPublish) {
+  constructor(event: PackagePublish) {
     this._event = event;
   }
 
@@ -49,16 +49,16 @@ export class CannonRegistry extends ethereum.SmartContract {
     return new CannonRegistry("CannonRegistry", address);
   }
 
-  getProtocols(): Array<Bytes> {
-    let result = super.call("getProtocols", "getProtocols():(bytes32[])", []);
+  getPackages(): Array<Bytes> {
+    let result = super.call("getPackages", "getPackages():(bytes32[])", []);
 
     return result[0].toBytesArray();
   }
 
   try_getProtocols(): ethereum.CallResult<Array<Bytes>> {
     let result = super.tryCall(
-      "getProtocols",
-      "getProtocols():(bytes32[])",
+      "getPackages",
+      "getPackages():(bytes32[])",
       []
     );
     if (result.reverted) {
@@ -68,8 +68,8 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytesArray());
   }
 
-  getUrl(_protocolName: Bytes, _protocolVersion: Bytes): string {
-    let result = super.call("getUrl", "getUrl(bytes32,bytes32):(string)", [
+  getPackageUrl(_protocolName: Bytes, _protocolVersion: Bytes): string {
+    let result = super.call("getPackageUrl", "getPackageUrl(bytes32,bytes32):(string)", [
       ethereum.Value.fromFixedBytes(_protocolName),
       ethereum.Value.fromFixedBytes(_protocolVersion)
     ]);
@@ -77,11 +77,11 @@ export class CannonRegistry extends ethereum.SmartContract {
     return result[0].toString();
   }
 
-  try_getUrl(
+  try_getProtocolUrl(
     _protocolName: Bytes,
     _protocolVersion: Bytes
   ): ethereum.CallResult<string> {
-    let result = super.tryCall("getUrl", "getUrl(bytes32,bytes32):(string)", [
+    let result = super.tryCall("getPackageUrl", "getPackageUrl(bytes32,bytes32):(string)", [
       ethereum.Value.fromFixedBytes(_protocolName),
       ethereum.Value.fromFixedBytes(_protocolVersion)
     ]);
@@ -92,18 +92,18 @@ export class CannonRegistry extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toString());
   }
 
-  getVersions(_protocolName: Bytes): Array<Bytes> {
-    let result = super.call("getVersions", "getVersions(bytes32):(bytes32[])", [
+  getPackageVersions(_protocolName: Bytes): Array<Bytes> {
+    let result = super.call("getPackageVersions", "getPackageVersions(bytes32):(bytes32[])", [
       ethereum.Value.fromFixedBytes(_protocolName)
     ]);
 
     return result[0].toBytesArray();
   }
 
-  try_getVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
+  try_getProtocolVersions(_protocolName: Bytes): ethereum.CallResult<Array<Bytes>> {
     let result = super.tryCall(
-      "getVersions",
-      "getVersions(bytes32):(bytes32[])",
+      "getPackageVersions",
+      "getPackageVersions(bytes32):(bytes32[])",
       [ethereum.Value.fromFixedBytes(_protocolName)]
     );
     if (result.reverted) {

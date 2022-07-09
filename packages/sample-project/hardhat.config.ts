@@ -9,6 +9,8 @@ import 'hardhat-interact';
 
 import '../hardhat-cannon/src/index';
 
+import 'hardhat-interact';
+
 import * as dotenv from 'dotenv';
 import { HardhatUserConfig, task } from 'hardhat/config';
 
@@ -28,11 +30,11 @@ const config: HardhatUserConfig = {
   solidity: '0.8.4',
   networks: {
     hardhat: {
-      chainId: 31338,
+      chainId: 31337,
     },
     local: {
       url: 'http://127.0.0.1:8545/',
-      chainId: 31338,
+      chainId: 31337,
     },
     ropsten: {
       url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
