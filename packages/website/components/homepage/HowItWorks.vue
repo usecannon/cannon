@@ -164,7 +164,7 @@ export default {
   transform: translate(-16%, 25%);
   background: radial-gradient(
     ellipse at center,
-    rgba(65, 200, 65, 0.15) 0%,
+    rgba(65, 200, 65, 0.12) 0%,
     rgba(65, 200, 65, 0) 66%
   );
 }
