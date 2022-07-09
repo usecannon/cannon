@@ -2,6 +2,7 @@ import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import hre from 'hardhat';
+import { ChainBuilderRuntime } from '../../builder/src/types';
 import { CannonRegistry as TCannonRegistry } from '../typechain-types/contracts/CannonRegistry';
 
 interface DeploymentArtifact {
@@ -13,14 +14,14 @@ interface DeploymentArtifact {
 
 type Artifacts = { [contractName: string]: DeploymentArtifact };
 
-export async function deployOrUpgradeProxy(implementationAddress: string) {
+export async function deployOrUpgradeProxy(_: ChainBuilderRuntime, implementationAddress: string) {
   const contracts: Artifacts = {};
 
   const proxyDeploymentPath = path.resolve(__dirname, '..', 'deployments', hre.network.name, 'proxy.json');
 
   if (existsSync(proxyDeploymentPath)) {
     const proxy = JSON.parse((await readFile(proxyDeploymentPath)).toString()) as DeploymentArtifact;
-    const CannonRegistry = await hre.ethers.getContractAt('CannonRegistry', proxy.address) as TCannonRegistry;
+    const CannonRegistry = (await hre.ethers.getContractAt('CannonRegistry', proxy.address)) as TCannonRegistry;
 
     const currentImplementaion = await CannonRegistry.getImplementation();
 
@@ -36,7 +37,7 @@ export async function deployOrUpgradeProxy(implementationAddress: string) {
     const Proxy = await ProxyFactory.deploy(implementationAddress);
     await Proxy.deployed();
 
-    const CannonRegistry = await hre.ethers.getContractAt('CannonRegistry', Proxy.address) as TCannonRegistry;
+    const CannonRegistry = (await hre.ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
 
     const [owner] = await hre.ethers.getSigners();
 
@@ -44,13 +45,13 @@ export async function deployOrUpgradeProxy(implementationAddress: string) {
     await CannonRegistry.nominateNewOwner(owner.address).then((tx) => tx.wait());
     await CannonRegistry.acceptOwnership().then((tx) => tx.wait());
 
-    const artifact = await hre.artifacts.readArtifact('CannonRegistry')
+    const artifact = await hre.artifacts.readArtifact('CannonRegistry');
 
     contracts.proxy = {
       address: Proxy.address,
       abi: artifact.abi,
       constructorArgs: [implementationAddress],
-      deployTxnHash: Proxy.deployTransaction.hash
+      deployTxnHash: Proxy.deployTransaction.hash,
     };
   }
 

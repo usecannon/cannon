@@ -9,27 +9,31 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
+  error TooManyTags();
+  error PackageNotFound();
 
-  event ProtocolPublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
+  event PackagePublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
+  event PackageVerify(bytes32 indexed name, address indexed verifier);
+  event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
 
-  function upgradeTo(address newImplementation) public override onlyOwner {
-    _upgradeTo(newImplementation);
+  function upgradeTo(address _newImplementation) public override onlyOwner {
+    _upgradeTo(_newImplementation);
   }
 
-  function validatePackageName(bytes32 name) public pure returns (bool) {
+  function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset
 
     for (uint i = 0; i < 32; i++) {
-      if (name[i] == bytes1(0)) {
+      if (_name[i] == bytes1(0)) {
         // must be long enough
         if (i < MIN_PACKAGE_NAME_LENGTH) {
           return false;
         }
 
         // last character cannot be `-`
-        if (name[i - 1] == "-") {
+        if (_name[i - 1] == "-") {
           return false;
         }
 
@@ -38,10 +42,10 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
 
       // must be in valid character set
       if (
-        (name[i] < "0" || name[i] > "9") &&
-        (name[i] < "a" || name[i] > "z") &&
+        (_name[i] < "0" || _name[i] > "9") &&
+        (_name[i] < "a" || _name[i] > "z") &&
         // first character cannot be `-`
-        (i == 0 || name[i] != "-")
+        (i == 0 || _name[i] != "-")
       ) {
         return false;
       }
@@ -51,79 +55,100 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   }
 
   function publish(
-    bytes32 _name,
-    bytes32 _version,
-    bytes32[] memory _tags,
-    string memory _url
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32[] memory _packageTags,
+    string memory _packageVersionUrl
   ) external {
-    Store storage s = _store();
-
-    if (bytes(_url).length == 0) {
-      revert InvalidUrl(_url);
+    if (_packageTags.length > 5) {
+      revert TooManyTags();
     }
 
-    if (s.owners[_name] != address(0) && s.owners[_name] != msg.sender) {
+    if (bytes(_packageVersionUrl).length == 0) {
+      revert InvalidUrl(_packageVersionUrl);
+    }
+
+    Package storage _p = _store().packages[_packageName];
+
+    if (_p.owner != address(0) && _p.owner != msg.sender) {
       revert Unauthorized();
     }
 
-    if (s.owners[_name] == address(0)) {
-      if (!validatePackageName(_name)) {
-        revert InvalidName(_name);
+    if (_p.owner == address(0)) {
+      if (!validatePackageName(_packageName)) {
+        revert InvalidName(_packageName);
       }
 
-      s.owners[_name] = msg.sender;
-      s.packages.push(_name);
+      _p.owner = msg.sender;
     }
 
-    if (bytes(s.urls[_name][_version]).length == 0) {
-      s.versions[_name].push(_version);
+    if (bytes(_p.versionUrls[_packageVersionName]).length == 0) {
+      _p.versions.push(_packageVersionName);
     }
 
-    s.urls[_name][_version] = _url;
+    _p.versionUrls[_packageVersionName] = _packageVersionUrl;
 
-    for (uint i = 0; i < _tags.length; i++) {
-      s.urls[_name][_tags[i]] = _url;
+    for (uint i = 0; i < _packageTags.length; i++) {
+      bytes32 _tag = _packageTags[i];
+
+      if (bytes(_p.versionUrls[_tag]).length == 0) {
+        _p.versions.push(_tag);
+      }
+
+      _p.versionUrls[_tag] = _packageVersionUrl;
     }
 
-    emit ProtocolPublish(_name, _version, _tags, _url, msg.sender);
+    emit PackagePublish(_packageName, _packageVersionName, _packageTags, _packageVersionUrl, msg.sender);
   }
 
-  function nominatePackageOwner(bytes32 _name, address _newOwner) external {
-    Store storage s = _store();
+  function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
+    Package storage _p = _store().packages[_packageName];
 
-    if (s.owners[_name] != msg.sender) {
+    if (_p.owner != msg.sender) {
       revert Unauthorized();
     }
 
-    s.nominatedOwner[_name] = _newOwner;
+    _p.nominatedOwner = _newPackageOwner;
   }
 
-  function acceptPackageOwnership(bytes32 _name) external {
-    Store storage s = _store();
+  function acceptPackageOwnership(bytes32 _packageName) external {
+    Package storage _p = _store().packages[_packageName];
 
-    address newOwner = s.nominatedOwner[_name];
+    address newOwner = _p.nominatedOwner;
 
     if (msg.sender != newOwner) {
       revert Unauthorized();
     }
 
-    s.owners[_name] = newOwner;
-    s.nominatedOwner[_name] = address(0);
+    _p.owner = newOwner;
+    _p.nominatedOwner = address(0);
   }
 
-  function getPackageNominatedOwner(bytes32 _protocolName) external view returns (address) {
-    return _store().nominatedOwner[_protocolName];
+  function verifyPackage(bytes32 _packageName) external {
+    if (_store().packages[_packageName].owner == address(0)) {
+      revert PackageNotFound();
+    }
+
+    emit PackageVerify(_packageName, msg.sender);
   }
 
-  function getPackages() external view returns (bytes32[] memory) {
-    return _store().packages;
+  function unverifyPackage(bytes32 _packageName) external {
+    if (_store().packages[_packageName].owner == address(0)) {
+      revert PackageNotFound();
+    }
+
+    emit PackageUnverify(_packageName, msg.sender);
   }
 
-  function getPackageVersions(bytes32 _protocolName) external view returns (bytes32[] memory) {
-    return _store().versions[_protocolName];
+  function getPackageNominatedOwner(bytes32 _packageName) external view returns (address) {
+    return _store().packages[_packageName].nominatedOwner;
   }
 
-  function getPackageUrl(bytes32 _protocolName, bytes32 _protocolVersion) external view returns (string memory) {
-    return _store().urls[_protocolName][_protocolVersion];
+  function getPackageVersions(bytes32 _packageName) external view returns (bytes32[] memory) {
+    return _store().packages[_packageName].versions;
+  }
+
+  function getPackageUrl(bytes32 _packageName, bytes32 _packageVersionName) external view returns (string memory) {
+    return _store().packages[_packageName].versionUrls[_packageVersionName];
   }
 }

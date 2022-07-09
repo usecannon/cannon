@@ -1,5 +1,6 @@
 artifacts/
 cache/
+cannon/
 deployments/hardhat
 deployments/localhost
 deployments/local

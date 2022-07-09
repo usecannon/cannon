@@ -35,7 +35,6 @@ export interface CannonRegistryInterface extends utils.Interface {
     "getPackageNominatedOwner(bytes32)": FunctionFragment;
     "getPackageUrl(bytes32,bytes32)": FunctionFragment;
     "getPackageVersions(bytes32)": FunctionFragment;
-    "getPackages()": FunctionFragment;
     "nominateNewOwner(address)": FunctionFragment;
     "nominatePackageOwner(bytes32,address)": FunctionFragment;
     "nominatedOwner()": FunctionFragment;
@@ -43,8 +42,10 @@ export interface CannonRegistryInterface extends utils.Interface {
     "publish(bytes32,bytes32,bytes32[],string)": FunctionFragment;
     "renounceNomination()": FunctionFragment;
     "simulateUpgradeTo(address)": FunctionFragment;
+    "unverifyPackage(bytes32)": FunctionFragment;
     "upgradeTo(address)": FunctionFragment;
     "validatePackageName(bytes32)": FunctionFragment;
+    "verifyPackage(bytes32)": FunctionFragment;
   };
 
   getFunction(
@@ -56,7 +57,6 @@ export interface CannonRegistryInterface extends utils.Interface {
       | "getPackageNominatedOwner"
       | "getPackageUrl"
       | "getPackageVersions"
-      | "getPackages"
       | "nominateNewOwner"
       | "nominatePackageOwner"
       | "nominatedOwner"
@@ -64,8 +64,10 @@ export interface CannonRegistryInterface extends utils.Interface {
       | "publish"
       | "renounceNomination"
       | "simulateUpgradeTo"
+      | "unverifyPackage"
       | "upgradeTo"
       | "validatePackageName"
+      | "verifyPackage"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -95,10 +97,6 @@ export interface CannonRegistryInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getPackageVersions",
     values: [PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPackages",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "nominateNewOwner",
@@ -131,11 +129,19 @@ export interface CannonRegistryInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
+    functionFragment: "unverifyPackage",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "upgradeTo",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "validatePackageName",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "verifyPackage",
     values: [PromiseOrValue<BytesLike>]
   ): string;
 
@@ -168,10 +174,6 @@ export interface CannonRegistryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPackages",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "nominateNewOwner",
     data: BytesLike
   ): Result;
@@ -193,22 +195,34 @@ export interface CannonRegistryInterface extends utils.Interface {
     functionFragment: "simulateUpgradeTo",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "unverifyPackage",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "validatePackageName",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "verifyPackage",
     data: BytesLike
   ): Result;
 
   events: {
     "OwnerChanged(address,address)": EventFragment;
     "OwnerNominated(address)": EventFragment;
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)": EventFragment;
+    "PackagePublish(bytes32,bytes32,bytes32[],string,address)": EventFragment;
+    "PackageUnverify(bytes32,address)": EventFragment;
+    "PackageVerify(bytes32,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "OwnerChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerNominated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProtocolPublish"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PackagePublish"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PackageUnverify"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PackageVerify"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
 }
 
@@ -233,19 +247,41 @@ export type OwnerNominatedEvent = TypedEvent<
 
 export type OwnerNominatedEventFilter = TypedEventFilter<OwnerNominatedEvent>;
 
-export interface ProtocolPublishEventObject {
+export interface PackagePublishEventObject {
   name: string;
   version: string;
   tags: string[];
   url: string;
   owner: string;
 }
-export type ProtocolPublishEvent = TypedEvent<
+export type PackagePublishEvent = TypedEvent<
   [string, string, string[], string, string],
-  ProtocolPublishEventObject
+  PackagePublishEventObject
 >;
 
-export type ProtocolPublishEventFilter = TypedEventFilter<ProtocolPublishEvent>;
+export type PackagePublishEventFilter = TypedEventFilter<PackagePublishEvent>;
+
+export interface PackageUnverifyEventObject {
+  name: string;
+  verifier: string;
+}
+export type PackageUnverifyEvent = TypedEvent<
+  [string, string],
+  PackageUnverifyEventObject
+>;
+
+export type PackageUnverifyEventFilter = TypedEventFilter<PackageUnverifyEvent>;
+
+export interface PackageVerifyEventObject {
+  name: string;
+  verifier: string;
+}
+export type PackageVerifyEvent = TypedEvent<
+  [string, string],
+  PackageVerifyEventObject
+>;
+
+export type PackageVerifyEventFilter = TypedEventFilter<PackageVerifyEvent>;
 
 export interface UpgradedEventObject {
   implementation: string;
@@ -288,29 +324,27 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<ContractTransaction>;
 
     acceptPackageOwnership(
-      _name: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getImplementation(overrides?: CallOverrides): Promise<[string]>;
 
     getPackageNominatedOwner(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getPackageUrl(
-      _protocolName: PromiseOrValue<BytesLike>,
-      _protocolVersion: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getPackageVersions(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<[string[]]>;
-
-    getPackages(overrides?: CallOverrides): Promise<[string[]]>;
 
     nominateNewOwner(
       newNominatedOwner: PromiseOrValue<string>,
@@ -318,8 +352,8 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<ContractTransaction>;
 
     nominatePackageOwner(
-      _name: PromiseOrValue<BytesLike>,
-      _newOwner: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _newPackageOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -328,10 +362,10 @@ export interface CannonRegistry extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     publish(
-      _name: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BytesLike>,
-      _tags: PromiseOrValue<BytesLike>[],
-      _url: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
+      _packageTags: PromiseOrValue<BytesLike>[],
+      _packageVersionUrl: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -344,15 +378,25 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    unverifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     upgradeTo(
-      newImplementation: PromiseOrValue<string>,
+      _newImplementation: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     validatePackageName(
-      name: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    verifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   MIN_PACKAGE_NAME_LENGTH(overrides?: CallOverrides): Promise<BigNumber>;
@@ -362,29 +406,27 @@ export interface CannonRegistry extends BaseContract {
   ): Promise<ContractTransaction>;
 
   acceptPackageOwnership(
-    _name: PromiseOrValue<BytesLike>,
+    _packageName: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getImplementation(overrides?: CallOverrides): Promise<string>;
 
   getPackageNominatedOwner(
-    _protocolName: PromiseOrValue<BytesLike>,
+    _packageName: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getPackageUrl(
-    _protocolName: PromiseOrValue<BytesLike>,
-    _protocolVersion: PromiseOrValue<BytesLike>,
+    _packageName: PromiseOrValue<BytesLike>,
+    _packageVersionName: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getPackageVersions(
-    _protocolName: PromiseOrValue<BytesLike>,
+    _packageName: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<string[]>;
-
-  getPackages(overrides?: CallOverrides): Promise<string[]>;
 
   nominateNewOwner(
     newNominatedOwner: PromiseOrValue<string>,
@@ -392,8 +434,8 @@ export interface CannonRegistry extends BaseContract {
   ): Promise<ContractTransaction>;
 
   nominatePackageOwner(
-    _name: PromiseOrValue<BytesLike>,
-    _newOwner: PromiseOrValue<string>,
+    _packageName: PromiseOrValue<BytesLike>,
+    _newPackageOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -402,10 +444,10 @@ export interface CannonRegistry extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   publish(
-    _name: PromiseOrValue<BytesLike>,
-    _version: PromiseOrValue<BytesLike>,
-    _tags: PromiseOrValue<BytesLike>[],
-    _url: PromiseOrValue<string>,
+    _packageName: PromiseOrValue<BytesLike>,
+    _packageVersionName: PromiseOrValue<BytesLike>,
+    _packageTags: PromiseOrValue<BytesLike>[],
+    _packageVersionUrl: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -418,15 +460,25 @@ export interface CannonRegistry extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  unverifyPackage(
+    _packageName: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   upgradeTo(
-    newImplementation: PromiseOrValue<string>,
+    _newImplementation: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   validatePackageName(
-    name: PromiseOrValue<BytesLike>,
+    _name: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  verifyPackage(
+    _packageName: PromiseOrValue<BytesLike>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     MIN_PACKAGE_NAME_LENGTH(overrides?: CallOverrides): Promise<BigNumber>;
@@ -434,29 +486,27 @@ export interface CannonRegistry extends BaseContract {
     acceptOwnership(overrides?: CallOverrides): Promise<void>;
 
     acceptPackageOwnership(
-      _name: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     getImplementation(overrides?: CallOverrides): Promise<string>;
 
     getPackageNominatedOwner(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getPackageUrl(
-      _protocolName: PromiseOrValue<BytesLike>,
-      _protocolVersion: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getPackageVersions(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string[]>;
-
-    getPackages(overrides?: CallOverrides): Promise<string[]>;
 
     nominateNewOwner(
       newNominatedOwner: PromiseOrValue<string>,
@@ -464,8 +514,8 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<void>;
 
     nominatePackageOwner(
-      _name: PromiseOrValue<BytesLike>,
-      _newOwner: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _newPackageOwner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -474,10 +524,10 @@ export interface CannonRegistry extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     publish(
-      _name: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BytesLike>,
-      _tags: PromiseOrValue<BytesLike>[],
-      _url: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
+      _packageTags: PromiseOrValue<BytesLike>[],
+      _packageVersionUrl: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -488,15 +538,25 @@ export interface CannonRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    unverifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     upgradeTo(
-      newImplementation: PromiseOrValue<string>,
+      _newImplementation: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     validatePackageName(
-      name: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    verifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {
@@ -509,20 +569,38 @@ export interface CannonRegistry extends BaseContract {
     "OwnerNominated(address)"(newOwner?: null): OwnerNominatedEventFilter;
     OwnerNominated(newOwner?: null): OwnerNominatedEventFilter;
 
-    "ProtocolPublish(bytes32,bytes32,bytes32[],string,address)"(
+    "PackagePublish(bytes32,bytes32,bytes32[],string,address)"(
       name?: PromiseOrValue<BytesLike> | null,
       version?: PromiseOrValue<BytesLike> | null,
       tags?: PromiseOrValue<BytesLike>[] | null,
       url?: null,
       owner?: null
-    ): ProtocolPublishEventFilter;
-    ProtocolPublish(
+    ): PackagePublishEventFilter;
+    PackagePublish(
       name?: PromiseOrValue<BytesLike> | null,
       version?: PromiseOrValue<BytesLike> | null,
       tags?: PromiseOrValue<BytesLike>[] | null,
       url?: null,
       owner?: null
-    ): ProtocolPublishEventFilter;
+    ): PackagePublishEventFilter;
+
+    "PackageUnverify(bytes32,address)"(
+      name?: PromiseOrValue<BytesLike> | null,
+      verifier?: PromiseOrValue<string> | null
+    ): PackageUnverifyEventFilter;
+    PackageUnverify(
+      name?: PromiseOrValue<BytesLike> | null,
+      verifier?: PromiseOrValue<string> | null
+    ): PackageUnverifyEventFilter;
+
+    "PackageVerify(bytes32,address)"(
+      name?: PromiseOrValue<BytesLike> | null,
+      verifier?: PromiseOrValue<string> | null
+    ): PackageVerifyEventFilter;
+    PackageVerify(
+      name?: PromiseOrValue<BytesLike> | null,
+      verifier?: PromiseOrValue<string> | null
+    ): PackageVerifyEventFilter;
 
     "Upgraded(address)"(implementation?: null): UpgradedEventFilter;
     Upgraded(implementation?: null): UpgradedEventFilter;
@@ -536,29 +614,27 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<BigNumber>;
 
     acceptPackageOwnership(
-      _name: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getImplementation(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPackageNominatedOwner(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getPackageUrl(
-      _protocolName: PromiseOrValue<BytesLike>,
-      _protocolVersion: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getPackageVersions(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getPackages(overrides?: CallOverrides): Promise<BigNumber>;
 
     nominateNewOwner(
       newNominatedOwner: PromiseOrValue<string>,
@@ -566,8 +642,8 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<BigNumber>;
 
     nominatePackageOwner(
-      _name: PromiseOrValue<BytesLike>,
-      _newOwner: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _newPackageOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -576,10 +652,10 @@ export interface CannonRegistry extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     publish(
-      _name: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BytesLike>,
-      _tags: PromiseOrValue<BytesLike>[],
-      _url: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
+      _packageTags: PromiseOrValue<BytesLike>[],
+      _packageVersionUrl: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -592,14 +668,24 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    unverifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     upgradeTo(
-      newImplementation: PromiseOrValue<string>,
+      _newImplementation: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     validatePackageName(
-      name: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    verifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
@@ -613,29 +699,27 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     acceptPackageOwnership(
-      _name: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getImplementation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPackageNominatedOwner(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPackageUrl(
-      _protocolName: PromiseOrValue<BytesLike>,
-      _protocolVersion: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getPackageVersions(
-      _protocolName: PromiseOrValue<BytesLike>,
+      _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getPackages(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nominateNewOwner(
       newNominatedOwner: PromiseOrValue<string>,
@@ -643,8 +727,8 @@ export interface CannonRegistry extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     nominatePackageOwner(
-      _name: PromiseOrValue<BytesLike>,
-      _newOwner: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _newPackageOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -653,10 +737,10 @@ export interface CannonRegistry extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     publish(
-      _name: PromiseOrValue<BytesLike>,
-      _version: PromiseOrValue<BytesLike>,
-      _tags: PromiseOrValue<BytesLike>[],
-      _url: PromiseOrValue<string>,
+      _packageName: PromiseOrValue<BytesLike>,
+      _packageVersionName: PromiseOrValue<BytesLike>,
+      _packageTags: PromiseOrValue<BytesLike>[],
+      _packageVersionUrl: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -669,14 +753,24 @@ export interface CannonRegistry extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    unverifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     upgradeTo(
-      newImplementation: PromiseOrValue<string>,
+      _newImplementation: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     validatePackageName(
-      name: PromiseOrValue<BytesLike>,
+      _name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    verifyPackage(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
