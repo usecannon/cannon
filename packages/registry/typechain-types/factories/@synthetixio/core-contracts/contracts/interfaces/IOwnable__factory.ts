@@ -2,66 +2,66 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from 'ethers';
-import type { Provider } from '@ethersproject/providers';
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   IOwnable,
   IOwnableInterface,
-} from '../../../../../@synthetixio/core-contracts/contracts/interfaces/IOwnable';
+} from "../../../../../@synthetixio/core-contracts/contracts/interfaces/IOwnable";
 
 const _abi = [
   {
     inputs: [],
-    name: 'acceptOwnership',
+    name: "acceptOwnership",
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [
       {
-        internalType: 'address',
-        name: 'newNominatedOwner',
-        type: 'address',
+        internalType: "address",
+        name: "newNominatedOwner",
+        type: "address",
       },
     ],
-    name: 'nominateNewOwner',
+    name: "nominateNewOwner",
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [],
-    name: 'nominatedOwner',
+    name: "nominatedOwner",
     outputs: [
       {
-        internalType: 'address',
-        name: '',
-        type: 'address',
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
-    name: 'owner',
+    name: "owner",
     outputs: [
       {
-        internalType: 'address',
-        name: '',
-        type: 'address',
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
-    name: 'renounceNomination',
+    name: "renounceNomination",
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ];
 

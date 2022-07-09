@@ -4,8 +4,7 @@ import { Package, PackageTag, Tag } from '../generated/schema';
 import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handleProtocolPublish(event: ProtocolPublish): void {
-  const id =
-    event.params.name.toString() + '@' + event.params.version.toString();
+  const id = event.params.name.toString() + '@' + event.params.version.toString();
   let entity = Package.load(id);
 
   if (!entity) {

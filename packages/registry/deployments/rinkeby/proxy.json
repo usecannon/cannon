@@ -428,6 +428,8 @@
       "type": "function"
     }
   ],
-  "constructorArgs": ["0x0A0c8D583D22a4604881B3b5f31C94978Ba31dd6"],
+  "constructorArgs": [
+    "0x0A0c8D583D22a4604881B3b5f31C94978Ba31dd6"
+  ],
   "deployTxnHash": "0xaa20eaea3fdb9bf6b2951d7c4df340faa20d31e6365e20f5ea859ce5f96be637"
 }

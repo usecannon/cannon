@@ -3,13 +3,7 @@ import { ethers } from 'ethers';
 
 import fs, { existsSync } from 'fs-extra';
 import path from 'path';
-import {
-  CannonRegistry,
-  ChainBuilder,
-  getChartDir,
-  getLayerFiles,
-  getSavedChartsDir,
-} from '.';
+import { CannonRegistry, ChainBuilder, getChartDir, getLayerFiles, getSavedChartsDir } from '.';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
@@ -59,11 +53,7 @@ export async function getExecutionSigner(
   const hasher = crypto.createHash('sha256');
 
   // create a hashable string out of relevant properties
-  const seed =
-    (txn.to || '') +
-    txn.data +
-    (txn.value || '') +
-    Buffer.from(salt || '', 'utf8').toString('hex');
+  const seed = (txn.to || '') + txn.data + (txn.value || '') + Buffer.from(salt || '', 'utf8').toString('hex');
 
   const size = 32;
   for (let i = 0; i < seed.length; i += size) {
@@ -74,14 +64,9 @@ export async function getExecutionSigner(
   const address = '0x' + hash.slice(0, 40);
 
   await provider.send('hardhat_impersonateAccount', [address]);
-  await provider.send('hardhat_setBalance', [
-    address,
-    ethers.utils.parseEther('10000').toHexString(),
-  ]);
+  await provider.send('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
 
-  return await (provider as ethers.providers.JsonRpcProvider).getSigner(
-    address
-  );
+  return await (provider as ethers.providers.JsonRpcProvider).getSigner(address);
 }
 
 /**
@@ -138,9 +123,7 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
 
 export function printInternalOutputs(outputs: ChainArtifacts) {
   for (const c in outputs.contracts) {
-    console.log(
-      `deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`
-    );
+    console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
   }
 
   for (const t in outputs.txns) {

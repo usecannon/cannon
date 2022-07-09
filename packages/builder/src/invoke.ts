@@ -2,12 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntime,
-  ChainArtifacts,
-  TransactionMap,
-} from './types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from './types';
 import { getContractFromPath } from './util';
 import { ethers } from 'ethers';
 
@@ -67,17 +62,13 @@ async function runTxn(
   if (config.fromCall) {
     debug('resolve from address', contract.address);
 
-    const address = await contract
-      .connect(runtime.provider)
-      [config.fromCall.func](...(config.fromCall?.args || []));
+    const address = await contract.connect(runtime.provider)[config.fromCall.func](...(config.fromCall?.args || []));
 
     debug('owner for call', address);
 
     const callSigner = await runtime.getSigner(address);
 
-    txn = await contract
-      .connect(callSigner)
-      [config.func](...(config.args || []));
+    txn = await contract.connect(callSigner)[config.func](...(config.args || []));
   } else {
     txn = await contract.connect(signer)[config.func](...(config.args || []));
   }
@@ -111,11 +102,7 @@ async function runTxn(
 export default {
   validate: config,
 
-  async getState(
-    _runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ) {
+  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -159,11 +146,7 @@ export default {
     return config;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const txns: TransactionMap = {};
@@ -176,9 +159,7 @@ export default {
       let contract: ethers.Contract | null;
       if (ethers.utils.isAddress(t)) {
         if (!config.abi) {
-          throw new Error(
-            'abi must be defined if addresses is used for target'
-          );
+          throw new Error('abi must be defined if addresses is used for target');
         }
 
         contract = new ethers.Contract(t, JSON.parse(config.abi));
@@ -187,24 +168,14 @@ export default {
       }
 
       if (!contract) {
-        throw new Error(
-          `field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`
-        );
+        throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
       }
 
-      const [receipt, txnEvents] = await runTxn(
-        runtime,
-        config,
-        contract,
-        mainSigner
-      );
+      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);
 
       const currentLabel = runtime.currentLabel?.split('.')[1];
 
-      const label =
-        config.target?.length === 1
-          ? currentLabel || ''
-          : `${currentLabel}_${t}`;
+      const label = config.target?.length === 1 ? currentLabel || '' : `${currentLabel}_${t}`;
 
       txns[label] = {
         hash: receipt.transactionHash,
@@ -224,9 +195,7 @@ export default {
             const addr = e.args[factory.arg];
 
             if (!addr) {
-              throw new Error(
-                `address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`
-              );
+              throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
             }
 
             let label = name;

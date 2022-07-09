@@ -13,10 +13,7 @@ type RpcOptions = {
 
 export const ANVIL_START_TIMEOUT = 3000;
 
-export function runRpc({
-  port,
-  forkUrl,
-}: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
+export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
   const opts = ['--port', port.toString()];
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
@@ -72,10 +69,7 @@ export function runRpc({
       });
     }),
     new Promise<ethers.providers.JsonRpcProvider>((_, reject) =>
-      setTimeout(
-        () => reject(new Error('anvil failed to start')),
-        ANVIL_START_TIMEOUT
-      )
+      setTimeout(() => reject(new Error('anvil failed to start')), ANVIL_START_TIMEOUT)
     ),
   ]);
 }

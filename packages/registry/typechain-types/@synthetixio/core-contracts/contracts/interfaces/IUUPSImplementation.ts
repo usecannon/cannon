@@ -11,53 +11,53 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from 'ethers';
-import type { FunctionFragment, Result } from '@ethersproject/abi';
-import type { Listener, Provider } from '@ethersproject/providers';
+} from "ethers";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from '../../../../common';
+} from "../../../../common";
 
 export interface IUUPSImplementationInterface extends utils.Interface {
   functions: {
-    'getImplementation()': FunctionFragment;
-    'simulateUpgradeTo(address)': FunctionFragment;
-    'upgradeTo(address)': FunctionFragment;
+    "getImplementation()": FunctionFragment;
+    "simulateUpgradeTo(address)": FunctionFragment;
+    "upgradeTo(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | 'getImplementation'
-      | 'simulateUpgradeTo'
-      | 'upgradeTo'
+      | "getImplementation"
+      | "simulateUpgradeTo"
+      | "upgradeTo"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: 'getImplementation',
+    functionFragment: "getImplementation",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: 'simulateUpgradeTo',
+    functionFragment: "simulateUpgradeTo",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: 'upgradeTo',
+    functionFragment: "upgradeTo",
     values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: 'getImplementation',
+    functionFragment: "getImplementation",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: 'simulateUpgradeTo',
+    functionFragment: "simulateUpgradeTo",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: 'upgradeTo', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
 
   events: {};
 }

@@ -9,53 +9,30 @@ import { ChainBuilderContext, ChainArtifacts } from '@usecannon/builder';
 
 subtask(SUBTASK_WRITE_DEPLOYMENTS)
   .addParam('outputs', 'Output object from the chain builder', null, any)
-  .addOptionalParam(
-    'prefix',
-    'Prefix deployments with a name (default: empty)',
-    ''
-  )
-  .setAction(
-    async (
-      { outputs, prefix }: { outputs: ChainBuilderContext; prefix: string },
-      hre
-    ): Promise<void> => {
-      const deploymentPath = path.resolve(
-        hre.config.paths.deployments,
-        hre.network.name
-      );
+  .addOptionalParam('prefix', 'Prefix deployments with a name (default: empty)', '')
+  .setAction(async ({ outputs, prefix }: { outputs: ChainBuilderContext; prefix: string }, hre): Promise<void> => {
+    const deploymentPath = path.resolve(hre.config.paths.deployments, hre.network.name);
 
-      await fs.mkdirp(deploymentPath);
+    await fs.mkdirp(deploymentPath);
 
-      await writeModuleDeployments(deploymentPath, prefix, outputs);
+    await writeModuleDeployments(deploymentPath, prefix, outputs);
 
-      // neatly print also
-      printChainBuilderOutput(outputs);
+    // neatly print also
+    printChainBuilderOutput(outputs);
 
-      console.log(
-        'wrote deployment artifacts:',
-        path.relative(process.cwd(), deploymentPath)
-      );
-    }
-  );
+    console.log('wrote deployment artifacts:', path.relative(process.cwd(), deploymentPath));
+  });
 
 /**
  * Recursively writes all deployments for a chainbuilder output
  */
-async function writeModuleDeployments(
-  deploymentPath: string,
-  prefix: string,
-  outputs: ChainArtifacts
-) {
+async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
   if (prefix) {
     prefix = prefix + '.';
   }
 
   for (const m in outputs.imports) {
-    await writeModuleDeployments(
-      deploymentPath,
-      `${prefix}${m}`,
-      outputs.imports[m]
-    );
+    await writeModuleDeployments(deploymentPath, `${prefix}${m}`, outputs.imports[m]);
   }
 
   for (const contract in outputs.contracts) {

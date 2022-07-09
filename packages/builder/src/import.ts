@@ -2,11 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntime,
-  ChainArtifacts,
-} from './types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
 import { ChainBuilder } from './builder';
 
 const debug = Debug('cannon:builder:import');
@@ -37,11 +33,7 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(
-    _runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ) {
+  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -60,11 +52,7 @@ export default {
     return config;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     // download if necessary upstream

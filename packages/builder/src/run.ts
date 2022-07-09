@@ -3,11 +3,7 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 import { join } from 'path';
 
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntime,
-  ChainArtifacts,
-} from './types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
 import { hashFs } from './util';
 
 const debug = Debug('cannon:builder:run');
@@ -33,11 +29,7 @@ export type Config = JTDDataType<typeof config>;
 export default {
   validate: config,
 
-  async getState(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ) {
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
     if (!runtime.baseDir) {
       return null; // skip consistency check
       // todo: might want to do consistency check for config but not files, will see
@@ -82,11 +74,7 @@ export default {
     return config;
   },
 
-  async exec(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContext,
-    config: Config
-  ): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     if (!runtime.baseDir) {

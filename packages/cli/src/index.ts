@@ -4,12 +4,7 @@ import _ from 'lodash';
 import { Command } from 'commander';
 import prompts from 'prompts';
 
-import {
-  CannonRegistry,
-  ChainBuilder,
-  ChainArtifacts,
-  downloadPackagesRecursive,
-} from '@usecannon/builder';
+import { CannonRegistry, ChainBuilder, ChainArtifacts, downloadPackagesRecursive } from '@usecannon/builder';
 
 import pkg from '../package.json';
 
@@ -32,9 +27,7 @@ const debug = Debug('cannon:cli');
 const program = new Command();
 
 class ReadOnlyCannonRegistry extends CannonRegistry {
-  readonly ipfsOptions: ConstructorParameters<
-    typeof CannonRegistry
-  >[0]['ipfsOptions'];
+  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
 
   constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
     super(opts);
@@ -53,21 +46,13 @@ class ReadOnlyCannonRegistry extends CannonRegistry {
   }
 }
 
-async function writeModuleDeployments(
-  deploymentPath: string,
-  prefix: string,
-  outputs: ChainArtifacts
-) {
+async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
   if (prefix) {
     prefix = prefix + '.';
   }
 
   for (const m in outputs.imports) {
-    await writeModuleDeployments(
-      deploymentPath,
-      `${prefix}${m}`,
-      outputs.imports[m]
-    );
+    await writeModuleDeployments(deploymentPath, `${prefix}${m}`, outputs.imports[m]);
   }
 
   for (const contract in outputs.contracts) {
@@ -89,43 +74,24 @@ async function writeModuleDeployments(
 program
   .name('cannon')
   .version(pkg.version)
-  .description(
-    'Utility for instantly loading cannon packages in standalone contexts.'
-  )
+  .description('Utility for instantly loading cannon packages in standalone contexts.')
   .usage('cannon <name>:<semver> [key=value]')
   .argument('<package>', 'Label and version of the cannon package to load')
   .argument('[settings...]', 'Arguments used to modify the given package')
   .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-  .option(
-    '-p --port <number>',
-    'Port which the JSON-RPC server will be exposed'
-  )
+  .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-  .option(
-    '--logs',
-    'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.'
-  )
+  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option(
-    '--write-deployments <path>',
-    'Path to write the deployments data (address and ABIs)'
-  )
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
   .option('-e --exit', 'Exit after building')
-  .option(
-    '--registry-rpc <url>',
-    'URL to use for eth JSON-RPC endpoint',
-    'https://cloudflare-eth.com/v1/mainnet'
-  )
+  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
     '--registry-address <address>',
     'Address where the cannon registry is deployed',
     '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
-  .option(
-    '--ipfs-url <https://...>',
-    'Host to pull IPFS resources from',
-    'https://cannon.infura-ipfs.io'
-  );
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io');
 
 async function run() {
   program.parse();
@@ -192,20 +158,14 @@ async function run() {
     ipfsOptions: {
       protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
       host: parsedIpfs.host,
-      port: parsedIpfs.port
-        ? parseInt(parsedIpfs.port)
-        : parsedIpfs.protocol === 'https:'
-        ? 443
-        : 80,
+      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
       /*headers: {
         authorization: `Basic ${Buffer.from(parsedIpfs[2] + ':').toString('base64')}`,
       },*/
     },
   });
 
-  console.log(
-    magentaBright(`Downloading ${options.name + ':' + options.version}...`)
-  );
+  console.log(magentaBright(`Downloading ${options.name + ':' + options.version}...`));
 
   await downloadPackagesRecursive(
     options.name + ':' + options.version,
@@ -228,28 +188,19 @@ async function run() {
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [
-        addr,
-        ethers.utils.parseEther('10000').toHexString(),
-      ]);
+      await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
       return provider.getSigner(addr);
     },
   });
 
   debug('start build', options.settings);
 
-  console.log(
-    magentaBright(
-      `Deploying ${options.name + ':' + options.version} to local node...`
-    )
-  );
+  console.log(magentaBright(`Deploying ${options.name + ':' + options.version} to local node...`));
 
   const outputs = await builder.build(options.settings);
 
   if (options.writeDeployments) {
-    console.log(
-      magentaBright(`Writing deployment data to ${options.writeDeployments}...`)
-    );
+    console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
     await fs.mkdirp(options.writeDeployments);
     await writeModuleDeployments(options.writeDeployments, '', outputs);
   }
@@ -257,9 +208,7 @@ async function run() {
   debug('start interact');
   console.log(
     greenBright(
-      `${
-        options.name + ':' + options.version
-      } has been deployed to a local node running at ${provider.connection.url}`
+      `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
     )
   );
 
@@ -284,14 +233,9 @@ async function run() {
           await interact({
             provider,
             signer: signers[0],
-            contracts: _.mapValues(
-              outputs.contracts,
-              (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])
-            ),
+            contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
           });
-          console.log(
-            green('Press i to interact with contracts via the command line.')
-          );
+          console.log(green('Press i to interact with contracts via the command line.'));
         }
         process.stdin.removeListener('keypress', listener);
         process.stdin.setRawMode(false);
@@ -304,9 +248,7 @@ async function run() {
     });
   };
 
-  console.log(
-    green('Press i to interact with contracts via the command line.')
-  );
+  console.log(green('Press i to interact with contracts via the command line.'));
   await keypress();
 }
 

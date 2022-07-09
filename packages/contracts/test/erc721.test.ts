@@ -25,9 +25,7 @@ describe('Hardhat Runtime Environment', function () {
   });
 
   before('load module', async function () {
-    const content = await readFile(
-      resolve(hre.config.paths.deployments, hre.network.name, 'ERC721.json')
-    );
+    const content = await readFile(resolve(hre.config.paths.deployments, hre.network.name, 'ERC721.json'));
     const deployment = JSON.parse(content.toString()) as DeploymentArtifact;
     Token = await hre.ethers.getContractAt(deployment.abi, deployment.address);
   });

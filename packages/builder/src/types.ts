@@ -109,10 +109,7 @@ export interface ChainBuilderRuntime {
   getSigner: (addr: string) => Promise<ethers.Signer>;
 
   // returns a signer which should be used for sending the specified transaction.
-  getDefaultSigner: (
-    txn: ethers.providers.TransactionRequest,
-    salt?: string
-  ) => Promise<ethers.Signer>;
+  getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
 
   // returns contract information from the specified artifact name.
   getArtifact: (name: string) => Promise<ContractArtifact>;
@@ -136,9 +133,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: ChainArtifacts;
 }
 
-export type ChainArtifacts = Partial<
-  Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns'>
->;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: OptionTypesTs;

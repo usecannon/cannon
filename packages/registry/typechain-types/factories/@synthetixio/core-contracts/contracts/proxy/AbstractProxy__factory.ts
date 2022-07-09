@@ -2,21 +2,21 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from 'ethers';
-import type { Provider } from '@ethersproject/providers';
+import { Contract, Signer, utils } from "ethers";
+import type { Provider } from "@ethersproject/providers";
 import type {
   AbstractProxy,
   AbstractProxyInterface,
-} from '../../../../../@synthetixio/core-contracts/contracts/proxy/AbstractProxy';
+} from "../../../../../@synthetixio/core-contracts/contracts/proxy/AbstractProxy";
 
 const _abi = [
   {
-    stateMutability: 'payable',
-    type: 'fallback',
+    stateMutability: "payable",
+    type: "fallback",
   },
   {
-    stateMutability: 'payable',
-    type: 'receive',
+    stateMutability: "payable",
+    type: "receive",
   },
 ];
 

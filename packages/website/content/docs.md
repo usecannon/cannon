@@ -84,17 +84,16 @@ Suppose we have the following contract that we'd like to deploy.
 
 ```solidity
 contract Storage {
-  uint256 number;
+    uint256 number;
 
-  function store(uint256 num) public {
-    number = num;
-  }
+    function store(uint256 num) public {
+        number = num;
+    }
 
-  function retrieve() public view returns (uint256) {
-    return number;
-  }
+    function retrieve() public view returns (uint256){
+        return number;
+    }
 }
-
 ```
 
 To deploy the contract and set an initial value, you could create the following Cannonfile:

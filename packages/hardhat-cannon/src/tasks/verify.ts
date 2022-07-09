@@ -6,22 +6,13 @@ import { ChainBuilder } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
 import { ethers } from 'ethers';
 
-task(
-  TASK_VERIFY,
-  'Run etherscan verification on a cannon deployment sent to mainnet'
-)
-  .addOptionalPositionalParam(
-    'label',
-    'Label of a built cannon chain to verify on Etherscan'
-  )
+task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mainnet')
+  .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
   .addOptionalVariadicPositionalParam('opts', 'Settings used for execution', [])
   .setAction(async ({ label, opts }, hre) => {
     if (!label) {
       // load from base cannonfile
-      const def = loadCannonfile(
-        hre,
-        hre.config.paths.root + '/cannonfile.toml'
-      );
+      const def = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
       label = `${def.name}:${def.version}`;
     }
 
@@ -48,9 +39,7 @@ task(
     const outputs = await builder.getOutputs();
 
     if (!outputs) {
-      throw new Error(
-        'No chain outputs found. Has the requested chain already been built?'
-      );
+      throw new Error('No chain outputs found. Has the requested chain already been built?');
     }
 
     for (const c in outputs.contracts) {

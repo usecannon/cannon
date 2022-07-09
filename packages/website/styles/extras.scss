@@ -1,126 +1,122 @@
 /* Some stuff isn't well supported by Chakra UI Vue so we're hacking it here */
 
-div[data-chakra-component='CTag'] {
-  font-size: 0.75rem !important;
-  padding: 0.1rem 0.3rem;
-  min-height: 0;
-  background: #9cafc9;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+div[data-chakra-component="CTag"]  {
+    font-size: .75rem !important;
+    padding: 0.1rem 0.3rem;
+    min-height: 0;
+    background: #9cafc9;
+    font-weight: 600;
+    letter-spacing: 0.5px;;
 }
 
-input:not(:checked) + div[data-chakra-component='CControlBox'] {
-  color: transparent;
+input:not(:checked) + div[data-chakra-component="CControlBox"] {
+    color: transparent;
 }
 
 .prose {
-  h1 {
-    font-family: 'Miriam Libre', sans-serif;
-    font-weight: 700;
-    font-size: 36px;
-    line-height: 45px;
-    margin-bottom: 12px;
-    letter-spacing: 1px;
-  }
-  h2 {
-    font-family: 'Miriam Libre', sans-serif;
-    font-weight: 700;
-    font-size: 24px;
-    line-height: 30px;
-    margin-bottom: 12px;
-    letter-spacing: 1px;
-  }
-  h3 {
-    font-family: 'Miriam Libre', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    line-height: 25px;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-  h4 {
-    font-family: 'Miriam Libre', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 20px;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-  h1:not(:first-child),
-  h2:not(:first-child),
-  h3:not(:first-child),
-  h4:not(:first-child) {
-    padding-top: 24px;
-  }
-  p,
-  img {
-    margin-bottom: 12px;
-  }
-  hr {
-    opacity: 0.5;
-  }
-  ul {
-    margin-bottom: 12px;
-    margin-left: 15px;
-    li {
-      margin-bottom: 4px;
+    h1 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 36px;
+        line-height: 45px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
     }
-  }
-  a {
-    text-decoration: underline;
-  }
-  .nuxt-content-highlight {
-    font-size: 14px;
-    margin-bottom: 12px;
-
-    span.token.operator {
-      background: transparent !important;
+    h2 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 30px;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
     }
-
-    pre.line-numbers {
-      border: 0;
-      background: #000;
+    h3 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 25px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
     }
-  }
-  pre[class*='language-'] {
-    border: 0 !important;
-    background: #000 !important;
-    text-shadow: none !important;
-    color: #fff;
-  }
-  p code {
-    overflow-x: auto;
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap;
-    white-space: -pre-wrap;
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
-  }
+    h4 {
+        font-family: 'Miriam Libre', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+    h1:not(:first-child),h2:not(:first-child),h3:not(:first-child),h4:not(:first-child) {
+        padding-top:24px;
+    }
+    p, img {
+        margin-bottom: 12px;
+    }
+    hr {
+        opacity: 0.5;
+    }
+    ul {
+        margin-bottom: 12px;
+        margin-left: 15px;
+        li {
+            margin-bottom: 4px;
+        }
+    }
+    a {
+        text-decoration: underline;
+    }
+    .nuxt-content-highlight {
+        font-size: 14px;
+        margin-bottom: 12px;
+      
+        span.token.operator {
+          background: transparent !important;
+        }
+      
+        pre.line-numbers {
+          border: 0;
+          background: #000;
+        }
+    }
+    pre[class*="language-"] {
+        border: 0 !important;
+        background: #000 !important;
+        text-shadow: none !important;
+        color: #fff;
+    }
+    p code {
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
 }
 
 .code-editor {
-  border-radius: 4px;
-  padding: 12px;
-
-  /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
-  background: #000;
-  color: #ccc;
-
-  /* you must provide font-family font-size line-height. Example: */
-  font-family: Menlo, Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
-
+    border-radius: 4px;
+    padding: 12px;
+  
+    /* we dont use `language-` classes anymore so thats why we need to add background and text color manually */
+    background: #000;
+    color: #ccc;
+  
+    /* you must provide font-family font-size line-height. Example: */
+    font-family: Menlo, Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+  
   span.token.operator {
     background: transparent !important;
   }
 }
 
 .truncate {
-  display: inline-block;
-  vertical-align: bottom;
-  width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+    display:inline-block;
+    vertical-align: bottom;
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

@@ -1,14 +1,14 @@
 {
-  "chains": [
-    {
-      "deploy": ["consumer"],
-      "chainId": 10,
-      "port": 8545
-    },
-    {
-      "deploy": [["greeter", { "change_msg": "execution...!" }]],
-      "chainId": 10,
-      "port": 8545
-    }
-  ]
+    "chains": [
+        {
+            "deploy": ["consumer"],
+            "chainId": 10,
+            "port": 8545
+        },
+        {
+            "deploy": [["greeter", { "change_msg": "execution...!" }]],
+            "chainId": 10,
+            "port": 8545
+        }
+    ]
 }

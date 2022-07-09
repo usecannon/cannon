@@ -5,14 +5,7 @@ import { associateTag } from './storage';
 import fs from 'fs-extra';
 
 import { Readable } from 'stream';
-import {
-  exportChain,
-  getAllDeploymentInfos,
-  getChartDir,
-  getDeploymentInfoFile,
-  getLayerFiles,
-  getSavedChartsDir,
-} from '.';
+import { exportChain, getAllDeploymentInfos, getChartDir, getDeploymentInfoFile, getLayerFiles, getSavedChartsDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
@@ -43,21 +36,12 @@ export class CannonRegistry {
       this.provider = signerOrProvider as ethers.providers.Provider;
     }
 
-    this.contract = new ethers.Contract(
-      address,
-      CannonRegistryAbi,
-      this.provider
-    );
+    this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
 
     this.ipfs = create(ipfsOptions);
   }
 
-  async publish(
-    name: string,
-    version: string,
-    tags: string[],
-    url: string
-  ): Promise<ethers.providers.TransactionReceipt> {
+  async publish(name: string, version: string, tags: string[], url: string): Promise<ethers.providers.TransactionReceipt> {
     if (!this.contract) {
       throw new Error('Contract not initialized');
     }
@@ -87,10 +71,7 @@ export class CannonRegistry {
       throw new Error('Contract not initialized');
     }
 
-    return await this.contract.getPackageUrl(
-      ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version)
-    );
+    return await this.contract.getPackageUrl(ethers.utils.formatBytes32String(name), ethers.utils.formatBytes32String(version));
   }
 
   readIpfs(urlOrHash: string): Promise<Buffer> {
@@ -132,37 +113,24 @@ export class CannonRegistry {
     const manifest = await this.queryDeploymentInfo(name, tag);
 
     if (!manifest) {
-      throw new Error(
-        `package not found: ${name}:${tag}. please check that the requested package exists and try again.`
-      );
+      throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
     }
 
-    const chartDir = getChartDir(
-      chartsDir || getSavedChartsDir(),
-      manifest.def.name,
-      manifest.def.version
-    );
+    const chartDir = getChartDir(chartsDir || getSavedChartsDir(), manifest.def.name, manifest.def.version);
 
     await fs.mkdirp(chartDir);
     await fs.writeJson(getDeploymentInfoFile(chartDir), manifest);
 
-    if (
-      !manifest.deploys[chainId.toString()] ||
-      !manifest.deploys[chainId][preset]
-    ) {
+    if (!manifest.deploys[chainId.toString()] || !manifest.deploys[chainId][preset]) {
       // if we have manifest but no chain files, treat it as undeployed build
       return null;
     }
 
     // whats nice about this is it will import to the actual directory it belongs to so we can link it later
-    const buf = await this.readIpfs(
-      manifest.deploys[chainId.toString()][preset].ipfsHash
-    );
+    const buf = await this.readIpfs(manifest.deploys[chainId.toString()][preset].ipfsHash);
     const zip = new AdmZip(buf);
 
-    const dir = path.dirname(
-      getLayerFiles(chartDir, chainId, preset, 0).basename
-    );
+    const dir = path.dirname(getLayerFiles(chartDir, chainId, preset, 0).basename);
     await zip.extractAllTo(dir, true);
 
     const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
@@ -170,21 +138,12 @@ export class CannonRegistry {
     await miscZip.extractAllTo(chartDir, true);
 
     // imported chain may be of a different version from the actual requested tag. Make sure we link if necessary
-    await associateTag(
-      chartsDir || getSavedChartsDir(),
-      manifest.def.name,
-      manifest.def.version,
-      tag
-    );
+    await associateTag(chartsDir || getSavedChartsDir(), manifest.def.name, manifest.def.version, tag);
 
     return manifest.deploys[chainId.toString()][preset];
   }
 
-  async uploadPackage(
-    image: string,
-    tags?: string[],
-    chartsDir?: string
-  ): Promise<ethers.providers.TransactionReceipt> {
+  async uploadPackage(image: string, tags?: string[], chartsDir?: string): Promise<ethers.providers.TransactionReceipt> {
     const [name, tag] = image.split(':');
 
     chartsDir = chartsDir || getSavedChartsDir();
@@ -202,18 +161,14 @@ export class CannonRegistry {
       for (const preset in manifest.deploys[chainId]) {
         const zip = new AdmZip();
 
-        const folder = path.dirname(
-          getLayerFiles(chartDir, parseInt(chainId), preset, 0).basename
-        );
+        const folder = path.dirname(getLayerFiles(chartDir, parseInt(chainId), preset, 0).basename);
         await zip.addLocalFolderPromise(folder, {});
         const buf = await zip.toBufferPromise();
 
         const ipfsInfo = await this.ipfs.add(buf);
 
         // update IPFS hashes as we go
-        manifest.deploys[chainId][preset].ipfsHash = ipfsInfo.cid
-          .toV0()
-          .toString();
+        manifest.deploys[chainId][preset].ipfsHash = ipfsInfo.cid.toV0().toString();
       }
     }
 
@@ -222,9 +177,7 @@ export class CannonRegistry {
 
     // contracts may not be deployed in which case, contracts folder is not created
     if (fs.existsSync(path.join(chartDir, 'contracts'))) {
-      await miscZip.addLocalFolderPromise(path.join(chartDir, 'contracts'), {
-        zipPath: 'contracts',
-      });
+      await miscZip.addLocalFolderPromise(path.join(chartDir, 'contracts'), { zipPath: 'contracts' });
     }
 
     const miscIpfsInfo = await this.ipfs.add(await miscZip.toBufferPromise());

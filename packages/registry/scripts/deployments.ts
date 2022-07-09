@@ -16,29 +16,16 @@ type Artifacts = { [contractName: string]: DeploymentArtifact };
 export async function deployOrUpgradeProxy(implementationAddress: string) {
   const contracts: Artifacts = {};
 
-  const proxyDeploymentPath = path.resolve(
-    __dirname,
-    '..',
-    'deployments',
-    hre.network.name,
-    'proxy.json'
-  );
+  const proxyDeploymentPath = path.resolve(__dirname, '..', 'deployments', hre.network.name, 'proxy.json');
 
   if (existsSync(proxyDeploymentPath)) {
-    const proxy = JSON.parse(
-      (await readFile(proxyDeploymentPath)).toString()
-    ) as DeploymentArtifact;
-    const CannonRegistry = (await hre.ethers.getContractAt(
-      'CannonRegistry',
-      proxy.address
-    )) as TCannonRegistry;
+    const proxy = JSON.parse((await readFile(proxyDeploymentPath)).toString()) as DeploymentArtifact;
+    const CannonRegistry = await hre.ethers.getContractAt('CannonRegistry', proxy.address) as TCannonRegistry;
 
     const currentImplementaion = await CannonRegistry.getImplementation();
 
     if (currentImplementaion !== implementationAddress) {
-      console.log(
-        `Upgrading proxy implementation from ${currentImplementaion} to ${implementationAddress}`
-      );
+      console.log(`Upgrading proxy implementation from ${currentImplementaion} to ${implementationAddress}`);
       const tx = await CannonRegistry.upgradeTo(implementationAddress);
       await tx.wait();
     }
@@ -49,26 +36,21 @@ export async function deployOrUpgradeProxy(implementationAddress: string) {
     const Proxy = await ProxyFactory.deploy(implementationAddress);
     await Proxy.deployed();
 
-    const CannonRegistry = (await hre.ethers.getContractAt(
-      'CannonRegistry',
-      Proxy.address
-    )) as TCannonRegistry;
+    const CannonRegistry = await hre.ethers.getContractAt('CannonRegistry', Proxy.address) as TCannonRegistry;
 
     const [owner] = await hre.ethers.getSigners();
 
     console.log(`Registry owner: ${owner.address}`);
-    await CannonRegistry.nominateNewOwner(owner.address).then((tx) =>
-      tx.wait()
-    );
+    await CannonRegistry.nominateNewOwner(owner.address).then((tx) => tx.wait());
     await CannonRegistry.acceptOwnership().then((tx) => tx.wait());
 
-    const artifact = await hre.artifacts.readArtifact('CannonRegistry');
+    const artifact = await hre.artifacts.readArtifact('CannonRegistry')
 
     contracts.proxy = {
       address: Proxy.address,
       abi: artifact.abi,
       constructorArgs: [implementationAddress],
-      deployTxnHash: Proxy.deployTransaction.hash,
+      deployTxnHash: Proxy.deployTransaction.hash
     };
   }
 

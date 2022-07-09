@@ -19,11 +19,7 @@ import {
   DeploymentInfo,
   DeploymentManifest,
 } from './types';
-import {
-  getExecutionSigner,
-  getStoredArtifact,
-  passThroughArtifact,
-} from './util';
+import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
 import { getChartDir, getLayerFiles, getSavedChartsDir } from './storage';
 
 export { validateChainDefinition } from './types';
@@ -36,13 +32,7 @@ import contractSpec from './contract';
 import importSpec from './import';
 import invokeSpec from './invoke';
 import scriptSpec from './run';
-import {
-  clearDeploymentInfo,
-  getAllDeploymentInfos,
-  getDeploymentInfo,
-  getDeploymentInfoFile,
-  putDeploymentInfo,
-} from '.';
+import { clearDeploymentInfo, getAllDeploymentInfos, getDeploymentInfo, getDeploymentInfoFile, putDeploymentInfo } from '.';
 
 export const StepKinds = {
   contract: contractSpec,
@@ -70,10 +60,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly chainId: number;
   readonly provider: ethers.providers.JsonRpcProvider;
   readonly getSigner: (addr: string) => Promise<ethers.Signer>;
-  readonly getDefaultSigner: (
-    addr: ethers.providers.TransactionRequest,
-    salt?: string
-  ) => Promise<ethers.Signer>;
+  readonly getDefaultSigner: (addr: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly baseDir: string | null;
   readonly chartsDir: string;
@@ -126,9 +113,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.provider = provider;
     this.baseDir = baseDir || null;
     this.getSigner = getSigner;
-    this.getDefaultSigner =
-      getDefaultSigner ||
-      ((txn, salt) => getExecutionSigner(provider, txn, salt));
+    this.getDefaultSigner = getDefaultSigner || ((txn, salt) => getExecutionSigner(provider, txn, salt));
     this.getArtifact = getArtifact
       ? _.partial(passThroughArtifact, this.chartDir, getArtifact)
       : (name) => getStoredArtifact(this.chartDir, name);
@@ -163,11 +148,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     );
   }
 
-  async runStep(
-    type: keyof typeof StepKinds,
-    label: string,
-    ctx: ChainBuilderContext
-  ) {
+  async runStep(type: keyof typeof StepKinds, label: string, ctx: ChainBuilderContext) {
     this.currentLabel = `${type}.${label}`;
 
     const kind = this.def[type];
@@ -179,11 +160,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
 
     this.emit(Events.PreStepExecute, type, label);
 
-    const output = await StepKinds[type].exec(
-      this,
-      ctx,
-      StepKinds[type].configInject(ctx, cfg as any) as any
-    );
+    const output = await StepKinds[type].exec(this, ctx, StepKinds[type].configInject(ctx, cfg as any) as any);
 
     if (type === 'import') {
       ctx.imports[label] = output;
@@ -194,9 +171,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
           throw new Error(
             `duplicate contract label ${contract}. Please double check your cannonfile/scripts to ensure a contract name is used only once.
 
-previous contract deployed at: ${
-              ctx.contracts[contract].address
-            } in step ${'tbd'}`
+previous contract deployed at: ${ctx.contracts[contract].address} in step ${'tbd'}`
           );
         }
 
@@ -239,30 +214,13 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       );
     }
 
-    const steppedImports = _.groupBy(
-      _.toPairs(this.def.import),
-      (c) => c[1].step || 0
-    );
-    const steppedContracts = _.groupBy(
-      _.toPairs(this.def.contract),
-      (c) => c[1].step || 0
-    );
-    const steppedInvokes = _.groupBy(
-      _.toPairs(this.def.invoke),
-      (c) => c[1].step || 0
-    );
-    const steppedRuns = _.groupBy(
-      _.toPairs(this.def.run),
-      (c) => c[1].step || 0
-    );
+    const steppedImports = _.groupBy(_.toPairs(this.def.import), (c) => c[1].step || 0);
+    const steppedContracts = _.groupBy(_.toPairs(this.def.contract), (c) => c[1].step || 0);
+    const steppedInvokes = _.groupBy(_.toPairs(this.def.invoke), (c) => c[1].step || 0);
+    const steppedRuns = _.groupBy(_.toPairs(this.def.run), (c) => c[1].step || 0);
 
     const steps = _.map(
-      _.union(
-        _.keys(steppedImports),
-        _.keys(steppedContracts),
-        _.keys(steppedInvokes),
-        _.keys(steppedRuns)
-      ),
+      _.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedInvokes), _.keys(steppedRuns)),
       parseFloat
     );
 
@@ -293,11 +251,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
         debug(`imports step ${s}`);
         for (const [name, doImport] of steppedImports[s] || []) {
-          const output: { [key: string]: any } = await importSpec.exec(
-            this,
-            ctx,
-            importSpec.configInject(ctx, doImport)
-          );
+          const output: { [key: string]: any } = await importSpec.exec(this, ctx, importSpec.configInject(ctx, doImport));
 
           ctx.imports[name] = output;
         }
@@ -338,14 +292,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       await putDeploymentInfo(this.chartDir, ctx.chainId, this.preset, {
         options: opts,
         buildVersion: LAYER_VERSION,
-        heads: [
-          getLayerFiles(
-            this.chartDir,
-            ctx.chainId,
-            this.preset,
-            steps.length - 1
-          ).basename,
-        ],
+        heads: [getLayerFiles(this.chartDir, ctx.chainId, this.preset, steps.length - 1).basename],
         ipfsHash: '', // empty string means it hasn't been uploaded to ipfs
       });
     }
@@ -360,11 +307,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
   async getOutputs(): Promise<ChainBuilderContext | null> {
     // load all the top layers and merge their states
-    const deployInfo = await getDeploymentInfo(
-      this.chartDir,
-      this.chainId,
-      this.preset
-    );
+    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
 
     if (!deployInfo) {
       return null;
@@ -394,9 +337,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       try {
         pkg = require(path.join(this.baseDir, 'package.json'));
       } catch {
-        console.warn(
-          'package.json file not found. Cannot add to chain builder context.'
-        );
+        console.warn('package.json file not found. Cannot add to chain builder context.');
       }
     }
 
@@ -418,10 +359,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     );
   }
 
-  async augmentCtx(
-    ctx: ChainBuilderContext,
-    opts: BuildOptions
-  ): Promise<ChainBuilderContext> {
+  async augmentCtx(ctx: ChainBuilderContext, opts: BuildOptions): Promise<ChainBuilderContext> {
     const resolvedOpts: ChainBuilderOptions = _.clone(opts);
 
     for (const s in this.def.setting || {}) {
@@ -447,9 +385,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
     ctx.settings = resolvedOpts;
     ctx.chainId = this.chainId;
-    ctx.timestamp = (
-      await this.provider.getBlock(await this.provider.getBlockNumber())
-    ).timestamp.toString();
+    ctx.timestamp = (await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
 
     return ctx;
   }
@@ -460,14 +396,9 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
 
     try {
-      const contents: { hash: (string | null)[]; ctx: ChainBuilderContext } =
-        JSON.parse(
-          (
-            await fs.readFile(
-              getLayerFiles(this.chartDir, ctx.chainId, this.preset, n).metadata
-            )
-          ).toString('utf8')
-        );
+      const contents: { hash: (string | null)[]; ctx: ChainBuilderContext } = JSON.parse(
+        (await fs.readFile(getLayerFiles(this.chartDir, ctx.chainId, this.preset, n).metadata)).toString('utf8')
+      );
 
       const newHashes = await this.layerHashes(ctx, n);
 
@@ -523,9 +454,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
   async verifyLayerContext(n: number) {
     try {
-      const stat = await fs.stat(
-        getLayerFiles(this.chartDir, this.chainId, this.preset, n).metadata
-      );
+      const stat = await fs.stat(getLayerFiles(this.chartDir, this.chainId, this.preset, n).metadata);
       return stat.isFile();
     } catch (err) {
       return false;
@@ -539,27 +468,18 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
     debug('load cache', n);
 
-    const { chain, metadata } = getLayerFiles(
-      this.chartDir,
-      this.chainId,
-      this.preset,
-      n
-    );
+    const { chain, metadata } = getLayerFiles(this.chartDir, this.chainId, this.preset, n);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
     if (contents.version !== LAYER_VERSION) {
-      throw new Error(
-        'cannon file format not supported: ' + (contents.version || 1)
-      );
+      throw new Error('cannon file format not supported: ' + (contents.version || 1));
     }
 
     if (this.readMode === 'all') {
       debug('load state', n);
       const cacheData = await fs.readFile(chain);
-      await this.provider.send('hardhat_loadState', [
-        '0x' + cacheData.toString('hex'),
-      ]);
+      await this.provider.send('hardhat_loadState', ['0x' + cacheData.toString('hex')]);
     }
 
     return contents.ctx;
@@ -572,12 +492,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
     debug('put cache', n);
 
-    const { chain, metadata } = getLayerFiles(
-      this.chartDir,
-      ctx.chainId,
-      this.preset,
-      n
-    );
+    const { chain, metadata } = getLayerFiles(this.chartDir, ctx.chainId, this.preset, n);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
@@ -591,10 +506,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
     if (this.writeMode === 'all') {
       debug('put state', n);
-      const data = (await this.provider.send(
-        'hardhat_dumpState',
-        []
-      )) as string;
+      const data = (await this.provider.send('hardhat_dumpState', [])) as string;
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, Buffer.from(data.slice(2), 'hex'));
     }

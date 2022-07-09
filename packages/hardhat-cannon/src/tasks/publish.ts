@@ -6,20 +6,9 @@ import loadCannonfile from '../internal/load-cannonfile';
 import { TASK_PUBLISH } from '../task-names';
 import { JsonRpcProvider } from '@ethersproject/providers';
 
-task(
-  TASK_PUBLISH,
-  'Provision and publish to the registry the current Cannonfile.toml'
-)
-  .addOptionalParam(
-    'file',
-    'TOML definition of the chain to assemble',
-    'cannonfile.toml'
-  )
-  .addOptionalParam(
-    'tags',
-    'Comma separated list of labels for your package to be uploaded with.',
-    'latest'
-  )
+task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
+  .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
+  .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .setAction(async ({ file, tags }, hre) => {
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
@@ -45,11 +34,7 @@ task(
 
     console.log(`Uploading and registering package ${name}:${version}...`);
 
-    const txn = await registry.uploadPackage(
-      `${name}:${version}`,
-      tags ? splitTags : undefined,
-      hre.config.paths.cannon
-    );
+    const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, hre.config.paths.cannon);
 
     console.log('txn:', txn.transactionHash, txn.status);
 

@@ -1,3 +1,4 @@
+
 import 'hardhat-cannon';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
@@ -16,9 +17,7 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       chainId: 4,
-      url:
-        process.env.NETWORK_ENDPOINT ||
-        'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+      url: process.env.NETWORK_ENDPOINT || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
       accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
   },
@@ -32,9 +31,9 @@ const config: HardhatUserConfig = {
       host: 'ipfs.infura.io',
       port: 5001,
       headers: {
-        authorization: `Basic ${Buffer.from(
-          process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET
-        ).toString('base64')}`,
+        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
+          'base64'
+        )}`,
       },
     },
   },

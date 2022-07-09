@@ -30,6 +30,7 @@
   </CBox>
 </template>
 
+
 <script lang="js">
 import { formatDistanceToNow } from 'date-fns'
 
