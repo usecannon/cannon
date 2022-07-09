@@ -7,11 +7,7 @@ import { getSavedChartsDir, getLayerFiles, getChartDir } from './storage';
 
 export { ChainBuilder, Events } from './builder';
 
-export {
-  ChainBuilderContext,
-  ChainArtifacts,
-  validateChainDefinition,
-} from './types';
+export { ChainBuilderContext, ChainArtifacts, validateChainDefinition } from './types';
 
 export * from './storage';
 
@@ -29,22 +25,10 @@ export async function downloadPackagesRecursive(
 
   const [name, tag] = pkg.split(':');
 
-  const depdir = path.dirname(
-    getLayerFiles(
-      getChartDir(chartsDir, name, tag),
-      chainId,
-      preset || 'main',
-      0
-    ).basename
-  );
+  const depdir = path.dirname(getLayerFiles(getChartDir(chartsDir, name, tag), chainId, preset || 'main', 0).basename);
 
   if (!existsSync(depdir)) {
-    await registry.downloadPackageChain(
-      pkg,
-      chainId,
-      preset || 'main',
-      chartsDir
-    );
+    await registry.downloadPackageChain(pkg, chainId, preset || 'main', chartsDir);
 
     const builder = new ChainBuilder({
       name,
