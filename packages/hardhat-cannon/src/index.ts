@@ -26,7 +26,6 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   config.cannon = {
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0',
 
-    // TODO: grab default value from registry/deployments/${network}.json file
     registryAddress: userConfig.cannon?.registryAddress || '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650',
 
     publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
