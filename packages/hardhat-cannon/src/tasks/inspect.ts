@@ -6,7 +6,7 @@ import { getChartDir, getAllDeploymentInfos } from '@usecannon/builder';
 import { NetworksConfig } from 'hardhat/types';
 import { DeploymentInfo } from '@usecannon/builder/dist/types';
 import chalk from 'chalk';
-const { red, bold, gray, green, cyan } = chalk;
+const { red, bold, gray, green, cyan, magenta } = chalk;
 
 task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
   .addFlag('json', 'Output as JSON')
@@ -22,7 +22,7 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
       console.log(JSON.stringify(deployInfo, null, 2));
     } else {
       if (deployInfo?.deploys) {
-        console.log(green(bold(`The package ${name}:${version} has the following deployments...`)));
+        console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
         for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
           const chainName = getChainName(chainId, hre.config.networks);
           renderDeployment(chainName, chainId, chainData);
@@ -43,12 +43,12 @@ function getChainName(chainId: string, networks: NetworksConfig) {
 }
 
 function renderDeployment(chainName: string | undefined, chainId: string, chainData: { [preset: string]: DeploymentInfo }) {
-  console.log('\n' + cyan(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
+  console.log('\n' + magenta(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
   console.log('\nPresets');
   for (const [presetName, presetData] of Object.entries(chainData)) {
     renderPreset(presetName, presetData);
   }
-  console.log(gray('\n================================================================================'));
+  console.log(gray('\n--------------------------------------------------------'));
 }
 
 function renderPreset(presetName: string, presetData: DeploymentInfo) {
