@@ -3,7 +3,10 @@ import { ethers } from 'ethers';
 
 import { subtask } from 'hardhat/config';
 import { reject } from 'lodash';
-import { debug } from 'util';
+
+import Debug from 'debug';
+
+const debug = Debug('cannon:hardhat:rpc');
 
 import { SUBTASK_RPC } from '../task-names';
 
@@ -11,6 +14,10 @@ const ANVIL_START_TIMEOUT = 3000;
 
 subtask(SUBTASK_RPC).setAction(({ port, forkUrl }): Promise<ethers.providers.JsonRpcProvider> => {
   const opts = ['--port', port];
+
+  // reduce image size by not creating unnecessary accounts
+  opts.push('--accounts', '1');
+
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
   }
@@ -56,7 +63,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
-        debug('cannon:hardhat:rpc', chunk);
+        debug(chunk);
       });
 
       anvilInstance.stderr.on('data', (rawChunk) => {

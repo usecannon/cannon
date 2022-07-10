@@ -2,8 +2,8 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from './types';
-import { getContractFromPath } from './util';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from '../types';
+import { getContractFromPath } from '../util';
 import { ethers } from 'ethers';
 
 const debug = Debug('cannon:builder:invoke');
@@ -38,7 +38,7 @@ const config = {
         },
       },
     },
-    step: { type: 'int32' },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 
