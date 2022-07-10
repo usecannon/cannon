@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime } from './types';
-import { ChainDefinitionScriptSchema } from './util';
+import { ChainBuilderContext, ChainBuilderRuntime } from '../types';
+import { ChainDefinitionScriptSchema } from '../util';
 
 export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;
 
