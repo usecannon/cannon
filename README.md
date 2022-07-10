@@ -4,8 +4,34 @@ This is the monorepo for the Cannon Hardhat plugin. If you’re just interested 
 
 For more information, please see documentation in the modules listed below:
 
-* [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
-* [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
-* [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website explorer
-* [`sample-project`](packages/sample-project): Demonstrates the core functionality of the `hardhat-cannon` module
-* [`website`](packages/website): Source code for https://usecannon.com
+- [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
+- [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
+- [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website explorer
+- [`sample-project`](packages/sample-project): Demonstrates the core functionality of the `hardhat-cannon` module
+- [`website`](packages/website): Source code for https://usecannon.com
+
+## Development
+
+Start by bootstrapping the project from the root directory:
+
+```
+npx lerna bootstrap
+```
+
+After making changes, rebuild the project:
+
+```
+npm run build
+```
+
+Use the development version of the CLI:
+
+```
+cd ./packages/cli && npm start -- <package:version>
+```
+
+Test changes to the Hardhat plug-in in the sample project:
+
+```
+cd ./packages/sample-project && npx hardhat cannon
+```
