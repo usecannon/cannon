@@ -88,6 +88,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly readMode: StorageMode;
   readonly writeMode: StorageMode;
 
+  private cleanSnapshot: number | null = null;
+
   currentLabel: string | null = null;
 
   constructor({
@@ -199,7 +201,7 @@ previous contract deployed at: ${ctx.contracts[contract].address} in step ${'tbd
         }
 
         ctx.contracts[contract] = output.contracts[contract];
-        this.emit(Events.DeployContract, output.contracts[contract]);
+        this.emit(Events.DeployContract, n, output.contracts[contract]);
       }
 
       for (const txn in output.txns) {
@@ -213,7 +215,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
 
         ctx.txns[txn] = output.txns[txn];
-        this.emit(Events.DeployTxn, output.txns[txn]);
+        this.emit(Events.DeployTxn, n, output.txns[txn]);
       }
     }
 
@@ -503,9 +505,18 @@ ${this.allActionNames.join('\n')}
     // load layers for next step
     if (this.writeMode !== 'all') {
       const nextSteps = this.findNextSteps(analysis.matched);
-      for (const [, conf] of nextSteps) {
-        for (const dep of conf.depends || []) {
-          await this.loadLayer(dep);
+      if (nextSteps.length) {
+        debug('load from fresh', nextSteps);
+        for (const [, conf] of nextSteps) {
+          for (const dep of conf.depends || []) {
+            await this.loadLayer(dep);
+          }
+        }
+      } else {
+        // load the head layers
+        debug('loading from heads');
+        for (const head of analysis.heads) {
+          await this.loadLayer(head);
         }
       }
     }
@@ -640,7 +651,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
     ctx.settings = resolvedOpts;
     ctx.chainId = this.chainId;
-    ctx.timestamp = (await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+    ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
 
     // merge all blockchain outputs
     for (const additionalCtx of ctxs.slice(1)) {
@@ -754,8 +765,17 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
       debug('clear state');
 
       // revert is assumed hardcoded to the beginning chainstate on a clearable node
-      //await this.provider.send('evm_revert', [0]);
+      if (this.cleanSnapshot) {
+        const status = await this.provider.send('evm_revert', [this.cleanSnapshot]);
+        if (!status) {
+          throw new Error('state clear failed');
+        }
+      }
+
+      this.cleanSnapshot = await this.provider.send('evm_snapshot', []);
     }
+
+    return null;
   }
 
   loadCannonfile() {

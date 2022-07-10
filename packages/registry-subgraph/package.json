@@ -5,7 +5,6 @@
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
-    "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry",
     "create-local": "graph create --node http://localhost:8020/ noahlitvin/cannon-registry",
     "remove-local": "graph remove --node http://localhost:8020/ noahlitvin/cannon-registry",
