@@ -1,9 +1,9 @@
 import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
 import { Package, PackageTag, Tag } from '../generated/schema';
-import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
+import { PackagePublish as PackagePublishEvent } from '../generated/CannonRegistry/CannonRegistry';
 
-export function handlePackagePublish(event: PackagePublish): void {
+export function handlePackagePublish(event: PackagePublishEvent): void {
   const id = event.params.name.toString() + '@' + event.params.version.toString();
   let entity = Package.load(id);
 
