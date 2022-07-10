@@ -4,7 +4,7 @@ This is the monorepo for the Cannon Hardhat plugin. If you’re just interested 
 
 For more information, please see documentation in the modules listed below:
 
-- [`cli`](package/cli): Source code for the CLI, accessible with `npx @usecannon/cli <package:version>`. This downloads packages from the registry, optionally exports deployment data, and runs the package on an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node
+- [`cli`](packages/cli): Source code for the CLI, accessible at `npx @usecannon/cli <package:version>`. This downloads a package from the registry, optionally exports deployment data, and runs the package on an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node
 - [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
 - [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
 - [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website explorer
