@@ -1,6 +1,6 @@
 name = "greeter"
 description = "Simple project to verify the functionality of cannon"
-tags = ["sample", "greeter"]
+keywords = ["sample", "greeter"]
 
 [setting.salt]
 defaultValue = "greeter"

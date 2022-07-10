@@ -58,7 +58,7 @@ const ChainDefinitionSchema = {
   },
   optionalProperties: {
     description: { type: 'string' },
-    tags: { elements: { type: 'string' } },
+    keywords: { elements: { type: 'string' } },
     setting: {
       values: {
         optionalProperties: {

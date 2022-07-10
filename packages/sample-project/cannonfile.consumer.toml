@@ -1,7 +1,7 @@
 name = "consumer"
 version = "0.0.1"
 description = "Simple project to verify the functionality of cannon"
-tags = ["sample", "consumer"]
+keywords = ["sample", "consumer"]
 
 [setting.change_greeting2]
 defaultValue = "new greeting!"

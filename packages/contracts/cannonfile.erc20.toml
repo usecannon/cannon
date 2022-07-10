@@ -1,6 +1,6 @@
 name = "erc20"
 description = "Official Cannon build for @openzeppelin/contracts/token/ERC20/ERC20.sol contract"
-tags = ["erc20", "token"]
+keywords = ["erc20", "token"]
 
 [setting.salt]
 defaultValue = "ERC20"
