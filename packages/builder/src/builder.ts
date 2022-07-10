@@ -302,6 +302,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
 
         debug('enter layer', layerInfo.actions);
+        debug('layer deps', layerInfo.depends);
 
         for (const otherN of layerInfo.actions) {
           debug(`run step in layer ${n}`, conf);
@@ -461,7 +462,7 @@ ${this.allActionNames.join('\n')}
           }
 
           attachingLayer = dependingLayer;
-        } else if (attachingLayer && layers[attachingLayer].depends.indexOf(depLayer) !== -1) {
+        } else if (attachingLayer && layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
           layers[attachingLayer].depends.push(depLayer);
           layerDependingOn.set(depLayer, attachingLayer);
