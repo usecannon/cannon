@@ -7,10 +7,10 @@ tags = ["sample", "consumer"]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter:<%= package.version %>"
+source = "greeter:0.6.11"
 
 [import.more_greeters]
-source = "greeter:<%= package.version %>"
+source = "greeter:0.6.11"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 
@@ -18,13 +18,13 @@ options.msg = "a message from second greeter set"
 target = ["greeters.greeter"]
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
-step = 1
+depends = ["import.greeters"]
 
 # test for factory functionality
 [invoke.clone]
 target = ["greeters.greeter"]
 func = "doCloning"
-step = 1
+depends = ["import.greeters"]
 
 factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0

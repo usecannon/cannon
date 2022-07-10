@@ -2,8 +2,8 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
-import { ChainBuilder } from './builder';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { ChainBuilder } from '../builder';
 
 const debug = Debug('cannon:builder:import');
 
@@ -17,7 +17,7 @@ const config = {
     options: {
       values: { type: 'string' },
     },
-    step: { type: 'int32' },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 
@@ -72,14 +72,7 @@ export default {
       getDefaultSigner: runtime.getDefaultSigner,
     });
 
-    await builder.build(config.options || {});
-
-    const outputs = await builder.getOutputs();
-
-    if (!outputs) {
-      // shouldn't be able to happen
-      throw new Error('no chain outputs immediately after build');
-    }
+    const outputs = await builder.build(config.options || {});
 
     return {
       contracts: outputs.contracts,

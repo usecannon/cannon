@@ -17,4 +17,4 @@ args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
 
-step = 1
+depends = ["contract.library"]

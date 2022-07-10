@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import Debug from 'debug';
@@ -16,22 +17,22 @@ import {
   ContractArtifact,
   ChainBuilderOptions,
   StorageMode,
-  DeploymentInfo,
   DeploymentManifest,
+  DeploymentInfo,
 } from './types';
 import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
-import { getChartDir, getLayerFiles, getSavedChartsDir } from './storage';
+import { getChartDir, getActionFiles, getSavedChartsDir } from './storage';
 
 export { validateChainDefinition } from './types';
 
 const debug = Debug('cannon:builder');
 
-const LAYER_VERSION = 2;
+const BUILD_VERSION = 3;
 
-import contractSpec from './contract';
-import importSpec from './import';
-import invokeSpec from './invoke';
-import scriptSpec from './run';
+import contractSpec from './steps/contract';
+import importSpec from './steps/import';
+import invokeSpec from './steps/invoke';
+import scriptSpec from './steps/run';
 import { clearDeploymentInfo, getAllDeploymentInfos, getDeploymentInfo, getDeploymentInfoFile, putDeploymentInfo } from '.';
 
 export const StepKinds = {
@@ -48,12 +49,31 @@ export enum Events {
   DeployTxn = 'deploy-txn',
 }
 
+/**
+ * Runtime information about actions in a supplied ChainDefinition.
+ * Used to complete builds and information purposes
+ */
+export type ActionsAnalysis = {
+  // layers which are already
+  matched: Map<string, ChainBuilderContext>;
+
+  // layers which need to be built
+  unmatched: Set<string>;
+
+  // top layers, useful for saving and loading the final state
+  heads: Set<string>;
+
+  // layers which may be linked together for state purposes, and therefore should be built and saved a unit in the case of a local build (even if already built)
+  layers: Map<string, { actions: string[]; depends: string[] }>;
+};
+
 const DEFAULT_PRESET = 'main';
 
 export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly name: string;
   readonly version: string;
   readonly def: ChainDefinition;
+  readonly allActionNames: string[];
 
   readonly preset: string;
 
@@ -68,6 +88,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
 
   readonly readMode: StorageMode;
   readonly writeMode: StorageMode;
+
+  private cleanSnapshot: number | null = null;
 
   currentLabel: string | null = null;
 
@@ -106,6 +128,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.chartDir = getChartDir(this.chartsDir, name, version);
 
     this.def = def ?? this.loadCannonfile();
+
+    this.allActionNames = this.getAllActions();
 
     this.preset = preset ?? DEFAULT_PRESET;
 
@@ -148,19 +172,21 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     );
   }
 
-  async runStep(type: keyof typeof StepKinds, label: string, ctx: ChainBuilderContext) {
-    this.currentLabel = `${type}.${label}`;
+  async runStep(n: string, ctx: ChainBuilderContext) {
+    this.currentLabel = n;
 
-    const kind = this.def[type];
-    if (!kind) {
-      throw new Error('step type missing');
+    const cfg = _.get(this.def, n);
+    if (!cfg) {
+      throw new Error(`action ${n} missing for execution`);
     }
 
-    const cfg = kind[label];
+    const [type, label] = n.split('.') as [keyof typeof StepKinds, string];
 
     this.emit(Events.PreStepExecute, type, label);
 
-    const output = await StepKinds[type].exec(this, ctx, StepKinds[type].configInject(ctx, cfg as any) as any);
+    const injectedConfig = StepKinds[type].configInject(ctx, cfg as any) as any;
+
+    const output = await StepKinds[type].exec(this, ctx, injectedConfig);
 
     if (type === 'import') {
       ctx.imports[label] = output;
@@ -176,7 +202,7 @@ previous contract deployed at: ${ctx.contracts[contract].address} in step ${'tbd
         }
 
         ctx.contracts[contract] = output.contracts[contract];
-        this.emit(Events.DeployContract, contract, output.contracts[contract]);
+        this.emit(Events.DeployContract, n, output.contracts[contract]);
       }
 
       for (const txn in output.txns) {
@@ -190,7 +216,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
 
         ctx.txns[txn] = output.txns[txn];
-        this.emit(Events.DeployTxn, txn, output.txns[txn]);
+        this.emit(Events.DeployTxn, n, output.txns[txn]);
       }
     }
 
@@ -199,9 +225,275 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     this.currentLabel = null;
   }
 
+  findNextSteps(alreadyDone: Map<string, ChainBuilderContext>): [string, { depends: string[] }][] {
+    const doneActionNames = Array.from(alreadyDone.keys());
+
+    return _.filter(
+      this.allActionNames.map((n) => [n, _.get(this.def, n)!]) as [string, { depends: string[] }][],
+      ([n, conf]) =>
+        !alreadyDone.has(n) && // step itself is not already done
+        _.difference(conf.depends || [], doneActionNames).length === 0 // all dependencies are already done
+    );
+  }
+
+  async runSteps(
+    opts: BuildOptions,
+    alreadyDone: Map<string, ChainBuilderContext>
+  ): Promise<[string, ChainBuilderContext][]> {
+    // needed in case layers
+    const nextSteps = this.findNextSteps(alreadyDone);
+    const newlyDone: [string, ChainBuilderContext][] = [];
+
+    for (const [n, conf] of nextSteps) {
+      let ctx = await this.populateSettings(opts);
+
+      for (const dep of conf.depends || []) {
+        ctx = await this.augmentCtx([ctx, alreadyDone.get(dep)!], opts);
+      }
+
+      debug(`run step ${n}`, conf);
+      await this.runStep(n, ctx);
+
+      // dump layer in case we are writing metadata
+      await this.dumpLayer(ctx, n);
+
+      newlyDone.push([n, ctx]);
+    }
+
+    return newlyDone;
+  }
+
+  // runs any steps that can be immediately completed without iterating into deeper layers
+  // returns the list of new steps completed.
+  async runRecordedSteps(
+    opts: BuildOptions,
+    alreadyDone: Map<string, ChainBuilderContext>,
+    layers: ActionsAnalysis['layers'] | null
+  ): Promise<[string, ChainBuilderContext][]> {
+    // TODO: handle what happens on write mode all but read mode none
+    const nextSteps = this.findNextSteps(alreadyDone);
+    const newlyDone: [string, ChainBuilderContext][] = [];
+
+    // needed in case layers
+    const skipActions = new Map<string, ChainBuilderContext>();
+
+    for (const [n, conf] of nextSteps) {
+      if (skipActions.has(n)) {
+        newlyDone.push([n, skipActions.get(n)!]);
+        continue;
+      }
+
+      await this.clearNode();
+
+      let ctx = await this.populateSettings(opts);
+
+      // load full state for all dependencies
+      if (layers && layers.has(n)) {
+        const layerInfo = layers.get(n)!;
+
+        for (const dep of layerInfo.depends) {
+          const newCtx = await this.loadLayer(dep);
+
+          if (!newCtx) {
+            throw new Error(`could not load metadata from action ${dep}`);
+          }
+
+          ctx = await this.augmentCtx([ctx, newCtx], opts);
+        }
+
+        debug('enter layer', layerInfo.actions);
+
+        for (const otherN of layerInfo.actions) {
+          debug(`run step in layer ${n}`, conf);
+          // run all layer actions regarless of of they have been done already or not
+          // a new layer will be recorded with all of these together
+          await this.runStep(otherN, ctx);
+        }
+
+        for (const otherN of layerInfo.actions) {
+          // save the fresh layer for all linked layers
+          // todo: this could be a lot more efficient if `dumpLayer` took an array
+          await this.dumpLayer(ctx, otherN);
+          skipActions.set(otherN, ctx);
+        }
+      } else {
+        for (const dep of conf.depends) {
+          const newCtx = await this.loadLayer(dep);
+
+          if (!newCtx) {
+            throw new Error(`could not load metadata from action ${dep}`);
+          }
+
+          ctx = await this.augmentCtx([ctx, newCtx], opts);
+        }
+
+        debug(`run step ${n}`, conf);
+        await this.runStep(n, ctx);
+        await this.dumpLayer(ctx, n);
+      }
+
+      newlyDone.push([n, ctx]);
+    }
+
+    return newlyDone;
+  }
+
+  getAllActions() {
+    const actions = [];
+    for (const kind in StepKinds) {
+      for (const n in this.def[kind as keyof typeof StepKinds]) {
+        actions.push(`${kind}.${n}`);
+      }
+    }
+
+    return _.sortBy(actions, _.identity);
+  }
+
+  async analyzeActions(
+    opts: BuildOptions,
+    actions = this.allActionNames,
+    analysis: ActionsAnalysis = {
+      matched: new Map(),
+      unmatched: new Set(),
+      heads: new Set(),
+      layers: new Map(),
+    }
+  ): Promise<ActionsAnalysis> {
+    if (!analysis.heads.size) {
+      for (const n of actions) {
+        analysis.heads.add(n);
+      }
+
+      // layers is done as a separate calculation
+      const layers = this.getStateLayers(actions);
+
+      // rekey for analysis
+      for (const layer of Object.values(layers)) {
+        for (const n of layer.actions) {
+          analysis.layers.set(n, layer);
+        }
+      }
+    }
+
+    for (const n of actions) {
+      if (analysis.matched.has(n) || analysis.unmatched.has(n)) {
+        continue;
+      }
+
+      const action = _.get(this.def, n);
+
+      if (!action) {
+        throw new Error(`action not found: ${n}`);
+      }
+
+      // if any of the depended upon actions are unmatched, this is unmatched
+      let ctx = await this.populateSettings(opts);
+      for (const dep of action.depends || []) {
+        if (_.sortedIndexOf(this.allActionNames, dep) === -1) {
+          throw new Error(`in dependencies for ${n}: '${dep}' is not a known action.
+
+please double check your configuration. the list of known actions is:
+${this.allActionNames.join('\n')}
+          `);
+        }
+
+        analysis.heads.delete(dep);
+
+        await this.analyzeActions(opts, [dep], analysis);
+        if (analysis.unmatched.has(dep)) {
+          analysis.unmatched.add(n);
+          continue;
+        } else {
+          ctx = await this.augmentCtx([ctx, analysis.matched.get(dep)!], opts);
+        }
+      }
+
+      // if layerMatches returns true, its matching
+      const curCtx = await this.layerMatches(ctx, n);
+      if (curCtx) {
+        analysis.matched.set(n, curCtx);
+      } else {
+        analysis.unmatched.add(n);
+      }
+    }
+
+    return analysis;
+  }
+
+  // on local nodes, steps depending on the same base need to be merged into "layers" to prevent state collisions
+  // returns an array of layers which can be deployed as a unit in topological order
+  getStateLayers(
+    actions = this.allActionNames,
+    layers: { [key: string]: { actions: string[]; depends: string[] } } = {},
+    layerOfActions = new Map<string, string>(),
+    layerDependingOn = new Map<string, string>()
+  ): { [key: string]: { actions: string[]; depends: string[] } } {
+    for (const n of actions) {
+      if (layerOfActions.has(n)) {
+        continue;
+      }
+
+      const action = _.get(this.def, n);
+
+      if (!action) {
+        throw new Error(`action not found: ${n}`);
+      }
+
+      // find a layer to attach to
+      let attachingLayer: string | null = null;
+      for (const dep of action.depends || []) {
+        if (!layerOfActions.has(dep)) {
+          this.getStateLayers([dep], layers, layerOfActions);
+        }
+
+        const depLayer = layerOfActions.get(dep)!;
+
+        const dependingLayer = layerDependingOn.get(depLayer);
+
+        if (dependingLayer) {
+          if (attachingLayer) {
+            // "merge" this entire layer into the other one
+            layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
+            layers[dependingLayer].actions.push(...layers[attachingLayer].depends);
+          } else {
+            // "join" this layer
+            layers[dependingLayer].actions.push(n);
+          }
+
+          attachingLayer = dependingLayer;
+        } else if (attachingLayer && layers[attachingLayer].depends.indexOf(depLayer) !== -1) {
+          // "extend" this layer to encapsulate this
+          layers[attachingLayer].depends.push(depLayer);
+          layerDependingOn.set(depLayer, attachingLayer);
+        }
+      }
+
+      // if never attached to layer make a new one
+      if (!attachingLayer) {
+        attachingLayer = n;
+        layers[n] = { actions: [n], depends: (action.depends || []).map((dep: string) => layerOfActions.get(dep)!) };
+      }
+
+      for (const n of layers[attachingLayer].actions) {
+        layerOfActions.set(n, attachingLayer);
+      }
+
+      for (const d of layers[attachingLayer].depends) {
+        layerDependingOn.set(d, attachingLayer);
+      }
+    }
+
+    return layers;
+  }
+
   async build(opts: BuildOptions): Promise<ChainBuilderContext> {
     debug('build');
     debug(`read mode: ${this.readMode}, write mode: ${this.writeMode}`);
+
+    if (this.readMode !== 'none') {
+      // ensure the current deployment is supported if we try to load the files
+      await this.getDeploymentInfo();
+    }
 
     // ensure the latest cannonfile is persisted
     await this.writeCannonfile();
@@ -214,90 +506,68 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       );
     }
 
-    const steppedImports = _.groupBy(_.toPairs(this.def.import), (c) => c[1].step || 0);
-    const steppedContracts = _.groupBy(_.toPairs(this.def.contract), (c) => c[1].step || 0);
-    const steppedInvokes = _.groupBy(_.toPairs(this.def.invoke), (c) => c[1].step || 0);
-    const steppedRuns = _.groupBy(_.toPairs(this.def.run), (c) => c[1].step || 0);
+    const analysis = await this.analyzeActions(opts);
 
-    const steps = _.map(
-      _.union(_.keys(steppedImports), _.keys(steppedContracts), _.keys(steppedInvokes), _.keys(steppedRuns)),
-      parseFloat
-    );
-
-    let doLoad: number | null = null;
-
-    let ctx: ChainBuilderContext = await this.populateSettings(opts);
-
-    for (const s of steps.sort()) {
-      debug('step', s);
-
-      const matchingCtx = await this.layerMatches(ctx, s);
-      if (matchingCtx) {
-        ctx = await this.augmentCtx(matchingCtx, opts); // todo this probably isnt necessary
-        doLoad = s;
-      } else {
-        if (doLoad !== null) {
-          debug(`load for step ${s} from cache`);
-          const newCtx = await this.loadLayer(doLoad);
-
-          if (!newCtx) {
-            throw new Error(`could not load contet from layer ${doLoad}`);
+    // load layers for next step
+    if (this.writeMode !== 'all') {
+      const nextSteps = this.findNextSteps(analysis.matched);
+      if (nextSteps.length) {
+        debug('load from fresh', nextSteps);
+        for (const [, conf] of nextSteps) {
+          for (const dep of conf.depends || []) {
+            await this.loadLayer(dep);
           }
-
-          ctx = await this.augmentCtx(newCtx, opts);
-
-          doLoad = null;
         }
-
-        debug(`imports step ${s}`);
-        for (const [name, doImport] of steppedImports[s] || []) {
-          const output: { [key: string]: any } = await importSpec.exec(this, ctx, importSpec.configInject(ctx, doImport));
-
-          ctx.imports[name] = output;
+      } else {
+        // load the head layers
+        debug('loading from heads');
+        for (const head of analysis.heads) {
+          await this.loadLayer(head);
         }
-
-        debug(`contracts step ${s}`);
-        // todo: parallelization can be utilized here
-        for (const [name] of steppedContracts[s] || []) {
-          await this.runStep('contract', name, ctx);
-        }
-
-        debug(`invoke step ${s}`);
-        // todo: parallelization can be utilized here
-        for (const [name] of steppedInvokes[s] || []) {
-          await this.runStep('invoke', name, ctx);
-        }
-
-        debug(`scripts step ${s}`);
-        for (const [name] of steppedRuns[s] || []) {
-          await this.runStep('run', name, ctx);
-        }
-
-        await this.dumpLayer(ctx, s);
       }
     }
 
-    // if no layers were loaded, we should load the last one
-    if (doLoad !== null) {
-      const newCtx = await this.loadLayer(doLoad);
+    while (analysis.matched.size < this.allActionNames.length) {
+      const lastDone =
+        this.writeMode === 'all'
+          ? await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null)
+          : await this.runSteps(opts, analysis.matched);
 
-      if (!newCtx) {
-        throw new Error(`could not load contet from layer ${doLoad}`);
+      if (!lastDone.length) {
+        throw new Error(
+          `cannonfile is invalid: the following actions form a dependency cycle and therefore cannot be loaded:
+${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('\n')}`
+        );
       }
 
-      ctx = newCtx;
+      for (const newLastDone of lastDone) {
+        analysis.matched.set(newLastDone[0], newLastDone[1]);
+      }
     }
 
-    if (this.readMode !== 'none') {
-      await putDeploymentInfo(this.chartDir, ctx.chainId, this.preset, {
+    if (this.writeMode !== 'none') {
+      await putDeploymentInfo(this.chartDir, this.chainId, this.preset, {
         options: opts,
-        buildVersion: LAYER_VERSION,
-        heads: [getLayerFiles(this.chartDir, ctx.chainId, this.preset, steps.length - 1).basename],
-        ipfsHash: '', // empty string means it hasn't been uploaded to ipfs
+        buildVersion: BUILD_VERSION,
+        ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
+        heads: Array.from(analysis.heads),
       });
     }
 
-    return ctx;
+    if (this.writeMode === 'all') {
+      // have to reload state of final chain
+      await this.clearNode();
+
+      for (const n of analysis.heads) {
+        await this.loadLayer(n);
+      }
+    }
+
+    // assemble the final context for the user
+    return this.augmentCtx(
+      Array.from(analysis.heads).map((n) => analysis.matched.get(n)!),
+      opts
+    );
   }
 
   // clean any artifacts associated with the current
@@ -305,27 +575,39 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     clearDeploymentInfo(this.chartDir, this.chainId, this.preset);
   }
 
+  async getDeploymentInfo(): Promise<DeploymentInfo | null> {
+    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
+
+    if (deployInfo) {
+      if (deployInfo.buildVersion < BUILD_VERSION) {
+        throw new Error(`the package you have loaded is not compatible with this version of cannon.
+          package build version:\t${deployInfo.buildVersion}
+          supported build version:\t>=${BUILD_VERSION}`);
+      }
+    }
+
+    return deployInfo;
+  }
+
   async getOutputs(): Promise<ChainBuilderContext | null> {
     // load all the top layers and merge their states
-    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
+    const deployInfo = await this.getDeploymentInfo();
 
     if (!deployInfo) {
       return null;
     }
 
-    const ctx = await this.populateSettings({});
+    let ctx = await this.populateSettings({});
 
     for (const h of deployInfo.heads) {
-      const newCtx = await this.loadLayer(parseInt(_.last(h.split('/'))!));
+      debug('load head for output', h);
+      const newCtx = await this.loadLayer(_.last(h.split('/'))!);
 
       if (!newCtx) {
         throw new Error('context not declared for published layer');
       }
 
-      // merge
-      ctx.contracts = { ...ctx.contracts, ...newCtx.contracts };
-      ctx.txns = { ...ctx.txns, ...newCtx.txns };
-      ctx.imports = { ...ctx.imports, ...newCtx.imports };
+      ctx = await this.augmentCtx([ctx, newCtx], {});
     }
 
     return ctx;
@@ -342,25 +624,29 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
 
     return this.augmentCtx(
-      {
-        settings: {},
-        chainId: 0,
-        timestamp: '0',
+      [
+        {
+          settings: {},
+          chainId: 0,
+          timestamp: '0',
 
-        package: pkg,
+          package: pkg,
 
-        contracts: {},
+          contracts: {},
 
-        txns: {},
+          txns: {},
 
-        imports: {},
-      },
+          imports: {},
+        },
+      ],
       opts
     );
   }
 
-  async augmentCtx(ctx: ChainBuilderContext, opts: BuildOptions): Promise<ChainBuilderContext> {
+  async augmentCtx(ctxs: ChainBuilderContext[], opts: BuildOptions): Promise<ChainBuilderContext> {
     const resolvedOpts: ChainBuilderOptions = _.clone(opts);
+
+    const ctx = _.clone(ctxs[0]);
 
     for (const s in this.def.setting || {}) {
       if (!this.def.setting?.[s]) {
@@ -385,99 +671,81 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
 
     ctx.settings = resolvedOpts;
     ctx.chainId = this.chainId;
-    ctx.timestamp = (await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+    ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+
+    // merge all blockchain outputs
+    for (const additionalCtx of ctxs.slice(1)) {
+      ctx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
+      ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
+      ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
+    }
 
     return ctx;
   }
 
-  async layerMatches(ctx: ChainBuilderContext, n: number) {
+  async layerMatches(ctx: ChainBuilderContext, stepName: string) {
     if (this.readMode === 'none') {
       return null;
     }
 
     try {
-      const contents: { hash: (string | null)[]; ctx: ChainBuilderContext } = JSON.parse(
-        (await fs.readFile(getLayerFiles(this.chartDir, ctx.chainId, this.preset, n).metadata)).toString('utf8')
+      const contents: { hash: string | null; ctx: ChainBuilderContext } = await fs.readJson(
+        getActionFiles(this.chartDir, ctx.chainId, this.preset, stepName).metadata
       );
 
-      const newHashes = await this.layerHashes(ctx, n);
+      const newHash = await this.actionHash(ctx, stepName);
 
-      debug('comparing hashes for step', contents.hash, newHashes);
+      debug('comparing hashes for action', contents.hash, newHash);
 
-      for (const hash of newHashes.values()) {
-        if (!hash) {
-          continue; // assumed this is a free to skip check
-        } else if (contents.hash.indexOf(hash) === -1) {
-          return null;
-        }
+      if (!newHash || contents.hash === newHash) {
+        return contents.ctx;
       }
 
-      debug(`layer ${n} matches`);
-
-      return contents.ctx;
+      return null;
     } catch (err) {
-      debug(`layer ${n} not loaded: ${err}`);
+      debug(`layer ${stepName} not loaded: ${err}`);
       return null;
     }
   }
 
-  async layerHashes(ctx: ChainBuilderContext, step: number = Number.MAX_VALUE) {
+  async actionHash(ctx: ChainBuilderContext, stepName: string) {
     // the purpose of this is to indicate the state of the chain without accounting for
     // derivative factors (ex. contract addreseses, outputs)
 
-    const obj: any[] = [];
+    const [type, name] = stepName.split('.') as [keyof typeof StepKinds, string];
 
-    for (const d of _.filter(this.def.import, (c) => (c.step || 0) <= step)) {
-      obj.push(await importSpec.getState(this, ctx, d));
+    const typeConfig = this.def[type];
+
+    if (!typeConfig || !typeConfig[name]) {
+      throw new Error(`missing step: ${type}.${name}`);
     }
 
-    for (const d of _.filter(this.def.contract, (c) => (c.step || 0) <= step)) {
-      obj.push(await contractSpec.getState(this, ctx, d));
-    }
+    const obj = await StepKinds[type].getState(this, ctx, typeConfig[name] as any);
 
-    for (const d of _.filter(this.def.invoke, (c) => (c.step || 0) <= step)) {
-      obj.push(await invokeSpec.getState(this, ctx, d));
-    }
-
-    for (const d of _.filter(this.def.run, (c) => (c.step || 0) <= step)) {
-      obj.push(await scriptSpec.getState(this, ctx, d));
-    }
-
-    return obj.map((v) => {
-      if (!v) {
-        return null;
-      } else {
-        return crypto.createHash('md5').update(JSON.stringify(v)).digest('hex');
-      }
-    });
-  }
-
-  async verifyLayerContext(n: number) {
-    try {
-      const stat = await fs.stat(getLayerFiles(this.chartDir, this.chainId, this.preset, n).metadata);
-      return stat.isFile();
-    } catch (err) {
-      return false;
+    if (!obj) {
+      return null;
+    } else {
+      return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
     }
   }
 
-  async loadLayer(n: number): Promise<ChainBuilderContext | null> {
+  async loadLayer(stepName: string): Promise<ChainBuilderContext | null> {
     if (this.readMode === 'none') {
       return null;
     }
 
-    debug('load cache', n);
+    debug('load cache', stepName);
 
-    const { chain, metadata } = getLayerFiles(this.chartDir, this.chainId, this.preset, n);
+    const { chain, metadata } = getActionFiles(this.chartDir, this.chainId, this.preset, stepName);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
-    if (contents.version !== LAYER_VERSION) {
+    if (contents.version !== BUILD_VERSION) {
       throw new Error('cannon file format not supported: ' + (contents.version || 1));
     }
 
     if (this.readMode === 'all') {
-      debug('load state', n);
+      debug('load state', stepName);
       const cacheData = await fs.readFile(chain);
       await this.provider.send('hardhat_loadState', ['0x' + cacheData.toString('hex')]);
     }
@@ -485,31 +753,49 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     return contents.ctx;
   }
 
-  async dumpLayer(ctx: ChainBuilderContext, n: number) {
+  async dumpLayer(ctx: ChainBuilderContext, stepName: string) {
     if (this.writeMode === 'none') {
       return;
     }
 
-    debug('put cache', n);
+    debug('put cache', stepName);
 
-    const { chain, metadata } = getLayerFiles(this.chartDir, ctx.chainId, this.preset, n);
+    const { chain, metadata } = getActionFiles(this.chartDir, ctx.chainId, this.preset, stepName);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
       metadata,
       JSON.stringify({
-        version: LAYER_VERSION,
-        hash: await this.layerHashes(ctx, n),
+        version: BUILD_VERSION,
+        hash: await this.actionHash(ctx, stepName),
         ctx,
       })
     );
 
     if (this.writeMode === 'all') {
-      debug('put state', n);
+      debug('put state', stepName);
       const data = (await this.provider.send('hardhat_dumpState', [])) as string;
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, Buffer.from(data.slice(2), 'hex'));
     }
+  }
+
+  async clearNode() {
+    if (this.writeMode === 'all') {
+      debug('clear state');
+
+      // revert is assumed hardcoded to the beginning chainstate on a clearable node
+      if (this.cleanSnapshot) {
+        const status = await this.provider.send('evm_revert', [this.cleanSnapshot]);
+        if (!status) {
+          throw new Error('state clear failed');
+        }
+      }
+
+      this.cleanSnapshot = await this.provider.send('evm_snapshot', []);
+    }
+
+    return null;
   }
 
   loadCannonfile() {
