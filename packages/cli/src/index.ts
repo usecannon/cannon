@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { Command } from 'commander';
 import prompts from 'prompts';
 
-import { CannonRegistry, ChainBuilder, downloadPackagesRecursive } from '@usecannon/builder';
+import { CannonRegistry, ChainBuilder, ChainArtifacts, downloadPackagesRecursive } from '@usecannon/builder';
 
 import pkg from '../package.json';
 
@@ -13,7 +13,8 @@ import { runRpc } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
-import { promises } from 'fs';
+import fs from 'fs-extra';
+import path from 'path';
 import os from 'os';
 import readline from 'readline';
 import { URL } from 'node:url';
@@ -45,6 +46,31 @@ class ReadOnlyCannonRegistry extends CannonRegistry {
   }
 }
 
+async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
+  if (prefix) {
+    prefix = prefix + '.';
+  }
+
+  for (const m in outputs.imports) {
+    await writeModuleDeployments(deploymentPath, `${prefix}${m}`, outputs.imports[m]);
+  }
+
+  for (const contract in outputs.contracts) {
+    const file = path.join(deploymentPath, `${prefix}${contract}.json`);
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const contractOutputs = outputs.contracts![contract];
+
+    const transformedOutput = {
+      ...contractOutputs,
+      abi: contractOutputs.abi,
+    };
+
+    // JSON format is already correct, so we can just output what we have
+    await fs.writeFile(file, JSON.stringify(transformedOutput, null, 2));
+  }
+}
+
 program
   .name('cannon')
   .version(pkg.version)
@@ -57,7 +83,8 @@ program
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
+  .option('-e --exit', 'Exit after building')
   .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
     '--registry-address <address>',
@@ -83,13 +110,13 @@ async function run() {
 
   // Ensure our version of Anvil is installed
   try {
-    await promises.access(os.homedir() + '/.foundry/usecannon');
+    await fs.promises.access(os.homedir() + '/.foundry/usecannon');
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
       message:
-        'Cannon requires a custom version of Anvil until a pull request is merged. This will be installed alongside any existing installations of Anvil. Continue?',
+        'Cannon requires a custom version of Anvil until a PR (https://bit.ly/3yUFF6W) is merged. This will be installed alongside any existing installations of Anvil. Continue?',
       initial: true,
     });
 
@@ -138,9 +165,15 @@ async function run() {
     },
   });
 
-  console.log(magentaBright('Downloading package...'));
+  console.log(magentaBright(`Downloading ${options.name + ':' + options.version}...`));
 
-  await downloadPackagesRecursive(options.name + ':' + options.version, networkInfo.chainId, options.preset, registry);
+  await downloadPackagesRecursive(
+    options.name + ':' + options.version,
+    networkInfo.chainId,
+    options.preset,
+    registry,
+    provider
+  );
 
   const builder = new ChainBuilder({
     name: options.name,
@@ -153,21 +186,24 @@ async function run() {
     chainId: networkInfo.chainId,
     provider,
     async getSigner(addr: string) {
-      const signer = signers.find((s) => s.address === addr);
-
-      if (!signer) {
-        throw new Error(`signer ${addr} not found`);
-      }
-
-      return signer;
+      // on test network any user can be conjured
+      await provider.send('hardhat_impersonateAccount', [addr]);
+      await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+      return provider.getSigner(addr);
     },
   });
 
   debug('start build', options.settings);
 
-  console.log(magentaBright('Deploying package to local node...'));
+  console.log(magentaBright(`Deploying ${options.name + ':' + options.version} to local node...`));
 
   const outputs = await builder.build(options.settings);
+
+  if (options.writeDeployments) {
+    console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
+    await fs.mkdirp(options.writeDeployments);
+    await writeModuleDeployments(options.writeDeployments, '', outputs);
+  }
 
   debug('start interact');
   console.log(
@@ -175,19 +211,45 @@ async function run() {
       `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
     )
   );
-  console.log(green(`Press i to interact with these contracts via the command line.`));
 
-  readline.emitKeypressEvents(process.stdin);
-  process.stdin.setRawMode(true);
-  process.stdin.on('keypress', async (str, key) => {
-    if (str === 'i') {
-      await interact({
-        provider,
-        signer: signers[0],
-        contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
+  if (options.exit) {
+    console.log(green('Exiting the CLI.'));
+    process.exit();
+  }
+
+  const keypress = () => {
+    return new Promise((resolve) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        escapeCodeTimeout: 50,
       });
-    }
-  });
+      readline.emitKeypressEvents(process.stdin, rl);
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      const listener = async (str: any, key: any) => {
+        if (key.ctrl && key.name === 'c') {
+          process.exit();
+        } else if (str === 'i') {
+          await interact({
+            provider,
+            signer: signers[0],
+            contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
+          });
+          console.log(green('Press i to interact with contracts via the command line.'));
+        }
+        process.stdin.removeListener('keypress', listener);
+        process.stdin.setRawMode(false);
+        rl.close();
+        resolve(null);
+
+        await keypress();
+      };
+      process.stdin.on('keypress', listener);
+    });
+  };
+
+  console.log(green('Press i to interact with contracts via the command line.'));
+  await keypress();
 }
 
 run();
