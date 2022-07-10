@@ -14,11 +14,11 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - ProtocolPublish
+        - PackagePublish
       abis:
         - name: CannonRegistry
           file: ./abis/CannonRegistry.json
       eventHandlers:
-        - event: ProtocolPublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
-          handler: handleProtocolPublish
+        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
+          handler: PackagePublish
       file: ./src/mapping.ts

@@ -27,7 +27,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
 
     // TODO: grab default value from registry/deployments/${network}.json file
-    registryAddress: userConfig.cannon?.registryAddress || '0xa7F19685A1970A84Da7212ed3D74Cc5237408813',
+    registryAddress: userConfig.cannon?.registryAddress || '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650',
 
     publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 

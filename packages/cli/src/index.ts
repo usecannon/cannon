@@ -2,6 +2,7 @@
 import _ from 'lodash';
 
 import { Command } from 'commander';
+import prompts from 'prompts';
 
 import { CannonRegistry, ChainBuilder, downloadPackagesRecursive } from '@usecannon/builder';
 
@@ -12,8 +13,13 @@ import { runRpc } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
+import { promises } from 'fs';
+import os from 'os';
+import readline from 'readline';
+import { URL } from 'node:url';
+import { exec } from 'child_process';
 import fetch from 'node-fetch';
-import { blue, blueBright } from 'chalk';
+import { greenBright, green, magentaBright } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -52,18 +58,13 @@ program
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
 
+  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
-    '--registry-rpc',
-    'URL to use for eth JSON-RPC endpoint',
-    'https://rinkeby.infura.io/v3/4d5f81b4beb14715a4fe930ec6a201f7'
-  )
-  .option(
-    '--registry-address',
+    '--registry-address <address>',
     'Address where the cannon registry is deployed',
-    '0xa7F19685A1970A84Da7212ed3D74Cc5237408813'
+    '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
-  .option('--ipfs-url', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io:443');
-  //.option('--ipfs-url', 'Host to pull IPFS resources from', 'https://25JrnDgeR88vTvaEDhPEP2vDtOJ@ipfs.infura.io:5001');
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io');
 
 async function run() {
   program.parse();
@@ -79,6 +80,27 @@ async function run() {
   options.settings = _.fromPairs(args[1].map((kv: string) => kv.split('=')));
 
   debug('parsed arguments', options, args);
+
+  // Ensure our version of Anvil is installed
+  try {
+    await promises.access(os.homedir() + '/.foundry/usecannon');
+  } catch (err) {
+    const response = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message:
+        'Cannon requires a custom version of Anvil until a pull request is merged. This will be installed alongside any existing installations of Anvil. Continue?',
+      initial: true,
+    });
+
+    if (response.confirmation) {
+      await exec('curl -L https://foundry.paradigm.xyz | bash');
+    } else {
+      process.exit();
+    }
+  }
+  await exec('foundryup -r usecannon/foundry');
+  console.log(magentaBright('Starting local node...'));
 
   // first start the rpc server
   const provider = await runRpc({
@@ -102,21 +124,21 @@ async function run() {
   }
 
   // download from package registry
-  const parsedIpfs = options.ipfsUrl.match(/^(.*):\/\/(.*):(.*)$/);
+  const parsedIpfs = new URL(options.ipfsUrl);
   const registry = new ReadOnlyCannonRegistry({
     address: options.registryAddress,
     signerOrProvider: new ethers.providers.JsonRpcProvider(options.registryRpc),
     ipfsOptions: {
-      protocol: parsedIpfs[1],
-      host: parsedIpfs[2],
-      port: parsedIpfs[3],
+      protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
+      host: parsedIpfs.host,
+      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
       /*headers: {
         authorization: `Basic ${Buffer.from(parsedIpfs[2] + ':').toString('base64')}`,
       },*/
     },
   });
 
-  console.log(blueBright('downloading dependencies...'));
+  console.log(magentaBright('Downloading package...'));
 
   await downloadPackagesRecursive(options.name + ':' + options.version, networkInfo.chainId, options.preset, registry);
 
@@ -143,16 +165,28 @@ async function run() {
 
   debug('start build', options.settings);
 
-  console.log(blueBright('assembling chain...'));
+  console.log(magentaBright('Deploying package to local node...'));
 
   const outputs = await builder.build(options.settings);
 
   debug('start interact');
+  console.log(
+    greenBright(
+      `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
+    )
+  );
+  console.log(green(`Press i to interact with these contracts via the command line.`));
 
-  await interact({
-    provider,
-    signer: signers[0],
-    contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
+  process.stdin.on('keypress', async (str, key) => {
+    if (str === 'i') {
+      await interact({
+        provider,
+        signer: signers[0],
+        contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
+      });
+    }
   });
 }
 
