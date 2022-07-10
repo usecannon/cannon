@@ -4,7 +4,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -18,7 +18,7 @@ const config = {
 
     // used to force new copy of a contract (not actually used)
     salt: { type: 'string' },
-    
+
     depends: { elements: { type: 'string' } },
   },
 } as const;

@@ -3,7 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs-extra';
 import { ChainBuilder } from './builder';
 import { CannonRegistry } from './registry';
-import { getSavedChartsDir, getLayerFiles, getChartDir } from './storage';
+import { getSavedChartsDir, getActionFiles, getChartDir } from './storage';
 
 export { ChainBuilder, Events } from './builder';
 
@@ -24,7 +24,9 @@ export async function downloadPackagesRecursive(
 
   const [name, tag] = pkg.split(':');
 
-  const depdir = path.dirname(getLayerFiles(getChartDir(chartsDir, name, tag), chainId, preset || 'main', 0).basename);
+  const depdir = path.dirname(
+    getActionFiles(getChartDir(chartsDir, name, tag), chainId, preset || 'main', 'sample').basename
+  );
 
   if (!existsSync(depdir)) {
     await registry.downloadPackageChain(pkg, chainId, preset || 'main', chartsDir);

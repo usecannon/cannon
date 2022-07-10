@@ -18,13 +18,13 @@ options.msg = "a message from second greeter set"
 target = ["greeters.greeter"]
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
-step = 1
+depends = ["import.greeters"]
 
 # test for factory functionality
 [invoke.clone]
 target = ["greeters.greeter"]
 func = "doCloning"
-step = 1
+depends = ["import.greeters"]
 
 factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0

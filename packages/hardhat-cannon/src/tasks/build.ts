@@ -97,7 +97,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         baseDir: hre.config.paths.root,
         savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
-          return hre.ethers.getSigner(addr);
+          return provider.getSigner(addr);
         },
 
         async getArtifact(name: string) {
@@ -154,12 +154,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     builder.on(Events.DeployContract, (c) => console.log(`deployed contract ${c.address}`));
     builder.on(Events.DeployTxn, (t) => console.log(`ran txn ${t.hash}`));
 
-    await builder.build(mappedOptions);
+    const outputs = await builder.build(mappedOptions);
 
-    console.log('outputs', await builder.getOutputs());
+    console.log('outputs', outputs);
 
     await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
-      outputs: await builder.getOutputs(),
+      outputs,
     });
 
     if (port) {

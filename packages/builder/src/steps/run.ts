@@ -3,8 +3,8 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 import { join } from 'path';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
-import { hashDirectory } from './util';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { hashDirectory } from '../util';
 
 const debug = Debug('cannon:builder:run');
 

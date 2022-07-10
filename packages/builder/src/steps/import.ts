@@ -72,14 +72,7 @@ export default {
       getDefaultSigner: runtime.getDefaultSigner,
     });
 
-    await builder.build(config.options || {});
-
-    const outputs = await builder.getOutputs();
-
-    if (!outputs) {
-      // shouldn't be able to happen
-      throw new Error('no chain outputs immediately after build');
-    }
+    const outputs = await builder.build(config.options || {});
 
     return {
       contracts: outputs.contracts,

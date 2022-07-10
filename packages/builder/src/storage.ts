@@ -63,7 +63,7 @@ export async function clearDeploymentInfo(chartDir: string, chainId: number, lab
   await fs.writeFile(getDeploymentInfoFile(chartDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
 }
 
-export function getLayerFiles(chartDir: string, chainId: number, label: string, stepName: string) {
+export function getActionFiles(chartDir: string, chainId: number, label: string, stepName: string) {
   const filename = `${chainId}-${label}/${stepName}`;
 
   const basename = path.join(chartDir, filename);

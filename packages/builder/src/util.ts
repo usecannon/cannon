@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 
 import fs, { existsSync } from 'fs-extra';
 import path from 'path';
-import { CannonRegistry, ChainBuilder, getChartDir, getLayerFiles, getSavedChartsDir } from '.';
+import { CannonRegistry, ChainBuilder, getChartDir, getActionFiles, getSavedChartsDir } from '.';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
