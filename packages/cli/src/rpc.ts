@@ -60,7 +60,13 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
-        console.log(chunk.split('\n').map((m: string) => 'anvil: ' + m));
+        console.log(
+          chunk
+            .split('\n')
+            .filter((m: string) => m.length)
+            .map((m: string) => 'anvil: ' + m)
+            .join('\n')
+        );
         debug('cannon:cli:rpc', chunk);
       });
 
