@@ -116,7 +116,7 @@ async function run() {
       type: 'confirm',
       name: 'confirmation',
       message:
-        'Cannon requires a custom version of Anvil until a pull request is merged. This will be installed alongside any existing installations of Anvil. Continue?',
+        'Cannon requires a custom version of Anvil until a PR (https://bit.ly/3yUFF6W) is merged. This will be installed alongside any existing installations of Anvil. Continue?',
       initial: true,
     });
 
