@@ -508,31 +508,31 @@ ${this.allActionNames.join('\n')}
     }
 
     const analysis = await this.analyzeActions(opts);
+    const loadedStates = new Set<string>();
 
-    // load layers for next step
-    if (this.writeMode !== 'all') {
-      const nextSteps = this.findNextSteps(analysis.matched);
-      if (nextSteps.length) {
+    while (analysis.matched.size < this.allActionNames.length) {
+      let lastDone;
+      if (this.writeMode === 'all') {
+        lastDone = await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null)
+      } else {
+        const nextSteps = this.findNextSteps(analysis.matched);
+        // load layers for next step
         debug('load from fresh', nextSteps);
         for (const [, conf] of nextSteps) {
           for (const dep of conf.depends || []) {
-            await this.loadLayer(dep);
+            if (!loadedStates.has(dep)) {
+              await this.loadLayer(dep);
+              loadedStates.add(dep);
+            }
           }
         }
-      } else {
-        // load the head layers
-        debug('loading from heads');
-        for (const head of analysis.heads) {
-          await this.loadLayer(head);
+
+        lastDone = await this.runSteps(opts, analysis.matched);
+
+        for (const [n] of lastDone) {
+          loadedStates.add(n);
         }
       }
-    }
-
-    while (analysis.matched.size < this.allActionNames.length) {
-      const lastDone =
-        this.writeMode === 'all'
-          ? await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null)
-          : await this.runSteps(opts, analysis.matched);
 
       if (!lastDone.length) {
         throw new Error(
@@ -546,15 +546,6 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
       }
     }
 
-    if (this.writeMode !== 'none') {
-      await putDeploymentInfo(this.chartDir, this.chainId, this.preset, {
-        options: opts,
-        buildVersion: BUILD_VERSION,
-        ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
-        heads: Array.from(analysis.heads),
-      });
-    }
-
     if (this.writeMode === 'all') {
       // have to reload state of final chain
       await this.clearNode();
@@ -562,6 +553,22 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
       for (const n of analysis.heads) {
         await this.loadLayer(n);
       }
+    } else {
+      debug('loading from heads');
+      for (const head of analysis.heads) {
+        if (!loadedStates.has(head)) {
+          await this.loadLayer(head);
+        }
+      }
+    }
+
+    if (this.writeMode !== 'none') {
+      await putDeploymentInfo(this.chartDir, this.chainId, this.preset, {
+        options: opts,
+        buildVersion: BUILD_VERSION,
+        ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
+        heads: Array.from(analysis.heads),
+      });
     }
 
     // assemble the final context for the user
