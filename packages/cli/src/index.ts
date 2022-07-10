@@ -58,14 +58,17 @@ program
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
 
-  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
+  .option(
+    '--registry-rpc <url>',
+    'URL to use for eth JSON-RPC endpoint',
+    'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0'
+  )
   .option(
     '--registry-address <address>',
     'Address where the cannon registry is deployed',
     '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
   )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io');
-
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 async function run() {
   program.parse();
   const options = program.opts();

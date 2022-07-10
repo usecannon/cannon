@@ -24,7 +24,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : path.join(config.paths.root, 'cannon');
 
   config.cannon = {
-    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0',
 
     // TODO: grab default value from registry/deployments/${network}.json file
     registryAddress: userConfig.cannon?.registryAddress || '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650',
@@ -32,7 +32,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
     ipfsConnection: userConfig.cannon?.ipfsConnection || {
-      url: 'https://ipfs.infura.io:5001/api/v0',
+      url: 'https://usecannon.infura-ipfs.io',
     },
   };
 });

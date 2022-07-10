@@ -1,4 +1,3 @@
-
 import 'hardhat-cannon';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
@@ -17,7 +16,7 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       chainId: 4,
-      url: process.env.NETWORK_ENDPOINT || 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+      url: process.env.NETWORK_ENDPOINT,
       accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
   },
