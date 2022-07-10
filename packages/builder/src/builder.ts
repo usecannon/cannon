@@ -18,6 +18,7 @@ import {
   ChainBuilderOptions,
   StorageMode,
   DeploymentManifest,
+  DeploymentInfo,
 } from './types';
 import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
 import { getChartDir, getActionFiles, getSavedChartsDir } from './storage';
@@ -489,6 +490,11 @@ ${this.allActionNames.join('\n')}
     debug('build');
     debug(`read mode: ${this.readMode}, write mode: ${this.writeMode}`);
 
+    if (this.readMode !== 'none') {
+      // ensure the current deployment is supported if we try to load the files
+      await this.getDeploymentInfo();
+    }
+
     // ensure the latest cannonfile is persisted
     await this.writeCannonfile();
 
@@ -569,9 +575,23 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
     clearDeploymentInfo(this.chartDir, this.chainId, this.preset);
   }
 
+  async getDeploymentInfo(): Promise<DeploymentInfo | null> {
+    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
+
+    if (deployInfo) {
+      if (deployInfo.buildVersion < BUILD_VERSION) {
+        throw new Error(`the package you have loaded is not compatible with this version of cannon.
+          package build version:\t${deployInfo.buildVersion}
+          supported build version:\t>=${BUILD_VERSION}`);
+      }
+    }
+
+    return deployInfo;
+  }
+
   async getOutputs(): Promise<ChainBuilderContext | null> {
     // load all the top layers and merge their states
-    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
+    const deployInfo = await this.getDeploymentInfo();
 
     if (!deployInfo) {
       return null;
