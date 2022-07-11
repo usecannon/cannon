@@ -1,4 +1,7 @@
-specVersion: 0.0.2
+specVersion: 0.0.5
+features:
+  - ipfsOnEthereumContracts
+  - fullTextSearch
 schema:
   file: schema.graphql
 dataSources:
@@ -6,19 +9,19 @@ dataSources:
     name: CannonRegistry
     network: rinkeby
     source:
-      address: "0xa7F19685A1970A84Da7212ed3D74Cc5237408813"
+      address: "0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650"
       abi: CannonRegistry
-      startBlock: 10000000
+      startBlock: 10980000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - PackagePublish
+        - Package
       abis:
         - name: CannonRegistry
           file: CannonRegistry/abis/CannonRegistry.json
       eventHandlers:
         - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
-          handler: PackagePublish
+          handler: handlePublish
       file: CannonRegistry/CannonRegistry.wasm

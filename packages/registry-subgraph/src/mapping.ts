@@ -1,23 +1,28 @@
-import { BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
+import { ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import { Package, PackageTag, Tag } from '../generated/schema';
-import { PackagePublish as PackagePublishEvent } from '../generated/CannonRegistry/CannonRegistry';
+import { Package, Version, PackageKeyword, Keyword } from '../generated/schema';
+import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
 
-export function handlePackagePublish(event: PackagePublishEvent): void {
-  const id = event.params.name.toString() + '@' + event.params.version.toString();
-  let entity = Package.load(id);
-
-  if (!entity) {
-    entity = new Package(id);
+export function handlePublish(event: PackagePublish): void {
+  const id = event.params.name.toString();
+  let cannon_package = Package.load(id);
+  if (!cannon_package) {
+    cannon_package = new Package(id);
   }
 
-  // Entity fields can be set based on event parameters
-  entity.name = event.params.name.toString();
-  entity.version = event.params.version.toString();
-  entity.url = event.params.url;
-  entity.added = event.block.timestamp;
-  entity.publisher = event.transaction.from.toHexString();
+  const version_string = event.params.version.toString();
+  let version = Version.load(id + ':' + version_string);
+  if (!version) {
+    version = new Version(id + ':' + version_string);
+  }
+  version.name = version_string;
+  version.url = event.params.url;
+  version.publisher = event.params.owner.toHexString();
+  version.added = event.block.timestamp;
+  version.cannon_package = cannon_package.id;
+  //version.tags = event.params.tags
 
+  /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
   const metadata_data = ipfs.cat(metadata_path);
   if (metadata_data) {
@@ -27,11 +32,11 @@ export function handlePackagePublish(event: PackagePublishEvent): void {
       entity.description = description.toString();
     }
 
-    const tags = obj.get('tags');
-    if (tags) {
-      const tagsArray = tags.toArray();
-      for (let i = 0; i < tagsArray.length; ++i) {
-        addTag(tagsArray[i].toString(), id);
+    const keywords = obj.get('keywords');
+    if (keywords) {
+      const keywordsArray = keywords.toArray();
+      for (let i = 0; i < keywordsArray.length; ++i) {
+        addKeyword(keywordsArray[i].toString(), version.id);
       }
     }
   } else {
@@ -41,7 +46,7 @@ export function handlePackagePublish(event: PackagePublishEvent): void {
   const readme_path = entity.url.slice(7) + '/README.md';
   const readme_data = ipfs.cat(readme_path);
   if (readme_data) {
-    entity.readme = readme_data.toString();
+    //entity.readme = readme_data.toString();
   } else {
     log.warning('Could not retrieve readme for {}', [id]);
   }
@@ -49,7 +54,7 @@ export function handlePackagePublish(event: PackagePublishEvent): void {
   const toml_path = entity.url.slice(7) + '/cannonfile.toml';
   const toml_data = ipfs.cat(toml_path);
   if (toml_data) {
-    entity.cannonfile = toml_data.toString();
+    //entity.cannonfile = toml_data.toString();
   } else {
     log.warning('Could not retrieve cannonfile for {}', [id]);
   }
@@ -57,19 +62,23 @@ export function handlePackagePublish(event: PackagePublishEvent): void {
   entity.save();
 }
 
-function addTag(tagId: string, packageId: string): void {
-  let entity = Tag.load(tagId);
+function addKeyword(keywordId: string, versionId: string): void {
+  let entity = Keyword.load(keywordId);
   if (!entity) {
-    entity = new Tag(tagId);
+    entity = new Keyword(keywordId);
   }
   entity.count = entity.count.plus(BigInt.fromI32(1));
   entity.save();
 
-  let join_entity = PackageTag.load(packageId + '-' + tagId);
+  let join_entity = PackageKeyword.load(versionId + '-' + keywordId);
   if (!join_entity) {
-    join_entity = new PackageTag(packageId + '-' + tagId);
-    join_entity.cannon_package = packageId;
-    join_entity.tag = tagId;
+    join_entity = new PackageKeyword(versionId + '-' + keywordId);
+    join_entity.cannon_package = versionId;
+    join_entity.keyword = keywordId;
     join_entity.save();
   }
+  */
+
+  cannon_package.save();
+  version.save();
 }
