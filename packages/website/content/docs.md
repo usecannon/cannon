@@ -236,6 +236,7 @@ The `contract` action deploys a contract.
 **Optional Inputs**
 
 - `args` - Specifies the arguments to provide the constructor function
+- `abi` - Specifies the contract that should be used for the ABI. This is useful when deploying proxy contracts.
 - `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
 **Outputs**  
