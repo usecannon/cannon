@@ -1,5 +1,5 @@
 name = "cannon-registry"
-version = "0.0.5"
+version = "1.0.0"
 
 [setting.salt]
 defaultValue = "registry"
@@ -7,11 +7,10 @@ defaultValue = "registry"
 [contract.registry]
 artifact = "CannonRegistry"
 salt = "<%= settings.salt %>"
-step = 1
 
 [run.proxy]
 exec = "scripts/deployments.ts"
 func = "deployOrUpgradeProxy"
 args = ["<%= contracts.registry.address %>"]
 modified = ["scripts", "contracts"]
-step = 2
+depends = ["contract.registry"]
