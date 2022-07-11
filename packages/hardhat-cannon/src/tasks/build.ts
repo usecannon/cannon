@@ -3,6 +3,7 @@ import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
+import installAnvil from '../internal/install-anvil';
 import loadCannonfile from '../internal/load-cannonfile';
 import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
@@ -29,6 +30,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
   .setAction(async ({ noCompile, file, options, dryRun, port, preset, wipe }, hre) => {
+    await installAnvil();
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
     }
