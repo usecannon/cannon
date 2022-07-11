@@ -278,6 +278,8 @@ The `invoke` action calls a specified function on your node.
 
 - `args` - The arguments to use when invoking this call
 - `from` - The calling address to use when invoking this call
+- `fromCall.func` - The name of a view function to call on this contract. The result will be used as the `from` input.
+- `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 
 **Outputs**  
@@ -326,6 +328,7 @@ The `run` action executes a custom script. This script is passed a [ChainBuilder
 
 **Optional Inputs**
 
+- `args` - Arguments passed to the function (after the ChainBuilder object).
 - `env` - Environment variables to be set on the script
 - `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
