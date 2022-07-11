@@ -99,7 +99,7 @@ contract Storage {
 To deploy the contract and set an initial value, you could create the following Cannonfile:
 
 ```toml
-name = "myStorageCannon"
+name = "myStorage"
 description = "Simple project to deploy a Storage contract"
 version = "0.0.1"
 keywords = ["fun", "example"]
