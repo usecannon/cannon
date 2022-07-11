@@ -18,6 +18,7 @@ export async function downloadPackagesRecursive(
   chainId: number,
   preset: string | null,
   registry: CannonRegistry,
+  provider: ethers.providers.JsonRpcProvider,
   chartsDir?: string
 ) {
   chartsDir = chartsDir || getSavedChartsDir();
@@ -36,7 +37,7 @@ export async function downloadPackagesRecursive(
       version: tag,
       writeMode: 'none',
       readMode: 'none',
-      provider: null as unknown as ethers.providers.JsonRpcProvider, // TODO provider shouldn't be required here
+      provider,
       getSigner: async () => {
         throw new Error('signer should be unused');
       },
@@ -47,7 +48,14 @@ export async function downloadPackagesRecursive(
     const dependencies = await builder.getDependencies({});
 
     for (const dependency of dependencies) {
-      await downloadPackagesRecursive(dependency.source, dependency.chainId, dependency.preset, registry, chartsDir);
+      await downloadPackagesRecursive(
+        dependency.source,
+        dependency.chainId,
+        dependency.preset,
+        registry,
+        provider,
+        chartsDir
+      );
     }
   }
 }

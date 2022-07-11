@@ -6,6 +6,7 @@ import './tasks/verify';
 import './tasks/publish';
 import './tasks/import';
 import './tasks/export';
+import './tasks/inspect';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
 import './subtasks/write-deployments';

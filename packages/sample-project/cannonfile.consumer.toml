@@ -1,16 +1,16 @@
 name = "consumer"
 version = "0.0.1"
 description = "Simple project to verify the functionality of cannon"
-tags = ["sample", "consumer"]
+keywords = ["sample", "consumer"]
 
 [setting.change_greeting2]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter:0.6.11"
+source = "greeter:0.7.1"
 
 [import.more_greeters]
-source = "greeter:0.6.11"
+source = "greeter:0.7.1"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 

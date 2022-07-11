@@ -59,7 +59,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         if (m) {
           const host = 'http://' + m[1];
           state = 'listening';
-          console.log('anvil spawned at', host);
+          //console.log('anvil spawned at', host);
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
