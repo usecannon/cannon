@@ -319,7 +319,7 @@ This action updates the return object by adding an entry to the `settings` key w
 
 ### run
 
-The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter.
+The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **Use the provider in the chain builder object when interacting with your deployment.**
 
 **Required Inputs**
 
