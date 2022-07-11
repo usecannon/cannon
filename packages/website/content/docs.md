@@ -102,7 +102,7 @@ To deploy the contract and set an initial value, you could create the following 
 name = "myStorageCannon"
 description = "Simple project to deploy a Storage contract"
 version = "0.0.1"
-tags = ["fun", "example"]
+keywords = ["fun", "example"]
 
 [setting.initialValue] # Create an overridable setting
 defaultValue = "420" # This is the value to use if none is specified when npx hardhat cannon:build is called
