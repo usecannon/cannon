@@ -109,14 +109,13 @@ defaultValue = "420" # This is the value to use if none is specified when npx ha
 
 [contract.myStorage] # Declares an action, the output of which can be referenced below as contracts.myStorage
 artifact = "Storage" # Specifies the name of the contract to be deployed
-step = 0 # Ensure this action is taken first
 
 [invoke.changeStorage] # Declares an action to set the initial value
 addresses = ["<%= contracts.myStorage.address %>"] # Sets the address of the contract to invoke
 abi = "<%= contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
 func = "store" # Sets the name of the function to invoke
 args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to the function
-step = 1 # Ensure this action is taken after the previous action
+depends = ["contract.myStorage"] # Ensure this action is taken after the previous action
 ```
 
 Then build your Cannonfile and run it on a local node:
@@ -205,18 +204,21 @@ If you have multiple Cannonfiles in your project, you can pass `--file` with the
 
 ## cannonfile.toml Specification
 
-Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
+Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage.
 
 Each action has a type and a name. Each type accepts a specific set of inputs and modifies a return object. The return object is accessible in actions executed at later steps. The resulting return object is provided to any cannonfile that imports it with the `import` action.
 
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ Use the <code>depends</code> input to specify an array of actions that a particular action relies upon. For example, you must include <code>depends = ["contract.myStorage"]</code> on an invoke action which calls a function on a contract deployed by the contract.myStorage action. Note that two actions which effect the same state need to have one depend on the other (like two transfer functions that may effect the same user balances).
+</div>
+
 Every action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
 
-For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.) It will be executed first because it has specified `step` as 0.
+For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.)
 
 ```toml
 [contract.myStorage]
 artifact = "Storage"
-step = 0
 ```
 
 This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = ["<%= contracts.myStorage.address %>"]`.
@@ -296,7 +298,7 @@ factory.MyPoolDeployment.event = "NewDeployment"
 factory.MyPoolDeployment.arg = 0
 ```
 
-Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = ["MyPoolDeployment"]`.
+Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` action could set `target = ["MyPoolDeployment"]`.
 
 If the invoke action emits multiple events, you can specify them by index. For example `"MyPoolDeployment.PoolFactory.NewDeployment.4"` would reference the fifth time the specified event is emitted.
 
@@ -315,11 +317,7 @@ This action updates the return object by adding an entry to the `settings` key w
 
 ### run
 
-The `run` action executes a custom script.
-
-<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
-⚠️ <strong>Avoid using the run step when possible, as this can negatively impact the ability for this cannonfile to be imported into other cannonfiles.</strong> (More information coming soon.)
-</div>
+The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter.
 
 **Required Inputs**
 
@@ -328,7 +326,6 @@ The `run` action executes a custom script.
 
 **Optional Inputs**
 
-- `args` - The arguments to pass the script
 - `env` - Environment variables to be set on the script
 - `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
