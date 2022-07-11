@@ -15,10 +15,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": [
-    "@typescript-eslint",
-    "prettier"
-  ],
+  "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "prettier/prettier": ["error", { "singleQuote": true, "printWidth": 125 }],
     "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
@@ -40,6 +37,7 @@
     "semi": ["error", "always"],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off"
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-non-null-assertion": "off"
   }
 }

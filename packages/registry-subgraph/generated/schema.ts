@@ -23,7 +23,8 @@ export class Package extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Package must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save Package entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("Package", id.toString(), this);
     }
@@ -73,6 +74,12 @@ export class Version extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("name", Value.fromString(""));
+    this.set("cannon_package", Value.fromString(""));
+    this.set("url", Value.fromString(""));
+    this.set("publisher", Value.fromString(""));
+    this.set("added", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -81,7 +88,8 @@ export class Version extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Version must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save Version entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("Version", id.toString(), this);
     }
@@ -286,6 +294,10 @@ export class Chain extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("name", Value.fromString(""));
+    this.set("chain_id", Value.fromBigInt(BigInt.zero()));
+    this.set("version", Value.fromString(""));
   }
 
   save(): void {
@@ -294,7 +306,8 @@ export class Chain extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Chain must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save Chain entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("Chain", id.toString(), this);
     }
@@ -354,6 +367,9 @@ export class Preset extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("name", Value.fromString(""));
+    this.set("chain", Value.fromString(""));
   }
 
   save(): void {
@@ -362,7 +378,8 @@ export class Preset extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Preset must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save Preset entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("Preset", id.toString(), this);
     }
@@ -404,6 +421,8 @@ export class Keyword extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("count", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -412,7 +431,8 @@ export class Keyword extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type Keyword must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save Keyword entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("Keyword", id.toString(), this);
     }
@@ -462,6 +482,9 @@ export class DependencyDependent extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("dependency", Value.fromString(""));
+    this.set("dependent", Value.fromString(""));
   }
 
   save(): void {
@@ -470,7 +493,8 @@ export class DependencyDependent extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type DependencyDependent must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save DependencyDependent entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("DependencyDependent", id.toString(), this);
     }
@@ -514,6 +538,9 @@ export class PackageKeyword extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
+
+    this.set("version", Value.fromString(""));
+    this.set("keyword", Value.fromString(""));
   }
 
   save(): void {
@@ -522,7 +549,8 @@ export class PackageKeyword extends Entity {
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type PackageKeyword must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        "Cannot save PackageKeyword entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
       );
       store.set("PackageKeyword", id.toString(), this);
     }

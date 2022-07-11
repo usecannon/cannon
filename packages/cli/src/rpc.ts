@@ -56,10 +56,16 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.
         if (m) {
           const host = 'http://' + m[1];
           state = 'listening';
-          console.log('anvil spawned at', host);
+          debug('cannon:cli:rpc', 'anvil spawned at', host);
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
+        console.log(
+          chunk
+            .split('\n')
+            .map((m: string) => 'anvil: ' + m)
+            .join('\n')
+        );
         debug('cannon:cli:rpc', chunk);
       });
 

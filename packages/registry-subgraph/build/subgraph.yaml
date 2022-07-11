@@ -22,6 +22,6 @@ dataSources:
         - name: CannonRegistry
           file: CannonRegistry/abis/CannonRegistry.json
       eventHandlers:
-        - event: ProtocolPublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
+        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
           handler: handlePublish
       file: CannonRegistry/CannonRegistry.wasm

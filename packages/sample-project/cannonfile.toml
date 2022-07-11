@@ -1,6 +1,6 @@
 name = "greeter"
 description = "Simple project to verify the functionality of cannon"
-tags = ["sample", "greeter"]
+keywords = ["sample", "greeter"]
 
 [setting.salt]
 defaultValue = "greeter"
@@ -16,5 +16,4 @@ artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
-
-step = 1
+depends = ["contract.library"]

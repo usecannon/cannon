@@ -10,16 +10,56 @@ import {
   BigInt
 } from "@graphprotocol/graph-ts";
 
-export class ProtocolPublish extends ethereum.Event {
-  get params(): ProtocolPublish__Params {
-    return new ProtocolPublish__Params(this);
+export class OwnerChanged extends ethereum.Event {
+  get params(): OwnerChanged__Params {
+    return new OwnerChanged__Params(this);
   }
 }
 
-export class ProtocolPublish__Params {
-  _event: ProtocolPublish;
+export class OwnerChanged__Params {
+  _event: OwnerChanged;
 
-  constructor(event: ProtocolPublish) {
+  constructor(event: OwnerChanged) {
+    this._event = event;
+  }
+
+  get oldOwner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newOwner(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class OwnerNominated extends ethereum.Event {
+  get params(): OwnerNominated__Params {
+    return new OwnerNominated__Params(this);
+  }
+}
+
+export class OwnerNominated__Params {
+  _event: OwnerNominated;
+
+  constructor(event: OwnerNominated) {
+    this._event = event;
+  }
+
+  get newOwner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class PackagePublish extends ethereum.Event {
+  get params(): PackagePublish__Params {
+    return new PackagePublish__Params(this);
+  }
+}
+
+export class PackagePublish__Params {
+  _event: PackagePublish;
+
+  constructor(event: PackagePublish) {
     this._event = event;
   }
 
@@ -44,8 +84,563 @@ export class ProtocolPublish__Params {
   }
 }
 
+export class PackageUnverify extends ethereum.Event {
+  get params(): PackageUnverify__Params {
+    return new PackageUnverify__Params(this);
+  }
+}
+
+export class PackageUnverify__Params {
+  _event: PackageUnverify;
+
+  constructor(event: PackageUnverify) {
+    this._event = event;
+  }
+
+  get name(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get verifier(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class PackageVerify extends ethereum.Event {
+  get params(): PackageVerify__Params {
+    return new PackageVerify__Params(this);
+  }
+}
+
+export class PackageVerify__Params {
+  _event: PackageVerify;
+
+  constructor(event: PackageVerify) {
+    this._event = event;
+  }
+
+  get name(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get verifier(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class Upgraded extends ethereum.Event {
+  get params(): Upgraded__Params {
+    return new Upgraded__Params(this);
+  }
+}
+
+export class Upgraded__Params {
+  _event: Upgraded;
+
+  constructor(event: Upgraded) {
+    this._event = event;
+  }
+
+  get implementation(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class CannonRegistry extends ethereum.SmartContract {
   static bind(address: Address): CannonRegistry {
     return new CannonRegistry("CannonRegistry", address);
+  }
+
+  MIN_PACKAGE_NAME_LENGTH(): BigInt {
+    let result = super.call(
+      "MIN_PACKAGE_NAME_LENGTH",
+      "MIN_PACKAGE_NAME_LENGTH():(uint256)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_MIN_PACKAGE_NAME_LENGTH(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "MIN_PACKAGE_NAME_LENGTH",
+      "MIN_PACKAGE_NAME_LENGTH():(uint256)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getImplementation(): Address {
+    let result = super.call(
+      "getImplementation",
+      "getImplementation():(address)",
+      []
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_getImplementation(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "getImplementation",
+      "getImplementation():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  getPackageNominatedOwner(_packageName: Bytes): Address {
+    let result = super.call(
+      "getPackageNominatedOwner",
+      "getPackageNominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(_packageName)]
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_getPackageNominatedOwner(
+    _packageName: Bytes
+  ): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "getPackageNominatedOwner",
+      "getPackageNominatedOwner(bytes32):(address)",
+      [ethereum.Value.fromFixedBytes(_packageName)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  getPackageUrl(_packageName: Bytes, _packageVersionName: Bytes): string {
+    let result = super.call(
+      "getPackageUrl",
+      "getPackageUrl(bytes32,bytes32):(string)",
+      [
+        ethereum.Value.fromFixedBytes(_packageName),
+        ethereum.Value.fromFixedBytes(_packageVersionName)
+      ]
+    );
+
+    return result[0].toString();
+  }
+
+  try_getPackageUrl(
+    _packageName: Bytes,
+    _packageVersionName: Bytes
+  ): ethereum.CallResult<string> {
+    let result = super.tryCall(
+      "getPackageUrl",
+      "getPackageUrl(bytes32,bytes32):(string)",
+      [
+        ethereum.Value.fromFixedBytes(_packageName),
+        ethereum.Value.fromFixedBytes(_packageVersionName)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toString());
+  }
+
+  getPackageVersions(_packageName: Bytes): Array<Bytes> {
+    let result = super.call(
+      "getPackageVersions",
+      "getPackageVersions(bytes32):(bytes32[])",
+      [ethereum.Value.fromFixedBytes(_packageName)]
+    );
+
+    return result[0].toBytesArray();
+  }
+
+  try_getPackageVersions(
+    _packageName: Bytes
+  ): ethereum.CallResult<Array<Bytes>> {
+    let result = super.tryCall(
+      "getPackageVersions",
+      "getPackageVersions(bytes32):(bytes32[])",
+      [ethereum.Value.fromFixedBytes(_packageName)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytesArray());
+  }
+
+  nominatedOwner(): Address {
+    let result = super.call("nominatedOwner", "nominatedOwner():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_nominatedOwner(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "nominatedOwner",
+      "nominatedOwner():(address)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  owner(): Address {
+    let result = super.call("owner", "owner():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_owner(): ethereum.CallResult<Address> {
+    let result = super.tryCall("owner", "owner():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  validatePackageName(_name: Bytes): boolean {
+    let result = super.call(
+      "validatePackageName",
+      "validatePackageName(bytes32):(bool)",
+      [ethereum.Value.fromFixedBytes(_name)]
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_validatePackageName(_name: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "validatePackageName",
+      "validatePackageName(bytes32):(bool)",
+      [ethereum.Value.fromFixedBytes(_name)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+}
+
+export class AcceptOwnershipCall extends ethereum.Call {
+  get inputs(): AcceptOwnershipCall__Inputs {
+    return new AcceptOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): AcceptOwnershipCall__Outputs {
+    return new AcceptOwnershipCall__Outputs(this);
+  }
+}
+
+export class AcceptOwnershipCall__Inputs {
+  _call: AcceptOwnershipCall;
+
+  constructor(call: AcceptOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class AcceptOwnershipCall__Outputs {
+  _call: AcceptOwnershipCall;
+
+  constructor(call: AcceptOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class AcceptPackageOwnershipCall extends ethereum.Call {
+  get inputs(): AcceptPackageOwnershipCall__Inputs {
+    return new AcceptPackageOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): AcceptPackageOwnershipCall__Outputs {
+    return new AcceptPackageOwnershipCall__Outputs(this);
+  }
+}
+
+export class AcceptPackageOwnershipCall__Inputs {
+  _call: AcceptPackageOwnershipCall;
+
+  constructor(call: AcceptPackageOwnershipCall) {
+    this._call = call;
+  }
+
+  get _packageName(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+}
+
+export class AcceptPackageOwnershipCall__Outputs {
+  _call: AcceptPackageOwnershipCall;
+
+  constructor(call: AcceptPackageOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class NominateNewOwnerCall extends ethereum.Call {
+  get inputs(): NominateNewOwnerCall__Inputs {
+    return new NominateNewOwnerCall__Inputs(this);
+  }
+
+  get outputs(): NominateNewOwnerCall__Outputs {
+    return new NominateNewOwnerCall__Outputs(this);
+  }
+}
+
+export class NominateNewOwnerCall__Inputs {
+  _call: NominateNewOwnerCall;
+
+  constructor(call: NominateNewOwnerCall) {
+    this._call = call;
+  }
+
+  get newNominatedOwner(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class NominateNewOwnerCall__Outputs {
+  _call: NominateNewOwnerCall;
+
+  constructor(call: NominateNewOwnerCall) {
+    this._call = call;
+  }
+}
+
+export class NominatePackageOwnerCall extends ethereum.Call {
+  get inputs(): NominatePackageOwnerCall__Inputs {
+    return new NominatePackageOwnerCall__Inputs(this);
+  }
+
+  get outputs(): NominatePackageOwnerCall__Outputs {
+    return new NominatePackageOwnerCall__Outputs(this);
+  }
+}
+
+export class NominatePackageOwnerCall__Inputs {
+  _call: NominatePackageOwnerCall;
+
+  constructor(call: NominatePackageOwnerCall) {
+    this._call = call;
+  }
+
+  get _packageName(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get _newPackageOwner(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class NominatePackageOwnerCall__Outputs {
+  _call: NominatePackageOwnerCall;
+
+  constructor(call: NominatePackageOwnerCall) {
+    this._call = call;
+  }
+}
+
+export class PublishCall extends ethereum.Call {
+  get inputs(): PublishCall__Inputs {
+    return new PublishCall__Inputs(this);
+  }
+
+  get outputs(): PublishCall__Outputs {
+    return new PublishCall__Outputs(this);
+  }
+}
+
+export class PublishCall__Inputs {
+  _call: PublishCall;
+
+  constructor(call: PublishCall) {
+    this._call = call;
+  }
+
+  get _packageName(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get _packageVersionName(): Bytes {
+    return this._call.inputValues[1].value.toBytes();
+  }
+
+  get _packageTags(): Array<Bytes> {
+    return this._call.inputValues[2].value.toBytesArray();
+  }
+
+  get _packageVersionUrl(): string {
+    return this._call.inputValues[3].value.toString();
+  }
+}
+
+export class PublishCall__Outputs {
+  _call: PublishCall;
+
+  constructor(call: PublishCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceNominationCall extends ethereum.Call {
+  get inputs(): RenounceNominationCall__Inputs {
+    return new RenounceNominationCall__Inputs(this);
+  }
+
+  get outputs(): RenounceNominationCall__Outputs {
+    return new RenounceNominationCall__Outputs(this);
+  }
+}
+
+export class RenounceNominationCall__Inputs {
+  _call: RenounceNominationCall;
+
+  constructor(call: RenounceNominationCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceNominationCall__Outputs {
+  _call: RenounceNominationCall;
+
+  constructor(call: RenounceNominationCall) {
+    this._call = call;
+  }
+}
+
+export class SimulateUpgradeToCall extends ethereum.Call {
+  get inputs(): SimulateUpgradeToCall__Inputs {
+    return new SimulateUpgradeToCall__Inputs(this);
+  }
+
+  get outputs(): SimulateUpgradeToCall__Outputs {
+    return new SimulateUpgradeToCall__Outputs(this);
+  }
+}
+
+export class SimulateUpgradeToCall__Inputs {
+  _call: SimulateUpgradeToCall;
+
+  constructor(call: SimulateUpgradeToCall) {
+    this._call = call;
+  }
+
+  get newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SimulateUpgradeToCall__Outputs {
+  _call: SimulateUpgradeToCall;
+
+  constructor(call: SimulateUpgradeToCall) {
+    this._call = call;
+  }
+}
+
+export class UnverifyPackageCall extends ethereum.Call {
+  get inputs(): UnverifyPackageCall__Inputs {
+    return new UnverifyPackageCall__Inputs(this);
+  }
+
+  get outputs(): UnverifyPackageCall__Outputs {
+    return new UnverifyPackageCall__Outputs(this);
+  }
+}
+
+export class UnverifyPackageCall__Inputs {
+  _call: UnverifyPackageCall;
+
+  constructor(call: UnverifyPackageCall) {
+    this._call = call;
+  }
+
+  get _packageName(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+}
+
+export class UnverifyPackageCall__Outputs {
+  _call: UnverifyPackageCall;
+
+  constructor(call: UnverifyPackageCall) {
+    this._call = call;
+  }
+}
+
+export class UpgradeToCall extends ethereum.Call {
+  get inputs(): UpgradeToCall__Inputs {
+    return new UpgradeToCall__Inputs(this);
+  }
+
+  get outputs(): UpgradeToCall__Outputs {
+    return new UpgradeToCall__Outputs(this);
+  }
+}
+
+export class UpgradeToCall__Inputs {
+  _call: UpgradeToCall;
+
+  constructor(call: UpgradeToCall) {
+    this._call = call;
+  }
+
+  get _newImplementation(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class UpgradeToCall__Outputs {
+  _call: UpgradeToCall;
+
+  constructor(call: UpgradeToCall) {
+    this._call = call;
+  }
+}
+
+export class VerifyPackageCall extends ethereum.Call {
+  get inputs(): VerifyPackageCall__Inputs {
+    return new VerifyPackageCall__Inputs(this);
+  }
+
+  get outputs(): VerifyPackageCall__Outputs {
+    return new VerifyPackageCall__Outputs(this);
+  }
+}
+
+export class VerifyPackageCall__Inputs {
+  _call: VerifyPackageCall;
+
+  constructor(call: VerifyPackageCall) {
+    this._call = call;
+  }
+
+  get _packageName(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+}
+
+export class VerifyPackageCall__Outputs {
+  _call: VerifyPackageCall;
+
+  constructor(call: VerifyPackageCall) {
+    this._call = call;
   }
 }

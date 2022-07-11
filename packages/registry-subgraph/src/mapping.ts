@@ -1,9 +1,9 @@
 import { ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
 import { Package, Version, PackageKeyword, Keyword } from '../generated/schema';
-import { ProtocolPublish } from '../generated/CannonRegistry/CannonRegistry';
+import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
 
-export function handlePublish(event: ProtocolPublish): void {
+export function handlePublish(event: PackagePublish): void {
   const id = event.params.name.toString();
   let cannon_package = Package.load(id);
   if (!cannon_package) {

@@ -5,11 +5,11 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { JsonFragment } from '@ethersproject/abi';
 
-import contractSpec from './contract';
-import importSpec from './import';
-import invokeSpec from './invoke';
-import keeperSpec from './keeper';
-import scriptSpec from './run';
+import contractSpec from './steps/contract';
+import importSpec from './steps/import';
+import invokeSpec from './steps/invoke';
+import keeperSpec from './steps/keeper';
+import scriptSpec from './steps/run';
 
 const ajv = new Ajv();
 
@@ -58,7 +58,7 @@ const ChainDefinitionSchema = {
   },
   optionalProperties: {
     description: { type: 'string' },
-    tags: { elements: { type: 'string' } },
+    keywords: { elements: { type: 'string' } },
     setting: {
       values: {
         optionalProperties: {
