@@ -63,7 +63,6 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.
         console.log(
           chunk
             .split('\n')
-            .filter((m: string) => m.length)
             .map((m: string) => 'anvil: ' + m)
             .join('\n')
         );
