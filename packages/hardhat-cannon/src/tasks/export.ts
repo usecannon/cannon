@@ -4,6 +4,7 @@ import { task } from 'hardhat/config';
 import { TASK_EXPORT } from '../task-names';
 import { exportChain } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
+import installAnvil from '../internal/install-anvil';
 import path from 'path';
 
 task(TASK_EXPORT, 'Write a cannon chain from zip archive')
@@ -19,6 +20,8 @@ task(TASK_EXPORT, 'Write a cannon chain from zip archive')
   .addOptionalParam('preset', 'Preset to export. Defaults to `main`', 'main')
   .addPositionalParam('file', 'Path to archive previously exported with cannon:export')
   .setAction(async ({ file, packageName, packageVersion, chainLabel, preset }, hre) => {
+    await installAnvil();
+
     // if name, version not specified, resolve from cannonfile
     if (!packageName || !packageVersion) {
       const def = loadCannonfile(hre, path.join(hre.config.paths.root, 'cannonfile.toml'));
