@@ -149,7 +149,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     for (const dependency of dependencies) {
       console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
-      await downloadPackagesRecursive(dependency.source, dependency.chainId, dependency.preset, registry, builder.chartsDir);
+      await downloadPackagesRecursive(
+        dependency.source,
+        dependency.chainId,
+        dependency.preset,
+        registry,
+        builder.provider,
+        builder.chartsDir
+      );
     }
 
     builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));

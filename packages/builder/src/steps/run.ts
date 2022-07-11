@@ -3,8 +3,8 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 import { join } from 'path';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from './types';
-import { hashFs } from './util';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { hashFs } from '../util';
 
 const debug = Debug('cannon:builder:run');
 
@@ -17,7 +17,7 @@ const config = {
   optionalProperties: {
     args: { elements: { type: 'string' } },
     env: { elements: { type: 'string' } },
-    step: { type: 'int32' },
+    depends: { elements: { type: 'string' } },
   },
 } as const;
 

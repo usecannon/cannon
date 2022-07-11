@@ -5,7 +5,7 @@ import { associateTag } from './storage';
 import fs from 'fs-extra';
 
 import { Readable } from 'stream';
-import { exportChain, getAllDeploymentInfos, getChartDir, getDeploymentInfoFile, getLayerFiles, getSavedChartsDir } from '.';
+import { getAllDeploymentInfos, getChartDir, getDeploymentInfoFile, getActionFiles, getSavedChartsDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
@@ -130,7 +130,7 @@ export class CannonRegistry {
     const buf = await this.readIpfs(manifest.deploys[chainId.toString()][preset].ipfsHash);
     const zip = new AdmZip(buf);
 
-    const dir = path.dirname(getLayerFiles(chartDir, chainId, preset, 0).basename);
+    const dir = path.dirname(getActionFiles(chartDir, chainId, preset, 'sample').basename);
     await zip.extractAllTo(dir, true);
 
     const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
@@ -161,7 +161,7 @@ export class CannonRegistry {
       for (const preset in manifest.deploys[chainId]) {
         const zip = new AdmZip();
 
-        const folder = path.dirname(getLayerFiles(chartDir, parseInt(chainId), preset, 0).basename);
+        const folder = path.dirname(getActionFiles(chartDir, parseInt(chainId), preset, 'sample').basename);
         await zip.addLocalFolderPromise(folder, {});
         const buf = await zip.toBufferPromise();
 
