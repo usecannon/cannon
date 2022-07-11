@@ -513,7 +513,7 @@ ${this.allActionNames.join('\n')}
     while (analysis.matched.size < this.allActionNames.length) {
       let lastDone;
       if (this.writeMode === 'all') {
-        lastDone = await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null)
+        lastDone = await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null);
       } else {
         const nextSteps = this.findNextSteps(analysis.matched);
         // load layers for next step
