@@ -217,6 +217,7 @@ async function run() {
     process.exit();
   }
 
+  let interacting = false;
   const keypress = () => {
     return new Promise((resolve) => {
       const rl = readline.createInterface({
@@ -229,13 +230,15 @@ async function run() {
       const listener = async (str: any, key: any) => {
         if (key.ctrl && key.name === 'c') {
           process.exit();
-        } else if (str === 'i') {
+        } else if (str === 'i' && !interacting) {
+          interacting = true
           await interact({
             provider,
             signer: signers[0],
             contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
           });
           console.log(green('Press i to interact with contracts via the command line.'));
+          interacting = false
         }
         process.stdin.removeListener('keypress', listener);
         process.stdin.setRawMode(false);
