@@ -13,6 +13,7 @@ const config = {
     artifact: { type: 'string' },
   },
   optionalProperties: {
+    abi: { type: 'string' },
     args: { elements: {} },
     libraries: { values: { type: 'string' } },
 
@@ -50,6 +51,8 @@ export default {
     config = _.cloneDeep(config);
 
     config.artifact = _.template(config.artifact)(ctx);
+
+    config.abi = _.template(config.abi)(ctx);
 
     if (config.args) {
       config.args = config.args.map((a) => {
@@ -110,11 +113,18 @@ export default {
 
     const receipt = await txnData.wait();
 
+    let abi = JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string);
+
+    // override abi?
+    if (config.abi) {
+      abi = (await runtime.getArtifact(config.abi)).abi;
+    }
+
     return {
       contracts: {
         [runtime.currentLabel?.split('.')[1] || '']: {
           address: receipt.contractAddress,
-          abi: JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string),
+          abi,
           constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
         },

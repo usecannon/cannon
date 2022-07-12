@@ -3,10 +3,11 @@ import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
+import installAnvil from '../internal/install-anvil';
 import loadCannonfile from '../internal/load-cannonfile';
 import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
-import { HttpNetworkConfig } from 'hardhat/types';
+import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { JsonRpcProvider } from '@ethersproject/providers';
 
@@ -14,21 +15,20 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
   .addOptionalParam(
-    'dryRun',
-    'When deploying to a live network, instead deploy and start a local hardhat node. Specify the target network here',
-    undefined,
-    types.string
-  )
-  .addOptionalParam(
     'port',
     'If declared, keep running with hardhat network exposed to the specified local port',
     undefined,
     types.int
   )
+  .addFlag(
+    'dryRun',
+    'When deploying to a live network, instead deploy and start a local hardhat node. Specify the target network here'
+  )
   .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
   .setAction(async ({ noCompile, file, options, dryRun, port, preset, wipe }, hre) => {
+    await installAnvil();
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
     }
@@ -42,16 +42,27 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     let builder: ChainBuilder;
     if (dryRun) {
-      // local build with forked network
-      if (hre.network.name != 'hardhat') throw new Error('Hardhat selected network must be `hardhat` in order to dryRun.');
-
-      const network = hre.config.networks[dryRun] as HttpNetworkConfig;
+      const network = hre.network;
 
       if (!network) throw new Error('Selected dryRun network not found in hardhat configuration');
 
-      if (!network.chainId) throw new Error('Selected network must have chainId set in hardhat configuration');
+      if (!network.config.chainId) throw new Error('Selected network must have chainId set in hardhat configuration');
 
-      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
+      const provider = await hre.run(SUBTASK_RPC, {
+        forkUrl: (hre.config.networks[network.name] as HttpNetworkConfig).url,
+        port: port || 8545,
+        chainId: network.config.chainId,
+      });
+
+      let wallets: ethers.Wallet[] = [];
+      if (_.isArray(hre.network.config.accounts)) {
+        wallets = hre.network.config.accounts.map((account) => new ethers.Wallet(account as string, provider));
+      } else {
+        const hdAccounts = hre.network.config.accounts as HttpNetworkHDAccountsConfig;
+        for (let i = 0; i < hdAccounts.count; i++) {
+          wallets.push(ethers.Wallet.fromMnemonic(hdAccounts.path + `/${i + hdAccounts.initialIndex}`, hdAccounts.mnemonic));
+        }
+      }
 
       builder = new ChainBuilder({
         name,
@@ -62,16 +73,25 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         readMode: wipe ? 'none' : 'metadata',
         writeMode: 'none',
 
-        chainId: 31337,
+        chainId: network.config.chainId,
         provider,
         baseDir: hre.config.paths.root,
         savedChartsDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
-          return hre.ethers.getSigner(addr);
+          const foundWallet = wallets.find((wallet) => wallet.address == addr);
+          if (!foundWallet) {
+            throw new Error(
+              `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
+                .map((w) => w.address)
+                .join(', ')}`
+            );
+          }
+          return foundWallet;
         },
 
         async getDefaultSigner() {
-          return (await hre.ethers.getSigners())[0];
+          const bal = await wallets[0].getBalance();
+          return wallets[0];
         },
 
         async getArtifact(name: string) {
@@ -175,6 +195,5 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       // dont exit
       await new Promise(_.noop);
     }
-
     return {};
   });
