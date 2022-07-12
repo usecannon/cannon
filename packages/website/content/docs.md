@@ -140,10 +140,10 @@ You can run a cannonfile with the command `npx hardhat cannon <package name>:<pa
 
 #### Test Deployments on a Fork
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of mainnet and then run your cannonfile on it.
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of rinkeby and then run your cannonfile on it.
 
 ```bash
-npx hardhat cannon:build --dry-run mainnet --port 8545
+npx hardhat cannon:build --dry-run --network rinkeby --port 8545
 ```
 
 ### Remote Network

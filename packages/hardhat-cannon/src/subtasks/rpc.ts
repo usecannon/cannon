@@ -10,7 +10,7 @@ const debug = Debug('cannon:hardhat:rpc');
 
 import { SUBTASK_RPC } from '../task-names';
 
-const ANVIL_START_TIMEOUT = 3000;
+const ANVIL_START_TIMEOUT = 10000;
 
 subtask(SUBTASK_RPC).setAction(({ port, forkUrl, chainId }): Promise<ethers.providers.JsonRpcProvider> => {
   let opts = ['--port', port];
