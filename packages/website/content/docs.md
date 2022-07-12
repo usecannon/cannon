@@ -186,11 +186,22 @@ Add this section to your `hardhat.config.json`:
 }
 ```
 
-Then use the following commands to publish your package:
+Then use the following command to build your package:
 
 ```bash
 npx hardhat cannon:build
-npx hardhat cannon:publish
+```
+
+Inspect the contents of your package:
+
+```bash
+npx hardhat cannon:inspect
+```
+
+Finally, deploy it to the registry on mainnet. This will use the account associated with the private key in the `networks.mainnet` section of your Hardhat configuration file to execute the `publish` function on the registry after uploading the package to IPFS.
+
+```bash
+npx hardhat cannon:publish --network mainnet
 ```
 
 If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.

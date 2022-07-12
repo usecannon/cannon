@@ -53,7 +53,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (!network.chainId) throw new Error('Selected network must have chainId set in hardhat configuration');
 
-      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
+      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545, chainId: network.chainId });
 
       builder = new ChainBuilder({
         name,
@@ -64,7 +64,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         readMode: wipe ? 'none' : 'metadata',
         writeMode: 'none',
 
-        chainId: 31337,
+        chainId: network.chainId,
         provider,
         baseDir: hre.config.paths.root,
         savedChartsDir: hre.config.paths.cannon,
