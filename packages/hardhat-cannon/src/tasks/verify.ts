@@ -33,12 +33,13 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },
+      savedChartsDir: hre.config.paths.cannon,
     });
 
     // TODO: prevent builder from taking any action here, it should
     // only be loading and validating everything
     const options: any = _.fromPairs(opts.map((o: string) => o.split('=')));
-    await builder.build(options);
+
     const outputs = await builder.getOutputs();
 
     if (!outputs) {
@@ -53,7 +54,7 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
           constructorArguments: outputs.contracts[c].constructorArgs || [],
         });
       } catch (err) {
-        if ((err as Error).message.includes('already verified')) {
+        if ((err as Error).message.includes('Already Verified')) {
           console.log('Already verified');
         } else {
           throw err;

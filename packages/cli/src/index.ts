@@ -89,10 +89,9 @@ program
   .option(
     '--registry-address <address>',
     'Address where the cannon registry is deployed',
-    '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
+    '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://cannon.infura-ipfs.io');
-
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 async function run() {
   program.parse();
   const options = program.opts();
@@ -231,14 +230,14 @@ async function run() {
         if (key.ctrl && key.name === 'c') {
           process.exit();
         } else if (str === 'i' && !interacting) {
-          interacting = true
+          interacting = true;
           await interact({
             provider,
             signer: signers[0],
             contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
           });
           console.log(green('Press i to interact with contracts via the command line.'));
-          interacting = false
+          interacting = false;
         }
         process.stdin.removeListener('keypress', listener);
         process.stdin.setRawMode(false);
