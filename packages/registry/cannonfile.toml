@@ -1,17 +1,26 @@
-name = "cannon-registry"
-version = "0.0.5"
+name = "registry"
+version = "1.0.0"
 
 [setting.salt]
 defaultValue = "registry"
 
+[setting.owner]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
 [contract.registry]
 artifact = "CannonRegistry"
-salt = "<%= settings.salt %>"
-step = 1
 
-[run.proxy]
-exec = "scripts/deployments.ts"
-func = "deployOrUpgradeProxy"
+[contract.proxy]
+artifact = "Proxy"
+abi = "CannonRegistry"
+salt = "<%= settings.salt %>"
 args = ["<%= contracts.registry.address %>"]
-modified = ["scripts", "contracts"]
-step = 2
+depends = ["contract.registry"]
+
+[invoke.nominate_owner]
+target = ["proxy"]
+func = "nominateNewOwner"
+args = ["<%= settings.owner %>"]
+depends = ["contract.proxy"]
+
+# todo: add acceptOwnership later when cannon supports external calls

@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:Synthetixio/cannon",
   "author": "Synthetix",
@@ -36,6 +36,7 @@
     "@types/lodash": "^4.14.179",
     "@types/mocha": "^9.1.0",
     "@types/node": "^16.0.0",
+    "@types/prompts": "^2.0.14",
     "bn.js": "^5.2.0",
     "hardhat": "^2.9.1",
     "mocha": "^9.2.1",
@@ -52,7 +53,7 @@
     "@types/adm-zip": "^0.5.0",
     "@types/archiver": "^5.3.1",
     "@types/yazl": "^2.4.2",
-    "@usecannon/builder": "^0.7.2",
+    "@usecannon/builder": "^0.7.3",
     "adm-zip": "^0.5.9",
     "ajv": "^8.10.0",
     "debug": "^4.3.3",
@@ -63,6 +64,7 @@
     "ipfs-utils": "9.0.2",
     "lodash": "^4.17.21",
     "merkle-patricia-tree": "^4.2.3",
+    "prompts": "^2.4.2",
     "table": "^6.8.0"
   },
   "gitHead": "729281b410bc26420c9d0217a5b7b1d5e80f58fa"

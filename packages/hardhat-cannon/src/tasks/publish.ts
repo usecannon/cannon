@@ -3,6 +3,7 @@ import { task } from 'hardhat/config';
 
 import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
+import installAnvil from '../internal/install-anvil';
 import { TASK_PUBLISH } from '../task-names';
 import { JsonRpcProvider } from '@ethersproject/providers';
 
@@ -10,6 +11,8 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
   .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .setAction(async ({ file, tags }, hre) => {
+    await installAnvil();
+
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;

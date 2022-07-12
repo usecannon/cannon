@@ -14,6 +14,11 @@ const config: HardhatUserConfig = {
       chainId: 31337,
       url: 'http://localhost:8545',
     },
+    mainnet: {
+      chainId: 1,
+      url: process.env.NETWORK_ENDPOINT,
+      accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
+    },
     rinkeby: {
       chainId: 4,
       url: process.env.NETWORK_ENDPOINT,
