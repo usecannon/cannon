@@ -70,11 +70,12 @@
               mb="2"
               ><span style="color: #61afef">npx</span> @usecannon/cli@latest
               synthetix
-              <div
-                @click="copy"
-                class="copy-button"
-                v-html="$feathericons['copy'].toSvg()"
-            /></CCode>
+              <CBox as="span" :display="['none', 'none', 'inline']">
+                <div
+                  @click="copy"
+                  class="copy-button"
+                  v-html="$feathericons['copy'].toSvg()" /></CBox
+            ></CCode>
             <CText fontSize="sm" :mb="[6, 0]">
               <small
                 ><CLink as="nuxt-link" to="/search" textDecoration="underline"
