@@ -23,9 +23,16 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
       throw new Error('no signer configured for upload of artifacts');
     }
 
-    console.log(
-      `Using wallet address ${signers[0].address} to register the package. To change this, check your hardhat configuration.`
-    );
+    const response = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message: `This will deploy your package to IPFS and use ${signers[0].address} to add the package to the registry. Continue?`,
+      initial: true,
+    });
+
+    if (!response.confirmation) {
+      process.exit();
+    }
 
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,
