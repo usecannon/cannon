@@ -140,10 +140,10 @@ You can run a cannonfile with the command `npx hardhat cannon <package name>:<pa
 
 #### Test Deployments on a Fork
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of mainnet and then run your cannonfile on it.
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of rinkeby and then run your cannonfile on it.
 
 ```bash
-npx hardhat cannon:build --dry-run mainnet --port 8545
+npx hardhat cannon:build --dry-run --network rinkeby --port 8545
 ```
 
 ### Remote Network
@@ -186,11 +186,22 @@ Add this section to your `hardhat.config.json`:
 }
 ```
 
-Then use the following commands to publish your package:
+Then use the following command to build your package:
 
 ```bash
 npx hardhat cannon:build
-npx hardhat cannon:publish
+```
+
+Inspect the contents of your package:
+
+```bash
+npx hardhat cannon:inspect
+```
+
+Finally, deploy it to the registry on mainnet. This will use the account associated with the private key in the `networks.mainnet` section of your Hardhat configuration file to execute the `publish` function on the registry after uploading the package to IPFS.
+
+```bash
+npx hardhat cannon:publish --network mainnet
 ```
 
 If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.
