@@ -99,24 +99,23 @@ contract Storage {
 To deploy the contract and set an initial value, you could create the following Cannonfile:
 
 ```toml
-name = "myStorageCannon"
+name = "myStorage"
 description = "Simple project to deploy a Storage contract"
 version = "0.0.1"
-tags = ["fun", "example"]
+keywords = ["fun", "example"]
 
 [setting.initialValue] # Create an overridable setting
 defaultValue = "420" # This is the value to use if none is specified when npx hardhat cannon:build is called
 
 [contract.myStorage] # Declares an action, the output of which can be referenced below as contracts.myStorage
 artifact = "Storage" # Specifies the name of the contract to be deployed
-step = 0 # Ensure this action is taken first
 
 [invoke.changeStorage] # Declares an action to set the initial value
 addresses = ["<%= contracts.myStorage.address %>"] # Sets the address of the contract to invoke
 abi = "<%= contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
 func = "store" # Sets the name of the function to invoke
 args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to the function
-step = 1 # Ensure this action is taken after the previous action
+depends = ["contract.myStorage"] # Ensure this action is taken after the previous action
 ```
 
 Then build your Cannonfile and run it on a local node:
@@ -216,18 +215,21 @@ If you have multiple Cannonfiles in your project, you can pass `--file` with the
 
 ## cannonfile.toml Specification
 
-Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage. **Specify a `step` for each action used to ensure the execution occurs in the correct order.**
+Cannonfiles contain a series of actions which are executed at run-time. See [Create cannonfile.toml](##create-cannonfiletoml) for example usage.
 
 Each action has a type and a name. Each type accepts a specific set of inputs and modifies a return object. The return object is accessible in actions executed at later steps. The resulting return object is provided to any cannonfile that imports it with the `import` action.
 
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ Use the <code>depends</code> input to specify an array of actions that a particular action relies upon. For example, you must include <code>depends = ["contract.myStorage"]</code> on an invoke action which calls a function on a contract deployed by the contract.myStorage action. Note that two actions which effect the same state need to have one depend on the other (like two transfer functions that may effect the same user balances).
+</div>
+
 Every action updates the return object by adding an entry to the `txns` key with the action’s name. The value of the entry is an object with the properties `hash` (which is the hash of this transaction) and `events` (which is an array of objects with the `name` of each event emitted by this call and the corresponding event data as `args`).
 
-For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.) It will be executed first because it has specified `step` as 0.
+For example, the action below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it’s the contract named `Storage`.)
 
 ```toml
 [contract.myStorage]
 artifact = "Storage"
-step = 0
 ```
 
 This updates the return object such that, for example, a later `invoke` action could call this contract with the input `target = ["<%= contracts.myStorage.address %>"]`.
@@ -245,6 +247,7 @@ The `contract` action deploys a contract.
 **Optional Inputs**
 
 - `args` - Specifies the arguments to provide the constructor function
+- `abi` - Specifies the contract that should be used for the ABI. This is useful when deploying proxy contracts.
 - `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
 **Outputs**  
@@ -256,7 +259,11 @@ This action updates the return object by adding an entry to the `contracts` key 
 
 ### import
 
-The `import` action will import a cannonfile from a package hosted with the package manager. **Third-party packages can execute arbitrary code when imported. Only import packages that you trust.**
+The `import` action will import a cannonfile from a package hosted with the package manager.
+
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ <strong>Third-party packages can execute arbitrary code on your computer when imported. Only import packages that you have verified or trust.</strong>
+</div>
 
 **Required Inputs**
 
@@ -268,24 +275,6 @@ The `import` action will import a cannonfile from a package hosted with the pack
 
 **Outputs**  
 This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
-
-### run
-
-The `run` action executes a custom script.
-
-**Required Inputs**
-
-- `exec` - The javascript (or typescript) file to load
-- `func` - The function to call in this file
-
-**Optional Inputs**
-
-- `args` - The arguments to pass the script
-- `env` - Environment variables to be set on the script
-- `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
-
-**Outputs**  
-This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
 
 ### invoke
 
@@ -301,6 +290,8 @@ The `invoke` action calls a specified function on your node.
 
 - `args` - The arguments to use when invoking this call
 - `from` - The calling address to use when invoking this call
+- `fromCall.func` - The name of a view function to call on this contract. The result will be used as the `from` input.
+- `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 
 **Outputs**  
@@ -321,7 +312,7 @@ factory.MyPoolDeployment.event = "NewDeployment"
 factory.MyPoolDeployment.arg = 0
 ```
 
-Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` step could set `target = ["MyPoolDeployment"]`.
+Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` action could set `target = ["MyPoolDeployment"]`.
 
 If the invoke action emits multiple events, you can specify them by index. For example `"MyPoolDeployment.PoolFactory.NewDeployment.4"` would reference the fifth time the specified event is emitted.
 
@@ -337,3 +328,21 @@ The `setting` action defines a user-configurable option that can be referenced i
 
 **Outputs**  
 This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
+
+### run
+
+The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **Use the provider in the chain builder object when interacting with your deployment.**
+
+**Required Inputs**
+
+- `exec` - The javascript (or typescript) file to load
+- `func` - The function to call in this file
+
+**Optional Inputs**
+
+- `args` - Arguments passed to the function (after the ChainBuilder object).
+- `env` - Environment variables to be set on the script
+- `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
+
+**Outputs**  
+This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.

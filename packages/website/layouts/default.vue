@@ -12,7 +12,7 @@
       >
         <CReset />
         <CBox flex="1">
-          <BetaBanner />
+          <Banner />
           <Heading />
           <Nuxt />
         </CBox>
@@ -23,16 +23,16 @@
 </template>
 
 <script>
-import Heading from '../components/layout/Heading'
-import Footer from '../components/layout/Footer'
-import BetaBanner from '../components/layout/BetaBanner'
+import Heading from '../components/layout/Heading';
+import Footer from '../components/layout/Footer';
+import Banner from '../components/layout/Banner';
 
 export default {
   name: 'DefaultLayout',
   components: {
     Heading,
     Footer,
-    BetaBanner,
+    Banner,
   },
-}
+};
 </script>
