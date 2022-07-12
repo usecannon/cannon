@@ -30,9 +30,22 @@
         <CHeading size="sm" mb="2" letterSpacing="1px"
           >Proof of Concepts</CHeading
         >
-        <CText fontSize="sm"
+        <CText fontSize="sm" mb="2"
           >Rapidly create dev environments with existing protocols configured
           however you like.</CText
+        >
+        <CLink
+          fontSize="xs"
+          fontWeight="600"
+          letterSpacing="0.3px"
+          opacity="0.9"
+          as="nuxt-link"
+          to="/docs#build-a-protocol"
+          :_hover="{ textDecoration: 'none', opacity: 1 }"
+          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
+            >Learn more</CText
+          >
+          ›</CLink
         >
       </CBox>
       <CBox>
@@ -46,10 +59,23 @@
         <CHeading size="sm" mb="2" letterSpacing="1px"
           >Front-end Development</CHeading
         >
-        <CText fontSize="sm"
+        <CText fontSize="sm" mb="2"
           >Build interfaces that interact with protocols. Addresses and ABIs are
           automatically exported.
         </CText>
+        <CLink
+          fontSize="xs"
+          fontWeight="600"
+          letterSpacing="0.3px"
+          opacity="0.9"
+          as="nuxt-link"
+          to="/docs#build-a-dapp"
+          :_hover="{ textDecoration: 'none', opacity: 1 }"
+          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
+            >Learn more</CText
+          >
+          ›</CLink
+        >
       </CBox>
       <CBox>
         <CImage
@@ -60,7 +86,7 @@
           mb="6"
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Testing</CHeading>
-        <CText fontSize="sm">
+        <CText fontSize="sm" mb="2">
           Instantly spin up nodes for integration/e2e tests. Cannon pairs well
           with
           <u
@@ -69,6 +95,19 @@
             ></u
           >.
         </CText>
+        <CLink
+          fontSize="xs"
+          fontWeight="600"
+          letterSpacing="0.3px"
+          opacity="0.9"
+          as="nuxt-link"
+          to="/docs#build-an-e2e-test"
+          :_hover="{ textDecoration: 'none', opacity: 1 }"
+          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
+            >Learn more</CText
+          >
+          ›</CLink
+        >
       </CBox>
       <CBox>
         <CImage
@@ -79,9 +118,22 @@
           mb="6"
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Deployment</CHeading>
-        <CText fontSize="sm"
+        <CText fontSize="sm" mb="2"
           >Include the name of a chain with the <code>--network</code> option to
           deploy your protocol to a live network.</CText
+        >
+        <CLink
+          fontSize="xs"
+          fontWeight="600"
+          letterSpacing="0.3px"
+          opacity="0.9"
+          as="nuxt-link"
+          to="/docs#deploy-a-protocol"
+          :_hover="{ textDecoration: 'none', opacity: 1 }"
+          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
+            >Learn more</CText
+          >
+          ›</CLink
         >
       </CBox>
     </CSimpleGrid>

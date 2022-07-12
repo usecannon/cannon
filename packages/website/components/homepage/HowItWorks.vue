@@ -32,7 +32,7 @@
               textDecoration="underline"
               >Hardhat</CLink
             >
-            plug-in inspired by Docker and Terraform.
+            plug-in inspired by Docker, Terraform, and npm.
           </CText>
           <CText as="p" mb="3"
             >Use existing packages or define your protocol’s contracts,
@@ -68,7 +68,8 @@
               px="3"
               width="100%"
               mb="2"
-              ><span style="color: #61afef">npx</span> @usecannon/cli synthetix
+              ><span style="color: #61afef">npx</span> @usecannon/cli@latest
+              synthetix
               <div
                 @click="copy"
                 class="copy-button"
