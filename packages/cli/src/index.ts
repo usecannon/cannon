@@ -89,7 +89,7 @@ program
   .option(
     '--registry-address <address>',
     'Address where the cannon registry is deployed',
-    '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
+    '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 async function run() {

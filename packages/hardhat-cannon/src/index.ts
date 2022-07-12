@@ -27,7 +27,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   config.cannon = {
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0',
 
-    registryAddress: userConfig.cannon?.registryAddress || '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650',
+    registryAddress: userConfig.cannon?.registryAddress || '0xA98BE35415Dd28458DA4c1C034056766cbcaf642',
 
     publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
