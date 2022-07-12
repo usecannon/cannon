@@ -5,7 +5,7 @@ import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
 import installAnvil from '../internal/install-anvil';
 import { TASK_PUBLISH } from '../task-names';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import prompts from 'prompts';
 
 task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
