@@ -23,19 +23,19 @@
               size="sm"
               variantColor="blue"
               mr="2"
-              v-for="t in p.tags"
-              :key="t.tag.id"
-              >{{ t.tag.id }}</CTag
+              v-for="t in v.keywords"
+              :key="t.keyword.id"
+              >{{ t.keyword.id }}</CTag
             >
           </CBox>
           <CText color="gray.300" fontSize="xs" fontFamily="mono"
-            >version {{ p.version }} published by
+            >version {{ v.name }} published by
             <CLink
               isExternal
               textDecoration="underline"
-              :href="`https://etherscan.io/address/${p.publisher}`"
+              :href="`https://etherscan.io/address/${v.publisher}`"
               class="truncate"
-              >{{ p.publisher }}</CLink
+              >{{ v.publisher }}</CLink
             >
             {{ timeAgo }}</CText
           >
@@ -57,19 +57,11 @@
             px="3"
             width="100%"
             mb="2"
-            >npx hardhat cannon {{ p.name }}:{{ p.version }}</CCode
+            >npx @usecannon/cli@latest {{ p.name }}:{{ v.name }}</CCode
           >
-          <CText fontSize="12px"
-            ><CLink
-              as="nuxt-link"
-              to="/docs#install-cannon"
-              textDecoration="underline"
-              >Add Cannon to your project</CLink
-            >
-            and use this command to start a local node with this package.
-          </CText>
         </CGridItem>
       </CGrid>
+      <!--
       <CTabs variant-color="teal">
         <CTabList>
           <CTab v-if="p.readme.length">Readme</CTab>
@@ -90,6 +82,7 @@
           </CTabPanel>
         </CTabPanels>
       </CTabs>
+      -->
     </div>
     <div v-else>
       <CText textAlign="center"><CSpinner my="12" /></CText>
@@ -129,32 +122,30 @@ export default {
     p(){
       return this.packages.length ? this.packages[0] : null
     },
+    v(){
+      return this.p ? this.p.versions[0] : null
+    },
     timeAgo(){
-      return formatDistanceToNow(new Date(this.p.added * 1000), { addSuffix: true });
+      return formatDistanceToNow(new Date(this.v.added * 1000), { addSuffix: true });
     }
   },
   watch: {
-    p(){
-      this.readme = this.p.readme ? markdown(this.p.readme) : ''
+    v(){
+      //this.readme = this.v.readme ? markdown(this.v.readme) : ''
     }
   },
   apollo: {
     packages: {
       query: gql`query getPackage($name: String!) {
         packages(first: 1, orderDirection: desc, orderBy: added, where: {name: $name}){
-          id
           name
-          description
-          version
-          url
           added
-          publisher
-          readme
-          cannonfile
-          tags {
-            tag {
-              id
-            }           
+          versions {
+            name
+            description
+            url
+            added
+            publisher
           }
         }
       }`,
