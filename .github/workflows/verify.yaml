@@ -28,6 +28,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           persist-credentials: false # messes up download of ssh dependencies
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
