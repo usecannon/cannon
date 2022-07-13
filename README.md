@@ -15,7 +15,9 @@ For more information, please see documentation in the modules listed below:
 
 ## Development
 
-Start by bootstrapping the project from the root directory:
+Community contributions to Cannon are highly encouraged. Please open pull requests, issues, and discussions in the GitHub repository.
+
+To load an development version of Cannon, start by bootstrapping the project from the root directory:
 
 ```
 npx lerna bootstrap
