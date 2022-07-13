@@ -22,7 +22,7 @@
       >. View on
       <CLink
         isExternal
-        href="https://github.com/Synthetixio/cannon"
+        href="https://github.com/usecannon/cannon"
         textDecoration="underline"
         >GitHub</CLink
       >.
