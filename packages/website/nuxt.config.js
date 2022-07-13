@@ -1,12 +1,10 @@
 import customTheme from './styles/theme.js';
 
-import { defineNuxtConfig } from '@nuxt/bridge';
-
-export default defineNuxtConfig({
+export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: 'static',
 
-  ssr: false,
+  mode: 'spa',
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -48,9 +46,6 @@ export default defineNuxtConfig({
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
-  alias: {
-    tslib: 'tslib/tslib.es6.js',
-  },
 
   chakra: {
     extendTheme: customTheme,
@@ -80,4 +75,4 @@ export default defineNuxtConfig({
   },
 
   telemetry: false,
-});
+};
