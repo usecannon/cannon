@@ -100,6 +100,19 @@ function getContractsRecursive(
   return contracts;
 }
 
+async function checkAnvil(): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    var child = spawn('anvil', ['--version']);
+    child
+      .on('close', (code) => {
+        resolve(code === 0);
+      })
+      .on('error', (err) => {
+        resolve(false);
+      });
+  });
+}
+
 program
   .name('cannon')
   .version(pkg.version)
@@ -141,14 +154,13 @@ async function run() {
 
   debug('parsed arguments', options, args);
 
-  // Ensure our version of Anvil is installed
-  try {
-    await spawn('anvil', ['--version']);
-  } catch (err) {
+  // Ensure Anvil is installed
+  const hasAnvil = await checkAnvil();
+  if (!hasAnvil) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message: 'Cannon requires Anvil (from Foundry) to be installed. Continue?',
+      message: 'Cannon requires Foundry. Install it now?',
       initial: true,
     });
 
@@ -159,6 +171,7 @@ async function run() {
       process.exit();
     }
   }
+
   console.log(magentaBright('Starting local node...'));
 
   // Start the rpc server
