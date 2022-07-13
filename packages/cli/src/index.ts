@@ -121,6 +121,8 @@ async function run() {
   const options = program.opts();
   const args = program.processedArgs;
 
+  console.log(magentaBright(`Loading cannon (${pkg.version})...`));
+
   [options.name, options.version] = args[0].split(':');
 
   if (!options.version) {
