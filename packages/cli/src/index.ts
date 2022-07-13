@@ -118,22 +118,22 @@ async function run() {
 
   // Ensure our version of Anvil is installed
   try {
-    await fs.promises.access(os.homedir() + '/.foundry/bin/anvil');
+    await exec('anvil --version');
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message: 'Cannon needs to install Anvil. Continue?',
+      message: 'Cannon requires Anvil (from Foundry) to be installed. Continue?',
       initial: true,
     });
 
     if (response.confirmation) {
       await exec('curl -L https://foundry.paradigm.xyz | bash');
+      await exec('foundryup');
     } else {
       process.exit();
     }
   }
-  await exec('foundryup');
   console.log(magentaBright('Starting local node...'));
 
   // Start the rpc server

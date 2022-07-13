@@ -16,12 +16,12 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       chainId: 1,
-      url: process.env.NETWORK_ENDPOINT,
+      url: process.env.NETWORK_ENDPOINT || '',
       accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
     rinkeby: {
       chainId: 4,
-      url: process.env.NETWORK_ENDPOINT,
+      url: process.env.NETWORK_ENDPOINT || '',
       accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
   },

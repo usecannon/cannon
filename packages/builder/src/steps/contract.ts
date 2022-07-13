@@ -127,6 +127,9 @@ export default {
           abi,
           constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
+          sourceName: artifactData.sourceName,
+          contractName: artifactData.contractName,
+          deployedOn: runtime.currentLabel!,
         },
       },
     };
