@@ -9,7 +9,7 @@ import { CannonRegistry, ChainBuilder, ChainArtifacts, downloadPackagesRecursive
 import pkg from '../package.json';
 
 import Debug from 'debug';
-import { runRpc } from './rpc';
+import { runRpc, getProvider } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
@@ -27,7 +27,7 @@ const debug = Debug('cannon:cli');
 const program = new Command();
 
 const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle the logs from your local node.\nPress ${bold(
+  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
   )} to interact with contracts via the command line.`
 );
@@ -99,6 +99,9 @@ program
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 async function run() {
+  let showAnvilLogs = false;
+  let interacting = false;
+
   program.parse();
   const options = program.opts();
   const args = program.processedArgs;
@@ -115,13 +118,12 @@ async function run() {
 
   // Ensure our version of Anvil is installed
   try {
-    await fs.promises.access(os.homedir() + '/.foundry/usecannon');
+    await fs.promises.access(os.homedir() + '/.foundry/bin/anvil');
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message:
-        'Cannon requires a custom version of Anvil until a PR (https://bit.ly/3yUFF6W) is merged. This will be installed alongside any existing installations of Anvil. Continue?',
+      message: 'Cannon needs to install Anvil. Continue?',
       initial: true,
     });
 
@@ -131,25 +133,30 @@ async function run() {
       process.exit();
     }
   }
-  await exec('foundryup -r usecannon/foundry');
+  await exec('foundryup');
   console.log(magentaBright('Starting local node...'));
 
-  let showLogs = { rpc: false };
-  const toggleShowLogs = () => {
-    showLogs.rpc = !showLogs.rpc;
-    if (showLogs.rpc) {
-      console.log(gray('Unpaused Anvil logs...'));
-    } else {
-      console.log(gray('Paused Anvil logs...'));
-    }
-  };
-
-  // first start the rpc server
-  const provider = await runRpc({
+  // Start the rpc server
+  const anvilInstance = await runRpc({
     port: options.port || 8545,
     forkUrl: options.fork,
-    showLogs,
   });
+
+  let outputBuffer = '';
+  anvilInstance.stdout!.on('data', (rawChunk) => {
+    const chunk = rawChunk.toString('utf8');
+    let newData = chunk
+      .split('\n')
+      .map((m: string) => 'anvil: ' + m)
+      .join('\n');
+    if (showAnvilLogs) {
+      console.log(newData);
+    } else {
+      outputBuffer += newData;
+    }
+  });
+
+  const provider = await getProvider(anvilInstance);
 
   // required to supply chainId to the builder
   const networkInfo = await provider.getNetwork();
@@ -233,7 +240,6 @@ async function run() {
     process.exit();
   }
 
-  let interacting = false;
   const keypress = () => {
     return new Promise((resolve) => {
       const rl = readline.createInterface({
@@ -248,8 +254,17 @@ async function run() {
           // Exit if the user does ctrl + c
           process.exit();
         } else if (str === 'a' && !interacting) {
-          // Toggle showLogs.rpc when the user presses "a"
-          toggleShowLogs();
+          // Toggle showAnvilLogs when the user presses "a"
+          showAnvilLogs = !showAnvilLogs;
+          if (showAnvilLogs) {
+            console.log(gray('Unpaused anvil logs...'));
+            if (outputBuffer.length) {
+              console.log(outputBuffer);
+              outputBuffer = '';
+            }
+          } else {
+            console.log(gray('Paused anvil logs...'));
+          }
         } else if (str === 'i' && !interacting) {
           // Enter the interact tool when the user presses "i"
           interacting = true;

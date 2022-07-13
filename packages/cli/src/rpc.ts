@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
 
@@ -9,19 +9,18 @@ const debug = Debug('cannon:cli:rpc');
 type RpcOptions = {
   port: number;
   forkUrl: string;
-  showLogs: { rpc: boolean };
 };
 
 export const ANVIL_START_TIMEOUT = 3000;
 
-export function runRpc({ port, forkUrl, showLogs }: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
+export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
   const opts = ['--port', port.toString()];
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
   }
 
-  return Promise.race<Promise<ethers.providers.JsonRpcProvider>>([
-    new Promise<ethers.providers.JsonRpcProvider>((resolve, reject) => {
+  return Promise.race<Promise<ChildProcess>>([
+    new Promise<ChildProcess>((resolve, reject) => {
       const anvilInstance = spawn('anvil', opts);
 
       process.on('exit', () => anvilInstance.kill());
@@ -51,30 +50,13 @@ export function runRpc({ port, forkUrl, showLogs }: RpcOptions): Promise<ethers.
       });
 
       anvilInstance.stdout.on('data', (rawChunk) => {
-        // right now check for expected output string to connect to node
         const chunk = rawChunk.toString('utf8');
         const m = chunk.match(/Listening on (.*)/);
         if (m) {
-          const host = 'http://' + m[1];
           state = 'listening';
-          debug('cannon:cli:rpc', 'anvil spawned at', host);
-          resolve(new ethers.providers.JsonRpcProvider(host));
+          debug('cannon:cli:rpc', 'anvil spawned');
         }
 
-        let outputBuffer = '';
-        let newData = chunk
-          .split('\n')
-          .map((m: string) => 'anvil: ' + m)
-          .join('\n');
-        if (showLogs.rpc) {
-          if (outputBuffer.length) {
-            console.log(outputBuffer);
-            outputBuffer = '';
-          }
-          console.log(newData);
-        } else {
-          outputBuffer += newData;
-        }
         debug('cannon:cli:rpc', chunk);
       });
 
@@ -82,9 +64,24 @@ export function runRpc({ port, forkUrl, showLogs }: RpcOptions): Promise<ethers.
         const chunk = rawChunk.toString('utf8');
         console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
       });
+      resolve(anvilInstance);
     }),
-    new Promise<ethers.providers.JsonRpcProvider>((_, reject) =>
+    new Promise<ChildProcess>((_, reject) =>
       setTimeout(() => reject(new Error('anvil failed to start')), ANVIL_START_TIMEOUT)
     ),
   ]);
+}
+
+export function getProvider(anvilInstance: ChildProcess): Promise<ethers.providers.JsonRpcProvider> {
+  return new Promise<ethers.providers.JsonRpcProvider>((resolve, reject) => {
+    anvilInstance.stdout!.on('data', (rawChunk) => {
+      // right now check for expected output string to connect to node
+      const chunk = rawChunk.toString('utf8');
+      const m = chunk.match(/Listening on (.*)/);
+      if (m) {
+        const host = 'http://' + m[1];
+        resolve(new ethers.providers.JsonRpcProvider(host));
+      }
+    });
+  });
 }

@@ -1,6 +1,6 @@
 # Cannon
 
-This is the monorepo for the Cannon Hardhat plugin. If you’re just interested in using the project, [visit the website](https://usecannon.com).
+This is the monorepo for Cannon. If you’re just interested in using the project, [visit the website](https://usecannon.com).
 
 For more information, please see documentation in the modules listed below:
 
