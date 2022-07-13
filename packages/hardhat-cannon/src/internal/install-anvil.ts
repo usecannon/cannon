@@ -6,7 +6,7 @@ import prompts from 'prompts';
 export default async function installAnvil() {
   // Ensure our version of Anvil is installed
   try {
-    await fs.promises.access(os.homedir() + '/.foundry');
+    await exec('anvil --version');
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
