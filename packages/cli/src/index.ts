@@ -21,10 +21,9 @@ import { interact } from './interact';
 
 import fs from 'fs-extra';
 import path from 'path';
-import os from 'os';
 import readline from 'readline';
 import { URL } from 'node:url';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import fetch from 'node-fetch';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
@@ -144,7 +143,7 @@ async function run() {
 
   // Ensure our version of Anvil is installed
   try {
-    await exec('anvil --version');
+    await spawn('anvil', ['--version']);
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
