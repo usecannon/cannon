@@ -36,10 +36,6 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       savedChartsDir: hre.config.paths.cannon,
     });
 
-    // TODO: prevent builder from taking any action here, it should
-    // only be loading and validating everything
-    const options: any = _.fromPairs(opts.map((o: string) => o.split('=')));
-
     const outputs = await builder.getOutputs();
 
     if (!outputs) {
@@ -50,6 +46,7 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       console.log('Verifying contract:', c);
       try {
         await hre.run('verify:verify', {
+          contract: `${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName}`,
           address: outputs.contracts[c].address,
           constructorArguments: outputs.contracts[c].constructorArgs || [],
         });

@@ -15,8 +15,10 @@ const ajv = new Ajv();
 
 export type OptionTypesTs = string | number | boolean;
 
+// loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
   contractName: string;
+  sourceName: string;
   abi: JsonFragment[];
   bytecode: string;
   linkReferences: {
@@ -35,6 +37,9 @@ export type ContractMap = {
     abi: any[];
     constructorArgs?: any[]; // only needed for etherscan verification
     deployTxnHash: string;
+    contractName: string;
+    sourceName: string;
+    deployedOn: string;
   };
 };
 
@@ -42,6 +47,7 @@ export type TransactionMap = {
   [label: string]: {
     hash: string;
     events: EventMap;
+    deployedOn: string;
   };
 };
 

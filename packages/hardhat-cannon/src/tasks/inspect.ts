@@ -3,9 +3,8 @@ import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
 import installAnvil from '../internal/install-anvil';
-import { getChartDir, getAllDeploymentInfos } from '@usecannon/builder';
+import { getChartDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
 import { NetworksConfig } from 'hardhat/types';
-import { DeploymentInfo } from '@usecannon/builder/dist/types';
 import chalk from 'chalk';
 const { red, bold, gray, green, cyan, magenta } = chalk;
 
