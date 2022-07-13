@@ -9,11 +9,12 @@ const debug = Debug('cannon:cli:rpc');
 type RpcOptions = {
   port: number;
   forkUrl: string;
+  showLogs: { rpc: boolean };
 };
 
 export const ANVIL_START_TIMEOUT = 3000;
 
-export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
+export function runRpc({ port, forkUrl, showLogs }: RpcOptions): Promise<ethers.providers.JsonRpcProvider> {
   const opts = ['--port', port.toString()];
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
@@ -60,12 +61,20 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ethers.providers.
           resolve(new ethers.providers.JsonRpcProvider(host));
         }
 
-        console.log(
-          chunk
-            .split('\n')
-            .map((m: string) => 'anvil: ' + m)
-            .join('\n')
-        );
+        let outputBuffer = '';
+        let newData = chunk
+          .split('\n')
+          .map((m: string) => 'anvil: ' + m)
+          .join('\n');
+        if (showLogs.rpc) {
+          if (outputBuffer.length) {
+            console.log(outputBuffer);
+            outputBuffer = '';
+          }
+          console.log(newData);
+        } else {
+          outputBuffer += newData;
+        }
         debug('cannon:cli:rpc', chunk);
       });
 

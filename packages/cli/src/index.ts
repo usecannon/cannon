@@ -20,11 +20,17 @@ import readline from 'readline';
 import { URL } from 'node:url';
 import { exec } from 'child_process';
 import fetch from 'node-fetch';
-import { greenBright, green, magentaBright } from 'chalk';
+import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
 const program = new Command();
+
+const INSTRUCTIONS = green(
+  `Press ${bold('a')} to toggle the logs from your local node.\nPress ${bold(
+    'i'
+  )} to interact with contracts via the command line.`
+);
 
 class ReadOnlyCannonRegistry extends CannonRegistry {
   readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
@@ -128,10 +134,21 @@ async function run() {
   await exec('foundryup -r usecannon/foundry');
   console.log(magentaBright('Starting local node...'));
 
+  let showLogs = { rpc: false };
+  const toggleShowLogs = () => {
+    showLogs.rpc = !showLogs.rpc;
+    if (showLogs.rpc) {
+      console.log(gray('Unpaused Anvil logs...'));
+    } else {
+      console.log(gray('Paused Anvil logs...'));
+    }
+  };
+
   // first start the rpc server
   const provider = await runRpc({
     port: options.port || 8545,
     forkUrl: options.fork,
+    showLogs,
   });
 
   // required to supply chainId to the builder
@@ -228,15 +245,20 @@ async function run() {
       process.stdin.resume();
       const listener = async (str: any, key: any) => {
         if (key.ctrl && key.name === 'c') {
+          // Exit if the user does ctrl + c
           process.exit();
+        } else if (str === 'a' && !interacting) {
+          // Toggle showLogs.rpc when the user presses "a"
+          toggleShowLogs();
         } else if (str === 'i' && !interacting) {
+          // Enter the interact tool when the user presses "i"
           interacting = true;
           await interact({
             provider,
             signer: signers[0],
             contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
           });
-          console.log(green('Press i to interact with contracts via the command line.'));
+          console.log(INSTRUCTIONS);
           interacting = false;
         }
         process.stdin.removeListener('keypress', listener);
@@ -250,7 +272,7 @@ async function run() {
     });
   };
 
-  console.log(green('Press i to interact with contracts via the command line.'));
+  console.log(INSTRUCTIONS);
   await keypress();
 }
 
