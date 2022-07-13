@@ -14,8 +14,8 @@ const ANVIL_OP_TIMEOUT = 10000;
 // saved up here to allow for reset of existing process
 let anvilInstance: ReturnType<typeof spawn> | null = null;
 
-subtask(SUBTASK_RPC).setAction((opts, hre): Promise<ethers.providers.JsonRpcProvider> => {
-  const { port, forkUrl, chainId } = opts;
+subtask(SUBTASK_RPC).setAction((settings, hre): Promise<ethers.providers.JsonRpcProvider> => {
+  const { port, forkUrl, chainId } = settings;
 
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
@@ -24,7 +24,7 @@ subtask(SUBTASK_RPC).setAction((opts, hre): Promise<ethers.providers.JsonRpcProv
       new Promise<ethers.providers.JsonRpcProvider>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
-          resolve(await hre.run(SUBTASK_RPC, opts));
+          resolve(await hre.run(SUBTASK_RPC, settings));
         });
         anvilInstance!.kill();
       }),

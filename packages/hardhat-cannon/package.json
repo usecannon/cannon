@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:Synthetixio/cannon",
   "author": "Synthetix",
@@ -67,5 +67,5 @@
     "prompts": "^2.4.2",
     "table": "^6.8.0"
   },
-  "gitHead": "729281b410bc26420c9d0217a5b7b1d5e80f58fa"
+  "gitHead": "742ec7201eaf21ffb7323c5cfbd0218c4de79723"
 }
