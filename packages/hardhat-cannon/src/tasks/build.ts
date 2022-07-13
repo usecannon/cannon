@@ -155,7 +155,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
-    console.log('package dirs', builder.packagesDir, builder.packageDir);
+    console.log(`\nWriting package to ${builder.packageDir}`);
 
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,

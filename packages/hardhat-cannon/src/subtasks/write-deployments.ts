@@ -15,12 +15,12 @@ subtask(SUBTASK_WRITE_DEPLOYMENTS)
 
     await fs.mkdirp(deploymentPath);
 
+    console.log(`Writing deployment artifacts to ./${path.relative(process.cwd(), deploymentPath)}\n`);
+
     await writeModuleDeployments(deploymentPath, prefix, outputs);
 
     // neatly print also
     printChainBuilderOutput(outputs);
-
-    console.log('wrote deployment artifacts:', path.relative(process.cwd(), deploymentPath));
   });
 
 /**
