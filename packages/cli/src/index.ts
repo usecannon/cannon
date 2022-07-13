@@ -21,10 +21,9 @@ import { interact } from './interact';
 
 import fs from 'fs-extra';
 import path from 'path';
-import os from 'os';
 import readline from 'readline';
 import { URL } from 'node:url';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import fetch from 'node-fetch';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
@@ -101,6 +100,32 @@ function getContractsRecursive(
   return contracts;
 }
 
+async function checkAnvil(): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const child = spawn('anvil', ['--version']);
+    child
+      .on('close', (code) => {
+        resolve(code === 0);
+      })
+      .on('error', (err) => {
+        resolve(false);
+      });
+  });
+}
+
+function execPromise(command: string): Promise<string> {
+  return new Promise(function (resolve, reject) {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(stdout.trim());
+    });
+  });
+}
+
 program
   .name('cannon')
   .version(pkg.version)
@@ -142,24 +167,25 @@ async function run() {
 
   debug('parsed arguments', options, args);
 
-  // Ensure our version of Anvil is installed
-  try {
-    await exec('anvil --version');
-  } catch (err) {
+  // Ensure Anvil is installed
+  const hasAnvil = await checkAnvil();
+  if (!hasAnvil) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message: 'Cannon requires Anvil (from Foundry) to be installed. Continue?',
+      message: 'Cannon requires Foundry. Install it now?',
       initial: true,
     });
 
     if (response.confirmation) {
-      await exec('curl -L https://foundry.paradigm.xyz | bash');
-      await exec('foundryup');
+      console.log(magentaBright('Installing Foundry...'));
+      await execPromise('curl -L https://foundry.paradigm.xyz | bash');
+      await execPromise('foundryup');
     } else {
       process.exit();
     }
   }
+
   console.log(magentaBright('Starting local node...'));
 
   // Start the rpc server

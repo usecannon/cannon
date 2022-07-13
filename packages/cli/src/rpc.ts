@@ -33,19 +33,7 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
 
       anvilInstance.on('error', (err) => {
         if (state == 'spawning') {
-          reject(
-            new Error(`Anvil failed to start: ${err}
-  
-  Foundry is required to use Cannon CLI. 
-  
-  Ensure you have foundry and anvil installed by running the following commands:
-  
-  curl -L https://foundry.paradigm.xyz | bash
-  foundryup
-  
-  For more info, see https://book.getfoundry.sh/getting-started/installation.html
-            `)
-          );
+          console.log(err);
         }
       });
 
@@ -73,7 +61,7 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
 }
 
 export function getProvider(anvilInstance: ChildProcess): Promise<ethers.providers.JsonRpcProvider> {
-  return new Promise<ethers.providers.JsonRpcProvider>((resolve, reject) => {
+  return new Promise<ethers.providers.JsonRpcProvider>((resolve) => {
     anvilInstance.stdout!.on('data', (rawChunk) => {
       // right now check for expected output string to connect to node
       const chunk = rawChunk.toString('utf8');
