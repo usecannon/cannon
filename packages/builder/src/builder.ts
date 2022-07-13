@@ -21,7 +21,7 @@ import {
   DeploymentInfo,
 } from './types';
 import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
-import { getChartDir, getActionFiles, getSavedChartsDir } from './storage';
+import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
 
 export { validateChainDefinition } from './types';
 
@@ -83,8 +83,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly getDefaultSigner: (addr: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly baseDir: string | null;
-  readonly chartsDir: string;
-  readonly chartDir: string;
+  readonly packagesDir: string;
+  readonly packageDir: string;
 
   readonly readMode: StorageMode;
   readonly writeMode: StorageMode;
@@ -107,7 +107,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     chainId,
     provider,
     baseDir,
-    savedChartsDir,
+    savedPackagesDir,
   }: Partial<ChainBuilderRuntime> &
     Pick<ChainBuilderRuntime, 'provider' | 'getSigner'> & {
       name: string;
@@ -117,15 +117,15 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       preset?: string;
       readMode?: StorageMode;
       writeMode?: StorageMode;
-      savedChartsDir?: string;
+      savedPackagesDir?: string;
     }) {
     super();
 
     this.name = name;
     this.version = version;
 
-    this.chartsDir = savedChartsDir || getSavedChartsDir();
-    this.chartDir = getChartDir(this.chartsDir, name, version);
+    this.packagesDir = savedPackagesDir || getSavedPackagesDir();
+    this.packageDir = getPackageDir(this.packagesDir, name, version);
 
     this.def = def ?? this.loadCannonfile();
 
@@ -139,8 +139,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.getSigner = getSigner;
     this.getDefaultSigner = getDefaultSigner || ((txn, salt) => getExecutionSigner(provider, txn, salt));
     this.getArtifact = getArtifact
-      ? _.partial(passThroughArtifact, this.chartDir, getArtifact)
-      : (name) => getStoredArtifact(this.chartDir, name);
+      ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
+      : (name) => getStoredArtifact(this.packageDir, name);
 
     //@ts-ignore
     if (!this.def.name) {
@@ -563,7 +563,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
     }
 
     if (this.writeMode !== 'none') {
-      await putDeploymentInfo(this.chartDir, this.chainId, this.preset, {
+      await putDeploymentInfo(this.packageDir, this.chainId, this.preset, {
         options: opts,
         buildVersion: BUILD_VERSION,
         ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
@@ -580,11 +580,11 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
   // clean any artifacts associated with the current
   async wipe() {
-    clearDeploymentInfo(this.chartDir, this.chainId, this.preset);
+    clearDeploymentInfo(this.packageDir, this.chainId, this.preset);
   }
 
   async getDeploymentInfo(): Promise<DeploymentInfo | null> {
-    const deployInfo = await getDeploymentInfo(this.chartDir, this.chainId, this.preset);
+    const deployInfo = await getDeploymentInfo(this.packageDir, this.chainId, this.preset);
 
     if (deployInfo) {
       if (deployInfo.buildVersion < BUILD_VERSION) {
@@ -698,7 +698,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
     try {
       const contents: { hash: string | null; ctx: ChainBuilderContext } = await fs.readJson(
-        getActionFiles(this.chartDir, ctx.chainId, this.preset, stepName).metadata
+        getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName).metadata
       );
 
       const newHash = await this.actionHash(ctx, stepName);
@@ -744,7 +744,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
     debug('load cache', stepName);
 
-    const { chain, metadata } = getActionFiles(this.chartDir, this.chainId, this.preset, stepName);
+    const { chain, metadata } = getActionFiles(this.packageDir, this.chainId, this.preset, stepName);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
@@ -768,7 +768,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
     debug('put cache', stepName);
 
-    const { chain, metadata } = getActionFiles(this.chartDir, ctx.chainId, this.preset, stepName);
+    const { chain, metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
@@ -807,17 +807,17 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
   }
 
   loadCannonfile() {
-    const file = getDeploymentInfoFile(this.chartDir);
+    const file = getDeploymentInfoFile(this.packageDir);
     const deployInfo = fs.readJsonSync(file) as DeploymentManifest;
     return deployInfo.def;
   }
 
   async writeCannonfile() {
     if (this.readMode !== 'none') {
-      const file = getDeploymentInfoFile(this.chartDir);
-      const deployInfo = await getAllDeploymentInfos(this.chartDir);
+      const file = getDeploymentInfoFile(this.packageDir);
+      const deployInfo = await getAllDeploymentInfos(this.packageDir);
       deployInfo.def = this.def;
-      await fs.mkdirp(this.chartDir);
+      await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
     }
   }

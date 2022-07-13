@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
 import installAnvil from '../internal/install-anvil';
-import { getChartDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
+import { getPackageDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
 import { NetworksConfig } from 'hardhat/types';
 import chalk from 'chalk';
 const { red, bold, gray, green, cyan, magenta } = chalk;
@@ -17,8 +17,8 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
-    const chartsDir = getChartDir(hre.config.paths.cannon, name, version);
-    const deployInfo = await getAllDeploymentInfos(chartsDir);
+    const packagesDir = getPackageDir(hre.config.paths.cannon, name, version);
+    const deployInfo = await getAllDeploymentInfos(packagesDir);
 
     if (json) {
       console.log(JSON.stringify(deployInfo, null, 2));

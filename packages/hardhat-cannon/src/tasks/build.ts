@@ -76,7 +76,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         chainId: network.config.chainId,
         provider,
         baseDir: hre.config.paths.root,
-        savedChartsDir: hre.config.paths.cannon,
+        savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           const foundWallet = wallets.find((wallet) => wallet.address == addr);
           if (!foundWallet) {
@@ -114,7 +114,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider,
         chainId: 31337,
         baseDir: hre.config.paths.root,
-        savedChartsDir: hre.config.paths.cannon,
+        savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           // on test network any user can be conjured
           await provider.send('hardhat_impersonateAccount', [addr]);
@@ -140,7 +140,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider: hre.ethers.provider as unknown as ethers.providers.JsonRpcProvider,
         chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
         baseDir: hre.config.paths.root,
-        savedChartsDir: hre.config.paths.cannon,
+        savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           return hre.ethers.getSigner(addr);
         },
@@ -155,7 +155,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
-    console.log('chart dirs', builder.chartsDir, builder.chartDir);
+    console.log('package dirs', builder.packagesDir, builder.packageDir);
 
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,
@@ -175,7 +175,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         dependency.preset,
         registry,
         builder.provider,
-        builder.chartsDir
+        builder.packagesDir
       );
     }
 

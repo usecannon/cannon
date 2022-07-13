@@ -67,7 +67,7 @@ export default {
       provider: runtime.provider,
       preset: config.preset,
       chainId: config.chainId || runtime.chainId,
-      savedChartsDir: runtime.chartsDir,
+      savedPackagesDir: runtime.packagesDir,
       getSigner: runtime.getSigner,
       getDefaultSigner: runtime.getDefaultSigner,
     });

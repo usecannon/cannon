@@ -5,7 +5,7 @@ import { associateTag } from './storage';
 import fs from 'fs-extra';
 
 import { Readable } from 'stream';
-import { getAllDeploymentInfos, getChartDir, getDeploymentInfoFile, getActionFiles, getSavedChartsDir } from '.';
+import { getAllDeploymentInfos, getPackageDir, getDeploymentInfoFile, getActionFiles, getSavedPackagesDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
@@ -71,7 +71,10 @@ export class CannonRegistry {
       throw new Error('Contract not initialized');
     }
 
-    return await this.contract.getPackageUrl(ethers.utils.formatBytes32String(name), ethers.utils.formatBytes32String(version));
+    return await this.contract.getPackageUrl(
+      ethers.utils.formatBytes32String(name),
+      ethers.utils.formatBytes32String(version)
+    );
   }
 
   readIpfs(urlOrHash: string): Promise<Buffer> {
@@ -104,7 +107,7 @@ export class CannonRegistry {
     image: string,
     chainId: number,
     preset?: string,
-    chartsDir?: string
+    packagesDir?: string
   ): Promise<DeploymentInfo | null> {
     const [name, tag] = image.split(':');
 
@@ -116,10 +119,10 @@ export class CannonRegistry {
       throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
     }
 
-    const chartDir = getChartDir(chartsDir || getSavedChartsDir(), manifest.def.name, manifest.def.version);
+    const packageDir = getPackageDir(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version);
 
-    await fs.mkdirp(chartDir);
-    await fs.writeJson(getDeploymentInfoFile(chartDir), manifest);
+    await fs.mkdirp(packageDir);
+    await fs.writeJson(getDeploymentInfoFile(packageDir), manifest);
 
     if (!manifest.deploys[chainId.toString()] || !manifest.deploys[chainId][preset]) {
       // if we have manifest but no chain files, treat it as undeployed build
@@ -130,30 +133,30 @@ export class CannonRegistry {
     const buf = await this.readIpfs(manifest.deploys[chainId.toString()][preset].ipfsHash);
     const zip = new AdmZip(buf);
 
-    const dir = path.dirname(getActionFiles(chartDir, chainId, preset, 'sample').basename);
+    const dir = path.dirname(getActionFiles(packageDir, chainId, preset, 'sample').basename);
     await zip.extractAllTo(dir, true);
 
     const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
     const miscZip = new AdmZip(miscBuf);
-    await miscZip.extractAllTo(chartDir, true);
+    await miscZip.extractAllTo(packageDir, true);
 
     // imported chain may be of a different version from the actual requested tag. Make sure we link if necessary
-    await associateTag(chartsDir || getSavedChartsDir(), manifest.def.name, manifest.def.version, tag);
+    await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, tag);
 
     return manifest.deploys[chainId.toString()][preset];
   }
 
-  async uploadPackage(image: string, tags?: string[], chartsDir?: string): Promise<ethers.providers.TransactionReceipt> {
+  async uploadPackage(image: string, tags?: string[], packagesDir?: string): Promise<ethers.providers.TransactionReceipt> {
     const [name, tag] = image.split(':');
 
-    chartsDir = chartsDir || getSavedChartsDir();
+    packagesDir = packagesDir || getSavedPackagesDir();
 
-    const chartDir = getChartDir(chartsDir, name, tag);
+    const packageDir = getPackageDir(packagesDir, name, tag);
 
-    const manifest = await getAllDeploymentInfos(chartDir);
+    const manifest = await getAllDeploymentInfos(packageDir);
 
     if (!manifest) {
-      throw new Error('chart not found for upload ' + image);
+      throw new Error('package not found for upload ' + image);
     }
 
     // start uploading everything
@@ -161,7 +164,7 @@ export class CannonRegistry {
       for (const preset in manifest.deploys[chainId]) {
         const zip = new AdmZip();
 
-        const folder = path.dirname(getActionFiles(chartDir, parseInt(chainId), preset, 'sample').basename);
+        const folder = path.dirname(getActionFiles(packageDir, parseInt(chainId), preset, 'sample').basename);
         await zip.addLocalFolderPromise(folder, {});
         const buf = await zip.toBufferPromise();
 
@@ -176,8 +179,8 @@ export class CannonRegistry {
     const miscZip = new AdmZip();
 
     // contracts may not be deployed in which case, contracts folder is not created
-    if (fs.existsSync(path.join(chartDir, 'contracts'))) {
-      await miscZip.addLocalFolderPromise(path.join(chartDir, 'contracts'), { zipPath: 'contracts' });
+    if (fs.existsSync(path.join(packageDir, 'contracts'))) {
+      await miscZip.addLocalFolderPromise(path.join(packageDir, 'contracts'), { zipPath: 'contracts' });
     }
 
     const miscIpfsInfo = await this.ipfs.add(await miscZip.toBufferPromise());
