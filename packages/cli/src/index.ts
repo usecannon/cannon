@@ -19,6 +19,7 @@ import { runRpc, getProvider } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
+import os from 'os';
 import fs from 'fs-extra';
 import path from 'path';
 import readline from 'readline';
@@ -102,7 +103,7 @@ function getContractsRecursive(
 
 async function checkAnvil(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    var child = spawn('anvil', ['--version']);
+    var child = spawn(os.homedir() + '/.foundry/bin/anvil', ['--version']);
     child
       .on('close', (code) => {
         resolve(code === 0);
@@ -110,6 +111,19 @@ async function checkAnvil(): Promise<boolean> {
       .on('error', (err) => {
         resolve(false);
       });
+  });
+}
+
+function execPromise(command: string): Promise<string> {
+  return new Promise(function (resolve, reject) {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(stdout.trim());
+    });
   });
 }
 
@@ -165,8 +179,9 @@ async function run() {
     });
 
     if (response.confirmation) {
-      await exec('curl -L https://foundry.paradigm.xyz | bash');
-      await exec('foundryup');
+      console.log(magentaBright('Installing Foundry...'));
+      await execPromise('curl -L https://foundry.paradigm.xyz | bash');
+      await execPromise('foundryup');
     } else {
       process.exit();
     }
