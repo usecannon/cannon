@@ -37,6 +37,7 @@
         />
       </CInputGroup>
 
+      <!--
       <CHeading
         as="h3"
         size="sm"
@@ -44,13 +45,12 @@
         fontWeight="normal"
         letterSpacing="1px"
         mb="2"
-        v-if="tags.length"
+        v-if="keywords.length"
         >Filter</CHeading
       >
       <CCheckboxGroup mb="4">
-        <CCheckbox v-for="t in tags" :key="t.id">{{ t.id }}</CCheckbox>
+        <CCheckbox v-for="t in keywords" :key="t.id">{{ t.id }}</CCheckbox>
       </CCheckboxGroup>
-      <!--
       <CFormControl>
         <CSwitch size="sm" id="testnet" />
         <CFormLabel size="sm" html-for="testnet">
@@ -80,8 +80,8 @@ export default {
   data() {
     return {
       packages: [],
-      tags: [],
-      selectedTags: [],
+      keywords: [],
+      selectedKeywords: [],
       query: '',
     }
   },
@@ -99,17 +99,14 @@ export default {
     packages: {
       query: gql`query getPackages($query: String!) {
         packages: packages(first: 20, orderDirection: desc, orderBy: added, where: {name_contains: $query}){
-          id
           name
-          description
-          version
-          url
           added
-          publisher
-          tags {
-            tag {
-              id
-            }           
+          versions {
+            name,
+            description,
+            url,
+            publisher,
+            added
           }
         }
       }`,
@@ -117,14 +114,16 @@ export default {
         query: ''
       }
     },
-    tags: {
-      query: gql`query getTags {
-        tags: tags(first: 10, orderDirection: desc, orderBy: count){
+    /*
+    keywords: {
+      query: gql`query getKeywords {
+        keywords: keywords(first: 10, orderDirection: desc, orderBy: count){
           id
           count
         }
       }`
     }
+    */
   }
 }
 </script>

@@ -1,6 +1,6 @@
-import { ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
+import { Bytes, ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import { Package, Version, PackageKeyword, Keyword } from '../generated/schema';
+import { Package, Version } from '../generated/schema';
 import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handlePublish(event: PackagePublish): void {
@@ -9,6 +9,9 @@ export function handlePublish(event: PackagePublish): void {
   if (!cannon_package) {
     cannon_package = new Package(id);
   }
+  cannon_package.name = id;
+  cannon_package.added = event.block.timestamp;
+  cannon_package.save();
 
   const version_string = event.params.version.toString();
   let version = Version.load(id + ':' + version_string);
@@ -20,7 +23,8 @@ export function handlePublish(event: PackagePublish): void {
   version.publisher = event.params.owner.toHexString();
   version.added = event.block.timestamp;
   version.cannon_package = cannon_package.id;
-  //version.tags = event.params.tags
+  //version.tags = event.params.tags.map<string>((item) => item.toHexString());
+  version.save();
 
   /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
@@ -78,7 +82,4 @@ function addKeyword(keywordId: string, versionId: string): void {
     join_entity.save();
   }
   */
-
-  cannon_package.save();
-  version.save();
 }

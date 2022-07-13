@@ -1,17 +1,19 @@
 specVersion: 0.0.5
+description: Cannon Registry
+repository: https://github.com/usecannon/cannon
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum/contract
     name: CannonRegistry
-    network: rinkeby
+    network: mainnet
     source:
-      address: '0x89EA2506FDad3fB5EF7047C3F2bAac1649A97650'
+      address: '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
       abi: CannonRegistry
-      startBlock: 10980000
+      startBlock: 15124536
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
