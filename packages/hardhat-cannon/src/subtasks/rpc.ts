@@ -12,7 +12,7 @@ import { SUBTASK_RPC } from '../task-names';
 const ANVIL_OP_TIMEOUT = 10000;
 
 // saved up here to allow for reset of existing process
-let anvilInstance: ReturnType<typeof spawn>;
+let anvilInstance: ReturnType<typeof spawn> | null = null;
 
 subtask(SUBTASK_RPC).setAction(({ port, forkUrl, chainId }, hre): Promise<ethers.providers.JsonRpcProvider> => {
   if (anvilInstance && anvilInstance.exitCode === null) {
@@ -20,10 +20,11 @@ subtask(SUBTASK_RPC).setAction(({ port, forkUrl, chainId }, hre): Promise<ethers
 
     return Promise.race([
       new Promise<ethers.providers.JsonRpcProvider>((resolve) => {
-        anvilInstance.once('close', async () => {
+        anvilInstance!.once('close', async () => {
+          anvilInstance = null;
           resolve(await hre.run(SUBTASK_RPC));
         });
-        anvilInstance.kill();
+        anvilInstance!.kill();
       }),
       timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil'),
     ]);
@@ -45,7 +46,7 @@ subtask(SUBTASK_RPC).setAction(({ port, forkUrl, chainId }, hre): Promise<ethers
     new Promise<ethers.providers.JsonRpcProvider>((resolve, reject) => {
       anvilInstance = spawn('anvil', opts);
 
-      process.on('exit', () => anvilInstance.kill());
+      process.once('exit', () => anvilInstance?.kill());
 
       let state: 'spawning' | 'running' | 'listening' = 'spawning';
 
