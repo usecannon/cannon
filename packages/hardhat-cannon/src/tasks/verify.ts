@@ -33,7 +33,7 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },
-      savedChartsDir: hre.config.paths.cannon,
+      savedPackagesDir: hre.config.paths.cannon,
     });
 
     const outputs = await builder.getOutputs();

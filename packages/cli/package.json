@@ -1,7 +1,7 @@
 {
   "name": "@usecannon/cli",
   "version": "1.0.1",
-  "description": "Utility for instantly loading cannon charts in standalone contexts",
+  "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "hardhat.config.ts",
   "scripts": {
     "build": "tsc",

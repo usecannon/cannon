@@ -3,7 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs-extra';
 import { ChainBuilder } from './builder';
 import { CannonRegistry } from './registry';
-import { getSavedChartsDir, getActionFiles, getChartDir } from './storage';
+import { getSavedPackagesDir, getActionFiles, getPackageDir } from './storage';
 
 import semver from 'semver';
 
@@ -23,18 +23,18 @@ export async function downloadPackagesRecursive(
   preset: string | null,
   registry: CannonRegistry,
   provider: ethers.providers.JsonRpcProvider,
-  chartsDir?: string
+  packagesDir?: string
 ) {
-  chartsDir = chartsDir || getSavedChartsDir();
+  packagesDir = packagesDir || getSavedPackagesDir();
 
   const [name, tag] = pkg.split(':');
 
   const depdir = path.dirname(
-    getActionFiles(getChartDir(chartsDir, name, tag), chainId, preset || 'main', 'sample').basename
+    getActionFiles(getPackageDir(packagesDir, name, tag), chainId, preset || 'main', 'sample').basename
   );
 
   if (!existsSync(depdir)) {
-    await registry.downloadPackageChain(pkg, chainId, preset || 'main', chartsDir);
+    await registry.downloadPackageChain(pkg, chainId, preset || 'main', packagesDir);
 
     const builder = new ChainBuilder({
       name,
@@ -46,7 +46,7 @@ export async function downloadPackagesRecursive(
         throw new Error('signer should be unused');
       },
       chainId: chainId,
-      savedChartsDir: chartsDir,
+      savedPackagesDir: packagesDir,
     });
 
     const dependencies = await builder.getDependencies({});
@@ -58,7 +58,7 @@ export async function downloadPackagesRecursive(
         dependency.preset,
         registry,
         provider,
-        chartsDir
+        packagesDir
       );
     }
   }

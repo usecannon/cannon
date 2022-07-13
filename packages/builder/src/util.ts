@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 
 import fs, { existsSync } from 'fs-extra';
 import path from 'path';
-import { CannonRegistry, ChainBuilder, getChartDir, getActionFiles, getSavedChartsDir } from '.';
+import { CannonRegistry, ChainBuilder, getPackageDir, getActionFiles, getSavedPackagesDir } from '.';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
@@ -73,8 +73,8 @@ export async function getExecutionSigner(
  * Loads an artifact from the internal cannon storage.
  * @param name name of the cached contract artifact
  */
-export async function getStoredArtifact(chartDir: string, name: string) {
-  const artifactFile = path.join(chartDir, 'contracts', name + '.json');
+export async function getStoredArtifact(packageDir: string, name: string) {
+  const artifactFile = path.join(packageDir, 'contracts', name + '.json');
 
   const artifactContent = await fs.readFile(artifactFile);
   const artifactData: ContractArtifact = JSON.parse(artifactContent.toString());
@@ -87,11 +87,11 @@ export async function getStoredArtifact(chartDir: string, name: string) {
 }
 
 export async function passThroughArtifact(
-  chartDir: string,
+  packageDir: string,
   getArtifact: (name: string) => Promise<ContractArtifact>,
   name: string
 ) {
-  const artifactFile = path.join(chartDir, 'contracts', name + '.json');
+  const artifactFile = path.join(packageDir, 'contracts', name + '.json');
   const artifact = await getArtifact(name);
 
   await fs.mkdirp(path.dirname(artifactFile));
@@ -100,8 +100,8 @@ export async function passThroughArtifact(
   return artifact;
 }
 
-export async function clearArtifacts(chartDir: string) {
-  await fs.rm(chartDir, { recursive: true });
+export async function clearArtifacts(packageDir: string) {
+  await fs.rm(packageDir, { recursive: true });
 }
 
 export function getContractFromPath(ctx: ChainBuilderContext, path: string) {

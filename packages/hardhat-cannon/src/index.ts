@@ -12,6 +12,8 @@ import './subtasks/rpc';
 import './subtasks/write-deployments';
 import './type-extensions';
 
+import { getSavedPackagesDir } from '@usecannon/builder';
+
 import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig } from 'hardhat/config';
 
@@ -22,7 +24,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 
   config.paths.cannon = userConfig.paths?.cannon
     ? path.resolve(config.paths.root, userConfig.paths.cannon)
-    : path.join(config.paths.root, 'cannon');
+    : getSavedPackagesDir();
 
   config.cannon = {
     registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0',

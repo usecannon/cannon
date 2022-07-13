@@ -123,11 +123,11 @@ export interface ChainBuilderRuntime {
   // Directory where relative file resolutions should originate from. Usually the location of package.json for currently built project
   baseDir: string | null;
 
-  // Directory where cannon stores all of its charts. `chartDir` is derived from this
-  chartsDir: string;
+  // Directory where cannon stores all of its packages. `packageDir` is derived from this
+  packagesDir: string;
 
-  // Directory where cannon chart is located
-  chartDir: string | null;
+  // Directory where cannon package is located
+  packageDir: string | null;
 
   readMode: StorageMode;
   writeMode: StorageMode;
