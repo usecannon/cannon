@@ -1,6 +1,6 @@
 # Cannon
 
-This is the monorepo for the Cannon Hardhat plugin. If you’re just interested in using the project, [visit the website](https://usecannon.com).
+This is the monorepo for Cannon. If you’re just interested in using the project, [visit the website](https://usecannon.com).
 
 For more information, please see documentation in the modules listed below:
 
@@ -39,4 +39,10 @@ Test changes to the Hardhat plug-in in the sample project:
 
 ```
 cd ./packages/sample-project && npx hardhat cannon:build
+```
+
+Preview updates to the website
+
+```
+cd ./packages/website && npm run dev
 ```

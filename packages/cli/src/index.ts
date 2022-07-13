@@ -15,7 +15,7 @@ import {
 import pkg from '../package.json';
 
 import Debug from 'debug';
-import { runRpc } from './rpc';
+import { runRpc, getProvider } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
@@ -26,11 +26,17 @@ import readline from 'readline';
 import { URL } from 'node:url';
 import { exec } from 'child_process';
 import fetch from 'node-fetch';
-import { greenBright, green, magentaBright } from 'chalk';
+import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
 const program = new Command();
+
+const INSTRUCTIONS = green(
+  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+    'i'
+  )} to interact with contracts via the command line.`
+);
 
 class ReadOnlyCannonRegistry extends CannonRegistry {
   readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
@@ -117,6 +123,9 @@ program
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 async function run() {
+  let showAnvilLogs = false;
+  let interacting = false;
+
   program.parse();
   const options = program.opts();
   const args = program.processedArgs;
@@ -140,7 +149,7 @@ async function run() {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message: 'Cannon requires the foundry toolchain to be installed. Continue?',
+      message: 'Cannon requires Anvil (from Foundry) to be installed. Continue?',
       initial: true,
     });
 
@@ -153,11 +162,27 @@ async function run() {
   }
   console.log(magentaBright('Starting local node...'));
 
-  // first start the rpc server
-  const provider = await runRpc({
+  // Start the rpc server
+  const anvilInstance = await runRpc({
     port: options.port || 8545,
     forkUrl: options.fork,
   });
+
+  let outputBuffer = '';
+  anvilInstance.stdout!.on('data', (rawChunk) => {
+    const chunk = rawChunk.toString('utf8');
+    let newData = chunk
+      .split('\n')
+      .map((m: string) => 'anvil: ' + m)
+      .join('\n');
+    if (showAnvilLogs) {
+      console.log(newData);
+    } else {
+      outputBuffer += newData;
+    }
+  });
+
+  const provider = await getProvider(anvilInstance);
 
   // required to supply chainId to the builder
   const networkInfo = await provider.getNetwork();
@@ -241,7 +266,6 @@ async function run() {
     process.exit();
   }
 
-  let interacting = false;
   const keypress = () => {
     return new Promise((resolve) => {
       const rl = readline.createInterface({
@@ -253,15 +277,29 @@ async function run() {
       process.stdin.resume();
       const listener = async (str: any, key: any) => {
         if (key.ctrl && key.name === 'c') {
+          // Exit if the user does ctrl + c
           process.exit();
+        } else if (str === 'a' && !interacting) {
+          // Toggle showAnvilLogs when the user presses "a"
+          showAnvilLogs = !showAnvilLogs;
+          if (showAnvilLogs) {
+            console.log(gray('Unpaused anvil logs...'));
+            if (outputBuffer.length) {
+              console.log(outputBuffer);
+              outputBuffer = '';
+            }
+          } else {
+            console.log(gray('Paused anvil logs...'));
+          }
         } else if (str === 'i' && !interacting) {
+          // Enter the interact tool when the user presses "i"
           interacting = true;
           await interact({
             provider,
             signer: signers[0],
             contracts: getContractsRecursive(outputs, signers[0]),
           });
-          console.log(green('Press i to interact with contracts via the command line.'));
+          console.log(INSTRUCTIONS);
           interacting = false;
         }
         process.stdin.removeListener('keypress', listener);
@@ -275,7 +313,7 @@ async function run() {
     });
   };
 
-  console.log(green('Press i to interact with contracts via the command line.'));
+  console.log(INSTRUCTIONS);
   await keypress();
 }
 
