@@ -103,7 +103,7 @@ function getContractsRecursive(
 
 async function checkAnvil(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    var child = spawn(os.homedir() + '/.foundry/bin/anvil', ['--version']);
+    const child = spawn(os.homedir() + '/.foundry/bin/anvil', ['--version']);
     child
       .on('close', (code) => {
         resolve(code === 0);
