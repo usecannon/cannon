@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 
-import os from 'os';
 import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
@@ -22,7 +21,7 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
 
   return Promise.race<Promise<ChildProcess>>([
     new Promise<ChildProcess>((resolve, reject) => {
-      const anvilInstance = spawn(os.homedir() + '/.foundry/bin/anvil', opts);
+      const anvilInstance = spawn('anvil', opts);
 
       process.on('exit', () => anvilInstance.kill());
 

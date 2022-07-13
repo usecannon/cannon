@@ -19,7 +19,6 @@ import { runRpc, getProvider } from './rpc';
 import { ethers } from 'ethers';
 import { interact } from './interact';
 
-import os from 'os';
 import fs from 'fs-extra';
 import path from 'path';
 import readline from 'readline';
@@ -103,7 +102,7 @@ function getContractsRecursive(
 
 async function checkAnvil(): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    const child = spawn(os.homedir() + '/.foundry/bin/anvil', ['--version']);
+    const child = spawn('anvil', ['--version']);
     child
       .on('close', (code) => {
         resolve(code === 0);
