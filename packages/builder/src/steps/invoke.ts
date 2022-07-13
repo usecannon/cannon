@@ -180,6 +180,7 @@ export default {
       txns[label] = {
         hash: receipt.transactionHash,
         events: txnEvents,
+        deployedOn: runtime.currentLabel!,
       };
     }
 
@@ -188,7 +189,7 @@ export default {
     if (config.factory) {
       for (const n in txns) {
         for (const [name, factory] of Object.entries(config.factory)) {
-          const abi = (await runtime.getArtifact(factory.artifact)).abi;
+          const artifact = await runtime.getArtifact(factory.artifact);
 
           const events = _.entries(txns[n].events[factory.event]);
           for (const [i, e] of events) {
@@ -210,9 +211,12 @@ export default {
 
             contracts[label] = {
               address: addr,
-              abi: abi,
+              abi: artifact.abi,
               deployTxnHash: txns[n].hash,
               constructorArgs: factory.constructorArgs,
+              sourceName: artifact.sourceName,
+              contractName: artifact.contractName,
+              deployedOn: runtime.currentLabel!,
             };
           }
         }

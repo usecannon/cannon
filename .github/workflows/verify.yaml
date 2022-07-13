@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: "16.8.0"
           cache: "npm"
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run lint
 
@@ -22,9 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [16.x] # 18.x currently breaks on website, will be added later
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false # messes up download of ssh dependencies
+      - name: Use Foundry (for anvil)
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - run: anvil --version
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:

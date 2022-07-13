@@ -5,9 +5,13 @@ import { ChainBuilder } from './builder';
 import { CannonRegistry } from './registry';
 import { getSavedChartsDir, getActionFiles, getChartDir } from './storage';
 
+import semver from 'semver';
+
+import pkg from '../package.json';
+
 export { ChainBuilder, Events } from './builder';
 
-export { ChainBuilderContext, ChainArtifacts, validateChainDefinition } from './types';
+export * from './types';
 
 export * from './storage';
 
@@ -58,4 +62,9 @@ export async function downloadPackagesRecursive(
       );
     }
   }
+}
+
+// nodejs version check
+if (!semver.satisfies(process.version, pkg.engines.node)) {
+  throw new Error(`Cannon requires Node.js ${pkg.engines.node} but your current version is ${process.version}`);
 }
