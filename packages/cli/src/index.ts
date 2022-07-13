@@ -4,7 +4,13 @@ import _ from 'lodash';
 import { Command } from 'commander';
 import prompts from 'prompts';
 
-import { CannonRegistry, ChainBuilder, ChainArtifacts, downloadPackagesRecursive } from '@usecannon/builder';
+import {
+  CannonRegistry,
+  ChainBuilder,
+  ChainArtifacts,
+  downloadPackagesRecursive,
+  ChainBuilderContext,
+} from '@usecannon/builder';
 
 import pkg from '../package.json';
 
@@ -69,6 +75,24 @@ async function writeModuleDeployments(deploymentPath: string, prefix: string, ou
     // JSON format is already correct, so we can just output what we have
     await fs.writeFile(file, JSON.stringify(transformedOutput, null, 2));
   }
+}
+
+function getContractsRecursive(
+  outputs: ChainBuilderContext,
+  signer: ethers.Signer,
+  prefix?: string
+): {
+  [x: string]: ethers.Contract;
+} {
+  let contracts = _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signer));
+  if (prefix) {
+    contracts = _.mapKeys(contracts, (contract, contractName) => `${prefix}.${contractName}`);
+  }
+  for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
+    let newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
+    contracts = { ...contracts, ...newContracts };
+  }
+  return contracts;
 }
 
 program
@@ -233,7 +257,7 @@ async function run() {
           await interact({
             provider,
             signer: signers[0],
-            contracts: _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signers[0])),
+            contracts: getContractsRecursive(outputs, signers[0]),
           });
           console.log(green('Press i to interact with contracts via the command line.'));
           interacting = false;
