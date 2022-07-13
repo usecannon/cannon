@@ -109,23 +109,22 @@ async function run() {
 
   // Ensure our version of Anvil is installed
   try {
-    await fs.promises.access(os.homedir() + '/.foundry/usecannon');
+    await fs.promises.access(os.homedir() + '/.foundry');
   } catch (err) {
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message:
-        'Cannon requires a custom version of Anvil until a PR (https://bit.ly/3yUFF6W) is merged. This will be installed alongside any existing installations of Anvil. Continue?',
+      message: 'Cannon requires the foundry toolchain to be installed. Continue?',
       initial: true,
     });
 
     if (response.confirmation) {
       await exec('curl -L https://foundry.paradigm.xyz | bash');
+      await exec('foundryup');
     } else {
       process.exit();
     }
   }
-  await exec('foundryup -r usecannon/foundry');
   console.log(magentaBright('Starting local node...'));
 
   // first start the rpc server
