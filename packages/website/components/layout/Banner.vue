@@ -5,7 +5,7 @@
     mb="2"
     py="1"
     px="4"
-    letterSpacing="0.5"
+    letterSpacing="0.2px"
     background="#000000"
     color="#ffffff"
     borderBottom="1px solid hsl(220deg 100% 12%)"

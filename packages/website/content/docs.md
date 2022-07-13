@@ -346,3 +346,21 @@ The `run` action executes a custom script. This script is passed a [ChainBuilder
 
 **Outputs**  
 This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
+
+# Guides
+
+## Build a Protocol
+
+**Coming soon.** Set up a Hardhat project and Cannonfile for a contract that integrates with the Synthetix package.
+
+## Build a dApp
+
+**Coming soon.** Use the CLI to load the Synthetix package, export ABIs/addresses, and interact with the protocol using wagmi.sh.
+
+## Build an e2e Test
+
+**Coming soon.** Use the CLI to load the Synthetix package, run a basic test (using Synpress), and integrate with a CI tool.
+
+## Deploy a Protocol
+
+**Coming soon.** Set up a Cannonfile, configure your Hardhat project, do a dry run, deploy to testnet, deploy to mainnet, verify the contracts on Etherscan, and publish the package to the Cannon registry.
