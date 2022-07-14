@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import { HardhatUserConfig } from 'hardhat/config';
 import 'hardhat-cannon';
+import { HardhatUserConfig } from 'hardhat/config';
 
-const config: HardhatUserConfig = {
+const config: any = {
   solidity: {
     version: '0.8.12',
     settings: {
@@ -16,6 +16,17 @@ const config: HardhatUserConfig = {
         // https://docs.soliditylang.org/en/v0.7.6/metadata.html
         bytecodeHash: 'none',
       },
+    },
+  },
+  networks: {
+    rinkeby: {
+      url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 4,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    mainnet: {
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 1,
     },
   },
   cannon: {

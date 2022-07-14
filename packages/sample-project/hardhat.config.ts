@@ -5,8 +5,6 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import '@nomiclabs/hardhat-ethers';
 
-import 'hardhat-interact';
-
 import '../hardhat-cannon/src/index';
 
 import 'hardhat-interact';

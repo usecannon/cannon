@@ -1,0 +1,29 @@
+name = "chainlink"
+version= "0.1.0"
+description = "Official Cannon build for Chainlink mock aggregegator"
+keywords = ["chainlink"]
+
+[setting.salt]
+defaultValue = "Chainlink"
+
+[setting.rate]
+defaultValue = "1000000000000000000"
+
+[setting.decimals]
+defaultValue = "18"
+
+[contract.aggregator]
+artifact = "MockAggregatorV2V3"
+salt = "<%= settings.salt %>"
+
+[invoke.setDecimals]
+target = ["aggregator"]
+func = "setDecimals"
+args = ["<%= settings.decimals %>"]
+depends = ["contract.aggregator"]
+
+[invoke.setLatestAnswer]
+target = ["aggregator"]
+func = "setLatestAnswerCurrent"
+args = ["<%= settings.rate %>"]
+depends = ["contract.aggregator"]
