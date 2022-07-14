@@ -172,7 +172,6 @@ Add this section to your `hardhat.config.json`:
 ```json
 {
   cannon: {
-    publisherPrivateKey: process.env.PRIVATE_KEY,
     ipfsConnection: {
       protocol: 'https',
       host: 'ipfs.infura.io',
@@ -351,16 +350,114 @@ This action updates the return object by merging the object returned from the sc
 
 ## Build a Protocol
 
-**Coming soon.** Set up a Hardhat project and Cannonfile for a contract that integrates with the Synthetix package.
+**Coming soon.**
+
+- Set up a Hardhat project
+- Write a contract and cannonfile that interacts with Synthetix
+- Deploy it connected to the live protocol
 
 ## Build a dApp
 
-**Coming soon.** Use the CLI to load the Synthetix package, export ABIs/addresses, and interact with the protocol using wagmi.sh.
+**Coming soon.**
+
+- Use the CLI to load the Synthetix package
+- Export ABIs/addresses
+- Interact with the protocol using wagmi.sh
 
 ## Build an e2e Test
 
-**Coming soon.** Use the CLI to load the Synthetix package, run a basic test (using Synpress), and integrate with a CI tool.
+**Coming soon.**
+
+- Use the CLI to load the Synthetix package
+- un a basic test using Synpress
+- Integrate with a CI tool
 
 ## Deploy a Protocol
 
-**Coming soon.** Set up a Cannonfile, configure your Hardhat project, do a dry run, deploy to testnet, deploy to mainnet, verify the contracts on Etherscan, and publish the package to the Cannon registry.
+For this guide, we’ll assume you have a Hardhat project with the `hardhat-cannon` plug-in installed and a `cannonfile.toml` that successfully builds when you call `npx hardhat cannon:build`.
+
+### Properly configure Hardhat
+
+To perform all of the tasks below, your `hardhat.config.js` should look something like this (with the proper values in your `.env` file):
+
+```json
+{
+  networks: {
+    rinkeby: {
+      url: process.env.RINKEBY_PROVIDER_URL
+      chainId: 4,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    mainnet: {
+      url: process.env.MAINNET_PROVIDER_URL
+      chainId: 1,
+      accounts: [process.env.PRIVATE_KEY],
+    }
+  },
+  cannon: {
+    ipfsConnection: {
+      protocol: 'https',
+      host: 'ipfs.infura.io',
+      port: 5001,
+      headers: {
+        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
+          'base64'
+        )}`
+      }
+    }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  }
+}
+```
+
+### Do a dry run
+
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. If you add the `--port` option, it will continue running at the specified port.
+
+```bash
+npx hardhat cannon:build --network <network name> --dry-run --port <number>
+```
+
+### Deploy to a live network
+
+Then remove the --dry-run flag
+
+```bash
+npx hardhat cannon:build --network <network name>
+```
+
+### Verify your contracts on Etherscan
+
+After deploying to a live network, you can use the `cannon:verify` command to verify all of the deployed contracts on [Etherscan](https://www.etherscan.com).
+
+First, install [hardhat-etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan) in your project. Then run:
+
+```bash
+npx hardhat cannon:verify --network <network name>
+```
+
+### Inspect your package
+
+Prior to publishing your package to a registry, inspect its contents with the following command. Your package contains information about your live network deployments which can be retrieved by the CLI when passing the `--write-deployments <path>` flag.
+
+```bash
+npx hardhat cannon:inspect
+```
+
+### Publish your package to the registry
+
+You can push your package to the registry, backed on Ethereum and IPFS, so that others can run it with the CLI or import it into their own cannonfiles.
+
+This will use the account associated with the private key in the `networks.mainnet` section of your Hardhat configuration file to execute the `publish` function on [the registry](https://etherscan.io/address/0xA98BE35415Dd28458DA4c1C034056766cbcaf642) after uploading the package to IPFS.
+
+```bash
+npx hardhat cannon:publish --network mainnet
+```
+
+For unofficial releases, you can use other deployments of the [package registry](https://usecannon.com/packages/registry). We’ve deployed an instance on rinkeby that can be used with the following command:
+
+```bash
+npx hardhat cannon:publish --network rinkeby --registry-address 0x79E25D87432920FC5C187e14676FA6a8A8a00418
+```

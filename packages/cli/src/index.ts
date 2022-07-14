@@ -136,7 +136,7 @@ program
   .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
   .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to terminal interactability.')
+  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
   .option('-e --exit', 'Exit after building')
@@ -199,7 +199,9 @@ async function run() {
     const chunk = rawChunk.toString('utf8');
     let newData = chunk
       .split('\n')
-      .map((m: string) => 'anvil: ' + m)
+      .map((m: string) => {
+        return gray('anvil: ') + m;
+      })
       .join('\n');
     if (showAnvilLogs) {
       console.log(newData);
@@ -316,6 +318,7 @@ async function run() {
             }
           } else {
             console.log(gray('Paused anvil logs...'));
+            console.log(INSTRUCTIONS);
           }
         } else if (str === 'i' && !interacting) {
           // Enter the interact tool when the user presses "i"

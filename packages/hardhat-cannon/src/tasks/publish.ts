@@ -10,7 +10,8 @@ import prompts from 'prompts';
 task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile.toml')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
   .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
-  .setAction(async ({ file, tags }, hre) => {
+  .addOptionalParam('registryAddress', 'Address for a custom package registry.')
+  .setAction(async ({ file, tags, registryAddress }, hre) => {
     await installAnvil();
 
     const filepath = path.resolve(hre.config.paths.root, file);
@@ -37,7 +38,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,
       signerOrProvider: signers[0],
-      address: hre.config.cannon.registryAddress,
+      address: registryAddress || hre.config.cannon.registryAddress,
     });
 
     const splitTags = tags.split(',');
