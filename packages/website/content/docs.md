@@ -422,7 +422,7 @@ npx hardhat cannon:build --network <network name> --dry-run --port <number>
 
 ### Deploy to a live network
 
-Then remove the --dry-run flag
+Then remove the `--dry-run` flag to actually deploy. This will use the account associated with the private key for the network you select in your `hardhat.config.js` file.
 
 ```bash
 npx hardhat cannon:build --network <network name>
@@ -440,7 +440,7 @@ npx hardhat cannon:verify --network <network name>
 
 ### Inspect your package
 
-Prior to publishing your package to a registry, inspect its contents with the following command. Your package contains information about your live network deployments which can be retrieved by the CLI when passing the `--write-deployments <path>` flag.
+Prior to publishing your package to a registry, inspect its contents with the following command. Your package contains information about your live network deployments which can be retrieved by the CLI when passing the `--write-deployments <path>` option.
 
 ```bash
 npx hardhat cannon:inspect
