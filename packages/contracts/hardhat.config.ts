@@ -19,7 +19,6 @@ const config: HardhatUserConfig = {
     },
   },
   cannon: {
-    publisherPrivateKey: process.env.PRIVATE_KEY,
     ipfsConnection: {
       protocol: 'https',
       host: 'ipfs.infura.io',

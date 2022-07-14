@@ -59,7 +59,6 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   cannon: {
-    publisherPrivateKey: process.env.PRIVATE_KEY,
     ipfsConnection: {
       protocol: 'https',
       host: 'ipfs.infura.io',

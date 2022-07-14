@@ -27,11 +27,9 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : getSavedPackagesDir();
 
   config.cannon = {
-    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://mainnet.infura.io/v3/2ec6e503197e468ca2f04b8a017ee1b0',
+    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://cloudflare-eth.com/v1/mainnet',
 
     registryAddress: userConfig.cannon?.registryAddress || '0xA98BE35415Dd28458DA4c1C034056766cbcaf642',
-
-    publisherPrivateKey: userConfig.cannon?.publisherPrivateKey,
 
     ipfsConnection: userConfig.cannon?.ipfsConnection || {
       url: 'https://usecannon.infura-ipfs.io',
