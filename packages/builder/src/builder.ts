@@ -742,9 +742,9 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
       return null;
     }
 
-    debug('load cache', stepName);
-
     const { chain, metadata } = getActionFiles(this.packageDir, this.chainId, this.preset, stepName);
+
+    debug('load cache', stepName, metadata);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
@@ -766,9 +766,9 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
       return;
     }
 
-    debug('put cache', stepName);
-
     const { chain, metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
+
+    debug('put cache', metadata);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
