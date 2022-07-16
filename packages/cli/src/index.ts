@@ -2,7 +2,8 @@
 import _ from 'lodash';
 
 import { Command } from 'commander';
-import prompts from 'prompts';
+
+import { setupAnvil } from '@usecannon/helpers';
 
 import {
   CannonRegistry,
@@ -23,7 +24,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import readline from 'readline';
 import { URL } from 'node:url';
-import { exec, spawn } from 'child_process';
 import fetch from 'node-fetch';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
@@ -100,32 +100,6 @@ function getContractsRecursive(
   return contracts;
 }
 
-async function checkAnvil(): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    const child = spawn('anvil', ['--version']);
-    child
-      .on('close', (code) => {
-        resolve(code === 0);
-      })
-      .on('error', (err) => {
-        resolve(false);
-      });
-  });
-}
-
-function execPromise(command: string): Promise<string> {
-  return new Promise(function (resolve, reject) {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(stdout.trim());
-    });
-  });
-}
-
 program
   .name('cannon')
   .version(pkg.version)
@@ -167,24 +141,7 @@ async function run() {
 
   debug('parsed arguments', options, args);
 
-  // Ensure Anvil is installed
-  const hasAnvil = await checkAnvil();
-  if (!hasAnvil) {
-    const response = await prompts({
-      type: 'confirm',
-      name: 'confirmation',
-      message: 'Cannon requires Foundry. Install it now?',
-      initial: true,
-    });
-
-    if (response.confirmation) {
-      console.log(magentaBright('Installing Foundry...'));
-      await execPromise('curl -L https://foundry.paradigm.xyz | bash');
-      await execPromise('foundryup');
-    } else {
-      process.exit();
-    }
-  }
+  await setupAnvil();
 
   console.log(magentaBright('Starting local node...'));
 

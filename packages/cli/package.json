@@ -32,6 +32,7 @@
     "@synthetixio/wei": "^2.74.1",
     "@types/node-fetch": "^2.6.2",
     "@usecannon/builder": "^1.0.7",
+    "@usecannon/helpers": "^1.0.7",
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",

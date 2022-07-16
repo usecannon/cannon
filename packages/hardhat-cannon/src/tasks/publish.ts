@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 
 import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
-import installAnvil from '../internal/install-anvil';
+import { setupAnvil } from '@usecannon/helpers';
 import { TASK_PUBLISH } from '../task-names';
 import prompts from 'prompts';
 
@@ -12,7 +12,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
   .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .addOptionalParam('registryAddress', 'Address for a custom package registry.')
   .setAction(async ({ file, tags, registryAddress }, hre) => {
-    await installAnvil();
+    await setupAnvil();
 
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
