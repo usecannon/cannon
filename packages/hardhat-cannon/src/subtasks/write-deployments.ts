@@ -6,6 +6,7 @@ import { SUBTASK_WRITE_DEPLOYMENTS } from '../task-names';
 import { printChainBuilderOutput } from '../printer';
 import { any } from 'hardhat/internal/core/params/argumentTypes';
 import { ChainBuilderContext, ChainArtifacts } from '@usecannon/builder';
+import { green } from 'chalk';
 
 subtask(SUBTASK_WRITE_DEPLOYMENTS)
   .addParam('outputs', 'Output object from the chain builder', null, any)
@@ -15,7 +16,7 @@ subtask(SUBTASK_WRITE_DEPLOYMENTS)
 
     await fs.mkdirp(deploymentPath);
 
-    console.log(`Writing deployment artifacts to ./${path.relative(process.cwd(), deploymentPath)}\n`);
+    console.log(green(`Writing deployment artifacts to ./${path.relative(process.cwd(), deploymentPath)}\n`));
 
     await writeModuleDeployments(deploymentPath, prefix, outputs);
 
