@@ -1,5 +1,6 @@
 import path from 'path';
 import { task } from 'hardhat/config';
+import { bold, yellowBright } from 'chalk';
 
 import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
@@ -14,6 +15,11 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
   .setAction(async ({ file, tags, registryAddress }, hre) => {
     await installAnvil();
 
+    if (hre.network.name == 'hardhat') {
+      console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));
+      process.exit();
+    }
+
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);
     const { name, version } = def;
@@ -27,7 +33,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
     const response = await prompts({
       type: 'confirm',
       name: 'confirmation',
-      message: `This will deploy your package to IPFS and use ${signers[0].address} to add the package to the registry. Continue?`,
+      message: `This will deploy your package to IPFS and use ${signers[0].address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
       initial: true,
     });
 

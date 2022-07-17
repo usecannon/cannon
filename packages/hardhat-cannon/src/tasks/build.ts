@@ -10,6 +10,7 @@ import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-name
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import { green, greenBright } from 'chalk';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -155,7 +156,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
-    console.log(`\nWriting package to ${builder.packageDir}`);
+    console.log('\n' + greenBright(`Building ${name}:${version}`));
+    console.log(green(`Writing package to ${builder.packageDir}`));
 
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,

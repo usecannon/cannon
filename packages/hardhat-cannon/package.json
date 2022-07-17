@@ -56,6 +56,7 @@
     "@usecannon/builder": "^1.0.7",
     "adm-zip": "^0.5.9",
     "ajv": "^8.10.0",
+    "chalk": "^4.1.2",
     "debug": "^4.3.3",
     "ethereumjs-util": "^7.1.4",
     "ethers": "^5.6.0",
