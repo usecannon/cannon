@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
@@ -10,6 +10,8 @@ import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-name
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import { bold, green, greenBright, dim } from 'chalk';
+import { table } from 'table';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -26,18 +28,49 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   )
   .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
-  .addOptionalVariadicPositionalParam('options', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, options, dryRun, port, preset, wipe }, hre) => {
+  .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
+  .setAction(async ({ noCompile, file, settings, dryRun, port, preset, wipe }, hre) => {
     await installAnvil();
+
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
+      console.log('');
     }
 
     const filepath = path.resolve(hre.config.paths.root, file);
 
-    // options can be passed through commandline, or environment
-    const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
     const def = loadCannonfile(hre, filepath);
+
+    if (!settings && !_.isEmpty(def.setting)) {
+      let displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
+        let settingRow: Array<any> = [
+          setting[0],
+          setting[1].defaultValue || dim('No default value'),
+          setting[1].description || dim('No description'),
+        ];
+        return settingRow;
+      });
+      console.log('This package can be built with custom settings.');
+      console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
+      console.log('\nSETTINGS:');
+      displaySettings.unshift([bold('Name'), bold('Default Value'), bold('Description')]);
+      console.log(table(displaySettings));
+    }
+
+    // options can be passed through commandline, or environment
+    const mappedSettings: { [key: string]: string } = _.fromPairs((settings || []).map((kv: string) => kv.split('=')));
+
+    if (!isEmpty(mappedSettings)) {
+      console.log(
+        green(
+          `Creating preset ${bold(preset)} with the following settings: ` +
+            Object.entries(mappedSettings)
+              .map((setting) => `${setting[0]}=${setting[1]}`)
+              .join(' ')
+        )
+      );
+    }
+
     const { name, version } = def;
 
     let builder: ChainBuilder;
@@ -155,7 +188,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
-    console.log(`\nWriting package to ${builder.packageDir}`);
+    console.log(greenBright(`Building ${name}:${version}`));
+    console.log(green(`Writing package to ${builder.packageDir}`));
 
     const registry = new CannonRegistry({
       ipfsOptions: hre.config.cannon.ipfsConnection,
@@ -165,7 +199,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       address: hre.config.cannon.registryAddress,
     });
 
-    const dependencies = await builder.getDependencies(mappedOptions);
+    const dependencies = await builder.getDependencies(mappedSettings);
 
     for (const dependency of dependencies) {
       console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
@@ -183,7 +217,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
     builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
 
-    const outputs = await builder.build(mappedOptions);
+    const outputs = await builder.build(mappedSettings);
 
     await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
       outputs,

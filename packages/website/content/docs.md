@@ -324,6 +324,7 @@ The `setting` action defines a user-configurable option that can be referenced i
 **Optional Inputs**
 
 - `defaultValue` - Specifies the value to be used by this setting if the user doesn’t provide a value at run time.
+- `description` - Describe this setting for help information.
 
 **Outputs**  
 This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
