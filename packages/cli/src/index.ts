@@ -285,7 +285,9 @@ async function run() {
   debug('start interact');
   console.log(
     greenBright(
-      `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
+      `${bold(options.name + ':' + options.version)} has been deployed to a local node running at ${bold(
+        provider.connection.url
+      )}`
     )
   );
 
