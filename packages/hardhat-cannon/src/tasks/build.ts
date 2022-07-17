@@ -1,4 +1,4 @@
-import _, { isEmpty } from 'lodash';
+import _ from 'lodash';
 import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
@@ -60,7 +60,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     // options can be passed through commandline, or environment
     const mappedSettings: { [key: string]: string } = _.fromPairs((settings || []).map((kv: string) => kv.split('=')));
 
-    if (!isEmpty(mappedSettings)) {
+    if (!_.isEmpty(mappedSettings)) {
       console.log(
         green(
           `Creating preset ${bold(preset)} with the following settings: ` +
