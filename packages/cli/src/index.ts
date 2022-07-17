@@ -94,7 +94,7 @@ function getContractsRecursive(
     contracts = _.mapKeys(contracts, (contract, contractName) => `${prefix}.${contractName}`);
   }
   for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    let newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
+    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
     contracts = { ...contracts, ...newContracts };
   }
   return contracts;
@@ -197,7 +197,7 @@ async function run() {
   let outputBuffer = '';
   anvilInstance.stdout!.on('data', (rawChunk) => {
     const chunk = rawChunk.toString('utf8');
-    let newData = chunk
+    const newData = chunk
       .split('\n')
       .map((m: string) => {
         return gray('anvil: ') + m;

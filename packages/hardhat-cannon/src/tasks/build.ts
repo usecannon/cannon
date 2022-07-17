@@ -156,7 +156,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       });
     }
 
-    console.log(`\n` + greenBright(`Building ${name}:${version}`));
+    console.log('\n' + greenBright(`Building ${name}:${version}`));
     console.log(green(`Writing package to ${builder.packageDir}`));
 
     const registry = new CannonRegistry({
