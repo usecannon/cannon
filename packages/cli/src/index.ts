@@ -31,6 +31,7 @@ const debug = Debug('cannon:cli');
 
 const program = new Command();
 
+const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
   `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
@@ -332,6 +333,9 @@ async function run() {
           });
           console.log(INSTRUCTIONS);
           interacting = false;
+        } else if (str === 'h' && !interacting) {
+          console.log('\n' + program.helpInformation());
+          console.log(INSTRUCTIONS);
         }
         process.stdin.removeListener('keypress', listener);
         process.stdin.setRawMode(false);
@@ -344,6 +348,7 @@ async function run() {
     });
   };
 
+  console.log(INITIAL_INSTRUCTIONS);
   console.log(INSTRUCTIONS);
   await keypress();
 }
