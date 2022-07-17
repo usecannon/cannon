@@ -204,10 +204,11 @@ async function run() {
         return gray('anvil: ') + m;
       })
       .join('\n');
+
     if (showAnvilLogs) {
       console.log(newData);
     } else {
-      outputBuffer += newData;
+      outputBuffer += '\n' + newData;
     }
   });
 
