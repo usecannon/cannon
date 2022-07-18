@@ -3,6 +3,7 @@ import _ from 'lodash';
 
 import { Command } from 'commander';
 import prompts from 'prompts';
+import { resolve } from 'path';
 
 import {
   CannonRegistry,
@@ -139,7 +140,7 @@ program
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('-e --exit', 'Exit after building')
   .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
@@ -280,7 +281,8 @@ async function run() {
 
   if (options.writeDeployments) {
     console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-    await fs.mkdirp(options.writeDeployments);
+    const path = resolve(options.writeDeployments);
+    await fs.mkdirp(path);
     await writeModuleDeployments(options.writeDeployments, '', outputs);
   }
 
