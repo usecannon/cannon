@@ -1,3 +1,4 @@
+import os from 'os';
 import { exec, spawnSync } from 'child_process';
 import prompts from 'prompts';
 import { magentaBright } from 'chalk';
@@ -49,7 +50,7 @@ export async function setupAnvil(): Promise<void> {
     if (response.confirmation) {
       console.log(magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
-      await execPromise('foundryup');
+      await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
       process.exit();
     }
