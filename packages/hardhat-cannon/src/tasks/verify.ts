@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
 import { ChainBuilder } from '@usecannon/builder';
-import { setupAnvil } from '@usecannon/helpers';
+import { setupAnvil } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
 import { ethers } from 'ethers';
 

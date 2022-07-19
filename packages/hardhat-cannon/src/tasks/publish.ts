@@ -4,7 +4,7 @@ import { bold, yellowBright } from 'chalk';
 
 import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
-import { setupAnvil } from '@usecannon/helpers';
+import { setupAnvil } from '@usecannon/cli';
 import { TASK_PUBLISH } from '../task-names';
 import prompts from 'prompts';
 

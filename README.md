@@ -12,7 +12,6 @@ For more information, please see documentation in the modules listed below:
 - [`contracts`](packages/contracts): Cannonfiles for standard contracts
 - [`website`](packages/website): Source code for https://usecannon.com
 - [`builder`](packages/builder): Contains source code that builds chain data from cannonfiles
-- [`helpers`](packages/helpers): Contains functionality shared between packages
 
 ## Development
 

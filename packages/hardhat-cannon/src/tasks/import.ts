@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 
 import { TASK_IMPORT } from '../task-names';
 import { importChain } from '@usecannon/builder';
-import { setupAnvil } from '@usecannon/helpers';
+import { setupAnvil } from '@usecannon/cli';
 
 task(TASK_IMPORT, 'Read a cannon chain from zip archive')
   .addPositionalParam('file', 'Path to archive previously exported with cannon:export')

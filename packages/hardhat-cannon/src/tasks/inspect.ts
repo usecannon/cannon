@@ -2,7 +2,7 @@ import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
-import { setupAnvil } from '@usecannon/helpers';
+import { setupAnvil } from '@usecannon/cli';
 import { getPackageDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
 import { NetworksConfig } from 'hardhat/types';
 import chalk from 'chalk';

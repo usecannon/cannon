@@ -5,7 +5,6 @@ import { Command } from 'commander';
 
 import { setupAnvil } from './helpers';
 export { setupAnvil };
-
 import { resolve } from 'path';
 
 import {
