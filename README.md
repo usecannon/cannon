@@ -15,7 +15,7 @@ For more information, please see documentation in the modules listed below:
 
 ## Development
 
-Community contributions to Cannon are highly encouraged. Please open pull requests, issues, and discussions in the GitHub repository.
+Community contributions to Cannon are greatly appreciated. Please open pull requests, issues, and discussions in the GitHub repository.
 
 To load an development version of Cannon, start by bootstrapping the project from the root directory:
 
