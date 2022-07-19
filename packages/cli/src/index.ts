@@ -3,7 +3,10 @@ import _ from 'lodash';
 
 import { Command } from 'commander';
 
-import { setupAnvil } from '@usecannon/helpers';
+import { setupAnvil } from './helpers';
+export { setupAnvil };
+
+import { resolve } from 'path';
 
 import {
   CannonRegistry,
@@ -31,6 +34,7 @@ const debug = Debug('cannon:cli');
 
 const program = new Command();
 
+const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
   `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
@@ -94,7 +98,7 @@ function getContractsRecursive(
     contracts = _.mapKeys(contracts, (contract, contractName) => `${prefix}.${contractName}`);
   }
   for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    let newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
+    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
     contracts = { ...contracts, ...newContracts };
   }
   return contracts;
@@ -112,7 +116,7 @@ program
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('-e --exit', 'Exit after building')
   .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
@@ -154,16 +158,17 @@ async function run() {
   let outputBuffer = '';
   anvilInstance.stdout!.on('data', (rawChunk) => {
     const chunk = rawChunk.toString('utf8');
-    let newData = chunk
+    const newData = chunk
       .split('\n')
       .map((m: string) => {
         return gray('anvil: ') + m;
       })
       .join('\n');
+
     if (showAnvilLogs) {
       console.log(newData);
     } else {
-      outputBuffer += newData;
+      outputBuffer += '\n' + newData;
     }
   });
 
@@ -235,14 +240,17 @@ async function run() {
 
   if (options.writeDeployments) {
     console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-    await fs.mkdirp(options.writeDeployments);
+    const path = resolve(options.writeDeployments);
+    await fs.mkdirp(path);
     await writeModuleDeployments(options.writeDeployments, '', outputs);
   }
 
   debug('start interact');
   console.log(
     greenBright(
-      `${options.name + ':' + options.version} has been deployed to a local node running at ${provider.connection.url}`
+      `${bold(options.name + ':' + options.version)} has been deployed to a local node running at ${bold(
+        provider.connection.url
+      )}`
     )
   );
 
@@ -287,6 +295,9 @@ async function run() {
           });
           console.log(INSTRUCTIONS);
           interacting = false;
+        } else if (str === 'h' && !interacting) {
+          console.log('\n' + program.helpInformation());
+          console.log(INSTRUCTIONS);
         }
         process.stdin.removeListener('keypress', listener);
         process.stdin.setRawMode(false);
@@ -299,6 +310,7 @@ async function run() {
     });
   };
 
+  console.log(INITIAL_INSTRUCTIONS);
   console.log(INSTRUCTIONS);
   await keypress();
 }

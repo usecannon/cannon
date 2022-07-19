@@ -7,6 +7,7 @@ defaultValue = "greeter"
 
 [setting.msg]
 defaultValue = "Hello world!"
+description="The greeting passed to the constructor"
 
 [contract.library]
 artifact = "Library"
