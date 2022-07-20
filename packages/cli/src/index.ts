@@ -15,16 +15,6 @@ program
   .hook('preAction', async function () {
     await checkCannonVersion(pkg.version);
   });
-// .action(function (_, thisCommand) {
-//   const commands = program.commands.map((c) => c.name());
-//   const packageName = thisCommand.args[0];
-
-//   if (packageName && !commands.includes(thisCommand.name)) {
-//     console.error(red(`"${packageName}" isn't a command recognized by cannon.`));
-//     console.error(red(`Did you mean ${bold(`run ${packageName}`)} instead of ${packageName}?`));
-//     process.exit(1);
-//   }
-// });
 
 configureRun(program);
 configureRun(program.command('run'));
