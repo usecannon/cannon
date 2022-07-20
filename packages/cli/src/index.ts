@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { Command } from 'commander';
 
-import { setupAnvil } from './helpers';
+import { setupAnvil, checkCannonVersion } from './helpers';
 export { setupAnvil };
 import { resolve } from 'path';
 
@@ -126,6 +126,8 @@ program
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
 
 async function run() {
+  await checkCannonVersion(pkg.version);
+
   let showAnvilLogs = false;
   let interacting = false;
 

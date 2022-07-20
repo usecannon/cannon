@@ -1,7 +1,7 @@
 import os from 'os';
 import { exec, spawnSync } from 'child_process';
 import prompts from 'prompts';
-import { magentaBright } from 'chalk';
+import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 
 export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
@@ -64,4 +64,12 @@ function execPromise(command: string): Promise<string> {
       resolve(stdout.trim());
     });
   });
+}
+
+export async function checkCannonVersion(currentVersion: string): Promise<void> {
+  const latestVersion = await execPromise('npm view @usecannon/cli version');
+  if (currentVersion !== latestVersion) {
+    console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    console.warn(yellow(`Upgrade with ` + bold(`npm install -g @usecannon/cli\n`)));
+  }
 }
