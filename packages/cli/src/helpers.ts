@@ -4,27 +4,10 @@ import prompts from 'prompts';
 import { magentaBright } from 'chalk';
 
 export async function setupAnvil(): Promise<void> {
-  const needsCargo = !(await hasCargo());
-  if (needsCargo) {
-    const cargoResponse = await prompts({
-      type: 'confirm',
-      name: 'confirmation',
-      message: 'Cannon requires Cargo (https://doc.rust-lang.org/cargo/). Install it now?',
-      initial: true,
-    });
-
-    if (cargoResponse.confirmation) {
-      console.log(magentaBright('Installing Cargo...'));
-      await execPromise('curl https://sh.rustup.rs -sSf | sh');
-    } else {
-      process.exit();
-    }
-  }
-
-  const MINIMUM_NIGHTLY_ANVIL_BUILD_TIMESTAMP = 1657679573421;
   const versionDate = await getAnvilVersionDate();
   if (versionDate) {
-    if (versionDate.getTime() < MINIMUM_NIGHTLY_ANVIL_BUILD_TIMESTAMP) {
+    // Confirm we have a version after the anvil_loadState/anvil_dumpState functionality was added.
+    if (versionDate.getTime() < 1657679573421) {
       const anvilResponse = await prompts({
         type: 'confirm',
         name: 'confirmation',
@@ -55,20 +38,6 @@ export async function setupAnvil(): Promise<void> {
       process.exit();
     }
   }
-}
-
-async function hasCargo(): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    try {
-      const child = spawnSync('cargo', ['--version']);
-      const output = child.stdout.toString();
-      resolve(output.includes('cargo'));
-      // May need to prompt for update (with rustup update), depends on anvil requirements.
-    } catch {
-      resolve(false);
-    }
-    resolve(false);
-  });
 }
 
 async function getAnvilVersionDate(): Promise<Date | false> {
