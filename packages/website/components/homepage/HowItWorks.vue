@@ -25,19 +25,24 @@
             >How it works</CHeading
           >
           <CText as="p" mb="3" :pr="[0, 2]">
-            <strong>Cannon</strong> is a CLI and
+            <strong>Cannon</strong> is a CLI (compatible with
+            <CLink
+              isExternal
+              href="https://github.com/foundry-rs/foundry"
+              textDecoration="underline"
+              >Foundry</CLink
+            >
+            and
             <CLink
               isExternal
               href="https://hardhat.org/"
               textDecoration="underline"
               >Hardhat</CLink
-            >
-            plug-in inspired by Docker, Terraform, and npm.
+            >) inspired by Docker and Terraform.
           </CText>
           <CText as="p" mb="3"
             >Use existing packages or define your protocol’s contracts,
-            initialization scripts, and on-chain dependencies in configuration
-            files for
+            initialization scripts, and on-chain dependencies in Cannonfiles for
             <strong>automated deployments on local and live chains.</strong>
           </CText>
           <CText as="p" :mb="[12, 0]">
@@ -96,7 +101,7 @@ export default {
   name: 'HowItWorks',
   methods: {
     copy(){
-      var textToCopy = "npx @usecannon/cli@latest synthetix";
+      var textToCopy = "npx @usecannon/cli synthetix";
 
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {

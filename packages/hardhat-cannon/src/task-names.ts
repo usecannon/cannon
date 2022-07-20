@@ -7,6 +7,8 @@ export const TASK_VERIFY = `${TASK_PREFIX}:verify`;
 export const TASK_IMPORT = `${TASK_PREFIX}:import`;
 export const TASK_EXPORT = `${TASK_PREFIX}:export`;
 export const TASK_INSPECT = `${TASK_PREFIX}:inspect`;
+export const TASK_PACKAGES = `${TASK_PREFIX}:packages`;
+export const TASK_DEPLOY = `${TASK_PREFIX}:deploy`;
 
 export const SUBTASK_LOAD_DEPLOY = `${TASK_PREFIX}:load-deploy`;
 export const SUBTASK_WRITE_DEPLOYMENTS = `${TASK_PREFIX}:write-deployments`;

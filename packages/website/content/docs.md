@@ -1,18 +1,24 @@
 # Cannon Documentation
 
-Cannon is a [Hardhat](https://hardhat.org/]) plug-in that allows you to configure your protocol's scripts, keepers, and on-chain dependencies for automated provisioning and deployment. It is inspired by [Terraform](https://www.terraform.io/), [Docker](https://www.docker.com/), and [Docker Hub](https://hub.docker.com/search).
-
-There are three ways you can use Cannon:
-
-- **Use a Package** - After installing Cannon, call `npx hardhat cannon <package-name:version>`. This is similar to running `npx hardhat node`, except the specified package will be automatically provisioned.
-- **`cannon.json`** - Create this file to define the chains where you'll deploy your smart contracts and your dependencies on those chains.
-- **`cannonfile.toml`** - Create this file to define the scripts that should be executed and configurations relevant to your smart contracts.
+Cannon is a CLI (compatible with [Foundry](https://github.com/foundry-rs/foundry) and [Hardhat](https://hardhat.org/])) that allows you to configure your protocol's contracts, initialization scripts, and on-chain dependencies in Cannonfiles. Cannonfiles are built into packages, which can be published to the registry (backed on Ethereum and IPFS). Packages can be run on local nodes, deployed to live chains, and imported into other Cannonfiles.
 
 ## Getting Started
 
-### Install Cannon
+### Quick Start
 
-After you've installed Hardhat, install `hardhat-cannon`.
+Get started by running the following command:
+
+```bash
+npx @usecannon/cli synthetix
+```
+
+This command will download the latest [synthetix package](/packages/synthetix) into your local cannon directory (`~/.local/cannon`) and start an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with it. Run `npx @usecannon/cli --help` for more information or see documentation for the [run](#run) command below.
+
+You can also install Cannon globally (instead of using npx) with `npm install -g @usecannon/cli`. Then use `cannon` in place of `npx @usecannon/cli`.
+
+### Install Hardhat Plug-in
+
+If you’re using Cannon with Hardhat, you can install the Hardhat plug-in `hardhat-cannon`. If you’re using Foundry, you can skip this.
 
 ```bash
 npm install hardhat-cannon
@@ -30,55 +36,11 @@ If your project uses Typescript instead, include Cannon in `hardhat.config.ts`.
 import 'hardhat-cannon';
 ```
 
-### Use a Package
+Now you’ll be able to use the Hardhat plug-in commands specified in the [Cannon Commands](#cannon-commands) section below.
 
-If you'd like to run a local node with an existing protocol, you can rely on the built-in package manager. For example, the following command will start a local node (similar to running `npx hardhat node`) with a simple `Greeter.sol` contract already deployed.
+### Build a Cannonfile
 
-```bash
-npx hardhat cannon greeter:latest
-```
-
-If you'd like to customize this deployment, you can specify options.
-
-```bash
-npx hardhat cannon greeter:latest msg="Hello from Cannon"
-```
-
-Review a package's README for more information on the options available and other usage instructions.
-
-### Create cannon.json
-
-The example above is great for simple scenarios, but if your protocol depends on multiple protocols or multiple chains, then you can create a `cannon.json` file in the same directory as your `hardhat.config.js`.
-
-Here's an example `cannon.json` file for a project where a smart contract will be deployed to Mainnet and Optimism that will interact with Synthetix on both networks and anticipate a keeper on Mainnet.
-
-```json
-{
-  "name": "mySampleProject:latest",
-  "chains": [
-    {
-      "deploy": [
-        "mySampleProject:latest",
-        "synthetix:2.62",
-        "keeper:snapshot-keeper"
-      ],
-      "chainId": 1
-    },
-    {
-      "deploy": ["mySampleProject:latest", "synthetix:2.62"],
-      "chainId": 10
-    }
-  ]
-}
-```
-
-Once you've created your `cannon.json` file, run `npx hardhat cannon` and Cannon will use the configuration defined in this file.
-
-See [cannon.json Specification](#cannonjson-specification) for more details on how to set up this file.
-
-### Create cannonfile.toml
-
-If you'd like to automate your own deployments, add a `cannonfile.toml` file in the same directory as your `hardhat.config.js`. This can be set up in addition to a `cannon.json` file, or without one.
+If you'd like to automate your own deployments, create a `cannonfile.toml` file in the root of your Foundry or Hardhat project.
 
 Suppose we have the following contract that we'd like to deploy.
 
@@ -118,7 +80,16 @@ args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to 
 depends = ["contract.myStorage"] # Ensure this action is taken after the previous action
 ```
 
-Then build your Cannonfile and run it on a local node:
+Then build your Cannonfile and run it on a local node.
+
+**For Foundry:**
+
+```bash
+npx @usecannon/cli build
+npx @usecannon/cli myStorageCannon:0.0.1 initialValue="69"
+```
+
+**For Hardhat:**
 
 ```bash
 npx hardhat cannon:build
@@ -127,90 +98,131 @@ npx hardhat cannon myStorageCannon:0.0.1 initialValue="69"
 
 See [cannonfile.toml Specification](#cannonfiletoml-specification) for more details on how to set up this file.
 
-## Deploy a Cannonfile
+## Cannon Commands
 
-You can build and deploy a Cannonfile on a local node or a remote network with the `npx hardhat cannon:build` command.
+If you’re using the Hardhat plug-in, you can access the following commands as tasks. For example, the build command could be executed with `npx hardhat cannon:build`.
 
-Artifacts for your deployment will be written to a folder named `deployments`. This includes JSON files with the address and ABI for each of the deployed contracts.
+### run
 
-### Local Node
+The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/cannon`), it will first be downloaded there from the [Cannon registry](/search).
 
-You can run a cannonfile with the command `npx hardhat cannon <package name>:<package version>` followed by any settings. The package references can be that of a cannonfile you've built locally or one available in the package manager. If you don't specify a package name, Cannon will deploy the cannonfile for the current project by default.
+If the CLI is run without a command specified, it will use the run command.
 
-#### Test Deployments on a Fork
+Note about cannon.json file and other stuff.
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of rinkeby and then run your cannonfile on it.
+### build
 
-```bash
-npx hardhat cannon:build --dry-run --network rinkeby --port 8545
-```
+### deploy
 
-### Remote Network
+### verify
 
-To deploy to a remote network, first [add a `network` entry to your `hardhat.config.js` file](https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks). Then, specify a network with your build command. For example, this command would deploy your cannonfile to rinkeby:
+Verify a package on Etherscan.
 
-```bash
-npx hardhat --network rinkeby cannon:build
-```
+**Arguments**
 
-#### Verify on Etherscan
+- `<packageName>` - Name and version of the package to publish
 
-After deploying to a live network, you can use the `cannon:verify` command to verify all of the deployed contracts on [Etherscan](https://www.etherscan.com).
+**Options**
 
-First, install [hardhat-etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan) in your project. Then, run `npx hardhat --network <network name> cannon:verify`.
+- `--apiKey` - Etherscan API key
+- `--network` - Network of deployment to verify (_Default: "mainnet"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
 
-## Publish a Package
+### publish
 
-Cannonfiles can be published to the registry, backed on Ethereum and IPFS.
+Publish a Cannon package to the registry.
 
-We recommend using Infura to pin on IPFS using their API, though you can use any IPFS node. Create an Infura account and an IPFS project. You'll retrieve the `INFURA_IPFS_ID` and `INFURA_IPFS_SECRET` values from their dashboard to use below.
+**Arguments**
 
-`PRIVATE_KEY` is the private key of an Ethereum wallet that will pay the gas to add the entry to the on-chain registry.
+- `<packageName>` - Name and version of the package to publish
 
-Add this section to your `hardhat.config.json`:
+**Options**
 
-```json
-{
-  cannon: {
-    ipfsConnection: {
-      protocol: 'https',
-      host: 'ipfs.infura.io',
-      port: 5001,
-      headers: {
-        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString('base64')}`
-      },
-    }
-  }
-}
-```
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--tags` - Comma separated list of labels for your package (_Default: "latest"_)
+- `--registryAddress` - Address for a custom package registry (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
+- `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
+- `--ipfsEndpoint` - Address for an IPFS endpoint (_Example: https://ipfs.infura.io:5001_)
+- `--ipfsAuthorizationHeader` - Authorization header for requests to the IPFS endpoint (_Example: Basic abc:123_)
+- `--privateKey` - Private key of the wallet to use when publishing
 
-Then use the following command to build your package:
+### packages
 
-```bash
-npx hardhat cannon:build
-```
+List all packages in the local Cannon directory.
 
-Inspect the contents of your package:
+**Options**
 
-```bash
-npx hardhat cannon:inspect
-```
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
 
-Finally, deploy it to the registry on mainnet. This will use the account associated with the private key in the `networks.mainnet` section of your Hardhat configuration file to execute the `publish` function on the registry after uploading the package to IPFS.
+### inspect
 
-```bash
-npx hardhat cannon:publish --network mainnet
-```
+Inspect the details of a Cannon package.
 
-If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.
+**Arguments**
+
+- `packageName` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--json` - Output as JSON (_Default: false_)
+
+### import
+
+Import a Cannon package from a zip archive.
+
+**Arguments**
+
+- `importFile` - Relative path and filename to package archive. (_Example: synthetix.latest.zip_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+
+### export
+
+Export a Cannon package as a zip archive.
+
+**Arguments**
+
+- `packageName` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+- `outputFile` - Relative path and filename to export package archive (_Default: "./{packageName.packageVersion}.zip"_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
 
 ## cannon.json Specification
+
+You can use a cannon.json file to run multiple packages across multiple nodes. See documentation for the [run](#run) command for more information.
 
 - `name` _<small>string</small>_ - This is the name of your protocol, which you can reference in the `deploy` section of this file.
 - `chains` _<small>array</small>_ - This defines each of the chains you plan to deploy on and the protocols to be deployed on each of them.
   - `chainId` _<small>integer</small>_ - The id of the chain this will ultimately be deployed to. See [Chainlist](https://chainlist.org/) for reference.
   - `deploy` _<small>array</small>_ - This is an array of Cannonfiles to provision on this chain. It can be the `name` field for your protocol or the name of a package from the [registry](/search). The items in the array can also be arrays with a length of two, where the first item is the name of the package to use and the second item is an object with options to use when running this Cannonfile.
   - `port` _<small>integer</small>_ - Optionally, specify a port use for this node.
+
+For example:
+
+```json
+{
+  "name": "mySampleProject:latest",
+  "chains": [
+    {
+      "deploy": [
+        "mySampleProject:latest",
+        "synthetix:2.62",
+        "keeper:snapshot-keeper"
+      ],
+      "chainId": 1
+    },
+    {
+      "deploy": ["mySampleProject:latest", "synthetix:2.62"],
+      "chainId": 10
+    }
+  ]
+}
+```
 
 ## cannonfile.toml Specification
 
@@ -353,7 +365,7 @@ This action updates the return object by merging the object returned from the sc
 
 **Coming soon.**
 
-- Set up a Hardhat project
+- Set up a Foundry project
 - Write a contract and cannonfile that interacts with Synthetix
 - Deploy it connected to the live protocol
 
@@ -370,12 +382,12 @@ This action updates the return object by merging the object returned from the sc
 **Coming soon.**
 
 - Use the CLI to load the Synthetix package
-- un a basic test using Synpress
+- Run a basic test using Synpress
 - Integrate with a CI tool
 
 ## Deploy a Protocol
 
-For this guide, we’ll assume you have a Hardhat project with the `hardhat-cannon` plug-in installed and a `cannonfile.toml` that successfully builds when you call `npx hardhat cannon:build`.
+For this guide, we’ll assume you have a Hardhat project with the `hardhat-cannon` plug-in installed and a `cannonfile.toml` that successfully builds when you call `npx hardhat cannon:build`. For information about deploying a Foundry project, see documentation for the [deploy](#deploy) command.
 
 ### Properly configure Hardhat
 
@@ -415,10 +427,10 @@ To perform all of the tasks below, your `hardhat.config.js` should look somethin
 
 ### Do a dry run
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. If you add the `--port` option, it will continue running at the specified port.
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag.
 
 ```bash
-npx hardhat cannon:build --network <network name> --dry-run --port <number>
+npx hardhat cannon:deploy --network <network name> --dry-run
 ```
 
 ### Deploy to a live network
@@ -426,7 +438,7 @@ npx hardhat cannon:build --network <network name> --dry-run --port <number>
 Then remove the `--dry-run` flag to actually deploy. This will use the account associated with the private key for the network you select in your `hardhat.config.js` file.
 
 ```bash
-npx hardhat cannon:build --network <network name>
+npx hardhat cannon:deploy --network <network name>
 ```
 
 ### Verify your contracts on Etherscan
@@ -457,7 +469,7 @@ This will use the account associated with the private key in the `networks.mainn
 npx hardhat cannon:publish --network mainnet
 ```
 
-For unofficial releases, you can use other deployments of the [package registry](https://usecannon.com/packages/registry). We’ve deployed an instance on rinkeby that can be used with the following command:
+For unofficial releases, you can use the import/export commands, or other deployments of the [package registry](/packages/registry). We’ve deployed an instance on rinkeby that can be used with the following command:
 
 ```bash
 npx hardhat cannon:publish --network rinkeby --registry-address 0x79E25D87432920FC5C187e14676FA6a8A8a00418

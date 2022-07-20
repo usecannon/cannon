@@ -85,13 +85,23 @@ export default {
 
     const runfile = await import(join(runtime.baseDir, config.exec));
 
-    const outputs = await runfile[config.func](runtime, ...(config.args || []));
+    const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
 
-    if (!outputs.contracts) {
+    if (!outputs.contracts && !outputs.txns) {
       throw new Error(
         'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed, return an empty object.'
       );
     }
+
+    outputs.contracts = _.mapValues(outputs.contracts, (c) => ({
+      ...c,
+      deployedOn: runtime.currentLabel!,
+    }));
+
+    outputs.txns = _.mapValues(outputs.txns, (t) => ({
+      ...t,
+      deployedOn: runtime.currentLabel!,
+    }));
 
     return outputs;
   },

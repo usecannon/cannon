@@ -1,322 +1,234 @@
-#!/usr/bin/env node
-import _ from 'lodash';
-
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import { Command } from 'commander';
 
-import { setupAnvil, checkCannonVersion } from './helpers';
-export { setupAnvil };
-import { resolve } from 'path';
-
-import {
-  CannonRegistry,
-  ChainBuilder,
-  ChainArtifacts,
-  downloadPackagesRecursive,
-  ChainBuilderContext,
-} from '@usecannon/builder';
-
+import { checkCannonVersion, execPromise } from './helpers';
+import { parseInteger, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 import pkg from '../package.json';
+import { PackageDefinition } from './types';
 
-import Debug from 'debug';
-import { runRpc, getProvider } from './rpc';
-import { ethers } from 'ethers';
-import { interact } from './interact';
+import type { RunOptions } from './commands/run';
+import { ContractArtifact } from '@usecannon/builder';
+import { DEFAULT_CANNON_DIRECTORY } from './constants';
 
-import fs from 'fs-extra';
-import path from 'path';
-import readline from 'readline';
-import { URL } from 'node:url';
-import fetch from 'node-fetch';
-import { greenBright, green, magentaBright, bold, gray } from 'chalk';
-
-const debug = Debug('cannon:cli');
+// Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { build } from './commands/build';
+export { deploy } from './commands/deploy';
+export { exportPackage } from './commands/export';
+export { importPackage } from './commands/import';
+export { inspect } from './commands/inspect';
+export { packages } from './commands/packages';
+export { publish } from './commands/publish';
+export { run } from './commands/run';
+export { verify } from './commands/verify';
 
 const program = new Command();
-
-const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
-const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
-    'i'
-  )} to interact with contracts via the command line.`
-);
-
-class ReadOnlyCannonRegistry extends CannonRegistry {
-  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
-
-  constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
-    super(opts);
-
-    this.ipfsOptions = opts.ipfsOptions;
-  }
-
-  async readIpfs(urlOrHash: string): Promise<Buffer> {
-    const hash = urlOrHash.replace(/^ipfs:\/\//, '');
-
-    const result = await fetch(
-      `${this.ipfsOptions.protocol}://${this.ipfsOptions.host}:${this.ipfsOptions.port}/ipfs/${hash}`
-    );
-
-    return await result.buffer();
-  }
-}
-
-async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
-  if (prefix) {
-    prefix = prefix + '.';
-  }
-
-  for (const m in outputs.imports) {
-    await writeModuleDeployments(deploymentPath, `${prefix}${m}`, outputs.imports[m]);
-  }
-
-  for (const contract in outputs.contracts) {
-    const file = path.join(deploymentPath, `${prefix}${contract}.json`);
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const contractOutputs = outputs.contracts![contract];
-
-    const transformedOutput = {
-      ...contractOutputs,
-      abi: contractOutputs.abi,
-    };
-
-    // JSON format is already correct, so we can just output what we have
-    await fs.writeFile(file, JSON.stringify(transformedOutput, null, 2));
-  }
-}
-
-function getContractsRecursive(
-  outputs: ChainBuilderContext,
-  signer: ethers.Signer,
-  prefix?: string
-): {
-  [x: string]: ethers.Contract;
-} {
-  let contracts = _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signer));
-  if (prefix) {
-    contracts = _.mapKeys(contracts, (contract, contractName) => `${prefix}.${contractName}`);
-  }
-  for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
-    contracts = { ...contracts, ...newContracts };
-  }
-  return contracts;
-}
 
 program
   .name('cannon')
   .version(pkg.version)
-  .description('Utility for instantly loading cannon packages in standalone contexts.')
-  .usage('cannon <name>:<semver> [key=value]')
-  .argument('<package>', 'Label and version of the cannon package to load')
-  .argument('[settings...]', 'Arguments used to modify the given package')
-  .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-  .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
-  .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
-  .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('-e --exit', 'Exit after building')
-  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
+  .description('Run a cannon package on a local node')
+  .hook('preAction', async function () {
+    await checkCannonVersion(pkg.version);
+  });
+
+configureRun(program);
+configureRun(program.command('run'));
+
+function configureRun(program: Command) {
+  return program
+    .description('Utility for instantly loading cannon packages in standalone contexts.')
+    .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
+    .argument(
+      '[packageNames...]',
+      'List of packages to load, optionally with custom settings for each one',
+      parsePackagesArguments
+    )
+    .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
+    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
+    .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+    .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
+    .option('--preset <name>', 'Load an alternate setting preset (default: main)')
+    .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+    .option('-e --exit', 'Exit after building')
+    .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
+    .option(
+      '--registry-address <address>',
+      'Address where the cannon registry is deployed',
+      '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
+    )
+    .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+    .action(async function (packages: PackageDefinition[], options, program) {
+      console.log(packages);
+      // const { default: command } = await import('./commands/run');
+      // await command(packageName, settings, options, program);
+    });
+}
+
+program
+  .command('build')
+  .description('Build a package from a Cannonfile')
+  .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
+  .argument('[settings...]', 'Custom settings to to build the cannon image')
+  .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
   .option(
-    '--registry-address <address>',
-    'Address where the cannon registry is deployed',
+    '-c --contracts [contracts]',
+    'Contracts sources directory, these will be built using Foundry and saved to --artifacts.'
+  )
+  .option('-a --artifacts [artifacts]', 'Specify the directory with your artifact data.')
+  .option('-d --directory [directory]', 'Path to a custom package directory.', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (cannonfile, settings, opts) {
+    // If the first param is not a cannonfile, it should be parsed as settings
+    if (!cannonfile.endsWith('.toml')) {
+      settings.unshift(cannonfile);
+      cannonfile = 'cannonfile.toml';
+    }
+
+    const parsedSettings = parseSettings(settings);
+
+    const cannonfilePath = path.resolve(cannonfile);
+    const projectDirectory = path.dirname(cannonfilePath);
+
+    // Build project to get the artifacts
+    const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
+    const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
+    await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
+
+    const getArtifact = async (name: string): Promise<ContractArtifact> => {
+      // TODO: Theres a bug that if the file has a different name than the contract it would not work
+      const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
+      const artifactBuffer = await fs.readFile(artifactPath);
+      const artifact = JSON.parse(artifactBuffer.toString()) as any;
+      return {
+        contractName: name,
+        sourceName: artifact.ast.absolutePath,
+        abi: artifact.abi,
+        bytecode: artifact.bytecode.object,
+        linkReferences: artifact.bytecode.linkReferences,
+      };
+    };
+
+    const { build } = await import('./commands/build');
+    await build({
+      cannonfilePath,
+      settings: parsedSettings,
+      getArtifact,
+      cannonDirectory: opts.directory,
+      projectDirectory,
+      preset: opts.preset,
+    });
+  });
+
+program
+  .command('deploy')
+  .description('Deploy a cannon package to a network')
+  .argument('[package...]', 'Cannon Package to use, optionally with custom settings', parsePackageArguments)
+  .requiredOption('-n --network-rpc <networkRpc>', 'RPC network endpoint url to deploy to')
+  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use when deploying')
+  .option('-p --preset <preset>', 'Specify the preset of settings to be used from the cannon package', 'main')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('--dry-run')
+  .action(async function (packageDefinition, opts) {
+    const { deploy } = await import('./commands/deploy');
+
+    // TODO Add a private key format validator
+
+    await deploy({
+      packageDefinition,
+      cannonDirectory: opts.directory,
+      projectDirectory: process.cwd(),
+      networkRpc: opts.networkRpc,
+      privateKey: opts.privateKey,
+      preset: opts.preset,
+      dryRun: opts.dryRun || false,
+    });
+  });
+
+program
+  .command('verify')
+  .description('Verify a package on Etherscan')
+  .argument('<packageName>', 'Name and version of the Cannon package to verify')
+  .option('-a --apiKey <apiKey>', 'Etherscan API key')
+  .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (packageName, options) {
+    const { verify } = await import('./commands/verify');
+    await verify(packageName, options.apiKey, options.network, options.directory);
+  });
+
+program
+  .command('packages')
+  .description('List all packages in the local Cannon directory')
+  .argument('[directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (directory) {
+    const { packages } = await import('./commands/packages');
+    await packages(directory);
+  });
+
+program
+  .command('inspect')
+  .description('Inspect the details of a Cannon package')
+  .argument('<packageName>', 'Name and version of the cannon package to inspect')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, options) {
+    const { inspect } = await import('./commands/inspect');
+    await inspect(options.directory, packageName, options.json);
+  });
+
+program
+  .command('publish')
+  .description('Publish a Cannon package to the registry')
+  .argument('<packageName>', 'Name and version of the package to publish')
+  .option('-p <privateKey>', 'Private key of the wallet to use when publishing')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
+  .option(
+    '-a --registryAddress <registryAddress>',
+    'Address for a custom package registry',
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
+  .option(
+    '-r --registryEndpoint <registryEndpoint>',
+    'Address for RPC endpoint for the registry',
+    'https://cloudflare-eth.com/v1/mainnet'
+  )
+  .option('-e --ipfsEndpoint <ipfsEndpoint>', 'Address for an IPFS endpoint')
+  .option('-h --ipfsAuthorizationHeader <ipfsAuthorizationHeader>', 'Authorization header for requests to the IPFS endpoint')
+  .action(async function (packageName, options) {
+    const { publish } = await import('./commands/publish');
 
-async function run() {
-  await checkCannonVersion(pkg.version);
-
-  let showAnvilLogs = false;
-  let interacting = false;
-
-  program.parse();
-  const options = program.opts();
-  const args = program.processedArgs;
-
-  console.log(magentaBright(`Loading cannon (${pkg.version})...`));
-
-  [options.name, options.version] = args[0].split(':');
-
-  if (!options.version) {
-    options.version = 'latest';
-  }
-
-  options.settings = _.fromPairs(args[1].map((kv: string) => kv.split('=')));
-
-  debug('parsed arguments', options, args);
-
-  await setupAnvil();
-
-  console.log(magentaBright('Starting local node...'));
-
-  // Start the rpc server
-  const anvilInstance = await runRpc({
-    port: options.port || 8545,
-    forkUrl: options.fork,
-  });
-
-  let outputBuffer = '';
-  anvilInstance.stdout!.on('data', (rawChunk) => {
-    const chunk = rawChunk.toString('utf8');
-    const newData = chunk
-      .split('\n')
-      .map((m: string) => {
-        return gray('anvil: ') + m;
-      })
-      .join('\n');
-
-    if (showAnvilLogs) {
-      console.log(newData);
-    } else {
-      outputBuffer += '\n' + newData;
-    }
-  });
-
-  const provider = await getProvider(anvilInstance);
-
-  // required to supply chainId to the builder
-  const networkInfo = await provider.getNetwork();
-
-  // then, start the chain builder
-  const signers: ethers.Wallet[] = [];
-  // if no signer is specified, load from the default mnemonic chain
-  for (let i = 0; i < 10; i++) {
-    signers.push(
-      ethers.Wallet.fromMnemonic(
-        'test test test test test test test test test test test junk',
-        `m/44'/60'/0'/0/${i}`
-      ).connect(provider)
+    await publish(
+      options.directory,
+      options.privateKey,
+      packageName,
+      options.tags,
+      options.registryAddress,
+      options.registryEndpoint,
+      options.ipfsEndpoint,
+      options.ipfsAuthorizationHeader
     );
-  }
-
-  // download from package registry
-  const parsedIpfs = new URL(options.ipfsUrl);
-  const registry = new ReadOnlyCannonRegistry({
-    address: options.registryAddress,
-    signerOrProvider: new ethers.providers.JsonRpcProvider(options.registryRpc),
-    ipfsOptions: {
-      protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
-      host: parsedIpfs.host,
-      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
-      /*headers: {
-        authorization: `Basic ${Buffer.from(parsedIpfs[2] + ':').toString('base64')}`,
-      },*/
-    },
   });
 
-  console.log(magentaBright(`Downloading ${options.name + ':' + options.version}...`));
-
-  await downloadPackagesRecursive(
-    options.name + ':' + options.version,
-    networkInfo.chainId,
-    options.preset,
-    registry,
-    provider
-  );
-
-  const builder = new ChainBuilder({
-    name: options.name,
-    version: options.version,
-
-    readMode: options.fork ? 'metadata' : 'all',
-    writeMode: 'none',
-    preset: options.preset,
-
-    chainId: networkInfo.chainId,
-    provider,
-    async getSigner(addr: string) {
-      // on test network any user can be conjured
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
-      return provider.getSigner(addr);
-    },
+program
+  .command('import')
+  .description('Import a Cannon package from a zip archive')
+  .argument('<importFile>', 'Relative path and filename to package archive')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (importFile, options) {
+    const { importPackage } = await import('./commands/import');
+    await importPackage(options.directory, importFile);
   });
 
-  debug('start build', options.settings);
+program
+  .command('export')
+  .description('Export a Cannon package as a zip archive')
+  .argument('<packageName>', 'Name and version of the cannon package to export')
+  .argument('[outputFile]', 'Relative path and filename to export package archive')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (packageName, outputFile, options) {
+    const { exportPackage } = await import('./commands/export');
+    await exportPackage(options.directory, outputFile, packageName);
+  });
 
-  console.log(magentaBright(`Deploying ${options.name + ':' + options.version} to local node...`));
-
-  const outputs = await builder.build(options.settings);
-
-  if (options.writeDeployments) {
-    console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-    const path = resolve(options.writeDeployments);
-    await fs.mkdirp(path);
-    await writeModuleDeployments(options.writeDeployments, '', outputs);
-  }
-
-  debug('start interact');
-  console.log(
-    greenBright(
-      `${bold(options.name + ':' + options.version)} has been deployed to a local node running at ${bold(
-        provider.connection.url
-      )}`
-    )
-  );
-
-  if (options.exit) {
-    console.log(green('Exiting the CLI.'));
-    process.exit();
-  }
-
-  const keypress = () => {
-    return new Promise((resolve) => {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        escapeCodeTimeout: 50,
-      });
-      readline.emitKeypressEvents(process.stdin, rl);
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
-      const listener = async (str: any, key: any) => {
-        if (key.ctrl && key.name === 'c') {
-          // Exit if the user does ctrl + c
-          process.exit();
-        } else if (str === 'a' && !interacting) {
-          // Toggle showAnvilLogs when the user presses "a"
-          showAnvilLogs = !showAnvilLogs;
-          if (showAnvilLogs) {
-            console.log(gray('Unpaused anvil logs...'));
-            if (outputBuffer.length) {
-              console.log(outputBuffer);
-              outputBuffer = '';
-            }
-          } else {
-            console.log(gray('Paused anvil logs...'));
-            console.log(INSTRUCTIONS);
-          }
-        } else if (str === 'i' && !interacting) {
-          // Enter the interact tool when the user presses "i"
-          interacting = true;
-          await interact({
-            provider,
-            signer: signers[0],
-            contracts: getContractsRecursive(outputs, signers[0]),
-          });
-          console.log(INSTRUCTIONS);
-          interacting = false;
-        } else if (str === 'h' && !interacting) {
-          console.log('\n' + program.helpInformation());
-          console.log(INSTRUCTIONS);
-        }
-        process.stdin.removeListener('keypress', listener);
-        process.stdin.setRawMode(false);
-        rl.close();
-        resolve(null);
-
-        await keypress();
-      };
-      process.stdin.on('keypress', listener);
-    });
-  };
-
-  console.log(INITIAL_INSTRUCTIONS);
-  console.log(INSTRUCTIONS);
-  await keypress();
-}
-
-if (require.main === module) {
-  run();
-}
+export default program;

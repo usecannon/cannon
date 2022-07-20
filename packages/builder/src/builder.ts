@@ -2,7 +2,6 @@
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import Debug from 'debug';
-import crypto from 'crypto';
 import fs from 'fs-extra';
 import path, { dirname } from 'path';
 
@@ -11,36 +10,32 @@ import { EventEmitter } from 'events';
 import {
   ChainBuilderContext,
   ChainBuilderRuntime,
-  ChainDefinition,
-  BuildOptions,
-  OptionTypesTs,
   ContractArtifact,
-  ChainBuilderOptions,
   StorageMode,
   DeploymentManifest,
   DeploymentInfo,
+  BuildOptions,
 } from './types';
-import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
-import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
 
-export { validateChainDefinition } from './types';
+import { ChainDefinition, ActionKinds, RawChainDefinition, StateLayers } from './definition';
+
+import { getExecutionSigner, getStoredArtifact, passThroughArtifact, printChainDefinitionProblems } from './util';
+import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
 
 const debug = Debug('cannon:builder');
 
 const BUILD_VERSION = 3;
 
-import contractSpec from './steps/contract';
-import importSpec from './steps/import';
-import invokeSpec from './steps/invoke';
-import scriptSpec from './steps/run';
-import { clearDeploymentInfo, getAllDeploymentInfos, getDeploymentInfo, getDeploymentInfoFile, putDeploymentInfo } from '.';
-
-export const StepKinds = {
-  contract: contractSpec,
-  import: importSpec,
-  invoke: invokeSpec,
-  run: scriptSpec,
-};
+import {
+  clearDeploymentInfo,
+  combineCtx,
+  ContractMap,
+  getAllDeploymentInfos,
+  getDeploymentInfo,
+  getDeploymentInfoFile,
+  putDeploymentInfo,
+  TransactionMap,
+} from '.';
 
 export enum Events {
   PreStepExecute = 'pre-step-execute',
@@ -49,31 +44,12 @@ export enum Events {
   DeployTxn = 'deploy-txn',
 }
 
-/**
- * Runtime information about actions in a supplied ChainDefinition.
- * Used to complete builds and information purposes
- */
-export type ActionsAnalysis = {
-  // layers which are already
-  matched: Map<string, ChainBuilderContext>;
-
-  // layers which need to be built
-  unmatched: Set<string>;
-
-  // top layers, useful for saving and loading the final state
-  heads: Set<string>;
-
-  // layers which may be linked together for state purposes, and therefore should be built and saved a unit in the case of a local build (even if already built)
-  layers: Map<string, { actions: string[]; depends: string[] }>;
-};
-
 const DEFAULT_PRESET = 'main';
 
 export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly name: string;
   readonly version: string;
   readonly def: ChainDefinition;
-  readonly allActionNames: string[];
 
   readonly preset: string;
 
@@ -113,7 +89,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       name: string;
       version: string;
       chainId: number;
-      def?: ChainDefinition;
+      def?: ChainDefinition | RawChainDefinition;
       preset?: string;
       readMode?: StorageMode;
       writeMode?: StorageMode;
@@ -127,13 +103,17 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.packagesDir = savedPackagesDir || getSavedPackagesDir();
     this.packageDir = getPackageDir(this.packagesDir, name, version);
 
-    this.def = def ?? this.loadCannonfile();
-
-    this.allActionNames = this.getAllActions();
-
     this.preset = preset ?? DEFAULT_PRESET;
 
     this.chainId = chainId;
+
+    if (def) {
+      this.def = (def as ChainDefinition).allActionNames
+        ? (def as ChainDefinition)
+        : new ChainDefinition(def as RawChainDefinition);
+    } else {
+      this.def = this.loadCannonfile();
+    }
     this.provider = provider;
     this.baseDir = baseDir || null;
     this.getSigner = getSigner;
@@ -142,352 +122,168 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
       : (name) => getStoredArtifact(this.packageDir, name);
 
-    //@ts-ignore
-    if (!this.def.name) {
-      throw new Error('Missing "name" property on cannonfile.toml');
-    }
-
-    //@ts-ignore
-    if (!this.def.version) {
-      throw new Error('Missing "version" property on cannonfile.toml');
-    }
-
     this.readMode = readMode || 'none';
     this.writeMode = writeMode || 'none';
-  }
-
-  async getDependencies(opts: BuildOptions) {
-    if (!this.def.import) return [];
-
-    // we have to apply templating here, only to the `source`
-    // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
-    // can do about this right now
-    const ctx = await this.populateSettings(opts);
-    return _.uniq(
-      Object.values(this.def.import).map((d) => ({
-        source: _.template(d.source)(ctx),
-        chainId: d.chainId || this.chainId,
-        preset: _.template(d.preset || 'main')(ctx),
-      }))
-    );
   }
 
   async runStep(n: string, ctx: ChainBuilderContext) {
     this.currentLabel = n;
 
-    const cfg = _.get(this.def, n);
+    const cfg = this.def.getConfig(n, ctx);
     if (!cfg) {
       throw new Error(`action ${n} missing for execution`);
     }
 
-    const [type, label] = n.split('.') as [keyof typeof StepKinds, string];
+    const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
 
-    this.emit(Events.PreStepExecute, type, label);
-
-    const injectedConfig = StepKinds[type].configInject(ctx, cfg as any) as any;
-
-    const output = await StepKinds[type].exec(this, ctx, injectedConfig);
+    this.emit(Events.PreStepExecute, type, label, cfg);
+    const output = await ActionKinds[type].exec(this, ctx, cfg as any);
 
     if (type === 'import') {
       ctx.imports[label] = output;
     } else {
-      for (const contract in output.contracts) {
+      const contracts = output.contracts as ContractMap;
+
+      for (const contract in contracts) {
         if (ctx.contracts[contract]) {
           // name reused
           throw new Error(
             `duplicate contract label ${contract}. Please double check your cannonfile/scripts to ensure a contract name is used only once.
 
-previous contract deployed at: ${ctx.contracts[contract].address} in step ${'tbd'}`
+previous contract deployed at: ${ctx.contracts[contract].address} in step ${ctx.contracts[contract].deployedOn}`
           );
         }
 
-        ctx.contracts[contract] = output.contracts[contract];
-        this.emit(Events.DeployContract, n, output.contracts[contract]);
+        ctx.contracts[contract] = contracts[contract];
+        this.emit(Events.DeployContract, n, contracts[contract]);
       }
 
-      for (const txn in output.txns) {
+      const txns = output.txns as TransactionMap;
+
+      for (const txn in txns) {
         if (ctx.txns[txn]) {
           // name reused
           throw new Error(
             `duplicate transaction label ${txn}. Please double check your cannonfile/scripts to ensure a txn name is used only once.
-            
+
 previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
           );
         }
 
-        ctx.txns[txn] = output.txns[txn];
-        this.emit(Events.DeployTxn, n, output.txns[txn]);
+        ctx.txns[txn] = txns[txn];
+        this.emit(Events.DeployTxn, n, txns[txn]);
       }
     }
 
     this.emit(Events.PostStepExecute, type, label, output);
 
     this.currentLabel = null;
+
+    return ctx;
   }
 
   findNextSteps(alreadyDone: Map<string, ChainBuilderContext>): [string, { depends: string[] }][] {
     const doneActionNames = Array.from(alreadyDone.keys());
 
     return _.filter(
-      this.allActionNames.map((n) => [n, _.get(this.def, n)!]) as [string, { depends: string[] }][],
+      this.def.allActionNames.map((n) => [n, _.get(this.def, n)!]) as [string, { depends: string[] }][],
       ([n, conf]) =>
         !alreadyDone.has(n) && // step itself is not already done
         _.difference(conf.depends || [], doneActionNames).length === 0 // all dependencies are already done
     );
   }
 
-  async runSteps(
-    opts: BuildOptions,
-    alreadyDone: Map<string, ChainBuilderContext>
-  ): Promise<[string, ChainBuilderContext][]> {
-    // needed in case layers
-    const nextSteps = this.findNextSteps(alreadyDone);
-    const newlyDone: [string, ChainBuilderContext][] = [];
+  private async buildLayer(
+    baseCtx: ChainBuilderContext,
+    layers: StateLayers,
+    cur: string,
+    ctxes: Map<string, ChainBuilderContext> = new Map(),
+    tainted: Set<string> = new Set()
+  ) {
+    const layer = layers[cur];
 
-    for (const [n, conf] of nextSteps) {
-      let ctx = await this.populateSettings(opts);
-
-      for (const dep of conf.depends || []) {
-        ctx = await this.augmentCtx([ctx, alreadyDone.get(dep)!], opts);
-      }
-
-      debug(`run step ${n}`, conf);
-      await this.runStep(n, ctx);
-
-      // dump layer in case we are writing metadata
-      await this.dumpLayer(ctx, n);
-
-      newlyDone.push([n, ctx]);
+    // if layer is already done
+    if (layer.actions.find((a) => ctxes.has(a))) {
+      return;
     }
 
-    return newlyDone;
-  }
+    // check all dependencies. If the dependency is not done, run the dep layer first
+    let isCompleteLayer = true;
+    for (const dep of layer.depends) {
+      await this.buildLayer(baseCtx, layers, dep, ctxes, tainted);
 
-  // runs any steps that can be immediately completed without iterating into deeper layers
-  // returns the list of new steps completed.
-  async runRecordedSteps(
-    opts: BuildOptions,
-    alreadyDone: Map<string, ChainBuilderContext>,
-    layers: ActionsAnalysis['layers'] | null
-  ): Promise<[string, ChainBuilderContext][]> {
-    // TODO: handle what happens on write mode all but read mode none
-    const nextSteps = this.findNextSteps(alreadyDone);
-    const newlyDone: [string, ChainBuilderContext][] = [];
-
-    // needed in case layers
-    const skipActions = new Map<string, ChainBuilderContext>();
-
-    for (const [n, conf] of nextSteps) {
-      if (skipActions.has(n)) {
-        newlyDone.push([n, skipActions.get(n)!]);
-        continue;
-      }
-
-      await this.clearNode();
-
-      let ctx = await this.populateSettings(opts);
-
-      // load full state for all dependencies
-      if (layers && layers.has(n)) {
-        const layerInfo = layers.get(n)!;
-
-        for (const dep of layerInfo.depends) {
-          const newCtx = await this.loadLayer(dep);
-
-          if (!newCtx) {
-            throw new Error(`could not load metadata from action ${dep}`);
-          }
-
-          ctx = await this.augmentCtx([ctx, newCtx], opts);
-        }
-
-        debug('enter layer', layerInfo.actions);
-        debug('layer deps', layerInfo.depends);
-
-        for (const otherN of layerInfo.actions) {
-          debug(`run step in layer ${n}`, conf);
-          // run all layer actions regarless of of they have been done already or not
-          // a new layer will be recorded with all of these together
-          await this.runStep(otherN, ctx);
-        }
-
-        for (const otherN of layerInfo.actions) {
-          // save the fresh layer for all linked layers
-          // todo: this could be a lot more efficient if `dumpLayer` took an array
-          await this.dumpLayer(ctx, otherN);
-          skipActions.set(otherN, ctx);
-        }
-      } else {
-        for (const dep of conf.depends) {
-          const newCtx = await this.loadLayer(dep);
-
-          if (!newCtx) {
-            throw new Error(`could not load metadata from action ${dep}`);
-          }
-
-          ctx = await this.augmentCtx([ctx, newCtx], opts);
-        }
-
-        debug(`run step ${n}`, conf);
-        await this.runStep(n, ctx);
-        await this.dumpLayer(ctx, n);
-      }
-
-      newlyDone.push([n, ctx]);
+      // if a prior layer had to be rebuilt, we must rebuild the current layer as well
+      isCompleteLayer = isCompleteLayer && !tainted.has(dep);
     }
 
-    return newlyDone;
-  }
+    // do all state layers match? if so, load the layer from cache and continue
+    if (isCompleteLayer) {
+      for (const action of layer.actions) {
+        let ctx = _.cloneDeep(baseCtx);
 
-  getAllActions() {
-    const actions = [];
-    for (const kind in StepKinds) {
-      for (const n in this.def[kind as keyof typeof StepKinds]) {
-        actions.push(`${kind}.${n}`);
-      }
-    }
-
-    return _.sortBy(actions, _.identity);
-  }
-
-  async analyzeActions(
-    opts: BuildOptions,
-    actions = this.allActionNames,
-    analysis: ActionsAnalysis = {
-      matched: new Map(),
-      unmatched: new Set(),
-      heads: new Set(),
-      layers: new Map(),
-    }
-  ): Promise<ActionsAnalysis> {
-    if (!analysis.heads.size) {
-      for (const n of actions) {
-        analysis.heads.add(n);
-      }
-
-      // layers is done as a separate calculation
-      const layers = this.getStateLayers(actions);
-
-      // rekey for analysis
-      for (const layer of Object.values(layers)) {
-        for (const n of layer.actions) {
-          analysis.layers.set(n, layer);
-        }
-      }
-    }
-
-    for (const n of actions) {
-      if (analysis.matched.has(n) || analysis.unmatched.has(n)) {
-        continue;
-      }
-
-      const action = _.get(this.def, n);
-
-      if (!action) {
-        throw new Error(`action not found: ${n}`);
-      }
-
-      // if any of the depended upon actions are unmatched, this is unmatched
-      let ctx = await this.populateSettings(opts);
-      for (const dep of action.depends || []) {
-        if (_.sortedIndexOf(this.allActionNames, dep) === -1) {
-          throw new Error(`in dependencies for ${n}: '${dep}' is not a known action.
-
-please double check your configuration. the list of known actions is:
-${this.allActionNames.join('\n')}
-          `);
+        for (const dep of this.def.getDependencies(action)) {
+          ctx = combineCtx([ctx, ctxes.get(dep)!]);
         }
 
-        analysis.heads.delete(dep);
+        const layerActionCtx = await this.layerMatches(ctx, action);
 
-        await this.analyzeActions(opts, [dep], analysis);
-        if (analysis.unmatched.has(dep)) {
-          analysis.unmatched.add(n);
-          continue;
+        if (!layerActionCtx) {
+          isCompleteLayer = false;
+          break;
         } else {
-          ctx = await this.augmentCtx([ctx, analysis.matched.get(dep)!], opts);
+          ctxes.set(action, layerActionCtx);
         }
       }
-
-      // if layerMatches returns true, its matching
-      const curCtx = await this.layerMatches(ctx, n);
-      if (curCtx) {
-        analysis.matched.set(n, curCtx);
-      } else {
-        analysis.unmatched.add(n);
-      }
+    } else {
+      debug(`layer for ${cur} is tainted, not checking hashes`);
     }
 
-    return analysis;
-  }
+    // if we get here, need to run a rebuild of layer
+    if (!isCompleteLayer) {
+      debug('run to complete layer', layer.actions, layer.depends);
+      let ctx = _.cloneDeep(baseCtx);
 
-  // on local nodes, steps depending on the same base need to be merged into "layers" to prevent state collisions
-  // returns an array of layers which can be deployed as a unit in topological order
-  getStateLayers(
-    actions = this.allActionNames,
-    layers: { [key: string]: { actions: string[]; depends: string[] } } = {},
-    layerOfActions = new Map<string, string>(),
-    layerDependingOn = new Map<string, string>()
-  ): { [key: string]: { actions: string[]; depends: string[] } } {
-    for (const n of actions) {
-      if (layerOfActions.has(n)) {
-        continue;
+      if (this.writeMode === 'all') {
+        await this.clearNode();
       }
 
-      const action = _.get(this.def, n);
+      for (const dep of layer.depends) {
+        ctx = combineCtx([ctx, ctxes.get(dep)!]);
 
-      if (!action) {
-        throw new Error(`action not found: ${n}`);
-      }
-
-      // find a layer to attach to
-      let attachingLayer: string | null = null;
-      for (const dep of action.depends || []) {
-        if (!layerOfActions.has(dep)) {
-          this.getStateLayers([dep], layers, layerOfActions);
-        }
-
-        const depLayer = layerOfActions.get(dep)!;
-
-        const dependingLayer = layerDependingOn.get(depLayer);
-
-        if (dependingLayer) {
-          if (attachingLayer) {
-            // "merge" this entire layer into the other one
-            layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
-            layers[dependingLayer].actions.push(...layers[attachingLayer].depends);
-          } else {
-            // "join" this layer
-            layers[dependingLayer].actions.push(n);
-          }
-
-          attachingLayer = dependingLayer;
-        } else if (attachingLayer && layers[attachingLayer].depends.indexOf(depLayer) === -1) {
-          // "extend" this layer to encapsulate this
-          layers[attachingLayer].depends.push(depLayer);
-          layerDependingOn.set(depLayer, attachingLayer);
+        if (this.writeMode === 'all') {
+          await this.loadState(dep);
         }
       }
 
-      // if never attached to layer make a new one
-      if (!attachingLayer) {
-        attachingLayer = n;
-        layers[n] = { actions: [n], depends: (action.depends || []).map((dep: string) => layerOfActions.get(dep)!) };
+      for (const action of layer.actions) {
+        debug('run action in layer', action);
+        const newCtx = await this.runStep(action, _.clone(ctx));
+        ctxes.set(action, newCtx);
+        tainted.add(action);
+        await this.dumpAction(newCtx, action);
       }
 
-      for (const n of layers[attachingLayer].actions) {
-        layerOfActions.set(n, attachingLayer);
+      if (this.writeMode === 'all') {
+        await this.dumpState(layer.actions);
       }
-
-      for (const d of layers[attachingLayer].depends) {
-        layerDependingOn.set(d, attachingLayer);
+    } else {
+      if (this.writeMode !== 'all') {
+        // need to load the layer since we are not doing clear reset for write mode
+        await this.loadState(layer.actions[0]);
       }
     }
-
-    return layers;
   }
 
   async build(opts: BuildOptions): Promise<ChainBuilderContext> {
+    debug('preflight');
+
+    const problems = this.def.checkAll();
+
+    if (problems) {
+      throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
+${printChainDefinitionProblems(problems)}`);
+    }
+
     debug('build');
     debug(`read mode: ${this.readMode}, write mode: ${this.writeMode}`);
 
@@ -507,80 +303,62 @@ ${this.allActionNames.join('\n')}
       );
     }
 
-    const analysis = await this.analyzeActions(opts);
-    const loadedStates = new Set<string>();
+    //const analysis = await this.analyzeActions(opts);
+    const completed = new Map<string, ChainBuilderContext>();
+    const topologicalActions = this.def.topologicalActions;
 
-    while (analysis.matched.size < this.allActionNames.length) {
-      let lastDone;
-      if (this.writeMode === 'all') {
-        lastDone = await this.runRecordedSteps(opts, analysis.matched, this.writeMode === 'all' ? analysis.layers : null);
-      } else {
-        const nextSteps = this.findNextSteps(analysis.matched);
-        // load layers for next step
-        debug('load from fresh', nextSteps);
-        for (const [, conf] of nextSteps) {
-          for (const dep of conf.depends || []) {
-            if (!loadedStates.has(dep)) {
-              await this.loadLayer(dep);
-              loadedStates.add(dep);
-            }
-          }
-        }
+    if (this.writeMode === 'all' || this.readMode === 'all') {
+      const ctx = await this.populateSettings(opts);
+      const layers = this.def.getStateLayers();
 
-        lastDone = await this.runSteps(opts, analysis.matched);
-
-        for (const [n] of lastDone) {
-          loadedStates.add(n);
-        }
-      }
-
-      if (!lastDone.length) {
-        throw new Error(
-          `cannonfile is invalid: the following actions form a dependency cycle and therefore cannot be loaded:
-${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('\n')}`
-        );
-      }
-
-      for (const newLastDone of lastDone) {
-        analysis.matched.set(newLastDone[0], newLastDone[1]);
-      }
-    }
-
-    if (this.writeMode === 'all') {
-      // have to reload state of final chain
-      await this.clearNode();
-
-      for (const n of analysis.heads) {
-        await this.loadLayer(n);
+      for (const leaf of this.def.leaves) {
+        await this.buildLayer(ctx, layers, leaf, completed);
       }
     } else {
-      debug('loading from heads');
-      for (const head of analysis.heads) {
-        if (!loadedStates.has(head)) {
-          await this.loadLayer(head);
+      for (const n of topologicalActions) {
+        let ctx = await this.populateSettings(opts);
+
+        for (const dep of this.def.getDependencies(n)) {
+          ctx = combineCtx([ctx, completed.get(dep)!]);
+        }
+
+        const thisStepCtx = await this.layerMatches(ctx, n);
+        if (!thisStepCtx) {
+          debug('run isolated', n);
+          const newCtx = await this.runStep(n, ctx);
+          completed.set(n, newCtx);
+
+          if (this.writeMode !== 'none') {
+            await this.dumpAction(newCtx, n);
+          }
+        } else {
+          completed.set(n, thisStepCtx);
         }
       }
     }
 
     if (this.writeMode !== 'none') {
       await putDeploymentInfo(this.packageDir, this.chainId, this.preset, {
+        def: this.def.toJson(),
         options: opts,
         buildVersion: BUILD_VERSION,
         ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
-        heads: Array.from(analysis.heads),
+        heads: Array.from(this.def.leaves),
       });
     }
 
-    // assemble the final context for the user
-    return this.augmentCtx(
-      Array.from(analysis.heads).map((n) => analysis.matched.get(n)!),
-      opts
-    );
+    if (this.writeMode === 'all' || this.writeMode === 'metadata') {
+      // reread from outputs since everything is written, will ensure fresh state
+      return (await this.getOutputs())!;
+    } else {
+      // nothing was written so we just return what we have in the state as well as the generated ctx
+      return combineCtx(Array.from(this.def.leaves).map((n) => completed.get(n)!));
+    }
   }
 
   // clean any artifacts associated with the current
   async wipe() {
-    clearDeploymentInfo(this.packageDir, this.chainId, this.preset);
+    await clearDeploymentInfo(this.packageDir, this.chainId, this.preset);
   }
 
   async getDeploymentInfo(): Promise<DeploymentInfo | null> {
@@ -609,13 +387,29 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
     for (const h of deployInfo.heads) {
       debug('load head for output', h);
-      const newCtx = await this.loadLayer(_.last(h.split('/'))!);
+      const newCtx = await this.loadMeta(_.last(h.split('/'))!);
 
       if (!newCtx) {
         throw new Error('context not declared for published layer');
       }
 
-      ctx = await this.augmentCtx([ctx, newCtx], {});
+      ctx = await combineCtx([ctx, newCtx]);
+    }
+
+    if (this.readMode === 'all') {
+      // need to load state as well. the states that we want to load are the "leaf" layers
+      const layers = _.uniq(Object.values(this.def.getStateLayers()));
+
+      layerSearch: for (const layer of layers) {
+        for (const action of layer.actions) {
+          if (layers.find((l) => l.depends.indexOf(action) !== -1)) {
+            // this isnt a leaf
+            continue layerSearch;
+          }
+        }
+
+        await this.loadState(layer.actions[0]);
+      }
     }
 
     return ctx;
@@ -625,70 +419,39 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
     let pkg = null;
     if (this.baseDir) {
       try {
-        pkg = require(path.join(this.baseDir, 'package.json'));
+        pkg = await fs.readJson(path.join(this.baseDir, 'package.json'));
       } catch {
         console.warn('package.json file not found. Cannot add to chain builder context.');
       }
     }
 
-    return this.augmentCtx(
-      [
-        {
-          settings: {},
-          chainId: 0,
-          timestamp: '0',
+    const settings: ChainBuilderContext['settings'] = {};
 
-          package: pkg,
+    const pkgSettings = this.def.getSettings();
 
-          contracts: {},
-
-          txns: {},
-
-          imports: {},
-        },
-      ],
-      opts
-    );
-  }
-
-  async augmentCtx(ctxs: ChainBuilderContext[], opts: BuildOptions): Promise<ChainBuilderContext> {
-    const resolvedOpts: ChainBuilderOptions = _.clone(opts);
-
-    const ctx = _.clone(ctxs[0]);
-
-    for (const s in this.def.setting || {}) {
-      if (!this.def.setting?.[s]) {
-        throw new Error(`Missing setting "${s}"`);
-      }
-
-      const def = this.def.setting[s];
-
-      let value: OptionTypesTs;
-
-      // check if the value has been supplied
+    for (const s in pkgSettings) {
       if (opts[s]) {
-        value = opts[s];
-      } else if (def.defaultValue !== undefined) {
-        value = def.defaultValue as OptionTypesTs;
+        settings[s] = opts[s];
+      } else if (pkgSettings[s].defaultValue) {
+        settings[s] = pkgSettings[s].defaultValue!;
       } else {
-        throw new Error(`setting not provided: ${s}`);
+        throw new Error(`required setting not supplied: ${s}`);
       }
-
-      resolvedOpts[s] = value;
     }
 
-    ctx.settings = resolvedOpts;
-    ctx.chainId = this.chainId;
-    ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+    return {
+      settings,
+      chainId: this.chainId,
+      timestamp: Math.floor(Date.now() / 1000).toString(),
 
-    // merge all blockchain outputs
-    for (const additionalCtx of ctxs.slice(1)) {
-      ctx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
-      ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
-      ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
-    }
+      package: pkg,
 
-    return ctx;
+      contracts: {},
+
+      txns: {},
+
+      imports: {},
+    };
   }
 
   async layerMatches(ctx: ChainBuilderContext, stepName: string) {
@@ -701,7 +464,7 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
         getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName).metadata
       );
 
-      const newHash = await this.actionHash(ctx, stepName);
+      const newHash = await this.def.getState(stepName, this, ctx);
 
       debug('comparing hashes for action', contents.hash, newHash);
 
@@ -716,73 +479,58 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
     }
   }
 
-  async actionHash(ctx: ChainBuilderContext, stepName: string) {
-    // the purpose of this is to indicate the state of the chain without accounting for
-    // derivative factors (ex. contract addreseses, outputs)
-
-    const [type, name] = stepName.split('.') as [keyof typeof StepKinds, string];
-
-    const typeConfig = this.def[type];
-
-    if (!typeConfig || !typeConfig[name]) {
-      throw new Error(`missing step: ${type}.${name}`);
-    }
-
-    const obj = await StepKinds[type].getState(this, ctx, typeConfig[name] as any);
-
-    if (!obj) {
-      return null;
-    } else {
-      return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
-    }
-  }
-
-  async loadLayer(stepName: string): Promise<ChainBuilderContext | null> {
+  async loadMeta(stepName: string): Promise<ChainBuilderContext | null> {
     if (this.readMode === 'none') {
       return null;
     }
 
-    const { chain, metadata } = getActionFiles(this.packageDir, this.chainId, this.preset, stepName);
+    const { metadata } = getActionFiles(this.packageDir, this.chainId, this.preset, stepName);
 
-    debug('load cache', stepName, metadata);
+    debug('load meta', stepName, metadata);
 
     const contents = JSON.parse((await fs.readFile(metadata)).toString('utf8'));
 
     if (contents.version !== BUILD_VERSION) {
-      throw new Error('cannon file format not supported: ' + (contents.version || 1));
-    }
-
-    if (this.readMode === 'all') {
-      debug('load state', stepName);
-      const cacheData = await fs.readFile(chain);
-      await this.provider.send('hardhat_loadState', ['0x' + cacheData.toString('hex')]);
+      throw new Error('cannon package format not supported: ' + (contents.version || 1));
     }
 
     return contents.ctx;
   }
 
-  async dumpLayer(ctx: ChainBuilderContext, stepName: string) {
+  async loadState(stepName: string): Promise<void> {
+    const { chain } = getActionFiles(this.packageDir, this.chainId, this.preset, stepName);
+    debug('load state', stepName);
+    const cacheData = await fs.readFile(chain);
+    await this.provider.send('hardhat_loadState', ['0x' + cacheData.toString('hex')]);
+  }
+
+  async dumpAction(ctx: ChainBuilderContext, stepName: string) {
     if (this.writeMode === 'none') {
       return;
     }
 
-    const { chain, metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
+    const { metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
 
-    debug('put cache', metadata);
+    debug('put meta', metadata);
 
     await fs.ensureDir(dirname(metadata));
     await fs.writeFile(
       metadata,
       JSON.stringify({
         version: BUILD_VERSION,
-        hash: await this.actionHash(ctx, stepName),
+        hash: await this.def.getState(stepName, this, ctx),
         ctx,
       })
     );
+  }
 
-    if (this.writeMode === 'all') {
-      debug('put state', stepName);
-      const data = (await this.provider.send('hardhat_dumpState', [])) as string;
+  async dumpState(stepNames: string[]) {
+    debug('put state', stepNames);
+    const data = (await this.provider.send('hardhat_dumpState', [])) as string;
+
+    // write the same state to all given files
+    for (const n of stepNames) {
+      const { chain } = getActionFiles(this.packageDir, this.chainId, this.preset, n);
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, Buffer.from(data.slice(2), 'hex'));
     }
@@ -790,13 +538,13 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
 
   async clearNode() {
     if (this.writeMode === 'all') {
-      debug('clear state');
+      debug('clear node');
 
       // revert is assumed hardcoded to the beginning chainstate on a clearable node
       if (this.cleanSnapshot) {
         const status = await this.provider.send('evm_revert', [this.cleanSnapshot]);
         if (!status) {
-          throw new Error('state clear failed');
+          throw new Error('node state clear failed');
         }
       }
 
@@ -809,14 +557,26 @@ ${_.difference(this.getAllActions(), Array.from(analysis.matched.keys())).join('
   loadCannonfile() {
     const file = getDeploymentInfoFile(this.packageDir);
     const deployInfo = fs.readJsonSync(file) as DeploymentManifest;
-    return deployInfo.def;
+
+    // try to load the chain definition specific to this chain
+    // otherwise, load the top level definition
+    const rawDefinition: RawChainDefinition = _.get(
+      deployInfo.deploys,
+      [this.chainId.toString(), this.preset, 'def'],
+      deployInfo.def
+    );
+
+    return new ChainDefinition(rawDefinition);
   }
 
   async writeCannonfile() {
     if (this.readMode !== 'none') {
       const file = getDeploymentInfoFile(this.packageDir);
       const deployInfo = await getAllDeploymentInfos(this.packageDir);
-      deployInfo.def = this.def;
+
+      // only store the current chain definition if we are building the local network id and main preset
+      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? this.def.toJson() : deployInfo.def;
+
       await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
     }

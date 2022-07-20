@@ -6,6 +6,8 @@ import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMa
 import { getContractFromPath } from '../util';
 import { ethers } from 'ethers';
 
+import { getAllContractPaths } from '../util';
+
 const debug = Debug('cannon:builder:invoke');
 
 const config = {
@@ -58,6 +60,15 @@ async function runTxn(
   signer: ethers.Signer
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
+
+  // sanity check the contract we are calling has code defined
+  // we check here because a missing contract will not revert when provided with data, leading to confusing situations
+  // if invoke calls succeeding when no action was actually performed.
+  if ((await runtime.provider.getCode(contract.address)) === '0x') {
+    throw new Error(
+      `contract ${contract.address} for ${runtime.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
+    );
+  }
 
   if (config.fromCall) {
     debug('resolve from address', contract.address);
@@ -168,7 +179,8 @@ export default {
       }
 
       if (!contract) {
-        throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
+        throw new Error(`field "target": contract with name '${t}' not found. The valid list of recognized contracts is:
+${getAllContractPaths(ctx).join('\n')}`);
       }
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);

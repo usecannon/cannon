@@ -1,8 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import { ChainDefinition, DeploymentInfo, DeploymentManifest } from './types';
+import { DeploymentInfo, DeploymentManifest } from './types';
 import _ from 'lodash';
+
+import type { RawChainDefinition } from './definition';
 
 const DEPLOY_FILE_INDENTATION = 4;
 
@@ -28,7 +30,7 @@ export async function getAllDeploymentInfos(packageDir: string): Promise<Deploym
   const file = getDeploymentInfoFile(packageDir);
 
   if (!fs.existsSync(file)) {
-    return { deploys: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
+    return { deploys: {}, pkg: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
   }
 
   return (await fs.readJson(file)) as DeploymentManifest;
@@ -83,7 +85,7 @@ export async function exportChain(packagesDir: string, name: string, version: st
   return zip.toBufferPromise();
 }
 
-export async function importChain(packagesDir: string, buf: Buffer): Promise<ChainDefinition> {
+export async function importChain(packagesDir: string, buf: Buffer): Promise<RawChainDefinition> {
   const zip = new AdmZip(buf);
 
   const manifest = JSON.parse(zip.readAsText('deploy.json')) as DeploymentManifest;

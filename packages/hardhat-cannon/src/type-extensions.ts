@@ -1,7 +1,5 @@
 import 'hardhat/types/config';
 
-import { Options as IPFSConnectionOptions } from 'ipfs-http-client';
-
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
     deployments?: string;
@@ -12,7 +10,8 @@ declare module 'hardhat/types/config' {
     cannon?: {
       registryEndpoint?: string;
       registryAddress?: string;
-      ipfsConnection?: IPFSConnectionOptions;
+      ipfsEndpoint?: string;
+      ipfsAuthorizationHeader?: string;
     };
   }
 
@@ -25,7 +24,8 @@ declare module 'hardhat/types/config' {
     cannon: {
       registryEndpoint: string;
       registryAddress: string;
-      ipfsConnection: IPFSConnectionOptions;
+      ipfsEndpoint: string;
+      ipfsAuthorizationHeader?: string;
     };
   }
 }

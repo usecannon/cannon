@@ -1,17 +1,10 @@
 import { ethers } from 'ethers';
 
-import Ajv from 'ajv/dist/jtd';
-import { JTDDataType } from 'ajv/dist/core';
-
 import { JsonFragment } from '@ethersproject/abi';
 
-import contractSpec from './steps/contract';
-import importSpec from './steps/import';
-import invokeSpec from './steps/invoke';
-import keeperSpec from './steps/keeper';
-import scriptSpec from './steps/run';
+import _ from 'lodash';
 
-const ajv = new Ajv();
+import type { RawChainDefinition } from './definition';
 
 export type OptionTypesTs = string | number | boolean;
 
@@ -57,37 +50,6 @@ export type EventMap = {
   }[];
 };
 
-const ChainDefinitionSchema = {
-  properties: {
-    name: { type: 'string' },
-    version: { type: 'string' },
-  },
-  optionalProperties: {
-    description: { type: 'string' },
-    keywords: { elements: { type: 'string' } },
-    setting: {
-      values: {
-        optionalProperties: {
-          description: { type: 'string' },
-          type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: {},
-        },
-      },
-    },
-    import: { values: importSpec.validate },
-    contract: { values: contractSpec.validate },
-    invoke: { values: invokeSpec.validate },
-    run: { values: scriptSpec.validate },
-    keeper: { values: keeperSpec.validate },
-  },
-} as const;
-
-export type ChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
-
-export type BuildOptions = { [val: string]: string };
-
-export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
-
 export interface ChainBuilderContext {
   settings: ChainBuilderOptions;
   chainId: number;
@@ -101,6 +63,8 @@ export interface ChainBuilderContext {
 
   imports: BundledChainBuilderOutputs;
 }
+
+export type BuildOptions = { [val: string]: string };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
@@ -146,6 +110,10 @@ export interface ChainBuilderOptions {
 }
 
 export type DeploymentInfo = {
+  // contents of cannonfile.toml used for this build in raw json form
+  // if not included, defaults to the chain definition at the DeploymentManifest instead
+  def?: RawChainDefinition;
+
   // setting overrides used to build this chain
   options: ChainBuilderOptions;
 
@@ -161,7 +129,10 @@ export type DeploymentInfo = {
 
 export type DeploymentManifest = {
   // contents of cannonfile.toml stringified
-  def: ChainDefinition;
+  def: RawChainDefinition;
+
+  // npm style package.json for the project being uploaded
+  pkg: any;
 
   // archive which contains miscellaneus dependencies ex. documentation pages, contracts, etc.
   misc: {
@@ -174,3 +145,18 @@ export type DeploymentManifest = {
     };
   };
 };
+
+export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
+  const ctx = _.clone(ctxs[0]);
+
+  ctx.timestamp = Math.floor(Date.now() / 1000).toString(); //(await this.provider.getBlock(await this.provider.getBlockNumber())).timestamp.toString();
+
+  // merge all blockchain outputs
+  for (const additionalCtx of ctxs.slice(1)) {
+    ctx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
+    ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
+    ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
+  }
+
+  return ctx;
+}
