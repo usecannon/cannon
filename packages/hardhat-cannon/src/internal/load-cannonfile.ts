@@ -1,17 +1,18 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
-import { validateChainDefinition } from '@usecannon/builder';
+import { ChainBuilderContext, validateChainDefinition } from '@usecannon/builder';
+import { ChainDefinition, RawChainDefinition } from '@usecannon/builder/dist/src/definition';
 
 export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
   if (!fs.existsSync(filepath)) {
     throw new HardhatPluginError('cannon', `Cannon file '${filepath}' not found.`);
   }
 
-  const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
+  const rawDef = toml.parse(fs.readFileSync(filepath).toString('utf8'));
 
   let pkg: any = {};
   try {
@@ -20,31 +21,31 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     console.warn('package.json file not found! Cannot use field for cannonfile inference');
   }
 
-  if (!def.name || typeof def.name !== 'string') {
-    def.name = pkg.name as string;
+  if (!rawDef.name || typeof rawDef.name !== 'string') {
+    rawDef.name = pkg.name as string;
   }
 
   try {
-    ethers.utils.formatBytes32String(def.name);
+    ethers.utils.formatBytes32String(rawDef.name);
   } catch (err) {
     let msg = 'Invalid "name" property on cannonfile.toml. ';
     if (err instanceof Error) msg += err.message;
     throw new Error(msg);
   }
 
-  if (!def.version || typeof def.version !== 'string') {
-    def.version = pkg.version as string;
+  if (!rawDef.version || typeof rawDef.version !== 'string') {
+    rawDef.version = pkg.version as string;
   }
 
   try {
-    ethers.utils.formatBytes32String(def.version);
+    ethers.utils.formatBytes32String(rawDef.version);
   } catch (err) {
     let msg = 'Invalid "version" property on cannonfile.toml. ';
     if (err instanceof Error) msg += err.message;
     throw new Error(msg);
   }
 
-  if (!validateChainDefinition(def)) {
+  if (!validateChainDefinition(rawDef)) {
     console.error('cannonfile failed parse:');
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     for (const error of validateChainDefinition.errors || []) {
@@ -54,5 +55,21 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     throw new Error('failed to parse cannonfile');
   }
 
-  return def as any;
+  const def = new ChainDefinition(rawDef as RawChainDefinition);
+
+  const ctx: ChainBuilderContext = {
+    package: fs.readJsonSync(hre.config.paths.root + '/package.json'),
+    chainId: hre.network.config.chainId || 31337, // todo: is this right?
+    settings: {},
+    timestamp: '0',
+
+    contracts: {},
+    txns: {},
+    imports: {},
+  };
+
+  const name = def.getName(ctx);
+  const version = def.getVersion(ctx);
+
+  return { def, name, version };
 }

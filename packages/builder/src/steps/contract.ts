@@ -88,6 +88,13 @@ export default {
           throw new Error(`library for contract ${config.artifact} not defined: ${lib}`);
         }
 
+        // sanity check the library we are linking to has code defined
+        if ((await runtime.provider.getCode(libraryAddress)) === '0x') {
+          throw new Error(
+            `library ${lib} for contract ${config.artifact} has no bytecode. This is most likely a missing dependency or bad state.`
+          );
+        }
+
         debug('lib ref', lib, libraryAddress);
 
         // afterwards, inject link references

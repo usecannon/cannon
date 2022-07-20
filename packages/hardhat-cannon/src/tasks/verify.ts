@@ -10,13 +10,14 @@ import { ethers } from 'ethers';
 task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mainnet')
   .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
   .addOptionalVariadicPositionalParam('opts', 'Settings used for execution', [])
-  .setAction(async ({ label, opts }, hre) => {
+  .setAction(async ({ label }, hre) => {
     await installAnvil();
 
     if (!label) {
       // load from base cannonfile
-      const def = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
-      label = `${def.name}:${def.version}`;
+      const { name, version } = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
+
+      label = `${name}:${version}`;
     }
 
     console.log('Verifying cannon deployment', label);

@@ -38,8 +38,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     // options can be passed through commandline, or environment
     const mappedOptions: { [key: string]: string } = _.fromPairs((options || []).map((kv: string) => kv.split('=')));
-    const def = loadCannonfile(hre, filepath);
-    const { name, version } = def;
+    const { def, name, version } = loadCannonfile(hre, filepath);
 
     let builder: ChainBuilder;
     if (dryRun) {

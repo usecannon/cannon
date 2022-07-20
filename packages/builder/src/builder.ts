@@ -193,109 +193,6 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     );
   }
 
-  /*async runSteps(
-    opts: BuildOptions,
-    alreadyDone: Map<string, ChainBuilderContext>
-  ): Promise<[string, ChainBuilderContext][]> {
-    // needed in case layers
-    const nextSteps = this.findNextSteps(alreadyDone);
-    const newlyDone: [string, ChainBuilderContext][] = [];
-
-    for (const [n, conf] of nextSteps) {
-      let ctx = await this.populateSettings(opts);
-
-      for (const dep of conf.depends || []) {
-        ctx = await combineCtx([ctx, alreadyDone.get(dep)!]);
-      }
-
-      debug(`run step ${n}`, conf);
-      await this.runStep(n, ctx);
-
-      // dump layer in case we are writing metadata
-      await this.dumpAction(ctx, n);
-
-      newlyDone.push([n, ctx]);
-    }
-
-    return newlyDone;
-  }*/
-
-  // runs any steps that can be immediately completed without iterating into deeper layers
-  // returns the list of new steps completed.
-  /*async runRecordedSteps(
-    opts: BuildOptions,
-    alreadyDone: Map<string, ChainBuilderContext>,
-    layers: ActionsAnalysis['layers'] | null
-  ): Promise<[string, ChainBuilderContext][]> {
-    // TODO: handle what happens on write mode all but read mode none
-    const nextSteps = this.findNextSteps(alreadyDone);
-    const newlyDone: [string, ChainBuilderContext][] = [];
-
-    // needed in case layers
-    const skipActions = new Map<string, ChainBuilderContext>();
-
-    for (const [n, conf] of nextSteps) {
-      if (skipActions.has(n)) {
-        newlyDone.push([n, skipActions.get(n)!]);
-        continue;
-      }
-
-      await this.clearNode();
-
-      let ctx = await this.populateSettings(opts);
-
-      // load full state for all dependencies
-      if (layers && layers.has(n)) {
-        const layerInfo = layers.get(n)!;
-
-        for (const dep of layerInfo.depends) {
-          const newCtx = await this.loadMeta(dep);
-
-          if (!newCtx) {
-            throw new Error(`could not load metadata from action ${dep}`);
-          }
-
-          ctx = await combineCtx([ctx, newCtx]);
-        }
-
-        debug('enter layer', layerInfo.actions);
-        debug('layer deps', layerInfo.depends);
-
-        for (const otherN of layerInfo.actions) {
-          debug(`run step in layer ${n}`, conf);
-          // run all layer actions regarless of of they have been done already or not
-          // a new layer will be recorded with all of these together
-          await this.runStep(otherN, ctx);
-        }
-
-        for (const otherN of layerInfo.actions) {
-          // save the fresh layer for all linked layers
-          // todo: this could be a lot more efficient if `dumpLayer` took an array
-          await this.dumpAction(ctx, otherN);
-          skipActions.set(otherN, ctx);
-        }
-      } else {
-        for (const dep of conf.depends) {
-          const newCtx = await this.loadMeta(dep);
-
-          if (!newCtx) {
-            throw new Error(`could not load metadata from action ${dep}`);
-          }
-
-          ctx = await combineCtx([ctx, newCtx]);
-        }
-
-        debug(`run step ${n}`, conf);
-        await this.runStep(n, ctx);
-        await this.dumpAction(ctx, n);
-      }
-
-      newlyDone.push([n, ctx]);
-    }
-
-    return newlyDone;
-  }*/
-
   async build(opts: BuildOptions): Promise<ChainBuilderContext> {
     debug('preflight');
 
@@ -329,13 +226,66 @@ ${printChainDefinitionProblems(problems)}`);
     const completed = new Map<string, ChainBuilderContext>();
     const topologicalActions = this.def.topologicalActions;
 
-    const layers = this.writeMode === 'all' ? this.def.getStateLayers() : null;
+    const layers = this.writeMode === 'all' || this.readMode === 'all' ? this.def.getStateLayers() : null;
 
     // TODO: if readMode == 'all' then load _all_ layers that are not modified. Then build as normal
 
     while (completed.size < topologicalActions.length) {
       for (const n of topologicalActions) {
-        if (completed.has(n)) continue;
+        if (layers) {
+          if (completed.has(n)) continue;
+
+          const layer = layers[n];
+
+          let isCompleteLayer = true;
+          for (const action of layer.actions) {
+            let ctx = await this.populateSettings(opts);
+
+            for (const dep of this.def.getDependencies(n)) {
+              ctx = combineCtx([ctx, completed.get(dep)!]);
+            }
+
+            const layerActionCtx = await this.layerMatches(ctx, n);
+
+            if (!layerActionCtx) {
+              isCompleteLayer = false;
+              break;
+            } else {
+              completed.set(action, layerActionCtx);
+            }
+          }
+
+          if (!isCompleteLayer) {
+            debug('run to complete layer', layer.actions);
+            let ctx = await this.populateSettings(opts);
+
+            if (this.writeMode === 'all') {
+              await this.clearNode();
+            }
+
+            for (const dep of this.def.getDependencies(n)) {
+              ctx = combineCtx([ctx, completed.get(dep)!]);
+
+              if (this.writeMode === 'all') {
+                await this.loadState(dep);
+              }
+            }
+
+            for (const action of layer.actions) {
+              const newCtx = await this.runStep(action, _.clone(ctx));
+              completed.set(action, newCtx);
+              await this.dumpAction(newCtx, action);
+            }
+
+            if (this.writeMode === 'all') {
+              await this.dumpState(layer.actions);
+            }
+          } else if (this.writeMode !== 'all') {
+            // if we reach this point it means that we should be loading the state because the
+            // entire layer was unaffected
+            await this.loadState(n);
+          }
+        }
 
         let ctx = await this.populateSettings(opts);
 
@@ -345,34 +295,11 @@ ${printChainDefinitionProblems(problems)}`);
 
         const thisStepCtx = await this.layerMatches(ctx, n);
         if (!thisStepCtx) {
-          if (this.writeMode === 'all' && layers) {
-            debug('running layer for', n);
-            // if we are doing execute all the linked layer steps together
-            // const doneActions = this.runStepWithLayer();
+          debug('run isolated', n);
+          const newCtx = await this.runStep(n, ctx);
+          completed.set(n, newCtx);
 
-            // get the layer associated with this step
-            const layer = layers[n];
-
-            let ctx = await this.populateSettings(opts);
-
-            // before loading the layer ensure the node is empty
-            // will only be cleared if write mode is on
-            await this.clearNode();
-            for (const dep of this.def.getDependencies(n)) {
-              ctx = combineCtx([ctx, completed.get(dep)!]);
-              await this.loadState(dep);
-            }
-
-            for (const action of layer.actions) {
-              const newCtx = await this.runStep(action, _.clone(ctx));
-              completed.set(action, newCtx);
-              await this.dumpAction(newCtx, action);
-            }
-
-            await this.dumpState(layer.actions);
-          } else {
-            const newCtx = await this.runStep(n, ctx);
-            completed.set(n, newCtx);
+          if (this.writeMode !== 'none') {
             await this.dumpAction(newCtx, n);
           }
         } else {
@@ -398,77 +325,6 @@ ${printChainDefinitionProblems(problems)}`);
       return combineCtx(Array.from(this.def.leaves).map((n) => completed.get(n)!));
     }
   }
-
-  /*async analyzeActions(
-    opts: BuildOptions,
-    actions = this.def.allActionNames,
-    analysis: ActionsAnalysis = {
-      matched: new Map(),
-      unmatched: new Set(),
-      heads: new Set(),
-      layers: new Map(),
-    }
-  ): Promise<ActionsAnalysis> {
-    if (!analysis.heads.size) {
-      for (const n of actions) {
-        analysis.heads.add(n);
-      }
-
-      // layers is done as a separate calculation
-      const layers = this.def.getStateLayers(actions);
-
-      // rekey for analysis
-      for (const layer of Object.values(layers)) {
-        for (const n of layer.actions) {
-          analysis.layers.set(n, layer);
-        }
-      }
-    }
-
-    for (const n of actions) {
-      if (analysis.matched.has(n) || analysis.unmatched.has(n)) {
-        continue;
-      }
-
-      const action = _.get(this.def, n);
-
-      if (!action) {
-        throw new Error(`action not found: ${n}`);
-      }
-
-      // if any of the depended upon actions are unmatched, this is unmatched
-      let ctx = await this.populateSettings(opts);
-      for (const dep of action.depends || []) {
-        if (_.sortedIndexOf(this.def.allActionNames, dep) === -1) {
-          throw new Error(`in dependencies for ${n}: '${dep}' is not a known action.
-
-please double check your configuration. the list of known actions is:
-${this.def.allActionNames.join('\n')}
-          `);
-        }
-
-        analysis.heads.delete(dep);
-
-        await this.analyzeActions(opts, [dep], analysis);
-        if (analysis.unmatched.has(dep)) {
-          analysis.unmatched.add(n);
-          continue;
-        } else {
-          ctx = await combineCtx([ctx, analysis.matched.get(dep)!]);
-        }
-      }
-
-      // if layerMatches returns true, its matching
-      const curCtx = await this.layerMatches(ctx, n);
-      if (curCtx) {
-        analysis.matched.set(n, curCtx);
-      } else {
-        analysis.unmatched.add(n);
-      }
-    }
-
-    return analysis;
-  }*/
 
   // clean any artifacts associated with the current
   async wipe() {
