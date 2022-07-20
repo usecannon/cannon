@@ -4,7 +4,7 @@ import { bold, yellowBright } from 'chalk';
 
 import { CannonRegistry } from '@usecannon/builder';
 import loadCannonfile from '../internal/load-cannonfile';
-import installAnvil from '../internal/install-anvil';
+import { setupAnvil } from '@usecannon/cli';
 import { TASK_PUBLISH } from '../task-names';
 import prompts from 'prompts';
 
@@ -13,7 +13,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
   .addOptionalParam('tags', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .addOptionalParam('registryAddress', 'Address for a custom package registry.')
   .setAction(async ({ file, tags, registryAddress }, hre) => {
-    await installAnvil();
+    await setupAnvil();
 
     if (hre.network.name == 'hardhat') {
       console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));

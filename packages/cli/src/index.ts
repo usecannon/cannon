@@ -2,7 +2,10 @@
 import _ from 'lodash';
 
 import { Command } from 'commander';
-import prompts from 'prompts';
+
+import { setupAnvil, checkCannonVersion } from './helpers';
+export { setupAnvil };
+import { resolve } from 'path';
 
 import {
   CannonRegistry,
@@ -23,7 +26,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import readline from 'readline';
 import { URL } from 'node:url';
-import { exec, spawn } from 'child_process';
 import fetch from 'node-fetch';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 
@@ -101,32 +103,6 @@ function getContractsRecursive(
   return contracts;
 }
 
-async function checkAnvil(): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    const child = spawn('anvil', ['--version']);
-    child
-      .on('close', (code) => {
-        resolve(code === 0);
-      })
-      .on('error', (err) => {
-        resolve(false);
-      });
-  });
-}
-
-function execPromise(command: string): Promise<string> {
-  return new Promise(function (resolve, reject) {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(stdout.trim());
-    });
-  });
-}
-
 program
   .name('cannon')
   .version(pkg.version)
@@ -139,7 +115,7 @@ program
   .option('-f --fork <url>', 'Fork the network at the specified RPC url')
   .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
   .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs)')
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('-e --exit', 'Exit after building')
   .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
   .option(
@@ -148,7 +124,10 @@ program
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
+
 async function run() {
+  await checkCannonVersion(pkg.version);
+
   let showAnvilLogs = false;
   let interacting = false;
 
@@ -168,24 +147,7 @@ async function run() {
 
   debug('parsed arguments', options, args);
 
-  // Ensure Anvil is installed
-  const hasAnvil = await checkAnvil();
-  if (!hasAnvil) {
-    const response = await prompts({
-      type: 'confirm',
-      name: 'confirmation',
-      message: 'Cannon requires Foundry. Install it now?',
-      initial: true,
-    });
-
-    if (response.confirmation) {
-      console.log(magentaBright('Installing Foundry...'));
-      await execPromise('curl -L https://foundry.paradigm.xyz | bash');
-      await execPromise('foundryup');
-    } else {
-      process.exit();
-    }
-  }
+  await setupAnvil();
 
   console.log(magentaBright('Starting local node...'));
 
@@ -280,7 +242,8 @@ async function run() {
 
   if (options.writeDeployments) {
     console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-    await fs.mkdirp(options.writeDeployments);
+    const path = resolve(options.writeDeployments);
+    await fs.mkdirp(path);
     await writeModuleDeployments(options.writeDeployments, '', outputs);
   }
 
@@ -354,4 +317,6 @@ async function run() {
   await keypress();
 }
 
-run();
+if (require.main === module) {
+  run();
+}

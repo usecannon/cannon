@@ -68,8 +68,7 @@
               px="3"
               width="100%"
               mb="2"
-              ><span style="color: #61afef">npx</span> @usecannon/cli@latest
-              synthetix
+              ><span style="color: #61afef">npx</span> @usecannon/cli synthetix
               <CBox as="span" :display="['none', 'none', 'inline']">
                 <div
                   @click="copy"
