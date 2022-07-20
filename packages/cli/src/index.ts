@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 
+import { checkCannonVersion } from './helpers';
 import pkg from '../package.json';
 
 const program = new Command();
@@ -9,7 +10,10 @@ const program = new Command();
 program
   .name('cannon')
   .version(pkg.version)
-  .description('Utility for instantly loading cannon packages in standalone contexts.');
+  .description('Utility for instantly loading cannon packages in standalone contexts.')
+  .hook('preAction', async function () {
+    await checkCannonVersion(pkg.version);
+  });
 
 program
   .command('run')
@@ -31,7 +35,7 @@ program
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
-  .action(async (packageName, settings, options, program) => {
+  .action(async function (packageName, settings, options, program) {
     const { default: command } = await import('./commands/run');
     await command(packageName, settings, options, program);
   });

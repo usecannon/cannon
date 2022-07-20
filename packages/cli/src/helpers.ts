@@ -41,21 +41,19 @@ export async function setupAnvil(): Promise<void> {
 }
 
 async function getAnvilVersionDate(): Promise<Date | false> {
-  return new Promise<Date | false>((resolve) => {
-    try {
-      const child = spawnSync('anvil', ['--version']);
-      const output = child.stdout.toString();
-      const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
-      resolve(new Date(timestamp));
-    } catch {
-      resolve(false);
-    }
-  });
+  try {
+    const child = await spawnSync('anvil', ['--version']);
+    const output = child.stdout.toString();
+    const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
+    return new Date(timestamp);
+  } catch {
+    return false;
+  }
 }
 
 function execPromise(command: string): Promise<string> {
   return new Promise(function (resolve, reject) {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, (error, stdout) => {
       if (error) {
         reject(error);
         return;
@@ -68,8 +66,10 @@ function execPromise(command: string): Promise<string> {
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await execPromise('npm view @usecannon/cli version');
+
   if (currentVersion !== latestVersion) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
-    console.warn(yellow(`Upgrade with ` + bold(`npm install -g @usecannon/cli\n`)));
+    console.warn(yellow(`Upgrade with ${bold('npm install -g @usecannon/cli')}`));
+    console.warn();
   }
 }

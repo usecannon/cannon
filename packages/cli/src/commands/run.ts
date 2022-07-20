@@ -103,8 +103,6 @@ export default async function run(
   options: { [k: string]: string },
   program: Command
 ) {
-  await checkCannonVersion(pkg.version);
-
   let showAnvilLogs = false;
   let interacting = false;
 
