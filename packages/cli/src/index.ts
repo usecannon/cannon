@@ -124,6 +124,7 @@ program
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
+
 async function run() {
   let showAnvilLogs = false;
   let interacting = false;
@@ -314,4 +315,6 @@ async function run() {
   await keypress();
 }
 
-run();
+if (require.main === module) {
+  run();
+}
