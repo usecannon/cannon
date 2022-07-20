@@ -56,6 +56,7 @@ export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
 export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
 
 export type ChainDefinitionProblems = {
+  invalidSchema: any;
   missing: { action: string; dependency: string }[];
   cycles: string[][];
   extraneous: { node: string; extraneous: string; inDep: string }[];
@@ -202,6 +203,8 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
+    const invalidSchema = validateChainDefinition(this.raw);
+
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
     const extraneous = cycle ? [] : this.checkExtraneousDependencies();
@@ -211,6 +214,7 @@ export class ChainDefinition {
     }
 
     return {
+      invalidSchema,
       missing,
       cycles: cycle ? [cycle] : [],
       extraneous,
