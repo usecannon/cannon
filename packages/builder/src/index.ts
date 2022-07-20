@@ -1,14 +1,15 @@
 import { ethers } from 'ethers';
 import path from 'path';
 import { existsSync } from 'fs-extra';
-import { ChainBuilder } from './builder';
+import { ChainDefinition } from './definition';
 import { CannonRegistry } from './registry';
-import { getSavedPackagesDir, getActionFiles, getPackageDir } from './storage';
+import { getSavedPackagesDir, getActionFiles, getPackageDir, getAllDeploymentInfos } from './storage';
 
 import semver from 'semver';
 
 import pkg from '../package.json';
 
+export { ChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
 
 export * from './types';
@@ -36,20 +37,21 @@ export async function downloadPackagesRecursive(
   if (!existsSync(depdir)) {
     await registry.downloadPackageChain(pkg, chainId, preset || 'main', packagesDir);
 
-    const builder = new ChainBuilder({
-      name,
-      version: tag,
-      writeMode: 'none',
-      readMode: 'none',
-      provider,
-      getSigner: async () => {
-        throw new Error('signer should be unused');
-      },
-      chainId: chainId,
-      savedPackagesDir: packagesDir,
-    });
+    const info = await getAllDeploymentInfos(depdir);
 
-    const dependencies = await builder.getDependencies({});
+    const def = new ChainDefinition(info.def);
+
+    const dependencies = def.getRequiredImports({
+      package: info.pkg,
+      chainId,
+
+      timestamp: '0',
+      settings: {},
+
+      contracts: {},
+      txns: {},
+      imports: {},
+    });
 
     for (const dependency of dependencies) {
       await downloadPackagesRecursive(

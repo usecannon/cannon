@@ -6,6 +6,8 @@ import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMa
 import { getContractFromPath } from '../util';
 import { ethers } from 'ethers';
 
+import { getAllContractPaths } from '../util';
+
 const debug = Debug('cannon:builder:invoke');
 
 const config = {
@@ -168,7 +170,8 @@ export default {
       }
 
       if (!contract) {
-        throw new Error(`field on: contract with identifier '${t}' not found. The valid list of recognized contracts is:`);
+        throw new Error(`field "target": contract with name '${t}' not found. The valid list of recognized contracts is:
+${getAllContractPaths(ctx).join('\n')}`);
       }
 
       const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);
