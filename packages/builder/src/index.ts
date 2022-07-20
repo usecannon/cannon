@@ -9,7 +9,7 @@ import semver from 'semver';
 
 import pkg from '../package.json';
 
-export { ChainDefinition } from './definition';
+export { ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
 
 export * from './types';

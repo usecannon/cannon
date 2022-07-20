@@ -17,9 +17,9 @@ import {
   BuildOptions,
 } from './types';
 
-import { ChainDefinition, ActionKinds } from './definition';
+import { ChainDefinition, ActionKinds, RawChainDefinition } from './definition';
 
-import { getExecutionSigner, getStoredArtifact, passThroughArtifact } from './util';
+import { getExecutionSigner, getStoredArtifact, passThroughArtifact, printChainDefinitionProblems } from './util';
 import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
 
 const debug = Debug('cannon:builder');
@@ -89,7 +89,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       name: string;
       version: string;
       chainId: number;
-      def?: ChainDefinition;
+      def?: ChainDefinition | RawChainDefinition;
       preset?: string;
       readMode?: StorageMode;
       writeMode?: StorageMode;
@@ -103,7 +103,13 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.packagesDir = savedPackagesDir || getSavedPackagesDir();
     this.packageDir = getPackageDir(this.packagesDir, name, version);
 
-    this.def = def ?? this.loadCannonfile();
+    if (def) {
+      this.def = (def as ChainDefinition).allActionNames
+        ? (def as ChainDefinition)
+        : new ChainDefinition(def as RawChainDefinition);
+    } else {
+      this.def = this.loadCannonfile();
+    }
 
     this.preset = preset ?? DEFAULT_PRESET;
 
@@ -116,16 +122,6 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
       : (name) => getStoredArtifact(this.packageDir, name);
 
-    //@ts-ignore
-    if (!this.def.name) {
-      throw new Error('Missing "name" property on cannonfile.toml');
-    }
-
-    //@ts-ignore
-    if (!this.def.version) {
-      throw new Error('Missing "version" property on cannonfile.toml');
-    }
-
     this.readMode = readMode || 'none';
     this.writeMode = writeMode || 'none';
   }
@@ -133,18 +129,15 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   async runStep(n: string, ctx: ChainBuilderContext) {
     this.currentLabel = n;
 
-    const cfg = _.get(this.def, n);
+    const cfg = this.def.getConfig(n, ctx);
     if (!cfg) {
       throw new Error(`action ${n} missing for execution`);
     }
 
     const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
 
-    this.emit(Events.PreStepExecute, type, label);
-
-    const injectedConfig = ActionKinds[type].configInject(ctx, cfg as any) as any;
-
-    const output = await ActionKinds[type].exec(this, ctx, injectedConfig);
+    this.emit(Events.PreStepExecute, type, label, cfg);
+    const output = await ActionKinds[type].exec(this, ctx, cfg as any);
 
     if (type === 'import') {
       ctx.imports[label] = output;
@@ -200,7 +193,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     );
   }
 
-  async runSteps(
+  /*async runSteps(
     opts: BuildOptions,
     alreadyDone: Map<string, ChainBuilderContext>
   ): Promise<[string, ChainBuilderContext][]> {
@@ -225,7 +218,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
 
     return newlyDone;
-  }
+  }*/
 
   // runs any steps that can be immediately completed without iterating into deeper layers
   // returns the list of new steps completed.
@@ -304,6 +297,15 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
   }*/
 
   async build(opts: BuildOptions): Promise<ChainBuilderContext> {
+    debug('preflight');
+
+    const problems = this.def.checkAll();
+
+    if (problems) {
+      throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
+${printChainDefinitionProblems(problems)}`);
+    }
+
     debug('build');
     debug(`read mode: ${this.readMode}, write mode: ${this.writeMode}`);
 
@@ -326,6 +328,11 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     //const analysis = await this.analyzeActions(opts);
     const completed = new Map<string, ChainBuilderContext>();
     const topologicalActions = this.def.topologicalActions;
+
+    const layers = this.writeMode === 'all' ? this.def.getStateLayers() : null;
+
+    // TODO: if readMode == 'all' then load _all_ layers that are not modified. Then build as normal
+
     while (completed.size < topologicalActions.length) {
       for (const n of topologicalActions) {
         if (completed.has(n)) continue;
@@ -336,17 +343,41 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
           ctx = combineCtx([ctx, completed.get(dep)!]);
         }
 
-        let thisStepCtx = await this.layerMatches(ctx, n);
+        const thisStepCtx = await this.layerMatches(ctx, n);
         if (!thisStepCtx) {
-          if (this.writeMode === 'all') {
+          if (this.writeMode === 'all' && layers) {
+            debug('running layer for', n);
             // if we are doing execute all the linked layer steps together
             // const doneActions = this.runStepWithLayer();
-          } else {
-            thisStepCtx = await this.runStep(n, ctx);
-          }
-        }
 
-        completed.set(n, thisStepCtx!);
+            // get the layer associated with this step
+            const layer = layers[n];
+
+            let ctx = await this.populateSettings(opts);
+
+            // before loading the layer ensure the node is empty
+            // will only be cleared if write mode is on
+            await this.clearNode();
+            for (const dep of this.def.getDependencies(n)) {
+              ctx = combineCtx([ctx, completed.get(dep)!]);
+              await this.loadState(dep);
+            }
+
+            for (const action of layer.actions) {
+              const newCtx = await this.runStep(action, _.clone(ctx));
+              completed.set(action, newCtx);
+              await this.dumpAction(newCtx, action);
+            }
+
+            await this.dumpState(layer.actions);
+          } else {
+            const newCtx = await this.runStep(n, ctx);
+            completed.set(n, newCtx);
+            await this.dumpAction(newCtx, n);
+          }
+        } else {
+          completed.set(n, thisStepCtx);
+        }
       }
     }
 
@@ -359,8 +390,13 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       });
     }
 
-    // assemble the final context for the user
-    return combineCtx(Array.from(this.def.leaves).map((n) => completed.get(n)!));
+    if (this.writeMode === 'all' || this.writeMode === 'metadata') {
+      // reread from outputs since everything is written, will ensure fresh state
+      return (await this.getOutputs())!;
+    } else {
+      // nothing was written so we just return what we have in the state as well as the generated ctx
+      return combineCtx(Array.from(this.def.leaves).map((n) => completed.get(n)!));
+    }
   }
 
   /*async analyzeActions(
@@ -467,6 +503,10 @@ ${this.def.allActionNames.join('\n')}
       debug('load head for output', h);
       const newCtx = await this.loadMeta(_.last(h.split('/'))!);
 
+      if (this.readMode === 'all') {
+        await this.loadState(h);
+      }
+
       if (!newCtx) {
         throw new Error('context not declared for published layer');
       }
@@ -571,7 +611,7 @@ ${this.def.allActionNames.join('\n')}
       return;
     }
 
-    const { chain, metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
+    const { metadata } = getActionFiles(this.packageDir, ctx.chainId, this.preset, stepName);
 
     debug('put meta', metadata);
 
@@ -584,10 +624,15 @@ ${this.def.allActionNames.join('\n')}
         ctx,
       })
     );
+  }
 
-    if (this.writeMode === 'all') {
-      debug('put state', stepName);
-      const data = (await this.provider.send('hardhat_dumpState', [])) as string;
+  async dumpState(stepNames: string[]) {
+    debug('put state', stepNames);
+    const data = (await this.provider.send('hardhat_dumpState', [])) as string;
+
+    // write the same state to all given files
+    for (const n of stepNames) {
+      const { chain } = getActionFiles(this.packageDir, this.chainId, this.preset, n);
       await fs.ensureDir(dirname(chain));
       await fs.writeFile(chain, Buffer.from(data.slice(2), 'hex'));
     }

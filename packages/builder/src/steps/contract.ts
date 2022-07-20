@@ -120,6 +120,8 @@ export default {
       abi = (await runtime.getArtifact(config.abi)).abi;
     }
 
+    debug('contract deployed to address', receipt.contractAddress);
+
     return {
       contracts: {
         [runtime.currentLabel?.split('.')[1] || '']: {

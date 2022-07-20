@@ -91,7 +91,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
 
         async getDefaultSigner() {
-          const bal = await wallets[0].getBalance();
           return wallets[0];
         },
 
@@ -167,7 +166,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       address: hre.config.cannon.registryAddress,
     });
 
-    const dependencies = await builder.getDependencies(mappedOptions);
+    const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(mappedOptions));
 
     for (const dependency of dependencies) {
       console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);

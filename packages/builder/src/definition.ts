@@ -206,7 +206,7 @@ export class ChainDefinition {
     const cycle = missing.length ? [] : this.checkCycles();
     const extraneous = cycle ? [] : this.checkExtraneousDependencies();
 
-    if (!missing.length && !cycle && !extraneous) {
+    if (!missing.length && !cycle && !extraneous.length) {
       return null;
     }
 
