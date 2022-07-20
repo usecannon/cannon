@@ -2,7 +2,7 @@ import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
-import installAnvil from '../internal/install-anvil';
+import { setupAnvil } from '@usecannon/cli';
 import { getPackageDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
 import { NetworksConfig } from 'hardhat/types';
 import chalk from 'chalk';
@@ -12,7 +12,7 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
   .addFlag('json', 'Output as JSON')
   .addOptionalParam('file', 'TOML definition of the chain to inspect', 'cannonfile.toml')
   .setAction(async ({ file, json }, hre) => {
-    await installAnvil();
+    await setupAnvil();
 
     const filepath = path.resolve(hre.config.paths.root, file);
     const def = loadCannonfile(hre, filepath);

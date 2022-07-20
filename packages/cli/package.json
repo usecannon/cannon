@@ -2,7 +2,7 @@
   "name": "@usecannon/cli",
   "version": "1.0.7",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
-  "main": "hardhat.config.ts",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
