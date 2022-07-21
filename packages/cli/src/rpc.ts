@@ -8,7 +8,7 @@ const debug = Debug('cannon:cli:rpc');
 
 type RpcOptions = {
   port: number;
-  forkUrl: string;
+  forkUrl?: string;
 };
 
 export const ANVIL_START_TIMEOUT = 3000;

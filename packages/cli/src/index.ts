@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { red, bold } from 'chalk';
+export * as commands from './commands/build'; // TODO: Can we avoid putting this here?
 
 import { checkCannonVersion } from './helpers';
 import pkg from '../package.json';
+
+import { resolve } from 'path';
+import { ContractArtifact } from '@usecannon/builder';
 
 const program = new Command();
 
@@ -44,6 +47,33 @@ function configureRun(program: Command) {
       await command(packageName, settings, options, program);
     });
 }
+
+program
+  .command('build')
+  .description('Build a Cannonfile')
+  .usage('<cannonfile> <settings...>')
+  .argument('<cannonfile>', 'Path to a cannonfile', 'cannonfile.toml')
+  .argument('<settings...>')
+  .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
+  .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out')
+  .action(async function (cannonfile, preset, settings, artifacts) {
+    const { default: command } = await import('./commands/build');
+
+    const getArtifact = async (name: string): Promise<ContractArtifact> => {
+      const filepath = resolve(artifacts);
+      // Loop over all folders in the artifacts folder
+      // Look for a file name that matches the passed in parameter
+
+      // Return as follows:
+      // contractName: filename without extension (name parameter)
+      // sourceName: foldername without extension
+      // abi: abi object from the file
+      // bytecode: bytecode.object from the file
+      // linkReferences: bytecode.linkReferences from the file
+    };
+
+    await command(cannonfile, preset, settings, getArtifact);
+  });
 
 if (require.main === module) {
   program.parse();

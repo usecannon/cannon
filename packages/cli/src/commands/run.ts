@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import _ from 'lodash';
 import { Command } from 'commander';
-import { setupAnvil, checkCannonVersion } from '../helpers';
+import { setupAnvil } from '../helpers';
 
 import {
   CannonRegistry,

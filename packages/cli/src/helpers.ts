@@ -2,6 +2,10 @@ import os from 'os';
 import { exec, spawnSync } from 'child_process';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
+import fs from 'fs';
+import toml from '@iarna/toml';
+import { ethers } from 'ethers';
+import { validateChainDefinition } from '@usecannon/builder';
 
 export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
@@ -72,4 +76,55 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
     console.warn(yellow(`Upgrade with ${bold('npm install -g @usecannon/cli')}`));
     console.warn();
   }
+}
+
+export function loadCannonfile(filepath: string) {
+  if (!fs.existsSync(filepath)) {
+    throw new Error(`Cannonfile '${filepath}' not found.`);
+  }
+
+  const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
+
+  let pkg: any = {};
+  try {
+    pkg = require(filepath.replace(new RegExp('cannonfile.toml$'), 'package.json'));
+  } catch (err) {
+    console.warn('package.json file not found! Cannot use field for cannonfile inference');
+  }
+
+  if (!def.name || typeof def.name !== 'string') {
+    def.name = pkg.name as string;
+  }
+
+  try {
+    ethers.utils.formatBytes32String(def.name);
+  } catch (err) {
+    let msg = 'Invalid "name" property on cannonfile.toml. ';
+    if (err instanceof Error) msg += err.message;
+    throw new Error(msg);
+  }
+
+  if (!def.version || typeof def.version !== 'string') {
+    def.version = pkg.version as string;
+  }
+
+  try {
+    ethers.utils.formatBytes32String(def.version);
+  } catch (err) {
+    let msg = 'Invalid "version" property on cannonfile.toml. ';
+    if (err instanceof Error) msg += err.message;
+    throw new Error(msg);
+  }
+
+  if (!validateChainDefinition(def)) {
+    console.error('cannonfile failed parse:');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    for (const error of validateChainDefinition.errors || []) {
+      console.log(`> at .${error.schemaPath}: ${error.message} (${JSON.stringify(error.params)})`);
+    }
+
+    throw new Error('failed to parse cannonfile');
+  }
+
+  return def as any;
 }
