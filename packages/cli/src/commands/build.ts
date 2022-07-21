@@ -5,14 +5,14 @@ import ethers from 'ethers';
 import { setupAnvil, loadCannonfile } from '../helpers';
 import { table } from 'table';
 import { bold, green, dim } from 'chalk';
-import { ChainBuilder } from '@usecannon/builder';
+import { ChainBuilder, ContractArtifact } from '@usecannon/builder';
 import { runRpc, getProvider } from '../rpc';
 
 export async function build(
   cannonfile: string,
   preset: string,
-  settings: JSON,
-  getArtifact: Function,
+  settings: string[],
+  getArtifact: (name: string) => Promise<ContractArtifact>,
   localCannonDirectory?: string,
   baseProjectDirectory?: string
 ) {
@@ -26,14 +26,14 @@ export async function build(
   }
 
   if (!baseProjectDirectory) {
-    let pathParts = [...cannonfile.split('/')];
+    const pathParts = [...cannonfile.split('/')];
     pathParts.pop();
     baseProjectDirectory = pathParts.join('/');
   }
 
   if (!settings && !_.isEmpty(def.setting)) {
-    let displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
-      let settingRow: Array<any> = [
+    const displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
+      const settingRow: Array<any> = [
         setting[0],
         setting[1].defaultValue || dim('No default value'),
         setting[1].description || dim('No description'),
@@ -63,13 +63,12 @@ export async function build(
 
   const { name, version } = def;
 
-  let builder: ChainBuilder;
   const anvilInstance = await runRpc({
     port: 8545,
   });
   const provider = await getProvider(anvilInstance);
 
-  builder = new ChainBuilder({
+  const builder = new ChainBuilder({
     name,
     version,
     def,
