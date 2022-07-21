@@ -256,14 +256,14 @@ ${printChainDefinitionProblems(problems)}`);
           }
 
           if (!isCompleteLayer) {
-            debug('run to complete layer', layer.actions);
+            debug('run to complete layer', layer.actions, layer.depends);
             let ctx = await this.populateSettings(opts);
 
             if (this.writeMode === 'all') {
               await this.clearNode();
             }
 
-            for (const dep of this.def.getDependencies(n)) {
+            for (const dep of layer.depends) {
               ctx = combineCtx([ctx, completed.get(dep)!]);
 
               if (this.writeMode === 'all') {
@@ -328,7 +328,7 @@ ${printChainDefinitionProblems(problems)}`);
 
   // clean any artifacts associated with the current
   async wipe() {
-    clearDeploymentInfo(this.packageDir, this.chainId, this.preset);
+    await clearDeploymentInfo(this.packageDir, this.chainId, this.preset);
   }
 
   async getDeploymentInfo(): Promise<DeploymentInfo | null> {
