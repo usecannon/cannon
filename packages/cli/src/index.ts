@@ -55,29 +55,25 @@ function configureRun(program: Command) {
 program
   .command('build')
   .description('Build a package from a Cannonfile')
-  .usage('<cannonfile> <settings...>')
-  .argument('<cannonfile>', 'Path to a cannonfile', 'cannonfile.toml')
+  .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('<settings...>')
   .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
-  .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out');
-// .action(async function (cannonfile, preset, settings, artifacts) {
-//   const { default: command } = await import('./commands/build');
-
-//   const getArtifact = async (name: string): Promise<ContractArtifact> => {
-//     const filepath = resolve(artifacts);
-//     // Loop over all folders in the artifacts folder
-//     // Look for a file name that matches the passed in parameter
-
-//     // Return as follows:
-//     // contractName: filename without extension (name parameter)
-//     // sourceName: foldername without extension
-//     // abi: abi object from the file
-//     // bytecode: bytecode.object from the file
-//     // linkReferences: bytecode.linkReferences from the file
-//   };
-
-//   await command(cannonfile, preset, settings, getArtifact);
-// });
+  .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out')
+  .action(async function (cannonfile, preset, settings, artifacts) {
+    // const { default: command } = await import('./commands/build');
+    // const getArtifact = async (name: string): Promise<ContractArtifact> => {
+    //   const filepath = resolve(artifacts);
+    //   // Loop over all folders in the artifacts folder
+    //   // Look for a file name that matches the passed in parameter
+    //   // Return as follows:
+    //   // contractName: filename without extension (name parameter)
+    //   // sourceName: foldername without extension
+    //   // abi: abi object from the file
+    //   // bytecode: bytecode.object from the file
+    //   // linkReferences: bytecode.linkReferences from the file
+    // };
+    // await command(cannonfile, preset, settings, getArtifact);
+  });
 
 program
   .command('deploy')
@@ -85,34 +81,34 @@ program
   .argument('<package>', 'Label and version of the cannon package to deploy')
   .argument('<networkRpc>', '')
   .argument('<privateKey>', '')
-  .option('--dry-run', '');
-// .action(async function () {});
+  .option('--dry-run', '')
+  .action(async function () {});
 
 program
   .command('verify')
   .description('Verify a package on Etherscan')
-  .option('<package>', 'Label and version of the cannon package to inspect');
-// .action(async function () {});
+  .option('<package>', 'Label and version of the cannon package to inspect')
+  .action(async function () {});
 
 program
   .command('packages')
   .description('List all packages in your cannon directory')
-  .argument('<localCannonDirectory>', '~/.local/cannon');
-// .action(async function () {});
+  .argument('<localCannonDirectory>', '~/.local/cannon')
+  .action(async function () {});
 
 program
   .command('inspect')
   .description('Inspect the details of a cannon package')
-  .argument('<package>', 'Label and version of the cannon package to inspect');
-// .action(async function () {});
+  .argument('<package>', 'Label and version of the cannon package to inspect')
+  .action(async function () {});
 
 program
   .command('publish')
   .description('Publish a cannon package to the registry')
   .option('<package>', 'Label and version of the cannon package to publish')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
-  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.');
-// .action(async function () {});
+  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.')
+  .action(async function () {});
 
 if (require.main === module) {
   program.parse();
