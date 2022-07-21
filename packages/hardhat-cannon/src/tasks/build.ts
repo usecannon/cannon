@@ -39,11 +39,13 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     const filepath = path.resolve(hre.config.paths.root, file);
 
-    const def = loadCannonfile(hre, filepath);
+    const { def, name, version } = loadCannonfile(hre, filepath);
 
-    if (!settings && !_.isEmpty(def.setting)) {
-      let displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
-        let settingRow: Array<any> = [
+    const defSettings = def.getSettings();
+
+    if (!settings && !_.isEmpty(defSettings)) {
+      const displaySettings = Object.entries(defSettings!).map((setting: Array<any>) => {
+        const settingRow: Array<any> = [
           setting[0],
           setting[1].defaultValue || dim('No default value'),
           setting[1].description || dim('No description'),
@@ -70,8 +72,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         )
       );
     }
-
-    const { name, version } = def;
 
     let builder: ChainBuilder;
     if (dryRun) {
@@ -123,7 +123,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
 
         async getDefaultSigner() {
-          const bal = await wallets[0].getBalance();
           return wallets[0];
         },
 
@@ -199,7 +198,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       address: hre.config.cannon.registryAddress,
     });
 
-    const dependencies = await builder.getDependencies(mappedSettings);
+    const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(mappedSettings));
 
     for (const dependency of dependencies) {
       console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);

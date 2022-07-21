@@ -15,8 +15,9 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
 
     if (!label) {
       // load from base cannonfile
-      const def = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
-      label = `${def.name}:${def.version}`;
+      const { name, version } = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
+
+      label = `${name}:${version}`;
     }
 
     console.log('Verifying cannon deployment', label);
