@@ -62,6 +62,14 @@ export type ChainDefinitionProblems = {
   extraneous: { node: string; extraneous: string; inDep: string }[];
 };
 
+export type StateLayers = {
+  [key: string]: {
+    actions: string[];
+    depends: string[];
+    depending: string[];
+  };
+};
+
 export class ChainDefinition {
   private raw: RawChainDefinition;
 
@@ -330,7 +338,7 @@ export class ChainDefinition {
     layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {},
     layerOfActions = new Map<string, string>(),
     layerDependingOn = new Map<string, string>()
-  ): { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } {
+  ): StateLayers {
     for (const n of actions) {
       if (layerOfActions.has(n)) {
         continue;
