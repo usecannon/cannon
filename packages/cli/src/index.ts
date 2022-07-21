@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('cannon')
   .version(pkg.version)
-  .description('Utility for instantly loading cannon packages in standalone contexts.')
+  .description('Run a cannon package on a local node')
   .hook('preAction', async function () {
     await checkCannonVersion(pkg.version);
   });
@@ -24,7 +24,7 @@ configureRun(program.command('run'));
 
 function configureRun(program: Command) {
   return program
-    .description('Utility for instantly loading cannon packages in standalone contexts.')
+    .description('Run a cannon package on a local node')
     .usage('[global options] <name>:<semver> [key=value]')
     .argument('<package>', 'Label and version of the cannon package to load')
     .argument('[settings...]', 'Arguments used to modify the given package')
@@ -50,7 +50,7 @@ function configureRun(program: Command) {
 
 program
   .command('build')
-  .description('Build a Cannonfile')
+  .description('Build a package from a Cannonfile')
   .usage('<cannonfile> <settings...>')
   .argument('<cannonfile>', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('<settings...>')
@@ -74,6 +74,41 @@ program
 
     await command(cannonfile, preset, settings, getArtifact);
   });
+
+program
+  .command('deploy')
+  .description('Deploy a cannon package to a network')
+  .argument('<package>', 'Label and version of the cannon package to deploy')
+  .argument('<networkRpc>', '')
+  .argument('<privateKey>', '')
+  .option('--dry-run', '')
+  .action(async function () {});
+
+program
+  .command('verify')
+  .description('Verify a package on Etherscan')
+  .option('<package>', 'Label and version of the cannon package to inspect')
+  .action(async function () {});
+
+program
+  .command('packages')
+  .description('List all packages in your cannon directory')
+  .argument('<localCannonDirectory>', '~/.local/cannon')
+  .action(async function () {});
+
+program
+  .command('inspect')
+  .description('Inspect the details of a cannon package')
+  .argument('<package>', 'Label and version of the cannon package to inspect')
+  .action(async function () {});
+
+program
+  .command('publish')
+  .description('Publish a cannon package to the registry')
+  .option('<package>', 'Label and version of the cannon package to publish')
+  .option('-t --tags <tags>', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
+  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.')
+  .action(async function () {});
 
 if (require.main === module) {
   program.parse();

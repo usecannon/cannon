@@ -90,4 +90,9 @@ export async function build(
     },
     getArtifact,
   });
+
+  // "Successfully built package <name:version> to <directory path>."
+  // Run this on a local node with <command>
+  // Deploy it to a remote network with <command>
+  // Publish your package to the registry with <command>
 }
