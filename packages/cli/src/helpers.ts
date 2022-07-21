@@ -68,6 +68,43 @@ function execPromise(command: string): Promise<string> {
   });
 }
 
+export interface PackageDefinition {
+  name: string;
+  version: string;
+  settings: { [k: string]: string };
+}
+
+const packageRegExp = /^(?<name>[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
+const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
+
+export function parsePackagesArguments(val: string, result: PackageDefinition[] = []) {
+  const packageMatch = val.match(packageRegExp);
+  if (packageMatch) {
+    const { name, version } = packageMatch.groups!;
+
+    const def = {
+      name,
+      version,
+      settings: {},
+    };
+
+    result.push(def);
+
+    return result;
+  }
+
+  const settingMatch = val.match(settingRegExp);
+  if (settingMatch) {
+    if (!result.length) throw new Error('Missing package definition before setting');
+    const { key, value } = settingMatch.groups!;
+    const def = result[result.length - 1];
+    def.settings[key] = value;
+    return result;
+  }
+
+  throw new Error(`Invalid argument given ${val}`);
+}
+
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await execPromise('npm view @usecannon/cli version');
 
