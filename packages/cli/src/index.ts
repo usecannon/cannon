@@ -110,6 +110,10 @@ program
   .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.')
   .action(async function () {});
 
+program.command('import').action(async function () {});
+
+program.command('export').action(async function () {});
+
 if (require.main === module) {
   program.parse();
 }

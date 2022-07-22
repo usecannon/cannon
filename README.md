@@ -4,14 +4,14 @@ This is the monorepo for Cannon. If you’re just interested in using the projec
 
 For more information, please see documentation in the modules listed below:
 
-- [`cli`](packages/cli): Source code for the CLI, accessible at `npx @usecannon/cli <package:version>`. This downloads a package from the registry, optionally exports deployment data, and runs the package on an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node
-- [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
-- [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
-- [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website explorer
-- [`sample-project`](packages/sample-project): Demonstrates the core functionality of the `hardhat-cannon` module
-- [`contracts`](packages/contracts): Cannonfiles for standard contracts
+- [`cli`](packages/cli): The command-line interface. Run `npx @usecannon/cli --help` for usage information.
+- [`builder`](packages/builder): Builds chain data from cannonfiles. (This is used by the CLI.)
+- [`hardhat-cannon`](packages/hardhat-cannon): Code for the Hardhat plug-in, which wraps the CLI functionality with defaults pulled from a Hardhat project configuration.
+- [`registry`](packages/registry): The smart contract for the package registry.
+- [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
 - [`website`](packages/website): Source code for https://usecannon.com
-- [`builder`](packages/builder): Contains source code that builds chain data from cannonfiles
+- [`sample-project`](packages/sample-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
+- [`contracts`](packages/contracts): Cannonfiles for standard contracts
 
 ## Development
 
@@ -46,3 +46,7 @@ Preview updates to the website
 ```
 cd ./packages/website && npm run dev
 ```
+
+### Publishing
+
+With appropriate permissions on npm, publish updates using the [lerna publish](https://github.com/lerna/lerna/tree/main/commands/publish) command. For example, `npx lerna publish patch` will publish updated packages as the next patch version.
