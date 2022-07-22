@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import Debug from 'debug';
 
 import _ from 'lodash';
 import { ChainBuilderContext } from './types';
@@ -14,6 +15,8 @@ import Ajv from 'ajv/dist/jtd';
 import { JTDDataType } from 'ajv/dist/core';
 
 const ajv = new Ajv();
+
+const debug = Debug('cannon:builder:definition');
 
 /**
  * All the different types (and their implementations)
@@ -339,6 +342,7 @@ export class ChainDefinition {
     layerOfActions = new Map<string, string>(),
     layerDependingOn = new Map<string, string>()
   ): StateLayers {
+    debug('start compute state layers', actions);
     for (const n of actions) {
       if (layerOfActions.has(n)) {
         continue;
@@ -351,6 +355,7 @@ export class ChainDefinition {
       }
 
       // starts in its own layer
+      debug('layer up', n);
       layers[n] = {
         actions: [n],
 
@@ -365,7 +370,7 @@ export class ChainDefinition {
 
       for (const dep of this.getDependencies(n)) {
         if (!layerOfActions.has(dep)) {
-          this.getStateLayers([dep], layers, layerOfActions);
+          this.getStateLayers([dep], layers, layerOfActions, layerDependingOn);
         }
 
         const depLayer = layerOfActions.get(dep)!;
@@ -373,12 +378,14 @@ export class ChainDefinition {
 
         if (dependingLayer) {
           // "merge" this entire layer into the other one
+          debug(`merge from ${attachingLayer} into layer`, dependingLayer);
           layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
           layers[dependingLayer].depends = _.uniq([...layers[dependingLayer].depends, ...layers[attachingLayer].depends]);
 
           attachingLayer = dependingLayer;
         } else if (layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
+          debug(`extend the layer ${attachingLayer} with dep`, depLayer);
           layers[attachingLayer].depends.push(depLayer);
         }
       }
@@ -393,17 +400,118 @@ export class ChainDefinition {
       for (const d of layers[attachingLayer].depends) {
         layerDependingOn.set(d, attachingLayer);
       }
+
+      layers[attachingLayer].actions.sort();
+      layers[attachingLayer].depends.sort();
     }
 
+    debug('end compute state layer', actions);
+
     return layers;
+  }
+
+  private getPrintLinesUsed(n: string, layers = this.getStateLayers()): number {
+    return Math.max(
+      layers[n].actions.length + 2,
+      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))
+    );
+  }
+
+  printPartialTopology(n: string, layers = this.getStateLayers(), line = 0): string {
+    const layer = layers[n];
+
+    let output = '';
+
+    // print myself
+    const width = _.maxBy(layer.actions, 'length')!.length;
+    if (line === 0) {
+      output = '┌─' + '─'.repeat(width) + '─┐';
+    } else if (line <= layer.actions.length) {
+      output = '│ ' + layer.actions[line - 1] + ' '.repeat(width - layer.actions[line - 1].length) + ' │';
+    } else if (line === layer.actions.length + 1) {
+      output = '└─' + '─'.repeat(width) + '─┘';
+    }
+
+    // print the layers we depend on
+    if (layer.depends.length) {
+      // get current dependency printing info
+      let depIndex = 0;
+      let depUsedLines = 0;
+      for (; depIndex < layer.depends.length; depIndex++) {
+        const lineCount = this.getPrintLinesUsed(layer.depends[depIndex], layers);
+
+        if (depUsedLines + lineCount > line) {
+          break;
+        } else {
+          depUsedLines += lineCount;
+        }
+      }
+
+      if (depIndex < layer.depends.length) {
+        if (!output) {
+          output += ' '.repeat(width + 4);
+        }
+
+        if (line === 0) {
+          output += '     ';
+        } else if (line === 1) {
+          output += layer.depends.length > 1 ? '──┬──' : '─────';
+        } else if (line - depUsedLines === 1) {
+          output += depIndex < layer.depends.length - 1 ? '  ├──' : '  └──';
+        } else if (depIndex < layer.depends.length - 1 || line - depUsedLines < 1) {
+          output += '  │  ';
+        } else {
+          output += '     ';
+        }
+
+        output += this.printPartialTopology(layer.depends[depIndex], layers, line - depUsedLines);
+      }
+    }
+
+    return output;
   }
 
   /**
    * returns human-readable representation of the dag dependency graph of this chain definition
    * @returns array of lines to print
    */
-  printTopology(): string[] {
-    return [];
+  printTopology(nodes: string[] = []): string[] {
+    const layers = this.getStateLayers();
+
+    if (!nodes.length) {
+      // get leaf layers
+      const layerArray = _.uniq(Object.values(layers));
+
+      layerSearch: for (const layer of layerArray) {
+        for (const action of layer.actions) {
+          if (layerArray.find((l) => l.depends.indexOf(action) !== -1)) {
+            // this isnt a leaf
+            continue layerSearch;
+          }
+        }
+
+        nodes.push(layer.actions[0]);
+      }
+    }
+
+    debug('begin print topology', nodes);
+
+    // for each leaf layer, print it until there is empty output
+    const completeLines = [];
+
+    for (const n of nodes) {
+      const lines = [];
+      let line;
+      while ((line = this.printPartialTopology(n, layers, lines.length)) !== '') {
+        lines.push(line);
+      }
+
+      completeLines.push(...lines);
+    }
+
+    debug('end print topology', nodes);
+
+    return completeLines;
   }
 
   toJson(): RawChainDefinition {
