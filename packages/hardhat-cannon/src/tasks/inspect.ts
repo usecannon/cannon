@@ -15,8 +15,8 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
     await setupAnvil();
 
     const filepath = path.resolve(hre.config.paths.root, file);
-    const def = loadCannonfile(hre, filepath);
-    const { name, version } = def;
+    const { name, version } = loadCannonfile(hre, filepath);
+
     const packagesDir = getPackageDir(hre.config.paths.cannon, name, version);
     const deployInfo = await getAllDeploymentInfos(packagesDir);
 

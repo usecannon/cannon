@@ -24,9 +24,8 @@ task(TASK_EXPORT, 'Write a cannon chain from zip archive')
 
     // if name, version not specified, resolve from cannonfile
     if (!packageName || !packageVersion) {
-      const def = loadCannonfile(hre, path.join(hre.config.paths.root, 'cannonfile.toml'));
-      packageName = def.name;
-      packageVersion = def.version;
+      const { name, version } = loadCannonfile(hre, path.join(hre.config.paths.root, 'cannonfile.toml'));
+      [packageName, packageVersion] = [name, version];
     }
 
     let chainId = 31337;

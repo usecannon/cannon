@@ -1,4 +1,5 @@
 node_modules
 **/node_modules/**
+**/dist/**
 packages/hardhat-cannon/dist
 packages/registry-subgraph/generated

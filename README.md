@@ -47,6 +47,6 @@ Preview updates to the website
 cd ./packages/website && npm run dev
 ```
 
-### Publishing
+### Publish Package
 
 With appropriate permissions on npm, publish updates using the [lerna publish](https://github.com/lerna/lerna/tree/main/commands/publish) command. For example, `npx lerna publish patch` will publish updated packages as the next patch version.

@@ -1,9 +1,11 @@
 import crypto from 'crypto';
 import { ethers } from 'ethers';
 
-import fs, { existsSync } from 'fs-extra';
+import fs from 'fs-extra';
+import _ from 'lodash';
 import path from 'path';
-import { CannonRegistry, ChainBuilder, getPackageDir, getActionFiles, getSavedPackagesDir } from '.';
+import { ChainDefinition } from '.';
+import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 export const ChainDefinitionScriptSchema = {
@@ -121,6 +123,13 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
   return null;
 }
 
+export function getAllContractPaths(ctx: ChainArtifacts): string[] {
+  return [
+    ...Object.keys(ctx.contracts || {}),
+    ..._.sortBy(_.flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
+  ];
+}
+
 export function printInternalOutputs(outputs: ChainArtifacts) {
   for (const c in outputs.contracts) {
     console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
@@ -140,4 +149,33 @@ export function printInternalOutputs(outputs: ChainArtifacts) {
 
     console.log();
   }
+}
+
+export function printChainDefinitionProblems(problems: ChainDefinitionProblems, def?: ChainDefinition): string {
+  let counter = 1;
+  const str: string[] = [];
+
+  for (const missing of problems.missing) {
+    str.push(`${counter}: In action "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`);
+    counter++;
+  }
+
+  if (problems.missing.length && def) {
+    str.push(`HELP: The following is the full list of known actions:
+${def.allActionNames.join('\n')}`);
+  }
+
+  for (const cycle of problems.cycles) {
+    str.push(`${counter}: The actions ${cycle.join(', ')} form a dependency cycle and therefore cannot be deployed.`);
+
+    counter++;
+  }
+
+  for (const extraneous of problems.extraneous) {
+    str.push(
+      `${counter}: The action ${extraneous.node} defines an unnecessary dependency ${extraneous.extraneous} (a sub-dependency of ${extraneous.inDep}). Please remove this unnecessary dependency.`
+    );
+  }
+
+  return str.join('\n');
 }

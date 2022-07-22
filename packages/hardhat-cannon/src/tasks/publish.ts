@@ -21,8 +21,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
     }
 
     const filepath = path.resolve(hre.config.paths.root, file);
-    const def = loadCannonfile(hre, filepath);
-    const { name, version } = def;
+    const { name, version } = loadCannonfile(hre, filepath);
 
     const signers = await hre.ethers.getSigners();
 
