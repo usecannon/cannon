@@ -197,7 +197,8 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     baseCtx: ChainBuilderContext,
     layers: StateLayers,
     cur: string,
-    ctxes: Map<string, ChainBuilderContext> = new Map()
+    ctxes: Map<string, ChainBuilderContext> = new Map(),
+    tainted: Set<string> = new Set()
   ) {
     const layer = layers[cur];
 
@@ -207,27 +208,34 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
 
     // check all dependencies. If the dependency is not done, run the dep layer first
+    let isCompleteLayer = true;
     for (const dep of layer.depends) {
-      await this.buildLayer(baseCtx, layers, dep, ctxes);
+      await this.buildLayer(baseCtx, layers, dep, ctxes, tainted);
+
+      // if a prior layer had to be rebuilt, we must rebuild the current layer as well
+      isCompleteLayer = isCompleteLayer && !tainted.has(dep);
     }
 
     // do all state layers match? if so, load the layer from cache and continue
-    let isCompleteLayer = true;
-    for (const action of layer.actions) {
-      let ctx = _.cloneDeep(baseCtx);
+    if (isCompleteLayer) {
+      for (const action of layer.actions) {
+        let ctx = _.cloneDeep(baseCtx);
 
-      for (const dep of this.def.getDependencies(action)) {
-        ctx = combineCtx([ctx, ctxes.get(dep)!]);
+        for (const dep of this.def.getDependencies(action)) {
+          ctx = combineCtx([ctx, ctxes.get(dep)!]);
+        }
+
+        const layerActionCtx = await this.layerMatches(ctx, action);
+
+        if (!layerActionCtx) {
+          isCompleteLayer = false;
+          break;
+        } else {
+          ctxes.set(action, layerActionCtx);
+        }
       }
-
-      const layerActionCtx = await this.layerMatches(ctx, action);
-
-      if (!layerActionCtx) {
-        isCompleteLayer = false;
-        break;
-      } else {
-        ctxes.set(action, layerActionCtx);
-      }
+    } else {
+      debug(`layer for ${cur} is tainted, not checking hashes`);
     }
 
     // if we get here, need to run a rebuild of layer
@@ -251,6 +259,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         debug('run action in layer', action);
         const newCtx = await this.runStep(action, _.clone(ctx));
         ctxes.set(action, newCtx);
+        tainted.add(action);
         await this.dumpAction(newCtx, action);
       }
 
@@ -379,15 +388,27 @@ ${printChainDefinitionProblems(problems)}`);
       debug('load head for output', h);
       const newCtx = await this.loadMeta(_.last(h.split('/'))!);
 
-      if (this.readMode === 'all') {
-        await this.loadState(h);
-      }
-
       if (!newCtx) {
         throw new Error('context not declared for published layer');
       }
 
       ctx = await combineCtx([ctx, newCtx]);
+    }
+
+    if (this.readMode === 'all') {
+      // need to load state as well. the states that we want to load are the "leaf" layers
+      const layers = _.uniq(Object.values(this.def.getStateLayers()));
+
+      layerSearch: for (const layer of layers) {
+        for (const action of layer.actions) {
+          if (layers.find((l) => l.depends.indexOf(action) !== -1)) {
+            // this isnt a leaf
+            continue layerSearch;
+          }
+        }
+
+        await this.loadState(layer.actions[0]);
+      }
     }
 
     return ctx;
