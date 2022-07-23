@@ -242,6 +242,27 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.c'].depends).toEqual(['contract.e', 'contract.f']);
     });
+
+    /**
+     * this is a macho edge case that unfortunately occurs when creating what is effectively a secondary topology.
+     * Even if you have a transitive reduction, it is still possible to have a deep dependency reference
+     * when this happens, its important only the topmost dependency is included (since he deeper dep is effectively already included deeper)
+     */
+    it('works when depending on a dependency from a deeper layer you already depend on', async () => {
+      const def = makeFakeChainDefinition({
+        'contract.d': { depends: [] },
+        'contract.b': { depends: ['contract.d'] },
+        'contract.c': { depends: ['contract.d'] },
+        'contract.e': { depends: ['contract.c'] },
+        'contract.f': { depends: ['contract.e'] },
+        'contract.a': { depends: ['contract.b', 'contract.f'] },
+      });
+
+      const layers = def.getStateLayers();
+
+      // dependency on contract b should be nullified dependence on contract f (which indirectly on a deep layer depends on contract b)
+      expect(layers['contract.a'].depends).toEqual(['contract.f']);
+    });
   });
 
   describe('printTopology()', () => {
