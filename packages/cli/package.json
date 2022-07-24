@@ -26,7 +26,7 @@
     "typescript": "^4.6.2"
   },
   "bin": {
-    "cannon": "dist/src/index.js"
+    "cannon": "dist/bin/cannon.js"
   },
   "dependencies": {
     "@synthetixio/wei": "^2.74.1",

@@ -123,9 +123,10 @@ program
     'Address where the cannon registry is deployed',
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io');
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+  .showHelpAfterError();
 
-async function run() {
+export async function run() {
   await checkCannonVersion(pkg.version);
 
   let showAnvilLogs = false;
@@ -315,8 +316,4 @@ async function run() {
   console.log(INITIAL_INSTRUCTIONS);
   console.log(INSTRUCTIONS);
   await keypress();
-}
-
-if (require.main === module) {
-  run();
 }
