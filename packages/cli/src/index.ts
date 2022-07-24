@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-export * as commands from './commands/build'; // TODO: Can we avoid putting this here?
+export * as commands from './commands/build'; // TODO: Can we avoid putting this here and just require when the command is called?
 
 import { checkCannonVersion, parsePackagesArguments, PackageDefinition } from './helpers';
 import pkg from '../package.json';
