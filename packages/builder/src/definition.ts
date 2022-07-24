@@ -338,8 +338,9 @@ export class ChainDefinition {
 
     for (const dep of layers[n].depends) {
       deps.push(...this.getLayerDependencyTree(dep, layers));
-      deps.push(dep);
     }
+
+    deps.push(...layers[n].actions);
 
     return deps;
   }
@@ -380,11 +381,13 @@ export class ChainDefinition {
 
       let deps = this.getDependencies(n);
 
-      // first. filter any deps which are extraneous
+      // first. filter any deps which are extraneous. This is a dependency which is a subdepenendency of an assigned layer for a dependency.
       // @note this is the slowest part of cannon atm. Improvements here would be most important.
       for (const dep of deps) {
-        const depTree = this.getLayerDependencyTree(dep, layers);
-        deps = deps.filter((d) => depTree.indexOf(d) === -1);
+        for (const depdep of layers[dep].depends) {
+          const depTree = this.getLayerDependencyTree(depdep, layers);
+          deps = deps.filter((d) => depTree.indexOf(d) === -1);
+        }
       }
 
       for (const dep of deps) {
