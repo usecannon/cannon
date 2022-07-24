@@ -49,7 +49,8 @@ function configureRun(program: Command) {
       console.log(packages);
       // const { default: command } = await import('./commands/run');
       // await command(packageName, settings, options, program);
-    });
+    })
+    .showHelpAfterError('Use --help for more information.');
 }
 
 program

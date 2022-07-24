@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
@@ -15,7 +16,7 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
     await setupAnvil();
 
     const filepath = path.resolve(hre.config.paths.root, file);
-    const { name, version } = loadCannonfile(hre, filepath);
+    const { name, version, def } = loadCannonfile(hre, filepath);
 
     const packagesDir = getPackageDir(hre.config.paths.cannon, name, version);
     const deployInfo = await getAllDeploymentInfos(packagesDir);
@@ -23,8 +24,9 @@ task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
     if (json) {
       console.log(JSON.stringify(deployInfo, null, 2));
     } else {
-      if (deployInfo?.deploys) {
-        console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+      console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+      console.log(cyan(def.printTopology().join('\n')));
+      if (!_.isEmpty(deployInfo?.deploys)) {
         for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
           const chainName = getChainName(chainId, hre.config.networks);
           renderDeployment(chainName, chainId, chainData);

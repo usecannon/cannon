@@ -220,28 +220,56 @@ describe('ChainDefinition', () => {
 
     it('works when merging multiple assembled layers together', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-
-        // order of deps is important here. dependency on `contract.d` will cause it to form a separate layer
-        // which will then lead to a layer merge, one of the branch conditions
-        'contract.c': { depends: ['contract.d', 'contract.a'] },
-        'contract.d': { depends: [] },
+        'contract.a': { depends: ['contract.c'] },
+        'contract.b': { depends: ['contract.c'] },
+        'contract.c': { depends: ['contract.f', 'contract.e'] },
+        'contract.d': { depends: ['contract.f'] },
+        'contract.e': { depends: [] },
+        'contract.f': { depends: [] },
       });
 
       const layers = def.getStateLayers();
 
-      expect(layers['contract.a']).toEqual({
-        actions: ['contract.a'],
+      expect(layers['contract.f']).toEqual({
+        actions: ['contract.f'],
         depending: [],
         depends: [],
       });
 
-      expect(layers['contract.b']).toEqual(layers['contract.c']);
+      expect(layers['contract.c']).toEqual(layers['contract.d']);
 
-      expect(layers['contract.b'].actions).toEqual(['contract.b', 'contract.c']);
+      expect(layers['contract.c'].actions).toEqual(['contract.c', 'contract.d']);
 
-      expect(layers['contract.b'].depends).toEqual(['contract.a', 'contract.d']);
+      expect(layers['contract.c'].depends).toEqual(['contract.e', 'contract.f']);
+    });
+  });
+
+  describe('printTopology()', () => {
+    it('prints a complicated topology', () => {
+      const def = makeFakeChainDefinition({
+        'contract.a': { depends: ['contract.c'] },
+        'contract.b': { depends: ['contract.c'] },
+        'contract.c': { depends: ['contract.f', 'contract.e'] },
+        'contract.d': { depends: ['contract.f'] },
+        'contract.e': { depends: [] },
+        'contract.f': { depends: [] },
+        'contract.g': { depends: ['contract.h'] },
+        'contract.h': { depends: [] },
+      });
+
+      const lines = def.printTopology();
+
+      expect(lines).toEqual([
+        '┌────────────┐     ┌────────────┐     ┌────────────┐',
+        '│ contract.a │─────│ contract.c │──┬──│ contract.e │',
+        '│ contract.b │     │ contract.d │  │  └────────────┘',
+        '└────────────┘     └────────────┘  │  ┌────────────┐',
+        '                                   └──│ contract.f │',
+        '                                      └────────────┘',
+        '┌────────────┐     ┌────────────┐',
+        '│ contract.g │─────│ contract.h │',
+        '└────────────┘     └────────────┘',
+      ]);
     });
   });
 });
