@@ -390,11 +390,6 @@ export class ChainDefinition {
       for (const dep of deps) {
         // layer is guarenteed to exist here because topological sort
         const depLayer = layerOfActions.get(dep)!;
-
-        if (layers[attachingLayer].depends.indexOf(depLayer) !== -1) {
-          continue;
-        }
-
         const dependingLayer = layerDependingOn.get(depLayer);
 
         if (dependingLayer) {
