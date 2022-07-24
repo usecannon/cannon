@@ -69,7 +69,6 @@ export type StateLayers = {
   [key: string]: {
     actions: string[];
     depends: string[];
-    depending: string[];
   };
 };
 
@@ -334,10 +333,21 @@ export class ChainDefinition {
     return extraneous;
   }
 
+  getLayerDependencyTree(n: string, layers: StateLayers): string[] {
+    const deps = [];
+
+    for (const dep of layers[n].depends) {
+      deps.push(...this.getLayerDependencyTree(dep, layers));
+      deps.push(dep);
+    }
+
+    return deps;
+  }
+
   // on local nodes, steps depending on the same base need to be merged into "layers" to prevent state collisions
   // returns an array of layers which can be deployed as a unit in topological order
   getStateLayers(
-    actions = this.allActionNames,
+    actions = this.topologicalActions,
     layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {},
     layerOfActions = new Map<string, string>(),
     layerDependingOn = new Map<string, string>()
@@ -368,11 +378,17 @@ export class ChainDefinition {
 
       let attachingLayer: string = n;
 
-      for (const dep of this.getDependencies(n)) {
-        if (!layerOfActions.has(dep)) {
-          this.getStateLayers([dep], layers, layerOfActions, layerDependingOn);
-        }
+      let deps = this.getDependencies(n);
 
+      // first. filter any deps which are extraneous
+      // @note this is the slowest part of cannon atm. Improvements here would be most important.
+      for (const dep of deps) {
+        const depTree = this.getLayerDependencyTree(dep, layers);
+        deps = deps.filter((d) => depTree.indexOf(d) === -1);
+      }
+
+      for (const dep of deps) {
+        // layer is guarenteed to exist here because topological sort
         const depLayer = layerOfActions.get(dep)!;
         const dependingLayer = layerDependingOn.get(depLayer);
 
