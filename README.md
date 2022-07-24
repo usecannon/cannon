@@ -9,7 +9,7 @@ For more information, please see documentation in the modules listed below:
 - [`hardhat-cannon`](packages/hardhat-cannon): Code for the Hardhat plug-in, which wraps the CLI functionality with defaults pulled from a Hardhat project configuration.
 - [`registry`](packages/registry): The smart contract for the package registry.
 - [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
-- [`website`](packages/website): Source code for https://usecannon.com
+- [`website`](packages/website): The website, hosted at https://usecannon.com
 - [`sample-project`](packages/sample-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
 - [`contracts`](packages/contracts): Cannonfiles for standard contracts
 

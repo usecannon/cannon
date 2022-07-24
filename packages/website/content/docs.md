@@ -1,6 +1,6 @@
 # Cannon Documentation
 
-Cannon is a CLI compatible with [Foundry](https://github.com/foundry-rs/foundry) and [Hardhat](https://hardhat.org/]) that allows you to configure your protocol's scripts, keepers, and on-chain dependencies in Cannonfiles. Cannonfiles are built into packages, which can be deployed to the registry (backed on Ethereum and IPFS). Packages can be run on local nodes, deployed to live chains, and imported into other Cannonfiles.
+Cannon is a CLI (compatible with [Foundry](https://github.com/foundry-rs/foundry) and [Hardhat](https://hardhat.org/])) that allows you to configure your protocol's contracts, initialization scripts, and on-chain dependencies in Cannonfiles. Cannonfiles are built into packages, which can be published to the registry (backed on Ethereum and IPFS). Packages can be run on local nodes, deployed to live chains, and imported into other Cannonfiles.
 
 ## Getting Started
 
@@ -13,6 +13,8 @@ npx @usecannon/cli synthetix
 ```
 
 This command will download the latest [synthetix package](/packages/synthetix) into your local cannon directory (`~/.local/cannon`) and start an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with it. Run `npx @usecannon/cli --help` for more information or see documentation for the [run](#run) command below.
+
+You can also install Cannon globally (instead of using npx) with `npm install -g @usecannon/cli`. Then use `cannon` in place of `npx @usecannon/cli`.
 
 ### Install Hardhat Plug-in
 
@@ -34,9 +36,9 @@ If your project uses Typescript instead, include Cannon in `hardhat.config.ts`.
 import 'hardhat-cannon';
 ```
 
-Now you’ll be able to use the Hardhat plug-in commands specified in the \_\_\_\_ section below.
+Now you’ll be able to use the Hardhat plug-in commands specified in the [Cannon Commands](#cannon-commands) section below.
 
-### Create cannonfile.toml
+### Build a Cannonfile
 
 If you'd like to automate your own deployments, create a `cannonfile.toml` file in the root of your Foundry or Hardhat project.
 
@@ -98,9 +100,15 @@ See [cannonfile.toml Specification](#cannonfiletoml-specification) for more deta
 
 ## Cannon Commands
 
-The following commands can be ..
+If you’re using the Hardhat plug-in, you can access the following commands as tasks. For example, the build command could be executed with `npx hardhat cannon:build`.
 
 ### run
+
+The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/cannon`), it will first be downloaded there from the [Cannon registry](/search).
+
+If the CLI is run without a command specified, it will use the run command.
+
+Note about cannon.json file and other stuff.
 
 ### build
 
@@ -117,86 +125,6 @@ The following commands can be ..
 ### import
 
 ### export
-
-<!--
-
-## Deploy a Cannonfile
-
-You can build and deploy a Cannonfile on a local node or a remote network with the `npx hardhat cannon:build` command.
-
-Artifacts for your deployment will be written to a folder named `deployments`. This includes JSON files with the address and ABI for each of the deployed contracts.
-
-### Local Node
-
-You can run a cannonfile with the command `npx hardhat cannon <package name>:<package version>` followed by any settings. The package references can be that of a cannonfile you've built locally or one available in the package manager. If you don't specify a package name, Cannon will deploy the cannonfile for the current project by default.
-
-#### Test Deployments on a Fork
-
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. For example, the following command will start a local node on port 8545 with a fork of rinkeby and then run your cannonfile on it.
-
-```bash
-npx hardhat cannon:build --dry-run --network rinkeby --port 8545
-```
-
-### Remote Network
-
-To deploy to a remote network, first [add a `network` entry to your `hardhat.config.js` file](https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks). Then, specify a network with your build command. For example, this command would deploy your cannonfile to rinkeby:
-
-```bash
-npx hardhat --network rinkeby cannon:build
-```
-
-#### Verify on Etherscan
-
-After deploying to a live network, you can use the `cannon:verify` command to verify all of the deployed contracts on [Etherscan](https://www.etherscan.com).
-
-First, install [hardhat-etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan) in your project. Then, run `npx hardhat --network <network name> cannon:verify`.
-
-## Publish a Package
-
-Cannonfiles can be published to the registry, backed on Ethereum and IPFS.
-
-We recommend using Infura to pin on IPFS using their API, though you can use any IPFS node. Create an Infura account and an IPFS project. You'll retrieve the `INFURA_IPFS_ID` and `INFURA_IPFS_SECRET` values from their dashboard to use below.
-
-`PRIVATE_KEY` is the private key of an Ethereum wallet that will pay the gas to add the entry to the on-chain registry.
-
-Add this section to your `hardhat.config.json`:
-
-```json
-{
-  cannon: {
-    ipfsConnection: {
-      protocol: 'https',
-      host: 'ipfs.infura.io',
-      port: 5001,
-      headers: {
-        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString('base64')}`
-      },
-    }
-  }
-}
-```
-
-Then use the following command to build your package:
-
-```bash
-npx hardhat cannon:build
-```
-
-Inspect the contents of your package:
-
-```bash
-npx hardhat cannon:inspect
-```
-
-Finally, deploy it to the registry on mainnet. This will use the account associated with the private key in the `networks.mainnet` section of your Hardhat configuration file to execute the `publish` function on the registry after uploading the package to IPFS.
-
-```bash
-npx hardhat cannon:publish --network mainnet
-```
-
-If you have multiple Cannonfiles in your project, you can pass `--file` with the path to the specific `cannonfile.toml` you’d like to publish.
--->
 
 ## cannon.json Specification
 
@@ -371,7 +299,7 @@ This action updates the return object by merging the object returned from the sc
 
 **Coming soon.**
 
-- Set up a Foundry project.
+- Set up a Foundry project
 - Write a contract and cannonfile that interacts with Synthetix
 - Deploy it connected to the live protocol
 
@@ -433,10 +361,10 @@ To perform all of the tasks below, your `hardhat.config.js` should look somethin
 
 ### Do a dry run
 
-You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag. If you add the `--port` option, it will continue running at the specified port.
+You can verify the steps Cannon would take when deploying to a live network with the `--dry-run` flag.
 
 ```bash
-npx hardhat cannon:build --network <network name> --dry-run --port <number>
+npx hardhat cannon:deploy --network <network name> --dry-run
 ```
 
 ### Deploy to a live network
@@ -444,7 +372,7 @@ npx hardhat cannon:build --network <network name> --dry-run --port <number>
 Then remove the `--dry-run` flag to actually deploy. This will use the account associated with the private key for the network you select in your `hardhat.config.js` file.
 
 ```bash
-npx hardhat cannon:build --network <network name>
+npx hardhat cannon:deploy --network <network name>
 ```
 
 ### Verify your contracts on Etherscan
@@ -475,7 +403,7 @@ This will use the account associated with the private key in the `networks.mainn
 npx hardhat cannon:publish --network mainnet
 ```
 
-For unofficial releases, you can use other deployments of the [package registry](/packages/registry). We’ve deployed an instance on rinkeby that can be used with the following command:
+For unofficial releases, you can use the import/export commands, or other deployments of the [package registry](/packages/registry). We’ve deployed an instance on rinkeby that can be used with the following command:
 
 ```bash
 npx hardhat cannon:publish --network rinkeby --registry-address 0x79E25D87432920FC5C187e14676FA6a8A8a00418
