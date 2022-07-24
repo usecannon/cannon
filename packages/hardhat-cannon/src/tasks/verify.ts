@@ -3,7 +3,6 @@ import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
 import { ChainBuilder } from '@usecannon/builder';
-import { setupAnvil } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
 import { ethers } from 'ethers';
 
@@ -11,8 +10,6 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
   .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
   .addOptionalVariadicPositionalParam('opts', 'Settings used for execution', [])
   .setAction(async ({ label, opts }, hre) => {
-    await setupAnvil();
-
     if (!label) {
       // load from base cannonfile
       const { name, version } = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');

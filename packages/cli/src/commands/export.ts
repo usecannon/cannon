@@ -8,10 +8,16 @@ export async function exportPackage(packagesDir: string, exportFile: string, pac
   await setupAnvil();
   const { name, version } = findPackage(packageRef);
 
+  if (!exportFile.endsWith('.zip')) {
+    exportFile += '.zip';
+  }
+
   const resolvedPackagesDir = resolve(packagesDir);
   const resolvedFilepath = resolve(exportFile);
 
+  // warn if overwriting?
+
   const buf = await exportChain(resolvedPackagesDir, name, version);
   await fs.writeFile(resolvedFilepath, buf);
-  console.log(greenBright(`Exported ${name}@${version}`));
+  console.log(greenBright(`Exported ${name}@${version} to ${resolvedFilepath}`));
 }

@@ -26,7 +26,7 @@ export async function publish(
   }
 
   const registry = new CannonRegistry({
-    ipfsOptions: {}, //hre.config.cannon.ipfsConnection --- HOW DO WE HANDLE THIS FOR FOUNDRY?
+    ipfsOptions: {}, //hre.config.cannon.ipfsConnection --- TODO: HOW DO WE HANDLE THIS FOR FOUNDRY?
     signerOrProvider: wallet,
     address: registryAddress,
   });

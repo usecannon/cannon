@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import { DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
-import { setupAnvil, findPackage, getChainName } from '../helpers';
+import { findPackage, getChainName } from '../helpers';
 
 export async function inspect(packagesDir: string, packageRef: string, outputJson: boolean) {
-  setupAnvil();
   const { name, version } = findPackage(packageRef);
   const def = { printTopology: () => [] }; // TODO: Do we have a util to get a 'def' out of a package instead of a cannonfile?
 

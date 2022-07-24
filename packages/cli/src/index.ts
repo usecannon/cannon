@@ -1,13 +1,23 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-export * as commands from './commands/build'; // TODO: Can we avoid putting this here and just require when the command is called?
 
-import { checkCannonVersion, parsePackagesArguments, PackageDefinition } from './helpers';
+import { checkCannonVersion, parsePackagesArguments } from './helpers';
 import pkg from '../package.json';
 
 import { resolve } from 'path';
 import { ContractArtifact } from '@usecannon/builder';
+
+// Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export * from './commands/build';
+export * from './commands/deploy';
+export * from './commands/export';
+export * from './commands/import';
+export * from './commands/inspect';
+export * from './commands/packages';
+export * from './commands/publish';
+export * from './commands/run';
+export * from './commands/verify';
 
 const program = new Command();
 
@@ -27,7 +37,7 @@ function configureRun(program: Command) {
     .description('Utility for instantly loading cannon packages in standalone contexts.')
     .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
     .argument(
-      '[packages...]',
+      '[packageNames...]',
       'List of packages to load, optionally with custom settings for each one',
       parsePackagesArguments
     )
@@ -45,10 +55,9 @@ function configureRun(program: Command) {
       '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
     )
     .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
-    .action(async function (packages: PackageDefinition[], options, program) {
-      console.log(packages);
-      // const { default: command } = await import('./commands/run');
-      // await command(packageName, settings, options, program);
+    .action(async function (packageNames, options, program) {
+      const { run } = await import('./commands/run');
+      await run(packageNames);
     })
     .showHelpAfterError('Use --help for more information.');
 }
@@ -57,13 +66,20 @@ program
   .command('build')
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
-  .argument('<settings...>')
   .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
   .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out')
-  .action(async function (cannonfile, preset, settings, artifacts) {
-    // const { default: command } = await import('./commands/build');
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .argument('<settings...>')
+  .action(async function (cannonfile, preset, artifacts, localCannonDirectory, settings) {
+    const getArtifact = async (name: string): Promise<ContractArtifact> => {
+      return new Promise((resolve) => {
+        resolve({ contractName: 'mock' } as ContractArtifact);
+      });
+    };
+    // Create option for baseProejctDir?
+
     // const getArtifact = async (name: string): Promise<ContractArtifact> => {
-    //   const filepath = resolve(artifacts);
+    //   // const filepath = resolve(artifacts);
     //   // Loop over all folders in the artifacts folder
     //   // Look for a file name that matches the passed in parameter
     //   // Return as follows:
@@ -74,46 +90,84 @@ program
     //   // linkReferences: bytecode.linkReferences from the file
     // };
     // await command(cannonfile, preset, settings, getArtifact);
+
+    const { build } = await import('./commands/build');
+    await build(cannonfile, preset, settings, getArtifact, localCannonDirectory);
   });
 
 program
   .command('deploy')
   .description('Deploy a cannon package to a network')
-  .argument('<package>', 'Label and version of the cannon package to deploy')
+  .argument('<packageName>', 'Name and version of the cannon package to deploy')
   .argument('<networkRpc>', '')
   .argument('<privateKey>', '')
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .option('--dry-run', '')
-  .action(async function () {});
+  .action(async function (packageName, networkRpc, privateKey, localCannonDirectory) {
+    const { deploy } = await import('./commands/deploy');
+    await deploy(localCannonDirectory, packageName);
+  });
 
 program
   .command('verify')
   .description('Verify a package on Etherscan')
-  .option('<package>', 'Label and version of the cannon package to inspect')
-  .action(async function () {});
+  .option('-a --apiKey <apiKey>', 'Etherscan API key')
+  .action(async function (packageName, apiKey) {
+    const { verify } = await import('./commands/verify');
+    await verify(apiKey);
+  });
 
 program
   .command('packages')
-  .description('List all packages in your cannon directory')
-  .argument('<localCannonDirectory>', '~/.local/cannon')
-  .action(async function () {});
+  .description('List all packages in the local Cannon directory')
+  .argument('[localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (localCannonDirectory) {
+    const { packages } = await import('./commands/packages');
+    await packages(localCannonDirectory);
+  });
 
 program
   .command('inspect')
   .description('Inspect the details of a cannon package')
-  .argument('<package>', 'Label and version of the cannon package to inspect')
-  .action(async function () {});
+  .argument('<packageName>', 'Name and version of the cannon package to inspect')
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, localCannonDirectory, outputJson) {
+    const { inspect } = await import('./commands/inspect');
+    await inspect(localCannonDirectory, packageName, outputJson);
+  });
 
 program
   .command('publish')
   .description('Publish a cannon package to the registry')
-  .option('<package>', 'Label and version of the cannon package to publish')
+  .argument('<packageName>', 'Name and version of the cannon package to publish')
+  .option('-k --privateKey <privateKey>', 'Private key of for signer to use when publishing')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.')
-  .action(async function () {});
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (packageName, privateKey, tags, registryAddress, localCannonDirectory) {
+    const { publish } = await import('./commands/publish');
+    await publish(localCannonDirectory, privateKey, packageName, tags, registryAddress);
+  });
 
-program.command('import').action(async function () {});
+program
+  .command('import')
+  .argument('<filename>', 'Relative path and filename to import.')
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (filename, directory) {
+    const { importPackage } = await import('./commands/import');
+    await importPackage(directory, filename);
+  });
 
-program.command('export').action(async function () {});
+program
+  .command('export')
+  .argument('<packageName>', 'Name and version of the cannon package to export')
+  .argument('[filename]', 'Relative path and filename to export package.', './cannon-export.zip')
+  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (packageName, filename, localCannonDirectory) {
+    const { exportPackage } = await import('./commands/export');
+    await exportPackage(localCannonDirectory, filename, packageName);
+  });
 
 if (require.main === module) {
   program.parse();

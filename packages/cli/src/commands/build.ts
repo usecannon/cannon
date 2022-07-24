@@ -13,7 +13,7 @@ export async function build(
   preset: string,
   settings: string[],
   getArtifact: (name: string) => Promise<ContractArtifact>,
-  localCannonDirectory?: string,
+  localCannonDirectory: string,
   baseProjectDirectory?: string
 ) {
   await setupAnvil();

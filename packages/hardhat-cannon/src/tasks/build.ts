@@ -3,7 +3,7 @@ import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
-import { commands } from '@usecannon/cli';
+import { build } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
 import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
@@ -25,7 +25,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     }
 
     const filepath = path.resolve(hre.config.paths.root, file);
-    commands.build(filepath, preset, settings, hre.artifacts.readArtifact, hre.config.paths.cannon, hre.config.paths.root);
+    build(filepath, preset, settings, hre.artifacts.readArtifact, hre.config.paths.cannon, hre.config.paths.root);
 
     /*
     const filepath = path.resolve(hre.config.paths.root, file);

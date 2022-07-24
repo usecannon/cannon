@@ -167,16 +167,17 @@ export function loadCannonfile(filepath: string) {
 }
 
 export function findPackage(packageRef: string) {
+  // This probably needs packageDir as a path
   // Detect cannonfile, prompt to rebuild (will need to switch if cli or hardhat)?
   // Look for package based on packageRef, if not found, prompt to build it?
-  // What if they don't specify, and we'd want :latest ?
+
   return {
     name: packageRef.split(':')[0],
-    version: packageRef.split(':')[1],
+    version: packageRef.split(':')[1] || 'latest',
   };
 }
 
 export function getChainName(chainId: number): string {
-  // need a mapping of id to name
+  // TODO: need a mapping of id to name
   return 'todo';
 }

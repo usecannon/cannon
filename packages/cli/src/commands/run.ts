@@ -1,7 +1,6 @@
 import _ from 'lodash';
-import { Command } from 'commander';
 
-export default async function run(packages: string[], options: { [k: string]: string }, program: Command) {
+export async function run(packages: string[]) {
   console.log(packages);
 }
 

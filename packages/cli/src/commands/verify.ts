@@ -1,3 +1,4 @@
 export async function verify(etherscanApiKey: string) {
-  // https://book.getfoundry.sh/forge/deploying#verifying-a-pre-existing-contract
+  // See https://book.getfoundry.sh/forge/deploying#verifying-a-pre-existing-contract
+  // This may be very different logic between hardhat and foundry.
 }

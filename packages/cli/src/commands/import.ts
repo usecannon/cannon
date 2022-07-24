@@ -7,6 +7,7 @@ import { greenBright } from 'chalk';
 export async function importPackage(packagesDir: string, exportFile: string) {
   await setupAnvil();
 
+  //TODO: Resolve isn't right here, just need to it probably find the homedir with ~
   const resolvedPackagesDir = resolve(packagesDir);
   const resolvedFilepath = resolve(exportFile);
 
