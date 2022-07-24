@@ -124,13 +124,18 @@ program
     '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
   )
   .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
-  .showHelpAfterError();
+  .showHelpAfterError('Use --help for more information.');
 
 export async function run() {
   await checkCannonVersion(pkg.version);
 
   let showAnvilLogs = false;
   let interacting = false;
+
+  if (process.argv.length == 2) {
+    program.outputHelp();
+    return;
+  }
 
   program.parse();
   const options = program.opts();
