@@ -1,6 +1,7 @@
 import os from 'os';
 import { exec, spawnSync } from 'child_process';
 import prompts from 'prompts';
+import { InvalidArgumentError } from 'commander';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import fs from 'fs';
 import toml from '@iarna/toml';
@@ -75,7 +76,7 @@ const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
 export function parsePackagesArguments(val: string, result: PackageDefinition[] = []) {
   const packageMatch = val.match(packageRegExp);
   if (packageMatch) {
-    const { name, version } = packageMatch.groups!;
+    const { name, version = 'latest' } = packageMatch.groups!;
 
     const def = {
       name,
@@ -90,14 +91,24 @@ export function parsePackagesArguments(val: string, result: PackageDefinition[] 
 
   const settingMatch = val.match(settingRegExp);
   if (settingMatch) {
-    if (!result.length) throw new Error('Missing package definition before setting');
+    if (!result.length) throw new InvalidArgumentError('Missing package definition before setting');
     const { key, value } = settingMatch.groups!;
     const def = result[result.length - 1];
     def.settings[key] = value;
     return result;
   }
 
-  throw new Error(`Invalid argument given ${val}`);
+  throw new InvalidArgumentError(`Invalid argument given ${val}`);
+}
+
+export function parseInteger(value: string) {
+  const parsedValue = Number.parseInt(value);
+
+  if (Number.isNaN(parsedValue)) {
+    throw new InvalidArgumentError('Not a number.');
+  }
+
+  return parsedValue;
 }
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {

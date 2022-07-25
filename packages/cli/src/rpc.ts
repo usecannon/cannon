@@ -20,7 +20,7 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
   }
 
   return Promise.race<Promise<ChildProcess>>([
-    new Promise<ChildProcess>((resolve, reject) => {
+    new Promise<ChildProcess>((resolve) => {
       const anvilInstance = spawn('anvil', opts);
 
       process.on('exit', () => anvilInstance.kill());
@@ -32,7 +32,7 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
       });
 
       anvilInstance.on('error', (err) => {
-        if (state == 'spawning') {
+        if (state === 'spawning') {
           console.log(err);
         }
       });

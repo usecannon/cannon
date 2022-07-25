@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 
-import { checkCannonVersion, parsePackagesArguments } from './helpers';
+import { checkCannonVersion, parseInteger, parsePackagesArguments } from './helpers';
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
@@ -43,10 +43,11 @@ function configureRun(program: Command) {
         parsePackagesArguments
       )
       .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-      .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
+      .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', parseInteger, 8545)
       .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+      .option('--file <path>', 'Path to the cannon.json file to startup locally')
       .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
-      .option('--preset <name>', 'Load an alternate setting preset (default: main)')
+      .option('--preset <name>', 'Load an alternate setting preset (default: main)', 'main')
       // .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
       // .option('-e --exit', 'Exit after building')
       .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
