@@ -395,7 +395,7 @@ export class ChainDefinition {
         const depLayer = layerOfActions.get(dep)!;
         const dependingLayer = layerDependingOn.get(depLayer);
 
-        if (dependingLayer) {
+        if (dependingLayer && dependingLayer !== attachingLayer) {
           // "merge" this entire layer into the other one
           debug(`merge from ${attachingLayer} into layer`, dependingLayer);
           layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
