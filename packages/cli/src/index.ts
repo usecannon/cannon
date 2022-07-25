@@ -73,11 +73,11 @@ program
   .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .argument('<settings...>')
   .action(async function (cannonfile, preset, artifacts, localCannonDirectory, settings) {
-    const getArtifact = async (name: string): Promise<ContractArtifact> => {
-      return new Promise((resolve) => {
-        resolve({ contractName: 'mock' } as ContractArtifact);
-      });
-    };
+    // const getArtifact = async (name: string): Promise<ContractArtifact> => {
+    //   return new Promise((resolve) => {
+    //     resolve({ contractName: 'mock' } as ContractArtifact);
+    //   });
+    // };
     // Create option for baseProejctDir?
 
     // const getArtifact = async (name: string): Promise<ContractArtifact> => {
@@ -94,7 +94,7 @@ program
     // await command(cannonfile, preset, settings, getArtifact);
 
     const { build } = await import('./commands/build');
-    await build(cannonfile, preset, settings, getArtifact, localCannonDirectory);
+    // await build(cannonfile, preset, settings, getArtifact, localCannonDirectory);
   });
 
 program
