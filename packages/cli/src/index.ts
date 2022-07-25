@@ -4,9 +4,9 @@ import { Command } from 'commander';
 
 import { checkCannonVersion, parsePackagesArguments } from './helpers';
 import pkg from '../package.json';
+import { PackageDefinition } from './types';
 
-import { resolve } from 'path';
-import { ContractArtifact } from '@usecannon/builder';
+import type { RunOptions } from './commands/run';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export * from './commands/build';
@@ -33,33 +33,35 @@ configureRun(program);
 configureRun(program.command('run'));
 
 function configureRun(program: Command) {
-  return program
-    .description('Utility for instantly loading cannon packages in standalone contexts.')
-    .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
-    .argument(
-      '[packageNames...]',
-      'List of packages to load, optionally with custom settings for each one',
-      parsePackagesArguments
-    )
-    .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
-    .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-    .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
-    .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-    .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-    .option('-e --exit', 'Exit after building')
-    .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
-    .option(
-      '--registry-address <address>',
-      'Address where the cannon registry is deployed',
-      '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
-    )
-    .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
-    .action(async function (packageNames, options, program) {
-      const { run } = await import('./commands/run');
-      await run(packageNames);
-    })
-    .showHelpAfterError('Use --help for more information.');
+  return (
+    program
+      .description('Utility for instantly loading cannon packages in standalone contexts.')
+      .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
+      .argument(
+        '[packages...]',
+        'List of packages to load, optionally with custom settings for each one',
+        parsePackagesArguments
+      )
+      .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
+      .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
+      .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+      .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
+      .option('--preset <name>', 'Load an alternate setting preset (default: main)')
+      // .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+      // .option('-e --exit', 'Exit after building')
+      .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
+      .option(
+        '--registry-address <address>',
+        'Address where the cannon registry is deployed',
+        '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
+      )
+      .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+      .action(async function (packages: PackageDefinition[], options: RunOptions, program: Command) {
+        const { run } = await import('./commands/run');
+        await run(packages, options, program);
+      })
+      .showHelpAfterError('Use --help for more information.')
+  );
 }
 
 program

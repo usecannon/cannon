@@ -1,9 +1,19 @@
 import _ from 'lodash';
+import { Command } from 'commander';
+import { PackageDefinition } from '../types';
 
-export async function run(packages: string[]) {
-  console.log(packages);
+export interface RunOptions {
+  host?: string;
+  port?: number;
+  fork?: string;
+  logs?: boolean;
+  preset?: string;
+  registryRpc?: string;
+  registryAddress?: string;
+  ipfsUrl?: string;
 }
 
-function parseSettings(settings: string[]) {
-  return _.fromPairs(settings.map((kv: string) => kv.split('=')));
+export async function run(packages: PackageDefinition[], options: RunOptions, program: Command) {
+  console.log(packages);
+  console.log(options);
 }

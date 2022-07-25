@@ -6,6 +6,7 @@ import fs from 'fs';
 import toml from '@iarna/toml';
 import { ethers } from 'ethers';
 import { validateChainDefinition } from '@usecannon/builder';
+import { PackageDefinition } from './types';
 
 export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
@@ -66,12 +67,6 @@ function execPromise(command: string): Promise<string> {
       resolve(stdout.trim());
     });
   });
-}
-
-export interface PackageDefinition {
-  name: string;
-  version: string;
-  settings: { [k: string]: string };
 }
 
 const packageRegExp = /^(?<name>[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
