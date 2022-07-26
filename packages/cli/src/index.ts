@@ -155,7 +155,7 @@ program
 
 program
   .command('import')
-  .argument('<filename>', 'Relative path and filename to import.')
+  .argument('<filename>', 'Relative path and filename to import')
   .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .action(async function (filename, directory) {
     const { importPackage } = await import('./commands/import');
@@ -164,12 +164,13 @@ program
 
 program
   .command('export')
+  .description('Export a Cannon package as a zip archive')
   .argument('<packageName>', 'Name and version of the cannon package to export')
-  .argument('[filename]', 'Relative path and filename to export package.', './cannon-export.zip')
+  .argument('[outputFile]', 'Relative path and filename to export package archive')
   .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (packageName, filename, cannonDirectory) {
+  .action(async function (packageName, outputFile, options) {
     const { exportPackage } = await import('./commands/export');
-    await exportPackage(cannonDirectory, filename, packageName);
+    await exportPackage(options.directory, outputFile, packageName);
   });
 
 if (require.main === module) {

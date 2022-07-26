@@ -143,6 +143,17 @@ Inspect the details of a Cannon package.
 
 ### export
 
+Export a Cannon package as a zip archive
+
+**Arguments**
+
+- `packageName` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+- `outputFile` - Relative path and filename to export package archive (_Default: "./{packageName.packageVersion}.zip"_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+
 ## cannon.json Specification
 
 You can use a cannon.json file to run multiple packages across multiple nodes. See documentation for the [run](#run) command for more information.
