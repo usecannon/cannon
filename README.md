@@ -21,6 +21,7 @@ To load an development version of Cannon, start by bootstrapping the project fro
 
 ```
 npx lerna bootstrap
+npm i
 ```
 
 After making changes, rebuild the project:

@@ -118,6 +118,22 @@ Note about cannon.json file and other stuff.
 
 ### publish
 
+Publish a Cannon package to the registry.
+
+**Arguments**
+
+- `<packageName>` - Name and version of the package to publish
+- `<privateKey>` - Private key of the wallet to use when publishing
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--tags` - Comma separated list of labels for your package (_Default: "latest"_)
+- `--registryAddress` - Address for a custom package registry (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
+- `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
+- `--ipfsEndpoint` - Address for an IPFS endpoint (_Example: https://ipfs.infura.io:5001_)
+- `--ipfsAuthorizationHeader` - Authorization header for requests to the IPFS endpoint (_Example: Basic abc:123_)
+
 ### packages
 
 List all packages in the local Cannon directory.

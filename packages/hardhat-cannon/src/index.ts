@@ -34,8 +34,6 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 
     registryAddress: userConfig.cannon?.registryAddress || '0xA98BE35415Dd28458DA4c1C034056766cbcaf642',
 
-    ipfsConnection: userConfig.cannon?.ipfsConnection || {
-      url: 'https://usecannon.infura-ipfs.io',
-    },
+    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || 'https://usecannon.infura-ipfs.io',
   };
 });

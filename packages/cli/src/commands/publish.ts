@@ -10,12 +10,18 @@ export async function publish(
   privateKey: string,
   packageRef: string,
   tags: string,
-  registryAddress: string
+  registryAddress: string,
+  registryEndpoint: string,
+  ipfsEndpoint: string,
+  ipfsAuthorizationHeader: string
 ) {
   cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
-  const { name, version } = findPackage(cannonDirectory, packageRef);
+  const packageName = packageRef.split(':')[0];
+  const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
 
   const wallet = new ethers.Wallet(privateKey);
+  const provider = new ethers.providers.JsonRpcProvider(registryEndpoint);
+  const signer = provider.getSigner(wallet.address);
 
   const response = await prompts({
     type: 'confirm',
@@ -28,17 +34,28 @@ export async function publish(
     process.exit();
   }
 
+  const ipfsOptions = {
+    url: ipfsEndpoint,
+    headers: {
+      authorization: ipfsAuthorizationHeader,
+    },
+  };
+
   const registry = new CannonRegistry({
-    ipfsOptions: {}, //hre.config.cannon.ipfsConnection --- TODO: HOW DO WE HANDLE THIS FOR FOUNDRY?
-    signerOrProvider: wallet,
+    ipfsOptions,
+    signerOrProvider: signer,
     address: registryAddress,
   });
 
   const splitTags = tags.split(',');
 
-  console.log(`Uploading and registering package ${name}:${version}...`);
+  console.log(`Uploading and registering package ${packageName}:${packageVersion}...`);
 
-  const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, cannonDirectory);
+  const txn = await registry.uploadPackage(
+    `${packageName}:${packageVersion}`,
+    tags ? splitTags : undefined,
+    cannonDirectory
+  );
 
   console.log('txn:', txn.transactionHash, txn.status);
 
