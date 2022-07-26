@@ -124,9 +124,20 @@ List all packages in the local Cannon directory.
 
 **Options**
 
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
 
 ### inspect
+
+Inspect the details of a Cannon package.
+
+**Arguments**
+
+- `packageName` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--json` - Output as JSON (_Default: false_)
 
 ### import
 

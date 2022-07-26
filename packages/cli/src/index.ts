@@ -9,15 +9,15 @@ import { PackageDefinition } from './types';
 import type { RunOptions } from './commands/run';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
-export * from './commands/build';
-export * from './commands/deploy';
-export * from './commands/export';
-export * from './commands/import';
-export * from './commands/inspect';
+export { build } from './commands/build';
+export { deploy } from './commands/deploy';
+export { exportPackage } from './commands/export';
+export { importPackage } from './commands/import';
+export { inspect } from './commands/inspect';
 export { packages } from './commands/packages';
-export * from './commands/publish';
-export * from './commands/run';
-export * from './commands/verify';
+export { publish } from './commands/publish';
+export { run } from './commands/run';
+export { verify } from './commands/verify';
 
 const program = new Command();
 
@@ -123,21 +123,21 @@ program
 program
   .command('packages')
   .description('List all packages in the local Cannon directory')
-  .argument('[cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (cannonDirectory) {
+  .argument('[directory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (directory) {
     const { packages } = await import('./commands/packages');
-    await packages(cannonDirectory);
+    await packages(directory);
   });
 
 program
   .command('inspect')
-  .description('Inspect the details of a cannon package')
+  .description('Inspect the details of a Cannon package')
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
   .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .option('-j --json', 'Output as JSON')
-  .action(async function (packageName, cannonDirectory, outputJson) {
+  .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
-    await inspect(cannonDirectory, packageName, outputJson);
+    await inspect(options.directory, packageName, options.json);
   });
 
 program

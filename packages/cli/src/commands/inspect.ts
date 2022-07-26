@@ -1,25 +1,30 @@
 import _ from 'lodash';
+import os from 'os';
+import { resolve } from 'path';
 import { DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
-import { findPackage, getChainName } from '../helpers';
+import { loadCannonfile, getChainName } from '../helpers';
 
-export async function inspect(packagesDir: string, packageRef: string, outputJson: boolean) {
-  const { name, version } = findPackage(packageRef);
-  const def = { printTopology: () => [] }; // TODO: Do we have a util to get a 'def' out of a package instead of a cannonfile?
+export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
+  const packageName = packageRef.split(':')[0];
+  const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
+  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()), packageName, packageVersion);
 
-  const deployInfo = await getAllDeploymentInfos(packagesDir);
-  if (outputJson) {
+  //const { def } = loadCannonfile(hre, filepath);
+
+  const deployInfo = await getAllDeploymentInfos(cannonDirectory);
+  if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
-    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
-    console.log(cyan(def.printTopology().join('\n')));
+    console.log(green(bold(`\n=============== ${packageName}:${packageVersion} ===============`)));
+    //console.log(cyan(def.printTopology().join('\n')));
     if (!_.isEmpty(deployInfo?.deploys)) {
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
         const chainName = getChainName(parseInt(chainId));
         renderDeployment(chainName, chainId, chainData);
       }
     } else {
-      console.log('This cannonfile has not been built for any chains yet.');
+      console.log('This package has not been built for any chains yet.');
     }
   }
   return deployInfo;

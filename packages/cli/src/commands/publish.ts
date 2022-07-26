@@ -1,16 +1,19 @@
 import { CannonRegistry } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import prompts from 'prompts';
+import os from 'os';
+import { resolve } from 'path';
 import { findPackage } from '../helpers';
 
 export async function publish(
-  packagesDir: string,
+  cannonDirectory: string,
   privateKey: string,
   packageRef: string,
   tags: string,
   registryAddress: string
 ) {
-  const { name, version } = findPackage(packageRef);
+  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
+  const { name, version } = findPackage(cannonDirectory, packageRef);
 
   const wallet = new ethers.Wallet(privateKey);
 
@@ -35,7 +38,7 @@ export async function publish(
 
   console.log(`Uploading and registering package ${name}:${version}...`);
 
-  const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, packagesDir);
+  const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, cannonDirectory);
 
   console.log('txn:', txn.transactionHash, txn.status);
 

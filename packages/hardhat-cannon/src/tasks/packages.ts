@@ -3,10 +3,10 @@ import { TASK_PACKAGES } from '../task-names';
 import { packages } from '@usecannon/cli';
 
 task(TASK_PACKAGES, 'List all packages in the local Cannon directory')
-  .addOptionalParam('cannonDirectory', 'Path to a custom package directory', '~/.local/cannon')
-  .setAction(async ({ cannonDirectory }, hre) => {
-    if (cannonDirectory == '~/.local/cannon' && hre.config.paths.cannon) {
-      cannonDirectory = hre.config.paths.cannon;
+  .addOptionalParam('directory', 'Path to a custom package directory', '~/.local/cannon')
+  .setAction(async ({ directory }, hre) => {
+    if (directory == '~/.local/cannon' && hre.config.paths.cannon) {
+      directory = hre.config.paths.cannon;
     }
-    await packages(cannonDirectory);
+    await packages(directory);
   });
