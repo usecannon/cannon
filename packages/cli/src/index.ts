@@ -114,10 +114,13 @@ program
 program
   .command('verify')
   .description('Verify a package on Etherscan')
+  .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --apiKey <apiKey>', 'Etherscan API key')
-  .action(async function (packageName, apiKey) {
+  .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
+  .option('-d --directory [directory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
-    await verify(apiKey);
+    await verify(packageName, options.apiKey, options.network, options.directory);
   });
 
 program
@@ -144,7 +147,7 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
-  .argument('<privateKey>', 'Private key of the wallet to use when publishing')
+  .option('-p <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-d --directory [directory]', 'Path to a custom package directory', '~/.local/cannon')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option(
@@ -159,12 +162,12 @@ program
   )
   .option('-e --ipfsEndpoint <ipfsEndpoint>', 'Address for an IPFS endpoint')
   .option('-h --ipfsAuthorizationHeader <ipfsAuthorizationHeader>', 'Authorization header for requests to the IPFS endpoint')
-  .action(async function (packageName, privateKey, options) {
+  .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
     await publish(
       options.directory,
-      privateKey,
+      options.privateKey,
       packageName,
       options.tags,
       options.registryAddress,

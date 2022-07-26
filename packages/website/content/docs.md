@@ -116,6 +116,18 @@ Note about cannon.json file and other stuff.
 
 ### verify
 
+Verify a package on Etherscan.
+
+**Arguments**
+
+- `<packageName>` - Name and version of the package to publish
+
+**Options**
+
+- `--apiKey` - Etherscan API key
+- `--network` - Network of deployment to verify (_Default: "mainnet"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+
 ### publish
 
 Publish a Cannon package to the registry.
@@ -123,7 +135,6 @@ Publish a Cannon package to the registry.
 **Arguments**
 
 - `<packageName>` - Name and version of the package to publish
-- `<privateKey>` - Private key of the wallet to use when publishing
 
 **Options**
 
@@ -133,6 +144,7 @@ Publish a Cannon package to the registry.
 - `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
 - `--ipfsEndpoint` - Address for an IPFS endpoint (_Example: https://ipfs.infura.io:5001_)
 - `--ipfsAuthorizationHeader` - Authorization header for requests to the IPFS endpoint (_Example: Basic abc:123_)
+- `--privateKey` - Private key of the wallet to use when publishing
 
 ### packages
 

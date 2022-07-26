@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import os from 'os';
 import { exec, spawnSync } from 'child_process';
 import prompts from 'prompts';
@@ -58,7 +59,7 @@ async function getAnvilVersionDate(): Promise<Date | false> {
   }
 }
 
-function execPromise(command: string): Promise<string> {
+export function execPromise(command: string): Promise<string> {
   return new Promise(function (resolve, reject) {
     exec(command, (error, stdout) => {
       if (error) {
@@ -264,4 +265,9 @@ const chainIds: Record<number, string> = {
 
 export function getChainName(chainId: number): string {
   return chainIds[chainId] || 'unknown';
+}
+
+export function getChainId(chainName: string): number {
+  const invertedMap = _.invert(chainIds);
+  return parseInt(invertedMap[chainName]);
 }

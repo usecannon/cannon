@@ -6,7 +6,7 @@ import { publish } from '@usecannon/cli';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addPositionalParam('packageName', 'Name and version of the package to publish')
-  .addPositionalParam('privateKey', 'Private key of the wallet to use when publishing')
+  .addOptionalParam('privateKey', 'Private key of the wallet to use when publishing')
   .addOptionalParam('tags', 'Comma separated list of labels for your package', 'latest')
   .addOptionalParam('registryAddress', 'Address for a custom package registry', '0xA98BE35415Dd28458DA4c1C034056766cbcaf642')
   .addOptionalParam('registryEndpoint', 'Address for RPC endpoint for the registry', 'https://cloudflare-eth.com/v1/mainnet')
@@ -33,6 +33,10 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
 
       if (registryEndpoint == 'https://cloudflare-eth.com/v1/mainnet' && hre.config.cannon.registryEndpoint) {
         registryEndpoint = hre.config.cannon.registryEndpoint;
+      }
+
+      if (!privateKey) {
+        privateKey = (hre.config.networks[hre.network.name].accounts as string[])[0];
       }
 
       await publish(
