@@ -141,9 +141,19 @@ Inspect the details of a Cannon package.
 
 ### import
 
+Import a Cannon package from a zip archive.
+
+**Arguments**
+
+- `importFile` - Relative path and filename to package archive. (_Example: synthetix.latest.zip_)
+
+**Options**
+
+- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+
 ### export
 
-Export a Cannon package as a zip archive
+Export a Cannon package as a zip archive.
 
 **Arguments**
 

@@ -1,23 +1,23 @@
 import _ from 'lodash';
 import os from 'os';
 import { resolve } from 'path';
-import { DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
+import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
-import { loadCannonfile, getChainName } from '../helpers';
+import { getChainName } from '../helpers';
 
 export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
   const packageName = packageRef.split(':')[0];
   const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
   cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()), packageName, packageVersion);
 
-  //const { def } = loadCannonfile(hre, filepath);
-
   const deployInfo = await getAllDeploymentInfos(cannonDirectory);
+  const chainDefinition = new ChainDefinition(deployInfo.def);
+
   if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
     console.log(green(bold(`\n=============== ${packageName}:${packageVersion} ===============`)));
-    //console.log(cyan(def.printTopology().join('\n')));
+    console.log(cyan(chainDefinition.printTopology().join('\n')));
     if (!_.isEmpty(deployInfo?.deploys)) {
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
         const chainName = getChainName(parseInt(chainId));

@@ -155,11 +155,12 @@ program
 
 program
   .command('import')
-  .argument('<filename>', 'Relative path and filename to import')
+  .description('Import a Cannon package from a zip archive')
+  .argument('<importFile>', 'Relative path and filename to package archive')
   .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (filename, directory) {
+  .action(async function (importFile, directory) {
     const { importPackage } = await import('./commands/import');
-    await importPackage(directory, filename);
+    await importPackage(directory, importFile);
   });
 
 program

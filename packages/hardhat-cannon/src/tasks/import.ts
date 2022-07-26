@@ -2,8 +2,8 @@ import { task } from 'hardhat/config';
 import { importPackage } from '@usecannon/cli';
 import { TASK_IMPORT } from '../task-names';
 
-task(TASK_IMPORT, 'Read a cannon chain from zip archive')
-  .addPositionalParam('file', 'Path to archive previously exported with cannon:export')
-  .setAction(async ({ file }, hre) => {
-    await importPackage(hre.config.paths.cannon, file);
+task(TASK_IMPORT, 'Import a Cannon package from a zip archive')
+  .addPositionalParam('importFile', 'Relative path and filename to package archive')
+  .setAction(async ({ importFile }, hre) => {
+    await importPackage(hre.config.paths.cannon, importFile);
   });
