@@ -110,6 +110,10 @@ export interface ChainBuilderOptions {
 }
 
 export type DeploymentInfo = {
+  // contents of cannonfile.toml used for this build in raw json form
+  // if not included, defaults to the chain definition at the DeploymentManifest instead
+  def?: RawChainDefinition;
+
   // setting overrides used to build this chain
   options: ChainBuilderOptions;
 

@@ -103,6 +103,10 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.packagesDir = savedPackagesDir || getSavedPackagesDir();
     this.packageDir = getPackageDir(this.packagesDir, name, version);
 
+    this.preset = preset ?? DEFAULT_PRESET;
+
+    this.chainId = chainId;
+
     if (def) {
       this.def = (def as ChainDefinition).allActionNames
         ? (def as ChainDefinition)
@@ -110,10 +114,6 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     } else {
       this.def = this.loadCannonfile();
     }
-
-    this.preset = preset ?? DEFAULT_PRESET;
-
-    this.chainId = chainId;
     this.provider = provider;
     this.baseDir = baseDir || null;
     this.getSigner = getSigner;
@@ -339,6 +339,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     if (this.writeMode !== 'none') {
       await putDeploymentInfo(this.packageDir, this.chainId, this.preset, {
+        def: this.def.toJson(),
         options: opts,
         buildVersion: BUILD_VERSION,
         ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
@@ -556,14 +557,22 @@ ${printChainDefinitionProblems(problems)}`);
   loadCannonfile() {
     const file = getDeploymentInfoFile(this.packageDir);
     const deployInfo = fs.readJsonSync(file) as DeploymentManifest;
-    return new ChainDefinition(deployInfo.def);
+
+    // try to load the chain definition specific to this chain
+    // otherwise, load the top level definition
+    const rawDefinition: RawChainDefinition = deployInfo.deploys[`${this.chainId}`][this.preset].def || deployInfo.def;
+
+    return new ChainDefinition(rawDefinition);
   }
 
   async writeCannonfile() {
     if (this.readMode !== 'none') {
       const file = getDeploymentInfoFile(this.packageDir);
       const deployInfo = await getAllDeploymentInfos(this.packageDir);
-      deployInfo.def = this.def.toJson();
+
+      // only store the current chain definition if we are building the local network id and main preset
+      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? this.def.toJson() : deployInfo.def;
+
       await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
     }
