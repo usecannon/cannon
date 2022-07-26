@@ -120,6 +120,12 @@ Note about cannon.json file and other stuff.
 
 ### packages
 
+List all packages in the local Cannon directory.
+
+**Options**
+
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+
 ### inspect
 
 ### import

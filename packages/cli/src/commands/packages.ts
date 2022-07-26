@@ -1,18 +1,19 @@
+import os from 'os';
 import { resolve } from 'path';
 import fs from 'fs-extra';
 import prompts from 'prompts';
 import { inspect } from './inspect';
 import { bold, magentaBright } from 'chalk';
 
-export async function packages(packagesDir: string) {
-  // TODO: resolve path with ~ in it?
-  const packages = await fs.readdir(packagesDir);
+export async function packages(cannonDirectory: string) {
+  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
+  const packages = await fs.readdir(resolve(cannonDirectory));
 
   const packageChoices = packages.sort().map((s) => {
     return { title: s };
   });
 
-  console.log(bold(magentaBright(`The following packages are in ${packagesDir}`)));
+  console.log(bold(magentaBright(`The following packages are in ${cannonDirectory}`)));
   const { pickedPackageName } = await prompts.prompt([
     {
       type: 'autocomplete',
@@ -23,7 +24,7 @@ export async function packages(packagesDir: string) {
     },
   ]);
 
-  const versions = await fs.readdir(resolve(packagesDir, pickedPackageName));
+  const versions = await fs.readdir(resolve(cannonDirectory, pickedPackageName));
   const versionChoices = versions.sort().map((s) => {
     return { title: s };
   });
@@ -37,7 +38,7 @@ export async function packages(packagesDir: string) {
     },
   ]);
 
-  await inspect(packagesDir, `${pickedPackageName}:${pickedVersionName}`, false);
+  await inspect(cannonDirectory, `${pickedPackageName}:${pickedVersionName}`, false);
 }
 
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'

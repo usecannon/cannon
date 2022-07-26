@@ -2,11 +2,14 @@ import path from 'path';
 import '@nomiclabs/hardhat-ethers';
 
 import './tasks/build';
-import './tasks/verify';
-import './tasks/publish';
-import './tasks/import';
+import './tasks/deploy';
 import './tasks/export';
+import './tasks/import';
 import './tasks/inspect';
+import './tasks/packages';
+import './tasks/publish';
+import './tasks/run';
+import './tasks/verify';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
 import './subtasks/write-deployments';

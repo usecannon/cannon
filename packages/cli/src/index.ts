@@ -14,7 +14,7 @@ export * from './commands/deploy';
 export * from './commands/export';
 export * from './commands/import';
 export * from './commands/inspect';
-export * from './commands/packages';
+export { packages } from './commands/packages';
 export * from './commands/publish';
 export * from './commands/run';
 export * from './commands/verify';
@@ -71,9 +71,9 @@ program
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
   .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .argument('<settings...>')
-  .action(async function (cannonfile, preset, artifacts, localCannonDirectory, settings) {
+  .action(async function (cannonfile, preset, artifacts, cannonDirectory, settings) {
     // const getArtifact = async (name: string): Promise<ContractArtifact> => {
     //   return new Promise((resolve) => {
     //     resolve({ contractName: 'mock' } as ContractArtifact);
@@ -95,7 +95,7 @@ program
     // await command(cannonfile, preset, settings, getArtifact);
 
     const { build } = await import('./commands/build');
-    // await build(cannonfile, preset, settings, getArtifact, localCannonDirectory);
+    // await build(cannonfile, preset, settings, getArtifact, cannonDirectory);
   });
 
 program
@@ -104,11 +104,11 @@ program
   .argument('<packageName>', 'Name and version of the cannon package to deploy')
   .argument('<networkRpc>', '')
   .argument('<privateKey>', '')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .option('--dry-run', '')
-  .action(async function (packageName, networkRpc, privateKey, localCannonDirectory) {
+  .action(async function (packageName, networkRpc, privateKey, cannonDirectory) {
     const { deploy } = await import('./commands/deploy');
-    await deploy(localCannonDirectory, packageName);
+    await deploy(cannonDirectory, packageName);
   });
 
 program
@@ -123,21 +123,21 @@ program
 program
   .command('packages')
   .description('List all packages in the local Cannon directory')
-  .argument('[localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (localCannonDirectory) {
+  .argument('[cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (cannonDirectory) {
     const { packages } = await import('./commands/packages');
-    await packages(localCannonDirectory);
+    await packages(cannonDirectory);
   });
 
 program
   .command('inspect')
   .description('Inspect the details of a cannon package')
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .option('-j --json', 'Output as JSON')
-  .action(async function (packageName, localCannonDirectory, outputJson) {
+  .action(async function (packageName, cannonDirectory, outputJson) {
     const { inspect } = await import('./commands/inspect');
-    await inspect(localCannonDirectory, packageName, outputJson);
+    await inspect(cannonDirectory, packageName, outputJson);
   });
 
 program
@@ -147,16 +147,16 @@ program
   .option('-k --privateKey <privateKey>', 'Private key of for signer to use when publishing')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package to be uploaded with.', 'latest')
   .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry.')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (packageName, privateKey, tags, registryAddress, localCannonDirectory) {
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (packageName, privateKey, tags, registryAddress, cannonDirectory) {
     const { publish } = await import('./commands/publish');
-    await publish(localCannonDirectory, privateKey, packageName, tags, registryAddress);
+    await publish(cannonDirectory, privateKey, packageName, tags, registryAddress);
   });
 
 program
   .command('import')
   .argument('<filename>', 'Relative path and filename to import.')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
   .action(async function (filename, directory) {
     const { importPackage } = await import('./commands/import');
     await importPackage(directory, filename);
@@ -166,10 +166,10 @@ program
   .command('export')
   .argument('<packageName>', 'Name and version of the cannon package to export')
   .argument('[filename]', 'Relative path and filename to export package.', './cannon-export.zip')
-  .option('-d --directory [localCannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
-  .action(async function (packageName, filename, localCannonDirectory) {
+  .option('-d --directory [cannonDirectory]', 'Path to a custom package directory', '~/.local/cannon')
+  .action(async function (packageName, filename, cannonDirectory) {
     const { exportPackage } = await import('./commands/export');
-    await exportPackage(localCannonDirectory, filename, packageName);
+    await exportPackage(cannonDirectory, filename, packageName);
   });
 
 if (require.main === module) {
