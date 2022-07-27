@@ -560,7 +560,11 @@ ${printChainDefinitionProblems(problems)}`);
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const rawDefinition: RawChainDefinition = deployInfo.deploys[`${this.chainId}`][this.preset].def || deployInfo.def;
+    const rawDefinition: RawChainDefinition = _.get(
+      deployInfo.deploys,
+      [this.chainId.toString(), this.preset, 'def'],
+      deployInfo.def
+    );
 
     return new ChainDefinition(rawDefinition);
   }
