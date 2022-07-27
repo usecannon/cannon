@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "@synthetixio/wei": "^2.74.1",
     "@types/node-fetch": "^2.6.2",
-    "@usecannon/builder": "^1.0.19",
+    "@usecannon/builder": "^1.0.20",
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",
