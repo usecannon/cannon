@@ -1,6 +1,6 @@
 name = "greeter"
-version = "<%= package.version %>"
-description = "Simple project to verify the functionality of cannon"
+version = "1.0.0"
+description = "Simple project to verify the functionality of Cannon"
 keywords = ["sample", "greeter"]
 
 [setting.salt]

@@ -29,6 +29,7 @@
     "cannon": "dist/bin/cannon.js"
   },
   "dependencies": {
+    "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
     "@types/node-fetch": "^2.6.2",
     "@usecannon/builder": "^1.0.19",
@@ -39,7 +40,8 @@
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
     "node-fetch": "2",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "table": "^6.8.0"
   },
   "gitHead": "729281b410bc26420c9d0217a5b7b1d5e80f58fa"
 }

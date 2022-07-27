@@ -3,7 +3,7 @@ import path from 'path';
 import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
-import { setupAnvil } from '@usecannon/cli';
+import { build } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
 import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
@@ -16,27 +16,18 @@ import { table } from 'table';
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
-  .addOptionalParam(
-    'port',
-    'If declared, keep running with hardhat network exposed to the specified local port',
-    undefined,
-    types.int
-  )
-  .addFlag(
-    'dryRun',
-    'When deploying to a live network, instead deploy and start a local hardhat node. Specify the target network here'
-  )
-  .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, settings, dryRun, port, preset, wipe }, hre) => {
-    await setupAnvil();
-
+  .setAction(async ({ noCompile, file, settings, preset }, hre) => {
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
       console.log('');
     }
 
+    const filepath = path.resolve(hre.config.paths.root, file);
+    build(filepath, preset, settings, hre.artifacts.readArtifact, hre.config.paths.cannon, hre.config.paths.root);
+
+    /*
     const filepath = path.resolve(hre.config.paths.root, file);
 
     const { def, name, version } = loadCannonfile(hre, filepath);
@@ -229,4 +220,5 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       await new Promise(_.noop);
     }
     return {};
+    */
   });
