@@ -1,0 +1,14 @@
+{
+  "name": "sample-foundry-project",
+  "version": "1.0.19",
+  "private": true,
+  "scripts": {
+    "build": "forge build && npx cannon build",
+    "run": "npx cannon greeter:1.0.0",
+    "deploy": "npx cannon deploy greeter:1.0.0",
+    "run-synthetix": "npx cannon synthetix"
+  },
+  "devDependencies": {
+    "@usecannon/cli": "../cli"
+  }
+}

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { Command } from 'commander';
 
 import { checkCannonVersion, parseInteger, parsePackagesArguments } from './helpers';
@@ -197,9 +195,3 @@ program
     const { exportPackage } = await import('./commands/export');
     await exportPackage(options.directory, outputFile, packageName);
   });
-
-if (require.main === module) {
-  program.parse();
-}
-
-export default program;

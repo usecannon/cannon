@@ -1,5 +1,5 @@
 {
-  "name": "sample-project",
+  "name": "sample-hardhat-project",
   "version": "1.0.19",
   "private": true,
   "scripts": {

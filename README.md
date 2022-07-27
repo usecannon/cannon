@@ -10,7 +10,8 @@ For more information, please see documentation in the modules listed below:
 - [`registry`](packages/registry): The smart contract for the package registry.
 - [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
 - [`website`](packages/website): The website, hosted at https://usecannon.com
-- [`sample-project`](packages/sample-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
+- [`sample-hardhat-project`](packages/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
+- [`sample-foundry-project`](packages/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
 - [`contracts`](packages/contracts): Cannonfiles for standard contracts
 
 ## Development
@@ -39,7 +40,7 @@ cd ./packages/cli && npm start -- <package:version>
 Test changes to the Hardhat plug-in in the sample project:
 
 ```
-cd ./packages/sample-project && npx hardhat cannon:build
+cd ./packages/sample-hardhat-project && npx hardhat cannon:build
 ```
 
 Preview updates to the website
