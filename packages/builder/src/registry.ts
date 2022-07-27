@@ -4,7 +4,6 @@ import { ethers } from 'ethers';
 import { associateTag } from './storage';
 import fs from 'fs-extra';
 
-import { Readable } from 'stream';
 import { getAllDeploymentInfos, getPackageDir, getDeploymentInfoFile, getActionFiles, getSavedPackagesDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
@@ -77,18 +76,16 @@ export class CannonRegistry {
     );
   }
 
-  readIpfs(urlOrHash: string): Promise<Buffer> {
+  async readIpfs(urlOrHash: string): Promise<Buffer> {
     const hash = urlOrHash.replace(/^ipfs:\/\//, '');
 
-    return new Promise((resolve, reject) => {
-      const bufs: Buffer[] = [];
+    const bufs: Uint8Array[] = [];
 
-      const readable = Readable.from(this.ipfs.get(hash));
+    for await (const chunk of this.ipfs.cat(hash)) {
+      bufs.push(chunk);
+    }
 
-      readable.on('data', (b) => bufs.push(b));
-      readable.on('end', () => resolve(Buffer.concat(bufs)));
-      readable.on('error', reject);
-    });
+    return Buffer.concat(bufs);
   }
 
   async queryDeploymentInfo(name: string, tag: string) {
