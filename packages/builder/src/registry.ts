@@ -4,7 +4,6 @@ import { ethers } from 'ethers';
 import { associateTag } from './storage';
 import fs from 'fs-extra';
 
-import { Readable } from 'stream';
 import { getAllDeploymentInfos, getPackageDir, getDeploymentInfoFile, getActionFiles, getSavedPackagesDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
