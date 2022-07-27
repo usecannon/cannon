@@ -1,0 +1,81 @@
+{
+  "address": "0x231bc387f3da7501E71A69F3b82bd9c139CCF5F1",
+  "abi": [
+    {
+      "type": "constructor",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "_greeting"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "NewClonedGreeter",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "cloned",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "doCloning",
+      "constant": false,
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "greet",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "greeting",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "setGreeting",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "_greeting"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "constructorArgs": [
+    "Hello world!"
+  ],
+  "deployTxnHash": "0x762f7d99a8e944aeb3f858ec0e3e904b23661d40a04526230b92e6e04b7da6fe",
+  "sourceName": "contracts/Greeter.sol",
+  "contractName": "Greeter",
+  "deployedOn": "contract.greeter"
+}

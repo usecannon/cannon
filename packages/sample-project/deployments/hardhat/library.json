@@ -1,0 +1,19 @@
+{
+  "address": "0xe38D29A413De839F572a67127Ed95222Fd2860ec",
+  "abi": [
+    {
+      "type": "function",
+      "name": "testLibraryFunction",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": []
+    }
+  ],
+  "constructorArgs": [],
+  "deployTxnHash": "0xe0231a252846e9a2c6b1c3097e26789327d34469efcbe76a8198aeed3c145b13",
+  "sourceName": "contracts/Library.sol",
+  "contractName": "Library",
+  "deployedOn": "contract.library"
+}
