@@ -59,8 +59,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
     return provider.getSigner(addr);
   };
 
-  // TODO fix bug where 2 different builds from the same package is not built 2 times
-
   for (const pkg of packages) {
     const name = `${pkg.name}:${pkg.version}`;
     console.log(magentaBright(`Downloading ${name}...`));
