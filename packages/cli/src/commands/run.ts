@@ -20,15 +20,12 @@ export interface RunOptions {
 }
 
 export async function run(packages: PackageDefinition[], options: RunOptions, program: Command) {
-  console.log(packages);
-  console.log(options);
-
   if (packages.length && options.file) {
     throw new Error('You cannot run a cannon node both defining a file and giving it packages');
   }
 
   if (!packages.length || options.file) {
-    // TODO: implement cannon.json file parsing.
+    // TODO: implement cannon.json file parsing. And allow to spin up several anvil nodes on different ports
     throw new Error('cannon.json file parsing not implemented yet');
   }
 
@@ -83,7 +80,11 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
 
     const outputs = await builder.build(settings);
 
-    console.log(outputs);
+    console.log(
+      greenBright(
+        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold(provider.connection.url)}`
+      )
+    );
   }
 }
 
