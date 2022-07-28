@@ -165,7 +165,7 @@ previous contract deployed at: ${ctx.contracts[contract].address} in step ${ctx.
           // name reused
           throw new Error(
             `duplicate transaction label ${txn}. Please double check your cannonfile/scripts to ensure a txn name is used only once.
-            
+
 previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
           );
         }

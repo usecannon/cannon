@@ -1,10 +1,14 @@
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import os from 'node:os';
 import { Command } from 'commander';
 
-import { checkCannonVersion, parseInteger, parsePackagesArguments } from './helpers';
+import { checkCannonVersion, execPromise, parseInteger, parsePackagesArguments } from './helpers';
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
 import type { RunOptions } from './commands/run';
+import { ContractArtifact } from '@usecannon/builder';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -68,32 +72,36 @@ program
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
-  .option('-a --artifacts <artifacts>', 'Specify the directory with your artifact data', './out')
-  .option('-d --directory [directory]', 'Path to a custom package directory', '~/.local/cannon')
-  .argument('<settings...>')
-  .action(async function (cannonfile, preset, artifacts, directory, settings) {
-    // const getArtifact = async (name: string): Promise<ContractArtifact> => {
-    //   return new Promise((resolve) => {
-    //     resolve({ contractName: 'mock' } as ContractArtifact);
-    //   });
-    // };
-    // Create option for baseProejctDir?
+  .option(
+    '-c --contracts [contracts]',
+    'Contracts sources directory, these will be built using Foundry and saved to --artifacts.'
+  )
+  .option('-a --artifacts [artifacts]', 'Specify the directory with your artifact data.')
+  .option('-d --directory [directory]', 'Path to a custom package directory.', path.join(os.homedir(), '.local', 'cannon'))
+  .action(async function (cannonfile, opts) {
+    const cannonfilePath = path.resolve(cannonfile);
+    const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(path.dirname(cannonfilePath), 'src');
+    const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(path.dirname(cannonfilePath), 'out');
 
-    // const getArtifact = async (name: string): Promise<ContractArtifact> => {
-    //   // const filepath = resolve(artifacts);
-    //   // Loop over all folders in the artifacts folder
-    //   // Look for a file name that matches the passed in parameter
-    //   // Return as follows:
-    //   // contractName: filename without extension (name parameter)
-    //   // sourceName: foldername without extension
-    //   // abi: abi object from the file
-    //   // bytecode: bytecode.object from the file
-    //   // linkReferences: bytecode.linkReferences from the file
-    // };
-    // await command(cannonfile, preset, settings, getArtifact);
+    // Build project to get the artifacts
+    await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
+
+    const getArtifact = async (name: string): Promise<ContractArtifact> => {
+      // TODO: Theres a bug that if the file has a different name than the contract it would not work
+      const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
+      const artifactBuffer = await fs.readFile(artifactPath);
+      const artifact = JSON.parse(artifactBuffer.toString()) as any;
+      return {
+        contractName: name,
+        sourceName: artifact.ast.absolutePath,
+        abi: artifact.abi,
+        bytecode: artifact.bytecode.object,
+        linkReferences: artifact.bytecode.linkReferences,
+      };
+    };
 
     const { build } = await import('./commands/build');
-    // await build(cannonfile, preset, settings, getArtifact, directory);
+    await build(cannonfilePath, getArtifact, opts.preset, opts.directory);
   });
 
 program

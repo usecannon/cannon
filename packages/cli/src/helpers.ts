@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import os from 'os';
-import { exec, spawnSync } from 'child_process';
+import os from 'node:os';
+import { exec, spawnSync } from 'node:child_process';
+import path from 'node:path';
 import prompts from 'prompts';
-import { resolve } from 'path';
 import { InvalidArgumentError } from 'commander';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import fs from 'fs';
@@ -13,6 +13,7 @@ import { PackageDefinition } from './types';
 
 export async function setupAnvil(): Promise<void> {
   const versionDate = await getAnvilVersionDate();
+
   if (versionDate) {
     // Confirm we have a version after the anvil_loadState/anvil_dumpState functionality was added.
     if (versionDate.getTime() < 1657679573421) {
@@ -123,22 +124,25 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   }
 }
 
+function loadPackageJson(filepath: string): PackageDefinition {
+  try {
+    return require(filepath);
+  } catch (_) {
+    return { name: '', version: '', settings: {} };
+  }
+}
+
 export function loadCannonfile(filepath: string) {
   if (!fs.existsSync(filepath)) {
     throw new Error(`Cannonfile '${filepath}' not found.`);
   }
 
   const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
-
-  let pkg: any = {};
-  try {
-    pkg = require(filepath.replace(new RegExp('cannonfile.toml$'), 'package.json'));
-  } catch (err) {
-    console.warn('package.json file not found! Cannot use field for cannonfile inference');
-  }
+  const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
   if (!def.name || typeof def.name !== 'string') {
-    def.name = pkg.name as string;
+    if (!pkg.name) throw new Error('Missing "name" definition');
+    def.name = pkg.name;
   }
 
   try {
@@ -150,7 +154,8 @@ export function loadCannonfile(filepath: string) {
   }
 
   if (!def.version || typeof def.version !== 'string') {
-    def.version = pkg.version as string;
+    if (!pkg.version) throw new Error('Missing "version" definition');
+    def.version = pkg.version;
   }
 
   try {
@@ -179,8 +184,8 @@ export function findPackage(cannonDirectory: string, packageRef: string) {
     packageRef += ':latest';
   }
   try {
-    const path = resolve(cannonDirectory, packageRef.split(':')[0], packageRef.split(':')[1], 'deploy.json');
-    const deployFile = fs.readFileSync(path);
+    const pathname = path.resolve(cannonDirectory, packageRef.split(':')[0], packageRef.split(':')[1], 'deploy.json');
+    const deployFile = fs.readFileSync(pathname);
     const jsonData = JSON.parse(deployFile.toString('utf8'));
   } catch {
     console.error(redBright(`Unable to find package ${packageRef} in ${cannonDirectory}`));

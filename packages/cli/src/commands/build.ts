@@ -1,65 +1,59 @@
 import _ from 'lodash';
 import os from 'os';
-import { resolve } from 'path';
+import path from 'node:path';
 import ethers from 'ethers';
-import { setupAnvil, loadCannonfile } from '../helpers';
 import { table } from 'table';
-import { bold, green, dim } from 'chalk';
+import { bold, greenBright, green, dim } from 'chalk';
 import { ChainBuilder, ContractArtifact } from '@usecannon/builder';
+import { setupAnvil, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 
 export async function build(
-  cannonfile: string,
-  preset: string,
-  settings: string[],
+  cannonfilePath: string,
   getArtifact: (name: string) => Promise<ContractArtifact>,
-  localCannonDirectory: string,
+  preset = 'main',
+  localCannonDirectory?: string,
   baseProjectDirectory?: string
 ) {
   await setupAnvil();
 
-  const resolvedPath = resolve(cannonfile);
-  const def = loadCannonfile(resolvedPath);
+  const def = loadCannonfile(cannonfilePath);
 
   if (!localCannonDirectory) {
-    localCannonDirectory = os.homedir() + '/.local/cannon';
+    localCannonDirectory = path.join(os.homedir(), '.local', 'cannon');
   }
 
   if (!baseProjectDirectory) {
-    const pathParts = [...cannonfile.split('/')];
-    pathParts.pop();
-    baseProjectDirectory = pathParts.join('/');
+    baseProjectDirectory = path.dirname(cannonfilePath);
   }
 
-  if (!settings && !_.isEmpty(def.setting)) {
-    const displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
-      const settingRow: Array<any> = [
-        setting[0],
-        setting[1].defaultValue || dim('No default value'),
-        setting[1].description || dim('No description'),
-      ];
-      return settingRow;
-    });
-    console.log('This package can be built with custom settings.');
-    console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
-    console.log('\nSETTINGS:');
-    displaySettings.unshift([bold('Name'), bold('Default Value'), bold('Description')]);
-    console.log(table(displaySettings));
-  }
+  // if (!settings && !_.isEmpty(def.setting)) {
+  //   const displaySettings = Object.entries(def.setting).map((setting: Array<any>) => [
+  //     setting[0],
+  //     setting[1].defaultValue || dim('No default value'),
+  //     setting[1].description || dim('No description'),
+  //   ]);
+
+  //   console.log('This package can be built with custom settings.');
+  //   console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
+  //   console.log('\nSETTINGS:');
+  //   displaySettings.unshift([bold('Name'), bold('Default Value'), bold('Description')]);
+  //   console.log(table(displaySettings));
+  // }
 
   // options can be passed through commandline, or environment
-  const mappedSettings: { [key: string]: string } = _.fromPairs((settings || []).map((kv: string) => kv.split('=')));
+  // const mappedSettings: { [key: string]: string } = _.fromPairs((settings || []).map((kv: string) => kv.split('=')));
 
-  if (!_.isEmpty(mappedSettings)) {
-    console.log(
-      green(
-        `Creating preset ${bold(preset)} with the following settings: ` +
-          Object.entries(mappedSettings)
-            .map((setting) => `${setting[0]}=${setting[1]}`)
-            .join(' ')
-      )
-    );
-  }
+  // if (!_.isEmpty(mappedSettings)) {
+  //   console.log(
+  //     green(
+  //       `Creating preset ${bold(preset)} with the following settings: ` +
+  //         Object.entries(mappedSettings)
+  //           .map((setting) => `${setting[0]}=${setting[1]}`)
+  //           .join(' ')
+  //     )
+  //   );
+  // }
 
   const { name, version } = def;
 
@@ -90,7 +84,13 @@ export async function build(
     getArtifact,
   });
 
-  // "Successfully built package <name:version> to <directory path>."
+  const outputs = await builder.build({});
+
+  // TODO: Update outputs logging
+
+  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(localCannonDirectory)}`));
+
+  // TODO: Update logging
   // Run this on a local node with <command>
   // Deploy it to a remote network with <command>
   // Publish your package to the registry with <command>
