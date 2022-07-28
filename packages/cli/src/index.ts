@@ -195,3 +195,5 @@ program
     const { exportPackage } = await import('./commands/export');
     await exportPackage(options.directory, outputFile, packageName);
   });
+
+export default program;

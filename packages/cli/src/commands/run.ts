@@ -29,8 +29,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
 
   if (!packages.length || options.file) {
     // TODO: implement cannon.json file parsing.
-    // @dev: now the cannon.json file specifies a chainId per image, but this
-    // is not currently being handled if they are different
     throw new Error('cannon.json file parsing not implemented yet');
   }
 

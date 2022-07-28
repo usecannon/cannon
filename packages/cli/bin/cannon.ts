@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { run } from '../src/index';
+import cli from '../src/index';
 
-void run();
+cli.parse();
