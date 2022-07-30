@@ -26,10 +26,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     'dryRun',
     'When deploying to a live network, instead deploy and start a local hardhat node. Specify the target network here'
   )
+  .addFlag('impersonate', 'Create impersonated signers instead of using real wallets. Only useful with --dry-run')
+  .addFlag(
+    'fundSigners',
+    'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --dry-run and --impersonate'
+  )
   .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, settings, dryRun, port, preset, wipe }, hre) => {
+  .setAction(async ({ noCompile, file, settings, dryRun, impersonate, fundSigners, port, preset, wipe }, hre) => {
     await setupAnvil();
 
     if (!noCompile) {
@@ -111,18 +116,32 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
-          const foundWallet = wallets.find((wallet) => wallet.address == addr);
-          if (!foundWallet) {
-            throw new Error(
-              `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
-                .map((w) => w.address)
-                .join(', ')}`
-            );
+          if (impersonate) {
+            await provider.send('hardhat_impersonateAccount', [addr]);
+
+            if (fundSigners) {
+              await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+            }
+
+            return provider.getSigner(addr);
+          } else {
+            const foundWallet = wallets.find((wallet) => wallet.address == addr);
+            if (!foundWallet) {
+              throw new Error(
+                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
+                  .map((w) => w.address)
+                  .join(', ')}`
+              );
+            }
+            return foundWallet;
           }
-          return foundWallet;
         },
 
         async getDefaultSigner() {
+          if (fundSigners) {
+            await provider.send('hardhat_setBalance', [wallets[0].address, ethers.utils.parseEther('10000').toHexString()]);
+          }
+
           return wallets[0];
         },
 
