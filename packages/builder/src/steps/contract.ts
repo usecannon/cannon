@@ -131,7 +131,7 @@ export default {
         throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
       }
 
-      abi = implContract.abi;
+      abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
     }
 
     debug('contract deployed to address', receipt.contractAddress);
