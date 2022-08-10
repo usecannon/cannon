@@ -33,9 +33,10 @@ const config = {
         properties: {
           event: { type: 'string' },
           arg: { type: 'int32' },
-          artifact: { type: 'string' },
         },
         optionalProperties: {
+          artifact: { type: 'string' },
+          abiOf: { type: 'string' },
           constructorArgs: { elements: {} },
         },
       },
@@ -151,7 +152,14 @@ export default {
       const f = config.factory[name];
 
       f.event = _.template(f.event)(ctx);
-      f.artifact = _.template(f.artifact)(ctx);
+
+      if (f.artifact) {
+        f.artifact = _.template(f.artifact)(ctx);
+      }
+
+      if (f.abiOf) {
+        f.abiOf = _.template(f.abiOf)(ctx);
+      }
     }
 
     return config;
@@ -201,7 +209,29 @@ ${getAllContractPaths(ctx).join('\n')}`);
     if (config.factory) {
       for (const n in txns) {
         for (const [name, factory] of Object.entries(config.factory)) {
-          const artifact = await runtime.getArtifact(factory.artifact);
+          let abi: any[];
+          let sourceName: string | null;
+          let contractName: string;
+          if (factory.artifact) {
+            const artifact = await runtime.getArtifact(factory.artifact);
+            abi = artifact.abi;
+            sourceName = artifact.sourceName;
+            contractName = artifact.contractName;
+          } else if (factory.abiOf) {
+            const implContract = getContractFromPath(ctx, factory.abiOf);
+
+            if (!implContract) {
+              throw new Error(`previously deployed contract with name ${factory.abiOf} for factory not found`);
+            }
+
+            abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
+            sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
+            contractName = '';
+          } else {
+            throw new Error(
+              `factory "${name}" must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
+            );
+          }
 
           const events = _.entries(txns[n].events[factory.event]);
           for (const [i, e] of events) {
@@ -223,11 +253,11 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
             contracts[label] = {
               address: addr,
-              abi: artifact.abi,
+              abi,
               deployTxnHash: txns[n].hash,
               constructorArgs: factory.constructorArgs,
-              sourceName: artifact.sourceName,
-              contractName: artifact.contractName,
+              sourceName: sourceName,
+              contractName: contractName,
               deployedOn: runtime.currentLabel!,
             };
           }

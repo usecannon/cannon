@@ -307,6 +307,8 @@ For example, if the `deployPool` function below deploys a contract, the followin
 target = ["PoolFactory"]
 func = "deployPool"
 factory.MyPoolDeployment.artifact = "Pool"
+# alternatively, if the code for the deployed contractis not available in your artifacts, you can also reference the ABI like:
+# factory.MyPoolDeployment.abiOf = "PreviousPool"
 factory.MyPoolDeployment.event = "NewDeployment"
 factory.MyPoolDeployment.arg = 0
 ```
