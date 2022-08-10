@@ -4,6 +4,7 @@ This is the monorepo for Cannon. If you’re just interested in using the projec
 
 For more information, please see documentation in the modules listed below:
 
+
 - [`cli`](packages/cli): Source code for the CLI, accessible at `npx @usecannon/cli <package:version>`. This downloads a package from the registry, optionally exports deployment data, and runs the package on an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node
 - [`hardhat-cannon`](packages/hardhat-cannon): Main plugin module which is imported into packages
 - [`registry`](packages/registry): Contains source and deployment code for the IPFS registry
