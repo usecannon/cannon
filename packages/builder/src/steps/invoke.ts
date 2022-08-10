@@ -225,7 +225,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
             }
 
             abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
-            sourceName = ''; // TODO: might cause a problem
+            sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
             contractName = '';
           } else {
             throw new Error(
