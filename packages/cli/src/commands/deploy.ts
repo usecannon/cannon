@@ -41,8 +41,12 @@ export async function deploy({
   const { chainId } = await provider.getNetwork();
   const signer = new ethers.Wallet(privateKey, provider);
 
-  const getSigner = async (addr: string) => {
-    throw new Error(`Looking for signer: ${addr}`);
+  const getSigner = (addr: string) => {
+    if (addr !== signer.address) {
+      throw new Error(`Looking for a signer different that the one configured: ${addr}`);
+    }
+
+    return Promise.resolve(signer);
   };
 
   // TODO Add validation of settings (should not allow to put unexistant settings, values, etc)
