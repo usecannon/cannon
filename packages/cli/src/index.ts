@@ -125,22 +125,29 @@ program
   .argument('[package...]', 'Cannon Package to use, optionally with custom settings', parsePackageArguments)
   .requiredOption('-n --network-rpc <networkRpc>', 'RPC network endpoint url to deploy to')
   .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use when deploying')
-  .option('-p --preset <preset>', 'Specify the preset of settings to be used from the cannon package', 'main')
+  .option('-p --preset [preset]', 'Specify the preset of settings to be used from the cannon package', 'main')
   .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('--prefix [prefix]', 'Specify the preset of settings to be used from the cannon package', 'main')
+  .option('--out [out]', 'Path to a custom directory where to save deployment artifacts')
   .option('--dry-run')
   .action(async function (packageDefinition, opts) {
     const { deploy } = await import('./commands/deploy');
 
-    // TODO Add a private key format validator
+    // TODO Add a private key format validator for better error messages
+
+    const projectDirectory = process.cwd();
+    const deploymentPath = opts.out ? path.resolve(opts.out) : path.resolve(projectDirectory, 'deployments');
 
     await deploy({
       packageDefinition,
       cannonDirectory: opts.directory,
-      projectDirectory: process.cwd(),
+      projectDirectory,
       networkRpc: opts.networkRpc,
       privateKey: opts.privateKey,
       preset: opts.preset,
       dryRun: opts.dryRun || false,
+      prefix: opts.prefix,
+      deploymentPath,
     });
   });
 

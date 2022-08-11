@@ -1,8 +1,12 @@
+import path from 'node:path';
 import { ChainBuilder } from '@usecannon/builder';
+import { green } from 'chalk';
 import { InvalidArgumentError } from 'commander';
 import { ethers } from 'ethers';
 import { findPackage } from '../helpers';
 import { PackageDefinition } from '../types';
+import { printChainBuilderOutput } from '../util/printer';
+import { writeModuleDeployments } from '../util/write-deployments';
 
 interface Params {
   packageDefinition: PackageDefinition;
@@ -12,6 +16,8 @@ interface Params {
   privateKey: string;
   preset: string;
   dryRun: boolean;
+  deploymentPath: string;
+  prefix?: string;
 }
 
 export async function deploy({
@@ -22,6 +28,8 @@ export async function deploy({
   privateKey,
   preset,
   dryRun,
+  deploymentPath,
+  prefix = '',
 }: Params) {
   const { def } = findPackage(cannonDirectory, packageDefinition.name, packageDefinition.version);
 
@@ -58,9 +66,11 @@ export async function deploy({
 
   const outputs = await builder.build(packageDefinition.settings);
 
-  console.log(outputs);
+  console.log(green(`Writing deployment artifacts to ./${path.relative(process.cwd(), deploymentPath)}\n`));
 
-  // TODO save deployment json files!
+  await writeModuleDeployments(deploymentPath, prefix, outputs);
+
+  printChainBuilderOutput(outputs);
 
   return outputs;
 }
