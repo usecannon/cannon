@@ -3,11 +3,10 @@ import fs from 'node:fs/promises';
 import { Command } from 'commander';
 
 import { checkCannonVersion, execPromise } from './helpers';
-import { parseInteger, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
-import type { RunOptions } from './commands/run';
 import { ContractArtifact } from '@usecannon/builder';
 import { DEFAULT_CANNON_DIRECTORY } from './constants';
 
@@ -59,9 +58,8 @@ function configureRun(program: Command) {
     )
     .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
     .action(async function (packages: PackageDefinition[], options, program) {
-      console.log(packages);
-      // const { default: command } = await import('./commands/run');
-      // await command(packageName, settings, options, program);
+      const { run } = await import('./commands/run');
+      await run(packages, options, program);
     });
 }
 
