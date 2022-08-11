@@ -9,6 +9,7 @@ import { setupAnvil } from '../helpers';
 import { getProvider, runRpc } from '../rpc';
 import createRegistry from '../registry';
 import { interact } from '../interact';
+import { printChainBuilderOutput } from '../util/printer';
 
 export interface RunOptions {
   host?: string;
@@ -94,8 +95,9 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
       )
     );
 
-    // TODO add some logging including the table of contracts, settings, etc
     buildOutputs.push(outputs);
+
+    printChainBuilderOutput(outputs);
   }
 
   console.log();

@@ -8,6 +8,7 @@ import { ChainBuilder, ContractArtifact } from '@usecannon/builder';
 import { setupAnvil, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 import { PackageSettings } from '../types';
+import { printChainBuilderOutput } from '../util/printer';
 
 interface Params {
   cannonfilePath: string;
@@ -61,7 +62,7 @@ export async function build({
 
   const outputs = await builder.build(settings);
 
-  // TODO: Update outputs logging
+  printChainBuilderOutput(outputs);
 
   console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(cannonDirectory)}`));
 

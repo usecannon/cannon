@@ -49,6 +49,9 @@ export async function deploy({
     return Promise.resolve(signer);
   };
 
+  // TODO download all the dependencies but not the main one
+  // TODO Add a confirmation asking fot the deployment being done
+
   // TODO Add validation of settings (should not allow to put unexistant settings, values, etc)
 
   const builder = new ChainBuilder({
