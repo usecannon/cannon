@@ -15,7 +15,6 @@ import fs from 'fs-extra';
 import { resolve } from 'path';
 
 export interface RunOptions {
-  host?: string;
   port?: number;
   fork?: string;
   file?: string;

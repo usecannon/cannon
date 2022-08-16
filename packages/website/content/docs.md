@@ -104,15 +104,50 @@ If you’re using the Hardhat plug-in, you can access the following commands as 
 
 ### run
 
-The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/cannon`), it will first be downloaded there from the [Cannon registry](/search).
+The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/cannon`), it will be downloaded there from the [Cannon registry](/search).
 
 If the CLI is run without a command specified, it will use the run command.
 
-Note about cannon.json file and other stuff.
+**Arguments**
+
+- `<packageNames>` - Name and version of the package to run. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name. For example, `synthetix` and `npx @usecannon/cli synthetix:2.75 blah=blah1 erc20 blah=blah2` are both valid arguments.
+
+**Options**
+
+- `--port` - Pass a number ...
+- `--fork` - Pass a url ..
+- `--preset` - Pass the name of ...
+- `--write-deployments` - Pass a path...
+- `--registry-rpc` - Pass a url
+- `--registry-address` -
+- `--ipfs-url` -
+- `--logs` -
 
 ### build
 
+The `build` command takes a cannonfile and generates a package in your local cannon directory.
+
+**Arguments**
+
+- `<cannonfile>` - The
+- `<settings...>` - The
+
+**Options**
+
+- `--preset` -
+
 ### deploy
+
+The `deploy` command takes a package (or cannonfile) and deploys it to a specified network. This also updates your package with data about this deployment. **Note that you must use the cannonfile to deploy if it includes a `run` action in it.**
+
+**Arguments**
+
+- `<packageName | cannonfile>` -
+- `<settings...>` -
+
+**Options**
+
+- `--dry-run` -
 
 ### verify
 
@@ -191,38 +226,6 @@ Export a Cannon package as a zip archive.
 **Options**
 
 - `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
-
-## cannon.json Specification
-
-You can use a cannon.json file to run multiple packages across multiple nodes. See documentation for the [run](#run) command for more information.
-
-- `name` _<small>string</small>_ - This is the name of your protocol, which you can reference in the `deploy` section of this file.
-- `chains` _<small>array</small>_ - This defines each of the chains you plan to deploy on and the protocols to be deployed on each of them.
-  - `chainId` _<small>integer</small>_ - The id of the chain this will ultimately be deployed to. See [Chainlist](https://chainlist.org/) for reference.
-  - `deploy` _<small>array</small>_ - This is an array of Cannonfiles to provision on this chain. It can be the `name` field for your protocol or the name of a package from the [registry](/search). The items in the array can also be arrays with a length of two, where the first item is the name of the package to use and the second item is an object with options to use when running this Cannonfile.
-  - `port` _<small>integer</small>_ - Optionally, specify a port use for this node.
-
-For example:
-
-```json
-{
-  "name": "mySampleProject:latest",
-  "chains": [
-    {
-      "deploy": [
-        "mySampleProject:latest",
-        "synthetix:2.62",
-        "keeper:snapshot-keeper"
-      ],
-      "chainId": 1
-    },
-    {
-      "deploy": ["mySampleProject:latest", "synthetix:2.62"],
-      "chainId": 10
-    }
-  ]
-}
-```
 
 ## cannonfile.toml Specification
 

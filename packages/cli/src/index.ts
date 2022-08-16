@@ -44,13 +44,11 @@ function configureRun(program: Command) {
       'List of packages to load, optionally with custom settings for each one',
       parsePackagesArguments
     )
-    .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
+    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-f --fork <url>', 'Fork the network at the specified RPC url')
     .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
-    .option('--preset <name>', 'Load an alternate setting preset (default: main)')
+    .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-    .option('-e --exit', 'Exit after building')
     .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
     .option(
       '--registry-address <address>',
@@ -68,7 +66,7 @@ program
   .command('build')
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
-  .argument('[settings...]', 'Custom settings to to build the cannon image')
+  .argument('[settings...]', 'Custom settings to to build the cannonfile')
   .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
   .option(
     '-c --contracts [contracts]',
