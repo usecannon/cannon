@@ -10,6 +10,9 @@ import { getProvider, runRpc } from '../rpc';
 import createRegistry from '../registry';
 import { interact } from '../interact';
 import { printChainBuilderOutput } from '../util/printer';
+import { writeModuleDeployments } from '../util/write-deployments';
+import fs from 'fs-extra';
+import { resolve } from 'path';
 
 export interface RunOptions {
   host?: string;
@@ -17,11 +20,41 @@ export interface RunOptions {
   fork?: string;
   file?: string;
   logs?: boolean;
+  writeDeployments?: string;
   preset: string;
   registryRpc: string;
   registryAddress: string;
   ipfsUrl: string;
 }
+/*
+  .addFlag('impersonate', 'Create impersonated signers instead of using real wallets. Only useful with --dry-run')
+  .addFlag(
+    'fundSigners',
+    'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --dry-run and --impersonate'
+  )
+
+  from getSigner code:
+
+          if (impersonate) {
+            await provider.send('hardhat_impersonateAccount', [addr]);
+
+            if (fundSigners) {
+              await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+            }
+
+            return provider.getSigner(addr);
+          } else {
+            const foundWallet = wallets.find((wallet) => wallet.address == addr);
+            if (!foundWallet) {
+              throw new Error(
+                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
+                  .map((w) => w.address)
+                  .join(', ')}`
+              );
+            }
+            return foundWallet;
+          }
+*/
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
@@ -96,6 +129,13 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
     );
 
     buildOutputs.push(outputs);
+
+    if (options.writeDeployments) {
+      console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
+      const path = resolve(options.writeDeployments);
+      await fs.mkdirp(path);
+      await writeModuleDeployments(options.writeDeployments, '', outputs);
+    }
 
     printChainBuilderOutput(outputs);
   }

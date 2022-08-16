@@ -16,9 +16,33 @@ import { table } from 'table';
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .addOptionalParam('file', 'TOML definition of the chain to assemble', 'cannonfile.toml')
+<<<<<<< HEAD
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
   .setAction(async ({ noCompile, file, settings, preset }, hre) => {
+=======
+  .addOptionalParam(
+    'port',
+    'If declared, keep running with hardhat network exposed to the specified local port',
+    undefined,
+    types.int
+  )
+  .addFlag(
+    'dryRun',
+    'When deploying to a live network, instead deploy and start a local hardhat node. Specify the target network here'
+  )
+  .addFlag('impersonate', 'Create impersonated signers instead of using real wallets. Only useful with --dry-run')
+  .addFlag(
+    'fundSigners',
+    'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --dry-run and --impersonate'
+  )
+  .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
+  .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
+  .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
+  .setAction(async ({ noCompile, file, settings, dryRun, impersonate, fundSigners, port, preset, wipe }, hre) => {
+    await setupAnvil();
+
+>>>>>>> main
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
       console.log('');
@@ -31,11 +55,17 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const filepath = path.resolve(hre.config.paths.root, file);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const def = loadCannonfile(hre, filepath);
+=======
+    const { def, name, version } = loadCannonfile(hre, filepath);
 
-    if (!settings && !_.isEmpty(def.setting)) {
-      let displaySettings = Object.entries(def.setting).map((setting: Array<any>) => {
-        let settingRow: Array<any> = [
+    const defSettings = def.getSettings();
+>>>>>>> main
+
+    if (!settings && !_.isEmpty(defSettings)) {
+      const displaySettings = Object.entries(defSettings!).map((setting: Array<any>) => {
+        const settingRow: Array<any> = [
           setting[0],
           setting[1].defaultValue || dim('No default value'),
           setting[1].description || dim('No description'),
@@ -63,6 +93,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       );
     }
 
+<<<<<<< HEAD
     const { name, version } = def;
 =======
     // options can be passed through commandline, or environment
@@ -70,6 +101,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const { def, name, version } = loadCannonfile(hre, filepath);
 >>>>>>> 892450c (fix rest of the bugs)
 
+=======
+>>>>>>> main
     let builder: ChainBuilder;
     if (dryRun) {
       const network = hre.network;
@@ -108,18 +141,35 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
-          const foundWallet = wallets.find((wallet) => wallet.address == addr);
-          if (!foundWallet) {
-            throw new Error(
-              `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
-                .map((w) => w.address)
-                .join(', ')}`
-            );
+          if (impersonate) {
+            await provider.send('hardhat_impersonateAccount', [addr]);
+
+            if (fundSigners) {
+              await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+            }
+
+            return provider.getSigner(addr);
+          } else {
+            const foundWallet = wallets.find((wallet) => wallet.address == addr);
+            if (!foundWallet) {
+              throw new Error(
+                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
+                  .map((w) => w.address)
+                  .join(', ')}`
+              );
+            }
+            return foundWallet;
           }
-          return foundWallet;
         },
 
         async getDefaultSigner() {
+<<<<<<< HEAD
+=======
+          if (fundSigners) {
+            await provider.send('hardhat_setBalance', [wallets[0].address, ethers.utils.parseEther('10000').toHexString()]);
+          }
+
+>>>>>>> main
           return wallets[0];
         },
 
@@ -195,7 +245,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       address: hre.config.cannon.registryAddress,
     });
 
-    const dependencies = await builder.getDependencies(mappedSettings);
+    const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(mappedSettings));
 
     for (const dependency of dependencies) {
       console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);

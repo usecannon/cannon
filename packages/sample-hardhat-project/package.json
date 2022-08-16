@@ -1,6 +1,6 @@
 {
   "name": "sample-hardhat-project",
-  "version": "1.0.21",
+  "version": "1.0.26",
   "private": true,
   "scripts": {
     "test": "./run-test.sh"

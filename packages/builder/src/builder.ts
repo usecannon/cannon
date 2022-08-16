@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import path, { dirname } from 'path';
+import path, { dirname, resolve } from 'path';
 
 import { EventEmitter } from 'events';
 
@@ -220,13 +220,11 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     if (isCompleteLayer) {
       for (const action of layer.actions) {
         let ctx = _.cloneDeep(baseCtx);
-
         for (const dep of this.def.getDependencies(action)) {
           ctx = combineCtx([ctx, ctxes.get(dep)!]);
         }
 
         const layerActionCtx = await this.layerMatches(ctx, action);
-
         if (!layerActionCtx) {
           isCompleteLayer = false;
           break;

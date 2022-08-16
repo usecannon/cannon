@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import _ from 'lodash';
 import { Command } from 'commander';
 
 import { checkCannonVersion, execPromise } from './helpers';
@@ -75,6 +76,8 @@ program
   )
   .option('-a --artifacts [artifacts]', 'Specify the directory with your artifact data.')
   .option('-d --directory [directory]', 'Path to a custom package directory.', DEFAULT_CANNON_DIRECTORY)
+  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+  .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
     if (!cannonfile.endsWith('.toml')) {

@@ -5,6 +5,7 @@ import { JTDDataType } from 'ajv/dist/core';
 import { ethers } from 'ethers';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { getContractFromPath } from '../util';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -124,7 +125,13 @@ export default {
 
     // override abi?
     if (config.abi) {
-      abi = (await runtime.getArtifact(config.abi)).abi;
+      const implContract = getContractFromPath(ctx, config.abi);
+
+      if (!implContract) {
+        throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
+      }
+
+      abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
     }
 
     debug('contract deployed to address', receipt.contractAddress);
