@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "ci": "",
     "bootstrap": "lerna bootstrap --hoist",
     "lint:js": "eslint 'packages/**/*.{js,ts}'",
     "lint:sol": "solhint 'packages/**/*.sol'",
