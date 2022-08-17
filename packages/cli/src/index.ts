@@ -9,7 +9,7 @@ import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
 import { ContractArtifact } from '@usecannon/builder';
-import { DEFAULT_CANNON_DIRECTORY } from './constants';
+import { DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT, DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -55,7 +55,7 @@ function configureRun(program: Command) {
       'Address where the cannon registry is deployed',
       '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
     )
-    .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+    .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', DEFAULT_REGISTRY_IPFS_ENDPOINT)
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
       await run(packages, options, program);
@@ -74,7 +74,9 @@ program
   )
   .option('-a --artifacts [artifacts]', 'Specify the directory with your artifact data.')
   .option('-d --directory [directory]', 'Path to a custom package directory.', DEFAULT_CANNON_DIRECTORY)
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
+  .option('--registry-ipfs-url <https://...>', 'Host to pull IPFS resources from', DEFAULT_REGISTRY_IPFS_ENDPOINT)
+  .option('--registry-url <https://...>', 'Network endpoint for interacting with the registry', DEFAULT_REGISTRY_ENDPOINT)
+  .option('--registry-address 0x...', 'Address for the Cannon registry', DEFAULT_REGISTRY_ADDRESS)
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -115,6 +117,9 @@ program
       cannonDirectory: opts.directory,
       projectDirectory,
       preset: opts.preset,
+      registryIpfsUrl: opts.registryIpfsUrl,
+      registryUrl: opts.registryUrl,
+      registryAddress: opts.registryAddress,
     });
   });
 

@@ -1,5 +1,6 @@
-import _ from 'lodash';
 import { resolve } from 'path';
+import { URL } from 'node:url';
+import _ from 'lodash';
 import fs from 'fs-extra';
 import ethers from 'ethers';
 import { table } from 'table';
@@ -19,6 +20,9 @@ interface Params {
   projectDirectory: string;
   preset?: string;
   writeDeployments?: string;
+  registryIpfsUrl: string;
+  registryUrl: string;
+  registryAddress: string;
 }
 
 export async function build({
@@ -29,6 +33,9 @@ export async function build({
   projectDirectory,
   writeDeployments,
   preset = 'main',
+  registryIpfsUrl,
+  registryUrl,
+  registryAddress,
 }: Params) {
   await setupAnvil();
 
@@ -53,14 +60,11 @@ export async function build({
     console.log(table(displaySettings));
   }
 
-  // options can be passed through commandline, or environment
-  const mappedSettings: { [key: string]: string } = _.fromPairs((settings || []).map((kv: string) => kv.split('=')));
-
-  if (!_.isEmpty(mappedSettings)) {
+  if (!_.isEmpty(settings)) {
     console.log(
       green(
         `Creating preset ${bold(preset)} with the following settings: ` +
-          Object.entries(mappedSettings)
+          Object.entries(settings)
             .map((setting) => `${setting[0]}=${setting[1]}`)
             .join(' ')
       )
@@ -94,15 +98,19 @@ export async function build({
     getArtifact,
   });
 
+  const ipfsUrl = new URL(registryIpfsUrl);
+
   const registry = new CannonRegistry({
-    ipfsOptions: hre.config.cannon.ipfsConnection,
-    signerOrProvider: hre.config.cannon.registryEndpoint
-      ? new ethers.providers.JsonRpcProvider(hre.config.cannon.registryEndpoint)
-      : hre.ethers.provider,
-    address: hre.config.cannon.registryAddress,
+    ipfsOptions: {
+      protocol: ipfsUrl.protocol,
+      host: ipfsUrl.host,
+      port: Number.parseInt(ipfsUrl.port),
+    },
+    signerOrProvider: new ethers.providers.JsonRpcProvider(registryUrl),
+    address: registryAddress,
   });
 
-  const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(mappedSettings));
+  const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(settings));
 
   for (const dependency of dependencies) {
     console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
