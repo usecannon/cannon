@@ -25,13 +25,11 @@ export interface RunOptions {
   registryIpfsUrl: string;
   registryRpcUrl: string;
   registryAddress: string;
+  impersonate: boolean;
+  fundSigners: boolean;
 }
 /*
-  .addFlag('impersonate', 'Create impersonated signers instead of using real wallets. Only useful with --dry-run')
-  .addFlag(
-    'fundSigners',
-    'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --dry-run and --impersonate'
-  )
+TODO: re-implement impersonate and fundSigners
 
   from getSigner code:
 

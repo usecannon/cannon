@@ -123,6 +123,8 @@ If the CLI is run without a command specified, it will use the run command.
 - `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
 - `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
 - `--logs` - Show RPC logs instead of an interactive prompt
+- `--impersonate` - Create impersonated signers instead of using real wallets')
+- `--fund-signers` - Ensure wallets have plenty of gas token to do deployment operations. Only useful with --impersonate.
 
 ### build
 
@@ -153,9 +155,11 @@ The `deploy` command takes a package and deploys it to a specified network. This
 
 **Options**
 
+- `--network-rpc` - **Required.** URL of a JSON-RPC server to use for deployment
+- `--private-key` - **Required.** Private key of the wallet to use for deployment
 - `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
 - `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
-- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
+- `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
 - `--prefix` - Specify a prefix to apply to the deployment artifact outputs
 - `--dry-run` - Simulate this deployment process without deploying the contracts to the specified network
 

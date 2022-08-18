@@ -42,7 +42,7 @@ configureRun(program.command('run'));
 
 function configureRun(program: Command) {
   return program
-    .description('Utility for instantly loading cannon packages in standalone contexts.')
+    .description('Utility for instantly loading cannon packages in standalone contexts')
     .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
     .argument(
       '[packageNames...]',
@@ -66,6 +66,11 @@ function configureRun(program: Command) {
       DEFAULT_REGISTRY_ENDPOINT
     )
     .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+    .option('--impersonate', 'Create impersonated signers instead of using real wallets')
+    .option(
+      '--fund-signers',
+      'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --impersonate'
+    )
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
       await run(packages, options, program);
@@ -147,12 +152,16 @@ program
 program
   .command('deploy')
   .description('Deploy a cannon package to a network')
-  .argument('[package...]', 'Cannon package to deploy, optionally with custom settings', parsePackageArguments)
-  .requiredOption('-n --network-rpc <networkRpc>', 'RPC network endpoint url to deploy to')
-  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use when deploying')
+  .argument(
+    '[packageNames...]',
+    'List of packages to deploy, optionally with custom settings for each one',
+    parsePackageArguments
+  )
+  .requiredOption('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
+  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
   .option('-p --preset [preset]', 'Load an alternate setting preset', 'main')
   .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
   .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
   .action(async function (packageDefinition, opts) {
@@ -161,7 +170,7 @@ program
     // TODO Add a private key format validator for better error messages
 
     const projectDirectory = process.cwd();
-    const deploymentPath = opts.artifacts ? path.resolve(opts.artifacts) : path.resolve(projectDirectory, 'deployments');
+    const deploymentPath = opts.directory ? path.resolve(opts.directory) : path.resolve(projectDirectory, 'deployments');
 
     await deploy({
       packageDefinition,
