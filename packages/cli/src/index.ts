@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import _ from 'lodash';
 import { Command } from 'commander';
 
-import { checkCannonVersion, execPromise } from './helpers';
+import { checkCannonVersion, execPromise, setupAnvil } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
@@ -89,6 +89,8 @@ program
 
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
+
+    await setupAnvil();
 
     // Build project to get the artifacts
     const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');

@@ -6,7 +6,7 @@ import ethers from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, magentaBright } from 'chalk';
 import { CannonRegistry, ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
-import { setupAnvil, loadCannonfile } from '../helpers';
+import { loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 import { PackageSettings } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
@@ -37,27 +37,20 @@ export async function build({
   registryUrl,
   registryAddress,
 }: Params) {
-  await setupAnvil();
-
   const def = loadCannonfile(cannonfilePath);
 
   const { name, version } = def;
 
-  const defSettings = def.getSettings();
-  if (!settings && !_.isEmpty(defSettings)) {
-    const displaySettings = Object.entries(defSettings!).map((setting: Array<any>) => {
-      const settingRow: Array<any> = [
-        setting[0],
-        setting[1].defaultValue || dim('No default value'),
-        setting[1].description || dim('No description'),
-      ];
-      return settingRow;
-    });
+  if (!settings && def.setting && !_.isEmpty(def.setting)) {
+    const displaySettings = Object.entries(def.setting).map((setting) => [
+      setting[0],
+      setting[1].defaultValue || dim('No default value'),
+      setting[1].description || dim('No description'),
+    ]);
     console.log('This package can be built with custom settings.');
     console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
     console.log('\nSETTINGS:');
-    displaySettings.unshift([bold('Name'), bold('Default Value'), bold('Description')]);
-    console.log(table(displaySettings));
+    console.log(table([[bold('Name'), bold('Default Value'), bold('Description')], ...displaySettings]));
   }
 
   if (!_.isEmpty(settings)) {

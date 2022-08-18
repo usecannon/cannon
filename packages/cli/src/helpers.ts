@@ -8,6 +8,7 @@ import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk
 import toml from '@iarna/toml';
 import { ethers } from 'ethers';
 import { validateChainDefinition } from '@usecannon/builder';
+import { RawChainDefinition } from '@usecannon/builder/src/definition';
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -95,7 +96,7 @@ export function loadCannonfile(filepath: string) {
     throw new Error(`Cannonfile '${filepath}' not found.`);
   }
 
-  const def = toml.parse(fs.readFileSync(filepath).toString('utf8'));
+  const def = toml.parse(fs.readFileSync(filepath).toString('utf8')) as RawChainDefinition;
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
   if (!def.name || typeof def.name !== 'string') {
@@ -134,7 +135,7 @@ export function loadCannonfile(filepath: string) {
     throw new Error('failed to parse cannonfile');
   }
 
-  return def as any;
+  return def;
 }
 
 export function findPackage(cannonDirectory: string, packageName: string, packageVersion: string) {
