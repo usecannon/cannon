@@ -142,5 +142,7 @@ export async function build({
 
   anvilInstance.kill();
 
+  console.log(builder.def);
+
   return outputs;
 }
