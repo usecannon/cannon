@@ -110,18 +110,19 @@ If the CLI is run without a command specified, it will use the run command.
 
 **Arguments**
 
-- `<packageNames>` - Name and version of the package to run. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name. For example, `synthetix` and `npx @usecannon/cli synthetix:2.75 blah=blah1 erc20 blah=blah2` are both valid arguments.
+- `<packageNames>` - Name and version of the package to run. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name. For example, `synthetix` and `npx @usecannon/cli synthetix:2.75 owner=0x0000 erc20 symbol=TKN` are both valid arguments.
 
 **Options**
 
-- `--port` - Pass a number ...
-- `--fork` - Pass a url ..
-- `--preset` - Pass the name of ...
-- `--write-deployments` - Pass a path...
-- `--registry-rpc` - Pass a url
-- `--registry-address` -
-- `--ipfs-url` -
-- `--logs` -
+- `--port` - Port which the JSON-RPC server will be exposed (_Default: "8545"_)
+- `--fork` - Fork the network at the specified RPC url
+- `--preset` - Load an alternate setting preset (_Default: "main"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
+- `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
+- `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
+- `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
+- `--logs` - Show RPC logs instead of an interactive prompt
 
 ### build
 
@@ -129,25 +130,34 @@ The `build` command takes a cannonfile and generates a package in your local can
 
 **Arguments**
 
-- `<cannonfile>` - The
-- `<settings...>` - The
+- `<cannonfile>` - Path to a cannonfile (_Default: "cannonfile.toml"_)
+- `<settings...>` - Custom settings for building the cannonfile
 
 **Options**
 
-- `--preset` -
+- `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
+- `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
+- `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
+- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
+- `--contracts-directory` - Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts (_Default: "./src"_)
 
 ### deploy
 
-The `deploy` command takes a package (or cannonfile) and deploys it to a specified network. This also updates your package with data about this deployment. **Note that you must use the cannonfile to deploy if it includes a `run` action in it.**
+The `deploy` command takes a package and deploys it to a specified network. This also updates the package with data about this deployment.
 
 **Arguments**
 
-- `<packageName | cannonfile>` -
-- `<settings...>` -
+- `<packageNames>` - Name and version of the packages to deploy. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name.
 
 **Options**
 
-- `--dry-run` -
+- `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
+- `--prefix` - Specify a prefix to apply to the deployment artifact outputs
+- `--dry-run` - Simulate this deployment process without deploying the contracts to the specified network
 
 ### verify
 

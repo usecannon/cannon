@@ -51,16 +51,21 @@ function configureRun(program: Command) {
     )
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-    .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
+    .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-    .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
+    .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
-      '--registry-address <address>',
-      'Address where the cannon registry is deployed',
-      '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
+      '--registry-ipfs-url [https://...]',
+      'URL of the JSON-RPC server used to query the registry',
+      DEFAULT_REGISTRY_IPFS_ENDPOINT
     )
-    .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', DEFAULT_REGISTRY_IPFS_ENDPOINT)
+    .option(
+      '--registry-rpc-url [https://...]',
+      'Network endpoint for interacting with the registry',
+      DEFAULT_REGISTRY_ENDPOINT
+    )
+    .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
       await run(packages, options, program);
@@ -71,17 +76,26 @@ program
   .command('build')
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
-  .argument('[settings...]', 'Custom settings to to build the cannonfile')
-  .option('-p --preset <preset>', 'Specify the preset label the given settings should be applied', 'main')
+  .argument('[settings...]', 'Custom settings for building the cannonfile')
+  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option(
-    '-c --contracts [contracts]',
-    'Contracts sources directory, these will be built using Foundry and saved to --artifacts.'
+    '-c --contracts-directory [contracts]',
+    'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
+    './src'
   )
-  .option('-a --artifacts [artifacts]', 'Specify the directory with your artifact data.')
-  .option('-d --directory [directory]', 'Path to a custom package directory.', DEFAULT_CANNON_DIRECTORY)
-  .option('--registry-ipfs-url [https://...]', 'Host to pull IPFS resources from', DEFAULT_REGISTRY_IPFS_ENDPOINT)
-  .option('--registry-url [https://...]', 'Network endpoint for interacting with the registry', DEFAULT_REGISTRY_ENDPOINT)
-  .option('--registry-address [0x...]', 'Address for the Cannon registry', DEFAULT_REGISTRY_ADDRESS)
+  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
+  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option(
+    '--registry-ipfs-url [https://...]',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-rpc-url [https://...]',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -125,7 +139,7 @@ program
       projectDirectory,
       preset: opts.preset,
       registryIpfsUrl: opts.registryIpfsUrl,
-      registryUrl: opts.registryUrl,
+      registryRpcUrl: opts.registryRpcUrl,
       registryAddress: opts.registryAddress,
     });
   });
@@ -133,21 +147,21 @@ program
 program
   .command('deploy')
   .description('Deploy a cannon package to a network')
-  .argument('[package...]', 'Cannon Package to use, optionally with custom settings', parsePackageArguments)
+  .argument('[package...]', 'Cannon package to deploy, optionally with custom settings', parsePackageArguments)
   .requiredOption('-n --network-rpc <networkRpc>', 'RPC network endpoint url to deploy to')
   .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use when deploying')
-  .option('-p --preset [preset]', 'Specify the preset of settings to be used from the cannon package', 'main')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .option('--prefix [prefix]', 'Specify the preset of settings to be used from the cannon package', 'main')
-  .option('--out [out]', 'Path to a custom directory where to save deployment artifacts')
-  .option('--dry-run')
+  .option('-p --preset [preset]', 'Load an alternate setting preset', 'main')
+  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
+  .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
+  .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
   .action(async function (packageDefinition, opts) {
     const { deploy } = await import('./commands/deploy');
 
     // TODO Add a private key format validator for better error messages
 
     const projectDirectory = process.cwd();
-    const deploymentPath = opts.out ? path.resolve(opts.out) : path.resolve(projectDirectory, 'deployments');
+    const deploymentPath = opts.artifacts ? path.resolve(opts.artifacts) : path.resolve(projectDirectory, 'deployments');
 
     await deploy({
       packageDefinition,

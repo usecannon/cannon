@@ -21,9 +21,10 @@ export interface RunOptions {
   logs?: boolean;
   writeDeployments?: string;
   preset: string;
-  registryRpc: string;
+  cannonDirectory: string;
+  registryIpfsUrl: string;
+  registryRpcUrl: string;
   registryAddress: string;
-  ipfsUrl: string;
 }
 /*
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets. Only useful with --dry-run')
@@ -82,8 +83,8 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
   const networkInfo = await node.provider.getNetwork();
   const registry = createRegistry({
     registryAddress: options.registryAddress,
-    registryRpc: options.registryRpc,
-    ipfsUrl: options.ipfsUrl,
+    registryRpc: options.registryRpcUrl,
+    ipfsUrl: options.registryIpfsUrl,
   });
 
   const getSigner = async (addr: string) => {
@@ -109,11 +110,10 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
     const builder = new ChainBuilder({
       name,
       version,
-
       readMode: options.fork ? 'metadata' : 'all',
       writeMode: 'none',
       preset: options.preset,
-
+      savedPackagesDir: options.cannonDirectory,
       chainId: networkInfo.chainId,
       provider: node.provider,
       getSigner,

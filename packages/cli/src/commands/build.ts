@@ -21,7 +21,7 @@ interface Params {
   preset?: string;
   writeDeployments?: string;
   registryIpfsUrl: string;
-  registryUrl: string;
+  registryRpcUrl: string;
   registryAddress: string;
 }
 
@@ -34,7 +34,7 @@ export async function build({
   writeDeployments,
   preset = 'main',
   registryIpfsUrl,
-  registryUrl,
+  registryRpcUrl,
   registryAddress,
 }: Params) {
   // TODO the loadCannonfile does not handle <%= package.version %> interpolation on loading
@@ -100,7 +100,7 @@ export async function build({
       host: ipfsUrl.host,
       port: typeof ipfsUrl.port === 'string' ? Number.parseInt(ipfsUrl.port) : undefined,
     },
-    signerOrProvider: new ethers.providers.JsonRpcProvider(registryUrl),
+    signerOrProvider: new ethers.providers.JsonRpcProvider(registryRpcUrl),
     address: registryAddress,
   });
 
