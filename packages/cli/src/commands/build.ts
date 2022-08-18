@@ -37,6 +37,7 @@ export async function build({
   registryUrl,
   registryAddress,
 }: Params) {
+  // TODO the loadCannonfile does not handle <%= package.version %> interpolation on loading
   const def = loadCannonfile(cannonfilePath);
 
   const { name, version } = def;
@@ -97,7 +98,7 @@ export async function build({
     ipfsOptions: {
       protocol: ipfsUrl.protocol,
       host: ipfsUrl.host,
-      port: Number.parseInt(ipfsUrl.port),
+      port: typeof ipfsUrl.port === 'string' ? Number.parseInt(ipfsUrl.port) : undefined,
     },
     signerOrProvider: new ethers.providers.JsonRpcProvider(registryUrl),
     address: registryAddress,
