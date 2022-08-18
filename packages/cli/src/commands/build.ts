@@ -2,7 +2,7 @@ import { resolve } from 'path';
 import { URL } from 'node:url';
 import _ from 'lodash';
 import fs from 'fs-extra';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, magentaBright } from 'chalk';
 import { CannonRegistry, ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
