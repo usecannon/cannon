@@ -2,7 +2,6 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "ci": "npx glob-run 'npm ci --prefix' 'packages/*'",
     "bootstrap": "lerna bootstrap --hoist",
     "lint:js": "eslint 'packages/**/*.{js,ts}'",
     "lint:sol": "solhint 'packages/**/*.sol'",
