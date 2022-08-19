@@ -1,5 +1,7 @@
 import { resolve } from 'path';
 import { URL } from 'node:url';
+import path from 'node:path';
+import os from 'node:os';
 import _ from 'lodash';
 import fs from 'fs-extra';
 import { ethers } from 'ethers';
@@ -37,10 +39,7 @@ export async function build({
   registryRpcUrl,
   registryAddress,
 }: Params) {
-  // TODO the loadCannonfile does not handle <%= package.version %> interpolation on loading
   const def = loadCannonfile(cannonfilePath);
-
-  const { name, version } = def;
 
   if (!settings && def.setting && !_.isEmpty(def.setting)) {
     const displaySettings = Object.entries(def.setting).map((setting) => [
@@ -71,8 +70,8 @@ export async function build({
   const provider = await getProvider(anvilInstance);
 
   const builder = new ChainBuilder({
-    name,
-    version,
+    name: def.name,
+    version: def.version,
     def,
     preset,
 
@@ -133,7 +132,12 @@ export async function build({
 
   printChainBuilderOutput(outputs);
 
-  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(cannonDirectory)}`));
+  const name = builder.def.getName(outputs);
+  const version = builder.def.getVersion(outputs);
+  const homeDir = os.homedir() + path.sep;
+  const prettyDir = cannonDirectory.replace(new RegExp(`^${homeDir}`), `~${path.sep}`);
+
+  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(prettyDir)}`));
 
   // TODO: Update logging
   // Run this on a local node with <command>
@@ -141,8 +145,6 @@ export async function build({
   // Publish your package to the registry with <command>
 
   anvilInstance.kill();
-
-  console.log(builder.def);
 
   return outputs;
 }

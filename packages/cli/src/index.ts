@@ -140,7 +140,7 @@ program
       cannonfilePath,
       settings: parsedSettings,
       getArtifact,
-      cannonDirectory: opts.directory,
+      cannonDirectory: opts.cannonDirectory,
       projectDirectory,
       preset: opts.preset,
       registryIpfsUrl: opts.registryIpfsUrl,
