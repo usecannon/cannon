@@ -99,6 +99,13 @@ export function loadCannonfile(filepath: string) {
   const def = toml.parse(fs.readFileSync(filepath).toString('utf8')) as RawChainDefinition;
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
+  // Allow for the cannonfile to use the package variables during build
+  // e.g.: version = "<%= package.version %>"
+  for (const key of ['name', 'version', 'description'] as const) {
+    if (!def[key]) continue;
+    def[key] = _.template(def[key])({ package: pkg });
+  }
+
   if (!def.name || typeof def.name !== 'string') {
     if (!pkg.name) throw new Error('Missing "name" definition');
     def.name = pkg.name;
