@@ -7,7 +7,8 @@ import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import toml from '@iarna/toml';
 import { ethers } from 'ethers';
-import { validateChainDefinition } from '@usecannon/builder';
+import { ChainDefinition, validateChainDefinition } from '@usecannon/builder';
+import { ChainBuilderContext } from '@usecannon/builder/src/types';
 import { RawChainDefinition } from '@usecannon/builder/src/definition';
 
 export async function setupAnvil(): Promise<void> {
@@ -96,53 +97,25 @@ export function loadCannonfile(filepath: string) {
     throw new Error(`Cannonfile '${filepath}' not found.`);
   }
 
-  const def = toml.parse(fs.readFileSync(filepath).toString('utf8')) as RawChainDefinition;
+  const rawDef = toml.parse(fs.readFileSync(filepath).toString('utf8')) as RawChainDefinition;
+  const def = new ChainDefinition(rawDef);
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
-  // Allow for the cannonfile to use the package variables during build
-  // e.g.: version = "<%= package.version %>"
-  for (const key of ['name', 'version', 'description'] as const) {
-    if (!def[key]) continue;
-    def[key] = _.template(def[key])({ package: pkg });
-  }
+  const ctx: ChainBuilderContext = {
+    package: pkg,
+    chainId: 31337,
+    settings: {},
+    timestamp: '0',
 
-  if (!def.name || typeof def.name !== 'string') {
-    if (!pkg.name) throw new Error('Missing "name" definition');
-    def.name = pkg.name;
-  }
+    contracts: {},
+    txns: {},
+    imports: {},
+  };
 
-  try {
-    ethers.utils.formatBytes32String(def.name);
-  } catch (err) {
-    let msg = 'Invalid "name" property on cannonfile.toml. ';
-    if (err instanceof Error) msg += err.message;
-    throw new Error(msg);
-  }
+  const name = def.getName(ctx);
+  const version = def.getVersion(ctx);
 
-  if (!def.version || typeof def.version !== 'string') {
-    if (!pkg.version) throw new Error('Missing "version" definition');
-    def.version = pkg.version;
-  }
-
-  try {
-    ethers.utils.formatBytes32String(def.version);
-  } catch (err) {
-    let msg = 'Invalid "version" property on cannonfile.toml. ';
-    if (err instanceof Error) msg += err.message;
-    throw new Error(msg);
-  }
-
-  if (!validateChainDefinition(def)) {
-    console.error('cannonfile failed parse:');
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    for (const error of validateChainDefinition.errors || []) {
-      console.log(`> at .${error.schemaPath}: ${error.message} (${JSON.stringify(error.params)})`);
-    }
-
-    throw new Error('failed to parse cannonfile');
-  }
-
-  return def;
+  return { def, name, version };
 }
 
 export function findPackage(cannonDirectory: string, packageName: string, packageVersion: string) {

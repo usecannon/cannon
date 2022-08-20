@@ -39,10 +39,11 @@ export async function build({
   registryRpcUrl,
   registryAddress,
 }: Params) {
-  const def = loadCannonfile(cannonfilePath);
+  const { def, name, version } = loadCannonfile(cannonfilePath);
 
-  if (!settings && def.setting && !_.isEmpty(def.setting)) {
-    const displaySettings = Object.entries(def.setting).map((setting) => [
+  const defSettings = def.getSettings();
+  if (!settings && defSettings && !_.isEmpty(defSettings)) {
+    const displaySettings = Object.entries(defSettings).map((setting) => [
       setting[0],
       setting[1].defaultValue || dim('No default value'),
       setting[1].description || dim('No description'),
@@ -70,8 +71,8 @@ export async function build({
   const provider = await getProvider(anvilInstance);
 
   const builder = new ChainBuilder({
-    name: def.name,
-    version: def.version,
+    name,
+    version,
     def,
     preset,
 
@@ -132,8 +133,6 @@ export async function build({
 
   printChainBuilderOutput(outputs);
 
-  const name = builder.def.getName(outputs);
-  const version = builder.def.getVersion(outputs);
   const homeDir = os.homedir() + path.sep;
   const prettyDir = cannonDirectory.replace(new RegExp(`^${homeDir}`), `~${path.sep}`);
 
