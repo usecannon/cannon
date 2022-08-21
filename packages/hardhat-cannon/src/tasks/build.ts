@@ -43,22 +43,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const cannonfilePath = path.resolve(hre.config.paths.root, cannonfile);
       const parsedSettings = parseSettings(settings);
 
-      console.log({
-        cannonfilePath,
-        settings: parsedSettings,
-        getArtifact: hre.artifacts.readArtifact,
-        cannonDirectory: cannonDirectory || hre.config.paths.cannon,
-        projectDirectory: hre.config.paths.root,
-        preset,
-        registryIpfsUrl,
-        registryRpcUrl,
-        registryAddress,
-      });
-
       return build({
         cannonfilePath,
         settings: parsedSettings,
-        getArtifact: hre.artifacts.readArtifact,
+        getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
         cannonDirectory: cannonDirectory || hre.config.paths.cannon,
         projectDirectory: hre.config.paths.root,
         preset,
