@@ -27,7 +27,9 @@ export interface RunOptions {
   registryAddress: string;
   impersonate: boolean;
   fundSigners: boolean;
+  helpInformation?: string;
 }
+
 /*
 TODO: re-implement impersonate and fundSigners
 
@@ -61,7 +63,7 @@ const INSTRUCTIONS = green(
   )} to interact with contracts via the command line.`
 );
 
-export async function run(packages: PackageDefinition[], options: RunOptions, program: Command) {
+export async function run(packages: PackageDefinition[], options: RunOptions) {
   if (packages.length && options.file) {
     throw new Error('You cannot run a cannon node both defining a file and giving it packages');
   }
@@ -172,7 +174,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions, pr
           contracts: getContractsRecursive(buildOutputs[0], signers[0]),
         });
       } else if (evt.name === 'h') {
-        console.log('\n' + program.helpInformation());
+        if (options.helpInformation) console.log('\n' + options.helpInformation);
         console.log(INSTRUCTIONS);
       }
     });

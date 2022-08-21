@@ -73,7 +73,10 @@ function configureRun(program: Command) {
     )
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
-      await run(packages, options, program);
+      await run(packages, {
+        ...options,
+        helpInformation: program.helpInformation(),
+      });
     });
 }
 
