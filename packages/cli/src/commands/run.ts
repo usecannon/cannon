@@ -1,5 +1,5 @@
 import readline from 'node:readline';
-import { Command } from 'commander';
+import _ from 'lodash';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
@@ -26,35 +26,9 @@ export interface RunOptions {
   registryRpcUrl: string;
   registryAddress: string;
   impersonate: boolean;
-  fundSigners: boolean;
+  fundAddresses?: string[];
   helpInformation?: string;
 }
-
-/*
-TODO: re-implement impersonate and fundSigners
-
-  from getSigner code:
-
-          if (impersonate) {
-            await provider.send('hardhat_impersonateAccount', [addr]);
-
-            if (fundSigners) {
-              await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
-            }
-
-            return provider.getSigner(addr);
-          } else {
-            const foundWallet = wallets.find((wallet) => wallet.address == addr);
-            if (!foundWallet) {
-              throw new Error(
-                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
-                  .map((w) => w.address)
-                  .join(', ')}`
-              );
-            }
-            return foundWallet;
-          }
-*/
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
@@ -64,6 +38,7 @@ const INSTRUCTIONS = green(
 );
 
 export async function run(packages: PackageDefinition[], options: RunOptions) {
+  /*
   if (packages.length && options.file) {
     throw new Error('You cannot run a cannon node both defining a file and giving it packages');
   }
@@ -72,6 +47,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     // TODO: implement cannon.json file parsing. And allow to spin up several anvil nodes on different ports
     throw new Error('cannon.json file parsing not implemented yet');
   }
+  */
 
   await setupAnvil();
 
@@ -89,8 +65,16 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
   const getSigner = async (addr: string) => {
     // on test network any user can be conjured
-    await node.provider.send('hardhat_impersonateAccount', [addr]);
-    await node.provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+    if (options.impersonate) {
+      await node.provider.send('hardhat_impersonateAccount', [addr]);
+    }
+
+    if (options.fundAddresses && options.fundAddresses.length) {
+      for (const fundAddress of options.fundAddresses) {
+        await node.provider.send('hardhat_setBalance', [fundAddress, ethers.utils.parseEther('10000').toHexString()]);
+      }
+    }
+
     return node.provider.getSigner(addr);
   };
 

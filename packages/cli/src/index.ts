@@ -67,10 +67,7 @@ function configureRun(program: Command) {
     )
     .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
     .option('--impersonate', 'Create impersonated signers instead of using real wallets')
-    .option(
-      '--fund-signers',
-      'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --impersonate'
-    )
+    .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
       await run(packages, {

@@ -24,12 +24,9 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
   )
   .addOptionalParam('registryRpcUrl', 'Network endpoint for interacting with the registry', DEFAULT_REGISTRY_ENDPOINT)
   .addOptionalParam('registryAddress', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .addOptionalVariadicPositionalParam('fundAddresses', 'Pass a list of addresses to receive a balance of 10,000 ETH')
   .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets')
-  .addFlag(
-    'fundSigners',
-    'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --impersonate'
-  )
   .setAction(
     async ({
       packageNames,
@@ -42,12 +39,13 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       registryIpfsUrl,
       registryRpcUrl,
       registryAddress,
+      impersonate,
+      fundAddresses,
     }) => {
       const packages = (packageNames as string[]).reduce((result, val) => {
         return parsePackagesArguments(val, result);
       }, [] as PackageDefinition[]);
 
-      // TODO implement "file" param
       return run(packages, {
         port,
         fork,
@@ -58,8 +56,8 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
         registryIpfsUrl,
         registryRpcUrl,
         registryAddress,
-        impersonate: false,
-        fundSigners: false,
+        impersonate,
+        fundAddresses,
       });
     }
   );

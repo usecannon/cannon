@@ -124,7 +124,7 @@ If the CLI is run without a command specified, it will use the run command.
 - `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
 - `--logs` - Show RPC logs instead of an interactive prompt
 - `--impersonate` - Create impersonated signers instead of using real wallets')
-- `--fund-signers` - Ensure wallets have plenty of gas token to do deployment operations. Only useful with --impersonate.
+- `--fund-addresses` - Pass a list of addresses to receive a balance of 10,000 ETH
 
 ### build
 
