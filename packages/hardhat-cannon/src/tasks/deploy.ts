@@ -1,7 +1,7 @@
 import { task } from 'hardhat/config';
 import { deploy } from '@usecannon/cli';
 import { TASK_DEPLOY } from '../task-names';
-import { DEFAULT_CANNON_DIRECTORY } from './constants';
+import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli/dist/src/constants';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addPositionalParam('packageNames', 'List of packages to deploy, optionally with custom settings for each one')
@@ -14,16 +14,16 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addFlag('dryRun', 'Simulate this deployment process without deploying the contracts to the specified network')
   .setAction(
     async ({ packageNames, cannonDirectory, networkRpc, privateKey, preset, prefix, writeDeployments, dryRun }, hre) => {
-      await deploy({
-        packageNames,
-        cannonDirectory: cannonDirectory || hre.config.paths.cannon,
-        projectDirectory: hre.config.paths.root,
-        networkRpc,
-        privateKey,
-        preset,
-        dryRun,
-        prefix,
-        deploymentPath: writeDeployments,
-      });
+      // await deploy({
+      //   packageNames,
+      //   cannonDirectory: cannonDirectory || hre.config.paths.cannon,
+      //   projectDirectory: hre.config.paths.root,
+      //   networkRpc,
+      //   privateKey,
+      //   preset,
+      //   dryRun,
+      //   prefix,
+      //   deploymentPath: writeDeployments,
+      // });
     }
   );

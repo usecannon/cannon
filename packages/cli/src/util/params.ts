@@ -26,7 +26,7 @@ export function parseInteger(val: string) {
   return parsedValue;
 }
 
-export function parseSettings(values: string[]) {
+export function parseSettings(values: string[] = []) {
   const settings: PackageSettings = {};
 
   for (const val of values) {

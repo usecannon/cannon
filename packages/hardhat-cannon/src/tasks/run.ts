@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import path from 'path';
 import { task } from 'hardhat/config';
 import { run } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
@@ -8,7 +6,7 @@ import {
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from './constants';
+} from '@usecannon/cli/dist/src/constants';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addPositionalParam('packageNames', 'List of packages to load, optionally with custom settings for each one')
@@ -46,16 +44,16 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       },
       hre
     ) => {
-      run(packageNames, {
-        port,
-        fork,
-        logs,
-        preset,
-        writeDeployments,
-        cannonDirectory,
-        registryIpfsUrl,
-        registryRpcUrl,
-        registryAddress,
-      });
+      // return run(packageNames, {
+      //   port,
+      //   fork,
+      //   logs,
+      //   preset,
+      //   writeDeployments,
+      //   cannonDirectory,
+      //   registryIpfsUrl,
+      //   registryRpcUrl,
+      //   registryAddress,
+      // });
     }
   );
