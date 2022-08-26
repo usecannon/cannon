@@ -41,6 +41,10 @@ export async function build({
 }: Params) {
   const { def, name, version } = loadCannonfile(cannonfilePath);
 
+  if (!version) {
+    throw new Error(`Missing "version" definition on ${cannonfilePath}`);
+  }
+
   const defSettings = def.getSettings();
   if (!settings && defSettings && !_.isEmpty(defSettings)) {
     const displaySettings = Object.entries(defSettings).map((setting) => [
