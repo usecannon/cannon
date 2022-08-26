@@ -3,13 +3,14 @@ import { bold, yellowBright } from 'chalk';
 
 import { TASK_PUBLISH } from '../task-names';
 import { publish } from '@usecannon/cli';
+import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT } from '@usecannon/cli/dist/src/constants';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addPositionalParam('packageName', 'Name and version of the package to publish')
   .addOptionalParam('privateKey', 'Private key of the wallet to use when publishing')
   .addOptionalParam('tags', 'Comma separated list of labels for your package', 'latest')
-  .addOptionalParam('registryAddress', 'Address for a custom package registry', '0xA98BE35415Dd28458DA4c1C034056766cbcaf642')
-  .addOptionalParam('registryEndpoint', 'Address for RPC endpoint for the registry', 'https://cloudflare-eth.com/v1/mainnet')
+  .addOptionalParam('registryAddress', 'Address for a custom package registry', DEFAULT_REGISTRY_ADDRESS)
+  .addOptionalParam('registryEndpoint', 'Address for RPC endpoint for the registry', DEFAULT_REGISTRY_ENDPOINT)
   .addOptionalParam('ipfsEndpoint', 'Address for an IPFS endpoint')
   .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
   .addOptionalParam('directory', 'Path to a custom package directory', '~/.local/cannon')
@@ -27,11 +28,11 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         directory = hre.config.paths.cannon;
       }
 
-      if (registryAddress == '0xA98BE35415Dd28458DA4c1C034056766cbcaf642' && hre.config.cannon.registryAddress) {
+      if (registryAddress === DEFAULT_REGISTRY_ADDRESS && hre.config.cannon.registryAddress) {
         registryAddress = hre.config.cannon.registryAddress;
       }
 
-      if (registryEndpoint == 'https://cloudflare-eth.com/v1/mainnet' && hre.config.cannon.registryEndpoint) {
+      if (registryEndpoint === DEFAULT_REGISTRY_ENDPOINT && hre.config.cannon.registryEndpoint) {
         registryEndpoint = hre.config.cannon.registryEndpoint;
       }
 

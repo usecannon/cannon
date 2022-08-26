@@ -19,6 +19,11 @@ import { getSavedPackagesDir } from '@usecannon/builder';
 
 import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig } from 'hardhat/config';
+import {
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_IPFS_ENDPOINT,
+} from '@usecannon/cli/dist/src/constants';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   config.paths.deployments = userConfig.paths?.deployments
@@ -30,10 +35,8 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : getSavedPackagesDir();
 
   config.cannon = {
-    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://cloudflare-eth.com/v1/mainnet',
-
-    registryAddress: userConfig.cannon?.registryAddress || '0xA98BE35415Dd28458DA4c1C034056766cbcaf642',
-
-    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || 'https://usecannon.infura-ipfs.io',
+    registryEndpoint: userConfig.cannon?.registryEndpoint || DEFAULT_REGISTRY_ENDPOINT,
+    registryAddress: userConfig.cannon?.registryAddress || DEFAULT_REGISTRY_ADDRESS,
+    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
   };
 });

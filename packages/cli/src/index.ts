@@ -224,16 +224,8 @@ program
   .option('-p <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
-  .option(
-    '-a --registryAddress <registryAddress>',
-    'Address for a custom package registry',
-    '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
-  )
-  .option(
-    '-r --registryEndpoint <registryEndpoint>',
-    'Address for RPC endpoint for the registry',
-    'https://cloudflare-eth.com/v1/mainnet'
-  )
+  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry', DEFAULT_REGISTRY_ADDRESS)
+  .option('-r --registryEndpoint <registryEndpoint>', 'Address for RPC endpoint for the registry', DEFAULT_REGISTRY_ENDPOINT)
   .option('-e --ipfsEndpoint <ipfsEndpoint>', 'Address for an IPFS endpoint')
   .option('-h --ipfsAuthorizationHeader <ipfsAuthorizationHeader>', 'Authorization header for requests to the IPFS endpoint')
   .action(async function (packageName, options) {
