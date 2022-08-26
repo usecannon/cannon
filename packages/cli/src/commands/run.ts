@@ -54,13 +54,9 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
   console.log(magentaBright('Starting local node...'));
 
   // Start the rpc server
-  const node = await createNode({ port: Number(options.port) || 8545, forkUrl: options.fork });
-
-  const networkInfo = await node.provider.getNetwork();
-  const registry = createRegistry({
-    registryAddress: options.registryAddress,
-    registryRpc: options.registryRpcUrl,
-    ipfsUrl: options.registryIpfsUrl,
+  const node = await createNode({
+    port: Number(options.port) || 8545,
+    forkUrl: options.fork,
   });
 
   const getSigner = async (addr: string) => {
@@ -69,14 +65,21 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       await node.provider.send('hardhat_impersonateAccount', [addr]);
     }
 
-    if (options.fundAddresses && options.fundAddresses.length) {
-      for (const fundAddress of options.fundAddresses) {
-        await node.provider.send('hardhat_setBalance', [fundAddress, ethers.utils.parseEther('10000').toHexString()]);
-      }
-    }
-
     return node.provider.getSigner(addr);
   };
+
+  if (options.fundAddresses && options.fundAddresses.length) {
+    for (const fundAddress of options.fundAddresses) {
+      await node.provider.send('hardhat_setBalance', [fundAddress, ethers.utils.parseEther('10000').toHexString()]);
+    }
+  }
+
+  const networkInfo = await node.provider.getNetwork();
+  const registry = createRegistry({
+    registryAddress: options.registryAddress,
+    registryRpc: options.registryRpcUrl,
+    ipfsUrl: options.registryIpfsUrl,
+  });
 
   for (const pkg of packages) {
     const name = `${pkg.name}:${pkg.version}`;

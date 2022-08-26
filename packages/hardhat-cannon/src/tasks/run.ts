@@ -24,9 +24,9 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
   )
   .addOptionalParam('registryRpcUrl', 'Network endpoint for interacting with the registry', DEFAULT_REGISTRY_ENDPOINT)
   .addOptionalParam('registryAddress', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
-  .addOptionalVariadicPositionalParam('fundAddresses', 'Pass a list of addresses to receive a balance of 10,000 ETH')
-  .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
+  .addOptionalParam('fundAddresses', 'Comma separated list of addresses to receive a balance of 10,000 ETH', '')
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets')
+  .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
   .setAction(
     async ({
       packageNames,
@@ -57,7 +57,11 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
         registryRpcUrl,
         registryAddress,
         impersonate,
-        fundAddresses,
+        fundAddresses: fundAddresses
+          .split(',')
+          .filter(Boolean)
+          .map((s: string) => s.trim())
+          .filter(Boolean),
       });
     }
   );
