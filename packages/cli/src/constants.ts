@@ -3,5 +3,5 @@ import os from 'node:os';
 
 export const DEFAULT_CANNON_DIRECTORY = path.join(os.homedir(), '.local', 'cannon');
 export const DEFAULT_REGISTRY_IPFS_ENDPOINT = 'https://usecannon.infura-ipfs.io';
-export const DEFAULT_REGISTRY_ENDPOINT = 'https://mainnet.infura.io/v3/798c2d743737432d9a82e23a40a420bb';
+export const DEFAULT_REGISTRY_ENDPOINT = 'https://cloudflare-eth.com';
 export const DEFAULT_REGISTRY_ADDRESS = '0xA98BE35415Dd28458DA4c1C034056766cbcaf642';
