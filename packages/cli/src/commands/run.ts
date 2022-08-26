@@ -74,19 +74,27 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     }
   }
 
-  const networkInfo = await node.provider.getNetwork();
   const registry = createRegistry({
     registryAddress: options.registryAddress,
     registryRpc: options.registryRpcUrl,
     ipfsUrl: options.registryIpfsUrl,
   });
+  console.log({
+    registryAddress: options.registryAddress,
+    registryRpc: options.registryRpcUrl,
+    ipfsUrl: options.registryIpfsUrl,
+  });
+  const registryNetworkInfo = await registry.provider!.getNetwork();
+
+  console.log(registryNetworkInfo);
 
   for (const pkg of packages) {
     const name = `${pkg.name}:${pkg.version}`;
     console.log(magentaBright(`Downloading ${name}...`));
-    await downloadPackagesRecursive(name, networkInfo.chainId, options.preset, registry, node.provider);
+    await downloadPackagesRecursive(name, registryNetworkInfo.chainId, options.preset, registry, node.provider);
   }
 
+  const networkInfo = await node.provider.getNetwork();
   const buildOutputs: ChainBuilderContext[] = [];
 
   for (const pkg of packages) {
