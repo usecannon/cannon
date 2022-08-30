@@ -3,10 +3,10 @@
   "version": "1.1.0-alpha.1",
   "private": true,
   "scripts": {
-    "build": "npx cannon build",
-    "run": "npx cannon greeter:1.0.0",
-    "deploy": "npx cannon deploy greeter:1.0.0",
-    "run-synthetix": "npx cannon synthetix"
+    "build": "npx @usecannon/cli build cannonfile.toml",
+    "run": "npx @usecannon/cli greeter",
+    "deploy": "npx @usecannon/cli deploy greeter",
+    "run-synthetix": "npx @usecannon/cli synthetix"
   },
   "devDependencies": {
     "@usecannon/cli": "../cli"

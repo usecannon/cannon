@@ -7,7 +7,6 @@
 
 cache/
 out/
-lib/
 
 # Ignore flattened files
 flattened.txt
