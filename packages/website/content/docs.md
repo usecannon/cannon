@@ -12,7 +12,7 @@ Get started by running the following command:
 npx @usecannon/cli synthetix
 ```
 
-This command will download the latest [synthetix package](/packages/synthetix) into your local cannon directory (`~/.local/cannon`) and start an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with it. Run `npx @usecannon/cli --help` for more information or see documentation for the [run](#run) command below.
+This command will download the latest [synthetix package](/packages/synthetix) into your local cannon directory (`~/.local/share/cannon`) and start an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with it. Run `npx @usecannon/cli --help` for more information or see documentation for the [run](#run) command below.
 
 You can also install Cannon globally (instead of using npx) with `npm install -g @usecannon/cli`. Then use `cannon` in place of `npx @usecannon/cli`.
 
@@ -104,7 +104,7 @@ If you’re using the Hardhat plug-in, you can access the following commands as 
 
 ### run
 
-The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/cannon`), it will be downloaded there from the [Cannon registry](/search).
+The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/share/cannon`), it will be downloaded there from the [Cannon registry](/search).
 
 If the CLI is run without a command specified, it will use the run command.
 
@@ -117,7 +117,7 @@ If the CLI is run without a command specified, it will use the run command.
 - `--port` - Port which the JSON-RPC server will be exposed (_Default: "8545"_)
 - `--fork` - Fork the network at the specified RPC url
 - `--preset` - Load an alternate setting preset (_Default: "main"_)
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 - `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
 - `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
 - `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
@@ -138,7 +138,7 @@ The `build` command takes a cannonfile and generates a package in your local can
 **Options**
 
 - `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 - `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
 - `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
 - `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
@@ -158,7 +158,7 @@ The `deploy` command takes a package and deploys it to a specified network. This
 - `--network-rpc` - **Required.** URL of a JSON-RPC server to use for deployment
 - `--private-key` - **Required.** Private key of the wallet to use for deployment
 - `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 - `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
 - `--prefix` - Specify a prefix to apply to the deployment artifact outputs
 - `--dry-run` - Simulate this deployment process without deploying the contracts to the specified network
@@ -175,7 +175,7 @@ Verify a package on Etherscan.
 
 - `--apiKey` - Etherscan API key
 - `--network` - Network of deployment to verify (_Default: "mainnet"_)
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 
 ### publish
 
@@ -187,7 +187,7 @@ Publish a Cannon package to the registry.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 - `--tags` - Comma separated list of labels for your package (_Default: "latest"_)
 - `--registryAddress` - Address for a custom package registry (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
 - `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
@@ -201,7 +201,7 @@ List all packages in the local Cannon directory.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 
 ### inspect
 
@@ -213,7 +213,7 @@ Inspect the details of a Cannon package.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 - `--json` - Output as JSON (_Default: false_)
 
 ### import
@@ -226,7 +226,7 @@ Import a Cannon package from a zip archive.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 
 ### export
 
@@ -239,7 +239,7 @@ Export a Cannon package as a zip archive.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/cannon"_)
+- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 
 ## cannonfile.toml Specification
 
@@ -278,7 +278,7 @@ The `contract` action deploys a contract.
 - `abi` - Specifies the contract that should be used for the ABI. This is useful when deploying proxy contracts.
 - `libraries` - An array of contract action names that deploy libraries this contract depends on.
 
-**Outputs**  
+**Outputs**
 This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
 
 - `abi` - The ABI of the deployed contract
@@ -301,7 +301,7 @@ The `import` action will import a cannonfile from a package hosted with the pack
 
 - `options` - The options to be used when initializing this cannonfile
 
-**Outputs**  
+**Outputs**
 This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
 
 ### invoke
@@ -322,7 +322,7 @@ The `invoke` action calls a specified function on your node.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 
-**Outputs**  
+**Outputs**
 This action only updates the return object by adding an entry to the `txns` key.
 
 #### Referencing Factory-deployed Contracts
@@ -357,7 +357,7 @@ The `setting` action defines a user-configurable option that can be referenced i
 - `defaultValue` - Specifies the value to be used by this setting if the user doesn’t provide a value at run time.
 - `description` - Human-friendly explanation of this setting.
 
-**Outputs**  
+**Outputs**
 This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
 
 ### run
@@ -375,7 +375,7 @@ The `run` action executes a custom script. This script is passed a [ChainBuilder
 - `env` - Environment variables to be set on the script
 - `modified` - An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.
 
-**Outputs**  
+**Outputs**
 This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
 
 # Guides

@@ -3,7 +3,11 @@ import { bold, yellowBright } from 'chalk';
 
 import { TASK_PUBLISH } from '../task-names';
 import { publish } from '@usecannon/cli';
-import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT } from '@usecannon/cli/dist/src/constants';
+import {
+  DEFAULT_CANNON_DIRECTORY,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_ENDPOINT,
+} from '@usecannon/cli/dist/src/constants';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addPositionalParam('packageName', 'Name and version of the package to publish')
@@ -13,7 +17,7 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addOptionalParam('registryEndpoint', 'Address for RPC endpoint for the registry', DEFAULT_REGISTRY_ENDPOINT)
   .addOptionalParam('ipfsEndpoint', 'Address for an IPFS endpoint')
   .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
-  .addOptionalParam('directory', 'Path to a custom package directory', '~/.local/cannon')
+  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .setAction(
     async (
       { directory, packageName, privateKey, tags, registryAddress, registryEndpoint, ipfsEndpoint, ipfsAuthorizationHeader },
@@ -24,7 +28,7 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         process.exit();
       }
 
-      if (directory == '~/.local/cannon' && hre.config.paths.cannon) {
+      if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
         directory = hre.config.paths.cannon;
       }
 

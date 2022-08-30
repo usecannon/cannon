@@ -4,13 +4,14 @@ import { task } from 'hardhat/config';
 import { TASK_VERIFY } from '../task-names';
 import { ChainBuilder } from '@usecannon/builder';
 import { ethers } from 'ethers';
+import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli/dist/src/constants';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addOptionalParam('apiKey', 'Etherscan API key')
-  .addOptionalParam('directory', 'Path to a custom package directory', '~/.local/cannon')
+  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .setAction(async ({ packageName, directory }, hre) => {
-    if (directory == '~/.local/cannon' && hre.config.paths.cannon) {
+    if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
       directory = hre.config.paths.cannon;
     }
 

@@ -1,3 +1,4 @@
+import os from 'node:os';
 import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
@@ -9,13 +10,7 @@ import type { RawChainDefinition } from './definition';
 const DEPLOY_FILE_INDENTATION = 4;
 
 export function getSavedPackagesDir() {
-  if (process.env.HOME) {
-    // sane path for posix like systems
-    return path.join(process.env.HOME, '.local', 'cannon');
-  } else {
-    // todo
-    throw new Error('could not resolve cannon saved packages dir');
-  }
+  return path.join(os.homedir(), '.local', 'share', 'cannon');
 }
 
 export function getPackageDir(packagesDir: string, name: string, version: string) {
