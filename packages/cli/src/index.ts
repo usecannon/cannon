@@ -12,6 +12,7 @@ import {
   ChainArtifacts,
   downloadPackagesRecursive,
   ChainBuilderContext,
+  CannonWrapperJsonRpcProvider
 } from '@usecannon/builder';
 
 import pkg from '../package.json';
@@ -179,7 +180,7 @@ export async function run() {
     }
   });
 
-  const provider = await getProvider(anvilInstance);
+  let provider = await getProvider(anvilInstance);
 
   // required to supply chainId to the builder
   const networkInfo = await provider.getNetwork();
@@ -244,6 +245,9 @@ export async function run() {
   console.log(magentaBright(`Deploying ${options.name + ':' + options.version} to local node...`));
 
   const outputs = await builder.build(options.settings);
+
+  // set provider to cannon wrapper to allow error parsing
+  provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
 
   if (options.writeDeployments) {
     console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));

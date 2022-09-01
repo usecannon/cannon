@@ -5,7 +5,7 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import { setupAnvil } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
-import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events, CannonWrapperJsonRpcProvider } from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
@@ -79,6 +79,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     }
 
     let builder: ChainBuilder;
+    let provider: ethers.providers.Provider = hre.ethers.provider;
+    let signers: ethers.Signer[] = [];
     if (dryRun) {
       const network = hre.network;
 
@@ -86,19 +88,18 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (!network.config.chainId) throw new Error('Selected network must have chainId set in hardhat configuration');
 
-      const provider = await hre.run(SUBTASK_RPC, {
+      provider = await hre.run(SUBTASK_RPC, {
         forkUrl: (hre.config.networks[network.name] as HttpNetworkConfig).url,
         port: port || 8545,
         chainId: network.config.chainId,
       });
 
-      let wallets: ethers.Wallet[] = [];
       if (_.isArray(hre.network.config.accounts)) {
-        wallets = hre.network.config.accounts.map((account) => new ethers.Wallet(account as string, provider));
+        signers = hre.network.config.accounts.map((account) => new ethers.Wallet(account as string));
       } else {
         const hdAccounts = hre.network.config.accounts as HttpNetworkHDAccountsConfig;
         for (let i = 0; i < hdAccounts.count; i++) {
-          wallets.push(ethers.Wallet.fromMnemonic(hdAccounts.path + `/${i + hdAccounts.initialIndex}`, hdAccounts.mnemonic));
+          signers.push(ethers.Wallet.fromMnemonic(hdAccounts.path + `/${i + hdAccounts.initialIndex}`, hdAccounts.mnemonic));
         }
       }
 
@@ -112,37 +113,37 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         writeMode: 'none',
 
         chainId: network.config.chainId,
-        provider,
+        provider: provider as ethers.providers.JsonRpcProvider,
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
         async getSigner(addr: string) {
           if (impersonate) {
-            await provider.send('hardhat_impersonateAccount', [addr]);
+            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [addr]);
 
             if (fundSigners) {
-              await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+              await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
             }
 
-            return provider.getSigner(addr);
+            return (provider as ethers.providers.JsonRpcProvider).getSigner(addr);
           } else {
-            const foundWallet = wallets.find((wallet) => wallet.address == addr);
+            const foundWallet = signers.find((wallet) => (wallet as ethers.Wallet).address == addr);
             if (!foundWallet) {
               throw new Error(
-                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${wallets
-                  .map((w) => w.address)
+                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${signers
+                  .map((w) => (w as ethers.Wallet).address)
                   .join(', ')}`
               );
             }
-            return foundWallet;
+            return foundWallet.connect(provider);
           }
         },
 
         async getDefaultSigner() {
           if (fundSigners) {
-            await provider.send('hardhat_setBalance', [wallets[0].address, ethers.utils.parseEther('10000').toHexString()]);
+            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [(signers[0] as ethers.Wallet).address, ethers.utils.parseEther('10000').toHexString()]);
           }
 
-          return wallets[0];
+          return signers[0].connect(provider);
         },
 
         async getArtifact(name: string) {
@@ -152,6 +153,13 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     } else if (hre.network.name === 'hardhat') {
       // clean hardhat network build
       const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
+
+      // signers
+      for (const signer of await hre.ethers.getSigners()) {
+        await provider.send('hardhat_impersonateAccount', [signer.address]);
+        await provider.send('hardhat_setBalance', [signer.address, ethers.utils.parseEther('10000').toHexString()]);
+        signers.push(provider.getSigner(signer.address));
+      }
 
       builder = new ChainBuilder({
         name,
@@ -178,6 +186,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
       });
     } else {
+      signers = await hre.ethers.getSigners();
+
       // deploy to live network
       builder = new ChainBuilder({
         name,
@@ -241,11 +251,17 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       outputs,
     });
 
+    // set provider to cannon wrapper to allow error parsing
+    if ((provider as ethers.providers.JsonRpcProvider).connection) {
+      provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
+      //signers = signers.map(w => w.connect(provider));
+    }
+
     if (port) {
       console.log('RPC Server open on port', port);
 
       // dont exit
       await new Promise(_.noop);
     }
-    return {};
+    return { provider, signers, outputs };
   });

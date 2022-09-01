@@ -27,6 +27,7 @@ const debug = Debug('cannon:builder');
 const BUILD_VERSION = 3;
 
 import {
+  ChainArtifacts,
   clearDeploymentInfo,
   combineCtx,
   ContractMap,
@@ -36,6 +37,7 @@ import {
   putDeploymentInfo,
   TransactionMap,
 } from '.';
+import { handleTxnError } from './error';
 
 export enum Events {
   PreStepExecute = 'pre-step-execute',
@@ -137,7 +139,16 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
 
     this.emit(Events.PreStepExecute, type, label, cfg);
-    const output = await ActionKinds[type].exec(this, ctx, cfg as any);
+
+    let output: ChainArtifacts;
+    try {
+      output = await ActionKinds[type].exec(this, ctx, cfg as any);
+    } catch (err) {
+      handleTxnError(ctx, this.provider, err);
+
+      // note: technically `handleTxnError` reverts so ctx is unset
+      return ctx;
+    }
 
     if (type === 'import') {
       ctx.imports[label] = output;
