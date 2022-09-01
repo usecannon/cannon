@@ -1,6 +1,6 @@
 {
   "name": "sample-project",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "private": true,
   "scripts": {
     "test": "./run-test.sh"
