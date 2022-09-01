@@ -7,12 +7,13 @@ import fs from 'fs-extra';
 import { ethers } from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, magentaBright } from 'chalk';
-import { CannonRegistry, ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import { ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 import { PackageSettings } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
+import createRegistry from '../registry';
 
 interface Params {
   cannonfilePath: string;
@@ -96,16 +97,10 @@ export async function build({
     getArtifact,
   });
 
-  const ipfsUrl = new URL(registryIpfsUrl);
-
-  const registry = new CannonRegistry({
-    ipfsOptions: {
-      protocol: ipfsUrl.protocol,
-      host: ipfsUrl.host,
-      port: typeof ipfsUrl.port === 'string' ? Number.parseInt(ipfsUrl.port) : undefined,
-    },
-    signerOrProvider: new ethers.providers.JsonRpcProvider(registryRpcUrl),
-    address: registryAddress,
+  const registry = createRegistry({
+    registryAddress: registryAddress,
+    registryRpc: registryRpcUrl,
+    ipfsUrl: registryIpfsUrl,
   });
 
   const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(settings));
