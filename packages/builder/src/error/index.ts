@@ -58,7 +58,12 @@ export async function handleTxnError(artifacts: ChainArtifacts, provider: ethers
         }
     }
 
-    throw new CannonTraceError(err, artifacts, traces);
+    if (traces || txnHash || txnData) {
+        throw new CannonTraceError(err, artifacts, traces);
+    } else {
+        console.error('original stack:', err.stack);
+        throw err;
+    }
 }
 
 
