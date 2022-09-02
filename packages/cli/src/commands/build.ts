@@ -1,5 +1,4 @@
 import { resolve } from 'path';
-import { URL } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
 import _ from 'lodash';
@@ -10,7 +9,7 @@ import { bold, greenBright, green, dim, magentaBright } from 'chalk';
 import { ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
-import { PackageSettings } from '../types';
+import { ChainId, PackageSettings } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
 import createRegistry from '../registry';
@@ -22,10 +21,13 @@ interface Params {
   cannonDirectory: string;
   projectDirectory: string;
   preset?: string;
+  forkUrl?: string;
+  chainId?: ChainId;
   writeDeployments?: string;
   registryIpfsUrl: string;
   registryRpcUrl: string;
   registryAddress: string;
+  wipe?: boolean;
 }
 
 export async function build({
@@ -36,9 +38,12 @@ export async function build({
   projectDirectory,
   writeDeployments,
   preset = 'main',
+  forkUrl,
+  chainId = 31337,
   registryIpfsUrl,
   registryRpcUrl,
   registryAddress,
+  wipe = false,
 }: Params) {
   const { def, name, version } = loadCannonfile(cannonfilePath);
 
@@ -70,9 +75,14 @@ export async function build({
     );
   }
 
+  const readMode = wipe ? 'none' : 'metadata';
+  const writeMode = 'metadata';
+
   const anvilInstance = await runRpc({
+    forkUrl,
     port: 8545,
   });
+
   const provider = await getProvider(anvilInstance);
 
   const builder = new ChainBuilder({
@@ -81,11 +91,11 @@ export async function build({
     def,
     preset,
 
-    readMode: 'all',
-    writeMode: 'all',
+    readMode,
+    writeMode,
 
     provider,
-    chainId: 31337,
+    chainId,
     baseDir: projectDirectory,
     savedPackagesDir: cannonDirectory,
     async getSigner(addr: string) {
@@ -112,7 +122,7 @@ export async function build({
       dependency.chainId,
       dependency.preset,
       registry,
-      builder.provider,
+      provider,
       builder.packagesDir
     );
   }

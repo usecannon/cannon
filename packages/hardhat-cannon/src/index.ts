@@ -20,6 +20,7 @@ import { getSavedPackagesDir } from '@usecannon/builder';
 import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig } from 'hardhat/config';
 import {
+  DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
@@ -35,8 +36,10 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : getSavedPackagesDir();
 
   config.cannon = {
+    cannonDirectory: userConfig.cannon?.cannonDirectory || DEFAULT_CANNON_DIRECTORY,
     registryEndpoint: userConfig.cannon?.registryEndpoint || DEFAULT_REGISTRY_ENDPOINT,
     registryAddress: userConfig.cannon?.registryAddress || DEFAULT_REGISTRY_ADDRESS,
     ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
+    ipfsAuthorizationHeader: userConfig.cannon?.ipfsAuthorizationHeader,
   };
 });

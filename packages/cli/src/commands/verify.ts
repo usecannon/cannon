@@ -3,8 +3,9 @@ import { ethers } from 'ethers';
 import os from 'os';
 import { resolve } from 'path';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
+import { ChainName } from '../types';
 
-export async function verify(packageRef: string, apiKey: string, network: string, directory: string) {
+export async function verify(packageRef: string, apiKey: string, network: ChainName, directory: string) {
   await setupAnvil();
   const name = packageRef.split(':')[0];
   const version = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
@@ -19,7 +20,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
     savedPackagesDir: directory,
 
     provider: {} as ethers.providers.JsonRpcProvider,
-    async getSigner(addr: string) {
+    async getSigner(_: string) {
       return new Promise(() => {
         return null;
       });

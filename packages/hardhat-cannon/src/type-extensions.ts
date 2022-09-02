@@ -8,6 +8,7 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatUserConfig {
     cannon?: {
+      cannonDirectory?: string;
       registryEndpoint?: string;
       registryAddress?: string;
       ipfsEndpoint?: string;
@@ -22,6 +23,7 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatConfig {
     cannon: {
+      cannonDirectory: string;
       registryEndpoint: string;
       registryAddress: string;
       ipfsEndpoint: string;
