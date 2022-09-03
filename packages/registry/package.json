@@ -1,6 +1,6 @@
 {
   "name": "cannon-registry",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "private": true,
   "description": "Contract registry for Cannon images",
   "main": "hardhat.config.js",
@@ -30,7 +30,7 @@
     "dotenv": "16.0.1",
     "ethers": "5.6.9",
     "hardhat": "2.9.9",
-    "hardhat-cannon": "^1.0.28",
+    "hardhat-cannon": "^1.0.29",
     "mocha": "10.0.0",
     "solidity-coverage": "0.7.21",
     "ts-node": "10.8.1",
