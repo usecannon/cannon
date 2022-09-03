@@ -31,10 +31,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     'fundSigners',
     'Ensure wallets have plenty of gas token to do deployment operations. Only useful with --dry-run and --impersonate'
   )
+  .addOptionalParam('defaultSigner', 'Specify an address which should be used for any transactions sent by unspecified sender. Has no effect on local unforked network. Defaults to first hardhat signer or test account if impersonating.')
   .addFlag('wipe', 'Start from scratch, dont use any cached artifacts')
   .addOptionalParam('preset', 'Specify the preset label the given settings should be applied', 'main')
   .addOptionalVariadicPositionalParam('settings', 'Key values of chain which should be built')
-  .setAction(async ({ noCompile, file, settings, dryRun, impersonate, fundSigners, port, preset, wipe }, hre) => {
+  .setAction(async ({ noCompile, file, settings, dryRun, impersonate, fundSigners, defaultSigner, port, preset, wipe }, hre) => {
     await setupAnvil();
 
     if (!noCompile) {
@@ -103,6 +104,34 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         }
       }
 
+      if (!defaultSigner) {
+        // just set to some test account
+        defaultSigner = signers.length ? (signers[0] as ethers.Wallet).address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+      }
+
+
+      const getSigner = async(addr: string) => {
+        if (impersonate) {
+          await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [addr]);
+
+          if (fundSigners) {
+            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+          }
+
+          return (provider as ethers.providers.JsonRpcProvider).getSigner(addr);
+        } else {
+          const foundWallet = signers.find((wallet) => (wallet as ethers.Wallet).address == addr);
+          if (!foundWallet) {
+            throw new Error(
+              `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${signers
+                .map((w) => (w as ethers.Wallet).address)
+                .join(', ')}`
+            );
+          }
+          return foundWallet.connect(provider);
+        }
+      }
+
       builder = new ChainBuilder({
         name,
         version,
@@ -116,34 +145,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider: provider as ethers.providers.JsonRpcProvider,
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
-        async getSigner(addr: string) {
-          if (impersonate) {
-            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [addr]);
 
-            if (fundSigners) {
-              await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
-            }
-
-            return (provider as ethers.providers.JsonRpcProvider).getSigner(addr);
-          } else {
-            const foundWallet = signers.find((wallet) => (wallet as ethers.Wallet).address == addr);
-            if (!foundWallet) {
-              throw new Error(
-                `You haven't provided the private key for signer ${addr}. Please check your Hardhat configuration and try again. List of known addresses: ${signers
-                  .map((w) => (w as ethers.Wallet).address)
-                  .join(', ')}`
-              );
-            }
-            return foundWallet.connect(provider);
-          }
-        },
+        getSigner,
 
         async getDefaultSigner() {
-          if (fundSigners) {
-            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [(signers[0] as ethers.Wallet).address, ethers.utils.parseEther('10000').toHexString()]);
-          }
-
-          return signers[0].connect(provider);
+          return getSigner(defaultSigner);
         },
 
         async getArtifact(name: string) {
@@ -207,7 +213,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
 
         async getDefaultSigner() {
-          return (await hre.ethers.getSigners())[0];
+          return defaultSigner ? hre.ethers.getSigner(defaultSigner) : (await hre.ethers.getSigners())[0];
         },
 
         async getArtifact(name: string) {
