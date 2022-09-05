@@ -1,4 +1,3 @@
-import readline from 'node:readline';
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
@@ -12,6 +11,7 @@ import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
 import fs from 'fs-extra';
 import { resolve } from 'path';
+import onKeypress from '../util/on-keypress';
 
 export interface RunOptions {
   port?: number;
@@ -137,42 +137,49 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
   const signers = createSigners(node.provider);
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    console.log(INITIAL_INSTRUCTIONS);
-    console.log(INSTRUCTIONS);
+  console.log(INITIAL_INSTRUCTIONS);
+  console.log(INSTRUCTIONS);
 
-    await onKeypress(async (evt, close) => {
-      if (evt.ctrl && evt.name === 'c') {
-        process.exit();
-      } else if (evt.name === 'a') {
-        // Toggle showAnvilLogs when the user presses "a"
-        if (node.logging()) {
-          console.log(gray('Paused anvil logs...'));
-          console.log(INSTRUCTIONS);
-        } else {
-          console.log(gray('Unpaused anvil logs...'));
-        }
+  await onKeypress(async (evt, { pause, stop }) => {
+    if (evt.ctrl && evt.name === 'c') {
+      stop();
+      process.exit();
+    } else if (evt.name === 'a') {
+      // Toggle showAnvilLogs when the user presses "a"
+      if (node.logging()) {
+        console.log(gray('Paused anvil logs...'));
+        console.log(INSTRUCTIONS);
+        node.disableLogging();
+      } else {
+        console.log(gray('Unpaused anvil logs...'));
+        node.enableLogging();
+      }
+    } else if (evt.name === 'i') {
+      if (node.logging()) return;
 
-        node.toggleLogging();
-      } else if (evt.name === 'i') {
-        if (buildOutputs.length > 1) {
-          // TODO add interact on multiple packages compatibility
-          throw new Error('Interact command not implemented when running multiple packages');
-        }
+      if (buildOutputs.length > 1) {
+        // TODO add interact on multiple packages compatibility
+        throw new Error('Interact command not implemented when running multiple packages');
+      }
 
-        await close();
-        await interact({
+      await pause(() =>
+        interact({
           provider: node.provider,
           signer: signers[0],
           contracts: getContractsRecursive(buildOutputs[0], signers[0]),
-        });
-      } else if (evt.name === 'h') {
-        if (options.helpInformation) console.log('\n' + options.helpInformation);
-        console.log(INSTRUCTIONS);
-      }
-    });
-  }
+        })
+      );
+
+      console.log(INITIAL_INSTRUCTIONS);
+      console.log(INSTRUCTIONS);
+    } else if (evt.name === 'h') {
+      if (node.logging()) return;
+
+      if (options.helpInformation) console.log('\n' + options.helpInformation);
+      console.log();
+      console.log(INSTRUCTIONS);
+    }
+  });
 }
 
 function createSigners(provider: ethers.providers.BaseProvider): ethers.Wallet[] {
@@ -206,39 +213,6 @@ function getContractsRecursive(
     contracts = { ...contracts, ...newContracts };
   }
   return contracts;
-}
-
-interface KeyboardEvent {
-  name: string;
-  ctrl: boolean;
-  meta: boolean;
-  shift: boolean;
-}
-
-function onKeypress(handleKeyPress: (evt: KeyboardEvent, close: () => void) => void) {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      escapeCodeTimeout: 50,
-    });
-
-    readline.emitKeypressEvents(process.stdin, rl);
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-
-    const listener = (_: string, key: KeyboardEvent) => {
-      handleKeyPress(key, close);
-    };
-
-    const close = () => {
-      process.stdin.removeListener('keypress', listener);
-      process.stdin.setRawMode(false);
-      rl.close();
-      resolve(null);
-    };
-
-    process.stdin.on('keypress', listener);
-  });
 }
 
 async function createNode({ port = 8545, forkUrl = '' }) {
@@ -284,14 +258,6 @@ async function createNode({ port = 8545, forkUrl = '' }) {
 
     disableLogging: () => {
       logging = false;
-    },
-
-    toggleLogging: () => {
-      if (logging) {
-        node.disableLogging();
-      } else {
-        node.enableLogging();
-      }
     },
   };
 
