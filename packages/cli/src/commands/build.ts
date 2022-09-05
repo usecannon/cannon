@@ -1,17 +1,14 @@
-import { resolve } from 'path';
 import path from 'node:path';
 import os from 'node:os';
 import _ from 'lodash';
-import fs from 'fs-extra';
 import { ethers } from 'ethers';
 import { table } from 'table';
-import { bold, greenBright, green, dim, magentaBright } from 'chalk';
+import { bold, greenBright, green, dim } from 'chalk';
 import { ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 import { ChainId, PackageSettings } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
-import { writeModuleDeployments } from '../util/write-deployments';
 import createRegistry from '../registry';
 
 interface Params {
@@ -23,7 +20,6 @@ interface Params {
   preset?: string;
   forkUrl?: string;
   chainId?: ChainId;
-  writeDeployments?: string;
   registryIpfsUrl: string;
   registryRpcUrl: string;
   registryAddress: string;
@@ -36,7 +32,6 @@ export async function build({
   getArtifact,
   cannonDirectory,
   projectDirectory,
-  writeDeployments,
   preset = 'main',
   forkUrl,
   chainId = 31337,
@@ -132,13 +127,6 @@ export async function build({
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
 
   const outputs = await builder.build(settings);
-
-  if (writeDeployments) {
-    console.log(magentaBright(`Writing deployment data to ${writeDeployments}...`));
-    const path = resolve(writeDeployments);
-    await fs.mkdirp(path);
-    await writeModuleDeployments(writeDeployments, '', outputs);
-  }
 
   printChainBuilderOutput(outputs);
 
