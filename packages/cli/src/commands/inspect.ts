@@ -47,9 +47,9 @@ function renderDeployment(chainName: string | undefined, chainId: string, chainD
 function renderPreset(presetName: string, presetData: DeploymentInfo) {
   console.log(`${bold(cyan(presetName))}${presetName == 'main' ? gray(' [DEFAULT]') : ''}`);
   if (presetData.ipfsHash.length) {
-    console.log('> ✅ Published to IPFS: ' + presetData.ipfsHash);
+    console.log('> ✅ Published to the registry, IPFS hash: ' + presetData.ipfsHash);
   } else {
-    console.log('> ' + bold(red('⚠️  Not published to IPFS')));
+    console.log('> ' + bold(red('⚠️  Not published to the registry')));
   }
   if (Object.keys(presetData.options).length !== 0) {
     console.log(gray('> Options'));
