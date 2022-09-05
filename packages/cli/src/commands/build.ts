@@ -76,7 +76,7 @@ export async function build({
   }
 
   const readMode = wipe ? 'none' : 'metadata';
-  const writeMode = 'metadata';
+  const writeMode = 'all';
 
   const anvilInstance = await runRpc({
     forkUrl,
