@@ -12,7 +12,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
   .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
-  .setAction(async ({ cannonfile, settings, preset, cannonDirectory, noCompile }, hre) => {
+  .setAction(async ({ cannonfile, settings, preset, noCompile }, hre) => {
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
       console.log('');
@@ -36,7 +36,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       cannonfilePath,
       settings: parsedSettings,
       getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
-      cannonDirectory: cannonDirectory || hre.config.paths.cannon,
+      cannonDirectory: hre.config.paths.cannon,
       projectDirectory: hre.config.paths.root,
       forkUrl,
       chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
