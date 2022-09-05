@@ -1,6 +1,4 @@
 import _ from 'lodash';
-import os from 'os';
-import { resolve } from 'path';
 import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
