@@ -3,12 +3,16 @@ import os from 'os';
 import { resolve } from 'path';
 import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
+import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
 
 export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
-  const packageName = packageRef.split(':')[0];
-  const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
-  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()), packageName, packageVersion);
+  const { name, version } = parsePackageRef(packageRef);
+
+  if (version === 'latest') {
+    // TODO fetch the current latest version from the registry?
+    throw new Error(`You must specify a valid package version, given: "${version}"`);
+  }
 
   const deployInfo = await getAllDeploymentInfos(cannonDirectory);
   const chainDefinition = new ChainDefinition(deployInfo.def);
@@ -16,7 +20,7 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
   if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
-    console.log(green(bold(`\n=============== ${packageName}:${packageVersion} ===============`)));
+    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
     if (!_.isEmpty(deployInfo?.deploys)) {
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
@@ -27,6 +31,7 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
       console.log('This package has not been built for any chains yet.');
     }
   }
+
   return deployInfo;
 }
 

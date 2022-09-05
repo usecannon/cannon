@@ -1,14 +1,13 @@
-import os from 'os';
 import fs from 'fs-extra';
-import { resolve } from 'path';
 import { exportChain } from '@usecannon/builder';
 import { greenBright } from 'chalk';
 import prompts from 'prompts';
+import untildify from 'untildify';
 
 export async function exportPackage(cannonDirectory: string, exportFile: string, packageRef: string) {
   const packageName = packageRef.split(':')[0];
   const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
-  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
+  cannonDirectory = untildify(cannonDirectory);
 
   if (!exportFile) {
     exportFile = `${packageName}.${packageVersion}`;
@@ -18,7 +17,7 @@ export async function exportPackage(cannonDirectory: string, exportFile: string,
     exportFile += '.zip';
   }
 
-  const resolvedFilepath = resolve(exportFile.replace(/^~(?=$|\/|\\)/, os.homedir()));
+  const resolvedFilepath = untildify(exportFile);
   if (fs.existsSync(resolvedFilepath)) {
     const confirmationResponse = await prompts({
       type: 'confirm',

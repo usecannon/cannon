@@ -1,15 +1,14 @@
 import { ChainBuilder } from '@usecannon/builder';
 import { ethers } from 'ethers';
-import os from 'os';
-import { resolve } from 'path';
+import untildify from 'untildify';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
 import { ChainName } from '../types';
+import { parsePackageRef } from '../util/params';
 
-export async function verify(packageRef: string, apiKey: string, network: ChainName, directory: string) {
+export async function verify(packageRef: string, apiKey: string, network: ChainName, cannonDirectory: string) {
   await setupAnvil();
-  const name = packageRef.split(':')[0];
-  const version = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
-  directory = resolve(directory.replace(/^~(?=$|\/|\\)/, os.homedir()));
+  const { name, version } = parsePackageRef(packageRef);
+  cannonDirectory = untildify(cannonDirectory);
   const chainId = getChainId(network);
 
   const builder = new ChainBuilder({
@@ -17,9 +16,10 @@ export async function verify(packageRef: string, apiKey: string, network: ChainN
     version,
     readMode: 'metadata',
     chainId: chainId,
-    savedPackagesDir: directory,
+    savedPackagesDir: cannonDirectory,
 
     provider: {} as ethers.providers.JsonRpcProvider,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getSigner(_: string) {
       return new Promise(() => {
         return null;

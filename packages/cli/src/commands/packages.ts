@@ -1,13 +1,13 @@
-import os from 'os';
 import { resolve } from 'path';
 import fs from 'fs-extra';
 import prompts from 'prompts';
-import { inspect } from './inspect';
 import { bold, magentaBright } from 'chalk';
+import untildify from 'untildify';
+import { inspect } from './inspect';
 
 export async function packages(cannonDirectory: string) {
-  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
-  const packages = await fs.readdir(resolve(cannonDirectory));
+  cannonDirectory = untildify(cannonDirectory);
+  const packages = await fs.readdir(cannonDirectory);
 
   const packageChoices = packages.sort().map((s) => {
     return { title: s };

@@ -1,9 +1,8 @@
 import { CannonRegistry } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import prompts from 'prompts';
-import os from 'os';
-import { resolve } from 'path';
-import { findPackage } from '../helpers';
+import untildify from 'untildify';
+import { parsePackageRef } from '../util/params';
 
 export async function publish(
   cannonDirectory: string,
@@ -15,9 +14,8 @@ export async function publish(
   ipfsEndpoint: string,
   ipfsAuthorizationHeader: string
 ) {
-  cannonDirectory = resolve(cannonDirectory.replace(/^~(?=$|\/|\\)/, os.homedir()));
-  const packageName = packageRef.split(':')[0];
-  const packageVersion = packageRef.includes(':') ? packageRef.split(':')[1] : 'latest';
+  cannonDirectory = untildify(cannonDirectory);
+  const { name, version } = parsePackageRef(packageRef);
 
   const wallet = new ethers.Wallet(privateKey);
   const provider = new ethers.providers.JsonRpcProvider(registryEndpoint);
@@ -49,13 +47,9 @@ export async function publish(
 
   const splitTags = tags.split(',');
 
-  console.log(`Uploading and registering package ${packageName}:${packageVersion}...`);
+  console.log(`Uploading and registering package ${name}:${version}...`);
 
-  const txn = await registry.uploadPackage(
-    `${packageName}:${packageVersion}`,
-    tags ? splitTags : undefined,
-    cannonDirectory
-  );
+  const txn = await registry.uploadPackage(`${name}:${version}`, tags ? splitTags : undefined, cannonDirectory);
 
   console.log('txn:', txn.transactionHash, txn.status);
 

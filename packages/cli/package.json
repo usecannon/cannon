@@ -42,7 +42,9 @@
     "lodash": "^4.17.21",
     "node-fetch": "2",
     "prompts": "^2.4.2",
-    "table": "^6.8.0"
+    "table": "^6.8.0",
+    "tildify": "^3.0.0",
+    "untildify": "^4.0.0"
   },
   "gitHead": "729281b410bc26420c9d0217a5b7b1d5e80f58fa"
 }

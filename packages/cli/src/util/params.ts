@@ -8,7 +8,7 @@ export function parsePackageRef(val: string) {
   const match = val.match(packageRegExp);
 
   if (!match) {
-    throw new InvalidArgumentError(`Invalid package name "${val}"`);
+    throw new InvalidArgumentError(`Invalid package name "${val}". Should be of the format <package-name>:<version>`);
   }
 
   const { name, version = 'latest' } = match.groups!;

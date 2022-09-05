@@ -1,9 +1,8 @@
-import path from 'node:path';
-import os from 'node:os';
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim } from 'chalk';
+import tildify from 'tildify';
 import { ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
@@ -130,10 +129,7 @@ export async function build({
 
   printChainBuilderOutput(outputs);
 
-  const homeDir = os.homedir() + path.sep;
-  const prettyDir = cannonDirectory.replace(new RegExp(`^${homeDir}`), `~${path.sep}`);
-
-  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(prettyDir)}`));
+  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(tildify(cannonDirectory))}`));
 
   // TODO: Update logging
   // Run this on a local node with <command>
