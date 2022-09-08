@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageDefinition, PackageSettings } from '../types';
 
@@ -50,7 +51,7 @@ export function parsePackageArguments(val: string, result: PackageDefinition) {
     throw new InvalidArgumentError('First argument should be a cannon package name, e.g.: greeter:1.0.0');
   }
 
-  if (result && packageMatch) {
+  if (result && !_.isEmpty(result) && packageMatch) {
     throw new InvalidArgumentError('You can only specify a single cannon package');
   }
 

@@ -1,8 +1,7 @@
 import { task } from 'hardhat/config';
-import { run } from '@usecannon/cli';
+import { PackageDefinition, run } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
 import { parsePackagesArguments } from '@usecannon/cli/dist/src/util/params';
-import { PackageDefinition } from '@usecannon/cli/dist/src/types';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addVariadicPositionalParam('packageNames', 'List of packages to load, optionally with custom settings for each one')

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import _ from 'lodash';
+import { ethers } from 'ethers';
 import { Command } from 'commander';
 
 import { checkCannonVersion, execPromise, setupAnvil } from './helpers';
@@ -26,6 +26,7 @@ export { packages } from './commands/packages';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
+export * from './types';
 
 const program = new Command();
 
@@ -152,11 +153,7 @@ program
 program
   .command('deploy')
   .description('Deploy a cannon package to a network')
-  .argument(
-    '[packageNames...]',
-    'List of packages to deploy, optionally with custom settings for each one',
-    parsePackageArguments
-  )
+  .argument('[packageWithSettings...]', 'Package to deploy, optionally with custom settings', parsePackageArguments)
   .requiredOption('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
   .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
   .option('-p --preset [preset]', 'Load an alternate setting preset', 'main')
@@ -164,24 +161,39 @@ program
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
   .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
+  .option(
+    '--registry-ipfs-url [https://...]',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-rpc-url [https://...]',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageDefinition, opts) {
     const { deploy } = await import('./commands/deploy');
 
-    // TODO Add a private key format validator for better error messages
-
     const projectDirectory = process.cwd();
     const deploymentPath = opts.directory ? path.resolve(opts.directory) : path.resolve(projectDirectory, 'deployments');
+
+    const provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
+    const signer = new ethers.Wallet(opts.privateKey, provider);
 
     await deploy({
       packageDefinition,
       cannonDirectory: opts.directory,
       projectDirectory,
-      networkRpc: opts.networkRpc,
-      privateKey: opts.privateKey,
+      provider,
+      signer,
       preset: opts.preset,
       dryRun: opts.dryRun || false,
       prefix: opts.prefix,
       deploymentPath,
+      registryIpfsUrl: opts.registryIpfsUrl,
+      registryRpcUrl: opts.registryRpcUrl,
+      registryAddress: opts.registryAddress,
     });
   });
 
