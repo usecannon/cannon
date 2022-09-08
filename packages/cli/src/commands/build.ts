@@ -72,12 +72,12 @@ export async function build({
   const readMode = wipe ? 'none' : 'metadata';
   const writeMode = 'all';
 
-  const anvilInstance = await runRpc({
+  const node = await runRpc({
     forkUrl,
     port: 8545,
   });
 
-  const provider = await getProvider(anvilInstance);
+  const provider = await getProvider(node);
 
   const builder = new ChainBuilder({
     name,
@@ -136,7 +136,7 @@ export async function build({
   // Deploy it to a remote network with <command>
   // Publish your package to the registry with <command>
 
-  anvilInstance.kill();
+  node.kill();
 
-  return outputs;
+  return { outputs, provider };
 }

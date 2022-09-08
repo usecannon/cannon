@@ -99,5 +99,5 @@ export async function deploy({
 
   printChainBuilderOutput(outputs);
 
-  return outputs;
+  return { outputs };
 }

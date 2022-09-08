@@ -6,6 +6,8 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { build } from '@usecannon/cli';
 import { parseSettings } from '@usecannon/cli/dist/src/util/params';
 import { TASK_BUILD } from '../task-names';
+import { ethers } from 'ethers';
+import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -46,5 +48,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       registryAddress: hre.config.cannon.registryAddress,
     } as const;
 
-    return build(params);
+    let { outputs, provider } = await build(params);
+
+    // set provider to cannon wrapper to allow error parsing
+    if ((provider as ethers.providers.JsonRpcProvider).connection) {
+      provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
+    }
+
+    const signers = await hre.ethers.getSigners();
+
+    return { outputs, provider, signers };
   });

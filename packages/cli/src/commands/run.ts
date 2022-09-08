@@ -133,9 +133,18 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     printChainBuilderOutput(outputs);
   }
 
-  console.log();
-
   const signers = createSigners(node.provider);
+
+  if (options.logs) {
+    return {
+      signers,
+      outputs: buildOutputs,
+      provider: node.provider,
+      node: node.instance,
+    };
+  }
+
+  console.log();
 
   console.log(INITIAL_INSTRUCTIONS);
   console.log(INSTRUCTIONS);
