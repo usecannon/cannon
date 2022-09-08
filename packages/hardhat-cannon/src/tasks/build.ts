@@ -34,6 +34,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         ? undefined
         : (hre.config.networks[hre.network.name] as HttpNetworkConfig).url;
 
+    const signers = await hre.ethers.getSigners();
+
     const params = {
       cannonfilePath,
       settings: parsedSettings,
@@ -54,8 +56,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     if ((provider as ethers.providers.JsonRpcProvider).connection) {
       provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
     }
-
-    const signers = await hre.ethers.getSigners();
 
     return { outputs, provider, signers };
   });
