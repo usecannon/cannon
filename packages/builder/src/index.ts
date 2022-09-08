@@ -16,6 +16,8 @@ export * from './types';
 
 export * from './storage';
 
+export * from './error/provider';
+
 export { CannonRegistry } from './registry';
 
 export async function downloadPackagesRecursive(
