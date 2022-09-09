@@ -5,7 +5,7 @@ import { parsePackageArguments } from '@usecannon/cli/dist/src/util/params';
 import { getProvider, runRpc } from '@usecannon/cli/dist/src/rpc';
 import { ethers } from 'ethers';
 import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
-import { HttpNetworkConfig } from 'hardhat/types';
+import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addVariadicPositionalParam('packageWithSettings', 'Package to deploy, optionally with custom settings')
@@ -22,7 +22,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       throw new Error('Selected network must have chainId set in hardhat configuration');
     }
 
-    let [signer] = await hre.ethers.getSigners();
+    let [signer] = (await hre.ethers.getSigners()) as ethers.Signer[];
     let provider = hre.ethers.provider;
 
     if (opts.dryRun) {
@@ -34,8 +34,11 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
       provider = await getProvider(anvilInstance);
 
-      if (signer) {
-        signer = signer.connect(provider);
+      if (Array.isArray(hre.network.config.accounts) && hre.network.config.accounts.length > 0) {
+        signer = new ethers.Wallet(hre.network.config.accounts[0] as string, provider);
+      } else {
+        const { path, mnemonic } = hre.network.config.accounts as HttpNetworkHDAccountsConfig;
+        signer = ethers.Wallet.fromMnemonic(`${path}/0`, mnemonic);
       }
     }
 
