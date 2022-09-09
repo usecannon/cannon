@@ -56,7 +56,7 @@ export async function deploy({
     preset,
 
     readMode: 'metadata',
-    writeMode: 'metadata',
+    writeMode: dryRun ? 'none' : 'metadata',
 
     provider,
     chainId,
@@ -93,7 +93,8 @@ export async function deploy({
   const outputs = await builder.build(packageDefinition.settings);
 
   if (deploymentPath) {
-    console.log(green(`Writing deployment artifacts to ./${path.relative(process.cwd(), deploymentPath)}\n`));
+    const relativePath = path.relative(process.cwd(), deploymentPath).replace(/^[^/]/, './');
+    console.log(green(`Writing deployment artifacts to ${relativePath}\n`));
     await writeModuleDeployments(deploymentPath, prefix, outputs);
   }
 

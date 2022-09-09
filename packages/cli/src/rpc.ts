@@ -9,14 +9,20 @@ const debug = Debug('cannon:cli:rpc');
 type RpcOptions = {
   port: number;
   forkUrl?: string;
+  chainId?: number;
 };
 
 export const ANVIL_START_TIMEOUT = 3000;
 
-export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
+export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildProcess> {
   const opts = ['--port', port.toString()];
+
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
+  }
+
+  if (Number.isSafeInteger(chainId)) {
+    opts.push('--chain-id', `${chainId}`);
   }
 
   return Promise.race<Promise<ChildProcess>>([

@@ -15,6 +15,7 @@ import {
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
+import { getProvider, runRpc } from './rpc';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -176,9 +177,22 @@ program
     const { deploy } = await import('./commands/deploy');
 
     const projectDirectory = process.cwd();
-    const deploymentPath = opts.directory ? path.resolve(opts.directory) : path.resolve(projectDirectory, 'deployments');
+    const deploymentPath = opts.writeDeployments
+      ? path.resolve(opts.writeDeployments)
+      : path.resolve(projectDirectory, 'deployments');
 
-    const provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
+    let provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
+
+    if (opts.dryRun) {
+      const anvilInstance = await runRpc({
+        forkUrl: opts.networkRpc,
+        port: 8545,
+        chainId: (await provider.getNetwork()).chainId,
+      });
+
+      provider = await getProvider(anvilInstance);
+    }
+
     const signer = new ethers.Wallet(opts.privateKey, provider);
 
     await deploy({
