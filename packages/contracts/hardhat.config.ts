@@ -18,9 +18,40 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  networks: {
+    hardhat: {
+      chainId: 31337,
+    },
+    local: {
+      url: 'http://127.0.0.1:8545/',
+      chainId: 31337,
+    },
+    mainnet: {
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 1,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    ropsten: {
+      url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 3,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    rinkeby: {
+      url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+      chainId: 4,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+    },
+    goerli: {
+      url: process.env.PROVIDER_URL || `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+      chainId: 5,
+    },
+  },
   cannon: {
-    // ipfsEndpoint: null,
-    // ipfsAuthorizationHeader: null
+    ipfsEndpoint: 'https://ipfs.infura.io:5001',
+    ipfsAuthorizationHeader: `Basic ${Buffer.from(
+      process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET
+    ).toString('base64')}`,
   },
 };
 

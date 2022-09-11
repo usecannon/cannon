@@ -3,7 +3,7 @@
   "version": "1.1.0-alpha.4",
   "private": true,
   "scripts": {
-    "build": "npx @usecannon/cli build cannonfile.toml",
+    "build-cannonfile": "npx @usecannon/cli build cannonfile.toml",
     "run": "npx @usecannon/cli greeter",
     "deploy": "npx @usecannon/cli deploy greeter",
     "run-synthetix": "npx @usecannon/cli synthetix"

@@ -17,9 +17,8 @@ export async function publish(
   cannonDirectory = untildify(cannonDirectory);
   const { name, version } = parsePackageRef(packageRef);
 
-  const wallet = new ethers.Wallet(privateKey);
   const provider = new ethers.providers.JsonRpcProvider(registryEndpoint);
-  const signer = provider.getSigner(wallet.address);
+  const wallet = new ethers.Wallet(privateKey, provider);
 
   const response = await prompts({
     type: 'confirm',
@@ -41,7 +40,7 @@ export async function publish(
 
   const registry = new CannonRegistry({
     ipfsOptions,
-    signerOrProvider: signer,
+    signerOrProvider: wallet,
     address: registryAddress,
   });
 

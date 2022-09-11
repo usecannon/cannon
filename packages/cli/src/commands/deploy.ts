@@ -93,7 +93,10 @@ export async function deploy({
   const outputs = await builder.build(packageDefinition.settings);
 
   if (deploymentPath) {
-    const relativePath = path.relative(process.cwd(), deploymentPath).replace(/^[^/]/, './');
+    let relativePath = path.relative(process.cwd(), deploymentPath);
+    if (!relativePath.startsWith('/')) {
+      relativePath = './' + relativePath;
+    }
     console.log(green(`Writing deployment artifacts to ${relativePath}\n`));
     await writeModuleDeployments(deploymentPath, prefix, outputs);
   }
