@@ -132,7 +132,7 @@ export type DeploymentManifest = {
   def: RawChainDefinition;
 
   // npm style package.json for the project being uploaded
-  pkg: any;
+  npmPackage: any;
 
   // archive which contains miscellaneus dependencies ex. documentation pages, contracts, etc.
   misc: {

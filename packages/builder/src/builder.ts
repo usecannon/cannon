@@ -347,13 +347,21 @@ ${printChainDefinitionProblems(problems)}`);
     }
 
     if (this.writeMode !== 'none') {
-      await putDeploymentInfo(this.packageDir, this.chainId, this.preset, {
-        def: this.def.toJson(),
-        options: opts,
-        buildVersion: BUILD_VERSION,
-        ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
-        heads: Array.from(this.def.leaves),
-      });
+      await putDeploymentInfo(
+        this.packageDir,
+        this.chainId,
+        this.preset,
+        {
+          def: await this.getDeploymentRecordedDefinition(),
+          options: opts,
+          buildVersion: BUILD_VERSION,
+          ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
+          heads: Array.from(this.def.leaves),
+        },
+        (
+          await this.populateSettings({})
+        ).package
+      );
     }
 
     if (this.writeMode === 'all' || this.writeMode === 'metadata') {
@@ -582,12 +590,21 @@ ${printChainDefinitionProblems(problems)}`);
     if (this.readMode !== 'none') {
       const file = getDeploymentInfoFile(this.packageDir);
       const deployInfo = await getAllDeploymentInfos(this.packageDir);
+      const rawDef = await this.getDeploymentRecordedDefinition();
 
       // only store the current chain definition if we are building the local network id and main preset
-      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? this.def.toJson() : deployInfo.def;
+      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? rawDef : deployInfo.def;
 
       await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
     }
+  }
+
+  async getDeploymentRecordedDefinition() {
+    const rawDef = this.def.toJson();
+    if (rawDef.version.includes('package.version')) {
+      rawDef.version = this.def.getVersion(await this.populateSettings({}));
+    }
+    return rawDef;
   }
 }

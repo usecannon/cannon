@@ -4,7 +4,14 @@ import { ethers } from 'ethers';
 import { associateTag } from './storage';
 import fs from 'fs-extra';
 
-import { getAllDeploymentInfos, getPackageDir, getDeploymentInfoFile, getActionFiles, getSavedPackagesDir } from '.';
+import {
+  getAllDeploymentInfos,
+  getPackageDir,
+  getDeploymentInfoFile,
+  getActionFiles,
+  getSavedPackagesDir,
+  ChainDefinition,
+} from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
@@ -151,6 +158,8 @@ export class CannonRegistry {
     const packageDir = getPackageDir(packagesDir, name, tag);
 
     const manifest = await getAllDeploymentInfos(packageDir);
+
+    const definition = new ChainDefinition(manifest.def);
 
     if (!manifest) {
       throw new Error('package not found for upload ' + image);

@@ -25,7 +25,7 @@ export async function getAllDeploymentInfos(packageDir: string): Promise<Deploym
   const file = getDeploymentInfoFile(packageDir);
 
   if (!fs.existsSync(file)) {
-    return { deploys: {}, pkg: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
+    return { deploys: {}, npmPackage: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
   }
 
   return (await fs.readJson(file)) as DeploymentManifest;
@@ -37,10 +37,11 @@ export async function getDeploymentInfo(packageDir: string, network: number, lab
   return _.get(deployInfo.deploys, `${network}.${label}`, null) as unknown as DeploymentInfo | null;
 }
 
-export async function putDeploymentInfo(packageDir: string, chainId: number, label: string, info: DeploymentInfo) {
+export async function putDeploymentInfo(packageDir: string, chainId: number, label: string, info: DeploymentInfo, pkg: any) {
   const deployInfo = await getAllDeploymentInfos(packageDir);
 
   _.set(deployInfo.deploys, `${chainId}.${label}`, info);
+  deployInfo.npmPackage = pkg;
 
   await fs.writeFile(getDeploymentInfoFile(packageDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
 }

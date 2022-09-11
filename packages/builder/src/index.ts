@@ -44,7 +44,7 @@ export async function downloadPackagesRecursive(
     const def = new ChainDefinition(info.def);
 
     const dependencies = def.getRequiredImports({
-      package: info.pkg,
+      package: info.npmPackage,
       chainId,
 
       timestamp: '0',
