@@ -166,18 +166,18 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     } else if (evt.name === 'i') {
       if (node.logging()) return;
 
-      if (buildOutputs.length > 1) {
-        // TODO add interact on multiple packages compatibility
-        throw new Error('Interact command not implemented when running multiple packages');
-      }
+      await pause(async () => {
+        const [signer] = signers;
 
-      await pause(() =>
-        interact({
+        const contracts = buildOutputs.map((output) => getContractsRecursive(output, signer));
+
+        await interact({
+          packages,
+          contracts,
+          signer,
           provider: node.provider,
-          signer: signers[0],
-          contracts: getContractsRecursive(buildOutputs[0], signers[0]),
-        })
-      );
+        });
+      });
 
       console.log(INITIAL_INSTRUCTIONS);
       console.log(INSTRUCTIONS);
