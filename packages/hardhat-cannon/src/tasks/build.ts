@@ -12,6 +12,11 @@ import { ethers } from 'ethers';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { bold, green, greenBright, dim } from 'chalk';
 import { table } from 'table';
+import { augmentProvider } from '../internal/augment-provider';
+
+import Debug from 'debug';
+
+const debug = Debug('cannon:hardhat');
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
@@ -80,9 +85,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     }
 
     let builder: ChainBuilder;
-    let provider: ethers.providers.Provider = hre.ethers.provider;
+    let provider: CannonWrapperJsonRpcProvider;
     let signers: ethers.Signer[] = [];
     if (dryRun) {
+      debug('detected dry run');
       const network = hre.network;
 
       if (!network) throw new Error('Selected dryRun network not found in hardhat configuration');
@@ -128,7 +134,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
                 .join(', ')}`
             );
           }
-          return foundWallet.connect(provider);
+          return foundWallet.connect(provider!);
         }
       }
 
@@ -142,7 +148,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         writeMode: 'none',
 
         chainId: network.config.chainId,
-        provider: provider as ethers.providers.JsonRpcProvider,
+        provider,
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
 
@@ -156,9 +162,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           return hre.artifacts.readArtifact(name);
         },
       });
-    } else if (hre.network.name === 'hardhat') {
+    } else if (hre.network.name === 'cannon') {
+      debug('detected local build w/ snapshot');
       // clean hardhat network build
-      const provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
+      provider = await hre.run(SUBTASK_RPC, { port: port || 8545 });
 
       // signers
       for (const signer of await hre.ethers.getSigners()) {
@@ -192,6 +199,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
       });
     } else {
+      debug('detected live network deploy for', hre.network.name);
+      provider = new CannonWrapperJsonRpcProvider({}, (hre.network.config as HttpNetworkConfig).url);
       signers = await hre.ethers.getSigners();
 
       // deploy to live network
@@ -204,7 +213,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         readMode: wipe ? 'none' : 'metadata',
         writeMode: 'metadata',
 
-        provider: hre.ethers.provider as unknown as ethers.providers.JsonRpcProvider,
+        provider,
         chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
         baseDir: hre.config.paths.root,
         savedPackagesDir: hre.config.paths.cannon,
@@ -258,8 +267,9 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     });
 
     // set provider to cannon wrapper to allow error parsing
-    if ((provider as ethers.providers.JsonRpcProvider).connection) {
-      provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
+    if ((provider as CannonWrapperJsonRpcProvider).artifacts) {
+      (provider as CannonWrapperJsonRpcProvider).artifacts = outputs;
+      //provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
       //signers = signers.map(w => w.connect(provider));
     }
 
@@ -269,5 +279,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       // dont exit
       await new Promise(_.noop);
     }
-    return { provider, signers, outputs };
+
+    augmentProvider(hre, outputs);
+
+    return { provider: provider!, signers, outputs };
   });

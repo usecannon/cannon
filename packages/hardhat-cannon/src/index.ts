@@ -14,8 +14,9 @@ import './type-extensions';
 
 import { getSavedPackagesDir } from '@usecannon/builder';
 
-import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig } from 'hardhat/config';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
+import { augmentProvider } from './internal/augment-provider';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   config.paths.deployments = userConfig.paths?.deployments
@@ -35,4 +36,13 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
       url: 'https://usecannon.infura-ipfs.io',
     },
   };
+
+  config.networks.cannon = {
+    ...config.networks?.hardhat,
+    ...(userConfig.networks?.cannon || { port: 8545 }),
+  } as any;
+});
+
+extendEnvironment((env: HardhatRuntimeEnvironment) => {
+  augmentProvider(env);
 });

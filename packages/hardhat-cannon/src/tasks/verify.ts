@@ -2,10 +2,10 @@ import _ from 'lodash';
 import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
-import { ChainBuilder } from '@usecannon/builder';
+import { CannonWrapperJsonRpcProvider, ChainBuilder } from '@usecannon/builder';
 import { setupAnvil } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
-import { ethers } from 'ethers';
+import { HttpNetworkConfig } from 'hardhat/types';
 
 task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mainnet')
   .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
@@ -30,7 +30,7 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       version,
       readMode: 'metadata',
       chainId: (await hre.ethers.provider.getNetwork()).chainId,
-      provider: hre.ethers.provider as ethers.providers.JsonRpcProvider,
+      provider: new CannonWrapperJsonRpcProvider({}, (hre.network.config as HttpNetworkConfig).url),
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },
