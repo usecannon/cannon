@@ -18,6 +18,8 @@ export * from './storage';
 
 export * from './error/provider';
 
+export { handleTxnError } from './error';
+
 export { CannonRegistry } from './registry';
 
 export async function downloadPackagesRecursive(

@@ -12,7 +12,7 @@ import {
   ChainArtifacts,
   downloadPackagesRecursive,
   ChainBuilderContext,
-  CannonWrapperJsonRpcProvider
+  CannonWrapperJsonRpcProvider,
 } from '@usecannon/builder';
 
 import pkg from '../package.json';

@@ -5,7 +5,6 @@ import { ChainArtifacts } from "../types";
 const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
 export async function handleTxnError(artifacts: ChainArtifacts, provider: ethers.providers.JsonRpcProvider, err: any): Promise<any> {
-
     if (err instanceof CannonTraceError) {
         // error already parsed
         throw err;

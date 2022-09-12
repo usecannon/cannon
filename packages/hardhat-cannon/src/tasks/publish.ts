@@ -15,7 +15,7 @@ task(TASK_PUBLISH, 'Provision and publish to the registry the current Cannonfile
   .setAction(async ({ file, tags, registryAddress }, hre) => {
     await setupAnvil();
 
-    if (hre.network.name == 'hardhat') {
+    if (hre.network.name == 'cannon') {
       console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));
       process.exit();
     }

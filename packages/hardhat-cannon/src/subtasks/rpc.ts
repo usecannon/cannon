@@ -8,6 +8,7 @@ import Debug from 'debug';
 const debug = Debug('cannon:hardhat:rpc');
 
 import { SUBTASK_RPC } from '../task-names';
+import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
 
 const ANVIL_OP_TIMEOUT = 10000;
 
@@ -82,7 +83,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           const host = 'http://' + m[1];
           state = 'listening';
           //console.log('anvil spawned at', host);
-          resolve(new ethers.providers.JsonRpcProvider(host));
+          resolve(new CannonWrapperJsonRpcProvider({}, host));
         }
 
         debug(chunk);
