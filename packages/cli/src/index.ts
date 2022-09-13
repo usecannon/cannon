@@ -12,7 +12,7 @@ import {
   ChainArtifacts,
   downloadPackagesRecursive,
   ChainBuilderContext,
-  CannonWrapperJsonRpcProvider,
+  CannonWrapperGenericProvider,
 } from '@usecannon/builder';
 
 import pkg from '../package.json';
@@ -247,7 +247,7 @@ export async function run() {
   const outputs = await builder.build(options.settings);
 
   // set provider to cannon wrapper to allow error parsing
-  provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
+  provider = new CannonWrapperGenericProvider(outputs, provider);
 
   if (options.writeDeployments) {
     console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
@@ -260,7 +260,7 @@ export async function run() {
   console.log(
     greenBright(
       `${bold(options.name + ':' + options.version)} has been deployed to a local node running at ${bold(
-        provider.connection.url
+        (provider.passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
       )}`
     )
   );

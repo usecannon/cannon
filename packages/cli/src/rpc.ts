@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
-import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -61,15 +61,15 @@ export function runRpc({ port, forkUrl }: RpcOptions): Promise<ChildProcess> {
   ]);
 }
 
-export function getProvider(anvilInstance: ChildProcess): Promise<CannonWrapperJsonRpcProvider> {
-  return new Promise<CannonWrapperJsonRpcProvider>((resolve) => {
+export function getProvider(anvilInstance: ChildProcess): Promise<CannonWrapperGenericProvider> {
+  return new Promise<CannonWrapperGenericProvider>((resolve) => {
     anvilInstance.stdout!.on('data', (rawChunk) => {
       // right now check for expected output string to connect to node
       const chunk = rawChunk.toString('utf8');
       const m = chunk.match(/Listening on (.*)/);
       if (m) {
         const host = 'http://' + m[1];
-        resolve(new CannonWrapperJsonRpcProvider({}, host));
+        resolve(new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host)));
       }
     });
   });

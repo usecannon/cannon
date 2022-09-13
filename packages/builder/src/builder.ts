@@ -27,7 +27,7 @@ const debug = Debug('cannon:builder');
 const BUILD_VERSION = 3;
 
 import {
-  CannonWrapperJsonRpcProvider,
+  CannonWrapperGenericProvider,
   ChainArtifacts,
   clearDeploymentInfo,
   combineCtx,
@@ -38,7 +38,6 @@ import {
   putDeploymentInfo,
   TransactionMap,
 } from '.';
-import { handleTxnError } from './error';
 
 export enum Events {
   PreStepExecute = 'pre-step-execute',
@@ -57,7 +56,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly preset: string;
 
   readonly chainId: number;
-  readonly provider: CannonWrapperJsonRpcProvider;
+  readonly provider: CannonWrapperGenericProvider;
   readonly getSigner: (addr: string) => Promise<ethers.Signer>;
   readonly getDefaultSigner: (addr: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;

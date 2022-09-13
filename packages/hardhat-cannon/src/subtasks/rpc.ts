@@ -8,21 +8,21 @@ import Debug from 'debug';
 const debug = Debug('cannon:hardhat:rpc');
 
 import { SUBTASK_RPC } from '../task-names';
-import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const ANVIL_OP_TIMEOUT = 10000;
 
 // saved up here to allow for reset of existing process
 let anvilInstance: ReturnType<typeof spawn> | null = null;
 
-subtask(SUBTASK_RPC).setAction((settings, hre): Promise<ethers.providers.JsonRpcProvider> => {
+subtask(SUBTASK_RPC).setAction((settings, hre): Promise<CannonWrapperGenericProvider> => {
   const { port, forkUrl, chainId } = settings;
 
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
     return Promise.race([
-      new Promise<ethers.providers.JsonRpcProvider>((resolve) => {
+      new Promise<CannonWrapperGenericProvider>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
           resolve(await hre.run(SUBTASK_RPC, settings));
@@ -45,8 +45,8 @@ subtask(SUBTASK_RPC).setAction((settings, hre): Promise<ethers.providers.JsonRpc
     opts.push('--fork-url', forkUrl);
   }
 
-  return Promise.race<Promise<ethers.providers.JsonRpcProvider>>([
-    new Promise<ethers.providers.JsonRpcProvider>((resolve, reject) => {
+  return Promise.race<Promise<CannonWrapperGenericProvider>>([
+    new Promise<CannonWrapperGenericProvider>((resolve, reject) => {
       anvilInstance = spawn('anvil', opts);
 
       process.once('exit', () => anvilInstance?.kill());
@@ -83,7 +83,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           const host = 'http://' + m[1];
           state = 'listening';
           //console.log('anvil spawned at', host);
-          resolve(new CannonWrapperJsonRpcProvider({}, host));
+          resolve(new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host)));
         }
 
         debug(chunk);
@@ -99,5 +99,5 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
 });
 
 function timeout(period: number, msg: string) {
-  return new Promise<ethers.providers.JsonRpcProvider>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
+  return new Promise<CannonWrapperGenericProvider>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
 }

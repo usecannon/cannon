@@ -8,6 +8,8 @@ import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
+import { CannonWrapperGenericProvider } from './error/provider';
+
 export const ChainDefinitionScriptSchema = {
   properties: {
     exec: { type: 'string' },
@@ -48,7 +50,7 @@ export function hashFs(path: string): Buffer {
  * @returns ethers signer
  */
 export async function getExecutionSigner(
-  provider: ethers.providers.JsonRpcProvider,
+  provider: CannonWrapperGenericProvider,
   txn: ethers.providers.TransactionRequest,
   salt = ''
 ): Promise<ethers.Signer> {
@@ -68,7 +70,7 @@ export async function getExecutionSigner(
   await provider.send('hardhat_impersonateAccount', [address]);
   await provider.send('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
 
-  return await (provider as ethers.providers.JsonRpcProvider).getSigner(address);
+  return await provider.getSigner(address);
 }
 
 /**

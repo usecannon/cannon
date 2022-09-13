@@ -5,7 +5,14 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 
 import { setupAnvil } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
-import { CannonRegistry, ChainBuilder, downloadPackagesRecursive, Events, CannonWrapperJsonRpcProvider } from '@usecannon/builder';
+import {
+  CannonRegistry,
+  ChainBuilder,
+  downloadPackagesRecursive,
+  Events,
+  CannonWrapperGenericProvider,
+  StorageMode,
+} from '@usecannon/builder';
 import { SUBTASK_RPC, SUBTASK_WRITE_DEPLOYMENTS, TASK_BUILD } from '../task-names';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { ethers } from 'ethers';
@@ -85,7 +92,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     }
 
     let builder: ChainBuilder;
-    let provider: CannonWrapperJsonRpcProvider;
+    let provider: CannonWrapperGenericProvider;
     let signers: ethers.Signer[] = [];
     if (dryRun) {
       debug('detected dry run');
@@ -118,13 +125,13 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const getSigner = async(addr: string) => {
         if (impersonate) {
-          await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [addr]);
+          await provider.send('hardhat_impersonateAccount', [addr]);
 
           if (fundSigners) {
-            await (provider as ethers.providers.JsonRpcProvider).send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+            await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
           }
 
-          return (provider as ethers.providers.JsonRpcProvider).getSigner(addr);
+          return provider.getSigner(addr);
         } else {
           const foundWallet = signers.find((wallet) => (wallet as ethers.Wallet).address == addr);
           if (!foundWallet) {
@@ -171,7 +178,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       for (const signer of await hre.ethers.getSigners()) {
         await provider.send('hardhat_impersonateAccount', [signer.address]);
         await provider.send('hardhat_setBalance', [signer.address, ethers.utils.parseEther('10000').toHexString()]);
-        signers.push(provider.getSigner(signer.address));
+        signers.push(await provider.getSigner(signer.address));
       }
 
       builder = new ChainBuilder({
@@ -199,9 +206,24 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
       });
     } else {
-      debug('detected live network deploy for', hre.network.name);
-      provider = new CannonWrapperJsonRpcProvider({}, (hre.network.config as HttpNetworkConfig).url);
+      debug('detected live network deploy for', hre.network.name, hre.network.config);
+      provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
       signers = await hre.ethers.getSigners();
+
+      let readMode: StorageMode = wipe ? 'none' : 'metadata';
+      let writeMode: StorageMode = 'metadata';
+      
+      const networkInfo = await provider.getNetwork();
+
+      debug('resolved network info', networkInfo);
+
+      if (networkInfo.chainId === 31337 || networkInfo.chainId === 1337) {
+        // local network gets reset on every run, so do not read/write anything
+        readMode = 'none';
+        writeMode = 'none';
+      }
+
+      console.log('now deploying.');
 
       // deploy to live network
       builder = new ChainBuilder({
@@ -210,8 +232,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         def,
         preset,
 
-        readMode: wipe ? 'none' : 'metadata',
-        writeMode: 'metadata',
+        readMode,
+        writeMode,
 
         provider,
         chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
@@ -259,7 +281,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
     builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
     builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
-
+      
     const outputs = await builder.build(mappedSettings);
 
     await hre.run(SUBTASK_WRITE_DEPLOYMENTS, {
@@ -267,10 +289,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     });
 
     // set provider to cannon wrapper to allow error parsing
-    if ((provider as CannonWrapperJsonRpcProvider).artifacts) {
-      (provider as CannonWrapperJsonRpcProvider).artifacts = outputs;
-      //provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
-      //signers = signers.map(w => w.connect(provider));
+    if (provider.artifacts) {
+      provider.artifacts = outputs;
     }
 
     if (port) {
