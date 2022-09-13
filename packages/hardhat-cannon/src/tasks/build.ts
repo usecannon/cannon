@@ -223,8 +223,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         writeMode = 'none';
       }
 
-      console.log('now deploying.');
-
       // deploy to live network
       builder = new ChainBuilder({
         name,
