@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import path from 'path';
 import { existsSync } from 'fs-extra';
 import { ChainDefinition } from './definition';
@@ -8,6 +7,7 @@ import { getSavedPackagesDir, getActionFiles, getPackageDir, getAllDeploymentInf
 import semver from 'semver';
 
 import pkg from '../package.json';
+import { CannonWrapperGenericProvider } from './error/provider';
 
 export { ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
@@ -18,6 +18,8 @@ export * from './storage';
 
 export * from './error/provider';
 
+export { handleTxnError } from './error';
+
 export { CannonRegistry } from './registry';
 
 export async function downloadPackagesRecursive(
@@ -25,7 +27,7 @@ export async function downloadPackagesRecursive(
   chainId: number,
   preset: string | null,
   registry: CannonRegistry,
-  provider: ethers.providers.JsonRpcProvider,
+  provider: CannonWrapperGenericProvider,
   packagesDir?: string
 ) {
   packagesDir = packagesDir || getSavedPackagesDir();

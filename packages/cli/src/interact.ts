@@ -9,13 +9,15 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
 import { PackageDefinition } from './types';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
   packages: PackageDefinition[];
   contracts: { [name: string]: Ethers.Contract }[];
-  provider: ethers.providers.JsonRpcProvider;
+  provider: CannonWrapperGenericProvider;
+
   signer?: ethers.Signer;
   blockTag?: number;
 };

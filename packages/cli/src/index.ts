@@ -5,10 +5,11 @@ import { Command } from 'commander';
 
 import { checkCannonVersion, execPromise, setupAnvil } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
-import { ContractArtifact } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ContractArtifact } from '@usecannon/builder';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
@@ -68,8 +69,10 @@ function configureRun(program: Command) {
       DEFAULT_REGISTRY_ENDPOINT
     )
     .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
-    .option('--impersonate', 'Create impersonated signers instead of using real wallets')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
+    .option('--impersonate <address>', 'Impersonate all calls from the given signer instead of a real wallet. Only works with --fork', '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266')
+    .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
+    .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
       await run(packages, {
@@ -183,24 +186,14 @@ program
 
     let provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
 
-    if (opts.dryRun) {
-      const anvilInstance = await runRpc({
-        forkUrl: opts.networkRpc,
-        port: 8545,
-        chainId: (await provider.getNetwork()).chainId,
-      });
-
-      provider = await getProvider(anvilInstance);
-    }
-
-    const signer = new ethers.Wallet(opts.privateKey, provider);
-
     await deploy({
       packageDefinition,
       cannonDirectory: opts.directory,
       projectDirectory,
       provider,
-      signer,
+      mnemonic: opts.mnemonic,
+      privateKey: opts.privateKey,
+      impersonate: opts.impersonate,
       preset: opts.preset,
       dryRun: opts.dryRun || false,
       prefix: opts.prefix,

@@ -32,7 +32,6 @@ export async function build({
   cannonDirectory,
   projectDirectory,
   preset = 'main',
-  forkUrl,
   chainId = 31337,
   registryIpfsUrl,
   registryRpcUrl,
@@ -73,7 +72,6 @@ export async function build({
   const writeMode = 'all';
 
   const node = await runRpc({
-    forkUrl,
     port: 8545,
   });
 
@@ -121,6 +119,16 @@ export async function build({
     );
   }
 
+  // try to download any existing published artifacts for this bundle itself before we build it
+  if (!wipe) {
+    try {
+      await registry.downloadPackageChain(`${name}:${version}`, chainId, preset, cannonDirectory);
+      console.log('Downloaded existing deployment ')
+    } catch (err) {
+      console.log('No existing build found on-chain for this package.');
+    }
+  }
+
   builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
   builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
@@ -130,13 +138,6 @@ export async function build({
   printChainBuilderOutput(outputs);
 
   console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(tildify(cannonDirectory))}`));
-
-  // TODO: Update logging
-  // Run this on a local node with <command>
-  // Deploy it to a remote network with <command>
-  // Publish your package to the registry with <command>
-
-  node.kill();
 
   return { outputs, provider };
 }

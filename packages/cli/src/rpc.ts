@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -16,6 +17,9 @@ export const ANVIL_START_TIMEOUT = 3000;
 
 export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildProcess> {
   const opts = ['--port', port.toString()];
+
+  // reduce image size by not creating unnecessary accounts
+  opts.push('--accounts', '0');
 
   if (forkUrl) {
     opts.push('--fork-url', forkUrl);
@@ -66,15 +70,15 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
   ]);
 }
 
-export function getProvider(anvilInstance: ChildProcess): Promise<ethers.providers.JsonRpcProvider> {
-  return new Promise<ethers.providers.JsonRpcProvider>((resolve) => {
+export function getProvider(anvilInstance: ChildProcess): Promise<CannonWrapperGenericProvider> {
+  return new Promise<CannonWrapperGenericProvider>((resolve) => {
     anvilInstance.stdout!.on('data', (rawChunk) => {
       // right now check for expected output string to connect to node
       const chunk = rawChunk.toString('utf8');
       const m = chunk.match(/Listening on (.*)/);
       if (m) {
         const host = 'http://' + m[1];
-        resolve(new ethers.providers.JsonRpcProvider(host));
+        resolve(new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host)));
       }
     });
   });

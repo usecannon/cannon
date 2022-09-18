@@ -17,8 +17,9 @@ import './type-extensions';
 
 import { getSavedPackagesDir } from '@usecannon/builder';
 
-import { HardhatConfig, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig } from 'hardhat/config';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
+import { augmentProvider } from './internal/augment-provider';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
@@ -42,4 +43,13 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
     ipfsAuthorizationHeader: userConfig.cannon?.ipfsAuthorizationHeader,
   };
+
+  config.networks.cannon = {
+    ...config.networks?.hardhat,
+    ...(userConfig.networks?.cannon || { port: 8545 }),
+  } as any;
+});
+
+extendEnvironment((env: HardhatRuntimeEnvironment) => {
+  augmentProvider(env);
 });

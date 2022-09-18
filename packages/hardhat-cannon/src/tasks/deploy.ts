@@ -2,18 +2,24 @@ import { task } from 'hardhat/config';
 import { deploy, PackageDefinition } from '@usecannon/cli';
 import { TASK_DEPLOY } from '../task-names';
 import { parsePackageArguments } from '@usecannon/cli/dist/src/util/params';
-import { getProvider, runRpc } from '@usecannon/cli/dist/src/rpc';
 import { ethers } from 'ethers';
-import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
-import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
+import { HttpNetworkHDAccountsConfig } from 'hardhat/types';
+import { CANNON_NETWORK_NAME } from '../constants';
+import { augmentProvider } from '../internal/augment-provider';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
+  .addOptionalParam('overrideManifest', 'Use a different manifest file for this network deployment. NOTE: this is not reccomended for regular use, it is simply an escape hatch')
   .addVariadicPositionalParam('packageWithSettings', 'Package to deploy, optionally with custom settings')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
   .addOptionalParam('prefix', 'Specify a prefix to apply to the deployment artifact outputs')
   .addFlag('dryRun', 'Simulate this deployment process without deploying the contracts to the specified network')
+  .addOptionalParam('impersonate', 'Run deployment without requiring any private keys. The value of this flag determines the default signer.')
   .addFlag('writeDeployments', 'Wether to write deployment files when using the --dry-run flag')
   .setAction(async (opts, hre) => {
+    if (hre.network.name === CANNON_NETWORK_NAME) {
+      throw new Error(`cannot deploy to '${CANNON_NETWORK_NAME}'. Use cannon:build instead.`);
+    }
+
     const packageDefinition: PackageDefinition = (opts.packageWithSettings as string[]).reduce((result, val) => {
       return parsePackageArguments(val, result);
     }, {} as PackageDefinition);
@@ -25,29 +31,14 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
     let [signer] = (await hre.ethers.getSigners()) as ethers.Signer[];
     let provider = hre.ethers.provider;
 
-    if (opts.dryRun) {
-      const anvilInstance = await runRpc({
-        forkUrl: (hre.config.networks[hre.network.name] as HttpNetworkConfig).url,
-        port: 8545,
-        chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
-      });
-
-      provider = await getProvider(anvilInstance);
-
-      if (Array.isArray(hre.network.config.accounts) && hre.network.config.accounts.length > 0) {
-        signer = new ethers.Wallet(hre.network.config.accounts[0] as string, provider);
-      } else {
-        const { path, mnemonic } = hre.network.config.accounts as HttpNetworkHDAccountsConfig;
-        signer = ethers.Wallet.fromMnemonic(`${path}/0`, mnemonic);
-      }
-    }
-
     const writeDeployments = !opts.dryRun || (opts.dryRun && opts.writeDeployments);
 
     const { outputs } = await deploy({
       packageDefinition,
-      provider,
-      signer,
+      provider: hre.ethers.provider,
+      mnemonic: (hre.network.config.accounts as HttpNetworkHDAccountsConfig).mnemonic,
+      privateKey: (hre.network.config.accounts as string[])[0],
+      impersonate: opts.impersonate,
       preset: opts.preset,
       dryRun: opts.dryRun,
       prefix: opts.prefix,
@@ -59,10 +50,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       deploymentPath: writeDeployments ? hre.config.paths.deployments : '',
     });
 
-    // set provider to cannon wrapper to allow error parsing
-    if ((provider as ethers.providers.JsonRpcProvider).connection) {
-      provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
-    }
+    augmentProvider(hre, outputs);
 
     return { outputs, provider, signer };
   });

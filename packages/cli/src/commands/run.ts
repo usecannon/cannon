@@ -1,7 +1,7 @@
 import { greenBright, green, magentaBright, bold, gray } from 'chalk';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
-import { ChainBuilder, ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ChainBuilder, ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
 import { PackageDefinition } from '../types';
 import { setupAnvil } from '../helpers';
 import { getProvider, runRpc } from '../rpc';
@@ -12,6 +12,7 @@ import { writeModuleDeployments } from '../util/write-deployments';
 import fs from 'fs-extra';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
+import { deploy } from './deploy';
 
 export interface RunOptions {
   port?: number;
@@ -24,7 +25,9 @@ export interface RunOptions {
   registryIpfsUrl: string;
   registryRpcUrl: string;
   registryAddress: string;
-  impersonate: boolean;
+  impersonate: string;
+  mnemonic?: string;
+  privateKey?: string;
   fundAddresses?: string[];
   helpInformation?: string;
 }
@@ -96,44 +99,34 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
   const buildOutputs: ChainBuilderContext[] = [];
 
+  let signers: ethers.Signer[] = [];
+
   for (const pkg of packages) {
     const { name, version, settings } = pkg;
 
     console.log(magentaBright(`Building ${name}:${version}...`));
 
-    const builder = new ChainBuilder({
-      name,
-      version,
-      readMode: options.fork ? 'metadata' : 'all',
-      writeMode: 'none',
-      preset: options.preset,
-      savedPackagesDir: options.cannonDirectory,
-      chainId: networkInfo.chainId,
+    const { outputs, signers: deploySigners } = await deploy({
+      ...options,
       provider: node.provider,
-      getSigner,
+      packageDefinition: pkg,
+      dryRun: !!options.fork,
+      deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined
     });
-
-    const outputs = await builder.build(settings);
 
     console.log(
       greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold(node.provider.connection.url)}`
+        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + (options.port || 8545))}`
       )
     );
 
     buildOutputs.push(outputs);
-
-    if (options.writeDeployments) {
-      console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-      const path = resolve(options.writeDeployments);
-      await fs.mkdirp(path);
-      await writeModuleDeployments(options.writeDeployments, '', outputs);
-    }
-
-    printChainBuilderOutput(outputs);
+    signers = deploySigners;
   }
 
-  const signers = createSigners(node.provider);
+  if (!signers.length) {
+    console.warn('WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).');
+  }
 
   if (options.logs) {
     return {
@@ -189,21 +182,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       console.log(INSTRUCTIONS);
     }
   });
-}
-
-function createSigners(provider: ethers.providers.BaseProvider): ethers.Wallet[] {
-  const signers: ethers.Wallet[] = [];
-
-  for (let i = 0; i < 10; i++) {
-    signers.push(
-      ethers.Wallet.fromMnemonic(
-        'test test test test test test test test test test test junk',
-        `m/44'/60'/0'/0/${i}`
-      ).connect(provider)
-    );
-  }
-
-  return signers;
 }
 
 function getContractsRecursive(

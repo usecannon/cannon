@@ -1,4 +1,4 @@
-import { ChainBuilder } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import untildify from 'untildify';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
@@ -18,7 +18,7 @@ export async function verify(packageRef: string, apiKey: string, network: ChainN
     chainId: chainId,
     savedPackagesDir: cannonDirectory,
 
-    provider: {} as ethers.providers.JsonRpcProvider,
+    provider: {} as CannonWrapperGenericProvider,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getSigner(_: string) {
       return new Promise(() => {

@@ -1,8 +1,7 @@
 import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
-import { ChainBuilder } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
 import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli/dist/src/constants';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
@@ -22,7 +21,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       version,
       readMode: 'metadata',
       chainId: (await hre.ethers.provider.getNetwork()).chainId,
-      provider: hre.ethers.provider as ethers.providers.JsonRpcProvider,
+      provider: new CannonWrapperGenericProvider({}, hre.ethers.provider),
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },

@@ -5,6 +5,7 @@ import { JsonFragment } from '@ethersproject/abi';
 import _ from 'lodash';
 
 import type { RawChainDefinition } from './definition';
+import { CannonWrapperGenericProvider } from './error/provider';
 
 export type OptionTypesTs = string | number | boolean;
 
@@ -70,7 +71,7 @@ export type StorageMode = 'all' | 'metadata' | 'none';
 
 export interface ChainBuilderRuntime {
   // Interface to which all transactions should be sent and all state queried
-  provider: ethers.providers.JsonRpcProvider;
+  provider: CannonWrapperGenericProvider;
 
   // chainID to interact with
   chainId: number;

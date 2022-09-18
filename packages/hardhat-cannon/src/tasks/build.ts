@@ -6,8 +6,13 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { build } from '@usecannon/cli';
 import { parseSettings } from '@usecannon/cli/dist/src/util/params';
 import { TASK_BUILD } from '../task-names';
+
+import Debug from 'debug';
+import { CANNON_NETWORK_NAME } from '../constants';
+import { augmentProvider } from '../internal/augment-provider';
 import { ethers } from 'ethers';
-import { CannonWrapperJsonRpcProvider } from '@usecannon/builder';
+
+const debug = Debug('cannon:hardhat');
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -15,6 +20,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(async ({ cannonfile, settings, preset, noCompile }, hre) => {
+
+    if (hre.network.name !== CANNON_NETWORK_NAME) {
+      throw new Error(`cannot build with network '${CANNON_NETWORK_NAME}'. Use cannon:deploy instead.`);
+    }
+
     if (!noCompile) {
       await hre.run(TASK_COMPILE);
       console.log('');
@@ -29,21 +39,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const cannonfilePath = path.resolve(hre.config.paths.root, cannonfile);
     const parsedSettings = parseSettings(settings);
 
-    const forkUrl =
-      hre.network.name === HARDHAT_NETWORK_NAME
-        ? undefined
-        : (hre.config.networks[hre.network.name] as HttpNetworkConfig).url;
-
-    const signers = await hre.ethers.getSigners();
-
     const params = {
       cannonfilePath,
       settings: parsedSettings,
       getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
       cannonDirectory: hre.config.paths.cannon,
       projectDirectory: hre.config.paths.root,
-      forkUrl,
-      chainId: hre.network.config.chainId || (await hre.ethers.provider.getNetwork()).chainId,
       preset,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
       registryRpcUrl: hre.config.cannon.registryEndpoint,
@@ -52,10 +53,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     let { outputs, provider } = await build(params);
 
-    // set provider to cannon wrapper to allow error parsing
-    if ((provider as ethers.providers.JsonRpcProvider).connection) {
-      provider = new CannonWrapperJsonRpcProvider(outputs, (provider as ethers.providers.JsonRpcProvider).connection);
+    const signers: ethers.Signer[] = [];
+
+    for (const signer of await hre.ethers.getSigners()) {
+      await provider.send('hardhat_impersonateAccount', [signer.address]);
+      await provider.send('hardhat_setBalance', [signer.address, ethers.utils.parseEther('10000').toHexString()]);
+      signers.push(await provider.getSigner(signer.address));
     }
+
+    augmentProvider(hre, outputs);
 
     return { outputs, provider, signers };
   });
