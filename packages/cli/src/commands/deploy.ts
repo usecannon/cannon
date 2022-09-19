@@ -1,18 +1,21 @@
 import path from 'node:path';
-import { CannonWrapperGenericProvider, ChainBuilder, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ChainBuilder, DeploymentManifest, downloadPackagesRecursive, Events, StorageMode } from '@usecannon/builder';
 import { green } from 'chalk';
 import { ethers } from 'ethers';
-import { findPackage } from '../helpers';
+import { findPackage, loadCannonfile } from '../helpers';
 import { PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
 import createRegistry from '../registry';
 import { getProvider, runRpc } from '../rpc';
+import { ChainDefinition } from '@usecannon/builder';
 
 interface DeployOptions {
   packageDefinition: PackageDefinition;
   cannonDirectory: string;
   projectDirectory?: string;
+
+  overrideCannonfilePath?: string;
 
   provider: ethers.providers.Provider;
   impersonate?: string;
@@ -22,6 +25,7 @@ interface DeployOptions {
 
   preset: string;
   dryRun: boolean;
+  wipe?: boolean;
   deploymentPath?: string;
   prefix?: string;
   registryIpfsUrl: string;
@@ -30,23 +34,36 @@ interface DeployOptions {
 }
 
 export async function deploy(options: DeployOptions) {
-  const { def } = findPackage(
-    options.cannonDirectory,
-    options.packageDefinition.name, 
-    options.packageDefinition.version
-  );
+
+  let def: ChainDefinition;
+  if (options.overrideCannonfilePath) {
+
+    const { def: overrideDef, name, version } = loadCannonfile(options.overrideCannonfilePath);
+
+    if (name !== options.packageDefinition.name || version !== options.packageDefinition.version) {
+      throw new Error('supplied cannonfile manifest does not match requseted packageDefinitionDeployment');
+    }
+
+    def = overrideDef;
+  }
+  else {
+    def = new ChainDefinition(findPackage(
+      options.cannonDirectory,
+      options.packageDefinition.name, 
+      options.packageDefinition.version
+    ).def);
+  }
 
   const { chainId } = await options.provider.getNetwork();
 
   let cannonProvider = new CannonWrapperGenericProvider({}, options.provider);
-
-  if ((options.provider as CannonWrapperGenericProvider)._isCannonWrapperProvider) {
-    // no need to re-wrap 
-    cannonProvider = options.provider as CannonWrapperGenericProvider;
-  } else if (options.dryRun) {
-    if (!(options.provider as ethers.providers.JsonRpcProvider).connection) {
+  if (options.dryRun) {
+    const connection = (options.provider as ethers.providers.JsonRpcProvider).connection;
+    if (connection) {
       const node = await runRpc({
         port: 8545,
+        forkUrl: connection.url,
+        chainId
       });
 
       const anvilProvider = await getProvider(node);
@@ -56,7 +73,10 @@ export async function deploy(options: DeployOptions) {
     else {
       throw new Error('cannot fork supplied non-jsonrpc network (are you sure you need to dry-run?)');
     }
-  }
+  } else if ((options.provider as CannonWrapperGenericProvider)._isCannonWrapperProvider) {
+    // no need to re-wrap 
+    cannonProvider = options.provider as CannonWrapperGenericProvider;
+  } 
 
   const signers = createSigners(cannonProvider, options);
 
@@ -83,14 +103,24 @@ export async function deploy(options: DeployOptions) {
     getDefaultSigner = () => getSigner(options.impersonate!);
   }
 
+
+  let readMode: StorageMode = options.wipe ? 'none' : 'metadata';
+  let writeMode: StorageMode = options.dryRun ? 'none' : 'metadata';
+
+  if (chainId === 31337 || chainId === 1337) {
+    // local network gets reset on every run, so should not read/write anything
+    readMode = 'none';
+    writeMode = 'none';
+  }
+
   const builder = new ChainBuilder({
     name: options.packageDefinition.name,
     version: options.packageDefinition.version,
     def,
     preset: options.preset,
 
-    readMode: 'metadata',
-    writeMode: options.dryRun ? 'none' : 'metadata',
+    readMode,
+    writeMode,
 
     provider: cannonProvider,
     chainId,
@@ -121,6 +151,18 @@ export async function deploy(options: DeployOptions) {
       builder.provider,
       builder.packagesDir
     );
+  }
+
+  // try to download any existing published artifacts for this bundle itself before we build it
+  if (!options.wipe) {
+    try {
+      await registry.downloadPackageChain(`${options.packageDefinition.name}:${options.packageDefinition.version}`, 
+        chainId, options.preset, 
+        options.cannonDirectory);
+      console.log(`Downloaded this package artifacts for ${chainId}, ${options.preset}`);
+    } catch (err) {
+      console.log('No existing build found on-chain for this package.');
+    }
   }
 
   builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));

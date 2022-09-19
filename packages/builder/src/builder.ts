@@ -302,7 +302,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     if (networkInfo.chainId !== this.chainId) {
       throw new Error(
-        `provider reported chainId (${networkInfo.chainId}) does not match configured builder chain id (${this.chainId})`
+        `provider network reported chainId (${networkInfo.chainId}) does not match configured deployment chain id (${this.chainId})`
       );
     }
 
@@ -398,7 +398,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     for (const h of deployInfo.heads) {
       debug('load head for output', h);
-      const newCtx = await this.loadMeta(_.last(h.split('/'))!);
+      const newCtx = await this.loadMeta(_.last(h.split('/'))!, true);
 
       if (!newCtx) {
         throw new Error('context not declared for published layer');
@@ -490,8 +490,8 @@ ${printChainDefinitionProblems(problems)}`);
     }
   }
 
-  async loadMeta(stepName: string): Promise<ChainBuilderContext | null> {
-    if (this.readMode === 'none') {
+  async loadMeta(stepName: string, force = false): Promise<ChainBuilderContext | null> {
+    if (this.readMode === 'none' && !force) {
       return null;
     }
 

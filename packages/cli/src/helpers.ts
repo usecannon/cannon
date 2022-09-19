@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import toml from '@iarna/toml';
-import { ChainDefinition } from '@usecannon/builder';
+import { ChainDefinition, DeploymentManifest } from '@usecannon/builder';
 import { ChainBuilderContext } from '@usecannon/builder/src/types';
 import { RawChainDefinition } from '@usecannon/builder/src/definition';
 import { ChainId, ChainName } from './types';
@@ -121,7 +121,7 @@ export function findPackage(cannonDirectory: string, packageName: string, packag
   try {
     const pathname = path.resolve(cannonDirectory, packageName, packageVersion, 'deploy.json');
     const deployFile = fs.readFileSync(pathname);
-    return JSON.parse(deployFile.toString());
+    return JSON.parse(deployFile.toString()) as DeploymentManifest;
   } catch {
     console.error(redBright(`Unable to find package ${packageName}:${packageVersion} in ${cannonDirectory}`));
     console.error(red('Download it using the run command or build it from a local cannonfile.'));

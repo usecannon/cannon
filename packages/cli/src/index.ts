@@ -165,6 +165,7 @@ program
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
   .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
+  .option('--wipe', 'Delete old, and do not attempt to download any from the repository')
   .option(
     '--registry-ipfs-url [https://...]',
     'URL of the JSON-RPC server used to query the registry',
@@ -196,6 +197,7 @@ program
       impersonate: opts.impersonate,
       preset: opts.preset,
       dryRun: opts.dryRun || false,
+      wipe: opts.wipe || false,
       prefix: opts.prefix,
       deploymentPath,
       registryIpfsUrl: opts.registryIpfsUrl,

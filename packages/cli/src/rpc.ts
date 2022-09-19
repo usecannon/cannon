@@ -31,6 +31,8 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
 
   return Promise.race<Promise<ChildProcess>>([
     new Promise<ChildProcess>((resolve) => {
+      debug('spawn anvil', opts);
+
       const anvilInstance = spawn('anvil', opts);
 
       process.on('exit', () => anvilInstance.kill());
