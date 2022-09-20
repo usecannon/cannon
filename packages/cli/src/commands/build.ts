@@ -3,19 +3,21 @@ import { ethers } from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim } from 'chalk';
 import tildify from 'tildify';
-import { ChainBuilder, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
-import { loadCannonfile } from '../helpers';
+import { ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import { findPackage, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
-import { ChainId, PackageSettings } from '../types';
+import { ChainId, PackageDefinition, PackageSettings } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
 
 interface Params {
-  cannonfilePath: string;
-  settings: PackageSettings;
-  getArtifact: (name: string) => Promise<ContractArtifact>;
+  node: Awaited<ReturnType<typeof runRpc>>,
+  cannonfilePath?: string;
+  packageDefinition: PackageDefinition;
+
+  getArtifact?: (name: string) => Promise<ContractArtifact>;
   cannonDirectory: string;
-  projectDirectory: string;
+  projectDirectory?: string;
   preset?: string;
   forkUrl?: string;
   chainId?: ChainId;
@@ -23,11 +25,13 @@ interface Params {
   registryRpcUrl: string;
   registryAddress: string;
   wipe?: boolean;
+  persist?: boolean;
 }
 
 export async function build({
+  node,
   cannonfilePath,
-  settings,
+  packageDefinition,
   getArtifact,
   cannonDirectory,
   projectDirectory,
@@ -37,15 +41,29 @@ export async function build({
   registryRpcUrl,
   registryAddress,
   wipe = false,
+  persist = true,
 }: Params) {
-  const { def, name, version } = loadCannonfile(cannonfilePath);
+  let def: ChainDefinition;
+  if (cannonfilePath) {
 
-  if (!version) {
-    throw new Error(`Missing "version" definition on ${cannonfilePath}`);
+    const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
+
+    if (name !== packageDefinition.name || version !== packageDefinition.version) {
+      throw new Error('supplied cannonfile manifest does not match requseted packageDefinitionDeployment');
+    }
+
+    def = overrideDef;
+  }
+  else {
+    def = new ChainDefinition(findPackage(
+      cannonDirectory,
+      packageDefinition.name, 
+      packageDefinition.version
+    ).def);
   }
 
   const defSettings = def.getSettings();
-  if (!settings && defSettings && !_.isEmpty(defSettings)) {
+  if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
     const displaySettings = Object.entries(defSettings).map((setting) => [
       setting[0],
       setting[1].defaultValue || dim('No default value'),
@@ -57,29 +75,25 @@ export async function build({
     console.log(table([[bold('Name'), bold('Default Value'), bold('Description')], ...displaySettings]));
   }
 
-  if (!_.isEmpty(settings)) {
+  if (!_.isEmpty(packageDefinition.settings)) {
     console.log(
       green(
         `Creating preset ${bold(preset)} with the following settings: ` +
-          Object.entries(settings)
+          Object.entries(packageDefinition.settings)
             .map((setting) => `${setting[0]}=${setting[1]}`)
             .join(' ')
       )
     );
   }
 
-  const readMode = wipe ? 'none' : 'metadata';
-  const writeMode = 'all';
-
-  const node = await runRpc({
-    port: 8545,
-  });
+  const readMode = wipe ? 'none' : 'all';
+  const writeMode = persist ? 'all' : 'none';
 
   const provider = await getProvider(node);
 
   const builder = new ChainBuilder({
-    name,
-    version,
+    name: packageDefinition.name,
+    version: packageDefinition.version,
     def,
     preset,
 
@@ -105,7 +119,7 @@ export async function build({
     ipfsUrl: registryIpfsUrl,
   });
 
-  const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(settings));
+  const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(packageDefinition.settings));
 
   for (const dependency of dependencies) {
     console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
@@ -122,8 +136,8 @@ export async function build({
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!wipe) {
     try {
-      await registry.downloadPackageChain(`${name}:${version}`, chainId, preset, cannonDirectory);
-      console.log('Downloaded existing deployment ')
+      await registry.downloadPackageChain(`${packageDefinition.name}:${packageDefinition.version}`, chainId, preset, cannonDirectory);
+      console.log('Downloaded package from registry')
     } catch (err) {
       console.log('No existing build found on-chain for this package.');
     }
@@ -133,11 +147,11 @@ export async function build({
   builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
 
-  const outputs = await builder.build(settings);
+  const outputs = await builder.build(packageDefinition.settings);
 
   printChainBuilderOutput(outputs);
 
-  console.log(greenBright(`Successfully built package ${bold(`${name}:${version}`)} to ${bold(tildify(cannonDirectory))}`));
+  console.log(greenBright(`Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} to ${bold(tildify(cannonDirectory))}`));
 
   return { outputs, provider };
 }

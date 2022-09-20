@@ -53,6 +53,11 @@ export async function interact(ctx: InteractTaskArgs) {
       });
 
       if (!pickedContract) {
+
+        if (ctx.packages.length === 1) {
+          return null;
+        }
+
         pickedPackage = -1;
       }
     } else if (!pickedFunction) {
@@ -103,7 +108,6 @@ export async function interact(ctx: InteractTaskArgs) {
       }
 
       // return to function select
-      pickedPackage = -1;
       pickedFunction = null;
       currentArgs = null;
     }

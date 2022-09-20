@@ -1,4 +1,5 @@
-import { greenBright, green, magentaBright, bold, gray } from 'chalk';
+import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
+import _ from 'lodash';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
 import { CannonWrapperGenericProvider, ChainBuilder, ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
@@ -13,6 +14,7 @@ import fs from 'fs-extra';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { deploy } from './deploy';
+import { build } from './build';
 
 export interface RunOptions {
   port?: number;
@@ -97,35 +99,58 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     );
   }
 
-  const buildOutputs: ChainBuilderContext[] = [];
+  const buildOutputs: {pkg: PackageDefinition, outputs: ChainBuilderContext}[] = [];
 
   let signers: ethers.Signer[] = [];
 
   for (const pkg of packages) {
-    const { name, version, settings } = pkg;
+    const { name, version } = pkg;
 
-    console.log(magentaBright(`Building ${name}:${version}...`));
+    if (options.fork) {
+      console.log(magentaBright(`Fork-deploying ${name}:${version}...`));
 
-    const { outputs, signers: deploySigners } = await deploy({
-      ...options,
-      provider: node.provider,
-      packageDefinition: pkg,
-      dryRun: !!options.fork,
-      deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined
-    });
+      const { outputs, signers: deploySigners } = await deploy({
+        ...options,
+        provider: node.provider,
+        packageDefinition: pkg,
+        dryRun: !!options.fork,
+        deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined
+      });
+
+      buildOutputs.push({ pkg, outputs });
+      signers = deploySigners;
+    } else {
+      console.log(magentaBright(`Building ${name}:${version}...`));
+
+      const { outputs } = await build({
+        ...options,
+        packageDefinition: pkg,
+        node: node.instance,
+        preset: options.preset,
+        persist: false,
+      });
+
+      // todo: this is a bit of a dup
+      if (options.impersonate) {
+        for (const addr of options.impersonate.split(',')) {
+          await node.provider.send('hardhat_impersonateAccount', [addr]);
+          await node.provider.send('hardhat_setBalance', [addr, 1e18]);
+          signers = [node.provider.getSigner(addr)];
+        }
+      }
+
+      buildOutputs.push({ pkg, outputs });
+    }
 
     console.log(
       greenBright(
         `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + (options.port || 8545))}`
       )
     );
-
-    buildOutputs.push(outputs);
-    signers = deploySigners;
   }
 
   if (!signers.length) {
-    console.warn('WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).');
+    console.warn(yellow('WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'));
   }
 
   if (options.logs) {
@@ -162,7 +187,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       await pause(async () => {
         const [signer] = signers;
 
-        const contracts = buildOutputs.map((output) => getContractsRecursive(output, signer));
+        const contracts = buildOutputs.map((info, i) => getContractsRecursive(info.outputs, signer));
 
         await interact({
           packages,

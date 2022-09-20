@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { HARDHAT_NETWORK_NAME } from 'hardhat/plugins';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { build } from '@usecannon/cli';
+import { build, runRpc } from '@usecannon/cli';
 import { parseSettings } from '@usecannon/cli/dist/src/util/params';
 import { TASK_BUILD } from '../task-names';
 
@@ -11,6 +11,7 @@ import Debug from 'debug';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { ethers } from 'ethers';
+import loadCannonfile from '../internal/load-cannonfile';
 
 const debug = Debug('cannon:hardhat');
 
@@ -40,9 +41,18 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const cannonfilePath = path.resolve(hre.config.paths.root, cannonfile);
     const parsedSettings = parseSettings(settings);
 
+    const { name, version } = loadCannonfile(hre, cannonfile);
+
+    const node = await runRpc({ port: 8545 });
+
     const params = {
       cannonfilePath,
-      settings: parsedSettings,
+      node,
+      packageDefinition: {
+        name,
+        version,
+        settings: parsedSettings,
+      },
       getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
       cannonDirectory: hre.config.paths.cannon,
       projectDirectory: hre.config.paths.root,

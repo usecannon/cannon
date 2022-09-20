@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 
-import { checkCannonVersion, execPromise, setupAnvil } from './helpers';
+import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -28,6 +28,7 @@ export { packages } from './commands/packages';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
+export { runRpc } from './rpc';
 export * from './types';
 
 const program = new Command();
@@ -121,6 +122,10 @@ program
 
     await setupAnvil();
 
+    const node = await runRpc({
+      port: 8545,
+    });
+
     // Build project to get the artifacts
     const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
     const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
@@ -141,9 +146,15 @@ program
     };
 
     const { build } = await import('./commands/build');
+    const { name, version } = loadCannonfile(cannonfilePath);
     await build({
+      node,
       cannonfilePath,
-      settings: parsedSettings,
+      packageDefinition: {
+        name,
+        version,
+        settings: parsedSettings
+      },
       getArtifact,
       cannonDirectory: opts.cannonDirectory,
       projectDirectory,
