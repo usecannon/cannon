@@ -1,23 +1,19 @@
 import path from 'path';
 import { ethers } from 'ethers';
+import Debug from 'debug';
 
 import { associateTag } from './storage';
 import fs from 'fs-extra';
 
-import {
-  getAllDeploymentInfos,
-  getPackageDir,
-  getDeploymentInfoFile,
-  getActionFiles,
-  getSavedPackagesDir,
-  ChainDefinition,
-} from '.';
+import { getAllDeploymentInfos, getPackageDir, getDeploymentInfoFile, getActionFiles, getSavedPackagesDir } from '.';
 
 import { IPFSHTTPClient, create, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
 import AdmZip from 'adm-zip';
 
 import CannonRegistryAbi from './abis/CannonRegistry.json';
+
+const debug = Debug('cannon:builder:registry');
 
 export class CannonRegistry {
   provider?: ethers.providers.Provider;
@@ -43,6 +39,8 @@ export class CannonRegistry {
     }
 
     this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
+
+    debug(`creating registry with options ${JSON.stringify(ipfsOptions)} on address "${address}"`);
 
     this.ipfs = create(ipfsOptions);
   }
@@ -88,6 +86,8 @@ export class CannonRegistry {
 
     const bufs: Uint8Array[] = [];
 
+    debug(`downloading package content from ${urlOrHash}`);
+
     for await (const chunk of this.ipfs.cat(hash)) {
       bufs.push(chunk);
     }
@@ -101,6 +101,8 @@ export class CannonRegistry {
     if (!url) {
       return null;
     }
+
+    debug(`downloading deployment info of ${name}:${tag} from ${url}`);
 
     const manifestData = await this.readIpfs(url);
 
@@ -158,8 +160,6 @@ export class CannonRegistry {
     const packageDir = getPackageDir(packagesDir, name, tag);
 
     const manifest = await getAllDeploymentInfos(packageDir);
-
-    const definition = new ChainDefinition(manifest.def);
 
     if (!manifest) {
       throw new Error('package not found for upload ' + image);
