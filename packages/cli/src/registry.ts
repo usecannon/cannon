@@ -15,8 +15,8 @@ export default function createRegistry({ registryAddress, ipfsUrl, registryRpc }
     address: registryAddress,
     signerOrProvider: new ethers.providers.JsonRpcProvider(registryRpc),
     ipfsOptions: {
-      protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
-      host: parsedIpfs.host,
+      protocol: parsedIpfs.protocol.slice(0, -1),
+      host: parsedIpfs.hostname,
       port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
     },
   });

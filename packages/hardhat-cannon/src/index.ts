@@ -1,5 +1,15 @@
 import path from 'path';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
+import { getSavedPackagesDir } from '@usecannon/builder';
+import {
+  DEFAULT_CANNON_DIRECTORY,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_IPFS_ENDPOINT,
+} from '@usecannon/cli/dist/src/constants';
+import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';
 import './tasks/deploy';
@@ -14,18 +24,6 @@ import './subtasks/load-deploy';
 import './subtasks/rpc';
 import './subtasks/write-deployments';
 import './type-extensions';
-
-import { getSavedPackagesDir } from '@usecannon/builder';
-
-import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
-import { augmentProvider } from './internal/augment-provider';
-import {
-  DEFAULT_CANNON_DIRECTORY,
-  DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_ENDPOINT,
-  DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from '@usecannon/cli/dist/src/constants';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   config.paths.deployments = userConfig.paths?.deployments
