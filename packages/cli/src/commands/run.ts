@@ -21,6 +21,7 @@ export interface RunOptions {
   preset: string;
   cannonDirectory: string;
   registryIpfsUrl: string;
+  registryIpfsAuthorizationHeader?: string;
   registryRpcUrl: string;
   registryAddress: string;
   impersonate: string;
@@ -71,6 +72,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     registryAddress: options.registryAddress,
     registryRpc: options.registryRpcUrl,
     ipfsUrl: options.registryIpfsUrl,
+    ipfsAuthorizationHeader: options.registryIpfsAuthorizationHeader,
   });
 
   for (const pkg of packages) {

@@ -80,6 +80,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       prefix: opts.prefix,
       cannonDirectory: hre.config.paths.cannon,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
+      registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
       registryRpcUrl: hre.config.cannon.registryEndpoint,
       registryAddress: hre.config.cannon.registryAddress,
       projectDirectory: hre.config.paths.root,

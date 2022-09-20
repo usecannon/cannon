@@ -23,7 +23,8 @@ class CannonWrapperProvider extends ProviderWrapper {
     try {
       return this._wrappedProvider.request(args);
     } catch (err) {
-      await handleTxnError(this.artifacts, new ethers.providers.Web3Provider(this._wrappedProvider), err);
+      const provider = new ethers.providers.Web3Provider(this._wrappedProvider);
+      await handleTxnError(this.artifacts, provider, err);
     }
   }
 }

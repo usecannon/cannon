@@ -35,6 +35,7 @@ interface DeployOptions {
   deploymentPath?: string;
   prefix?: string;
   registryIpfsUrl: string;
+  registryIpfsAuthorizationHeader?: string;
   registryRpcUrl: string;
   registryAddress: string;
 }
@@ -133,6 +134,7 @@ export async function deploy(options: DeployOptions) {
     registryAddress: options.registryAddress,
     registryRpc: options.registryRpcUrl,
     ipfsUrl: options.registryIpfsUrl,
+    ipfsAuthorizationHeader: options.registryIpfsAuthorizationHeader,
   });
 
   const dependencies = await builder.def.getRequiredImports(

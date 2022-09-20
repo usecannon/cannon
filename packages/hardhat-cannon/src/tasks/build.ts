@@ -55,6 +55,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       preset,
       wipe,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
+      registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
       registryRpcUrl: hre.config.cannon.registryEndpoint,
       registryAddress: hre.config.cannon.registryAddress,
     } as const;

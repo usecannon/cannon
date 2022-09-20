@@ -22,6 +22,7 @@ interface Params {
   forkUrl?: string;
   chainId?: ChainId;
   registryIpfsUrl: string;
+  registryIpfsAuthorizationHeader?: string;
   registryRpcUrl: string;
   registryAddress: string;
   wipe?: boolean;
@@ -38,6 +39,7 @@ export async function build({
   preset = 'main',
   chainId = 31337,
   registryIpfsUrl,
+  registryIpfsAuthorizationHeader,
   registryRpcUrl,
   registryAddress,
   wipe = false,
@@ -111,6 +113,7 @@ export async function build({
     registryAddress: registryAddress,
     registryRpc: registryRpcUrl,
     ipfsUrl: registryIpfsUrl,
+    ipfsAuthorizationHeader: registryIpfsAuthorizationHeader,
   });
 
   const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(packageDefinition.settings));

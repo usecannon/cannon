@@ -65,6 +65,10 @@ function configureRun(program: Command) {
       DEFAULT_REGISTRY_IPFS_ENDPOINT
     )
     .option(
+      '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+      'Authorization header for requests to the IPFS endpoint'
+    )
+    .option(
       '--registry-rpc-url [https://...]',
       'Network endpoint for interacting with the registry',
       DEFAULT_REGISTRY_ENDPOINT
@@ -104,6 +108,10 @@ program
     '--registry-ipfs-url [https://...]',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    'Authorization header for requests to the IPFS endpoint'
   )
   .option(
     '--registry-rpc-url [https://...]',
@@ -164,6 +172,7 @@ program
       projectDirectory,
       preset: opts.preset,
       registryIpfsUrl: opts.registryIpfsUrl,
+      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
       registryRpcUrl: opts.registryRpcUrl,
       registryAddress: opts.registryAddress,
     });
@@ -185,6 +194,10 @@ program
     '--registry-ipfs-url [https://...]',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    'Authorization header for requests to the IPFS endpoint'
   )
   .option(
     '--registry-rpc-url [https://...]',
@@ -216,6 +229,7 @@ program
       prefix: opts.prefix,
       deploymentPath,
       registryIpfsUrl: opts.registryIpfsUrl,
+      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
       registryRpcUrl: opts.registryRpcUrl,
       registryAddress: opts.registryAddress,
     });
