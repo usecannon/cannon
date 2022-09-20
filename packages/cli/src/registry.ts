@@ -11,13 +11,15 @@ interface Options {
 export default function createRegistry({ registryAddress, ipfsUrl, registryRpc }: Options) {
   const parsedIpfs = new URL(ipfsUrl);
 
+  const protocol = parsedIpfs.protocol.slice(0, -1);
+
   return new ReadOnlyCannonRegistry({
     address: registryAddress,
     signerOrProvider: new ethers.providers.JsonRpcProvider(registryRpc),
     ipfsOptions: {
-      protocol: parsedIpfs.protocol.slice(0, -1),
+      protocol,
       host: parsedIpfs.hostname,
-      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
+      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : protocol === 'https' ? 443 : 80,
     },
   });
 }
