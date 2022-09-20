@@ -1,5 +1,12 @@
 import path from 'node:path';
-import { CannonWrapperGenericProvider, ChainBuilder, DeploymentManifest, downloadPackagesRecursive, Events, StorageMode } from '@usecannon/builder';
+import {
+  CannonWrapperGenericProvider,
+  ChainBuilder,
+  DeploymentManifest,
+  downloadPackagesRecursive,
+  Events,
+  StorageMode,
+} from '@usecannon/builder';
 import { green } from 'chalk';
 import { ethers } from 'ethers';
 import { findPackage, loadCannonfile } from '../helpers';
@@ -34,10 +41,8 @@ interface DeployOptions {
 }
 
 export async function deploy(options: DeployOptions) {
-
   let def: ChainDefinition;
   if (options.overrideCannonfilePath) {
-
     const { def: overrideDef, name, version } = loadCannonfile(options.overrideCannonfilePath);
 
     if (name !== options.packageDefinition.name || version !== options.packageDefinition.version) {
@@ -45,13 +50,10 @@ export async function deploy(options: DeployOptions) {
     }
 
     def = overrideDef;
-  }
-  else {
-    def = new ChainDefinition(findPackage(
-      options.cannonDirectory,
-      options.packageDefinition.name, 
-      options.packageDefinition.version
-    ).def);
+  } else {
+    def = new ChainDefinition(
+      findPackage(options.cannonDirectory, options.packageDefinition.name, options.packageDefinition.version).def
+    );
   }
 
   const { chainId } = await options.provider.getNetwork();
@@ -63,31 +65,30 @@ export async function deploy(options: DeployOptions) {
       const node = await runRpc({
         port: 8545,
         forkUrl: connection.url,
-        chainId
+        chainId,
       });
 
       const anvilProvider = await getProvider(node);
 
       cannonProvider = new CannonWrapperGenericProvider({}, anvilProvider);
-    }
-    else {
+    } else {
       throw new Error('cannot fork supplied non-jsonrpc network (are you sure you need to dry-run?)');
     }
   } else if ((options.provider as CannonWrapperGenericProvider)._isCannonWrapperProvider) {
-    // no need to re-wrap 
+    // no need to re-wrap
     cannonProvider = options.provider as CannonWrapperGenericProvider;
-  } 
+  }
 
   const signers = createSigners(cannonProvider, options);
 
   let getSigner = async (addr: string) => {
     for (const signer of signers) {
-      if (addr.toLowerCase() === (await signer.getAddress()).toLowerCase())  {
+      if (addr.toLowerCase() === (await signer.getAddress()).toLowerCase()) {
         return signer;
       }
     }
 
-    throw new Error(`signer not found from configuration`);
+    throw new Error('signer not found from configuration');
   };
 
   let getDefaultSigner = () => Promise.resolve(signers[0]);
@@ -98,11 +99,10 @@ export async function deploy(options: DeployOptions) {
       await cannonProvider.send('hardhat_impersonateAccount', [addr]);
       await cannonProvider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
       return cannonProvider.getSigner(addr);
-    }
+    };
 
     getDefaultSigner = () => getSigner(options.impersonate!);
   }
-
 
   let readMode: StorageMode = options.wipe ? 'none' : 'metadata';
   let writeMode: StorageMode = options.dryRun ? 'none' : 'metadata';
@@ -136,10 +136,9 @@ export async function deploy(options: DeployOptions) {
     ipfsUrl: options.registryIpfsUrl,
   });
 
-  const dependencies = 
-    await builder.def.getRequiredImports(
-      await builder.populateSettings(options.packageDefinition.settings)
-    );
+  const dependencies = await builder.def.getRequiredImports(
+    await builder.populateSettings(options.packageDefinition.settings)
+  );
 
   for (const dependency of dependencies) {
     console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
@@ -156,9 +155,12 @@ export async function deploy(options: DeployOptions) {
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!options.wipe) {
     try {
-      await registry.downloadPackageChain(`${options.packageDefinition.name}:${options.packageDefinition.version}`, 
-        chainId, options.preset, 
-        options.cannonDirectory);
+      await registry.downloadPackageChain(
+        `${options.packageDefinition.name}:${options.packageDefinition.version}`,
+        chainId,
+        options.preset,
+        options.cannonDirectory
+      );
       console.log(`Downloaded this package artifacts for ${chainId}, ${options.preset}`);
     } catch (err) {
       console.log('No existing build found on-chain for this package.');
@@ -192,18 +194,11 @@ function createSigners(provider: CannonWrapperGenericProvider, options: DeployOp
     for (const pkey in options.privateKey.split(',')) {
       signers.push(new ethers.Wallet(options.privateKey, provider));
     }
-  }
-  else if (options.mnemonic) {
+  } else if (options.mnemonic) {
     for (let i = 0; i < 10; i++) {
-      signers.push(
-        ethers.Wallet.fromMnemonic(
-          options.mnemonic,
-          `m/44'/60'/0'/0/${i}`
-        ).connect(provider)
-      );
+      signers.push(ethers.Wallet.fromMnemonic(options.mnemonic, `m/44'/60'/0'/0/${i}`).connect(provider));
     }
-  }
-  else if (options.impersonate && options.dryRun) {
+  } else if (options.impersonate && options.dryRun) {
     signers.push(provider.getSigner(options.impersonate));
   }
 

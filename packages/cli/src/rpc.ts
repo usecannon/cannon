@@ -20,7 +20,6 @@ let anvilInstance: ReturnType<typeof spawn> | null = null;
 let anvilProvider: CannonWrapperGenericProvider | null = null;
 
 export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildProcess> {
-
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
@@ -100,7 +99,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
     }),
     timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start'),
   ]);
-};
+}
 
 function timeout(period: number, msg: string) {
   return new Promise<ChildProcess>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
@@ -109,8 +108,7 @@ function timeout(period: number, msg: string) {
 export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperGenericProvider {
   if (anvilInstance === expectedAnvilInstance) {
     return anvilProvider!;
-  }
-  else {
+  } else {
     throw new Error('anvil instance is not as expected');
   }
 }

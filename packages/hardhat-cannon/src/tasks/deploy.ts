@@ -12,12 +12,18 @@ import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import path from 'path';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
-  .addOptionalParam('overrideManifest', 'Use a different manifest file for this network deployment. NOTE: this is not reccomended for regular use, it is simply an escape hatch')
+  .addOptionalParam(
+    'overrideManifest',
+    'Use a different manifest file for this network deployment. NOTE: this is not reccomended for regular use, it is simply an escape hatch'
+  )
   .addOptionalVariadicPositionalParam('packageWithSettings', 'Package to deploy, optionally with custom settings')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
   .addOptionalParam('prefix', 'Specify a prefix to apply to the deployment artifact outputs')
   .addFlag('dryRun', 'Simulate this deployment process without deploying the contracts to the specified network')
-  .addOptionalParam('impersonate', 'Run deployment without requiring any private keys. The value of this flag determines the default signer.')
+  .addOptionalParam(
+    'impersonate',
+    'Run deployment without requiring any private keys. The value of this flag determines the default signer.'
+  )
   .addFlag('writeDeployments', 'Wether to write deployment files when using the --dry-run flag')
   .setAction(async (opts, hre) => {
     if (hre.network.name === CANNON_NETWORK_NAME) {
@@ -32,20 +38,19 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       packageDefinition = {
         name,
         version,
-        settings: {}
-      }
+        settings: {},
+      };
     } else {
       packageDefinition = (opts.packageWithSettings as string[]).reduce((result, val) => {
         return parsePackageArguments(val, result);
       }, {} as PackageDefinition);
     }
 
-
     if (!hre.network.config.chainId) {
       throw new Error('Selected network must have chainId set in hardhat configuration');
     }
 
-    let [signer] = (await hre.ethers.getSigners()) as ethers.Signer[];
+    const [signer] = (await hre.ethers.getSigners()) as ethers.Signer[];
 
     const writeDeployments = !opts.dryRun || (opts.dryRun && opts.writeDeployments);
 
@@ -56,7 +61,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     let provider: ethers.providers.Provider;
     if (hre.network.name === 'hardhat') {
-      provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false)
+      provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
     } else {
       provider = new ethers.providers.JsonRpcProvider((hre.network.config as HttpNetworkConfig).url);
     }

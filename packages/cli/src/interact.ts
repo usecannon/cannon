@@ -53,7 +53,6 @@ export async function interact(ctx: InteractTaskArgs) {
       });
 
       if (!pickedContract) {
-
         if (ctx.packages.length === 1) {
           return null;
         }

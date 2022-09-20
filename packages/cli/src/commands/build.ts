@@ -11,7 +11,7 @@ import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
 
 interface Params {
-  node: Awaited<ReturnType<typeof runRpc>>,
+  node: Awaited<ReturnType<typeof runRpc>>;
   cannonfilePath?: string;
   packageDefinition: PackageDefinition;
 
@@ -45,7 +45,6 @@ export async function build({
 }: Params) {
   let def: ChainDefinition;
   if (cannonfilePath) {
-
     const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
 
     if (name !== packageDefinition.name || version !== packageDefinition.version) {
@@ -53,13 +52,8 @@ export async function build({
     }
 
     def = overrideDef;
-  }
-  else {
-    def = new ChainDefinition(findPackage(
-      cannonDirectory,
-      packageDefinition.name, 
-      packageDefinition.version
-    ).def);
+  } else {
+    def = new ChainDefinition(findPackage(cannonDirectory, packageDefinition.name, packageDefinition.version).def);
   }
 
   const defSettings = def.getSettings();
@@ -136,8 +130,13 @@ export async function build({
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!wipe) {
     try {
-      await registry.downloadPackageChain(`${packageDefinition.name}:${packageDefinition.version}`, chainId, preset, cannonDirectory);
-      console.log('Downloaded package from registry')
+      await registry.downloadPackageChain(
+        `${packageDefinition.name}:${packageDefinition.version}`,
+        chainId,
+        preset,
+        cannonDirectory
+      );
+      console.log('Downloaded package from registry');
     } catch (err) {
       console.log('No existing build found on-chain for this package.');
     }
@@ -151,7 +150,13 @@ export async function build({
 
   printChainBuilderOutput(outputs);
 
-  console.log(greenBright(`Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} to ${bold(tildify(cannonDirectory))}`));
+  console.log(
+    greenBright(
+      `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} to ${bold(
+        tildify(cannonDirectory)
+      )}`
+    )
+  );
 
   return { outputs, provider };
 }

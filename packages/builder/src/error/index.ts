@@ -2,6 +2,8 @@ import { ethers } from 'ethers';
 import { ConsoleLogs } from './consoleLog';
 import { ChainArtifacts } from '../types';
 
+/* eslint-disable no-case-declarations */
+
 import Debug from 'debug';
 
 const debug = Debug('cannon:builder:error');

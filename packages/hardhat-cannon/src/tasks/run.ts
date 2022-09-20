@@ -5,7 +5,10 @@ import { parsePackagesArguments } from '@usecannon/cli/dist/src/util/params';
 import loadCannonfile from '../internal/load-cannonfile';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
-  .addOptionalVariadicPositionalParam('packageNames', 'List of packages to load, optionally with custom settings for each one')
+  .addOptionalVariadicPositionalParam(
+    'packageNames',
+    'List of packages to load, optionally with custom settings for each one'
+  )
   .addOptionalParam('port', 'Port which the JSON-RPC server will be exposed', '8545')
   .addOptionalParam('fork', 'Fork the network at the specified RPC url')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
@@ -25,13 +28,13 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       packages.push({
         name,
         version,
-        settings: {}
+        settings: {},
       });
     }
 
     let toImpersonate: string[] = [];
     if (impersonate) {
-      toImpersonate = (await hre.ethers.getSigners()).map(s => s.address);
+      toImpersonate = (await hre.ethers.getSigners()).map((s) => s.address);
     }
 
     return run(packages, {

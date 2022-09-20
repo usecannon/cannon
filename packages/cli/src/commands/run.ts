@@ -2,7 +2,12 @@ import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
-import { CannonWrapperGenericProvider, ChainBuilder, ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
+import {
+  CannonWrapperGenericProvider,
+  ChainBuilder,
+  ChainBuilderContext,
+  downloadPackagesRecursive,
+} from '@usecannon/builder';
 import { PackageDefinition } from '../types';
 import { setupAnvil } from '../helpers';
 import { getProvider, runRpc } from '../rpc';
@@ -99,7 +104,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     );
   }
 
-  const buildOutputs: {pkg: PackageDefinition, outputs: ChainBuilderContext}[] = [];
+  const buildOutputs: { pkg: PackageDefinition; outputs: ChainBuilderContext }[] = [];
 
   let signers: ethers.Signer[] = [];
 
@@ -114,7 +119,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         provider: node.provider,
         packageDefinition: pkg,
         dryRun: !!options.fork,
-        deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined
+        deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
       });
 
       buildOutputs.push({ pkg, outputs });
@@ -144,13 +149,19 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
     console.log(
       greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + (options.port || 8545))}`
+        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold(
+          'localhost:' + (options.port || 8545)
+        )}`
       )
     );
   }
 
   if (!signers.length) {
-    console.warn(yellow('WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'));
+    console.warn(
+      yellow(
+        'WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
+      )
+    );
   }
 
   if (options.logs) {
