@@ -6,7 +6,7 @@ import tildify from 'tildify';
 import { ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
-import { ChainId, PackageDefinition, PackageSettings } from '../types';
+import { ChainId, PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
 

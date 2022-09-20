@@ -1,5 +1,4 @@
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import { ethers } from 'ethers';
 import untildify from 'untildify';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
 import { ChainName } from '../types';

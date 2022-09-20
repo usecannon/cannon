@@ -1,21 +1,12 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
-import _ from 'lodash';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
-import {
-  CannonWrapperGenericProvider,
-  ChainBuilder,
-  ChainBuilderContext,
-  downloadPackagesRecursive,
-} from '@usecannon/builder';
+import { ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
 import { PackageDefinition } from '../types';
 import { setupAnvil } from '../helpers';
 import { getProvider, runRpc } from '../rpc';
 import createRegistry from '../registry';
 import { interact } from '../interact';
-import { printChainBuilderOutput } from '../util/printer';
-import { writeModuleDeployments } from '../util/write-deployments';
-import fs from 'fs-extra';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { deploy } from './deploy';
@@ -67,15 +58,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     port: Number(options.port) || 8545,
     forkUrl: options.fork,
   });
-
-  const getSigner = async (addr: string) => {
-    // on test network any user can be conjured
-    if (options.impersonate) {
-      await node.provider.send('hardhat_impersonateAccount', [addr]);
-    }
-
-    return node.provider.getSigner(addr);
-  };
 
   if (options.fundAddresses && options.fundAddresses.length) {
     for (const fundAddress of options.fundAddresses) {
@@ -198,7 +180,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       await pause(async () => {
         const [signer] = signers;
 
-        const contracts = buildOutputs.map((info, i) => getContractsRecursive(info.outputs, signer));
+        const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
 
         await interact({
           packages,

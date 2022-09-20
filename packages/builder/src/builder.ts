@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import path, { dirname, resolve } from 'path';
+import path, { dirname } from 'path';
 
 import { EventEmitter } from 'events';
 
@@ -28,7 +28,6 @@ const BUILD_VERSION = 3;
 
 import {
   CannonWrapperGenericProvider,
-  ChainArtifacts,
   clearDeploymentInfo,
   combineCtx,
   ContractMap,

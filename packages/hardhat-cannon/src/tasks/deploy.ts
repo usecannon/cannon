@@ -7,7 +7,6 @@ import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import loadCannonfile from '../internal/load-cannonfile';
-import _ from 'lodash';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import path from 'path';
 

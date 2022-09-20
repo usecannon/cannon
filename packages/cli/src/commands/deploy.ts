@@ -2,7 +2,6 @@ import path from 'node:path';
 import {
   CannonWrapperGenericProvider,
   ChainBuilder,
-  DeploymentManifest,
   downloadPackagesRecursive,
   Events,
   StorageMode,
@@ -192,7 +191,7 @@ function createSigners(provider: CannonWrapperGenericProvider, options: DeployOp
 
   if (options.privateKey) {
     for (const pkey in options.privateKey.split(',')) {
-      signers.push(new ethers.Wallet(options.privateKey, provider));
+      signers.push(new ethers.Wallet(pkey, provider));
     }
   } else if (options.mnemonic) {
     for (let i = 0; i < 10; i++) {

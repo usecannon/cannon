@@ -9,14 +9,14 @@ import { parsePackageArguments, parsePackagesArguments, parseSettings } from './
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
 
-import { CannonWrapperGenericProvider, ContractArtifact } from '@usecannon/builder';
+import { ContractArtifact } from '@usecannon/builder';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
-import { getProvider, runRpc } from './rpc';
+import { runRpc } from './rpc';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';

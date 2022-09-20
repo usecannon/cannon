@@ -1,19 +1,14 @@
 import path from 'path';
 import { task } from 'hardhat/config';
-import { HttpNetworkConfig } from 'hardhat/types';
-import { HARDHAT_NETWORK_NAME } from 'hardhat/plugins';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { build, runRpc } from '@usecannon/cli';
 import { parseSettings } from '@usecannon/cli/dist/src/util/params';
 import { TASK_BUILD } from '../task-names';
 
-import Debug from 'debug';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { ethers } from 'ethers';
 import loadCannonfile from '../internal/load-cannonfile';
-
-const debug = Debug('cannon:hardhat');
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')

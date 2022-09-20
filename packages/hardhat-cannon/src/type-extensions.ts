@@ -1,4 +1,4 @@
-import { HardhatNetworkConfig, HttpNetworkConfig } from 'hardhat/types/config';
+import type { HardhatNetworkConfig } from 'hardhat/types/config';
 
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
