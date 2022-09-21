@@ -9,6 +9,8 @@ import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { ethers } from 'ethers';
 import loadCannonfile from '../internal/load-cannonfile';
+import { HttpNetworkHDAccountsConfig } from 'hardhat/types';
+import { getHardhatSigners } from '../internal/get-hardhat-signers';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -39,7 +41,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     const { name, version } = loadCannonfile(hre, cannonfile);
 
-    const node = await runRpc({ port: 8545 });
+    const node = await runRpc({ port: hre.config.networks.cannon.port });
 
     const params = {
       cannonfilePath,
@@ -64,13 +66,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     const signers: ethers.Signer[] = [];
 
-    for (const signer of await hre.ethers.getSigners()) {
-      await provider.send('hardhat_impersonateAccount', [signer.address]);
-      await provider.send('hardhat_setBalance', [signer.address, ethers.utils.parseEther('10000').toHexString()]);
-      signers.push(await provider.getSigner(signer.address));
+    for (const signer of getHardhatSigners(hre)) {
+      const address = await signer.getAddress();
+      await provider.send('hardhat_impersonateAccount', [address]);
+      await provider.send('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
+      signers.push(await provider.getSigner(address));
     }
 
     augmentProvider(hre, outputs);
 
-    return { outputs, provider, signers };
+    return { node, outputs, provider, signers };
   });

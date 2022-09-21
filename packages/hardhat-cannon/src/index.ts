@@ -43,8 +43,9 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   };
 
   config.networks.cannon = {
-    ...config.networks?.hardhat,
-    ...(userConfig.networks?.cannon || { port: 8545 }),
+    port: 8545,
+    ...(config.networks?.hardhat || {}),
+    ...(userConfig.networks?.cannon || {}),
   } as any;
 });
 
