@@ -9,7 +9,6 @@ import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { ethers } from 'ethers';
 import loadCannonfile from '../internal/load-cannonfile';
-import { HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
