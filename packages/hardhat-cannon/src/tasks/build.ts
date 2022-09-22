@@ -1,13 +1,11 @@
 import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { build, runRpc } from '@usecannon/cli';
-import { parseSettings } from '@usecannon/cli/dist/src/util/params';
+import { ethers } from 'ethers';
+import { build, runRpc, parseSettings } from '@usecannon/cli';
 import { TASK_BUILD } from '../task-names';
-
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
-import { ethers } from 'ethers';
 import loadCannonfile from '../internal/load-cannonfile';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 

@@ -5,9 +5,7 @@ import fs from 'node:fs';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import toml from '@iarna/toml';
-import { ChainDefinition, DeploymentManifest } from '@usecannon/builder';
-import { ChainBuilderContext } from '@usecannon/builder/src/types';
-import { RawChainDefinition } from '@usecannon/builder/src/definition';
+import { ChainDefinition, DeploymentManifest, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
 import { ChainId, ChainName } from './types';
 
 export async function setupAnvil(): Promise<void> {

@@ -1,7 +1,6 @@
 import { task } from 'hardhat/config';
-import { PackageDefinition, run } from '@usecannon/cli';
+import { PackageDefinition, run, parsePackagesArguments } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
-import { parsePackagesArguments } from '@usecannon/cli/dist/src/util/params';
 import loadCannonfile from '../internal/load-cannonfile';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')

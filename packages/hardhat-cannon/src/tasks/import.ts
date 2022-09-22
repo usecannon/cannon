@@ -1,7 +1,7 @@
 import { task } from 'hardhat/config';
 import { importPackage } from '@usecannon/cli';
 import { TASK_IMPORT } from '../task-names';
-import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli/dist/src/constants';
+import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
 
 task(TASK_IMPORT, 'Import a Cannon package from a zip archive')
   .addPositionalParam('importFile', 'Relative path and filename to package archive')

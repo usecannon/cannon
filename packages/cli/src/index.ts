@@ -18,6 +18,10 @@ import {
 } from './constants';
 import { runRpc } from './rpc';
 
+export * from './types';
+export * from './constants';
+export * from './util/params';
+
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
 export { deploy } from './commands/deploy';
@@ -29,7 +33,6 @@ export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { runRpc } from './rpc';
-export * from './types';
 
 const program = new Command();
 

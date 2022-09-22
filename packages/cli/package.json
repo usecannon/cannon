@@ -38,7 +38,7 @@
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",
-    "ethers": "^5.6.9",
+    "ethers": "^5.7.1",
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
     "prompts": "^2.4.2",

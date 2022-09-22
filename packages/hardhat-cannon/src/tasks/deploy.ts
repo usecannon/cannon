@@ -1,7 +1,6 @@
 import { task } from 'hardhat/config';
-import { deploy, PackageDefinition } from '@usecannon/cli';
+import { deploy, PackageDefinition, parsePackageArguments } from '@usecannon/cli';
 import { TASK_DEPLOY } from '../task-names';
-import { parsePackageArguments } from '@usecannon/cli/dist/src/util/params';
 import { ethers } from 'ethers';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { CANNON_NETWORK_NAME } from '../constants';

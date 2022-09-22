@@ -8,7 +8,7 @@ import {
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from '@usecannon/cli/dist/src/constants';
+} from '@usecannon/cli';
 import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';

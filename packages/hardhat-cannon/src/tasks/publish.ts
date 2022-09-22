@@ -1,8 +1,7 @@
 import { task } from 'hardhat/config';
 import { bold, yellowBright } from 'chalk';
 import { TASK_PUBLISH } from '../task-names';
-import { publish } from '@usecannon/cli';
-import { DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/dist/src/constants';
+import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli';
 import { HttpNetworkConfig } from 'hardhat/types';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')

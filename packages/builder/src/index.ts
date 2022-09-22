@@ -9,14 +9,14 @@ import semver from 'semver';
 import pkg from '../package.json';
 import { CannonWrapperGenericProvider } from './error/provider';
 
-export { ChainDefinition, validateChainDefinition } from './definition';
+export { RawChainDefinition, ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
 
 export * from './types';
 
 export * from './storage';
 
-export * from './error/provider';
+export { CannonWrapperGenericProvider } from './error/provider';
 
 export { handleTxnError } from './error';
 

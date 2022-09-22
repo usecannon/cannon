@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli/dist/src/constants';
+import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
