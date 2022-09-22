@@ -17,7 +17,7 @@ describe('Hardhat Runtime Environment', function () {
 
     await hre.run(TASK_BUILD, { file: 'cannonfile.erc721.toml' });
 
-    hre.run(TASK_CANNON, {
+    await hre.run(TASK_CANNON, {
       label: 'erc721:0.0.1',
     });
 

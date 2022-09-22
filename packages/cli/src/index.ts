@@ -1,327 +1,319 @@
-import _ from 'lodash';
-
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import { ethers } from 'ethers';
 import { Command } from 'commander';
+import { ContractArtifact } from '@usecannon/builder';
 
-import { setupAnvil, checkCannonVersion } from './helpers';
-export { setupAnvil };
-import { resolve } from 'path';
-
-import {
-  CannonRegistry,
-  ChainBuilder,
-  ChainArtifacts,
-  downloadPackagesRecursive,
-  ChainBuilderContext,
-  CannonWrapperGenericProvider,
-} from '@usecannon/builder';
+import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
+import { PackageDefinition } from './types';
+import {
+  DEFAULT_CANNON_DIRECTORY,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_IPFS_ENDPOINT,
+} from './constants';
+import { runRpc } from './rpc';
 
-import Debug from 'debug';
-import { runRpc, getProvider } from './rpc';
-import { ethers } from 'ethers';
-import { interact } from './interact';
+export * from './types';
+export * from './constants';
+export * from './util/params';
 
-import fs from 'fs-extra';
-import path from 'path';
-import readline from 'readline';
-import { URL } from 'node:url';
-import fetch from 'node-fetch';
-import { greenBright, green, magentaBright, bold, gray } from 'chalk';
-
-const debug = Debug('cannon:cli');
+// Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { build } from './commands/build';
+export { deploy } from './commands/deploy';
+export { exportPackage } from './commands/export';
+export { importPackage } from './commands/import';
+export { inspect } from './commands/inspect';
+export { packages } from './commands/packages';
+export { publish } from './commands/publish';
+export { run } from './commands/run';
+export { verify } from './commands/verify';
+export { runRpc } from './rpc';
 
 const program = new Command();
-
-const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
-const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
-    'i'
-  )} to interact with contracts via the command line.`
-);
-
-class ReadOnlyCannonRegistry extends CannonRegistry {
-  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
-
-  constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
-    super(opts);
-
-    this.ipfsOptions = opts.ipfsOptions;
-  }
-
-  async readIpfs(urlOrHash: string): Promise<Buffer> {
-    const hash = urlOrHash.replace(/^ipfs:\/\//, '');
-
-    const result = await fetch(
-      `${this.ipfsOptions.protocol}://${this.ipfsOptions.host}:${this.ipfsOptions.port}/ipfs/${hash}`
-    );
-
-    return await result.buffer();
-  }
-}
-
-async function writeModuleDeployments(deploymentPath: string, prefix: string, outputs: ChainArtifacts) {
-  if (prefix) {
-    prefix = prefix + '.';
-  }
-
-  for (const m in outputs.imports) {
-    await writeModuleDeployments(deploymentPath, `${prefix}${m}`, outputs.imports[m]);
-  }
-
-  for (const contract in outputs.contracts) {
-    const file = path.join(deploymentPath, `${prefix}${contract}.json`);
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const contractOutputs = outputs.contracts![contract];
-
-    const transformedOutput = {
-      ...contractOutputs,
-      abi: contractOutputs.abi,
-    };
-
-    // JSON format is already correct, so we can just output what we have
-    await fs.writeFile(file, JSON.stringify(transformedOutput, null, 2));
-  }
-}
-
-function getContractsRecursive(
-  outputs: ChainBuilderContext,
-  signer: ethers.Signer,
-  prefix?: string
-): {
-  [x: string]: ethers.Contract;
-} {
-  let contracts = _.mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signer));
-  if (prefix) {
-    contracts = _.mapKeys(contracts, (contract, contractName) => `${prefix}.${contractName}`);
-  }
-  for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
-    contracts = { ...contracts, ...newContracts };
-  }
-  return contracts;
-}
 
 program
   .name('cannon')
   .version(pkg.version)
-  .description('Utility for instantly loading cannon packages in standalone contexts.')
-  .usage('cannon <name>:<semver> [key=value]')
-  .argument('<package>', 'Label and version of the cannon package to load')
-  .argument('[settings...]', 'Arguments used to modify the given package')
-  .option('-h --host <name>', 'Host which the JSON-RPC server will be exposed')
-  .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed')
-  .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-  .option('--logs', 'Show RPC logs instead of interact prompt. If unspecified, defaults to an interactive terminal.')
-  .option('--preset <name>', 'Load an alternate setting preset (default: main)')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('-e --exit', 'Exit after building')
-  .option('--registry-rpc <url>', 'URL to use for eth JSON-RPC endpoint', 'https://cloudflare-eth.com/v1/mainnet')
-  .option(
-    '--registry-address <address>',
-    'Address where the cannon registry is deployed',
-    '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
-  )
-  .option('--ipfs-url <https://...>', 'Host to pull IPFS resources from', 'https://usecannon.infura-ipfs.io')
-  .showHelpAfterError('Use --help for more information.');
-
-export async function run() {
-  await checkCannonVersion(pkg.version);
-
-  let showAnvilLogs = false;
-  let interacting = false;
-
-  if (process.argv.length == 2) {
-    program.outputHelp();
-    return;
-  }
-
-  program.parse();
-  const options = program.opts();
-  const args = program.processedArgs;
-
-  console.log(magentaBright(`Loading cannon (${pkg.version})...`));
-
-  [options.name, options.version] = args[0].split(':');
-
-  if (!options.version) {
-    options.version = 'latest';
-  }
-
-  options.settings = _.fromPairs(args[1].map((kv: string) => kv.split('=')));
-
-  debug('parsed arguments', options, args);
-
-  await setupAnvil();
-
-  console.log(magentaBright('Starting local node...'));
-
-  // Start the rpc server
-  const anvilInstance = await runRpc({
-    port: options.port || 8545,
-    forkUrl: options.fork,
+  .description('Run a cannon package on a local node')
+  .hook('preAction', async function () {
+    await checkCannonVersion(pkg.version);
   });
 
-  let outputBuffer = '';
-  anvilInstance.stdout!.on('data', (rawChunk) => {
-    const chunk = rawChunk.toString('utf8');
-    const newData = chunk
-      .split('\n')
-      .map((m: string) => {
-        return gray('anvil: ') + m;
-      })
-      .join('\n');
+configureRun(program);
+configureRun(program.command('run'));
 
-    if (showAnvilLogs) {
-      console.log(newData);
-    } else {
-      outputBuffer += '\n' + newData;
-    }
-  });
-
-  let provider = await getProvider(anvilInstance);
-
-  // required to supply chainId to the builder
-  const networkInfo = await provider.getNetwork();
-
-  // then, start the chain builder
-  const signers: ethers.Wallet[] = [];
-  // if no signer is specified, load from the default mnemonic chain
-  for (let i = 0; i < 10; i++) {
-    signers.push(
-      ethers.Wallet.fromMnemonic(
-        'test test test test test test test test test test test junk',
-        `m/44'/60'/0'/0/${i}`
-      ).connect(provider)
-    );
-  }
-
-  // download from package registry
-  const parsedIpfs = new URL(options.ipfsUrl);
-  const registry = new ReadOnlyCannonRegistry({
-    address: options.registryAddress,
-    signerOrProvider: new ethers.providers.JsonRpcProvider(options.registryRpc),
-    ipfsOptions: {
-      protocol: parsedIpfs.protocol.slice(0, parsedIpfs.protocol.length - 1),
-      host: parsedIpfs.host,
-      port: parsedIpfs.port ? parseInt(parsedIpfs.port) : parsedIpfs.protocol === 'https:' ? 443 : 80,
-      /*headers: {
-        authorization: `Basic ${Buffer.from(parsedIpfs[2] + ':').toString('base64')}`,
-      },*/
-    },
-  });
-
-  console.log(magentaBright(`Downloading ${options.name + ':' + options.version}...`));
-
-  await downloadPackagesRecursive(
-    options.name + ':' + options.version,
-    networkInfo.chainId,
-    options.preset,
-    registry,
-    provider
-  );
-
-  const builder = new ChainBuilder({
-    name: options.name,
-    version: options.version,
-
-    readMode: options.fork ? 'metadata' : 'all',
-    writeMode: 'none',
-    preset: options.preset,
-
-    chainId: networkInfo.chainId,
-    provider,
-    async getSigner(addr: string) {
-      // on test network any user can be conjured
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
-      return provider.getSigner(addr);
-    },
-  });
-
-  debug('start build', options.settings);
-
-  console.log(magentaBright(`Deploying ${options.name + ':' + options.version} to local node...`));
-
-  const outputs = await builder.build(options.settings);
-
-  // set provider to cannon wrapper to allow error parsing
-  provider = new CannonWrapperGenericProvider(outputs, provider);
-
-  if (options.writeDeployments) {
-    console.log(magentaBright(`Writing deployment data to ${options.writeDeployments}...`));
-    const path = resolve(options.writeDeployments);
-    await fs.mkdirp(path);
-    await writeModuleDeployments(options.writeDeployments, '', outputs);
-  }
-
-  debug('start interact');
-  console.log(
-    greenBright(
-      `${bold(options.name + ':' + options.version)} has been deployed to a local node running at ${bold(
-        (provider.passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
-      )}`
+function configureRun(program: Command) {
+  return program
+    .description('Utility for instantly loading cannon packages in standalone contexts')
+    .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
+    .argument(
+      '[packageNames...]',
+      'List of packages to load, optionally with custom settings for each one',
+      parsePackagesArguments
     )
-  );
-
-  if (options.exit) {
-    console.log(green('Exiting the CLI.'));
-    process.exit();
-  }
-
-  const keypress = () => {
-    return new Promise((resolve) => {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        escapeCodeTimeout: 50,
+    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
+    .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+    .option('--logs', 'Show RPC logs instead of an interactive prompt')
+    .option('--preset <name>', 'Load an alternate setting preset', 'main')
+    .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+    .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+    .option(
+      '--registry-ipfs-url [https://...]',
+      'URL of the JSON-RPC server used to query the registry',
+      DEFAULT_REGISTRY_IPFS_ENDPOINT
+    )
+    .option(
+      '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+      'Authorization header for requests to the IPFS endpoint'
+    )
+    .option(
+      '--registry-rpc-url [https://...]',
+      'Network endpoint for interacting with the registry',
+      DEFAULT_REGISTRY_ENDPOINT
+    )
+    .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+    .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
+    .option(
+      '--impersonate <address>',
+      'Impersonate all calls from the given signer instead of a real wallet. Only works with --fork',
+      '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
+    )
+    .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
+    .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
+    .action(async function (packages: PackageDefinition[], options, program) {
+      const { run } = await import('./commands/run');
+      await run(packages, {
+        ...options,
+        helpInformation: program.helpInformation(),
       });
-      readline.emitKeypressEvents(process.stdin, rl);
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
-      const listener = async (str: any, key: any) => {
-        if (key.ctrl && key.name === 'c') {
-          // Exit if the user does ctrl + c
-          process.exit();
-        } else if (str === 'a' && !interacting) {
-          // Toggle showAnvilLogs when the user presses "a"
-          showAnvilLogs = !showAnvilLogs;
-          if (showAnvilLogs) {
-            console.log(gray('Unpaused anvil logs...'));
-            if (outputBuffer.length) {
-              console.log(outputBuffer);
-              outputBuffer = '';
-            }
-          } else {
-            console.log(gray('Paused anvil logs...'));
-            console.log(INSTRUCTIONS);
-          }
-        } else if (str === 'i' && !interacting) {
-          // Enter the interact tool when the user presses "i"
-          interacting = true;
-          await interact({
-            provider,
-            signer: signers[0],
-            contracts: getContractsRecursive(outputs, signers[0]),
-          });
-          console.log(INSTRUCTIONS);
-          interacting = false;
-        } else if (str === 'h' && !interacting) {
-          console.log('\n' + program.helpInformation());
-          console.log(INSTRUCTIONS);
-        }
-        process.stdin.removeListener('keypress', listener);
-        process.stdin.setRawMode(false);
-        rl.close();
-        resolve(null);
-
-        await keypress();
-      };
-      process.stdin.on('keypress', listener);
     });
-  };
-
-  console.log(INITIAL_INSTRUCTIONS);
-  console.log(INSTRUCTIONS);
-  await keypress();
 }
+
+program
+  .command('build')
+  .description('Build a package from a Cannonfile')
+  .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
+  .argument('[settings...]', 'Custom settings for building the cannonfile')
+  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
+  .option(
+    '-c --contracts-directory [contracts]',
+    'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
+    './src'
+  )
+  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
+  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option(
+    '--registry-ipfs-url [https://...]',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    'Authorization header for requests to the IPFS endpoint'
+  )
+  .option(
+    '--registry-rpc-url [https://...]',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .showHelpAfterError('Use --help for more information.')
+  .action(async function (cannonfile, settings, opts) {
+    // If the first param is not a cannonfile, it should be parsed as settings
+    if (!cannonfile.endsWith('.toml')) {
+      settings.unshift(cannonfile);
+      cannonfile = 'cannonfile.toml';
+    }
+
+    const parsedSettings = parseSettings(settings);
+
+    const cannonfilePath = path.resolve(cannonfile);
+    const projectDirectory = path.dirname(cannonfilePath);
+
+    await setupAnvil();
+
+    const node = await runRpc({
+      port: 8545,
+    });
+
+    // Build project to get the artifacts
+    const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
+    const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
+    await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
+
+    const getArtifact = async (name: string): Promise<ContractArtifact> => {
+      // TODO: Theres a bug that if the file has a different name than the contract it would not work
+      const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
+      const artifactBuffer = await fs.readFile(artifactPath);
+      const artifact = JSON.parse(artifactBuffer.toString()) as any;
+      return {
+        contractName: name,
+        sourceName: artifact.ast.absolutePath,
+        abi: artifact.abi,
+        bytecode: artifact.bytecode.object,
+        linkReferences: artifact.bytecode.linkReferences,
+      };
+    };
+
+    const { build } = await import('./commands/build');
+    const { name, version } = loadCannonfile(cannonfilePath);
+    await build({
+      node,
+      cannonfilePath,
+      packageDefinition: {
+        name,
+        version,
+        settings: parsedSettings,
+      },
+      getArtifact,
+      cannonDirectory: opts.cannonDirectory,
+      projectDirectory,
+      preset: opts.preset,
+      registryIpfsUrl: opts.registryIpfsUrl,
+      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
+      registryRpcUrl: opts.registryRpcUrl,
+      registryAddress: opts.registryAddress,
+    });
+  });
+
+program
+  .command('deploy')
+  .description('Deploy a cannon package to a network')
+  .argument('[packageWithSettings...]', 'Package to deploy, optionally with custom settings', parsePackageArguments)
+  .requiredOption('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
+  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
+  .option('-p --preset [preset]', 'Load an alternate setting preset', 'main')
+  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+  .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
+  .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
+  .option('--wipe', 'Delete old, and do not attempt to download any from the repository')
+  .option(
+    '--registry-ipfs-url [https://...]',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    'Authorization header for requests to the IPFS endpoint'
+  )
+  .option(
+    '--registry-rpc-url [https://...]',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .action(async function (packageDefinition, opts) {
+    const { deploy } = await import('./commands/deploy');
+
+    const projectDirectory = process.cwd();
+    const deploymentPath = opts.writeDeployments
+      ? path.resolve(opts.writeDeployments)
+      : path.resolve(projectDirectory, 'deployments');
+
+    const provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
+
+    await deploy({
+      packageDefinition,
+      cannonDirectory: opts.directory,
+      projectDirectory,
+      provider,
+      mnemonic: opts.mnemonic,
+      privateKey: opts.privateKey,
+      impersonate: opts.impersonate,
+      preset: opts.preset,
+      dryRun: opts.dryRun || false,
+      wipe: opts.wipe || false,
+      prefix: opts.prefix,
+      deploymentPath,
+      registryIpfsUrl: opts.registryIpfsUrl,
+      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
+      registryRpcUrl: opts.registryRpcUrl,
+      registryAddress: opts.registryAddress,
+    });
+  });
+
+program
+  .command('verify')
+  .description('Verify a package on Etherscan')
+  .argument('<packageName>', 'Name and version of the Cannon package to verify')
+  .option('-a --apiKey <apiKey>', 'Etherscan API key')
+  .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (packageName, options) {
+    const { verify } = await import('./commands/verify');
+    await verify(packageName, options.apiKey, options.network, options.directory);
+  });
+
+program
+  .command('packages')
+  .description('List all packages in the local Cannon directory')
+  .argument('[directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (directory) {
+    const { packages } = await import('./commands/packages');
+    await packages(directory);
+  });
+
+program
+  .command('inspect')
+  .description('Inspect the details of a Cannon package')
+  .argument('<packageName>', 'Name and version of the cannon package to inspect')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, options) {
+    const { inspect } = await import('./commands/inspect');
+    await inspect(options.directory, packageName, options.json);
+  });
+
+program
+  .command('publish')
+  .description('Publish a Cannon package to the registry')
+  .argument('<packageName>', 'Name and version of the package to publish')
+  .option('-p <privateKey>', 'Private key of the wallet to use when publishing')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
+  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry', DEFAULT_REGISTRY_ADDRESS)
+  .option('-r --registryEndpoint <registryEndpoint>', 'Address for RPC endpoint for the registry', DEFAULT_REGISTRY_ENDPOINT)
+  .option('-e --ipfsEndpoint <ipfsEndpoint>', 'Address for an IPFS endpoint')
+  .option('-h --ipfsAuthorizationHeader <ipfsAuthorizationHeader>', 'Authorization header for requests to the IPFS endpoint')
+  .action(async function (packageName, options) {
+    const { publish } = await import('./commands/publish');
+
+    await publish(
+      options.directory,
+      options.privateKey,
+      packageName,
+      options.tags,
+      options.registryAddress,
+      options.registryEndpoint,
+      options.ipfsEndpoint,
+      options.ipfsAuthorizationHeader
+    );
+  });
+
+program
+  .command('import')
+  .description('Import a Cannon package from a zip archive')
+  .argument('<importFile>', 'Relative path and filename to package archive')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (importFile, options) {
+    const { importPackage } = await import('./commands/import');
+    await importPackage(options.directory, importFile);
+  });
+
+program
+  .command('export')
+  .description('Export a Cannon package as a zip archive')
+  .argument('<packageName>', 'Name and version of the cannon package to export')
+  .argument('[outputFile]', 'Relative path and filename to export package archive')
+  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .action(async function (packageName, outputFile, options) {
+    const { exportPackage } = await import('./commands/export');
+    await exportPackage(options.directory, outputFile, packageName);
+  });
+
+export default program;

@@ -6,7 +6,7 @@
     "strict": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "module": "esnext",
+    "module": "commonjs",
     "outDir": "./build",
     "target": "es6",
     "skipLibCheck": true,

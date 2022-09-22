@@ -1,45 +1,15 @@
-import fs from 'fs-extra';
 import { task } from 'hardhat/config';
-
 import { TASK_EXPORT } from '../task-names';
-import { exportChain } from '@usecannon/builder';
-import loadCannonfile from '../internal/load-cannonfile';
-import { setupAnvil } from '@usecannon/cli';
-import path from 'path';
+import { exportPackage, DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
 
-task(TASK_EXPORT, 'Write a cannon chain from zip archive')
-  .addOptionalParam(
-    'packageName',
-    'Name of cannon chain to export. By default, export the chain associated with the cannonfile at the default path.'
-  )
-  .addOptionalParam(
-    'packageVersion',
-    'Version of cannon chain to export. By default, export the chain version associated with the cannonfile at the default path.'
-  )
-  .addOptionalParam('chainLabel', 'Name of the chain to export as it appears in hardhat. For example `mainnet` for mainnet.')
-  .addOptionalParam('preset', 'Preset to export. Defaults to `main`', 'main')
-  .addPositionalParam('file', 'Path to archive previously exported with cannon:export')
-  .setAction(async ({ file, packageName, packageVersion, chainLabel, preset }, hre) => {
-    await setupAnvil();
-
-    // if name, version not specified, resolve from cannonfile
-    if (!packageName || !packageVersion) {
-      const { name, version } = loadCannonfile(hre, path.join(hre.config.paths.root, 'cannonfile.toml'));
-      [packageName, packageVersion] = [name, version];
+task(TASK_EXPORT, 'Export a Cannon package as a zip archive')
+  .addPositionalParam('packageName', 'Name and version of the cannon package to export')
+  .addOptionalPositionalParam('outputFile', 'Relative path and filename to export package archive')
+  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .setAction(async ({ directory, packageName, outputFile }, hre) => {
+    if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
+      directory = hre.config.paths.cannon;
     }
 
-    let chainId = 31337;
-    if (chainLabel) {
-      const newChainId = hre.config.networks[chainLabel].chainId;
-
-      if (!newChainId) {
-        throw new Error(`chain id for requested network ${chainLabel} not defined in hardhat configuration.`);
-      }
-
-      chainId = newChainId;
-    }
-
-    const buf = await exportChain(hre.config.paths.cannon, packageName, packageVersion);
-    await fs.writeFile(file, buf);
-    console.log(`Exported ${packageName}@${packageVersion} for network ${chainId}`);
+    await exportPackage(directory, outputFile, packageName);
   });

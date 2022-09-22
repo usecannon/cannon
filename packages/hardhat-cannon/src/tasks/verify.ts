@@ -1,29 +1,21 @@
-import _ from 'lodash';
 import { task } from 'hardhat/config';
 
 import { TASK_VERIFY } from '../task-names';
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import { setupAnvil } from '@usecannon/cli';
-import loadCannonfile from '../internal/load-cannonfile';
+import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
 
-task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mainnet')
-  .addOptionalPositionalParam('label', 'Label of a built cannon chain to verify on Etherscan')
-  .addOptionalVariadicPositionalParam('opts', 'Settings used for execution', [])
-  .setAction(async ({ label, opts }, hre) => {
-    await setupAnvil();
-
-    if (!label) {
-      // load from base cannonfile
-      const { name, version } = loadCannonfile(hre, hre.config.paths.root + '/cannonfile.toml');
-
-      label = `${name}:${version}`;
+task(TASK_VERIFY, 'Verify a package on Etherscan')
+  .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
+  .addOptionalParam('apiKey', 'Etherscan API key')
+  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .setAction(async ({ packageName, directory }, hre) => {
+    if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
+      directory = hre.config.paths.cannon;
     }
 
-    console.log('Verifying cannon deployment', label);
+    const name = packageName.split(':')[0];
+    const version = packageName.includes(':') ? packageName.split(':')[1] : 'latest';
 
-    const [name, version] = label.split(':');
-
-    // get the list of all deployed contracts
     const builder = new ChainBuilder({
       name,
       version,
@@ -33,7 +25,7 @@ task(TASK_VERIFY, 'Run etherscan verification on a cannon deployment sent to mai
       async getSigner(addr: string) {
         return hre.ethers.getSigner(addr);
       },
-      savedPackagesDir: hre.config.paths.cannon,
+      savedPackagesDir: directory,
     });
 
     const outputs = await builder.getOutputs();

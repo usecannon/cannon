@@ -1,22 +1,29 @@
 import path from 'path';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
+import { getSavedPackagesDir } from '@usecannon/builder';
+import {
+  DEFAULT_CANNON_DIRECTORY,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_IPFS_ENDPOINT,
+} from '@usecannon/cli';
+import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';
-import './tasks/verify';
-import './tasks/publish';
-import './tasks/import';
+import './tasks/deploy';
 import './tasks/export';
+import './tasks/import';
 import './tasks/inspect';
+import './tasks/packages';
+import './tasks/publish';
+import './tasks/run';
+import './tasks/verify';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
 import './subtasks/write-deployments';
 import './type-extensions';
-
-import { getSavedPackagesDir } from '@usecannon/builder';
-
-import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
-import { augmentProvider } from './internal/augment-provider';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   config.paths.deployments = userConfig.paths?.deployments
@@ -28,18 +35,17 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : getSavedPackagesDir();
 
   config.cannon = {
-    registryEndpoint: userConfig.cannon?.registryEndpoint || 'https://cloudflare-eth.com/v1/mainnet',
-
-    registryAddress: userConfig.cannon?.registryAddress || '0xA98BE35415Dd28458DA4c1C034056766cbcaf642',
-
-    ipfsConnection: userConfig.cannon?.ipfsConnection || {
-      url: 'https://usecannon.infura-ipfs.io',
-    },
+    cannonDirectory: userConfig.cannon?.cannonDirectory || DEFAULT_CANNON_DIRECTORY,
+    registryEndpoint: userConfig.cannon?.registryEndpoint || DEFAULT_REGISTRY_ENDPOINT,
+    registryAddress: userConfig.cannon?.registryAddress || DEFAULT_REGISTRY_ADDRESS,
+    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
+    ipfsAuthorizationHeader: userConfig.cannon?.ipfsAuthorizationHeader,
   };
 
   config.networks.cannon = {
-    ...config.networks?.hardhat,
-    ...(userConfig.networks?.cannon || { port: 8545 }),
+    port: 8545,
+    ...(config.networks?.hardhat || {}),
+    ...(userConfig.networks?.cannon || {}),
   } as any;
 });
 

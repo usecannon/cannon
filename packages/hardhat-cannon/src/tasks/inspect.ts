@@ -1,69 +1,10 @@
-import _ from 'lodash';
-import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_INSPECT } from '../task-names';
-import loadCannonfile from '../internal/load-cannonfile';
-import { setupAnvil } from '@usecannon/cli';
-import { getPackageDir, getAllDeploymentInfos, DeploymentInfo } from '@usecannon/builder';
-import { NetworksConfig } from 'hardhat/types';
-import chalk from 'chalk';
-const { red, bold, gray, green, cyan, magenta } = chalk;
+import { inspect } from '@usecannon/cli';
 
-task(TASK_INSPECT, 'Inspect the deployments in a cannon package')
+task(TASK_INSPECT, 'Inspect the details of a Cannon package')
+  .addPositionalParam('packageName', 'Name and version of the cannon package to inspect')
   .addFlag('json', 'Output as JSON')
-  .addOptionalParam('file', 'TOML definition of the chain to inspect', 'cannonfile.toml')
-  .setAction(async ({ file, json }, hre) => {
-    await setupAnvil();
-
-    const filepath = path.resolve(hre.config.paths.root, file);
-    const { name, version, def } = loadCannonfile(hre, filepath);
-
-    const packagesDir = getPackageDir(hre.config.paths.cannon, name, version);
-    const deployInfo = await getAllDeploymentInfos(packagesDir);
-
-    if (json) {
-      console.log(JSON.stringify(deployInfo, null, 2));
-    } else {
-      console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
-      console.log(cyan(def.printTopology().join('\n')));
-      if (!_.isEmpty(deployInfo?.deploys)) {
-        for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
-          const chainName = getChainName(chainId, hre.config.networks);
-          renderDeployment(chainName, chainId, chainData);
-        }
-      } else {
-        console.log('This cannonfile has not been built for any chains yet.');
-      }
-    }
-    return deployInfo;
+  .setAction(async ({ packageName, json }, hre) => {
+    await inspect(hre.config.paths.cannon, packageName, json);
   });
-
-function getChainName(chainId: string, networks: NetworksConfig) {
-  for (const [chainName, chainInfo] of Object.entries(networks)) {
-    if (chainInfo.chainId == parseInt(chainId)) {
-      return chainName;
-    }
-  }
-}
-
-function renderDeployment(chainName: string | undefined, chainId: string, chainData: { [preset: string]: DeploymentInfo }) {
-  console.log('\n' + magenta(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
-  console.log('\nPresets');
-  for (const [presetName, presetData] of Object.entries(chainData)) {
-    renderPreset(presetName, presetData);
-  }
-  console.log(gray('\n--------------------------------------------------------'));
-}
-
-function renderPreset(presetName: string, presetData: DeploymentInfo) {
-  console.log(`${bold(cyan(presetName))}${presetName == 'main' ? gray(' [DEFAULT]') : ''}`);
-  if (presetData.ipfsHash.length) {
-    console.log('> ✅ Published to IPFS: ' + presetData.ipfsHash);
-  } else {
-    console.log('> ' + bold(red('⚠️  Not published to IPFS')));
-  }
-  if (Object.keys(presetData.options).length !== 0) {
-    console.log(gray('> Options'));
-    console.log(JSON.stringify(presetData.options, null, 2));
-  }
-}

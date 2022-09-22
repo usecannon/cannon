@@ -1,6 +1,4 @@
-import { HardhatNetworkConfig, HttpNetworkConfig } from 'hardhat/types/config';
-
-import { Options as IPFSConnectionOptions } from 'ipfs-http-client';
+import type { HardhatNetworkConfig } from 'hardhat/types/config';
 
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
@@ -10,9 +8,11 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatUserConfig {
     cannon?: {
+      cannonDirectory?: string;
       registryEndpoint?: string;
       registryAddress?: string;
-      ipfsConnection?: IPFSConnectionOptions;
+      ipfsEndpoint?: string;
+      ipfsAuthorizationHeader?: string;
     };
   }
 
@@ -37,9 +37,11 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatConfig {
     cannon: {
+      cannonDirectory: string;
       registryEndpoint: string;
       registryAddress: string;
-      ipfsConnection: IPFSConnectionOptions;
+      ipfsEndpoint: string;
+      ipfsAuthorizationHeader?: string;
     };
   }
 }

@@ -1,3 +1,4 @@
+import os from 'node:os';
 import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
@@ -9,13 +10,7 @@ import type { RawChainDefinition } from './definition';
 const DEPLOY_FILE_INDENTATION = 4;
 
 export function getSavedPackagesDir() {
-  if (process.env.HOME) {
-    // sane path for posix like systems
-    return path.join(process.env.HOME, '.local', 'cannon');
-  } else {
-    // todo
-    throw new Error('could not resolve cannon saved packages dir');
-  }
+  return path.join(os.homedir(), '.local', 'share', 'cannon');
 }
 
 export function getPackageDir(packagesDir: string, name: string, version: string) {
@@ -30,7 +25,7 @@ export async function getAllDeploymentInfos(packageDir: string): Promise<Deploym
   const file = getDeploymentInfoFile(packageDir);
 
   if (!fs.existsSync(file)) {
-    return { deploys: {}, pkg: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
+    return { deploys: {}, npmPackage: {}, misc: { ipfsHash: '' }, def: { name: '', version: '' } };
   }
 
   return (await fs.readJson(file)) as DeploymentManifest;
@@ -42,10 +37,11 @@ export async function getDeploymentInfo(packageDir: string, network: number, lab
   return _.get(deployInfo.deploys, `${network}.${label}`, null) as unknown as DeploymentInfo | null;
 }
 
-export async function putDeploymentInfo(packageDir: string, chainId: number, label: string, info: DeploymentInfo) {
+export async function putDeploymentInfo(packageDir: string, chainId: number, label: string, info: DeploymentInfo, pkg: any) {
   const deployInfo = await getAllDeploymentInfos(packageDir);
 
   _.set(deployInfo.deploys, `${chainId}.${label}`, info);
+  deployInfo.npmPackage = pkg;
 
   await fs.writeFile(getDeploymentInfoFile(packageDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
 }

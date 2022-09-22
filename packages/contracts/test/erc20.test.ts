@@ -17,7 +17,7 @@ describe('Hardhat Runtime Environment', function () {
 
     await hre.run(TASK_BUILD, { file: 'cannonfile.erc20.toml' });
 
-    hre.run(TASK_CANNON, {
+    await hre.run(TASK_CANNON, {
       label: 'erc20:0.0.1',
     });
 

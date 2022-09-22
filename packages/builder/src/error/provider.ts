@@ -8,6 +8,8 @@ export class CannonWrapperGenericProvider extends ethers.providers.Provider {
   artifacts: ChainArtifacts;
   readonly passThroughProvider: ethers.providers.Provider;
 
+  readonly _isCannonWrapperProvider = true;
+
   constructor(artifacts: ChainArtifacts, passThroughProvider: ethers.providers.Provider, managedJsonRpc = true) {
     super();
 

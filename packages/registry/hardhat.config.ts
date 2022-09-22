@@ -1,11 +1,10 @@
-import 'hardhat-cannon';
+import { HardhatUserConfig } from 'hardhat/config';
+import 'dotenv/config';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'solidity-coverage';
-import 'dotenv/config';
-
-import { HardhatUserConfig } from 'hardhat/config';
+import 'hardhat-cannon';
 
 const config: HardhatUserConfig = {
   solidity: '0.8.11',
@@ -29,16 +28,10 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY || '',
   },
   cannon: {
-    ipfsConnection: {
-      protocol: 'https',
-      host: 'ipfs.infura.io',
-      port: 5001,
-      headers: {
-        authorization: `Basic ${Buffer.from(process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET).toString(
-          'base64'
-        )}`,
-      },
-    },
+    ipfsEndpoint: 'https://ipfs.infura.io:5001',
+    ipfsAuthorizationHeader: `Basic ${Buffer.from(
+      process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET
+    ).toString('base64')}`,
   },
 };
 

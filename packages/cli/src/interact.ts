@@ -6,22 +6,20 @@ import chalk from 'chalk';
 
 const { red, bold, gray, green, yellow, cyan } = chalk;
 
-import prompts from 'prompts';
+import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
+import { PackageDefinition } from './types';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
-  contracts: { [name: string]: Ethers.Contract };
+  packages: PackageDefinition[];
+  contracts: { [name: string]: Ethers.Contract }[];
   provider: CannonWrapperGenericProvider;
+
   signer?: ethers.Signer;
   blockTag?: number;
-
-  /*contract: string;
-  func: string;
-  value: string;
-  args: string;*/
 };
 
 export async function interact(ctx: InteractTaskArgs) {
@@ -31,6 +29,7 @@ export async function interact(ctx: InteractTaskArgs) {
 
   await printHeader(ctx);
 
+  let pickedPackage = -1;
   let pickedContract: string | null = null;
   let pickedFunction: string | null = null;
   let currentArgs: any[] | null = null;
@@ -38,20 +37,32 @@ export async function interact(ctx: InteractTaskArgs) {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    if (!pickedContract) {
-      pickedContract = await pickContract({
-        contractNames: _.keys(ctx.contracts),
-      });
+    if (ctx.packages.length === 1) {
+      pickedPackage = 0;
+    }
 
-      if (pickedContract == PROMPT_BACK_OPTION.title) {
-        break;
-      } else if (!pickedContract) {
+    if (pickedPackage === -1) {
+      pickedPackage = await pickPackage(ctx.packages);
+
+      if (pickedPackage === -1) {
         return null;
       }
+    } else if (!pickedContract) {
+      pickedContract = await pickContract({
+        contractNames: Object.keys(ctx.contracts[pickedPackage]),
+      });
+
+      if (!pickedContract) {
+        if (ctx.packages.length === 1) {
+          return null;
+        }
+
+        pickedPackage = -1;
+      }
     } else if (!pickedFunction) {
-      await printHelpfulInfo(ctx, pickedContract);
+      await printHelpfulInfo(ctx, pickedPackage, pickedContract);
       pickedFunction = await pickFunction({
-        contract: ctx.contracts[pickedContract],
+        contract: ctx.contracts[pickedPackage][pickedContract],
       });
 
       if (!pickedFunction) {
@@ -59,7 +70,7 @@ export async function interact(ctx: InteractTaskArgs) {
       }
     } else if (!currentArgs) {
       const argData = await pickFunctionArgs({
-        func: ctx.contracts[pickedContract].interface.getFunction(pickedFunction),
+        func: ctx.contracts[pickedPackage][pickedContract].interface.getFunction(pickedFunction),
       });
 
       if (!argData) {
@@ -69,7 +80,7 @@ export async function interact(ctx: InteractTaskArgs) {
         txnValue = wei(argData.value);
       }
     } else {
-      const contract = ctx.contracts[pickedContract!];
+      const contract = ctx.contracts[pickedPackage][pickedContract!];
       const functionInfo = contract.interface.getFunction(pickedFunction!);
 
       if (functionInfo.constant || !ctx.signer) {
@@ -131,18 +142,40 @@ async function printHeader(ctx: InteractTaskArgs) {
   console.log('\n');
 }
 
-async function printHelpfulInfo(ctx: InteractTaskArgs, pickedContract: string | null) {
+async function printHelpfulInfo(ctx: InteractTaskArgs, pickedPackage: number, pickedContract: string | null) {
   if (pickedContract) {
-    console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedContract].address}`));
+    console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
   }
+
   console.log(gray(`  * Signer: ${ctx.signer ? await ctx.signer.getAddress() : 'None'}`));
   console.log('\n');
+}
 
-  /*console.log(gray('  * Recent contracts:'));
-	for (let i = 0; i < recentContracts.length; i++) {
-		const contract = recentContracts[i];
-		console.log(gray(`    ${contract.name}: ${contract.address}`));
-	}*/
+interface PackageChoice extends Choice {
+  value: number;
+}
+
+async function pickPackage(packages: PackageDefinition[]) {
+  const choices: PackageChoice[] = packages.map((p, i) => ({
+    title: `${p.name}:${p.version}`,
+    value: i,
+    description: Object.entries(p.settings)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(' | '),
+  }));
+
+  choices.unshift({ ...PROMPT_BACK_OPTION, value: -1 });
+
+  const { pickedPackage } = await prompts.prompt([
+    {
+      type: 'select',
+      name: 'pickedPackage',
+      message: 'Pick a PACKAGE:',
+      choices,
+    },
+  ]);
+
+  return typeof pickedPackage === 'number' ? pickedPackage : -1;
 }
 
 async function pickContract({ contractNames }: { contractNames: string[] }) {
@@ -159,11 +192,11 @@ async function pickContract({ contractNames }: { contractNames: string[] }) {
     },
   ]);
 
-  return pickedContract;
+  return pickedContract === PROMPT_BACK_OPTION.title ? null : pickedContract;
 }
 
 async function pickFunction({ contract }: { contract: ethers.Contract }) {
-  const functionSignatures = _.keys(contract.functions).filter((f) => f.indexOf('(') != -1);
+  const functionSignatures = Object.keys(contract.functions).filter((f) => f.indexOf('(') != -1);
 
   const choices = functionSignatures.sort().map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);

@@ -28,7 +28,6 @@ const BUILD_VERSION = 3;
 
 import {
   CannonWrapperGenericProvider,
-  ChainArtifacts,
   clearDeploymentInfo,
   combineCtx,
   ContractMap,
@@ -170,7 +169,7 @@ previous contract deployed at: ${ctx.contracts[contract].address} in step ${ctx.
           // name reused
           throw new Error(
             `duplicate transaction label ${txn}. Please double check your cannonfile/scripts to ensure a txn name is used only once.
-            
+
 previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
           );
         }
@@ -225,13 +224,11 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     if (isCompleteLayer) {
       for (const action of layer.actions) {
         let ctx = _.cloneDeep(baseCtx);
-
         for (const dep of this.def.getDependencies(action)) {
           ctx = combineCtx([ctx, ctxes.get(dep)!]);
         }
 
         const layerActionCtx = await this.layerMatches(ctx, action);
-
         if (!layerActionCtx) {
           isCompleteLayer = false;
           break;
@@ -304,7 +301,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     if (networkInfo.chainId !== this.chainId) {
       throw new Error(
-        `provider reported chainId (${networkInfo.chainId}) does not match configured builder chain id (${this.chainId})`
+        `provider network reported chainId (${networkInfo.chainId}) does not match configured deployment chain id (${this.chainId})`
       );
     }
 
@@ -343,13 +340,21 @@ ${printChainDefinitionProblems(problems)}`);
     }
 
     if (this.writeMode !== 'none') {
-      await putDeploymentInfo(this.packageDir, this.chainId, this.preset, {
-        def: this.def.toJson(),
-        options: opts,
-        buildVersion: BUILD_VERSION,
-        ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
-        heads: Array.from(this.def.leaves),
-      });
+      await putDeploymentInfo(
+        this.packageDir,
+        this.chainId,
+        this.preset,
+        {
+          def: await this.getDeploymentRecordedDefinition(),
+          options: opts,
+          buildVersion: BUILD_VERSION,
+          ipfsHash: '', // empty string means this deployment hasn't been uploaded to ipfs
+          heads: Array.from(this.def.leaves),
+        },
+        (
+          await this.populateSettings({})
+        ).package
+      );
     }
 
     if (this.writeMode === 'all' || this.writeMode === 'metadata') {
@@ -392,7 +397,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     for (const h of deployInfo.heads) {
       debug('load head for output', h);
-      const newCtx = await this.loadMeta(_.last(h.split('/'))!);
+      const newCtx = await this.loadMeta(_.last(h.split('/'))!, true);
 
       if (!newCtx) {
         throw new Error('context not declared for published layer');
@@ -484,8 +489,8 @@ ${printChainDefinitionProblems(problems)}`);
     }
   }
 
-  async loadMeta(stepName: string): Promise<ChainBuilderContext | null> {
-    if (this.readMode === 'none') {
+  async loadMeta(stepName: string, force = false): Promise<ChainBuilderContext | null> {
+    if (this.readMode === 'none' && !force) {
       return null;
     }
 
@@ -578,12 +583,21 @@ ${printChainDefinitionProblems(problems)}`);
     if (this.readMode !== 'none') {
       const file = getDeploymentInfoFile(this.packageDir);
       const deployInfo = await getAllDeploymentInfos(this.packageDir);
+      const rawDef = await this.getDeploymentRecordedDefinition();
 
       // only store the current chain definition if we are building the local network id and main preset
-      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? this.def.toJson() : deployInfo.def;
+      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? rawDef : deployInfo.def;
 
       await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
     }
+  }
+
+  async getDeploymentRecordedDefinition() {
+    const rawDef = this.def.toJson();
+    if (rawDef.version.includes('package.version')) {
+      rawDef.version = this.def.getVersion(await this.populateSettings({}));
+    }
+    return rawDef;
   }
 }

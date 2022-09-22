@@ -1,4 +1,5 @@
-name = "erc20"
+name = "mintableerc20"
+version = "<%= package.version %>"
 description = "Official Cannon build for @openzeppelin/contracts/token/ERC20/ERC20.sol contract"
 keywords = ["erc20", "token"]
 

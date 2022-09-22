@@ -4,7 +4,6 @@ import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 
 import assertRevert from '../helpers/assert-revert';
-import { ok } from 'assert';
 
 const toBytes32 = ethers.utils.formatBytes32String;
 
