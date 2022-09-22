@@ -2,14 +2,13 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
+import { ContractArtifact } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
-
-import { ContractArtifact } from '@usecannon/builder';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
