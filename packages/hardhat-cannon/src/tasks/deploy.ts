@@ -8,6 +8,8 @@ import { augmentProvider } from '../internal/augment-provider';
 import loadCannonfile from '../internal/load-cannonfile';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import path from 'path';
+import { getHardhatSigners } from '../internal/get-hardhat-signers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addOptionalParam(
@@ -48,7 +50,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       throw new Error('Selected network must have chainId set in hardhat configuration');
     }
 
-    const [signer] = (await hre.ethers.getSigners()) as ethers.Signer[];
+    const signers = await hre.ethers.getSigners();
 
     const writeDeployments = !opts.dryRun || (opts.dryRun && opts.writeDeployments);
 
@@ -57,16 +59,25 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
     // also, when using local network, it attempts to create its own proxy which similarly is not exposed through its reported connection.
     // so we have to do special handling to get the results we want here.
 
-    let provider: ethers.providers.Provider;
+    let provider: ethers.providers.JsonRpcProvider;
     if (hre.network.name === 'hardhat') {
-      provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
+      provider = new CannonWrapperGenericProvider(
+        {},
+        hre.ethers.provider,
+        false
+      ) as unknown as ethers.providers.JsonRpcProvider;
+
+      for (const signer of getHardhatSigners(hre)) {
+        const address = await signer.getAddress();
+        signers.push((await provider.getSigner(address)) as unknown as SignerWithAddress);
+      }
     } else {
       provider = new ethers.providers.JsonRpcProvider((hre.network.config as HttpNetworkConfig).url);
     }
 
     const { outputs } = await deploy({
       packageDefinition,
-      overrideCannonfilePath: path.resolve(hre.config.paths.root, opts.overrideManifest),
+      overrideCannonfilePath: opts.overrideManifest ? path.resolve(hre.config.paths.root, opts.overrideManifest) : undefined,
 
       // we have to wrap the provider here because of the third argument, prevent any reading-into for the hardhat-network
       provider,
@@ -88,5 +99,5 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     augmentProvider(hre, outputs);
 
-    return { outputs, provider, signer };
+    return { outputs, provider, signers };
   });
