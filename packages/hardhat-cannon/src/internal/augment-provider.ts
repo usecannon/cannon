@@ -33,10 +33,14 @@ export function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: Chain
   if (hre.network.name === 'cannon') {
     const baseProvider = createProvider(
       hre.network.name,
-      { ...hre.network.config, url: 'http://localhost:8545' },
+      {
+        ...hre.network.config,
+        url: `http://127.0.0.1:${hre.config.networks.cannon.port}`,
+      },
       hre.config.paths,
       hre.artifacts
     );
+
     const cannonProvider = new CannonWrapperProvider(baseProvider, artifacts);
 
     hre.network.provider = new BackwardsCompatibilityProviderAdapter(cannonProvider);

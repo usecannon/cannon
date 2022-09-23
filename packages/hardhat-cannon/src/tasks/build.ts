@@ -72,5 +72,5 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     augmentProvider(hre, outputs);
 
-    return { node, outputs, provider, signers };
+    return { outputs, provider, signers };
   });
