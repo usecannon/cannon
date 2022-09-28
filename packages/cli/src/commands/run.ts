@@ -62,7 +62,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
   if (options.fundAddresses && options.fundAddresses.length) {
     for (const fundAddress of options.fundAddresses) {
-      await node.provider.send('hardhat_setBalance', [fundAddress, ethers.utils.parseEther('10000').toHexString()]);
+      await node.provider.send('hardhat_setBalance', [fundAddress, `0x${(1e22).toString(16)}`]);
     }
   }
 
@@ -123,7 +123,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       if (options.impersonate) {
         for (const addr of options.impersonate.split(',')) {
           await node.provider.send('hardhat_impersonateAccount', [addr]);
-          await node.provider.send('hardhat_setBalance', [addr, 1e18]);
+          await node.provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
           signers = [node.provider.getSigner(addr)];
         }
       }

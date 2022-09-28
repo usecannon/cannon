@@ -97,7 +97,7 @@ export async function deploy(options: DeployOptions) {
     getSigner = async (addr: string) => {
       // on test network any user can be conjured
       await cannonProvider.send('hardhat_impersonateAccount', [addr]);
-      await cannonProvider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+      await cannonProvider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
       return cannonProvider.getSigner(addr);
     };
 
