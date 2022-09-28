@@ -88,7 +88,7 @@ export async function deploy(options: DeployOptions) {
       }
     }
 
-    throw new Error('signer not found from configuration');
+    throw new Error(`signer not found from configuration: ${addr}`);
   };
 
   let getDefaultSigner = () => Promise.resolve(signers[0]);
