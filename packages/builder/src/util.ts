@@ -68,7 +68,7 @@ export async function getExecutionSigner(
   const address = '0x' + hash.slice(0, 40);
 
   await provider.send('hardhat_impersonateAccount', [address]);
-  await provider.send('hardhat_setBalance', [address, ethers.utils.parseEther('10000').toHexString()]);
+  await provider.send('hardhat_setBalance', [address, `0x${(1e22).toString(16)}`]);
 
   return await provider.getSigner(address);
 }

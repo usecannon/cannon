@@ -103,7 +103,7 @@ export async function build({
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, ethers.utils.parseEther('10000').toHexString()]);
+      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
       return provider.getSigner(addr);
     },
     getArtifact,
