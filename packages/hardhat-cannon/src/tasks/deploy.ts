@@ -75,6 +75,9 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       provider = new ethers.providers.JsonRpcProvider((hre.network.config as HttpNetworkConfig).url);
     }
 
+    const { accounts } = hre.network.config;
+    const privateKey = Array.isArray(accounts) && typeof accounts[0] === 'string' ? accounts[0] : undefined;
+
     const { outputs } = await deploy({
       packageDefinition,
       overrideCannonfilePath: opts.overrideManifest ? path.resolve(hre.config.paths.root, opts.overrideManifest) : undefined,
@@ -83,7 +86,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       provider,
 
       mnemonic: (hre.network.config.accounts as HttpNetworkHDAccountsConfig).mnemonic,
-      privateKey: (hre.network.config.accounts as string[])[0],
+      privateKey,
       impersonate: opts.impersonate,
       preset: opts.preset,
       dryRun: opts.dryRun,
