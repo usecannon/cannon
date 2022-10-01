@@ -307,6 +307,7 @@ ${printChainDefinitionProblems(problems)}`);
 
     //const analysis = await this.analyzeActions(opts);
     const completed = new Map<string, ChainBuilderContext>();
+    const tainted = new Set<string>();
     const topologicalActions = this.def.topologicalActions;
 
     if (this.writeMode === 'all' || this.readMode === 'all') {
@@ -314,7 +315,7 @@ ${printChainDefinitionProblems(problems)}`);
       const layers = this.def.getStateLayers();
 
       for (const leaf of this.def.leaves) {
-        await this.buildLayer(ctx, layers, leaf, completed);
+        await this.buildLayer(ctx, layers, leaf, completed, tainted);
       }
     } else {
       for (const n of topologicalActions) {

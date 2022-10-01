@@ -133,7 +133,8 @@ export default {
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
-        return typeof a == 'string' ? _.template(a)(ctx) : a;
+        // just convert it to a JSON string when. This will allow parsing of complicated nested structures
+        return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
     }
 
@@ -144,7 +145,8 @@ export default {
     if (config.fromCall) {
       config.fromCall.func = _.template(config.fromCall.func)(ctx);
       config.fromCall.args = _.map(config.fromCall.args, (a) => {
-        return typeof a == 'string' ? _.template(a)(ctx) : a;
+        // just convert it to a JSON string when. This will allow parsing of complicated nested structures
+        return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
     }
 
