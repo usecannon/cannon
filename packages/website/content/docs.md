@@ -36,6 +36,14 @@ If your project uses Typescript instead, include Cannon in `hardhat.config.ts`.
 import 'hardhat-cannon';
 ```
 
+Finally, set `cannon` as your default network in your Hardhat config file:
+
+```json
+{
+  "defaultNetwork": "cannon"
+}
+```
+
 Now you’ll be able to use the Hardhat plug-in commands specified in the [Cannon Commands](#cannon-commands) section below.
 
 ### Build a Cannonfile
@@ -276,7 +284,7 @@ The `contract` action deploys a contract.
 
 - `args` - Specifies the arguments to provide the constructor function
 - `abi` - Specifies the contract that should be used for the ABI. This is useful when deploying proxy contracts.
-- `libraries` - An array of contract action names that deploy libraries this contract depends on.
+- `libraries` - An array of contract action names that deploy libraries this contract depends on. **Make sure you also specify these steps in a `depends` input to make sure the libraries are deployed prior to this step.**
 
 **Outputs**
 This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
