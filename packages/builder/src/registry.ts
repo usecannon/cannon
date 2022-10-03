@@ -19,6 +19,7 @@ export class CannonRegistry {
   provider?: ethers.providers.Provider;
   contract?: ethers.Contract;
   signer?: ethers.Signer;
+  url?: string;
 
   ipfs: IPFSHTTPClient;
 
@@ -39,6 +40,7 @@ export class CannonRegistry {
     }
 
     this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
+    this.url = ipfsOptions.url as string;
 
     debug(`creating registry with options ${JSON.stringify(ipfsOptions)} on address "${address}"`);
 
@@ -86,13 +88,12 @@ export class CannonRegistry {
 
     const bufs: Uint8Array[] = [];
 
-    debug(`downloading package content from ${urlOrHash}`);
+    debug(`downloading content from ${this.url}/${hash}`);
 
-    for await (const chunk of this.ipfs.cat(hash)) {
-      bufs.push(chunk);
-    }
-
-    return Buffer.concat(bufs);
+    const response = await fetch(`${this.url}/${hash}`);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   }
 
   async queryDeploymentInfo(name: string, tag: string) {
