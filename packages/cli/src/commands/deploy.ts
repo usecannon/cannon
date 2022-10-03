@@ -88,7 +88,9 @@ export async function deploy(options: DeployOptions) {
       }
     }
 
-    throw new Error(`signer not found from configuration: ${addr}`);
+    throw new Error(
+      `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
+    );
   };
 
   let getDefaultSigner = () => Promise.resolve(signers[0]);
@@ -184,6 +186,8 @@ export async function deploy(options: DeployOptions) {
   }
 
   printChainBuilderOutput(outputs);
+
+  cannonProvider.artifacts = outputs;
 
   return { outputs, signers, provider: cannonProvider };
 }

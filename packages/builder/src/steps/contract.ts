@@ -56,8 +56,9 @@ export default {
     config.abi = _.template(config.abi)(ctx);
 
     if (config.args) {
-      config.args = config.args.map((a) => {
-        return typeof a == 'string' ? _.template(a)(ctx) : a;
+      config.args = _.map(config.args, (a) => {
+        // just convert it to a JSON string when. This will allow parsing of complicated nested structures
+        return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
     }
 

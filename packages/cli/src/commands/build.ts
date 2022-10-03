@@ -169,5 +169,7 @@ export async function build({
     )
   );
 
+  provider.artifacts = outputs;
+
   return { outputs, provider };
 }
