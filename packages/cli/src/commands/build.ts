@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import { table } from 'table';
-import { bold, greenBright, green, dim } from 'chalk';
+import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
 import { ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
@@ -49,8 +49,16 @@ export async function build({
   if (cannonfilePath) {
     const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
 
+    if (!name) {
+      throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
+    }
+
+    if (!version) {
+      throw new Error(red('Your cannonfile is missing a version. Add one to the top of the file like: version = "1.0.0"'));
+    }
+
     if (name !== packageDefinition.name || version !== packageDefinition.version) {
-      throw new Error('supplied cannonfile manifest does not match requseted packageDefinitionDeployment');
+      throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
     }
 
     def = overrideDef;

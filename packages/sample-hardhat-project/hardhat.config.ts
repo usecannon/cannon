@@ -28,6 +28,7 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 const config: HardhatUserConfig = {
   solidity: '0.8.4',
+  defaultNetwork: 'cannon',
   networks: {
     hardhat: {
       chainId: 31337,
