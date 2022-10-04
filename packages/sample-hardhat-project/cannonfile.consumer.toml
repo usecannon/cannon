@@ -7,7 +7,7 @@ keywords = ["sample", "consumer"]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter:<%= package.version %>"
+source = "@ipfs:QmQyz2rwU8vgTtSzfCcB4wx61MWzBLoSeq8JCcgaDjC9Sg"
 
 [import.more_greeters]
 source = "greeter:<%= package.version %>"

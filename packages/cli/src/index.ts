@@ -21,6 +21,9 @@ export * from './types';
 export * from './constants';
 export * from './util/params';
 
+import { RegistrationOptions as PublishRegistrationOptions } from './commands/publish';
+import prompts from 'prompts';
+
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
 export { deploy } from './commands/deploy';
@@ -283,15 +286,38 @@ program
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
+    let registrationOptions: PublishRegistrationOptions | undefined = undefined;
+
+    if (options.registryEndpoint && options.privateKey) {
+
+      const provider = new ethers.providers.JsonRpcProvider(options.registryEndpoint);
+      const wallet = new ethers.Wallet(options.privateKey, provider);
+
+      registrationOptions = {
+        signer: wallet,
+        registryAddress: options.registryAddress
+      }
+
+      const response = await prompts({
+        type: 'confirm',
+        name: 'confirmation',
+        message: `This will deploy your package to IPFS and use ${wallet.address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
+        initial: true,
+      });
+    
+      if (!response.confirmation) {
+        process.exit();
+      }
+    }
+
     await publish(
       options.directory,
-      options.privateKey,
       packageName,
       options.tags,
-      options.registryAddress,
-      options.registryEndpoint,
       options.ipfsEndpoint,
-      options.ipfsAuthorizationHeader
+      options.ipfsAuthorizationHeader,
+      registrationOptions
+      
     );
   });
 
