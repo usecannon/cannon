@@ -33,7 +33,6 @@ export class CannonRegistry {
     signerOrProvider: ethers.Signer | ethers.providers.Provider | null;
   }) {
     if (signerOrProvider) {
-
       if ((signerOrProvider as ethers.Signer).provider) {
         this.signer = signerOrProvider as ethers.Signer;
         this.provider = this.signer.provider;
@@ -45,7 +44,7 @@ export class CannonRegistry {
         this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
       }
     }
-    
+
     this.url = ipfsOptions.url as string;
 
     debug(`creating registry with options ${JSON.stringify(ipfsOptions)} on address "${address}"`);
@@ -103,7 +102,6 @@ export class CannonRegistry {
   }
 
   async queryDeploymentInfo(name: string, tag: string) {
-
     let urlOrHash: string | null;
     if (name == '@ipfs') {
       urlOrHash = tag;

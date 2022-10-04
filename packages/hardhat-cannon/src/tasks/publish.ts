@@ -8,15 +8,25 @@ import { Wallet } from 'ethers';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addPositionalParam('packageName', 'Name and version of the package to publish')
-  .addOptionalParam('privateKey', 'Private key of the wallet to use when publishing. Ignored if `--skip-register` is supplied')
+  .addOptionalParam(
+    'privateKey',
+    'Private key of the wallet to use when publishing. Ignored if `--skip-register` is supplied'
+  )
   .addOptionalParam('tags', 'Comma separated list of labels for your package', 'latest')
-  .addOptionalParam('registryAddress', 'Address for a custom package registry. Ignored if `--skip-register` is supplied', DEFAULT_REGISTRY_ADDRESS)
+  .addOptionalParam(
+    'registryAddress',
+    'Address for a custom package registry. Ignored if `--skip-register` is supplied',
+    DEFAULT_REGISTRY_ADDRESS
+  )
   .addOptionalParam('ipfsEndpoint', 'Address for an IPFS endpoint')
   .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .addFlag('skipRegister', 'Just upload to IPFS. Do not register the package on-chain')
   .setAction(
-    async ({ directory, packageName, privateKey, tags, registryAddress, ipfsEndpoint, ipfsAuthorizationHeader, skipRegister }, hre) => {
+    async (
+      { directory, packageName, privateKey, tags, registryAddress, ipfsEndpoint, ipfsAuthorizationHeader, skipRegister },
+      hre
+    ) => {
       if (hre.network.name == 'hardhat') {
         console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));
         process.exit();
@@ -38,8 +48,8 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
       if (!skipRegister) {
         registrationOptions = {
           registryAddress,
-          signer: (await hre.ethers.getSigners())[0]
-        }
+          signer: (await hre.ethers.getSigners())[0],
+        };
 
         if (registryAddress === DEFAULT_REGISTRY_ADDRESS && hre.config.cannon.registryAddress) {
           registryAddress = hre.config.cannon.registryAddress;
@@ -50,14 +60,6 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         }
       }
 
-      await publish(
-
-        directory,
-        packageName,
-        tags,
-        ipfsEndpoint,
-        ipfsAuthorizationHeader,
-        registrationOptions
-      );
+      await publish(directory, packageName, tags, ipfsEndpoint, ipfsAuthorizationHeader, registrationOptions);
     }
   );

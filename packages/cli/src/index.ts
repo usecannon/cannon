@@ -289,14 +289,13 @@ program
     let registrationOptions: PublishRegistrationOptions | undefined = undefined;
 
     if (options.registryEndpoint && options.privateKey) {
-
       const provider = new ethers.providers.JsonRpcProvider(options.registryEndpoint);
       const wallet = new ethers.Wallet(options.privateKey, provider);
 
       registrationOptions = {
         signer: wallet,
-        registryAddress: options.registryAddress
-      }
+        registryAddress: options.registryAddress,
+      };
 
       const response = await prompts({
         type: 'confirm',
@@ -304,7 +303,7 @@ program
         message: `This will deploy your package to IPFS and use ${wallet.address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
         initial: true,
       });
-    
+
       if (!response.confirmation) {
         process.exit();
       }
@@ -317,7 +316,6 @@ program
       options.ipfsEndpoint,
       options.ipfsAuthorizationHeader,
       registrationOptions
-      
     );
   });
 
