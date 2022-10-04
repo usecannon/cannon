@@ -54,7 +54,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       projectDirectory: hre.config.paths.root,
       preset,
       wipe,
-      deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,,
+      deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
       registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
       registryRpcUrl: hre.config.cannon.registryEndpoint,
