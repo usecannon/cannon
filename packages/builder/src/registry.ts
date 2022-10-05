@@ -13,6 +13,8 @@ import AdmZip from 'adm-zip';
 
 import CannonRegistryAbi from './abis/CannonRegistry.json';
 
+import fetch from 'node-fetch';
+
 const debug = Debug('cannon:builder:registry');
 
 export class CannonRegistry {
@@ -234,8 +236,7 @@ export class ReadOnlyCannonRegistry extends CannonRegistry {
     debug(`downloading content from ${this.url}/${hash}`);
 
     const response = await fetch(`${this.url}/${hash}`);
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+
+    return response.buffer();
   }
 }

@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageDefinition, PackageSettings } from '../types';
 
-const packageRegExp = /^(?<name>[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
+const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
 
 export function parsePackageRef(val: string) {
