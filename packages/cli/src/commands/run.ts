@@ -117,6 +117,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         node: node.instance,
         preset: options.preset,
         persist: false,
+        deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
       });
 
       // todo: this is a bit of a dup

@@ -123,6 +123,7 @@ program
     'Network endpoint for interacting with the registry',
     DEFAULT_REGISTRY_ENDPOINT
   )
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
@@ -136,6 +137,9 @@ program
 
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
+    const deploymentPath = opts.writeDeployments
+      ? path.resolve(opts.writeDeployments)
+      : path.resolve(projectDirectory, 'deployments');
 
     await setupAnvil();
 
@@ -180,6 +184,7 @@ program
       registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
       registryRpcUrl: opts.registryRpcUrl,
       registryAddress: opts.registryAddress,
+      deploymentPath,
     });
   });
 

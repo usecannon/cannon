@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import path from 'node:path';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
@@ -8,6 +9,7 @@ import { runRpc, getProvider } from '../rpc';
 import { ChainId, PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
+import { writeModuleDeployments } from '../util/write-deployments';
 
 interface Params {
   node: Awaited<ReturnType<typeof runRpc>>;
@@ -26,6 +28,7 @@ interface Params {
   registryAddress: string;
   wipe?: boolean;
   persist?: boolean;
+  deploymentPath?: string;
 }
 
 export async function build({
@@ -43,6 +46,7 @@ export async function build({
   registryAddress,
   wipe = false,
   persist = true,
+  deploymentPath,
 }: Params) {
   let def: ChainDefinition;
   if (cannonfilePath) {
@@ -157,6 +161,15 @@ export async function build({
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
 
   const outputs = await builder.build(packageDefinition.settings);
+
+  if (deploymentPath) {
+    let relativePath = path.relative(process.cwd(), deploymentPath);
+    if (!relativePath.startsWith('/')) {
+      relativePath = './' + relativePath;
+    }
+    console.log(green(`Writing deployment artifacts to ${relativePath}\n`));
+    await writeModuleDeployments(deploymentPath, '', outputs);
+  }
 
   printChainBuilderOutput(outputs);
 
