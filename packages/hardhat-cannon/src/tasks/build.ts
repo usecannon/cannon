@@ -13,9 +13,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
   .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
+  .addOptionalParam('writeDeployments', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
-  .setAction(async ({ cannonfile, settings, preset, noCompile, wipe }, hre) => {
+  .setAction(async ({ cannonfile, settings, preset, noCompile, wipe, writeDeployments }, hre) => {
     if (hre.network.name !== CANNON_NETWORK_NAME) {
       throw new Error(
         `cannot build cannon image with hardhat network '${hre.network.name}'. Switch network to '${CANNON_NETWORK_NAME}', or use cannon:deploy instead.`
@@ -53,6 +54,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       projectDirectory: hre.config.paths.root,
       preset,
       wipe,
+      deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
       registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
       registryRpcUrl: hre.config.cannon.registryEndpoint,
