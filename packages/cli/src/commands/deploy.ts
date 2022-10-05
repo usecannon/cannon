@@ -1,4 +1,3 @@
-import path from 'node:path';
 import {
   CannonWrapperGenericProvider,
   ChainBuilder,
@@ -6,7 +5,6 @@ import {
   Events,
   StorageMode,
 } from '@usecannon/builder';
-import { green } from 'chalk';
 import { ethers } from 'ethers';
 import { findPackage, loadCannonfile } from '../helpers';
 import { PackageDefinition } from '../types';
@@ -177,11 +175,6 @@ export async function deploy(options: DeployOptions) {
   const outputs = await builder.build(options.packageDefinition.settings);
 
   if (options.deploymentPath) {
-    let relativePath = path.relative(process.cwd(), options.deploymentPath);
-    if (!relativePath.startsWith('/')) {
-      relativePath = './' + relativePath;
-    }
-    console.log(green(`Writing deployment artifacts to ${relativePath}\n`));
     await writeModuleDeployments(options.deploymentPath, options.prefix || '', outputs);
   }
 
