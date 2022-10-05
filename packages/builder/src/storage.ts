@@ -7,6 +7,9 @@ import _ from 'lodash';
 
 import type { RawChainDefinition } from './definition';
 
+import Debug from 'debug';
+const debug = Debug('cannon:builder:storage');
+
 const DEPLOY_FILE_INDENTATION = 4;
 
 export function getSavedPackagesDir() {
@@ -93,9 +96,9 @@ export async function importChain(packagesDir: string, buf: Buffer): Promise<Raw
   return manifest.def;
 }
 
-export async function associateTag(packagesDir: string, name: string, version: string, tag: string) {
+export async function associateTag(packagesDir: string, name: string, version: string, tagSource: string, tag: string) {
   const mainCacheDir = getPackageDir(packagesDir, name, version);
-  const tagCacheDir = getPackageDir(packagesDir, name, tag);
+  const tagCacheDir = getPackageDir(packagesDir, tagSource, tag);
 
   if (!(await fs.pathExists(mainCacheDir))) {
     throw new Error(`could not associate tag: cache dir for ${name}:${version} does not exist`);
@@ -104,6 +107,10 @@ export async function associateTag(packagesDir: string, name: string, version: s
   if (version === tag) {
     return;
   }
+
+  debug(`associate tag ${tagSource}:${tag} for ${name}:${version}`);
+
+  await fs.mkdirp(path.dirname(tagCacheDir));
 
   if (await fs.pathExists(tagCacheDir)) {
     await fs.unlink(tagCacheDir);

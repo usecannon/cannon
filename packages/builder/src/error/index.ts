@@ -324,7 +324,7 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
     case 'call':
       const callTraceAction = trace.action as CallTraceAction;
 
-      const { contractName, parsedInput, parsedOutput, isReverted } = parseFunctionData(
+      const { contractName, parsedInput, parsedOutput } = parseFunctionData(
         ctx,
         callTraceAction.to,
         callTraceAction.input,
@@ -342,7 +342,7 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
 
       break;
     case 'create':
-      const createTraceAction = trace.action as CreateTraceAction;
+      //const createTraceAction = trace.action as CreateTraceAction;
 
       str = 'CREATE'; // TODO: find matching bytecode
 

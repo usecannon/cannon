@@ -13,33 +13,40 @@ import AdmZip from 'adm-zip';
 
 import CannonRegistryAbi from './abis/CannonRegistry.json';
 
+import fetch from 'node-fetch';
+
 const debug = Debug('cannon:builder:registry');
 
 export class CannonRegistry {
-  provider?: ethers.providers.Provider;
-  contract?: ethers.Contract;
-  signer?: ethers.Signer;
+  provider?: ethers.providers.Provider | null;
+  contract?: ethers.Contract | null;
+  signer?: ethers.Signer | null;
   url?: string;
 
   ipfs: IPFSHTTPClient;
 
   constructor({
-    address,
     ipfsOptions = {},
-    signerOrProvider,
+    signerOrProvider = null,
+    address = null,
   }: {
-    address: string;
     ipfsOptions: Options;
-    signerOrProvider: ethers.Signer | ethers.providers.Provider;
+    address: string | null;
+    signerOrProvider: ethers.Signer | ethers.providers.Provider | null;
   }) {
-    if ((signerOrProvider as ethers.Signer).provider) {
-      this.signer = signerOrProvider as ethers.Signer;
-      this.provider = this.signer.provider;
-    } else {
-      this.provider = signerOrProvider as ethers.providers.Provider;
+    if (signerOrProvider) {
+      if ((signerOrProvider as ethers.Signer).provider) {
+        this.signer = signerOrProvider as ethers.Signer;
+        this.provider = this.signer.provider;
+      } else {
+        this.provider = signerOrProvider as ethers.providers.Provider;
+      }
+
+      if (address) {
+        this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
+      }
     }
 
-    this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
     this.url = ipfsOptions.url as string;
 
     debug(`creating registry with options ${JSON.stringify(ipfsOptions)} on address "${address}"`);
@@ -86,28 +93,37 @@ export class CannonRegistry {
   async readIpfs(urlOrHash: string): Promise<Buffer> {
     const hash = urlOrHash.replace(/^ipfs:\/\//, '');
 
-    const bufs: Uint8Array[] = [];
-
     debug(`downloading content from ${this.url}/${hash}`);
 
-    const response = await fetch(`${this.url}/${hash}`);
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const chunks = [];
+    for await (const chunk of this.ipfs.cat(urlOrHash)) {
+      chunks.push(chunk);
+    }
+
+    return Buffer.concat(chunks);
   }
 
   async queryDeploymentInfo(name: string, tag: string) {
-    const url = await this.getUrl(name, tag);
+    let urlOrHash: string | null;
+    if (name == '@ipfs') {
+      urlOrHash = tag;
+    } else {
+      urlOrHash = await this.getUrl(name, tag);
+    }
 
-    if (!url) {
+    if (!urlOrHash) {
       return null;
     }
 
-    debug(`downloading deployment info of ${name}:${tag} from ${url}`);
+    debug(`downloading deployment info of ${name}:${tag} from ${urlOrHash}`);
 
-    const manifestData = await this.readIpfs(url);
+    const manifestData = await this.readIpfs(urlOrHash);
 
-    return JSON.parse(manifestData.toString('utf8')) as DeploymentManifest;
+    try {
+      return JSON.parse(manifestData.toString('utf8')) as DeploymentManifest;
+    } catch (err) {
+      throw new Error('Received non-json response: ' + manifestData.toString('utf8'));
+    }
   }
 
   async downloadPackageChain(
@@ -147,13 +163,13 @@ export class CannonRegistry {
     const miscZip = new AdmZip(miscBuf);
     await miscZip.extractAllTo(packageDir, true);
 
-    // imported chain may be of a different version from the actual requested tag. Make sure we link if necessary
-    await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, tag);
+    // imported chain may be of a different version (or `source`) from the actual requested tag. Make sure we link if necessary
+    await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
 
     return manifest.deploys[chainId.toString()][preset];
   }
 
-  async uploadPackage(image: string, tags?: string[], packagesDir?: string): Promise<ethers.providers.TransactionReceipt> {
+  async uploadPackage(image: string, packagesDir?: string) {
     const [name, tag] = image.split(':');
 
     packagesDir = packagesDir || getSavedPackagesDir();
@@ -195,13 +211,30 @@ export class CannonRegistry {
     manifest.misc = { ipfsHash: miscIpfsInfo.cid.toV0().toString() };
 
     // final manifest upload
-    const manifestIpfsInfo = await this.ipfs.add(JSON.stringify(manifest));
+    return this.ipfs.add(JSON.stringify(manifest));
+  }
+}
 
-    return await this.publish(
-      name,
-      manifest.def.version,
-      tags || ['latest'],
-      'ipfs://' + manifestIpfsInfo.cid.toV0().toString()
-    );
+/**
+ * sometimes it is nceessary to read from a different type of IPFS API which is read-only. This API can simply fetch individual artifacts by just downloading
+ * them directly. To accomodate this, an overridden version of the cannon rgesitry is provided.
+ */
+export class ReadOnlyCannonRegistry extends CannonRegistry {
+  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
+
+  constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
+    super(opts);
+
+    this.ipfsOptions = opts.ipfsOptions;
+  }
+
+  async readIpfs(urlOrHash: string): Promise<Buffer> {
+    const hash = urlOrHash.replace(/^ipfs:\/\//, '');
+
+    debug(`downloading content from ${this.url}/${hash}`);
+
+    const response = await fetch(`${this.url}/${hash}`);
+
+    return response.buffer();
   }
 }

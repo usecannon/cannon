@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { CannonRegistry } from '@usecannon/builder';
+import { ReadOnlyCannonRegistry } from '@usecannon/builder';
 
 interface Options {
   registryAddress: string;
@@ -9,7 +9,7 @@ interface Options {
 }
 
 export default function createRegistry({ registryAddress, registryRpc, ipfsUrl, ipfsAuthorizationHeader }: Options) {
-  const ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'] = { url: ipfsUrl };
+  const ipfsOptions: ConstructorParameters<typeof ReadOnlyCannonRegistry>[0]['ipfsOptions'] = { url: ipfsUrl };
 
   if (ipfsAuthorizationHeader) {
     ipfsOptions.headers = {
@@ -17,7 +17,7 @@ export default function createRegistry({ registryAddress, registryRpc, ipfsUrl, 
     };
   }
 
-  return new CannonRegistry({
+  return new ReadOnlyCannonRegistry({
     address: registryAddress,
     signerOrProvider: new ethers.providers.JsonRpcProvider(registryRpc),
     ipfsOptions,
