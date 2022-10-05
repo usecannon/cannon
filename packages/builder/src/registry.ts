@@ -231,8 +231,6 @@ export class ReadOnlyCannonRegistry extends CannonRegistry {
   async readIpfs(urlOrHash: string): Promise<Buffer> {
     const hash = urlOrHash.replace(/^ipfs:\/\//, '');
 
-    const bufs: Uint8Array[] = [];
-
     debug(`downloading content from ${this.url}/${hash}`);
 
     const response = await fetch(`${this.url}/${hash}`);

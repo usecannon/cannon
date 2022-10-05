@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import { ethers } from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
