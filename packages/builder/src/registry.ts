@@ -212,3 +212,30 @@ export class CannonRegistry {
     return this.ipfs.add(JSON.stringify(manifest));
   }
 }
+
+/**
+ * sometimes it is nceessary to read from a different type of IPFS API which is read-only. This API can simply fetch individual artifacts by just downloading
+ * them directly. To accomodate this, an overridden version of the cannon rgesitry is provided.
+ */
+export class ReadOnlyCannonRegistry extends CannonRegistry {
+  readonly ipfsOptions: ConstructorParameters<typeof CannonRegistry>[0]['ipfsOptions'];
+
+  constructor(opts: ConstructorParameters<typeof CannonRegistry>[0]) {
+    super(opts);
+
+    this.ipfsOptions = opts.ipfsOptions;
+  }
+
+  async readIpfs(urlOrHash: string): Promise<Buffer> {
+    const hash = urlOrHash.replace(/^ipfs:\/\//, '');
+
+    const bufs: Uint8Array[] = [];
+
+    debug(`downloading content from ${this.url}/${hash}`);
+
+    const response = await fetch(`${this.url}/${hash}`);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+}

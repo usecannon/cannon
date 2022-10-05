@@ -20,7 +20,7 @@ export { CannonWrapperGenericProvider } from './error/provider';
 
 export { handleTxnError } from './error';
 
-export { CannonRegistry } from './registry';
+export { CannonRegistry, ReadOnlyCannonRegistry } from './registry';
 
 export async function downloadPackagesRecursive(
   pkg: string,
