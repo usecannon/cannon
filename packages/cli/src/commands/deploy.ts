@@ -189,8 +189,12 @@ function createSigners(provider: CannonWrapperGenericProvider, options: DeployOp
   const signers: ethers.Signer[] = [];
 
   if (options.privateKey) {
-    for (const pkey in options.privateKey.split(',')) {
-      signers.push(new ethers.Wallet(pkey, provider));
+    if (options.privateKey.includes(',')) {
+      for (const pkey in options.privateKey.split(',')) {
+        signers.push(new ethers.Wallet(pkey, provider));
+      }
+    } else {
+      signers.push(new ethers.Wallet(options.privateKey, provider));
     }
   } else if (options.mnemonic) {
     for (let i = 0; i < 10; i++) {
