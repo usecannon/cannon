@@ -45,7 +45,7 @@ export function parseSettings(values: string[] = []) {
 }
 
 export function parsePackageArguments(val: string, result: PackageDefinition) {
-  const packageMatch = val.match(packageRegExp);
+  const packageMatch = val.toLowerCase().match(packageRegExp);
 
   if (!result && !packageMatch) {
     throw new InvalidArgumentError('First argument should be a cannon package name, e.g.: greeter:1.0.0');
