@@ -8,7 +8,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .setAction(async ({ packageName, directory }, hre) => {
+  .setAction(async ({ packageName, directory, apiKey }, hre) => {
     if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
       directory = hre.config.paths.cannon;
     }
@@ -33,6 +33,9 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     if (!outputs) {
       throw new Error('No chain outputs found. Has the requested chain already been built?');
     }
+
+    // if apiKey is present, overwrite hre etherscan key
+    // if hre etherscan key is empty, prompt for one and set it
 
     for (const c in outputs.contracts) {
       console.log('Verifying contract:', c);

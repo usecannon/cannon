@@ -22,7 +22,6 @@ import './tasks/run';
 import './tasks/verify';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
-import './subtasks/write-deployments';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {

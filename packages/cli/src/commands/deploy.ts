@@ -13,6 +13,10 @@ import { writeModuleDeployments } from '../util/write-deployments';
 import createRegistry from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
+import fs from 'fs';
+import prompts from 'prompts';
+import { build } from './build';
+import { red } from 'chalk';
 
 interface DeployOptions {
   packageDefinition: PackageDefinition;
@@ -129,6 +133,13 @@ export async function deploy(options: DeployOptions) {
     getSigner,
     getDefaultSigner,
   });
+
+  try {
+    await fs.promises.access(`${builder.packageDir}/31337-main`);
+  } catch (error) {
+    console.log(red('You must build this package before deploying to a remote network.'));
+    process.exit();
+  }
 
   const registry = createRegistry({
     registryAddress: options.registryAddress,

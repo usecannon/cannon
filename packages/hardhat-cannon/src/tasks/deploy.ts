@@ -10,6 +10,7 @@ import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import path from 'path';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import prompts from 'prompts';
 
 task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addOptionalParam(
@@ -104,6 +105,22 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
     });
 
     augmentProvider(hre, outputs);
+
+    if (hre.network.name !== 'hardhat') {
+      const response = await prompts({
+        type: 'confirm',
+        name: 'confirmation',
+        message: 'Would you like to verify your deployment on Etherscan?',
+        initial: true,
+      });
+
+      if (response.confirmation) {
+        await hre.run('cannon:verify', {
+          packageName: `${packageDefinition.name}:${packageDefinition.version}`,
+          directory: hre.config.paths.cannon,
+        });
+      }
+    }
 
     return { outputs, provider, signers };
   });
