@@ -13,6 +13,8 @@ import { writeModuleDeployments } from '../util/write-deployments';
 import createRegistry from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
+import fs from 'fs';
+import { red } from 'chalk';
 
 interface DeployOptions {
   packageDefinition: PackageDefinition;
@@ -130,6 +132,13 @@ export async function deploy(options: DeployOptions) {
     getDefaultSigner,
   });
 
+  try {
+    await fs.promises.access(`${builder.packageDir}/31337-main`);
+  } catch (error) {
+    console.log(red('You must build this package before deploying to a remote network.'));
+    process.exit();
+  }
+
   const registry = createRegistry({
     registryAddress: options.registryAddress,
     registryRpc: options.registryRpcUrl,
@@ -189,8 +198,12 @@ function createSigners(provider: CannonWrapperGenericProvider, options: DeployOp
   const signers: ethers.Signer[] = [];
 
   if (options.privateKey) {
-    for (const pkey in options.privateKey.split(',')) {
-      signers.push(new ethers.Wallet(pkey, provider));
+    if (options.privateKey.includes(',')) {
+      for (const pkey in options.privateKey.split(',')) {
+        signers.push(new ethers.Wallet(pkey, provider));
+      }
+    } else {
+      signers.push(new ethers.Wallet(options.privateKey, provider));
     }
   } else if (options.mnemonic) {
     for (let i = 0; i < 10; i++) {
