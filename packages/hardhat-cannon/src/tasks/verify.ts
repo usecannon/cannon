@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-
+import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
 import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
@@ -34,8 +34,18 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       throw new Error('No chain outputs found. Has the requested chain already been built?');
     }
 
-    // if apiKey is present, overwrite hre etherscan key
-    // if hre etherscan key is empty, prompt for one and set it
+    if (apiKey) {
+      hre.config.etherscan.apiKey = apiKey;
+    }
+    if (!hre.config?.etherscan?.apiKey) {
+      const response = await prompts({
+        type: 'text',
+        name: 'etherscan_apikey',
+        message: 'Please enter an Etherscan API key',
+      });
+
+      hre.config.etherscan.apiKey = response.etherscan_apikey;
+    }
 
     for (const c in outputs.contracts) {
       console.log('Verifying contract:', c);
