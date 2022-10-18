@@ -14,8 +14,6 @@ import createRegistry from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
 import fs from 'fs';
-import prompts from 'prompts';
-import { build } from './build';
 import { red } from 'chalk';
 
 interface DeployOptions {
