@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-
+import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
 import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
@@ -8,7 +8,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .setAction(async ({ packageName, directory }, hre) => {
+  .setAction(async ({ packageName, directory, apiKey }, hre) => {
     if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
       directory = hre.config.paths.cannon;
     }
@@ -32,6 +32,21 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
 
     if (!outputs) {
       throw new Error('No chain outputs found. Has the requested chain already been built?');
+    }
+
+    if (apiKey) {
+      // @ts-ignore
+      hre.config.etherscan.apiKey = apiKey;
+    }
+    // @ts-ignore
+    if (!hre.config?.etherscan?.apiKey) {
+      const response = await prompts({
+        type: 'text',
+        name: 'etherscan_apikey',
+        message: 'Please enter an Etherscan API key',
+      });
+      // @ts-ignore
+      hre.config.etherscan.apiKey = response.etherscan_apikey;
     }
 
     for (const c in outputs.contracts) {
