@@ -35,15 +35,17 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     }
 
     if (apiKey) {
+      // @ts-ignore
       hre.config.etherscan.apiKey = apiKey;
     }
+    // @ts-ignore
     if (!hre.config?.etherscan?.apiKey) {
       const response = await prompts({
         type: 'text',
         name: 'etherscan_apikey',
         message: 'Please enter an Etherscan API key',
       });
-
+      // @ts-ignore
       hre.config.etherscan.apiKey = response.etherscan_apikey;
     }
 
