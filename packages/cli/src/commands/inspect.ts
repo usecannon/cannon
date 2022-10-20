@@ -12,15 +12,17 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
     throw new Error(`You must specify a valid package version, given: "${version}"`);
   }
 
-  const deployInfo = await getAllDeploymentInfos(cannonDirectory);
+  const deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
   const chainDefinition = new ChainDefinition(deployInfo.def);
 
   if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+    console.log(cyan(bold(`\nCannonfile Topology`)));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
     if (!_.isEmpty(deployInfo?.deploys)) {
+      console.log(cyan(bold(`\n\nCannonfile Builds/Deployments`)));
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
         const chainName = getChainName(parseInt(chainId));
         renderDeployment(chainName, chainId, chainData);
@@ -35,22 +37,21 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
 
 function renderDeployment(chainName: string | undefined, chainId: string, chainData: { [preset: string]: DeploymentInfo }) {
   console.log('\n' + magenta(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
-  console.log('\nPresets');
   for (const [presetName, presetData] of Object.entries(chainData)) {
     renderPreset(presetName, presetData);
   }
-  console.log(gray('\n--------------------------------------------------------'));
+  console.log('');
 }
 
 function renderPreset(presetName: string, presetData: DeploymentInfo) {
-  console.log(`${bold(cyan(presetName))}${presetName == 'main' ? gray(' [DEFAULT]') : ''}`);
-  if (presetData.ipfsHash.length) {
-    console.log('> ✅ Published to the registry, IPFS hash: ' + presetData.ipfsHash);
-  } else {
-    console.log('> ' + bold(red('⚠️  Not published to the registry')));
-  }
+  const publishedStatus = presetData.ipfsHash.length
+    ? 'Published to the registry (IPFS hash: ' + presetData.ipfsHash + ')'
+    : bold(red('Not published to the registry'));
+  console.log(`${bold(presetName)}${presetName == 'main' ? gray(' (Default)') : ''}: ${publishedStatus}`);
+
   if (Object.keys(presetData.options).length !== 0) {
-    console.log(gray('> Options'));
+    console.log(gray('Options'));
     console.log(JSON.stringify(presetData.options, null, 2));
+    console.log('');
   }
 }
