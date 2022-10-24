@@ -141,8 +141,7 @@ export default {
       }
 
       abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
-    }
-    else if (config.abiOf) {
+    } else if (config.abiOf) {
       abi = [];
       for (const ofContract of config.abiOf) {
         const implContract = getContractFromPath(ctx, ofContract);
