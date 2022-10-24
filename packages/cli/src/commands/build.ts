@@ -6,7 +6,7 @@ import tildify from 'tildify';
 import { ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
-import { ChainId, PackageDefinition } from '../types';
+import { PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
 import { writeModuleDeployments } from '../util/write-deployments';
@@ -21,7 +21,7 @@ interface Params {
   projectDirectory?: string;
   preset?: string;
   forkUrl?: string;
-  chainId?: ChainId;
+  chainId?: number;
   registryIpfsUrl: string;
   registryIpfsAuthorizationHeader?: string;
   registryRpcUrl: string;
