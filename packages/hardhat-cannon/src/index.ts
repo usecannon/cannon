@@ -2,7 +2,7 @@ import path from 'path';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
-import { getSavedPackagesDir } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, getSavedPackagesDir } from '@usecannon/builder';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
@@ -45,6 +45,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     port: 8545,
     ...(config.networks?.hardhat || {}),
     ...(userConfig.networks?.cannon || {}),
+    chainId: CANNON_CHAIN_ID,
   } as any;
 });
 

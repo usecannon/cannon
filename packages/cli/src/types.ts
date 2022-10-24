@@ -76,6 +76,7 @@ export enum ChainId {
   palm = 11297108109,
   curio = 836542336838601,
   hardhat = 31337,
+  cannon = 13370,
   localhost = 1337,
 }
 
