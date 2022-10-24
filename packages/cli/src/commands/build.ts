@@ -3,7 +3,7 @@ import path from 'node:path';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
-import { ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { runRpc, getProvider } from '../rpc';
 import { ChainId, PackageDefinition } from '../types';
@@ -39,7 +39,6 @@ export async function build({
   cannonDirectory,
   projectDirectory,
   preset = 'main',
-  chainId = 31337,
   registryIpfsUrl,
   registryIpfsAuthorizationHeader,
   registryRpcUrl,
@@ -108,7 +107,7 @@ export async function build({
     writeMode,
 
     provider,
-    chainId,
+    chainId: CANNON_CHAIN_ID,
     baseDir: projectDirectory,
     savedPackagesDir: cannonDirectory,
     async getSigner(addr: string) {
@@ -146,7 +145,7 @@ export async function build({
     try {
       await registry.downloadPackageChain(
         `${packageDefinition.name}:${packageDefinition.version}`,
-        chainId,
+        CANNON_CHAIN_ID,
         preset,
         cannonDirectory
       );

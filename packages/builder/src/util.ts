@@ -97,10 +97,19 @@ export async function passThroughArtifact(
   name: string
 ) {
   const artifactFile = path.join(packageDir, 'contracts', name + '.json');
-  const artifact = await getArtifact(name);
-
-  await fs.mkdirp(path.dirname(artifactFile));
-  await fs.writeFile(artifactFile, JSON.stringify(artifact));
+  let artifact: ContractArtifact;
+  try {
+    artifact = await getArtifact(name);
+  
+    await fs.mkdirp(path.dirname(artifactFile));
+    await fs.writeJson(artifactFile, artifact);
+  } catch (err) {
+    if (fs.existsSync(artifactFile)) {
+      artifact = await fs.readJson(artifactFile);
+    } else {
+      throw err;
+    }
+  }
 
   return artifact;
 }

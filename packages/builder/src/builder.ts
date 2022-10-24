@@ -17,6 +17,8 @@ import {
   BuildOptions,
 } from './types';
 
+import { CANNON_CHAIN_ID } from './constants';
+
 import { ChainDefinition, ActionKinds, RawChainDefinition, StateLayers } from './definition';
 
 import { getExecutionSigner, getStoredArtifact, passThroughArtifact, printChainDefinitionProblems } from './util';
@@ -587,7 +589,7 @@ ${printChainDefinitionProblems(problems)}`);
       const rawDef = await this.getDeploymentRecordedDefinition();
 
       // only store the current chain definition if we are building the local network id and main preset
-      deployInfo.def = this.chainId === 31337 && this.preset === 'main' ? rawDef : deployInfo.def;
+      deployInfo.def = this.chainId === CANNON_CHAIN_ID && this.preset === 'main' ? rawDef : deployInfo.def;
 
       await fs.mkdirp(this.packageDir);
       await fs.writeJson(file, deployInfo);
