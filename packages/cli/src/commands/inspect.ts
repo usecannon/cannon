@@ -19,10 +19,10 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
-    console.log(cyan(bold(`\nCannonfile Topology`)));
+    console.log(cyan(bold('\nCannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
     if (!_.isEmpty(deployInfo?.deploys)) {
-      console.log(cyan(bold(`\n\nCannonfile Builds/Deployments`)));
+      console.log(cyan(bold('\n\nCannonfile Builds/Deployments')));
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
         const chainName = getChainName(parseInt(chainId));
         renderDeployment(chainName, chainId, chainData);

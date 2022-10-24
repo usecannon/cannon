@@ -3,7 +3,7 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from '../types';
-import { getContractDefinitionFromPath, getContractFromPath } from '../util';
+import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';
@@ -36,7 +36,7 @@ const config = {
         },
         optionalProperties: {
           artifact: { type: 'string' },
-          abiOf: { type: 'string' },
+          abiOf: { elements: { type: 'string' } },
           constructorArgs: { elements: {} },
         },
       },
@@ -160,7 +160,7 @@ export default {
       }
 
       if (f.abiOf) {
-        f.abiOf = _.template(f.abiOf)(ctx);
+        f.abiOf = _.map(f.abiOf, (v) => _.template(v)(ctx));
       }
     }
 
@@ -228,13 +228,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
             sourceName = artifact.sourceName;
             contractName = artifact.contractName;
           } else if (factory.abiOf) {
-            const implContract = getContractFromPath(ctx, factory.abiOf);
+            abi = getMergedAbiFromContractPaths(ctx, factory.abiOf);
 
-            if (!implContract) {
-              throw new Error(`previously deployed contract with name ${factory.abiOf} for factory not found`);
-            }
-
-            abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
             sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
             contractName = '';
           } else {

@@ -61,7 +61,8 @@ export default {
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
-        return _.template(v)(ctx);
+        // just convert it to a JSON string when. This will allow parsing of complicated nested structures
+        return JSON.parse(_.template(JSON.stringify(v))(ctx));
       });
     }
 
