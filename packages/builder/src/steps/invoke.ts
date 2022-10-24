@@ -3,7 +3,7 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from '../types';
-import { getContractFromPath } from '../util';
+import { getContractDefinitionFromPath, getContractFromPath } from '../util';
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';
@@ -176,16 +176,24 @@ export default {
       ? await runtime.getSigner(config.from)
       : await runtime.getDefaultSigner({}, '');
 
+    const customAbi =
+      typeof config.abi === 'string'
+        ? config.abi.startsWith('[')
+          ? JSON.parse(config.abi)
+          : getContractDefinitionFromPath(ctx, config.abi)?.abi
+        : null;
+
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
+
       if (ethers.utils.isAddress(t)) {
-        if (!config.abi) {
+        if (!customAbi) {
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = new ethers.Contract(t, JSON.parse(config.abi));
+        contract = new ethers.Contract(t, customAbi);
       } else {
-        contract = getContractFromPath(ctx, t);
+        contract = getContractFromPath(ctx, t, customAbi);
       }
 
       if (!contract) {
