@@ -9,6 +9,7 @@ import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
 import { CannonWrapperGenericProvider } from './error/provider';
+import { JsonFragment } from '@ethersproject/abi';
 
 export const ChainDefinitionScriptSchema = {
   properties: {
@@ -108,7 +109,7 @@ export async function clearArtifacts(packageDir: string) {
   await fs.rm(packageDir, { recursive: true });
 }
 
-export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
+export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: string) {
   const pathPieces = path.split('.');
 
   let importsBase: ChainArtifacts = ctx;
@@ -118,8 +119,14 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string) {
 
   const c = importsBase?.contracts?.[pathPieces[pathPieces.length - 1]];
 
-  if (c) {
-    return new ethers.Contract(c.address, c.abi);
+  return c || null;
+}
+
+export function getContractFromPath(ctx: ChainBuilderContext, path: string, customAbi?: JsonFragment[]) {
+  const contract = getContractDefinitionFromPath(ctx, path);
+
+  if (contract) {
+    return new ethers.Contract(contract.address, customAbi || contract.abi);
   }
 
   return null;
