@@ -3,7 +3,7 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from '../types';
-import { getContractDefinitionFromPath, getContractFromPath } from '../util';
+import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';
@@ -228,16 +228,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
             sourceName = artifact.sourceName;
             contractName = artifact.contractName;
           } else if (factory.abiOf) {
-            abi = [];
-            for (const ofContract of factory.abiOf) {
-              const implContract = getContractFromPath(ctx, ofContract);
-
-              if (!implContract) {
-                throw new Error(`previously deployed contract with identifier "${ofContract}" for factory not found`);
-              }
-
-              abi.push(...JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string));
-            }
+            abi = getMergedAbiFromContractPaths(ctx, factory.abiOf);
 
             sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
             contractName = '';

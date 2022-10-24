@@ -28,7 +28,7 @@ export type ContractArtifact = {
 export type ContractMap = {
   [label: string]: {
     address: string;
-    abi: any[];
+    abi: JsonFragment[];
     constructorArgs?: any[]; // only needed for etherscan verification
     deployTxnHash: string;
     contractName: string;

@@ -5,7 +5,7 @@ import { JTDDataType } from 'ajv/dist/core';
 import { ethers } from 'ethers';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
-import { getContractFromPath } from '../util';
+import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -142,16 +142,7 @@ export default {
 
       abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
     } else if (config.abiOf) {
-      abi = [];
-      for (const ofContract of config.abiOf) {
-        const implContract = getContractFromPath(ctx, ofContract);
-
-        if (!implContract) {
-          throw new Error(`previously deployed contract with identifier "${ofContract}" for factory not found`);
-        }
-
-        abi.push(...JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string));
-      }
+      abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
     }
 
     debug('contract deployed to address', receipt.contractAddress);

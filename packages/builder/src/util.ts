@@ -122,6 +122,28 @@ export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: st
   return c || null;
 }
 
+export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: string[]) {
+  return paths
+    .flatMap((contractPath) => {
+      const c = getContractDefinitionFromPath(ctx, contractPath);
+
+      if (!c) {
+        throw new Error(`previously deployed contract with identifier "${contractPath}" for factory not found`);
+      }
+
+      if (!Array.isArray(c.abi)) {
+        throw new Error(`Contract definition for "${contractPath}" does not have a valid abi`);
+      }
+
+      return c.abi;
+    })
+    .filter((a, index, abi) => {
+      if (index === 0) return true;
+      const alreadyExists = abi.slice(0, index - 1).some((b) => b.name === a.name && b.type === a.type);
+      return !alreadyExists;
+    });
+}
+
 export function getContractFromPath(ctx: ChainBuilderContext, path: string, customAbi?: JsonFragment[]) {
   const contract = getContractDefinitionFromPath(ctx, path);
 
