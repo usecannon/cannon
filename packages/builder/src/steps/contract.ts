@@ -14,7 +14,9 @@ const config = {
     artifact: { type: 'string' },
   },
   optionalProperties: {
+    from: { type: 'string' },
     abi: { type: 'string' },
+    abiOf: { elements: { type: 'string' } },
     args: { elements: {} },
     libraries: { values: { type: 'string' } },
 
@@ -51,9 +53,15 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
+    config.from = _.template(config.from)(ctx);
+
     config.artifact = _.template(config.artifact)(ctx);
 
     config.abi = _.template(config.abi)(ctx);
+
+    if (config.abiOf) {
+      config.abiOf = _.map(config.abiOf, (v) => _.template(v)(ctx));
+    }
 
     if (config.args) {
       config.args = _.map(config.args, (a) => {
@@ -116,7 +124,7 @@ export default {
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = await runtime.getDefaultSigner(txn, config.salt);
+    const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner(txn, config.salt);
 
     const txnData = await signer.sendTransaction(txn);
 
@@ -133,6 +141,18 @@ export default {
       }
 
       abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
+    }
+    else if (config.abiOf) {
+      abi = [];
+      for (const ofContract of config.abiOf) {
+        const implContract = getContractFromPath(ctx, ofContract);
+
+        if (!implContract) {
+          throw new Error(`previously deployed contract with identifier "${ofContract}" for factory not found`);
+        }
+
+        abi.push(...JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string));
+      }
     }
 
     debug('contract deployed to address', receipt.contractAddress);

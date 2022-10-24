@@ -36,7 +36,7 @@ const config = {
         },
         optionalProperties: {
           artifact: { type: 'string' },
-          abiOf: { type: 'string' },
+          abiOf: { elements: { type: 'string' } },
           constructorArgs: { elements: {} },
         },
       },
@@ -160,7 +160,7 @@ export default {
       }
 
       if (f.abiOf) {
-        f.abiOf = _.template(f.abiOf)(ctx);
+        f.abiOf = _.map(f.abiOf, (v) => _.template(v)(ctx));
       }
     }
 
@@ -220,13 +220,17 @@ ${getAllContractPaths(ctx).join('\n')}`);
             sourceName = artifact.sourceName;
             contractName = artifact.contractName;
           } else if (factory.abiOf) {
-            const implContract = getContractFromPath(ctx, factory.abiOf);
+            abi = [];
+            for (const ofContract of factory.abiOf) {
+              const implContract = getContractFromPath(ctx, ofContract);
 
-            if (!implContract) {
-              throw new Error(`previously deployed contract with name ${factory.abiOf} for factory not found`);
+              if (!implContract) {
+                throw new Error(`previously deployed contract with identifier "${ofContract}" for factory not found`);
+              }
+  
+              abi.push(...JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string));
             }
-
-            abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
+            
             sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
             contractName = '';
           } else {
