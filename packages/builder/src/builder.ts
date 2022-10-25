@@ -95,6 +95,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     readMode?: StorageMode;
     writeMode?: StorageMode;
     savedPackagesDir?: string;
+    provider?: CannonWrapperGenericProvider;
   }) {
     super();
 
@@ -116,7 +117,9 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       this.def = this.loadCannonfile();
     }
     this.baseDir = baseDir || null;
-    this.getDefaultSigner = getDefaultSigner || ((txn, salt) => getExecutionSigner(provider, txn, salt));
+    this.provider = provider || null;
+    this.getDefaultSigner =
+      getDefaultSigner || (provider ? (txn, salt) => getExecutionSigner(provider, txn, salt) : undefined);
     this.getArtifact = getArtifact
       ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
       : (name) => getStoredArtifact(this.packageDir, name);
@@ -137,7 +140,9 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
 
     this.emit(Events.PreStepExecute, type, label, cfg);
 
-    this.provider.artifacts = ctx;
+    if (this.provider) {
+      this.provider.artifacts = ctx;
+    }
 
     const output = await ActionKinds[type].exec(this, ctx, cfg as any);
 

@@ -38,8 +38,7 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
   const opts = ['--port', port.toString()];
   if (chainId) {
     opts.push('--chain-id', chainId.toString());
-  }
-  else {
+  } else {
     opts.push('--chain-id', CANNON_CHAIN_ID.toString());
   }
 
