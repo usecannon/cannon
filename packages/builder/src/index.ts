@@ -22,6 +22,8 @@ export { handleTxnError } from './error';
 
 export { CannonRegistry, ReadOnlyCannonRegistry } from './registry';
 
+export { CANNON_CHAIN_ID } from './constants';
+
 export async function downloadPackagesRecursive(
   pkg: string,
   chainId: number,

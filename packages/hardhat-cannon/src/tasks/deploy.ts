@@ -89,6 +89,9 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       // we have to wrap the provider here because of the third argument, prevent any reading-into for the hardhat-network
       provider,
 
+      // it is sometimes necessary (and reasonable) to access different artifacts for subsequent network deployments. this allows for artifact pass-through
+      getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
+
       mnemonic: (hre.network.config.accounts as HttpNetworkHDAccountsConfig).mnemonic,
       privateKey,
       impersonate: opts.impersonate,

@@ -4,7 +4,7 @@ import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
-import { ChainBuilderContext, validateChainDefinition, ChainDefinition, RawChainDefinition } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, ChainBuilderContext, validateChainDefinition, ChainDefinition, RawChainDefinition } from '@usecannon/builder';
 
 export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
   if (!fs.existsSync(filepath)) {
@@ -58,7 +58,7 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
 
   const ctx: ChainBuilderContext = {
     package: fs.readJsonSync(hre.config.paths.root + '/package.json'),
-    chainId: hre.network.config.chainId || 31337, // todo: is this right?
+    chainId: hre.network.config.chainId || CANNON_CHAIN_ID,
     settings: {},
     timestamp: '0',
 

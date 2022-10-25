@@ -1,9 +1,11 @@
 import {
+  CANNON_CHAIN_ID,
   CannonWrapperGenericProvider,
   ChainBuilder,
   downloadPackagesRecursive,
   Events,
   StorageMode,
+  ContractArtifact,
 } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { findPackage, loadCannonfile } from '../helpers';
@@ -20,6 +22,8 @@ interface DeployOptions {
   packageDefinition: PackageDefinition;
   cannonDirectory: string;
   projectDirectory?: string;
+
+  getArtifact?: (name: string) => Promise<ContractArtifact>;
 
   overrideCannonfilePath?: string;
 
@@ -109,7 +113,7 @@ export async function deploy(options: DeployOptions) {
   let readMode: StorageMode = options.wipe ? 'none' : 'metadata';
   let writeMode: StorageMode = options.dryRun ? 'none' : 'metadata';
 
-  if (chainId === 31337 || chainId === 1337) {
+  if (chainId === 31337 || chainId === 1337 || chainId === 13370) {
     // local network gets reset on every run, so should not read/write anything
     readMode = 'none';
     writeMode = 'none';
@@ -130,10 +134,11 @@ export async function deploy(options: DeployOptions) {
     savedPackagesDir: options.cannonDirectory,
     getSigner,
     getDefaultSigner,
+    getArtifact: options.getArtifact,
   });
 
   try {
-    await fs.promises.access(`${builder.packageDir}/31337-main`);
+    await fs.promises.access(`${builder.packageDir}/${CANNON_CHAIN_ID}-main`);
   } catch (error) {
     console.log(red('You must build this package before deploying to a remote network.'));
     process.exit();

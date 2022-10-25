@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import toml from '@iarna/toml';
-import { ChainDefinition, DeploymentManifest, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, ChainDefinition, DeploymentManifest, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
 import { chains } from './chains';
 import { IChainData } from './types';
 
@@ -101,7 +101,7 @@ export function loadCannonfile(filepath: string) {
 
   const ctx: ChainBuilderContext = {
     package: pkg,
-    chainId: 31337,
+    chainId: CANNON_CHAIN_ID,
     settings: {},
     timestamp: '0',
 
@@ -129,13 +129,13 @@ export function findPackage(cannonDirectory: string, packageName: string, packag
 }
 
 export function getChainName(chainId: number): string {
-  if (chainId == 13370) return 'cannon';
+  if (chainId == CANNON_CHAIN_ID) return 'cannon';
   if (chainId == 31337) return 'hardhat';
   return chains.find((c: IChainData) => c.chainId == chainId)?.name || 'unknown';
 }
 
 export function getChainId(chainName: string): number {
-  if (chainName == 'cannon') return 13370;
+  if (chainName == 'cannon') return CANNON_CHAIN_ID;
   if (chainName == 'hardhat') return 31337;
   const chainData = chains.find((c: IChainData) => c.name == chainName);
   if (!chainData) {

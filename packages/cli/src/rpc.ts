@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -38,6 +38,9 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
   const opts = ['--port', port.toString()];
   if (chainId) {
     opts.push('--chain-id', chainId.toString());
+  }
+  else {
+    opts.push('--chain-id', CANNON_CHAIN_ID.toString());
   }
 
   // reduce image size by not creating unnecessary accounts
