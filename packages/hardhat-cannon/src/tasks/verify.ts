@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { task } from 'hardhat/config';
 import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
@@ -50,19 +51,21 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     }
 
     for (const c in outputs.contracts) {
-      console.log('Verifying contract:', c);
-      try {
-        await hre.run('verify:verify', {
-          contract: `${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName}`,
-          address: outputs.contracts[c].address,
-          constructorArguments: outputs.contracts[c].constructorArgs || [],
-        });
-      } catch (err) {
-        console.log(
-          `Unable to verify ${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName} - ${
-            (err as Error).message
-          }`
-        );
+      if (_.get(outputs, ['contracts', c, 'sourceName']) && _.get(outputs, _.get(outputs, ['contracts', c, 'contractName'])) {
+        console.log('Verifying contract:', c);
+        try {
+          await hre.run('verify:verify', {
+            contract: `${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName}`,
+            address: outputs.contracts[c].address,
+            constructorArguments: outputs.contracts[c].constructorArgs || [],
+          });
+        } catch (err) {
+          console.log(
+            `Unable to verify ${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName} - ${
+              (err as Error).message
+            }`
+          );
+        }
       }
     }
   });
