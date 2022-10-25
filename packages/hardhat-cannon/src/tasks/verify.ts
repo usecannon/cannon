@@ -58,11 +58,11 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
           constructorArguments: outputs.contracts[c].constructorArgs || [],
         });
       } catch (err) {
-        if ((err as Error).message.includes('Already Verified')) {
-          console.log('Already verified');
-        } else {
-          throw err;
-        }
+        console.log(
+          `Unable to verify ${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName} - ${
+            (err as Error).message
+          }`
+        );
       }
     }
   });
