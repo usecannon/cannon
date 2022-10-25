@@ -76,3 +76,39 @@ export async function downloadPackagesRecursive(
 if (!semver.satisfies(process.version, pkg.engines.node)) {
   throw new Error(`Cannon requires Node.js ${pkg.engines.node} but your current version is ${process.version}`);
 }
+
+// TODO:
+// Supply provider in build step (remove from constructor)
+// getSigner can be optional on constructor
+// add getOutputs to builder lib (maybe)
+// remove provider from getOutputs
+// change it so the getOutputs returns null if file not found
+
+import { getProvider, runRpc } from '../rpc';
+export async function getOutputs(presetData: any, chainId: number) {
+  // We need to use the builder to re-create the contract addresses
+  const def = presetData.def;
+
+  const node = await runRpc({
+    port: 8545,
+    forkUrl: '',
+  });
+  const provider = await getProvider(node);
+
+  const builder = new ChainBuilder({
+    name: def.name,
+    version: def.version,
+    def,
+    provider,
+    chainId,
+    async getSigner(addr: string) {
+      return provider.getSigner(addr);
+    },
+  });
+
+  const outputs = await builder.getOutputs();
+
+  await node.kill();
+
+  return outputs;
+}

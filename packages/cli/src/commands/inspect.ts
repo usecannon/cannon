@@ -1,8 +1,9 @@
 import _ from 'lodash';
-import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
+import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos, getOutputs } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
+import { printChainBuilderOutput } from '../util/printer';
 
 export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
   const { name, version } = parsePackageRef(packageRef);
@@ -12,8 +13,14 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
     throw new Error(`You must specify a valid package version, given: "${version}"`);
   }
 
-  const deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
+  let deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
   const chainDefinition = new ChainDefinition(deployInfo.def);
+
+  for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
+    for (const [presetName, presetData] of Object.entries(chainData)) {
+      _.set(deployInfo, [chainId, presetName, 'outputs'], await getOutputs(presetData, parseInt(chainId)));
+    }
+  }
 
   if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
@@ -25,7 +32,7 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
       console.log(cyan(bold('\n\nCannonfile Builds/Deployments')));
       for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
         const chainName = getChainName(parseInt(chainId));
-        renderDeployment(chainName, chainId, chainData);
+        await renderDeployment(chainName, chainId, chainData);
       }
     } else {
       console.log('This package has not been built for any chains yet.');
@@ -35,23 +42,28 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
   return deployInfo;
 }
 
-function renderDeployment(chainName: string | undefined, chainId: string, chainData: { [preset: string]: DeploymentInfo }) {
+async function renderDeployment(
+  chainName: string | undefined,
+  chainId: string,
+  chainData: { [preset: string]: DeploymentInfo }
+) {
   console.log('\n' + magenta(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
   for (const [presetName, presetData] of Object.entries(chainData)) {
-    renderPreset(presetName, presetData);
+    await renderPreset(presetName, presetData);
   }
   console.log('');
 }
 
-function renderPreset(presetName: string, presetData: DeploymentInfo) {
+async function renderPreset(presetName: string, presetData: DeploymentInfo) {
   const publishedStatus = presetData.ipfsHash.length
     ? 'Published to the registry (IPFS hash: ' + presetData.ipfsHash + ')'
     : bold(red('Not published to the registry'));
   console.log(`${bold(presetName)}${presetName == 'main' ? gray(' (Default)') : ''}: ${publishedStatus}`);
 
   if (Object.keys(presetData.options).length !== 0) {
-    console.log(gray('Options'));
-    console.log(JSON.stringify(presetData.options, null, 2));
+    console.log('\nOptions');
+    console.log(gray(JSON.stringify(presetData.options, null, 2)));
+    printChainBuilderOutput(presetData.output);
     console.log('');
   }
 }
