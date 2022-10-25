@@ -1,9 +1,16 @@
 import _ from 'lodash';
-import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos, getOutputs } from '@usecannon/builder';
+import {
+  ChainBuilder,
+  ChainDefinition,
+  DeploymentInfo,
+  getAllDeploymentInfos,
+  getOutputsFromPackage,
+} from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
 import { printChainBuilderOutput } from '../util/printer';
+import { getProvider, runRpc } from '../rpc';
 
 export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
   const { name, version } = parsePackageRef(packageRef);
@@ -18,7 +25,7 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
 
   for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
     for (const [presetName, presetData] of Object.entries(chainData)) {
-      _.set(deployInfo, [chainId, presetName, 'outputs'], await getOutputs(presetData, parseInt(chainId)));
+      _.set(deployInfo, [chainId, presetName, 'outputs'], await getOutputsFromPackage(presetData, parseInt(chainId)));
     }
   }
 

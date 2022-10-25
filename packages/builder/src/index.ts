@@ -10,6 +10,7 @@ import pkg from '../package.json';
 import { CannonWrapperGenericProvider } from './error/provider';
 
 export { RawChainDefinition, ChainDefinition, validateChainDefinition } from './definition';
+import { ChainBuilder } from './builder';
 export { ChainBuilder, Events } from './builder';
 
 export * from './types';
@@ -77,38 +78,17 @@ if (!semver.satisfies(process.version, pkg.engines.node)) {
   throw new Error(`Cannon requires Node.js ${pkg.engines.node} but your current version is ${process.version}`);
 }
 
-// TODO:
-// Supply provider in build step (remove from constructor)
-// getSigner can be optional on constructor
-// add getOutputs to builder lib (maybe)
-// remove provider from getOutputs
-// change it so the getOutputs returns null if file not found
-
-import { getProvider, runRpc } from '../rpc';
-export async function getOutputs(presetData: any, chainId: number) {
-  // We need to use the builder to re-create the contract addresses
+export async function getOutputsFromPackage(presetData: any, chainId: number) {
   const def = presetData.def;
-
-  const node = await runRpc({
-    port: 8545,
-    forkUrl: '',
-  });
-  const provider = await getProvider(node);
 
   const builder = new ChainBuilder({
     name: def.name,
     version: def.version,
     def,
-    provider,
+    readMode: 'metadata',
+    writeMode: 'none',
     chainId,
-    async getSigner(addr: string) {
-      return provider.getSigner(addr);
-    },
   });
 
-  const outputs = await builder.getOutputs();
-
-  await node.kill();
-
-  return outputs;
+  return await builder.getOutputs();
 }
