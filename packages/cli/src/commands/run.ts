@@ -102,7 +102,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         ...options,
         provider: node.provider,
         packageDefinition: pkg,
-        dryRun: !!options.fork,
+        dryRun: false,
         deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
       });
 
