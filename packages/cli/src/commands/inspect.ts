@@ -1,16 +1,9 @@
 import _ from 'lodash';
-import {
-  ChainBuilder,
-  ChainDefinition,
-  DeploymentInfo,
-  getAllDeploymentInfos,
-  getOutputsFromPackage,
-} from '@usecannon/builder';
+import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos, getOutputsFromPackage } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
 import { printChainBuilderOutput } from '../util/printer';
-import { getProvider, runRpc } from '../rpc';
 
 export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
   const { name, version } = parsePackageRef(packageRef);
@@ -25,7 +18,11 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
 
   for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
     for (const [presetName, presetData] of Object.entries(chainData)) {
-      _.set(deployInfo, [chainId, presetName, 'outputs'], await getOutputsFromPackage(presetData, parseInt(chainId)));
+      _.set(
+        deployInfo,
+        ['deploys', chainId, presetName, 'outputs'],
+        await getOutputsFromPackage(presetData, parseInt(chainId))
+      );
     }
   }
 
@@ -70,7 +67,9 @@ async function renderPreset(presetName: string, presetData: DeploymentInfo) {
   if (Object.keys(presetData.options).length !== 0) {
     console.log('\nOptions');
     console.log(gray(JSON.stringify(presetData.options, null, 2)));
-    printChainBuilderOutput(presetData.output);
+    console.log('');
+    // @ts-ignore
+    printChainBuilderOutput(presetData.outputs);
     console.log('');
   }
 }
