@@ -88,6 +88,13 @@ export async function getOutputsFromPackage(presetData: any, chainId: number) {
     readMode: 'metadata',
     writeMode: 'none',
     chainId,
+    provider: {} as CannonWrapperGenericProvider,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async getSigner(_: string) {
+      return new Promise(() => {
+        return null;
+      });
+    },
   });
 
   return await builder.getOutputs();

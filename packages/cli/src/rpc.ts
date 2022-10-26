@@ -36,11 +36,8 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
   }
 
   const opts = ['--port', port.toString()];
-  if (chainId) {
-    opts.push('--chain-id', chainId.toString());
-  } else {
-    opts.push('--chain-id', CANNON_CHAIN_ID.toString());
-  }
+
+  opts.push('--chain-id', (chainId || CANNON_CHAIN_ID).toString());
 
   // reduce image size by not creating unnecessary accounts
   opts.push('--accounts', '1');
@@ -66,7 +63,7 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
           reject(
             new Error(`Anvil failed to start: ${err}
 
-Though it is not necessary for your hardhat project, Foundry is required to use Cannon. 
+Though it is not necessary for your hardhat project, Foundry is required to use Cannon.
 
 Ensure you have foundry and anvil installed by running the following commands:
 

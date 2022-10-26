@@ -57,6 +57,8 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
   readonly preset: string;
 
   readonly chainId: number;
+  readonly provider: CannonWrapperGenericProvider;
+  readonly getSigner: (addr: string) => Promise<ethers.Signer>;
   readonly getDefaultSigner: (addr: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly baseDir: string | null;
@@ -70,9 +72,6 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
 
   currentLabel: string | null = null;
 
-  provider: CannonWrapperGenericProvider | null = null;
-  getSigner: (addr: string) => Promise<ethers.Signer> | null = null;
-
   constructor({
     name,
     version,
@@ -80,23 +79,25 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     preset,
     readMode,
     writeMode,
+
+    getSigner,
     getDefaultSigner,
     getArtifact,
     chainId,
     provider,
     baseDir,
     savedPackagesDir,
-  }: Partial<ChainBuilderRuntime> & {
-    name: string;
-    version: string;
-    chainId: number;
-    def?: ChainDefinition | RawChainDefinition;
-    preset?: string;
-    readMode?: StorageMode;
-    writeMode?: StorageMode;
-    savedPackagesDir?: string;
-    provider?: CannonWrapperGenericProvider;
-  }) {
+  }: Partial<ChainBuilderRuntime> &
+    Pick<ChainBuilderRuntime, 'provider' | 'getSigner'> & {
+      name: string;
+      version: string;
+      chainId: number;
+      def?: ChainDefinition | RawChainDefinition;
+      preset?: string;
+      readMode?: StorageMode;
+      writeMode?: StorageMode;
+      savedPackagesDir?: string;
+    }) {
     super();
 
     this.name = name;
@@ -116,10 +117,10 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     } else {
       this.def = this.loadCannonfile();
     }
+    this.provider = provider;
     this.baseDir = baseDir || null;
-    this.provider = provider || null;
-    this.getDefaultSigner =
-      getDefaultSigner || (provider ? (txn, salt) => getExecutionSigner(provider, txn, salt) : undefined);
+    this.getSigner = getSigner;
+    this.getDefaultSigner = getDefaultSigner || ((txn, salt) => getExecutionSigner(provider, txn, salt));
     this.getArtifact = getArtifact
       ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
       : (name) => getStoredArtifact(this.packageDir, name);
@@ -140,9 +141,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
 
     this.emit(Events.PreStepExecute, type, label, cfg);
 
-    if (this.provider) {
-      this.provider.artifacts = ctx;
-    }
+    this.provider.artifacts = ctx;
 
     const output = await ActionKinds[type].exec(this, ctx, cfg as any);
 
@@ -279,14 +278,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     }
   }
 
-  async build(
-    runtime: Pick<ChainBuilderRuntime, 'provider' | 'getSigner'>,
-    opts: BuildOptions
-  ): Promise<ChainBuilderContext> {
-    // TODO: follow same pattern here as was in constructor
-    this.provider = runtime.provider;
-    this.getSigner = runtime.getSigner;
-
+  async build(opts: BuildOptions): Promise<ChainBuilderContext> {
     debug('preflight');
 
     const problems = this.def.checkAll();
