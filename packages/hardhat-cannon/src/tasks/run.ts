@@ -31,9 +31,19 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       });
     }
 
-    let toImpersonate: string[] = [];
+    const toImpersonate: string[] = [];
+
     if (impersonate) {
-      toImpersonate = (await hre.ethers.getSigners()).map((s) => s.address);
+      if (Array.isArray(hre.network.config.accounts)) {
+        for (const acc of hre.network.config.accounts) {
+          const pKey = typeof acc === 'string' ? acc : acc.privateKey;
+          if (!pKey) continue;
+          if (pKey.length !== 66) {
+            throw new Error('Invalid private key configured on "accounts" network config');
+          }
+          toImpersonate.push(new hre.ethers.Wallet(pKey).address);
+        }
+      }
     }
 
     return run(packages, {
