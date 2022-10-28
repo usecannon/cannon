@@ -1,8 +1,14 @@
 import { task } from 'hardhat/config';
-import { HardhatNetworkAccountConfig } from 'hardhat/types';
+import {
+  HardhatNetworkAccountConfig,
+  HardhatNetworkConfig,
+  HardhatRuntimeEnvironment,
+  HttpNetworkConfig,
+} from 'hardhat/types';
 import { PackageDefinition, run, parsePackagesArguments, runRpc } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
+import { isURL } from '../internal/is-url';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(
@@ -32,14 +38,20 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       });
     }
 
+    const forkNetworkConfig = await _getNetworkConfig(hre, fork);
+
+    // If its a fork, use the privateKey from the fork network config
+    const networkConfig = forkNetworkConfig || hre.network.config;
+    const privateKey = Array.isArray(networkConfig.accounts)
+      ? _getPrivateKeyFromAccount(networkConfig.accounts[0])
+      : undefined;
+
+    const forkUrl = forkNetworkConfig?.url || fork;
+
     const node = await runRpc({
       port: Number.parseInt(port) || hre.config.networks.cannon.port,
-      forkUrl: fork,
+      forkUrl,
     });
-
-    const privateKey = Array.isArray(hre.network.config.accounts)
-      ? _getPrivateKeyFromAccount(hre.network.config.accounts[0])
-      : undefined;
 
     let toImpersonate: string[] = [];
     if (impersonate) {
@@ -71,4 +83,21 @@ function _getPrivateKeyFromAccount(acc: string | HardhatNetworkAccountConfig) {
   const conf = acc as HardhatNetworkAccountConfig;
   if (conf?.privateKey) return conf.privateKey;
   return undefined;
+}
+
+async function _getNetworkConfig(hre: HardhatRuntimeEnvironment, fork: string) {
+  if (!fork) return undefined;
+
+  // If the fork param is a network name, return its config
+  if (hre.config.networks[fork]) return hre.config.networks[fork] as HttpNetworkConfig;
+
+  if (!isURL(fork)) {
+    throw new Error(`Invalid fork param given: ${fork}`);
+  }
+
+  // Try to get the local network config for the configured endpoint
+  const forkProvider = new hre.ethers.providers.JsonRpcProvider(fork);
+  const { chainId } = await forkProvider.getNetwork();
+
+  return Object.values(hre.config.networks).find((n) => n.chainId === chainId) as HttpNetworkConfig;
 }
