@@ -96,6 +96,10 @@ function configureRun(program: Command) {
         forkUrl: options.fork,
       });
 
+      if (options.projectDirectory) {
+        options.projectDirectory = path.resolve(options.projectDirectory);
+      }
+
       await run(packages, {
         ...options,
         node,
@@ -176,6 +180,7 @@ program
 
     const { build } = await import('./commands/build');
     const { name, version } = loadCannonfile(cannonfilePath);
+
     await build({
       node,
       cannonfilePath,
