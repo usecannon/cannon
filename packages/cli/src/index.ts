@@ -89,8 +89,15 @@ function configureRun(program: Command) {
     .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
+
+      const node = await runRpc({
+        port: Number.parseInt(options.port) || 8545,
+        forkUrl: options.fork,
+      });
+
       await run(packages, {
         ...options,
+        node,
         helpInformation: program.helpInformation(),
       });
     });
