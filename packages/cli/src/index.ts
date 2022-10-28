@@ -46,7 +46,6 @@ program
     await checkCannonVersion(pkg.version);
   });
 
-configureRun(program);
 configureRun(program.command('run'));
 
 function configureRun(program: Command) {
@@ -54,7 +53,7 @@ function configureRun(program: Command) {
     .description('Utility for instantly loading cannon packages in standalone contexts')
     .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
     .argument(
-      '[packageNames...]',
+      '<packageNames...>',
       'List of packages to load, optionally with custom settings for each one',
       parsePackagesArguments
     )
@@ -63,23 +62,23 @@ function configureRun(program: Command) {
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-    .option('--project-directory [directory]', 'Path to a custom running environment directory')
-    .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+    .option('--project-directory <directory>', 'Path to a custom running environment directory')
+    .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
-      '--registry-ipfs-url [https://...]',
+      '--registry-ipfs-url <https://...>',
       'URL of the JSON-RPC server used to query the registry',
       DEFAULT_REGISTRY_IPFS_ENDPOINT
     )
     .option(
-      '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+      '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
       'Authorization header for requests to the IPFS endpoint'
     )
     .option(
-      '--registry-rpc-url [https://...]',
+      '--registry-rpc-url <https://...>',
       'Network endpoint for interacting with the registry',
       DEFAULT_REGISTRY_ENDPOINT
     )
-    .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+    .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
       '--impersonate <address>',
@@ -87,7 +86,7 @@ function configureRun(program: Command) {
       '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
     )
     .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
-    .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
+    .option('--private-key <0x...>', 'Use the specified private key hex to interact with the contracts')
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
 
@@ -206,30 +205,30 @@ program
 program
   .command('deploy')
   .description('Deploy a cannon package to a network')
-  .argument('[packageWithSettings...]', 'Package to deploy, optionally with custom settings', parsePackageArguments)
-  .requiredOption('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
-  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
-  .option('-p --preset [preset]', 'Load an alternate setting preset', 'main')
-  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .argument('<packageWithSettings...>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
+  .option('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
+  .option('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
+  .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
+  .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('--prefix [prefix]', 'Specify a prefix to apply to the deployment artifact outputs')
+  .option('--prefix <prefix>', 'Specify a prefix to apply to the deployment artifact outputs')
   .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
   .option('--wipe', 'Delete old, and do not attempt to download any from the repository')
   .option(
-    '--registry-ipfs-url [https://...]',
+    '--registry-ipfs-url <https://...>',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
   )
   .option(
-    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
     'Authorization header for requests to the IPFS endpoint'
   )
   .option(
-    '--registry-rpc-url [https://...]',
+    '--registry-rpc-url <https://...>',
     'Network endpoint for interacting with the registry',
     DEFAULT_REGISTRY_ENDPOINT
   )
-  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageDefinition, opts) {
     const { deploy } = await import('./commands/deploy');
 
@@ -242,7 +241,7 @@ program
 
     await deploy({
       packageDefinition,
-      cannonDirectory: opts.directory,
+      cannonDirectory: opts.cannonDirectory,
       projectDirectory,
       provider,
       mnemonic: opts.mnemonic,
