@@ -24,7 +24,7 @@ interface Params {
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   cannonDirectory: string;
-  projectDirectory: string;
+  projectDirectory?: string;
   preset?: string;
   forkUrl?: string;
   chainId?: ChainId;
