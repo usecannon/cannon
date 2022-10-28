@@ -63,6 +63,7 @@ function configureRun(program: Command) {
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+    .option('--project-directory [directory]', 'Path to a custom running environment directory')
     .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
       '--registry-ipfs-url [https://...]',

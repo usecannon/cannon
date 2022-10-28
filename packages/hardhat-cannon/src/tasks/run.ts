@@ -65,6 +65,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       privateKey,
       writeDeployments: writeDeployments ? hre.config.paths.deployments : '',
       cannonDirectory: hre.config.paths.cannon,
+      projectDirectory: hre.config.paths.root,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
       registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
       registryRpcUrl: hre.config.cannon.registryEndpoint,

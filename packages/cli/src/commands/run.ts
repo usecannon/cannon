@@ -19,6 +19,7 @@ export interface RunOptions {
   writeDeployments?: string;
   preset: string;
   cannonDirectory: string;
+  projectDirectory?: string;
   registryIpfsUrl: string;
   registryIpfsAuthorizationHeader?: string;
   registryRpcUrl: string;
