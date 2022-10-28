@@ -199,6 +199,8 @@ program
       registryAddress: opts.registryAddress,
       deploymentPath,
     });
+
+    await node.kill();
   });
 
 program
