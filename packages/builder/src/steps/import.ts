@@ -5,7 +5,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, DeploymentManifest } from '../types';
 import { ChainBuilder } from '../builder';
-import { getDeploymentInfoFile } from '../storage';
+import { getDeploymentInfoFile, getPackageDir } from '../storage';
 import { ChainDefinition } from '../definition';
 import { DeploymentInfo } from '..';
 
@@ -44,6 +44,8 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
+    console.log(config, ctx);
+
     config.source = _.template(config.source)(ctx);
     config.preset = _.template(config.preset)(ctx) || 'main';
 
@@ -63,8 +65,7 @@ export default {
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
 
-
-    const file = getDeploymentInfoFile(runtime.packageDir!);
+    const file = getDeploymentInfoFile(getPackageDir(runtime.packagesDir, name, version));
     const deployManifest = fs.readJsonSync(file) as DeploymentManifest;
 
     const preset = config.preset ?? 'main';
@@ -72,12 +73,12 @@ export default {
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo: DeploymentInfo = _.get(deployManifest.deploys, [chainId, preset]);
+    const deployInfo: DeploymentInfo | null = _.get(deployManifest.deploys, [chainId, preset], null);
 
     const builder = new ChainBuilder({
       name,
       version,
-      def: new ChainDefinition(deployInfo.def || deployManifest.def),
+      def: new ChainDefinition(deployInfo?.def || deployManifest.def),
       writeMode: 'none',
       readMode: runtime.readMode,
       provider: runtime.provider,
@@ -88,7 +89,11 @@ export default {
       getDefaultSigner: runtime.getDefaultSigner,
     });
 
-    const outputs = await builder.build({ ...(deployInfo.options || {}), ...(config.options || {}) });
+    const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.options || {}) };
+
+    debug('imported package options', importPkgOptions);
+
+    const outputs = await builder.build(importPkgOptions);
 
     return {
       contracts: outputs.contracts,
