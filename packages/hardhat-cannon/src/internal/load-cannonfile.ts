@@ -4,7 +4,13 @@ import toml from '@iarna/toml';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
-import { CANNON_CHAIN_ID, ChainBuilderContext, validateChainDefinition, ChainDefinition, RawChainDefinition } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainBuilderContext,
+  validateChainDefinition,
+  ChainDefinition,
+  RawChainDefinition,
+} from '@usecannon/builder';
 
 export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
   if (!fs.existsSync(filepath)) {
