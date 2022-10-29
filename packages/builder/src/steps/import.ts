@@ -1,9 +1,13 @@
 import _ from 'lodash';
+import fs from 'fs-extra';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, DeploymentManifest } from '../types';
 import { ChainBuilder } from '../builder';
+import { getDeploymentInfoFile } from '../storage';
+import { ChainDefinition } from '../definition';
+import { DeploymentInfo } from '..';
 
 const debug = Debug('cannon:builder:import');
 
@@ -59,20 +63,32 @@ export default {
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
 
+
+    const file = getDeploymentInfoFile(runtime.packageDir!);
+    const deployManifest = fs.readJsonSync(file) as DeploymentManifest;
+
+    const preset = config.preset ?? 'main';
+    const chainId = (config.chainId ?? runtime.chainId).toString();
+
+    // try to load the chain definition specific to this chain
+    // otherwise, load the top level definition
+    const deployInfo: DeploymentInfo = _.get(deployManifest.deploys, [chainId, preset]);
+
     const builder = new ChainBuilder({
       name,
       version,
+      def: new ChainDefinition(deployInfo.def || deployManifest.def),
       writeMode: 'none',
       readMode: runtime.readMode,
       provider: runtime.provider,
-      preset: config.preset,
-      chainId: config.chainId || runtime.chainId,
+      preset: preset,
+      chainId: parseInt(chainId),
       savedPackagesDir: runtime.packagesDir,
       getSigner: runtime.getSigner,
       getDefaultSigner: runtime.getDefaultSigner,
     });
 
-    const outputs = await builder.build(config.options || {});
+    const outputs = await builder.build({ ...(deployInfo.options || {}), ...(config.options || {}) });
 
     return {
       contracts: outputs.contracts,
