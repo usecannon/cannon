@@ -100,7 +100,7 @@ export async function passThroughArtifact(
   let artifact: ContractArtifact;
   try {
     artifact = await getArtifact(name);
-  
+
     await fs.mkdirp(path.dirname(artifactFile));
     await fs.writeJson(artifactFile, artifact);
   } catch (err) {
