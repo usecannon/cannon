@@ -44,7 +44,6 @@ export default {
   configInject(ctx: ChainBuilderContext, config: Config) {
     config = _.cloneDeep(config);
 
-    console.log(config, ctx);
 
     config.source = _.template(config.source)(ctx);
     config.preset = _.template(config.preset)(ctx) || 'main';
