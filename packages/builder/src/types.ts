@@ -65,7 +65,7 @@ export interface ChainBuilderContext {
   imports: BundledChainBuilderOutputs;
 }
 
-export type BuildOptions = { [val: string]: string };
+export type BuildOptions = { [val: string]: OptionTypesTs };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 

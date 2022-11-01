@@ -1,18 +1,24 @@
 import _ from 'lodash';
-import path from 'node:path';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
-import { CANNON_CHAIN_ID, ChainBuilder, ChainDefinition, ContractArtifact, downloadPackagesRecursive, Events } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainBuilder,
+  ChainDefinition,
+  ContractArtifact,
+  downloadPackagesRecursive,
+  Events,
+} from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
-import { runRpc, getProvider } from '../rpc';
+import { getProvider, CannonRpcNode } from '../rpc';
 import { PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import createRegistry from '../registry';
 import { writeModuleDeployments } from '../util/write-deployments';
 
 interface Params {
-  node: Awaited<ReturnType<typeof runRpc>>;
+  node: CannonRpcNode;
   cannonfilePath?: string;
   packageDefinition: PackageDefinition;
 

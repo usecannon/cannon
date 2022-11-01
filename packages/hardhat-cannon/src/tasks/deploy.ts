@@ -109,7 +109,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     augmentProvider(hre, outputs);
 
-    if (hre.network.name !== 'hardhat' && hre.network.name !== 'cannon') {
+    if (!opts.dryRun && hre.network.name !== 'hardhat' && hre.network.name !== 'cannon') {
       const response = await prompts({
         type: 'confirm',
         name: 'confirmation',

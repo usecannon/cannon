@@ -63,6 +63,7 @@ function configureRun(program: Command) {
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+    .option('--project-directory [directory]', 'Path to a custom running environment directory')
     .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
       '--registry-ipfs-url [https://...]',
@@ -89,8 +90,19 @@ function configureRun(program: Command) {
     .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
+
+      const node = await runRpc({
+        port: Number.parseInt(options.port) || 8545,
+        forkUrl: options.fork,
+      });
+
+      if (options.projectDirectory) {
+        options.projectDirectory = path.resolve(options.projectDirectory);
+      }
+
       await run(packages, {
         ...options,
+        node,
         helpInformation: program.helpInformation(),
       });
     });
@@ -168,6 +180,7 @@ program
 
     const { build } = await import('./commands/build');
     const { name, version } = loadCannonfile(cannonfilePath);
+
     await build({
       node,
       cannonfilePath,
@@ -186,6 +199,8 @@ program
       registryAddress: opts.registryAddress,
       deploymentPath,
     });
+
+    await node.kill();
   });
 
 program

@@ -15,33 +15,30 @@ type RpcOptions = {
 
 const ANVIL_OP_TIMEOUT = 10000;
 
+export type CannonRpcNode = ChildProcess & RpcOptions;
+
 // saved up here to allow for reset of existing process
-let anvilInstance: ReturnType<typeof spawn> | null = null;
+let anvilInstance: CannonRpcNode | null = null;
 let anvilProvider: CannonWrapperGenericProvider | null = null;
 
-export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildProcess> {
+export function runRpc({ port, forkUrl, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
     return Promise.race([
-      new Promise<ChildProcess>((resolve) => {
+      new Promise<CannonRpcNode>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
           resolve(await runRpc({ port, forkUrl, chainId }));
         });
         anvilInstance!.kill();
       }),
-      timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil'),
+      timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil') as Promise<CannonRpcNode>,
     ]);
   }
 
   const opts = ['--port', port.toString()];
-  if (chainId) {
-    opts.push('--chain-id', chainId.toString());
-  }
-  else {
-    opts.push('--chain-id', CANNON_CHAIN_ID.toString());
-  }
+  opts.push('--chain-id', chainId.toString());
 
   // reduce image size by not creating unnecessary accounts
   opts.push('--accounts', '1');
@@ -50,9 +47,13 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
     opts.push('--fork-url', forkUrl);
   }
 
-  return Promise.race<Promise<ChildProcess>>([
-    new Promise<ChildProcess>((resolve, reject) => {
-      anvilInstance = spawn('anvil', opts);
+  return Promise.race<Promise<CannonRpcNode>>([
+    new Promise<CannonRpcNode>((resolve, reject) => {
+      anvilInstance = spawn('anvil', opts) as CannonRpcNode;
+
+      anvilInstance.port = port;
+      anvilInstance.forkUrl = forkUrl;
+      anvilInstance.chainId = chainId;
 
       process.once('exit', () => anvilInstance?.kill());
 
@@ -67,7 +68,7 @@ export function runRpc({ port, forkUrl, chainId }: RpcOptions): Promise<ChildPro
           reject(
             new Error(`Anvil failed to start: ${err}
 
-Though it is not necessary for your hardhat project, Foundry is required to use Cannon. 
+Though it is not necessary for your hardhat project, Foundry is required to use Cannon.
 
 Ensure you have foundry and anvil installed by running the following commands:
 
@@ -100,7 +101,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
       });
     }),
-    timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start'),
+    timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start') as Promise<CannonRpcNode>,
   ]);
 }
 
