@@ -17,6 +17,7 @@ import { interact } from '../interact';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
+import _ from 'lodash';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -84,10 +85,11 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     await provider.send('hardhat_impersonateAccount', [addr]);
     await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
 
-    signers.push(provider.getSigner(addr));
-
     return provider.getSigner(addr);
   };
+
+  // ensure we have at least one signer in the signers array
+  signers.push(await getSigner('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'));
 
   for (const pkg of packages) {
     const { name, version } = pkg;
@@ -111,13 +113,18 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         baseDir: options.projectDirectory,
         savedPackagesDir: options.cannonDirectory,
         getSigner,
-        getDefaultSigner: () => getSigner(''),
+        getDefaultSigner: () => getSigner('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'),
       });
 
       // we want to preserve the same options on build (unless they are overridden with the run configuration)
       const outputs = await builder.build(manifest.deploys[networkInfo.chainId.toString()]['main'].options);
 
       buildOutputs.push({ pkg, outputs });
+
+      // ensure the provider will be aware of all the artifacts (for now just merge them together)
+      // TODO: if two packages have contracts or etc. same name artifacts will get mangled together
+      // so perhaps we could just merge them together onto a virtual "super" cannon package?
+      _.assign(provider.artifacts, outputs);
     } else {
       console.log(magentaBright(`Building ${name}:${version}...`));
 

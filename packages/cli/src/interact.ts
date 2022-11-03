@@ -309,7 +309,7 @@ async function execTxn({
     console.log(gray(`  > gas: ${JSON.stringify(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'))}`));
     console.log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
-    console.error(red('Error: Could not populate transaction (is it failing?)'));
+    console.error(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
   }
 
   if (signer != null) {
