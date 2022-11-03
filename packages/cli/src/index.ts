@@ -123,21 +123,21 @@ program
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option(
-    '--registry-ipfs-url [https://...]',
+    '--registry-ipfs-url <https://...>',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
   )
   .option(
-    '--registry-ipfs-authorization-header [ipfsAuthorizationHeader]',
+    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
     'Authorization header for requests to the IPFS endpoint'
   )
   .option(
-    '--registry-rpc-url [https://...]',
+    '--registry-rpc-url <https://...>',
     'Network endpoint for interacting with the registry',
     DEFAULT_REGISTRY_ENDPOINT
   )
+  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('--registry-address [0x...]', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -267,7 +267,7 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --apiKey <apiKey>', 'Etherscan API key')
   .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.network, options.directory);
@@ -286,7 +286,7 @@ program
   .command('inspect')
   .description('Inspect the details of a Cannon package')
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-j --json', 'Output as JSON')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
@@ -298,19 +298,30 @@ program
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
-  .option('-a --registryAddress <registryAddress>', 'Address for a custom package registry', DEFAULT_REGISTRY_ADDRESS)
-  .option('-r --registryEndpoint <registryEndpoint>', 'Address for RPC endpoint for the registry', DEFAULT_REGISTRY_ENDPOINT)
-  .option('-e --ipfsEndpoint <ipfsEndpoint>', 'Address for an IPFS endpoint')
-  .option('-h --ipfsAuthorizationHeader <ipfsAuthorizationHeader>', 'Authorization header for requests to the IPFS endpoint')
+  .option(
+    '--registry-ipfs-url <https://...>',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
+    'Authorization header for requests to the IPFS endpoint'
+  )
+  .option(
+    '--registry-rpc-url <https://...>',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
     let registrationOptions: PublishRegistrationOptions | undefined = undefined;
 
-    if (options.registryEndpoint && options.privateKey) {
-      const provider = new ethers.providers.JsonRpcProvider(options.registryEndpoint);
+    if (options.registryRpcUrl && options.privateKey) {
+      const provider = new ethers.providers.JsonRpcProvider(options.registryRpcUrl);
       const wallet = new ethers.Wallet(options.privateKey, provider);
 
       registrationOptions = {
@@ -334,8 +345,8 @@ program
       options.directory,
       packageName,
       options.tags,
-      options.ipfsEndpoint,
-      options.ipfsAuthorizationHeader,
+      options.registryIpfsUrl,
+      options.registryIpfsAuthorizationHeader,
       registrationOptions
     );
   });
@@ -344,7 +355,7 @@ program
   .command('import')
   .description('Import a Cannon package from a zip archive')
   .argument('<importFile>', 'Relative path and filename to package archive')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (importFile, options) {
     const { importPackage } = await import('./commands/import');
     await importPackage(options.directory, importFile);
@@ -355,7 +366,7 @@ program
   .description('Export a Cannon package as a zip archive')
   .argument('<packageName>', 'Name and version of the cannon package to export')
   .argument('[outputFile]', 'Relative path and filename to export package archive')
-  .option('-d --directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (packageName, outputFile, options) {
     const { exportPackage } = await import('./commands/export');
     await exportPackage(options.directory, outputFile, packageName);
