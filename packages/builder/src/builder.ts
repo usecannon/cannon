@@ -21,7 +21,13 @@ import { CANNON_CHAIN_ID } from './constants';
 
 import { ChainDefinition, ActionKinds, RawChainDefinition, StateLayers } from './definition';
 
-import { getExecutionSigner, getStoredArtifact, passThroughArtifact, printChainDefinitionProblems } from './util';
+import {
+  getExecutionSigner,
+  getStoredArtifact,
+  passThroughArtifact,
+  passThroughSigner,
+  printChainDefinitionProblems,
+} from './util';
 import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
 
 const debug = Debug('cannon:builder');
@@ -88,7 +94,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     baseDir,
     savedPackagesDir,
   }: Partial<ChainBuilderRuntime> &
-    Pick<ChainBuilderRuntime, 'provider' | 'getSigner'> & {
+    Pick<ChainBuilderRuntime, 'provider'> & {
       name: string;
       version: string;
       chainId: number;
@@ -97,6 +103,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       readMode?: StorageMode;
       writeMode?: StorageMode;
       savedPackagesDir?: string;
+      getSigner: (addr: string) => Promise<ethers.Signer | null>;
     }) {
     super();
 
@@ -119,7 +126,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     }
     this.provider = provider;
     this.baseDir = baseDir || null;
-    this.getSigner = getSigner;
+    this.getSigner = _.partial(passThroughSigner, getSigner);
     this.getDefaultSigner = getDefaultSigner || ((txn, salt) => getExecutionSigner(provider, txn, salt));
     this.getArtifact = getArtifact
       ? _.partial(passThroughArtifact, this.packageDir, getArtifact)
