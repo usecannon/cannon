@@ -3,7 +3,8 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers } from 'hardhat';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { ethers } = require('hardhat');
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -22,9 +23,13 @@ async function main() {
   console.log('Greeter deployed to:', greeter.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+async function empty() {
+  console.log('empty from script invoked');
+
+  return {};
+}
+
+module.exports = {
+  main,
+  empty,
+};
