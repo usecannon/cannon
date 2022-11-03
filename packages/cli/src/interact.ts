@@ -478,7 +478,9 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
 
             console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
           }
-        } catch (err) {}
+        } catch (err) {
+          // nothing
+        }
       }
 
       if (!foundLog) {

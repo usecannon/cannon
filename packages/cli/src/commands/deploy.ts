@@ -17,6 +17,7 @@ import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
 import fs from 'fs';
 import { red } from 'chalk';
+import { createSigners } from '../util/params';
 
 interface DeployOptions {
   packageDefinition: PackageDefinition;
@@ -195,26 +196,4 @@ export async function deploy(options: DeployOptions) {
   cannonProvider.artifacts = outputs;
 
   return { outputs, signers, provider: cannonProvider };
-}
-
-function createSigners(provider: CannonWrapperGenericProvider, options: DeployOptions): ethers.Signer[] {
-  const signers: ethers.Signer[] = [];
-
-  if (options.privateKey) {
-    if (options.privateKey.includes(',')) {
-      for (const pkey in options.privateKey.split(',')) {
-        signers.push(new ethers.Wallet(pkey, provider));
-      }
-    } else {
-      signers.push(new ethers.Wallet(options.privateKey, provider));
-    }
-  } else if (options.mnemonic) {
-    for (let i = 0; i < 10; i++) {
-      signers.push(ethers.Wallet.fromMnemonic(options.mnemonic, `m/44'/60'/0'/0/${i}`).connect(provider));
-    }
-  } else if (options.impersonate && options.dryRun) {
-    signers.push(provider.getSigner(options.impersonate));
-  }
-
-  return signers;
 }

@@ -18,6 +18,7 @@ import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import _ from 'lodash';
+import { getContractsRecursive } from '../util/contracts-recursive';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -88,8 +89,12 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     return provider.getSigner(addr);
   };
 
-  // ensure we have at least one signer in the signers array
-  signers.push(await getSigner('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'));
+  // set up signers
+  for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
+    await provider.send('hardhat_impersonateAccount', [addr]);
+    await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+    signers = [provider.getSigner(addr)];
+  }
 
   for (const pkg of packages) {
     const { name, version } = pkg;
@@ -117,7 +122,9 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       });
 
       // we want to preserve the same options on build (unless they are overridden with the run configuration)
-      const outputs = await builder.build(manifest.deploys[networkInfo.chainId.toString()]['main'].options);
+      const outputs = await builder.build(
+        _.assign(manifest.deploys[networkInfo.chainId.toString()]['main'].options, pkg.settings)
+      );
 
       buildOutputs.push({ pkg, outputs });
 
@@ -136,15 +143,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         persist: false,
         deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
       });
-
-      // todo: this is a bit of a dup
-      if (options.impersonate) {
-        for (const addr of options.impersonate.split(',')) {
-          await provider.send('hardhat_impersonateAccount', [addr]);
-          await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-          signers = [provider.getSigner(addr)];
-        }
-      }
 
       buildOutputs.push({ pkg, outputs });
     }
@@ -218,24 +216,6 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       console.log(INSTRUCTIONS);
     }
   });
-}
-
-function getContractsRecursive(
-  outputs: ChainBuilderContext,
-  signer: ethers.Signer,
-  prefix?: string
-): {
-  [x: string]: ethers.Contract;
-} {
-  let contracts = mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signer));
-  if (prefix) {
-    contracts = mapKeys(contracts, (_, contractName) => `${prefix}.${contractName}`);
-  }
-  for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
-    contracts = { ...contracts, ...newContracts };
-  }
-  return contracts;
 }
 
 async function createLoggingInterface(node: CannonRpcNode) {
