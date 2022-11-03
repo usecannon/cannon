@@ -348,7 +348,7 @@ ${printChainDefinitionProblems(problems)}`);
           // even if this step has already been completed, there is a possibility that prior steps were executed and had unrelated changes
           // since context is only able to add context, its safe to apply properties to downstream
 
-          const newCtx = { ...thisStepCtx, ...ctx };
+          const newCtx = { ...ctx, ...thisStepCtx };
 
           completed.set(n, newCtx);
 

@@ -149,12 +149,7 @@ export async function build({
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!wipe) {
     try {
-      await registry.downloadPackageChain(
-        `${packageDefinition.name}:${packageDefinition.version}`,
-        CANNON_CHAIN_ID,
-        preset,
-        cannonDirectory
-      );
+      await registry.ensureDownloadedFullPackage(`${packageDefinition.name}:${packageDefinition.version}`, cannonDirectory);
       console.log('Downloaded package from registry');
     } catch (err) {
       console.log('No existing build found on-chain for this package.');

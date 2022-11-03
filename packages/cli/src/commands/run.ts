@@ -1,7 +1,14 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
-import { ChainBuilderContext, downloadPackagesRecursive } from '@usecannon/builder';
+import {
+  ChainBuilder,
+  ChainBuilderContext,
+  downloadPackagesRecursive,
+  getAllDeploymentInfos,
+  getPackageDir,
+  getSavedPackagesDir,
+} from '@usecannon/builder';
 import { PackageDefinition } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -9,7 +16,6 @@ import createRegistry from '../registry';
 import { interact } from '../interact';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
-import { deploy } from './deploy';
 import { build } from './build';
 
 export interface RunOptions {
@@ -73,22 +79,45 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
 
   let signers: ethers.Signer[] = [];
 
+  const getSigner = async (addr: string) => {
+    // on test network any user can be conjured
+    await provider.send('hardhat_impersonateAccount', [addr]);
+    await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+
+    signers.push(provider.getSigner(addr));
+
+    return provider.getSigner(addr);
+  };
+
   for (const pkg of packages) {
     const { name, version } = pkg;
 
     if (node.forkUrl) {
       console.log(magentaBright(`Fork-deploying ${name}:${version}...`));
 
-      const { outputs, signers: deploySigners } = await deploy({
-        ...options,
+      const manifest = await getAllDeploymentInfos(getPackageDir(getSavedPackagesDir(), name, version));
+
+      const builder = new ChainBuilder({
+        name: pkg.name,
+        version: pkg.version,
+        def: manifest.deploys[networkInfo.chainId.toString()]['main'].def || manifest.def,
+        preset: options.preset,
+
+        readMode: 'metadata',
+        writeMode: 'none',
+
         provider,
-        packageDefinition: pkg,
-        dryRun: false,
-        deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
+        chainId: networkInfo.chainId,
+        baseDir: options.projectDirectory,
+        savedPackagesDir: options.cannonDirectory,
+        getSigner,
+        getDefaultSigner: () => getSigner(''),
       });
 
+      // we want to preserve the same options on build (unless they are overridden with the run configuration)
+      const outputs = await builder.build(manifest.deploys[networkInfo.chainId.toString()]['main'].options);
+
       buildOutputs.push({ pkg, outputs });
-      signers = deploySigners;
     } else {
       console.log(magentaBright(`Building ${name}:${version}...`));
 

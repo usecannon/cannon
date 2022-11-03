@@ -15,7 +15,7 @@ import {
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
-import { runRpc } from './rpc';
+import { CannonRpcNode, runRpc } from './rpc';
 
 export * from './types';
 export * from './constants';
@@ -91,10 +91,20 @@ function configureRun(program: Command) {
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
 
-      const node = await runRpc({
-        port: Number.parseInt(options.port) || 8545,
-        forkUrl: options.fork,
-      });
+      const port = Number.parseInt(options.port) || 8545;
+
+      let node: CannonRpcNode;
+      if (options.fork) {
+        const networkInfo = await new ethers.providers.JsonRpcProvider(options.fork).getNetwork();
+
+        node = await runRpc({
+          port,
+          forkUrl: options.fork,
+          chainId: networkInfo.chainId,
+        });
+      } else {
+        node = await runRpc({ port });
+      }
 
       if (options.projectDirectory) {
         options.projectDirectory = path.resolve(options.projectDirectory);

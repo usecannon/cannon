@@ -170,15 +170,13 @@ export async function deploy(options: DeployOptions) {
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!options.wipe) {
     try {
-      await registry.downloadPackageChain(
+      await registry.ensureDownloadedFullPackage(
         `${options.packageDefinition.name}:${options.packageDefinition.version}`,
-        chainId,
-        options.preset,
         options.cannonDirectory
       );
-      console.log(`Downloaded this package artifacts for ${chainId}, ${options.preset}`);
+      //console.log(`Downloaded this package artifacts for ${chainId}, ${options.preset}`);
     } catch (err) {
-      console.log('No existing build found on-chain for this package.');
+      //console.log('No existing build found on-chain for this package.');
     }
   }
 
