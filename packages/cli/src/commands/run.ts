@@ -151,12 +151,16 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + node.port)}`
       )
     );
+
+    if (node.forkUrl) {
+      console.log(gray(`Running from fork ${bold(node.forkUrl)}`));
+    }
   }
 
   if (!signers.length) {
     console.warn(
       yellow(
-        'WARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
+        '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
       )
     );
   }

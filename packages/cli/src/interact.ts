@@ -497,9 +497,9 @@ function logTxFail(error: any) {
     if (typeof error === 'string') {
       return error;
     } else {
-      if (error.hasOwn('reason')) {
+      if (_.get(error, 'reason')) {
         return error.reason;
-      } else if (error.hasOwn('error')) {
+      } else if (_.get(error, 'error')) {
         return findReason(error.error);
       }
     }

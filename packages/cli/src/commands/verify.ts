@@ -1,10 +1,9 @@
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
 import untildify from 'untildify';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
-import { ChainName } from '../types';
 import { parsePackageRef } from '../util/params';
 
-export async function verify(packageRef: string, apiKey: string, network: ChainName, cannonDirectory: string) {
+export async function verify(packageRef: string, apiKey: string, network: string, cannonDirectory: string) {
   await setupAnvil();
   const { name, version } = parsePackageRef(packageRef);
   cannonDirectory = untildify(cannonDirectory);
