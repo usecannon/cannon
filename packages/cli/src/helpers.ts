@@ -12,7 +12,8 @@ import {
   RawChainDefinition,
   ChainBuilderContext,
 } from '@usecannon/builder';
-import { ChainId, ChainName } from './types';
+import { chains } from './chains';
+import { IChainData } from './types';
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -133,11 +134,19 @@ export function findPackage(cannonDirectory: string, packageName: string, packag
   }
 }
 
-export function getChainName(chainId: ChainId): string {
-  return ChainId[chainId] || 'unknown';
+export function getChainName(chainId: number): string {
+  if (chainId == CANNON_CHAIN_ID) return 'cannon';
+  if (chainId == 31337) return 'hardhat';
+  return chains.find((c: IChainData) => c.chainId == chainId)?.name || 'unknown';
 }
 
-export function getChainId(chainName: ChainName): number {
-  if (!ChainId[chainName]) throw new Error(`Invalid chain "${chainName}"`);
-  return ChainId[chainName];
+export function getChainId(chainName: string): number {
+  if (chainName == 'cannon') return CANNON_CHAIN_ID;
+  if (chainName == 'hardhat') return 31337;
+  const chainData = chains.find((c: IChainData) => c.name == chainName);
+  if (!chainData) {
+    throw new Error(`Invalid chain "${chainName}"`);
+  } else {
+    return chainData.chainId;
+  }
 }

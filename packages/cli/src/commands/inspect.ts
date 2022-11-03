@@ -50,8 +50,8 @@ function renderPreset(presetName: string, presetData: DeploymentInfo) {
   console.log(`${bold(presetName)}${presetName == 'main' ? gray(' (Default)') : ''}: ${publishedStatus}`);
 
   if (Object.keys(presetData.options).length !== 0) {
-    console.log(gray('Options'));
-    console.log(JSON.stringify(presetData.options, null, 2));
+    console.log('\nOptions');
+    console.log(gray(JSON.stringify(presetData.options, null, 2)));
     console.log('');
   }
 }
