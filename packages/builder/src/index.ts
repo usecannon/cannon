@@ -1,5 +1,4 @@
 import path from 'path';
-import { existsSync } from 'fs-extra';
 import { ChainDefinition } from './definition';
 import { CannonRegistry } from './registry';
 import { getSavedPackagesDir, getActionFiles, getPackageDir, getAllDeploymentInfos } from './storage';
@@ -40,35 +39,33 @@ export async function downloadPackagesRecursive(
     getActionFiles(getPackageDir(packagesDir, name, tag), chainId, preset || 'main', 'sample').basename
   );
 
-  if (!existsSync(depdir)) {
-    await registry.downloadPackageChain(pkg, chainId, preset || 'main', packagesDir);
+  await registry.ensureDownloadedFullPackage(pkg, packagesDir);
 
-    const info = await getAllDeploymentInfos(depdir);
+  const info = await getAllDeploymentInfos(depdir);
 
-    const def = new ChainDefinition(info.def);
+  const def = new ChainDefinition(info.def);
 
-    const dependencies = def.getRequiredImports({
-      package: info.npmPackage,
-      chainId,
+  const dependencies = def.getRequiredImports({
+    package: info.npmPackage,
+    chainId,
 
-      timestamp: '0',
-      settings: {},
+    timestamp: '0',
+    settings: {},
 
-      contracts: {},
-      txns: {},
-      imports: {},
-    });
+    contracts: {},
+    txns: {},
+    imports: {},
+  });
 
-    for (const dependency of dependencies) {
-      await downloadPackagesRecursive(
-        dependency.source,
-        dependency.chainId,
-        dependency.preset,
-        registry,
-        provider,
-        packagesDir
-      );
-    }
+  for (const dependency of dependencies) {
+    await downloadPackagesRecursive(
+      dependency.source,
+      dependency.chainId,
+      dependency.preset,
+      registry,
+      provider,
+      packagesDir
+    );
   }
 }
 

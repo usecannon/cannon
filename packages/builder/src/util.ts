@@ -114,6 +114,22 @@ export async function passThroughArtifact(
   return artifact;
 }
 
+export async function passThroughSigner(
+  getSigner: (addr: string) => Promise<ethers.Signer | null>,
+  addr: string
+): Promise<ethers.Signer> {
+  const signer = await getSigner(addr);
+
+  if (!signer) {
+    throw new Error(`signer not provided for address ${addr}
+    
+This error occurs becuase your cannonfile is requesting to sign a transaction, but the corresponding signer has not been made
+available in your configuration. Please double check your configuration & integrations and try again.`);
+  }
+
+  return signer;
+}
+
 export async function clearArtifacts(packageDir: string) {
   await fs.rm(packageDir, { recursive: true });
 }

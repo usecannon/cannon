@@ -51,10 +51,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     }
 
     for (const c in outputs.contracts) {
-      if (
-        _.get(outputs, ['contracts', c, 'sourceName']) &&
-        _.get(outputs, _.get(outputs, ['contracts', c, 'contractName']))
-      ) {
+      if (_.has(outputs, ['contracts', c, 'sourceName']) && _.has(outputs, ['contracts', c, 'contractName'])) {
         console.log('Verifying contract:', c);
         try {
           await hre.run('verify:verify', {
@@ -70,7 +67,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
           );
         }
       } else {
-        console.log(`Skipping ${c}: Source or contract name has not been set.`);
+        console.log(`Skipping ${c}: sourceName or contractName has not been set.`);
       }
     }
   });

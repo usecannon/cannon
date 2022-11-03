@@ -38,7 +38,16 @@ export default {
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan) => {
-      return hashFs(pathToScan).toString('hex');
+      try {
+        return hashFs(pathToScan).toString('hex');
+      } catch (err) {
+        if ((err as any).code === 'ENOENT') {
+          console.warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
+          return 'notfound';
+        } else {
+          throw err;
+        }
+      }
     });
 
     // also hash the executed file itself
@@ -88,9 +97,9 @@ export default {
 
     const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
 
-    if (!outputs.contracts && !outputs.txns) {
+    if (!_.isObject(outputs)) {
       throw new Error(
-        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed, return an empty object.'
+        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed or transactions were run, return an empty object.'
       );
     }
 

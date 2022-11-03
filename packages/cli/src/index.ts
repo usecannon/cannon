@@ -2,10 +2,17 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
-import { ContractArtifact } from '@usecannon/builder';
+import {
+  CannonWrapperGenericProvider,
+  ChainBuilder,
+  ContractArtifact,
+  getAllDeploymentInfos,
+  getPackageDir,
+  getSavedPackagesDir,
+} from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
 import { PackageDefinition } from './types';
@@ -15,7 +22,7 @@ import {
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
-import { runRpc } from './rpc';
+import { CannonRpcNode, runRpc } from './rpc';
 
 export * from './types';
 export * from './constants';
@@ -23,6 +30,8 @@ export * from './util/params';
 
 import { RegistrationOptions as PublishRegistrationOptions } from './commands/publish';
 import prompts from 'prompts';
+import { interact } from './interact';
+import { getContractsRecursive } from './util/contracts-recursive';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -67,7 +76,7 @@ function configureRun(program: Command) {
     .option('--project-directory <directory>', 'Path to a custom running environment directory')
     .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
-      '--registry-ipfs-url <https://...>',
+      '--registry-ipfs-url <https://something.com/ipfs/>',
       'URL of the JSON-RPC server used to query the registry',
       DEFAULT_REGISTRY_IPFS_ENDPOINT
     )
@@ -76,11 +85,11 @@ function configureRun(program: Command) {
       'Authorization header for requests to the IPFS endpoint'
     )
     .option(
-      '--registry-rpc-url <https://...>',
+      '--registry-rpc-url <https://something.com/ipfs/>',
       'Network endpoint for interacting with the registry',
       DEFAULT_REGISTRY_ENDPOINT
     )
-    .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+    .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
       '--impersonate <address>',
@@ -92,10 +101,20 @@ function configureRun(program: Command) {
     .action(async function (packages: PackageDefinition[], options, program) {
       const { run } = await import('./commands/run');
 
-      const node = await runRpc({
-        port: Number.parseInt(options.port) || 8545,
-        forkUrl: options.fork,
-      });
+      const port = Number.parseInt(options.port) || 8545;
+
+      let node: CannonRpcNode;
+      if (options.fork) {
+        const networkInfo = await new ethers.providers.JsonRpcProvider(options.fork).getNetwork();
+
+        node = await runRpc({
+          port,
+          forkUrl: options.fork,
+          chainId: networkInfo.chainId,
+        });
+      } else {
+        node = await runRpc({ port });
+      }
 
       if (options.projectDirectory) {
         options.projectDirectory = path.resolve(options.projectDirectory);
@@ -123,7 +142,7 @@ program
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option(
-    '--registry-ipfs-url <https://...>',
+    '--registry-ipfs-url <https://something.com/ipfs/>',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
   )
@@ -132,12 +151,13 @@ program
     'Authorization header for requests to the IPFS endpoint'
   )
   .option(
-    '--registry-rpc-url <https://...>',
+    '--registry-rpc-url <https://something.com/ipfs/>',
     'Network endpoint for interacting with the registry',
     DEFAULT_REGISTRY_ENDPOINT
   )
   .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -217,7 +237,7 @@ program
   .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
   .option('--wipe', 'Delete old, and do not attempt to download any from the repository')
   .option(
-    '--registry-ipfs-url <https://...>',
+    '--registry-ipfs-url <https://something.com/ipfs>',
     'URL of the JSON-RPC server used to query the registry',
     DEFAULT_REGISTRY_IPFS_ENDPOINT
   )
@@ -226,11 +246,11 @@ program
     'Authorization header for requests to the IPFS endpoint'
   )
   .option(
-    '--registry-rpc-url <https://...>',
+    '--registry-rpc-url <https://something.com/>',
     'Network endpoint for interacting with the registry',
     DEFAULT_REGISTRY_ENDPOINT
   )
-  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageDefinition, opts) {
     const { deploy } = await import('./commands/deploy');
 
@@ -370,6 +390,57 @@ program
   .action(async function (packageName, outputFile, options) {
     const { exportPackage } = await import('./commands/export');
     await exportPackage(options.directory, outputFile, packageName);
+  });
+
+program
+  .command('interact')
+  .description('Start an interactive terminal against a set of active cannon deployments')
+  .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
+  .option('-n --network <https://something.com/whatever>', 'URL to a JSONRPC endpoint to use for transactions')
+  .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
+  .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
+  .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
+  .action(async function (packageDefinition, opts) {
+    const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), false);
+    const signers = createSigners(provider, opts);
+
+    const networkInfo = await provider.getNetwork();
+
+    const manifest = await getAllDeploymentInfos(
+      getPackageDir(getSavedPackagesDir(), packageDefinition.name, packageDefinition.version)
+    );
+
+    const builder = new ChainBuilder({
+      name: packageDefinition.name,
+      version: packageDefinition.version,
+      def: manifest.deploys[networkInfo.chainId.toString()][opts.preset].def || manifest.def,
+      preset: opts.preset,
+
+      readMode: 'metadata',
+      writeMode: 'none',
+
+      provider,
+      chainId: networkInfo.chainId,
+      savedPackagesDir: opts.cannonDirectory,
+      getSigner: async () => signers[0],
+    });
+
+    const outputs = await builder.getOutputs();
+
+    if (!outputs) {
+      throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${opts.preset}. Did you mean to run instead?`);
+    }
+
+    const contracts = [getContractsRecursive(outputs, signers[0])];
+
+    provider.artifacts = outputs;
+
+    await interact({
+      packages: [packageDefinition],
+      contracts,
+      signer: signers[0],
+      provider,
+    });
   });
 
 export default program;

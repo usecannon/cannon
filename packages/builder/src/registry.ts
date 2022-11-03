@@ -14,6 +14,7 @@ import AdmZip from 'adm-zip';
 import CannonRegistryAbi from './abis/CannonRegistry.json';
 
 import fetch from 'node-fetch';
+import _ from 'lodash';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -126,45 +127,82 @@ export class CannonRegistry {
     }
   }
 
-  async downloadPackageChain(
+  async ensureDownloadedManifest(image: string, packagesDir?: string): Promise<DeploymentManifest> {
+    const [name, tag] = image.split(':');
+    const packageDir = getPackageDir(packagesDir || getSavedPackagesDir(), name, tag);
+
+    const existingManifest = await getAllDeploymentInfos(packageDir);
+
+    if (_.get(existingManifest, 'def.name')) {
+      return existingManifest;
+    }
+
+    await fs.mkdirp(packageDir);
+
+    try {
+      const manifest = await this.queryDeploymentInfo(name, tag);
+
+      if (!manifest) {
+        throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
+      }
+
+      await fs.writeJson(getDeploymentInfoFile(packageDir), manifest);
+
+      // always download misc files at the same time
+      const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
+      const miscZip = new AdmZip(miscBuf);
+      await miscZip.extractAllTo(packageDir, true);
+
+      return manifest;
+    } catch (err) {
+      await fs.rmdir(packageDir);
+      throw err;
+    }
+  }
+
+  async ensureDownloadedFullPackage(image: string, packagesDir?: string): Promise<DeploymentManifest> {
+    const manifest = await this.ensureDownloadedManifest(image, packagesDir);
+
+    for (const chainId in manifest.deploys) {
+      for (const preset in manifest.deploys[chainId]) {
+        await this.ensureDownloadedPackageChain(image, parseInt(chainId), preset, packagesDir);
+      }
+    }
+
+    return manifest;
+  }
+
+  async ensureDownloadedPackageChain(
     image: string,
     chainId: number,
     preset?: string,
     packagesDir?: string
   ): Promise<DeploymentInfo | null> {
     const [name, tag] = image.split(':');
+    const packageDir = getPackageDir(packagesDir || getSavedPackagesDir(), name, tag);
 
     preset = preset ?? 'main';
 
-    const manifest = await this.queryDeploymentInfo(name, tag);
+    const deploymentDir = path.dirname(getActionFiles(packageDir, chainId, preset, 'sample').basename);
 
-    if (!manifest) {
-      throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
-    }
-
-    const packageDir = getPackageDir(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version);
-
-    await fs.mkdirp(packageDir);
-    await fs.writeJson(getDeploymentInfoFile(packageDir), manifest);
+    const manifest = await this.ensureDownloadedManifest(image, packagesDir);
 
     if (!manifest.deploys[chainId.toString()] || !manifest.deploys[chainId][preset]) {
       // if we have manifest but no chain files, treat it as undeployed build
       return null;
     }
 
-    // whats nice about this is it will import to the actual directory it belongs to so we can link it later
-    const buf = await this.readIpfs(manifest.deploys[chainId.toString()][preset].ipfsHash);
-    const zip = new AdmZip(buf);
+    // only download if deployment not found
+    if (!fs.existsSync(deploymentDir)) {
+      // whats nice about this is it will import to the actual directory it belongs to so we can link it later
+      const buf = await this.readIpfs(manifest.deploys[chainId.toString()][preset].ipfsHash);
+      const zip = new AdmZip(buf);
 
-    const dir = path.dirname(getActionFiles(packageDir, chainId, preset, 'sample').basename);
-    await zip.extractAllTo(dir, true);
+      await zip.extractAllTo(deploymentDir, true);
 
-    const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
-    const miscZip = new AdmZip(miscBuf);
-    await miscZip.extractAllTo(packageDir, true);
-
-    // imported chain may be of a different version (or `source`) from the actual requested tag. Make sure we link if necessary
-    await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
+      // imported chain may be of a different version (or `source`) from the actual requested tag. Make sure we link if necessary
+      await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
+    }
 
     return manifest.deploys[chainId.toString()][preset];
   }
