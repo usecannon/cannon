@@ -456,26 +456,33 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
 
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
-    const contractsByAddress = _.keyBy(ctx.contracts, 'address');
+    const contractsByAddress = _.groupBy(_.flatten(ctx.contracts.map(_.values)), 'address');
 
     for (let i = 0; i < receipt.logs.length; i++) {
       const log = receipt.logs[i];
 
-      try {
-        // find contract matching address of the log
-        const logContract = contractsByAddress[log.address];
+      // find contract matching address of the log
+      const logContracts = contractsByAddress[log.address];
 
-        const parsedLog = logContract.interface.parseLog(log);
-        console.log(gray(`    log ${i}:`), cyan(parsedLog.name));
+      let foundLog = false;
+      for (const logContract of logContracts) {
+        try {
+          const parsedLog = logContract.interface.parseLog(log);
 
-        for (let i = 0; i < (parsedLog.args.length || 0); i++) {
-          const output = parsedLog.args[i];
-          const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+          foundLog = true;
+          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name));
 
-          console.log(cyan(`  ↪ ${output.name || ''}(${output.type}):`), printReturnedValue(paramType, output));
-        }
-      } catch (err) {
-        console.log(gray(`    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
+          for (let i = 0; i < (parsedLog.args.length || 0); i++) {
+            const output = parsedLog.args[i];
+            const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+
+            console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
+          }
+        } catch (err) {}
+      }
+
+      if (!foundLog) {
+        console.log(gray(`\n    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
       }
     }
   }
