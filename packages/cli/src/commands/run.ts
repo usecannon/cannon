@@ -1,6 +1,5 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import { mapKeys, mapValues } from 'lodash';
 import {
   ChainBuilder,
   ChainBuilderContext,
