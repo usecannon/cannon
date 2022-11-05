@@ -137,8 +137,6 @@ export class CannonRegistry {
       return existingManifest;
     }
 
-    await fs.mkdirp(packageDir);
-
     try {
       const manifest = await this.queryDeploymentInfo(name, tag);
 
@@ -146,16 +144,30 @@ export class CannonRegistry {
         throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
       }
 
-      await fs.writeJson(getDeploymentInfoFile(packageDir), manifest);
+      const actualPackageDir = getPackageDir(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version);
+
+      await fs.mkdirp(actualPackageDir);
+
+      await fs.writeJson(getDeploymentInfoFile(actualPackageDir), manifest);
 
       // always download misc files at the same time
       const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
       const miscZip = new AdmZip(miscBuf);
-      await miscZip.extractAllTo(packageDir, true);
+      await miscZip.extractAllTo(actualPackageDir, true);
+
+      if (name !== manifest.def.name || tag !== manifest.def.version) {
+        await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
+      }
 
       return manifest;
     } catch (err) {
-      await fs.rmdir(packageDir);
+      try {
+        // try to delete the mess we created
+        await fs.rmdir(packageDir);
+      } catch (_) {
+        // do nothing here
+      }
+
       throw err;
     }
   }
@@ -199,9 +211,6 @@ export class CannonRegistry {
       const zip = new AdmZip(buf);
 
       await zip.extractAllTo(deploymentDir, true);
-
-      // imported chain may be of a different version (or `source`) from the actual requested tag. Make sure we link if necessary
-      await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
     }
 
     return manifest.deploys[chainId.toString()][preset];
