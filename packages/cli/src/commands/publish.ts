@@ -7,6 +7,7 @@ import { parsePackageRef } from '../util/params';
 export interface RegistrationOptions {
   signer: ethers.Signer;
   registryAddress: string;
+  overrides?: ethers.Overrides;
 }
 
 export async function publish(
@@ -58,7 +59,13 @@ export async function publish(
       console.log(`Register package ${manifest.def.name}:${manifest.def.version} (tags:)...`);
     }
 
-    const txn = await registry.publish(manifest.def.name, manifest.def.version, splitTags, ipfsHash);
+    const txn = await registry.publish(
+      manifest.def.name,
+      manifest.def.version,
+      splitTags,
+      ipfsHash,
+      registrationOptions.overrides
+    );
 
     if (!quiet) {
       console.log('Publish Txn:', txn.transactionHash, txn.status);

@@ -3,7 +3,8 @@ import { bold, yellowBright } from 'chalk';
 import { TASK_PUBLISH } from '../task-names';
 import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli';
 import { RegistrationOptions } from '@usecannon/cli/dist/src/commands/publish';
-import { Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
+import _ from 'lodash';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addPositionalParam('packageName', 'Name and version of the package to publish')
@@ -20,6 +21,13 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addOptionalParam('ipfsEndpoint', 'Address for an IPFS endpoint')
   .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+
+  .addOptionalParam('gasLimit', 'The maximum units of gas spent for the registration transaction')
+  .addOptionalParam('maxFeePerGas', 'The maximum value (in gwei) for the base fee when submitting the registry transaction')
+  .addOptionalParam(
+    'maxPriorityFeePerGas',
+    'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
+  )
   .addFlag('skipRegister', 'Just upload to IPFS. Do not register the package on-chain')
   .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
   .setAction(
@@ -30,6 +38,9 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         privateKey,
         tags,
         registryAddress,
+        gasLimit,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
         ipfsEndpoint,
         ipfsAuthorizationHeader,
         skipRegister,
@@ -67,6 +78,22 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
 
         if (privateKey) {
           registrationOptions.signer = new Wallet(privateKey, hre.ethers.provider);
+        }
+
+        if (maxFeePerGas) {
+          _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(maxFeePerGas, 'gwei'));
+        }
+
+        if (maxPriorityFeePerGas) {
+          _.set(
+            registrationOptions,
+            'overrides.maxPriorityFeePerGas',
+            ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei')
+          );
+        }
+
+        if (gasLimit) {
+          _.set(registrationOptions, 'overrides.gasLimit', gasLimit);
         }
       }
 

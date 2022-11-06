@@ -1,5 +1,5 @@
 import path from 'path';
-import { ethers } from 'ethers';
+import { ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 
 import { associateTag } from './storage';
@@ -55,7 +55,13 @@ export class CannonRegistry {
     this.ipfs = create(ipfsOptions);
   }
 
-  async publish(name: string, version: string, tags: string[], url: string): Promise<ethers.providers.TransactionReceipt> {
+  async publish(
+    name: string,
+    version: string,
+    tags: string[],
+    url: string,
+    overrides?: Overrides
+  ): Promise<ethers.providers.TransactionReceipt> {
     if (!this.contract) {
       throw new Error('Contract not initialized');
     }
@@ -74,7 +80,8 @@ export class CannonRegistry {
       ethers.utils.formatBytes32String(name),
       ethers.utils.formatBytes32String(version),
       tags.map((t) => ethers.utils.formatBytes32String(t)),
-      url
+      url,
+      overrides
     );
 
     return await tx.wait();
