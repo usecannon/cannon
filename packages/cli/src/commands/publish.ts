@@ -1,5 +1,6 @@
-import { CannonRegistry } from '@usecannon/builder';
+import { CannonRegistry, getAllDeploymentInfos, getPackageDir, getSavedPackagesDir } from '@usecannon/builder';
 import { ethers } from 'ethers';
+import _ from 'lodash';
 import untildify from 'untildify';
 import { parsePackageRef } from '../util/params';
 
@@ -14,7 +15,8 @@ export async function publish(
   tags: string,
   ipfsEndpoint: string,
   ipfsAuthorizationHeader: string,
-  registrationOptions?: RegistrationOptions
+  registrationOptions?: RegistrationOptions,
+  quiet = false
 ) {
   cannonDirectory = untildify(cannonDirectory);
   const { name, version } = parsePackageRef(packageRef);
@@ -36,18 +38,44 @@ export async function publish(
 
   const ipfsHash = manifestIpfsInfo.cid.toV0().toString();
 
-  console.log('Uploaded to IPFS:', ipfsHash);
+  if (!quiet) {
+    console.log('Uploaded to IPFS:', ipfsHash);
+  }
+
+  const manifest = await getAllDeploymentInfos(getPackageDir(getSavedPackagesDir(), name, version));
+  let registerHash: string | null = null;
+
+  let splitTags = tags.split(',');
 
   if (registrationOptions) {
-    console.log(`Register package ${name}:${version}...`);
+    if (name === manifest.def.name && version !== manifest.def.version) {
+      splitTags.push(version);
+    }
 
-    const splitTags = tags.split(',');
-    const txn = await registry.publish(name, version, splitTags, ipfsHash);
+    splitTags = _.uniq(splitTags);
 
-    console.log('Publish Txn:', txn.transactionHash, txn.status);
+    if (!quiet) {
+      console.log(`Register package ${manifest.def.name}:${manifest.def.version} (tags:)...`);
+    }
+
+    const txn = await registry.publish(manifest.def.name, manifest.def.version, splitTags, ipfsHash);
+
+    if (!quiet) {
+      console.log('Publish Txn:', txn.transactionHash, txn.status);
+    }
+
+    registerHash = txn.transactionHash;
   } else {
     console.log('Skipping registration (registration parameters not specified).');
   }
 
-  console.log('Complete!');
+  console.log(
+    JSON.stringify({
+      name: manifest.def.name,
+      version: manifest.def.version,
+      tags: splitTags,
+      ipfsHash,
+      registerHash,
+    })
+  );
 }

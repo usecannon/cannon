@@ -21,9 +21,20 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .addFlag('skipRegister', 'Just upload to IPFS. Do not register the package on-chain')
+  .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
   .setAction(
     async (
-      { directory, packageName, privateKey, tags, registryAddress, ipfsEndpoint, ipfsAuthorizationHeader, skipRegister },
+      {
+        directory,
+        packageName,
+        privateKey,
+        tags,
+        registryAddress,
+        ipfsEndpoint,
+        ipfsAuthorizationHeader,
+        skipRegister,
+        quiet,
+      },
       hre
     ) => {
       if (hre.network.name == 'hardhat') {
@@ -59,6 +70,6 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         }
       }
 
-      await publish(directory, packageName, tags, ipfsEndpoint, ipfsAuthorizationHeader, registrationOptions);
+      await publish(directory, packageName, tags, ipfsEndpoint, ipfsAuthorizationHeader, registrationOptions, quiet);
     }
   );

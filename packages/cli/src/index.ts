@@ -320,6 +320,7 @@ program
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
+  .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
   .option(
     '--registry-ipfs-url <https://...>',
     'URL of the JSON-RPC server used to query the registry',
@@ -367,7 +368,8 @@ program
       options.tags,
       options.registryIpfsUrl,
       options.registryIpfsAuthorizationHeader,
-      registrationOptions
+      registrationOptions,
+      options.quiet
     );
   });
 

@@ -122,7 +122,9 @@ export async function associateTag(packagesDir: string, name: string, version: s
         `the directory at ${tagCacheDir} is not a symbolic link, but a tag should be associated here. If you intend to link a tag here, please delete this directory and try again.`
       );
     }
-  } catch (_) {}
+  } catch (_) {
+    // none
+  }
 
   await fs.symlink(mainCacheDir, tagCacheDir);
 }
