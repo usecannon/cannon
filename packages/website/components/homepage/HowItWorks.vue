@@ -101,7 +101,7 @@ export default {
   name: 'HowItWorks',
   methods: {
     copy(){
-      var textToCopy = "npx @usecannon/cli synthetix";
+      var textToCopy = "npx @usecannon/cli synthetix:3";
 
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
