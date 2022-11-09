@@ -7,7 +7,8 @@ import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, DeploymentMan
 import { ChainBuilder } from '../builder';
 import { getDeploymentInfoFile, getPackageDir } from '../storage';
 import { ChainDefinition } from '../definition';
-import { DeploymentInfo } from '..';
+import { CANNON_CHAIN_ID } from '../constants';
+import { DeploymentInfo } from '../types';
 
 const debug = Debug('cannon:builder:import');
 
@@ -78,7 +79,16 @@ export default {
       version,
       def: new ChainDefinition(deployInfo?.def || deployManifest.def),
       writeMode: 'none',
-      readMode: runtime.readMode,
+
+      // unfortunately the read mode can be quite complicated becuase cannon only builds certain files in certain contexts
+      // TODO: this needs a work
+      readMode:
+        runtime.readMode === 'none'
+          ? chainId === runtime.chainId.toString() && runtime.chainId === CANNON_CHAIN_ID
+            ? 'all'
+            : 'metadata'
+          : runtime.readMode,
+
       provider: runtime.provider,
       preset: preset,
       chainId: parseInt(chainId),
