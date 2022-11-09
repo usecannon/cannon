@@ -118,8 +118,10 @@ export async function build({
     chainId: CANNON_CHAIN_ID,
     baseDir: projectDirectory,
     savedPackagesDir: cannonDirectory,
-    // override the package directory to be an alternate to prevent clashing with registry packages or other sources
-    overridePackageDir: getPackageDir(cannonDirectory, '@local', `${packageDefinition.name}/${packageDefinition.version}`),
+    // if building locally, override the package directory to be an alternate to prevent clashing with registry packages or other sources
+    overridePackageDir: persist
+      ? getPackageDir(cannonDirectory, '@local', `${packageDefinition.name}/${packageDefinition.version}`)
+      : undefined,
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
