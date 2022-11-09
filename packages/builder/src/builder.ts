@@ -93,6 +93,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     provider,
     baseDir,
     savedPackagesDir,
+    overridePackageDir,
   }: Partial<ChainBuilderRuntime> &
     Pick<ChainBuilderRuntime, 'provider'> & {
       name: string;
@@ -103,6 +104,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
       readMode?: StorageMode;
       writeMode?: StorageMode;
       savedPackagesDir?: string;
+      overridePackageDir?: string;
       getSigner: (addr: string) => Promise<ethers.Signer | null>;
     }) {
     super();
@@ -111,7 +113,7 @@ export class ChainBuilder extends EventEmitter implements ChainBuilderRuntime {
     this.version = version;
 
     this.packagesDir = savedPackagesDir || getSavedPackagesDir();
-    this.packageDir = getPackageDir(this.packagesDir, name, version);
+    this.packageDir = overridePackageDir || getPackageDir(this.packagesDir, name, version);
 
     this.preset = preset ?? DEFAULT_PRESET;
 

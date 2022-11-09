@@ -151,7 +151,7 @@ export class CannonRegistry {
         throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
       }
 
-      const actualPackageDir = getPackageDir(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version);
+      const actualPackageDir = getPackageDir(packagesDir || getSavedPackagesDir(), '@ipfs', await this.getUrl(name, tag));
 
       await fs.mkdirp(actualPackageDir);
 
@@ -163,7 +163,7 @@ export class CannonRegistry {
       await miscZip.extractAllTo(actualPackageDir, true);
 
       if (name !== manifest.def.name || tag !== manifest.def.version) {
-        await associateTag(packagesDir || getSavedPackagesDir(), manifest.def.name, manifest.def.version, name, tag);
+        await associateTag(packagesDir || getSavedPackagesDir(), name, tag, manifest.def.name, manifest.def.version);
       }
 
       return manifest;
@@ -179,8 +179,59 @@ export class CannonRegistry {
     }
   }
 
-  async ensureDownloadedFullPackage(image: string, packagesDir?: string): Promise<DeploymentManifest> {
-    const manifest = await this.ensureDownloadedManifest(image, packagesDir);
+  async downloadFullPackage(image: string, packagesDir?: string, checkLatest = false): Promise<DeploymentManifest> {
+    const [name, tag] = image.split(':');
+
+    let space: string, hash: string;
+
+    const packageDir = getPackageDir(packagesDir || getSavedPackagesDir(), name, tag);
+
+    if (!name.startsWith('@')) {
+      space = '@ipfs';
+
+      if (checkLatest || !fs.existsSync(packageDir)) {
+        const url = await this.getUrl(name, tag);
+
+        if (!url) {
+          throw new Error(
+            `package not found: ${name}:${tag}. please check that the requested package exists and try again.`
+          );
+        }
+
+        hash = _.last(url.split('/'))!;
+      } else {
+        hash = _.last((await fs.readlink(packageDir)).split('/'))!;
+      }
+    } else {
+      space = '@ipfs';
+      hash = tag;
+    }
+
+    if (fs.existsSync(packageDir)) {
+      if (!checkLatest || space.startsWith('@') || hash === _.last((await fs.readlink(packageDir)).split('/'))) {
+        return await getAllDeploymentInfos(packageDir);
+      }
+    }
+
+    const manifest = JSON.parse((await this.readIpfs(hash)).toString('utf8')) as DeploymentManifest;
+
+    if (!manifest) {
+      throw new Error(`package not found: ${name}:${tag}. please check that the requested package exists and try again.`);
+    }
+
+    const actualPackageDir = getPackageDir(packagesDir || getSavedPackagesDir(), space, hash);
+
+    await fs.mkdirp(actualPackageDir);
+    await fs.writeJson(getDeploymentInfoFile(actualPackageDir), manifest);
+
+    // always download misc files at the same time
+    const miscBuf = await this.readIpfs(manifest.misc.ipfsHash);
+    const miscZip = new AdmZip(miscBuf);
+    await miscZip.extractAllTo(actualPackageDir, true);
+
+    if (!name.startsWith('@')) {
+      await associateTag(packagesDir || getSavedPackagesDir(), space, hash, name, tag);
+    }
 
     for (const chainId in manifest.deploys) {
       for (const preset in manifest.deploys[chainId]) {

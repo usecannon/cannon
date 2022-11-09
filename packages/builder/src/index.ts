@@ -29,7 +29,8 @@ export async function downloadPackagesRecursive(
   preset: string | null,
   registry: CannonRegistry,
   provider: CannonWrapperGenericProvider,
-  packagesDir?: string
+  packagesDir?: string,
+  checkLatest = false
 ) {
   packagesDir = packagesDir || getSavedPackagesDir();
 
@@ -39,7 +40,7 @@ export async function downloadPackagesRecursive(
     getActionFiles(getPackageDir(packagesDir, name, tag), chainId, preset || 'main', 'sample').basename
   );
 
-  await registry.ensureDownloadedFullPackage(pkg, packagesDir);
+  await registry.downloadFullPackage(pkg, packagesDir, checkLatest);
 
   const info = await getAllDeploymentInfos(depdir);
 

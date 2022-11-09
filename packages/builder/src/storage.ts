@@ -112,18 +112,17 @@ export async function associateTag(packagesDir: string, name: string, version: s
 
   await fs.mkdirp(path.dirname(tagCacheDir));
 
-  try {
-    const existingInfo = await fs.stat(tagCacheDir);
+  if (fs.existsSync(tagCacheDir)) {
+    const existingInfo = await fs.lstat(tagCacheDir);
 
     if (existingInfo.isSymbolicLink()) {
+      console.log('unlink');
       await fs.unlink(tagCacheDir);
     } else if (existingInfo.isDirectory()) {
       throw new Error(
         `the directory at ${tagCacheDir} is not a symbolic link, but a tag should be associated here. If you intend to link a tag here, please delete this directory and try again.`
       );
     }
-  } catch (_) {
-    // none
   }
 
   await fs.symlink(mainCacheDir, tagCacheDir);

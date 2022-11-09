@@ -3,12 +3,14 @@ import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
 import {
+  associateTag,
   CANNON_CHAIN_ID,
   ChainBuilder,
   ChainDefinition,
   ContractArtifact,
   downloadPackagesRecursive,
   Events,
+  getPackageDir,
 } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { getProvider, CannonRpcNode } from '../rpc';
@@ -116,6 +118,8 @@ export async function build({
     chainId: CANNON_CHAIN_ID,
     baseDir: projectDirectory,
     savedPackagesDir: cannonDirectory,
+    // override the package directory to be an alternate to prevent clashing with registry packages or other sources
+    overridePackageDir: getPackageDir(cannonDirectory, '@local', `${packageDefinition.name}/${packageDefinition.version}`),
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
@@ -149,7 +153,7 @@ export async function build({
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!wipe) {
     try {
-      await registry.ensureDownloadedFullPackage(`${packageDefinition.name}:${packageDefinition.version}`, cannonDirectory);
+      await registry.downloadFullPackage(`${packageDefinition.name}:${packageDefinition.version}`, cannonDirectory);
       console.log('Downloaded package from registry');
     } catch (err) {
       console.log('No existing build found on-chain for this package.');
@@ -164,6 +168,17 @@ export async function build({
 
   if (deploymentPath) {
     await writeModuleDeployments(deploymentPath, '', outputs);
+  }
+
+  // link the deployment so it can be accessed from elsewhere
+  if (persist) {
+    await associateTag(
+      cannonDirectory,
+      '@local',
+      `${packageDefinition.name}/${packageDefinition.version}`,
+      packageDefinition.name,
+      packageDefinition.version
+    );
   }
 
   printChainBuilderOutput(outputs);

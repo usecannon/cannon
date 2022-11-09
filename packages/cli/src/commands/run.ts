@@ -98,10 +98,10 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
   for (const pkg of packages) {
     const { name, version } = pkg;
 
+    const manifest = await getAllDeploymentInfos(getPackageDir(getSavedPackagesDir(), name, version));
+
     if (node.forkUrl) {
       console.log(magentaBright(`Fork-deploying ${name}:${version}...`));
-
-      const manifest = await getAllDeploymentInfos(getPackageDir(getSavedPackagesDir(), name, version));
 
       const builder = new ChainBuilder({
         name: pkg.name,
@@ -133,6 +133,9 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       _.assign(provider.artifacts, outputs);
     } else {
       console.log(magentaBright(`Building ${name}:${version}...`));
+
+      // make sure we are building with actual preset settings
+      pkg.settings = _.assign(manifest.deploys[networkInfo.chainId.toString()]['main'].options, pkg.settings);
 
       const { outputs } = await build({
         ...options,
