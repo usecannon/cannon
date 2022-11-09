@@ -171,7 +171,7 @@ export async function deploy(options: DeployOptions) {
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!options.wipe) {
     try {
-      await registry.ensureDownloadedFullPackage(
+      await registry.downloadFullPackage(
         `${options.packageDefinition.name}:${options.packageDefinition.version}`,
         options.cannonDirectory
       );

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import _ from 'lodash';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
@@ -285,7 +286,7 @@ program
   .command('verify')
   .description('Verify a package on Etherscan')
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
-  .option('-a --apiKey <apiKey>', 'Etherscan API key')
+  .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (packageName, options) {
@@ -320,6 +321,16 @@ program
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
+  .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
+  .option(
+    '--max-fee-per-gas <maxFeePerGas>',
+    'The maximum value (in gwei) for the base fee when submitting the registry transaction'
+  )
+  .option(
+    '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+    'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
+  )
+  .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
   .option(
     '--registry-ipfs-url <https://...>',
     'URL of the JSON-RPC server used to query the registry',
@@ -349,15 +360,33 @@ program
         registryAddress: options.registryAddress,
       };
 
-      const response = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: `This will deploy your package to IPFS and use ${wallet.address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
-        initial: true,
-      });
+      if (options.maxFeePerGas) {
+        _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(options.maxFeePerGas, 'gwei'));
+      }
 
-      if (!response.confirmation) {
-        process.exit();
+      if (options.maxPriorityFeePerGas) {
+        _.set(
+          registrationOptions,
+          'overrides.maxPriorityFeePerGas',
+          ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei')
+        );
+      }
+
+      if (options.gasLimit) {
+        _.set(registrationOptions, 'overrides.gasLimit', options.gasLimit);
+      }
+
+      if (!options.quiet) {
+        const response = await prompts({
+          type: 'confirm',
+          name: 'confirmation',
+          message: `This will deploy your package to IPFS and use ${wallet.address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
+          initial: true,
+        });
+
+        if (!response.confirmation) {
+          process.exit();
+        }
       }
     }
 
@@ -367,7 +396,8 @@ program
       options.tags,
       options.registryIpfsUrl,
       options.registryIpfsAuthorizationHeader,
-      registrationOptions
+      registrationOptions,
+      options.quiet
     );
   });
 
@@ -396,7 +426,7 @@ program
   .command('interact')
   .description('Start an interactive terminal against a set of active cannon deployments')
   .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
-  .option('-n --network <https://something.com/whatever>', 'URL to a JSONRPC endpoint to use for transactions')
+  .requiredOption('-n --network <https://something.com/whatever>', 'URL to a JSONRPC endpoint to use for transactions')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
   .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')

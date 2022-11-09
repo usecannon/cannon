@@ -29,3 +29,8 @@ depends = ["import.greeters"]
 factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
 factory.cloned.artifact = "Greeter"
+
+[run.empty]
+exec = "scripts/deploy.js"
+func = "empty"
+modified = ["dummy.js"]
