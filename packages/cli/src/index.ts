@@ -286,7 +286,7 @@ program
   .command('verify')
   .description('Verify a package on Etherscan')
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
-  .option('-a --apiKey <apiKey>', 'Etherscan API key')
+  .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (packageName, options) {
@@ -321,9 +321,15 @@ program
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
-  .option('gasLimit', 'The maximum units of gas spent for the registration transaction')
-  .option('maxFeePerGas', 'The maximum value (in gwei) for the base fee when submitting the registry transaction')
-  .option('maxPriorityFeePerGas', 'The maximum value (in gwei) for the miner tip when submitting the registry transaction')
+  .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
+  .option(
+    '--max-fee-per-gas <maxFeePerGas>',
+    'The maximum value (in gwei) for the base fee when submitting the registry transaction'
+  )
+  .option(
+    '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+    'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
+  )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
   .option(
     '--registry-ipfs-url <https://...>',
