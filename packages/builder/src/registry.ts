@@ -60,7 +60,7 @@ export class CannonRegistry {
     version: string,
     tags: string[],
     url: string,
-    overrides?: Overrides
+    overrides: Overrides = {}
   ): Promise<ethers.providers.TransactionReceipt> {
     if (!this.contract) {
       throw new Error('Contract not initialized');
