@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import fs from 'fs-extra';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
@@ -10,19 +11,21 @@ import {
   ContractArtifact,
   downloadPackagesRecursive,
   Events,
+  patchDeploymentManifest,
   getPackageDir,
 } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { getProvider, CannonRpcNode } from '../rpc';
 import { PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
-import createRegistry from '../registry';
 import { writeModuleDeployments } from '../util/write-deployments';
+import { CannonRegistry } from '@usecannon/builder';
 
 interface Params {
   node: CannonRpcNode;
   cannonfilePath?: string;
   packageDefinition: PackageDefinition;
+  upgradeFrom?: string;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   cannonDirectory: string;
@@ -30,10 +33,7 @@ interface Params {
   preset?: string;
   forkUrl?: string;
   chainId?: number;
-  registryIpfsUrl: string;
-  registryIpfsAuthorizationHeader?: string;
-  registryRpcUrl: string;
-  registryAddress: string;
+  registry: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
   deploymentPath?: string;
@@ -43,18 +43,20 @@ export async function build({
   node,
   cannonfilePath,
   packageDefinition,
+  upgradeFrom,
   getArtifact,
   cannonDirectory,
   projectDirectory,
   preset = 'main',
-  registryIpfsUrl,
-  registryIpfsAuthorizationHeader,
-  registryRpcUrl,
-  registryAddress,
+  registry,
   wipe = false,
   persist = true,
   deploymentPath,
 }: Params) {
+  if (wipe && upgradeFrom) {
+    throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
+  }
+
   let def: ChainDefinition;
   if (cannonfilePath) {
     const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
@@ -131,13 +133,6 @@ export async function build({
     getArtifact,
   });
 
-  const registry = createRegistry({
-    registryAddress: registryAddress,
-    registryRpc: registryRpcUrl,
-    ipfsUrl: registryIpfsUrl,
-    ipfsAuthorizationHeader: registryIpfsAuthorizationHeader,
-  });
-
   const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(packageDefinition.settings));
 
   for (const dependency of dependencies) {
@@ -155,11 +150,32 @@ export async function build({
   // try to download any existing published artifacts for this bundle itself before we build it
   if (!wipe) {
     try {
-      await registry.downloadFullPackage(`${packageDefinition.name}:${packageDefinition.version}`, cannonDirectory);
+      await registry.downloadFullPackage(
+        upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`,
+        cannonDirectory
+      );
       console.log('Downloaded package from registry');
-    } catch (err) {
-      console.log('No existing build found on-chain for this package.');
+    } catch (err: any) {
+      if (upgradeFrom) {
+        throw new Error(`could not download package definition for upgradeFrom "${upgradeFrom}": ` + err.toString());
+      } else {
+        console.log('No existing build found on-chain for this package.');
+      }
     }
+  }
+
+  if (upgradeFrom && persist) {
+    console.log('Upgrade from', upgradeFrom);
+
+    const [upgradeFromName, upgradeFromTag] = upgradeFrom.split(':');
+
+    if (fs.existsSync(builder.packageDir)) {
+      await fs.remove(builder.packageDir);
+    }
+
+    await fs.copy(getPackageDir(builder.packagesDir, upgradeFromName, upgradeFromTag), builder.packageDir);
+
+    await patchDeploymentManifest(builder.packageDir, { upgradeFrom });
   }
 
   builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));

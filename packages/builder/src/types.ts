@@ -135,6 +135,9 @@ export type DeploymentManifest = {
   // npm style package.json for the project being uploaded
   npmPackage: any;
 
+  // tag of the package which was used as the base for this package
+  upgradeFrom?: string;
+
   // archive which contains miscellaneus dependencies ex. documentation pages, contracts, etc.
   misc: {
     ipfsHash: string;

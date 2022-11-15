@@ -34,6 +34,12 @@ export async function getAllDeploymentInfos(packageDir: string): Promise<Deploym
   return (await fs.readJson(file)) as DeploymentManifest;
 }
 
+export async function patchDeploymentManifest(packageDir: string, updatedManifest: Partial<DeploymentManifest>) {
+  const manifest = await getAllDeploymentInfos(packageDir);
+  _.assign(manifest, updatedManifest);
+  await fs.writeFile(getDeploymentInfoFile(packageDir), JSON.stringify(manifest, null, DEPLOY_FILE_INDENTATION));
+}
+
 export async function getDeploymentInfo(packageDir: string, network: number, label: string): Promise<DeploymentInfo | null> {
   const deployInfo = await getAllDeploymentInfos(packageDir);
 
