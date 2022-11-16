@@ -4,17 +4,17 @@ import { mapKeys, mapValues } from 'lodash';
 
 export function getContractsRecursive(
   outputs: ChainBuilderContext,
-  signer: ethers.Signer,
+  signerOrProvider: ethers.Signer | ethers.providers.Provider,
   prefix?: string
 ): {
   [x: string]: ethers.Contract;
 } {
-  let contracts = mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signer));
+  let contracts = mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signerOrProvider));
   if (prefix) {
     contracts = mapKeys(contracts, (_, contractName) => `${prefix}.${contractName}`);
   }
   for (const [importName, importOutputs] of Object.entries(outputs.imports)) {
-    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signer as ethers.Signer, importName);
+    const newContracts = getContractsRecursive(importOutputs as ChainBuilderContext, signerOrProvider, importName);
     contracts = { ...contracts, ...newContracts };
   }
   return contracts;

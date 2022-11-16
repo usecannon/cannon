@@ -83,13 +83,17 @@ export async function interact(ctx: InteractTaskArgs) {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
       const functionInfo = contract.interface.getFunction(pickedFunction!);
 
-      if (functionInfo.constant || !ctx.signer) {
+      if (functionInfo.constant) {
         await query({
           contract,
           functionSignature: pickedFunction,
           args: currentArgs,
           blockTag: ctx.blockTag,
         });
+      } else if (!ctx.signer) {
+        console.log();
+        console.log(red('  Signer is not supplied. cannot invoke writable function.'));
+        console.log();
       } else {
         const receipt = await execTxn({
           signer: ctx.signer,

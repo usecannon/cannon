@@ -461,7 +461,7 @@ program
       throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${opts.preset}. Did you mean to run instead?`);
     }
 
-    const contracts = [getContractsRecursive(outputs, signers[0])];
+    const contracts = [getContractsRecursive(outputs, signers.length ? signers[0] : provider)];
 
     provider.artifacts = outputs;
 
