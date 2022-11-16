@@ -56,7 +56,7 @@ export async function publish(
     splitTags = _.uniq(splitTags);
 
     if (!quiet) {
-      console.log(`Register package ${manifest.def.name}:${manifest.def.version} (tags:)...`);
+      console.log(`Register package ${manifest.def.name}:${manifest.def.version} (tags: ${splitTags.join(', ')})...`);
     }
 
     const txn = await registry.publish(
