@@ -1,8 +1,9 @@
+import path from 'node:path';
 import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
-import { join } from 'path';
 
+import { importFrom } from '../helpers/import-from';
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
 import { hashFs } from '../util';
 
@@ -93,7 +94,7 @@ export default {
       );
     }
 
-    const runfile = await import(join(runtime.baseDir, config.exec));
+    const runfile = await importFrom(runtime.baseDir, config.exec);
 
     const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
 
