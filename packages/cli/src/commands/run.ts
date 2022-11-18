@@ -141,6 +141,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
         ...options,
         packageDefinition: pkg,
         node,
+        registry,
         preset: options.preset,
         persist: false,
         deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,

@@ -170,7 +170,7 @@ export class CannonRegistry {
     } catch (err) {
       try {
         // try to delete the mess we created
-        await fs.rmdir(packageDir);
+        await fs.remove(packageDir);
       } catch (_) {
         // do nothing here
       }

@@ -33,6 +33,7 @@ import { RegistrationOptions as PublishRegistrationOptions } from './commands/pu
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
+import createRegistry from './registry';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -134,6 +135,10 @@ program
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
+  .option(
+    '--upgrade-from [cannon-package:0.0.1]',
+    'Wipe the deployment files, and use the deployment files from another cannon package as base'
+  )
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option(
     '-c --contracts-directory [contracts]',
@@ -203,6 +208,13 @@ program
     const { build } = await import('./commands/build');
     const { name, version } = loadCannonfile(cannonfilePath);
 
+    const registry = createRegistry({
+      registryAddress: opts.registryAddress,
+      registryRpc: opts.registryRpcUrl,
+      ipfsUrl: opts.registryIpfsUrl,
+      ipfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
+    });
+
     await build({
       node,
       cannonfilePath,
@@ -214,11 +226,9 @@ program
       getArtifact,
       cannonDirectory: opts.cannonDirectory,
       projectDirectory,
+      upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
-      registryIpfsUrl: opts.registryIpfsUrl,
-      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
-      registryRpcUrl: opts.registryRpcUrl,
-      registryAddress: opts.registryAddress,
+      registry,
       deploymentPath,
     });
 
