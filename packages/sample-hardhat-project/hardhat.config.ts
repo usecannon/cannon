@@ -41,16 +41,6 @@ const config: HardhatUserConfig = {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       chainId: 1,
     },
-    ropsten: {
-      url: process.env.PROVIDER_URL || `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`,
-      chainId: 3,
-      accounts: process.env.PRIVATE_KEY?.split(','),
-    },
-    rinkeby: {
-      url: process.env.PROVIDER_URL || `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
-      chainId: 4,
-      accounts: process.env.PRIVATE_KEY?.split(','),
-    },
     goerli: {
       url: process.env.PROVIDER_URL || `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: process.env.PRIVATE_KEY?.split(','),

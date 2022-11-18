@@ -1,5 +1,5 @@
 name = "registry"
-version = "1.0.0"
+version = "<%= package.version %>"
 
 [setting.salt]
 defaultValue = "registry"
@@ -12,7 +12,7 @@ artifact = "CannonRegistry"
 
 [contract.proxy]
 artifact = "Proxy"
-abi = "CannonRegistry"
+abi = "registry"
 salt = "<%= settings.salt %>"
 args = ["<%= contracts.registry.address %>"]
 depends = ["contract.registry"]

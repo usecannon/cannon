@@ -1,27 +1,35 @@
-import { HardhatUserConfig } from 'hardhat/config';
-import 'dotenv/config';
-import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'solidity-coverage';
-import 'hardhat-cannon';
+import '@nomiclabs/hardhat-ethers';
+
+import '../hardhat-cannon/src/index';
+
+import * as dotenv from 'dotenv';
+import { HardhatUserConfig } from 'hardhat/config';
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: '0.8.11',
+  defaultNetwork: 'cannon',
   networks: {
-    local: {
+    hardhat: {
       chainId: 31337,
-      url: 'http://localhost:8545',
+    },
+    local: {
+      url: 'http://127.0.0.1:8545/',
+      chainId: 31337,
     },
     mainnet: {
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.PRIVATE_KEY?.split(','),
       chainId: 1,
-      url: process.env.NETWORK_ENDPOINT || '',
-      accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
     },
-    rinkeby: {
-      chainId: 4,
-      url: process.env.NETWORK_ENDPOINT || '',
-      accounts: process.env.PRIVATE_KEY ? [`${process.env.PRIVATE_KEY}`] : [],
+    goerli: {
+      url: process.env.PROVIDER_URL || `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+      chainId: 5,
     },
   },
   etherscan: {
@@ -33,6 +41,6 @@ const config: HardhatUserConfig = {
       process.env.INFURA_IPFS_ID + ':' + process.env.INFURA_IPFS_SECRET
     ).toString('base64')}`,
   },
-};
+} as any;
 
 export default config;
