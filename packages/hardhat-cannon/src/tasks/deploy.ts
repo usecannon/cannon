@@ -81,10 +81,10 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     const { outputs } = await deploy({
       packageDefinition,
-      overrideCannonfilePath: path.resolve(
+      overrideCannonfilePath: opts.overrideManifest ? path.resolve(
         hre.config.paths.root,
-        opts.overrideManifest ? opts.overrideManifest : 'cannonfile.toml'
-      ),
+        opts.overrideManifest
+      ) : undefined,
 
       // we have to wrap the provider here because of the third argument, prevent any reading-into for the hardhat-network
       provider,
