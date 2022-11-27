@@ -46,7 +46,7 @@ export function parseSettings(values: string[] = []) {
   return settings;
 }
 
-export function parsePackageArguments(val: string, result: PackageDefinition) {
+export function parsePackageArguments(val: string, result?: PackageDefinition): PackageDefinition {
   const packageMatch = val.match(packageRegExp);
 
   if (!result && !packageMatch) {
@@ -72,8 +72,8 @@ export function parsePackageArguments(val: string, result: PackageDefinition) {
   const settingMatch = val.match(settingRegExp);
   if (settingMatch) {
     const { key, value } = settingMatch.groups!;
-    result.settings[key] = value;
-    return result;
+    result!.settings[key] = value;
+    return result!;
   }
 
   throw new InvalidArgumentError(`Invalid argument given ${val}`);

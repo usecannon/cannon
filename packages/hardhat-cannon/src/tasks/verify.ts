@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import { task } from 'hardhat/config';
 import prompts from 'prompts';
-import { TASK_VERIFY } from '../task-names';
+import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_VERIFY } from '../task-names';
 import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
+import { DEFAULT_CANNON_DIRECTORY, PackageDefinition } from '@usecannon/cli';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
-  .addPositionalParam('packageName', 'Name and version of the Cannon package to verify')
+  .addOptionalPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .setAction(async ({ packageName, directory, apiKey }, hre) => {
@@ -14,12 +14,11 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       directory = hre.config.paths.cannon;
     }
 
-    const name = packageName.split(':')[0];
-    const version = packageName.includes(':') ? packageName.split(':')[1] : 'latest';
+    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: packageName ? [packageName] : [] });
 
     const builder = new ChainBuilder({
-      name,
-      version,
+      name: packageDefinition.name,
+      version: packageDefinition.version,
       readMode: 'metadata',
       chainId: (await hre.ethers.provider.getNetwork()).chainId,
       provider: new CannonWrapperGenericProvider({}, hre.ethers.provider),

@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { deploy, PackageDefinition, parsePackageArguments } from '@usecannon/cli';
-import { TASK_DEPLOY } from '../task-names';
+import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_DEPLOY } from '../task-names';
 import { ethers } from 'ethers';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { CANNON_NETWORK_NAME } from '../constants';
@@ -32,21 +32,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       throw new Error(`cannot deploy to '${CANNON_NETWORK_NAME}'. Use cannon:build instead.`);
     }
 
-    let packageDefinition: PackageDefinition;
-    if (!opts.packageWithSettings) {
-      // derive from the default cannonfile
-      const { name, version } = loadCannonfile(hre, 'cannonfile.toml');
-
-      packageDefinition = {
-        name,
-        version,
-        settings: {},
-      };
-    } else {
-      packageDefinition = (opts.packageWithSettings as string[]).reduce((result, val) => {
-        return parsePackageArguments(val, result);
-      }, {} as PackageDefinition);
-    }
+    const packageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: opts.packageWithSettings });
 
     if (!hre.network.config.chainId) {
       throw new Error('Selected network must have chainId set in hardhat configuration');

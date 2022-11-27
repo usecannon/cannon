@@ -1,5 +1,5 @@
 name = "greeter"
-version = "<%= package.version %>-2"
+version = "<%= package.version %>"
 description = "Simple project to verify the functionality of Cannon"
 keywords = ["sample", "greeter"]
 
