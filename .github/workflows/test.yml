@@ -14,8 +14,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           cache: npm
-          node-version: '16.8.0'
+          node-version: '16.16.0'
       - run: |
-          cd ./packages/registry
           npm ci
+          npx lerna bootstrap
+          npm run build
+          cd ./packages/registry
           npm test

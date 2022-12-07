@@ -33,6 +33,7 @@ export interface CannonRegistryInterface extends utils.Interface {
     "acceptPackageOwnership(bytes32)": FunctionFragment;
     "getImplementation()": FunctionFragment;
     "getPackageNominatedOwner(bytes32)": FunctionFragment;
+    "getPackageOwner(bytes32)": FunctionFragment;
     "getPackageUrl(bytes32,bytes32)": FunctionFragment;
     "getPackageVersions(bytes32)": FunctionFragment;
     "nominateNewOwner(address)": FunctionFragment;
@@ -55,6 +56,7 @@ export interface CannonRegistryInterface extends utils.Interface {
       | "acceptPackageOwnership"
       | "getImplementation"
       | "getPackageNominatedOwner"
+      | "getPackageOwner"
       | "getPackageUrl"
       | "getPackageVersions"
       | "nominateNewOwner"
@@ -88,6 +90,10 @@ export interface CannonRegistryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPackageNominatedOwner",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPackageOwner",
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
@@ -163,6 +169,10 @@ export interface CannonRegistryInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPackageNominatedOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPackageOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -335,6 +345,11 @@ export interface CannonRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getPackageOwner(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     getPackageUrl(
       _packageName: PromiseOrValue<BytesLike>,
       _packageVersionName: PromiseOrValue<BytesLike>,
@@ -417,6 +432,11 @@ export interface CannonRegistry extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getPackageOwner(
+    _packageName: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   getPackageUrl(
     _packageName: PromiseOrValue<BytesLike>,
     _packageVersionName: PromiseOrValue<BytesLike>,
@@ -493,6 +513,11 @@ export interface CannonRegistry extends BaseContract {
     getImplementation(overrides?: CallOverrides): Promise<string>;
 
     getPackageNominatedOwner(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getPackageOwner(
       _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -625,6 +650,11 @@ export interface CannonRegistry extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getPackageOwner(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getPackageUrl(
       _packageName: PromiseOrValue<BytesLike>,
       _packageVersionName: PromiseOrValue<BytesLike>,
@@ -706,6 +736,11 @@ export interface CannonRegistry extends BaseContract {
     getImplementation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPackageNominatedOwner(
+      _packageName: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPackageOwner(
       _packageName: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
