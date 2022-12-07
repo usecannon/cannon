@@ -11,7 +11,9 @@ task(TASK_EXPORT, 'Export a Cannon package as a zip archive')
       directory = hre.config.paths.cannon;
     }
 
-    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: packageName ? [packageName] : [] });
+    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      packageWithSettingsParams: packageName ? [packageName] : [],
+    });
 
     await exportPackage(directory, outputFile, `${packageDefinition.name}:${packageDefinition.version}`);
   });

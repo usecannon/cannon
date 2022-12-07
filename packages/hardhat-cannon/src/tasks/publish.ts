@@ -97,16 +97,17 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         }
       }
 
-
-      const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: packageName ? [packageName] : [] });
+      const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+        packageWithSettingsParams: packageName ? [packageName] : [],
+      });
 
       await publish(
-        directory, 
-        `${packageDefinition.name}:${packageDefinition.version}`, 
-        tags, 
-        ipfsEndpoint, 
-        ipfsAuthorizationHeader, 
-        registrationOptions, 
+        directory,
+        `${packageDefinition.name}:${packageDefinition.version}`,
+        tags,
+        ipfsEndpoint,
+        ipfsAuthorizationHeader,
+        registrationOptions,
         quiet
       );
     }

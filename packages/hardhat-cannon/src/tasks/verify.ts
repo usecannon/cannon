@@ -14,7 +14,9 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       directory = hre.config.paths.cannon;
     }
 
-    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: packageName ? [packageName] : [] });
+    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      packageWithSettingsParams: packageName ? [packageName] : [],
+    });
 
     const builder = new ChainBuilder({
       name: packageDefinition.name,

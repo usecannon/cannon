@@ -32,7 +32,9 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       throw new Error(`cannot deploy to '${CANNON_NETWORK_NAME}'. Use cannon:build instead.`);
     }
 
-    const packageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, { packageWithSettingsParams: opts.packageWithSettings });
+    const packageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      packageWithSettingsParams: opts.packageWithSettings,
+    });
 
     if (!hre.network.config.chainId) {
       throw new Error('Selected network must have chainId set in hardhat configuration');
@@ -66,10 +68,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     const { outputs } = await deploy({
       packageDefinition,
-      overrideCannonfilePath: opts.overrideManifest ? path.resolve(
-        hre.config.paths.root,
-        opts.overrideManifest
-      ) : undefined,
+      overrideCannonfilePath: opts.overrideManifest ? path.resolve(hre.config.paths.root, opts.overrideManifest) : undefined,
 
       // we have to wrap the provider here because of the third argument, prevent any reading-into for the hardhat-network
       provider,
