@@ -16,6 +16,8 @@ jobs:
           cache: npm
           node-version: '16.8.0'
       - run: |
-          cd ./packages/registry
           npm ci
+          npx lerna bootstrap
+          npm run build
+          cd ./packages/registry
           npm test
