@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           cache: npm
-          node-version: '16.8.0'
+          node-version: '16.16.0'
       - run: |
           npm ci
           npx lerna bootstrap
