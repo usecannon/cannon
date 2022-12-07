@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
       chainId: 31337,
     },
     mainnet: {
-      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       chainId: 1,
       accounts: process.env.PRIVATE_KEY?.split(','),
     },
