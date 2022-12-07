@@ -140,6 +140,10 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     emit PackageUnverify(_packageName, msg.sender);
   }
 
+  function getPackageOwner(bytes32 _packageName) external view returns (address) {
+    return _store().packages[_packageName].owner;
+  }
+
   function getPackageNominatedOwner(bytes32 _packageName) external view returns (address) {
     return _store().packages[_packageName].nominatedOwner;
   }

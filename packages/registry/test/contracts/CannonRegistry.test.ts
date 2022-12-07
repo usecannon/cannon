@@ -203,6 +203,11 @@ describe('CannonRegistry', function () {
     it('accepts ownership', async function () {
       await CannonRegistry.connect(user2).acceptPackageOwnership(toBytes32('some-module'));
     });
+
+    it('returns new package owner', async function () {
+      const result = await CannonRegistry.getPackageOwner(toBytes32('some-module'));
+      deepEqual(result, await user2.getAddress());
+    });
   });
 
   describe('getPackageVersions()', function () {
