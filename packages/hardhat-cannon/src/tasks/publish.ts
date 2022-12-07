@@ -1,13 +1,13 @@
 import { task } from 'hardhat/config';
 import { bold, yellowBright } from 'chalk';
-import { TASK_PUBLISH } from '../task-names';
-import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli';
+import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_PUBLISH } from '../task-names';
+import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageDefinition } from '@usecannon/cli';
 import { RegistrationOptions } from '@usecannon/cli/dist/src/commands/publish';
 import { ethers, Wallet } from 'ethers';
 import _ from 'lodash';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
-  .addPositionalParam('packageName', 'Name and version of the package to publish')
+  .addOptionalPositionalParam('packageName', 'Name and version of the package to publish')
   .addOptionalParam(
     'privateKey',
     'Private key of the wallet to use when publishing. Ignored if `--skip-register` is supplied'
@@ -97,6 +97,18 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         }
       }
 
-      await publish(directory, packageName, tags, ipfsEndpoint, ipfsAuthorizationHeader, registrationOptions, quiet);
+      const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+        packageWithSettingsParams: packageName ? [packageName] : [],
+      });
+
+      await publish(
+        directory,
+        `${packageDefinition.name}:${packageDefinition.version}`,
+        tags,
+        ipfsEndpoint,
+        ipfsAuthorizationHeader,
+        registrationOptions,
+        quiet
+      );
     }
   );

@@ -16,4 +16,3 @@ defaultValue = "TKN"
 artifact = "MintableERC20"
 args = ["<%= settings.name %>", "<%= settings.symbol %>"]
 salt = "<%= settings.salt %>"
-step = 1

@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { deploy, PackageDefinition, parsePackageArguments } from '@usecannon/cli';
-import { TASK_DEPLOY } from '../task-names';
+import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_DEPLOY } from '../task-names';
 import { ethers } from 'ethers';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { CANNON_NETWORK_NAME } from '../constants';
@@ -20,40 +20,27 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
   .addOptionalVariadicPositionalParam('packageWithSettings', 'Package to deploy, optionally with custom settings')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
   .addOptionalParam('prefix', 'Specify a prefix to apply to the deployment artifact outputs')
+  .addOptionalParam('writeDeployments', 'Write deployment information to the specified directory')
   .addFlag('dryRun', 'Simulate this deployment process without deploying the contracts to the specified network')
   .addOptionalParam(
     'impersonate',
     'Run deployment without requiring any private keys. The value of this flag determines the default signer.'
   )
-  .addFlag('writeDeployments', 'Wether to write deployment files when using the --dry-run flag')
+  .addFlag('noVerify', 'Skip verification prompt')
   .setAction(async (opts, hre) => {
     if (hre.network.name === CANNON_NETWORK_NAME) {
       throw new Error(`cannot deploy to '${CANNON_NETWORK_NAME}'. Use cannon:build instead.`);
     }
 
-    let packageDefinition: PackageDefinition;
-    if (!opts.packageWithSettings) {
-      // derive from the default cannonfile
-      const { name, version } = loadCannonfile(hre, 'cannonfile.toml');
-
-      packageDefinition = {
-        name,
-        version,
-        settings: {},
-      };
-    } else {
-      packageDefinition = (opts.packageWithSettings as string[]).reduce((result, val) => {
-        return parsePackageArguments(val, result);
-      }, {} as PackageDefinition);
-    }
+    const packageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      packageWithSettingsParams: opts.packageWithSettings,
+    });
 
     if (!hre.network.config.chainId) {
       throw new Error('Selected network must have chainId set in hardhat configuration');
     }
 
     const signers = await hre.ethers.getSigners();
-
-    const writeDeployments = !opts.dryRun || (opts.dryRun && opts.writeDeployments);
 
     // hardhat is kind of annoying when it comes to providers. When on `hardhat` network, they include a `connection`
     // object in the provider, but this connection leads to nowhere (it isn't actually exposed)
@@ -81,10 +68,7 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
 
     const { outputs } = await deploy({
       packageDefinition,
-      overrideCannonfilePath: path.resolve(
-        hre.config.paths.root,
-        opts.overrideManifest ? opts.overrideManifest : 'cannonfile.toml'
-      ),
+      overrideCannonfilePath: opts.overrideManifest ? path.resolve(hre.config.paths.root, opts.overrideManifest) : undefined,
 
       // we have to wrap the provider here because of the third argument, prevent any reading-into for the hardhat-network
       provider,
@@ -104,12 +88,12 @@ task(TASK_DEPLOY, 'Deploy a cannon package to a network')
       registryRpcUrl: hre.config.cannon.registryEndpoint,
       registryAddress: hre.config.cannon.registryAddress,
       projectDirectory: hre.config.paths.root,
-      deploymentPath: writeDeployments ? hre.config.paths.deployments : '',
+      deploymentPath: opts.writeDeployments,
     });
 
     augmentProvider(hre, outputs);
 
-    if (!opts.dryRun && hre.network.name !== 'hardhat' && hre.network.name !== 'cannon') {
+    if (!opts.dryRun && !opts.noVerify && hre.network.name !== 'hardhat' && hre.network.name !== 'cannon') {
       const response = await prompts({
         type: 'confirm',
         name: 'confirmation',
