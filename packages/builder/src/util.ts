@@ -139,7 +139,7 @@ export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: st
 
   let importsBase: ChainArtifacts = ctx;
   for (const p of pathPieces.slice(0, -1)) {
-    importsBase = ctx.imports[p];
+    importsBase = importsBase.imports![p];
   }
 
   const c = importsBase?.contracts?.[pathPieces[pathPieces.length - 1]];
