@@ -18,6 +18,7 @@ import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import _ from 'lodash';
 import { getContractsRecursive } from '../util/contracts-recursive';
+import { writeModuleDeployments } from '../util/write-deployments';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -131,6 +132,11 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
       // TODO: if two packages have contracts or etc. same name artifacts will get mangled together
       // so perhaps we could just merge them together onto a virtual "super" cannon package?
       _.assign(provider.artifacts, outputs);
+
+      const deploymentPath = options.writeDeployments ? resolve(options.writeDeployments) : undefined;
+      if (deploymentPath) {
+        await writeModuleDeployments(deploymentPath, '', outputs);
+      }
     } else {
       console.log(magentaBright(`Building ${name}:${version}...`));
 
