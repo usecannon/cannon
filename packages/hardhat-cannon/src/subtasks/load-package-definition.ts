@@ -1,5 +1,3 @@
-import path from 'path';
-import { HardhatPluginError } from 'hardhat/plugins';
 import { subtask } from 'hardhat/config';
 
 import { SUBTASK_LOAD_PACKAGE_DEFINITION } from '../task-names';

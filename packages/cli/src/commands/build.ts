@@ -181,6 +181,7 @@ export async function build({
   builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
   builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
+  builder.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
 
   const outputs = await builder.build(packageDefinition.settings);
 

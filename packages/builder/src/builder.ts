@@ -51,6 +51,7 @@ export enum Events {
   PostStepExecute = 'post-step-execute',
   DeployContract = 'deploy-contract',
   DeployTxn = 'deploy-txn',
+  DeployExtra = 'deploy-extra',
 }
 
 const DEFAULT_PRESET = 'main';
@@ -188,6 +189,18 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         ctx.txns[txn] = txns[txn];
         this.emit(Events.DeployTxn, n, txns[txn]);
       }
+
+      for (const n in output.extras) {
+        if (ctx.extras[n]) {
+          // name reused
+          throw new Error(
+            `duplicate extra label ${n}. Please double check your cannonfile/scripts to ensure a txn name is used only once.`
+          );
+        }
+
+        ctx.extras[n] = output.extras[n];
+        this.emit(Events.DeployExtra, n, ctx.extras[n]);
+      }
     }
 
     this.emit(Events.PostStepExecute, type, label, output);
@@ -268,9 +281,14 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
       }
 
+      let newCtx = _.clone(ctx);
       for (const action of layer.actions) {
         debug('run action in layer', action);
-        const newCtx = await this.runStep(action, _.clone(ctx));
+        newCtx = combineCtx([newCtx, await this.runStep(action, _.clone(ctx))]);
+      }
+
+      // after all contexts are built, save all of them at the same time
+      for (const action of layer.actions) {
         ctxes.set(action, newCtx);
         tainted.add(action);
         await this.dumpAction(newCtx, action);
@@ -295,6 +313,10 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     if (problems) {
       throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
 ${printChainDefinitionProblems(problems)}`);
+    }
+
+    if (debug.enabled) {
+      console.log(this.def.printTopology());
     }
 
     debug('build');
@@ -483,6 +505,8 @@ ${printChainDefinitionProblems(problems)}`);
       txns: {},
 
       imports: {},
+
+      extras: {},
     };
   }
 
