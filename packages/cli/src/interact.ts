@@ -380,12 +380,12 @@ async function promptInputValue(input: Ethers.utils.ParamType): Promise<any> {
 }
 
 function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
-  const requiresBytes32Util = input.type.includes('bytes32');
+  const isBytes32 = input.type.includes('bytes32');
   const isArray = input.type.includes('[]');
   const isNumber = input.type.includes('int');
 
   let processed = isArray ? JSON.parse(rawValue) : rawValue;
-  if (requiresBytes32Util) {
+  if (isBytes32 && !ethers.utils.isBytesLike(processed)) {
     if (isArray) {
       processed = processed.map((item: string) => Ethers.utils.formatBytes32String(item));
     } else {
