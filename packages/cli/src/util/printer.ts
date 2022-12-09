@@ -21,4 +21,13 @@ export function printChainBuilderOutput(output: ChainBuilderContext) {
       console.log(table(formattedData));
     }
   }
+
+  if (output.extras) {
+    const formattedData = _.map(output.extras, (v, k) => [k, v]);
+
+    if (formattedData.length) {
+      console.log('EXTRA DATA:');
+      console.log(table(formattedData));
+    }
+  }
 }

@@ -281,9 +281,17 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         }
       }
 
+      let newCtx = _.clone(ctx);
       for (const action of layer.actions) {
         debug('run action in layer', action);
-        const newCtx = await this.runStep(action, _.clone(ctx));
+        newCtx = combineCtx([
+          newCtx, 
+          await this.runStep(action, _.clone(ctx))
+        ]);
+      }
+
+      // after all contexts are built, save all of them at the same time
+      for (const action of layer.actions) {
         ctxes.set(action, newCtx);
         tainted.add(action);
         await this.dumpAction(newCtx, action);
@@ -308,6 +316,10 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
     if (problems) {
       throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
 ${printChainDefinitionProblems(problems)}`);
+    }
+
+    if (debug.enabled) {
+      console.log(this.def.printTopology());
     }
 
     debug('build');
