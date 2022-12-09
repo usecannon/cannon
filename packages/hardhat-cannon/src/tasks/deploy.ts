@@ -1,11 +1,10 @@
 import { task } from 'hardhat/config';
-import { deploy, PackageDefinition, parsePackageArguments } from '@usecannon/cli';
+import { deploy } from '@usecannon/cli';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_DEPLOY } from '../task-names';
 import { ethers } from 'ethers';
 import { HttpNetworkConfig, HttpNetworkHDAccountsConfig } from 'hardhat/types';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
-import loadCannonfile from '../internal/load-cannonfile';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import path from 'path';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';

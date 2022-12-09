@@ -3,7 +3,6 @@ import { getContractFromPath, getMergedAbiFromContractPaths } from './util';
 import 'jest';
 import { ChainBuilderContext } from '.';
 import { JsonFragment } from '@ethersproject/abi';
-import { ethers } from 'ethers';
 
 describe('util.ts', () => {
   const fakeTransferFragment: JsonFragment = {
@@ -73,7 +72,7 @@ describe('util.ts', () => {
   const fakeCtx: ChainBuilderContext = {
     contracts: {
       FakeContract: {
-        address: "0x0000000000000000000000000000000000000000",
+        address: '0x0000000000000000000000000000000000000000',
         contractName: '',
         sourceName: '',
         deployTxnHash: '',
@@ -82,7 +81,7 @@ describe('util.ts', () => {
       },
 
       AnotherFake: {
-        address: "0x0000000000000000000000000000000000000001",
+        address: '0x0000000000000000000000000000000000000001',
         contractName: '',
         sourceName: '',
         deployTxnHash: '',
@@ -96,19 +95,19 @@ describe('util.ts', () => {
           SuperFake: {
             contracts: {
               TheFakest: {
-                address: "0x0000000000000000000000000000000000000002",
+                address: '0x0000000000000000000000000000000000000002',
                 contractName: '',
                 sourceName: '',
                 deployTxnHash: '',
                 deployedOn: '',
                 abi: [fakeTransferFragment, fakeReadFragment],
-              }
-            }
-          }
+              },
+            },
+          },
         },
         contracts: {
           AnotherFake: {
-            address: "0x0000000000000000000000000000000000000003",
+            address: '0x0000000000000000000000000000000000000003',
             contractName: '',
             sourceName: '',
             deployTxnHash: '',
@@ -123,23 +122,24 @@ describe('util.ts', () => {
     chainId: 0,
     timestamp: '0',
     package: {},
-    extras: {}
+    extras: {},
   };
 
   describe('getContractFromPath()', () => {
     it('works with no depth', async () => {
-      expect(getContractFromPath(fakeCtx, 'FakeContract')?.address)
-        .toEqual("0x0000000000000000000000000000000000000000");
+      expect(getContractFromPath(fakeCtx, 'FakeContract')?.address).toEqual('0x0000000000000000000000000000000000000000');
     });
 
     it('works with one layer of depth', async () => {
-      expect(getContractFromPath(fakeCtx, 'FakeImport.AnotherFake')?.address)
-      .toEqual("0x0000000000000000000000000000000000000003");
+      expect(getContractFromPath(fakeCtx, 'FakeImport.AnotherFake')?.address).toEqual(
+        '0x0000000000000000000000000000000000000003'
+      );
     });
 
     it('works with two layers of depth', async () => {
-      expect(getContractFromPath(fakeCtx, 'FakeImport.SuperFake.TheFakest')?.address)
-      .toEqual("0x0000000000000000000000000000000000000002");
+      expect(getContractFromPath(fakeCtx, 'FakeImport.SuperFake.TheFakest')?.address).toEqual(
+        '0x0000000000000000000000000000000000000002'
+      );
     });
   });
 

@@ -33,7 +33,7 @@ const config = {
         properties: {
           event: { type: 'string' },
           arg: { type: 'int32' },
-        }
+        },
       },
     },
     factory: {
@@ -116,29 +116,24 @@ async function runTxn(
   return [receipt, txnEvents as EncodedTxnEvents];
 }
 
-function parseEventOutputs(
-  config: Config['extra'], 
-  txnEvents: EncodedTxnEvents[]
-): { [label: string]: string } {
+function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
 
   if (config) {
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
-  
         const events = _.entries(txnEvents[n][extra.event]);
         for (const [i, e] of events) {
-  
           let label = name;
-  
+
           if (txnEvents.length > 1) {
             label += '_' + n;
           }
-  
+
           if (events.length > 1) {
             label += '_' + i;
           }
-  
+
           vals[label] = e.args[extra.arg];
         }
       }
@@ -146,7 +141,6 @@ function parseEventOutputs(
   }
 
   return vals;
-
 }
 
 // ensure the specified contract is already deployed
@@ -307,7 +301,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
     return {
       contracts,
       txns,
-      extras
+      extras,
     };
   },
 };
