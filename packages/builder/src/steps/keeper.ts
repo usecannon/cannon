@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime } from '../types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntime } from '../types';
 import { ChainDefinitionScriptSchema } from '../util';
 
 export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;
@@ -41,7 +41,7 @@ export default {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(_runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, _config: Config): Promise<Outputs> {
+  async exec(_runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, _config: Config): Promise<ChainArtifacts> {
     return {};
   },
 };

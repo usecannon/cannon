@@ -63,6 +63,8 @@ export interface ChainBuilderContext {
   txns: TransactionMap;
 
   imports: BundledChainBuilderOutputs;
+
+  extras: { [label: string]: string };
 }
 
 export type BuildOptions = { [val: string]: OptionTypesTs };
@@ -104,7 +106,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: ChainArtifacts;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'extras'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: OptionTypesTs;
@@ -160,6 +162,7 @@ export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
     ctx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
     ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
     ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
+    ctx.extras = { ...ctx.extras, ...additionalCtx.extras };
   }
 
   return ctx;

@@ -28,6 +28,14 @@ const config = {
         args: { elements: {} },
       },
     },
+    extra: {
+      values: {
+        properties: {
+          event: { type: 'string' },
+          arg: { type: 'int32' },
+        }
+      },
+    },
     factory: {
       values: {
         properties: {
@@ -108,6 +116,39 @@ async function runTxn(
   return [receipt, txnEvents as EncodedTxnEvents];
 }
 
+function parseEventOutputs(
+  config: Config['extra'], 
+  txnEvents: EncodedTxnEvents[]
+): { [label: string]: string } {
+  const vals: { [label: string]: string } = {};
+
+  if (config) {
+    for (const n in txnEvents) {
+      for (const [name, extra] of Object.entries(config)) {
+  
+        const events = _.entries(txnEvents[n][extra.event]);
+        for (const [i, e] of events) {
+  
+          let label = name;
+  
+          if (txnEvents.length > 1) {
+            label += '_' + n;
+          }
+  
+          if (events.length > 1) {
+            label += '_' + i;
+          }
+  
+          vals[label] = e.args[extra.arg];
+        }
+      }
+    }
+  }
+
+  return vals;
+
+}
+
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
@@ -164,6 +205,11 @@ export default {
       }
     }
 
+    for (const name in config.extra) {
+      const f = config.extra[name];
+      f.event = _.template(f.event)(ctx);
+    }
+
     return config;
   },
 
@@ -217,62 +263,51 @@ ${getAllContractPaths(ctx).join('\n')}`);
     const contracts: ChainArtifacts['contracts'] = {};
 
     if (config.factory) {
-      for (const n in txns) {
-        for (const [name, factory] of Object.entries(config.factory)) {
-          let abi: any[];
-          let sourceName: string | null;
-          let contractName: string;
-          if (factory.artifact) {
-            const artifact = await runtime.getArtifact(factory.artifact);
-            abi = artifact.abi;
-            sourceName = artifact.sourceName;
-            contractName = artifact.contractName;
-          } else if (factory.abiOf) {
-            abi = getMergedAbiFromContractPaths(ctx, factory.abiOf);
+      for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
+        const topLabel = k.split('_')[0];
+        const factoryInfo = config.factory[topLabel];
 
-            sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
-            contractName = '';
-          } else {
-            throw new Error(
-              `factory "${name}" must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
-            );
-          }
-
-          const events = _.entries(txns[n].events[factory.event]);
-          for (const [i, e] of events) {
-            const addr = e.args[factory.arg];
-
-            if (!addr) {
-              throw new Error(`address was not resolvable in ${factory.event}. Ensure "arg" parameter is correct`);
-            }
-
-            let label = name;
-
-            if ((config.target || []).length > 1) {
-              label += '_' + n;
-            }
-
-            if (events.length > 1) {
-              label += '_' + i;
-            }
-
-            contracts[label] = {
-              address: addr,
-              abi,
-              deployTxnHash: txns[n].hash,
-              constructorArgs: factory.constructorArgs,
-              sourceName: sourceName,
-              contractName: contractName,
-              deployedOn: runtime.currentLabel!,
-            };
-          }
+        if (!contractAddress || !ethers.utils.isAddress(contractAddress)) {
+          throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
         }
+
+        let abi: any[];
+        let sourceName: string | null;
+        let contractName: string;
+        if (factoryInfo.artifact) {
+          const artifact = await runtime.getArtifact(factoryInfo.artifact);
+          abi = artifact.abi;
+          sourceName = artifact.sourceName;
+          contractName = artifact.contractName;
+        } else if (factoryInfo.abiOf) {
+          abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
+
+          sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
+          contractName = '';
+        } else {
+          throw new Error(
+            `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
+          );
+        }
+
+        contracts[k] = {
+          address: contractAddress,
+          abi,
+          deployTxnHash: txns[0].hash, // TODO: this should g ive more than the first hash
+          constructorArgs: factoryInfo.constructorArgs,
+          sourceName: sourceName,
+          contractName: contractName,
+          deployedOn: runtime.currentLabel!,
+        };
       }
     }
+
+    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
 
     return {
       contracts,
       txns,
+      extras
     };
   },
 };

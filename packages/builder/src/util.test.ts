@@ -123,6 +123,7 @@ describe('util.ts', () => {
     chainId: 0,
     timestamp: '0',
     package: {},
+    extras: {}
   };
 
   describe('getContractFromPath()', () => {
