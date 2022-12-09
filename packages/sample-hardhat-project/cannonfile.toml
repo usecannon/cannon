@@ -19,3 +19,14 @@ args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
 depends = ["contract.library"]
+
+[invoke.setGreeting]
+target = ["greeter"]
+func = "setGreeting"
+args = ["Konnichiwa"]
+depends = ["contract.greeter"]
+
+[invoke.greet]
+target = ["greeter"]
+func = "greet"
+depends = ["invoke.setGreeting"]

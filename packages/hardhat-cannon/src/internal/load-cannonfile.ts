@@ -71,7 +71,7 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    invokes: {},
   };
 
   const name = def.getName(ctx);

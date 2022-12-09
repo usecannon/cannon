@@ -81,8 +81,7 @@ defaultValue = "420" # This is the value to use if none is specified when npx ha
 artifact = "Storage" # Specifies the name of the contract to be deployed
 
 [invoke.changeStorage] # Declares an action to set the initial value
-addresses = ["<%= contracts.myStorage.address %>"] # Sets the address of the contract to invoke
-abi = "<%= contracts.myStorage.abi %>" # Sets the abi of the contract to invoke
+target = ["myStorage"] # Sets the contract to invoke
 func = "store" # Sets the name of the function to invoke
 args = ["<%= settings.initialValue %>"] # Sets the list of arguments to pass to the function
 depends = ["contract.myStorage"] # Ensure this action is taken after the previous action
@@ -331,7 +330,7 @@ The `invoke` action calls a specified function on your node.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 
 **Outputs**
-This action only updates the return object by adding an entry to the `txns` key.
+This action updates the return object by adding an entry to the `invokes` key with the action’s name. This includes `returns` if it is invoking a view function. Otherwise, it includes `events` with parsed event data. It also adds an entry to the `txns` key.
 
 #### Referencing Factory-deployed Contracts
 

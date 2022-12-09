@@ -51,7 +51,7 @@ export enum Events {
   PostStepExecute = 'post-step-execute',
   DeployContract = 'deploy-contract',
   DeployTxn = 'deploy-txn',
-  DeployExtra = 'deploy-extra',
+  DeployInvoke = 'deploy-extra',
 }
 
 const DEFAULT_PRESET = 'main';
@@ -190,16 +190,16 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
         this.emit(Events.DeployTxn, n, txns[txn]);
       }
 
-      for (const n in output.extras) {
-        if (ctx.extras[n]) {
+      for (const n in output.invokes) {
+        if (ctx.invokes[n]) {
           // name reused
           throw new Error(
             `duplicate extra label ${n}. Please double check your cannonfile/scripts to ensure a txn name is used only once.`
           );
         }
 
-        ctx.extras[n] = output.extras[n];
-        this.emit(Events.DeployExtra, n, ctx.extras[n]);
+        ctx.invokes[n] = output.invokes[n];
+        this.emit(Events.DeployInvoke, n, ctx.invokes[n]);
       }
     }
 
@@ -506,7 +506,7 @@ ${printChainDefinitionProblems(problems)}`);
 
       imports: {},
 
-      extras: {},
+      invokes: {},
     };
   }
 

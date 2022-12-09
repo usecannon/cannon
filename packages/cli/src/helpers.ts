@@ -114,7 +114,7 @@ export function loadCannonfile(filepath: string) {
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    invokes: {},
   };
 
   const name = def.getName(ctx);

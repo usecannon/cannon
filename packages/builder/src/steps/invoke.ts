@@ -68,8 +68,6 @@ async function runTxn(
   contract: ethers.Contract,
   signer: ethers.Signer
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
-  let txn: ethers.ContractTransaction;
-
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
   // if invoke calls succeeding when no action was actually performed.
@@ -78,6 +76,8 @@ async function runTxn(
       `contract ${contract.address} for ${runtime.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
   }
+
+  let txn;
 
   if (config.fromCall) {
     debug('resolve from address', contract.address);
@@ -93,30 +93,37 @@ async function runTxn(
     txn = await contract.connect(signer)[config.func](...(config.args || []));
   }
 
-  const receipt = await txn.wait();
+  let receipt;
+  let txnEvents;
+  // If a write method is being invoked, we call wait for additional properties
+  if (txn.wait) {
+    receipt = await txn.wait();
 
-  // get events
-  const txnEvents = _.groupBy(
-    _.filter(
-      receipt.events?.map((e) => {
-        if (!e.event || !e.args) {
-          return null;
-        }
+    // get events
+    txnEvents = _.groupBy(
+      _.filter(
+        receipt.events?.map((e: any) => {
+          if (!e.event || !e.args) {
+            return null;
+          }
 
-        return {
-          name: e.event,
-          args: e.args as any[],
-        };
-      }),
-      _.isObject
-    ),
-    'name'
-  );
+          return {
+            name: e.event,
+            args: e.args as any[],
+          };
+        }),
+        _.isObject
+      ),
+      'name'
+    );
+  } else {
+    receipt = txn;
+  }
 
   return [receipt, txnEvents as EncodedTxnEvents];
 }
 
-function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
+function parseEventOutputsForFactories(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
 
   if (config) {
@@ -210,6 +217,8 @@ export default {
   async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
+    let invokesCtxData: ChainArtifacts['invokes'] = {};
+
     const txns: TransactionMap = {};
 
     const mainSigner: ethers.Signer = config.from
@@ -248,16 +257,21 @@ ${getAllContractPaths(ctx).join('\n')}`);
       const label = config.target?.length === 1 ? currentLabel || '' : `${currentLabel}_${t}`;
 
       txns[label] = {
-        hash: receipt.transactionHash,
+        hash: receipt.transactionHash || 'Read-only',
         events: txnEvents,
         deployedOn: runtime.currentLabel!,
+      };
+
+      invokesCtxData[label] = {
+        returns: receipt.transactionHash ? undefined : receipt,
+        events: parseEventOutputsForCtx(txnEvents),
       };
     }
 
     const contracts: ChainArtifacts['contracts'] = {};
 
     if (config.factory) {
-      for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
+      for (const [k, contractAddress] of _.entries(parseEventOutputsForFactories(config.factory, _.map(txns, 'events')))) {
         const topLabel = k.split('_')[0];
         const factoryInfo = config.factory[topLabel];
 
@@ -296,12 +310,35 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
-
     return {
       contracts,
       txns,
-      extras,
+      invokes: invokesCtxData,
     };
   },
 };
+
+/**
+ * Test Cases
+ *
+ * INPUT: { GreetingSet: [ { name: 'GreetingSet', args: [Array] } ] }
+ * OUTPUT: { GreetingSet:  { name: 'GreetingSet', args: [Array] }  }
+ *
+ * INPUT: { GreetingSet: [ { name: 'GreetingSet', args: [Array] }, { name: 'GreetingSet', args: [Array] } ] }
+ * OUTPUT: { GreetingSet_0: { name: 'GreetingSet', args: [Array] }, GreetingSet_1: { name: 'GreetingSet', args: [Array] } }
+ */
+function parseEventOutputsForCtx(txnEvents: EncodedTxnEvents): { [label: string]: { name: string; args: any[] } } {
+  let newEventData: { [label: string]: { name: string; args: any[] } } = {};
+
+  for (const [key, val] of _.entries(txnEvents)) {
+    if (val.length == 1) {
+      newEventData[key] = { name: key, args: val[0].args };
+    } else {
+      val.forEach((value, i) => {
+        newEventData[key + '_' + i] = { name: key, args: value.args };
+      });
+    }
+  }
+
+  return newEventData;
+}

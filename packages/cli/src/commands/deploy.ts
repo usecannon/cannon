@@ -184,7 +184,7 @@ export async function deploy(options: DeployOptions) {
   builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
   builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
   builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
-  builder.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
+  builder.on(Events.DeployInvoke, (n, v) => console.log(`invoke data ${n} (${JSON.stringify(v)})`));
 
   const outputs = await builder.build(options.packageDefinition.settings);
 

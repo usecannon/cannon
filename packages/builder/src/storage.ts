@@ -122,7 +122,6 @@ export async function associateTag(packagesDir: string, name: string, version: s
     const existingInfo = await fs.lstat(tagCacheDir);
 
     if (existingInfo.isSymbolicLink()) {
-      console.log('unlink');
       await fs.unlink(tagCacheDir);
     } else if (existingInfo.isDirectory()) {
       throw new Error(

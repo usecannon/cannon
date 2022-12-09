@@ -56,7 +56,7 @@ export async function downloadPackagesRecursive(
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    invokes: {},
   });
 
   for (const dependency of dependencies) {
