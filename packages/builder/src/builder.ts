@@ -284,10 +284,7 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
       let newCtx = _.clone(ctx);
       for (const action of layer.actions) {
         debug('run action in layer', action);
-        newCtx = combineCtx([
-          newCtx, 
-          await this.runStep(action, _.clone(ctx))
-        ]);
+        newCtx = combineCtx([newCtx, await this.runStep(action, _.clone(ctx))]);
       }
 
       // after all contexts are built, save all of them at the same time
