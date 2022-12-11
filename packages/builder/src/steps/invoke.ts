@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, TransactionMap } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, TransactionMap } from '../types';
 import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
@@ -63,10 +63,11 @@ export interface InvokeOutputs {
 }
 
 async function runTxn(
-  runtime: ChainBuilderRuntime,
+  runtime: ChainBuilderRuntimeInfo,
   config: Config,
   contract: ethers.Contract,
-  signer: ethers.Signer
+  signer: ethers.Signer,
+  currentLabel: string
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
 
@@ -75,7 +76,7 @@ async function runTxn(
   // if invoke calls succeeding when no action was actually performed.
   if ((await runtime.provider.getCode(contract.address)) === '0x') {
     throw new Error(
-      `contract ${contract.address} for ${runtime.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
+      `contract ${contract.address} for ${currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
   }
 
@@ -149,7 +150,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 export default {
   validate: config,
 
-  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -207,7 +208,7 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const txns: TransactionMap = {};
@@ -241,16 +242,16 @@ export default {
 ${getAllContractPaths(ctx).join('\n')}`);
       }
 
-      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner);
+      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, currentLabel);
 
-      const currentLabel = runtime.currentLabel?.split('.')[1];
+      const splitLabel = currentLabel.split('.')[1];
 
-      const label = config.target?.length === 1 ? currentLabel || '' : `${currentLabel}_${t}`;
+      const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${t}`;
 
       txns[label] = {
         hash: receipt.transactionHash,
         events: txnEvents,
-        deployedOn: runtime.currentLabel!,
+        deployedOn: currentLabel,
       };
     }
 
@@ -291,7 +292,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           constructorArgs: factoryInfo.constructorArgs,
           sourceName: sourceName,
           contractName: contractName,
-          deployedOn: runtime.currentLabel!,
+          deployedOn: currentLabel,
         };
       }
     }

@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
 
+import { EventEmitter } from 'events';
+
 import { JsonFragment } from '@ethersproject/abi';
 
 import _ from 'lodash';
@@ -71,7 +73,7 @@ export type BuildOptions = { [val: string]: OptionTypesTs };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
-export interface ChainBuilderRuntime {
+export interface ChainBuilderRuntimeInfo {
   // Interface to which all transactions should be sent and all state queried
   provider: CannonWrapperGenericProvider;
 
@@ -96,10 +98,8 @@ export interface ChainBuilderRuntime {
   // Directory where cannon package is located
   packageDir: string | null;
 
-  readMode: StorageMode;
-  writeMode: StorageMode;
-
-  currentLabel: string | null;
+  // Should record snapshots?
+  snapshots: boolean;
 }
 
 export interface BundledChainBuilderOutputs {
@@ -115,19 +115,19 @@ export interface ChainBuilderOptions {
 export type DeploymentInfo = {
   // contents of cannonfile.toml used for this build in raw json form
   // if not included, defaults to the chain definition at the DeploymentManifest instead
-  def?: RawChainDefinition;
+  def: RawChainDefinition;
 
   // setting overrides used to build this chain
   options: ChainBuilderOptions;
 
+  // the result of all the build steps for the last build
+  state: DeploymentState;
+
+  // ipfs hash additional required files for possible build
+  miscHash: string;
+
   // version of cannon that this was built with
   buildVersion: number;
-
-  // basenames of the files which should be loaded to recreate the chain
-  heads: string[];
-
-  // location for the zip archive with the actual files for the chain/metadata
-  ipfsHash: string;
 };
 
 export type DeploymentManifest = {
@@ -147,10 +147,21 @@ export type DeploymentManifest = {
 
   deploys: {
     [chainId: string]: {
-      [preset: string]: DeploymentInfo;
+      [preset: string]: {
+        hash: string;
+      };
     };
   };
 };
+
+export type StepState = {
+  version: number;
+  hash: string;
+  ctx: ChainBuilderContext;
+  chainDump?: Buffer; // only included if cannon network build
+}
+
+export type DeploymentState = { [label: string]: StepState };
 
 export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
   const ctx = _.clone(ctxs[0]);

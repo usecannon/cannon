@@ -4,7 +4,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts } from '../types';
 import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:contract');
@@ -41,7 +41,7 @@ export interface ContractOutputs {
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
@@ -83,7 +83,7 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const artifactData = await runtime.getArtifact(config.artifact);
@@ -149,14 +149,14 @@ export default {
 
     return {
       contracts: {
-        [runtime.currentLabel?.split('.')[1] || '']: {
+        [currentLabel?.split('.')[1] || '']: {
           address: receipt.contractAddress,
           abi,
           constructorArgs: config.args || [],
           deployTxnHash: receipt.transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
-          deployedOn: runtime.currentLabel!,
+          deployedOn: currentLabel!,
         },
       },
     };

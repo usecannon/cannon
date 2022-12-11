@@ -3,12 +3,13 @@ import fs from 'fs-extra';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts, DeploymentManifest } from '../types';
-import { ChainBuilder } from '../builder';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentManifest } from '../types';
+import { build, createInitialContext, getOutputs } from '../builder';
 import { getDeploymentInfoFile, getPackageDir } from '../storage';
 import { ChainDefinition } from '../definition';
 import { CANNON_CHAIN_ID } from '../constants';
 import { DeploymentInfo } from '../types';
+import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
 
@@ -38,7 +39,7 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(_runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
@@ -57,7 +58,7 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
     // download if necessary upstream
@@ -72,9 +73,9 @@ export default {
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo: DeploymentInfo | null = _.get(deployManifest.deploys, [chainId, preset], null);
+    const deployInfo = await runtime.readDeploy(config.source, preset);
 
-    const builder = new ChainBuilder({
+    /*const builder = new ChainBuilder({
       name,
       version,
       def: new ChainDefinition(deployInfo?.def || deployManifest.def),
@@ -95,18 +96,18 @@ export default {
       savedPackagesDir: runtime.packagesDir,
       getSigner: runtime.getSigner,
       getDefaultSigner: runtime.getDefaultSigner,
-    });
+    });*/
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.options || {}) };
 
     debug('imported package options', importPkgOptions);
 
-    const outputs = await builder.build(importPkgOptions);
+    const def = new ChainDefinition(deployInfo.def);
 
-    return {
-      contracts: outputs.contracts,
-      txns: outputs.txns,
-      imports: outputs.imports,
-    };
+    const initialCtx = await createInitialContext(def, deployManifest.npmPackage, importPkgOptions);
+
+    const builtState = await build(runtime, def, deployInfo.state, initialCtx);
+
+    return (await getOutputs(runtime, def, builtState))!;
   },
 };

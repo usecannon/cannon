@@ -3,7 +3,7 @@ import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { importFrom } from '../helpers/import-from';
-import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts } from '../types';
 import { hashFs } from '../util';
 
 const debug = Debug('cannon:builder:run');
@@ -29,7 +29,7 @@ export type Config = JTDDataType<typeof config>;
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config) {
+  async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     if (!runtime.baseDir) {
       return null; // skip consistency check
       // todo: might want to do consistency check for config but not files, will see
@@ -84,7 +84,7 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
     if (!runtime.baseDir) {
@@ -105,12 +105,12 @@ export default {
 
     outputs.contracts = _.mapValues(outputs.contracts, (c) => ({
       ...c,
-      deployedOn: runtime.currentLabel!,
+      deployedOn: currentLabel,
     }));
 
     outputs.txns = _.mapValues(outputs.txns, (t) => ({
       ...t,
-      deployedOn: runtime.currentLabel!,
+      deployedOn: currentLabel,
     }));
 
     return outputs;

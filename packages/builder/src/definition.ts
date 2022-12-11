@@ -9,7 +9,7 @@ import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import scriptSpec from './steps/run';
-import { ChainBuilderRuntime } from './types';
+import { ChainBuilderRuntimeInfo } from './types';
 
 import Ajv from 'ajv/dist/jtd';
 import { JTDDataType } from 'ajv/dist/core';
@@ -134,7 +134,7 @@ export class ChainDefinition {
    * @param ctx context used to generate configuration for the action
    * @returns string representing the current state of the action
    */
-  async getState(n: string, runtime: ChainBuilderRuntime, ctx: ChainBuilderContext): Promise<string | null> {
+  async getState(n: string, runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext): Promise<string | null> {
     const obj = await ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].getState(
       runtime,
       ctx,
