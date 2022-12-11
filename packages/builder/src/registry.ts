@@ -1,7 +1,7 @@
 import { ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 
-import CannonRegistryAbi from './abis/CannonRegistry.json';
+import CannonRegistryAbi from './abis/CannonRegistry';
 
 import _ from 'lodash';
 

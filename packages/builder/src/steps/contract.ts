@@ -45,7 +45,7 @@ export default {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: (await runtime.getArtifact(parsedConfig.artifact)).bytecode,
+      bytecode: (await runtime.getArtifact!(parsedConfig.artifact)).bytecode,
       config: parsedConfig,
     };
   },
@@ -86,7 +86,7 @@ export default {
   async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
-    const artifactData = await runtime.getArtifact(config.artifact);
+    const artifactData = await runtime.getArtifact!(config.artifact);
 
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {

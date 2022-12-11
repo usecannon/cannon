@@ -87,7 +87,7 @@ export interface ChainBuilderRuntimeInfo {
   getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
 
   // returns contract information from the specified artifact name.
-  getArtifact: (name: string) => Promise<ContractArtifact>;
+  getArtifact?: (name: string) => Promise<ContractArtifact>;
 
   // Directory where relative file resolutions should originate from. Usually the location of package.json for currently built project
   baseDir: string | null;

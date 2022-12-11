@@ -1,10 +1,9 @@
-export { RawChainDefinition, ChainDefinition, validateChainDefinition } from './definition';
 export { createInitialContext, build, Events } from './builder';
+export type { RawChainDefinition } from './definition';
+export { ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilderRuntime, IPFSChainBuilderRuntime } from './runtime';
 
 export * from './types';
-
-export * from './storage';
 
 export { CannonWrapperGenericProvider } from './error/provider';
 

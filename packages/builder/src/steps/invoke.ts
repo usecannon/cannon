@@ -270,7 +270,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         let sourceName: string | null;
         let contractName: string;
         if (factoryInfo.artifact) {
-          const artifact = await runtime.getArtifact(factoryInfo.artifact);
+          const artifact = await runtime.getArtifact!(factoryInfo.artifact);
           abi = artifact.abi;
           sourceName = artifact.sourceName;
           contractName = artifact.contractName;

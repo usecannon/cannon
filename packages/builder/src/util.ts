@@ -1,9 +1,7 @@
 import crypto from 'crypto';
 import { ethers } from 'ethers';
 
-import fs from 'fs-extra';
 import _ from 'lodash';
-import path from 'path';
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
@@ -22,7 +20,8 @@ export const ChainDefinitionScriptSchema = {
 } as const;
 
 export function hashFs(path: string): Buffer {
-  const dirHasher = crypto.createHash('sha256');
+  return Buffer.from('');
+  /*const dirHasher = crypto.createHash('sha256');
 
   // iterate through every file at path and build a checksum
   if (fs.statSync(path).isFile()) {
@@ -37,7 +36,7 @@ export function hashFs(path: string): Buffer {
     }
   }
 
-  return dirHasher.digest();
+  return dirHasher.digest();*/
 }
 
 /**
@@ -74,46 +73,6 @@ export async function getExecutionSigner(
   return await provider.getSigner(address);
 }
 
-/**
- * Loads an artifact from the internal cannon storage.
- * @param name name of the cached contract artifact
- */
-export async function getStoredArtifact(packageDir: string, name: string) {
-  const artifactFile = path.join(packageDir, 'contracts', name + '.json');
-
-  const artifactContent = await fs.readFile(artifactFile);
-  const artifactData: ContractArtifact = JSON.parse(artifactContent.toString());
-
-  if (!artifactData) {
-    throw new Error(`Artifact not saved for "${name}"`);
-  }
-
-  return artifactData;
-}
-
-export async function passThroughArtifact(
-  packageDir: string,
-  getArtifact: (name: string) => Promise<ContractArtifact>,
-  name: string
-) {
-  const artifactFile = path.join(packageDir, 'contracts', name + '.json');
-  let artifact: ContractArtifact;
-  try {
-    artifact = await getArtifact(name);
-
-    await fs.mkdirp(path.dirname(artifactFile));
-    await fs.writeJson(artifactFile, artifact);
-  } catch (err) {
-    if (fs.existsSync(artifactFile)) {
-      artifact = await fs.readJson(artifactFile);
-    } else {
-      throw err;
-    }
-  }
-
-  return artifact;
-}
-
 export async function passThroughSigner(
   getSigner: (addr: string) => Promise<ethers.Signer | null>,
   addr: string
@@ -128,10 +87,6 @@ available in your configuration. Please double check your configuration & integr
   }
 
   return signer;
-}
-
-export async function clearArtifacts(packageDir: string) {
-  await fs.rm(packageDir, { recursive: true });
 }
 
 export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: string) {

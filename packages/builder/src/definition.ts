@@ -8,7 +8,6 @@ import contractSpec from './steps/contract';
 import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
-import scriptSpec from './steps/run';
 import { ChainBuilderRuntimeInfo } from './types';
 
 import Ajv from 'ajv/dist/jtd';
@@ -26,7 +25,6 @@ export const ActionKinds = {
   import: importSpec,
   invoke: invokeSpec,
   keeper: keeperSpec,
-  run: scriptSpec,
 } as const;
 
 const ChainDefinitionSchema = {
@@ -49,7 +47,6 @@ const ChainDefinitionSchema = {
     import: { values: importSpec.validate },
     contract: { values: contractSpec.validate },
     invoke: { values: invokeSpec.validate },
-    run: { values: scriptSpec.validate },
     keeper: { values: keeperSpec.validate },
   },
 } as const;

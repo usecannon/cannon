@@ -1,14 +1,10 @@
 import _ from 'lodash';
-import fs from 'fs-extra';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
 import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentManifest } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
-import { getDeploymentInfoFile, getPackageDir } from '../storage';
 import { ChainDefinition } from '../definition';
-import { CANNON_CHAIN_ID } from '../constants';
-import { DeploymentInfo } from '../types';
 import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
@@ -65,9 +61,6 @@ export default {
     // then provision a builder and build the cannonfile
     const [name, version] = config.source.split(':');
 
-    const file = getDeploymentInfoFile(getPackageDir(runtime.packagesDir, name, version));
-    const deployManifest = fs.readJsonSync(file) as DeploymentManifest;
-
     const preset = config.preset ?? 'main';
     const chainId = (config.chainId ?? runtime.chainId).toString();
 
@@ -104,7 +97,8 @@ export default {
 
     const def = new ChainDefinition(deployInfo.def);
 
-    const initialCtx = await createInitialContext(def, deployManifest.npmPackage, importPkgOptions);
+    // TODO: needs npm package from the manifest
+    const initialCtx = await createInitialContext(def, {}, importPkgOptions);
 
     const builtState = await build(runtime, def, deployInfo.state, initialCtx);
 

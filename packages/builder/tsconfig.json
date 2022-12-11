@@ -9,11 +9,11 @@
     "strict": true,
     "rootDirs": ["./src", "./test"],
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": false
   },
   "exclude": ["dist", "node_modules"],
   "include": [
     "./test",
-    "./src",
+    "./src", "../cli/run.ts", "../cli/import-from.ts",
   ]
 }
