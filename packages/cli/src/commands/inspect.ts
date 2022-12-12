@@ -7,6 +7,7 @@ import { getChainName } from '../helpers';
 import createRegistry from '../registry';
 import { build } from './build';
 import { CannonRpcNode } from '../rpc';
+import { PackageDefinition } from '../types';
 
 export async function inspect(
   cannonDirectory: string,
@@ -35,6 +36,33 @@ export async function inspect(
   const deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
   const chainDefinition = new ChainDefinition(deployInfo.def);
 
+  if (writeDeployments) {
+    for (const [chainId, chainDeployments] of Object.entries(deployInfo.deploys)) {
+      for (const [presetName, presetData] of Object.entries(chainDeployments)) {
+        const settings = _.mapValues(presetData.options, function (o) {
+          return o.toString();
+        });
+
+        const packageDefinition: PackageDefinition = {
+          name,
+          version,
+          settings,
+        };
+
+        const deploymentPath = resolve(`${writeDeployments}/${chainId}/${presetName}`);
+        await build({
+          cannonDirectory,
+          packageDefinition,
+          node,
+          registry,
+          preset: presetName,
+          persist: false,
+          deploymentPath: deploymentPath,
+        });
+      }
+    }
+  }
+
   if (json) {
     console.log(JSON.stringify(deployInfo, null, 2));
   } else {
@@ -50,26 +78,6 @@ export async function inspect(
     } else {
       console.log('This package has not been built for any chains yet.');
     }
-  }
-
-  const deploymentPath = writeDeployments ? resolve(writeDeployments) : undefined;
-  if (deploymentPath) {
-    // TODO: Pull presets and settings from deployInfo
-    const packageDefinition = {
-      name,
-      version,
-      settings: {},
-    };
-
-    await build({
-      cannonDirectory,
-      packageDefinition,
-      node,
-      registry,
-      preset: 'main',
-      persist: false,
-      deploymentPath: deploymentPath,
-    });
   }
 
   return deployInfo;
