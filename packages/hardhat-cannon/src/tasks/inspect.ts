@@ -1,7 +1,6 @@
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';
-import { inspect, PackageDefinition } from '@usecannon/cli';
-
+import { inspect, PackageDefinition, runRpc } from '@usecannon/cli';
 task(TASK_INSPECT, 'Inspect the details of a Cannon package')
   .addOptionalPositionalParam('packageName', 'Name and version of the cannon package to inspect')
   .addOptionalParam('writeDeployments', 'Write deployment information to the specified directory')
@@ -11,10 +10,15 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
 
+    const node = await runRpc({
+      port: 8545,
+    });
+
     await inspect(
       hre.config.paths.cannon,
       `${packageDefinition.name}:${packageDefinition.version}`,
       json,
+      node,
       writeDeployments,
       hre.config.cannon.ipfsEndpoint,
       hre.config.cannon.registryEndpoint,

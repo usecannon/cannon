@@ -5,11 +5,14 @@ import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
 import createRegistry from '../registry';
+import { build } from './build';
+import { CannonRpcNode } from '../rpc';
 
 export async function inspect(
   cannonDirectory: string,
   packageRef: string,
   json: boolean,
+  node: CannonRpcNode,
   writeDeployments: string,
   registryIpfsUrl: string,
   registryRpcUrl: string,
@@ -49,13 +52,25 @@ export async function inspect(
     }
   }
 
-  /*
   const deploymentPath = writeDeployments ? resolve(writeDeployments) : undefined;
   if (deploymentPath) {
-    await writeModuleDeployments(deploymentPath, '', outputs);
-    console.log(deploymentPath);
+    // TODO: Pull presets and settings from deployInfo
+    const packageDefinition = {
+      name,
+      version,
+      settings: {},
+    };
+
+    await build({
+      cannonDirectory,
+      packageDefinition,
+      node,
+      registry,
+      preset: 'main',
+      persist: false,
+      deploymentPath: deploymentPath,
+    });
   }
-  */
 
   return deployInfo;
 }

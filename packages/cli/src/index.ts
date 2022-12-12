@@ -337,10 +337,18 @@ program
   .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
+
+    await setupAnvil();
+
+    const node = await runRpc({
+      port: 8545,
+    });
+
     await inspect(
       options.directory,
       packageName,
       options.json,
+      node,
       options.writeDeployments,
       options.registryIpfsUrl,
       options.registryRpcUrl,
