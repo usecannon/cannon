@@ -1,16 +1,33 @@
 import _ from 'lodash';
+import { resolve } from 'path';
 import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
 import { bold, cyan, gray, green, magenta, red } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { getChainName } from '../helpers';
+import createRegistry from '../registry';
 
-export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
+export async function inspect(
+  cannonDirectory: string,
+  packageRef: string,
+  json: boolean,
+  writeDeployments: string,
+  registryIpfsUrl: string,
+  registryRpcUrl: string,
+  registryAddress: string,
+  registryIpfsAuthorizationHeader?: string
+) {
   const { name, version } = parsePackageRef(packageRef);
 
-  if (version === 'latest') {
-    // TODO fetch the current latest version from the registry?
-    throw new Error(`You must specify a valid package version, given: "${version}"`);
-  }
+  console.log(`Downloading ${name}:${version} from the registry...`);
+
+  const registry = createRegistry({
+    registryAddress: registryAddress,
+    registryRpc: registryRpcUrl,
+    ipfsUrl: registryIpfsUrl,
+    ipfsAuthorizationHeader: registryIpfsAuthorizationHeader,
+  });
+
+  await registry.downloadFullPackage(`${name}:${version}`, cannonDirectory);
 
   const deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
   const chainDefinition = new ChainDefinition(deployInfo.def);
@@ -31,6 +48,14 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
       console.log('This package has not been built for any chains yet.');
     }
   }
+
+  /*
+  const deploymentPath = writeDeployments ? resolve(writeDeployments) : undefined;
+  if (deploymentPath) {
+    await writeModuleDeployments(deploymentPath, '', outputs);
+    console.log(deploymentPath);
+  }
+  */
 
   return deployInfo;
 }

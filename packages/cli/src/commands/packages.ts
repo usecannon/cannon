@@ -32,13 +32,13 @@ export async function packages(cannonDirectory: string) {
     {
       type: 'autocomplete',
       name: 'pickedVersionName',
-      message: 'Select a package version to inspect:',
+      message: 'Select a package for the inspect command',
       choices: versionChoices,
       suggest: suggestBySubtring,
     },
   ]);
 
-  await inspect(cannonDirectory, `${pickedPackageName}:${pickedVersionName}`, false);
+  console.log(`Run ${bold(`cannon inspect ${pickedPackageName}:${pickedVersionName}`)} for more information.`);
 }
 
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'

@@ -334,11 +334,22 @@ export class ReadOnlyCannonRegistry extends CannonRegistry {
   }
 
   async readIpfs(urlOrHash: string): Promise<Buffer> {
-    const hash = urlOrHash.replace(/^ipfs:\/\//, '');
+    let hash = urlOrHash.replace(/^ipfs:\/\//, '');
 
     debug(`downloading content from ${this.url}/${hash}`);
 
-    const response = await fetch(`${this.url}/${hash}`);
+    let requestHeaders = {};
+    let response;
+
+    if (this.ipfsOptions.headers) {
+      requestHeaders = { ...this.ipfsOptions.headers };
+      if (this.url?.includes('infura.io')) {
+        hash = '/api/v0/cat?arg=' + hash;
+      }
+      response = await fetch(`${this.url}${hash}`, { method: 'POST', headers: requestHeaders });
+    } else {
+      response = await fetch(`${this.url}/${hash}`);
+    }
 
     return response.buffer();
   }

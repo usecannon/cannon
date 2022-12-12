@@ -319,9 +319,34 @@ program
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
   .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-j --json', 'Output as JSON')
+  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+  .option(
+    '--registry-ipfs-url <https://something.com/ipfs>',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
+    'Authorization header for requests to the IPFS endpoint'
+  )
+  .option(
+    '--registry-rpc-url <https://something.com/>',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
-    await inspect(options.directory, packageName, options.json);
+    await inspect(
+      options.directory,
+      packageName,
+      options.json,
+      options.writeDeployments,
+      options.registryIpfsUrl,
+      options.registryRpcUrl,
+      options.registryAddress,
+      options.registryIpfsAuthorizationHeader
+    );
   });
 
 program
