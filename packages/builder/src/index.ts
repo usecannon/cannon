@@ -7,6 +7,7 @@ import semver from 'semver';
 
 import pkg from '../package.json';
 import { CannonWrapperGenericProvider } from './error/provider';
+import { ChainBuilderContext } from './types';
 
 export { RawChainDefinition, ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
@@ -26,7 +27,7 @@ export { CANNON_CHAIN_ID } from './constants';
 export async function downloadPackagesRecursive(
   pkg: string,
   chainId: number,
-  preset: string | null,
+  preset = 'main',
   registry: CannonRegistry,
   provider: CannonWrapperGenericProvider,
   packagesDir?: string,
@@ -36,9 +37,7 @@ export async function downloadPackagesRecursive(
 
   const [name, tag] = pkg.split(':');
 
-  const depdir = path.dirname(
-    getActionFiles(getPackageDir(packagesDir, name, tag), chainId, preset || 'main', 'sample').basename
-  );
+  const depdir = getPackageDir(packagesDir, name, tag);
 
   await registry.downloadFullPackage(pkg, packagesDir, checkLatest);
 
@@ -46,12 +45,18 @@ export async function downloadPackagesRecursive(
 
   const def = new ChainDefinition(info.def);
 
+  let settings: ChainBuilderContext['settings'] = {};
+
+  for (const [k, v] of Object.entries({ ...def.getSettings() })) {
+    settings[k] = info.deploys[chainId][preset].options[k] || v.defaultValue || '';
+  }
+
   const dependencies = def.getRequiredImports({
     package: info.npmPackage,
     chainId,
 
     timestamp: '0',
-    settings: {},
+    settings,
 
     contracts: {},
     txns: {},

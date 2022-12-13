@@ -143,7 +143,7 @@ export async function build({
       dependency.preset,
       registry,
       provider,
-      builder.packagesDir
+      cannonDirectory
     );
   }
 
