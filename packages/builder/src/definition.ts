@@ -3,57 +3,14 @@ import Debug from 'debug';
 
 import _ from 'lodash';
 import { ChainBuilderContext } from './types';
-
-import contractSpec from './steps/contract';
-import importSpec from './steps/import';
-import invokeSpec from './steps/invoke';
-import keeperSpec from './steps/keeper';
 import { ChainBuilderRuntimeInfo } from './types';
 
 import Ajv from 'ajv/dist/jtd';
-import { JTDDataType } from 'ajv/dist/core';
+import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
 
 const ajv = new Ajv();
 
 const debug = Debug('cannon:builder:definition');
-
-/**
- * All the different types (and their implementations)
- */
-export const ActionKinds = {
-  contract: contractSpec,
-  import: importSpec,
-  invoke: invokeSpec,
-  keeper: keeperSpec,
-} as const;
-
-const ChainDefinitionSchema = {
-  properties: {
-    name: { type: 'string' },
-    version: { type: 'string' },
-  },
-  optionalProperties: {
-    description: { type: 'string' },
-    keywords: { elements: { type: 'string' } },
-    setting: {
-      values: {
-        optionalProperties: {
-          description: { type: 'string' },
-          type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: { type: 'string' },
-        },
-      },
-    },
-    import: { values: importSpec.validate },
-    contract: { values: contractSpec.validate },
-    invoke: { values: invokeSpec.validate },
-    keeper: { values: keeperSpec.validate },
-  },
-} as const;
-
-export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
-
-export const validateChainDefinition = ajv.compile(ChainDefinitionSchema);
 
 export type ChainDefinitionProblems = {
   invalidSchema: any;
@@ -85,7 +42,7 @@ export class ChainDefinition {
 
     const actions = [];
     for (const kind in ActionKinds) {
-      for (const n in def[kind as keyof typeof ActionKinds]) {
+      for (const n in (def as any)[kind as keyof typeof ActionKinds]) {
         const fn = `${kind}.${n}`;
         actions.push(fn);
         //actions.set(fn, new Set(this.getDependencies(fn)));
@@ -210,7 +167,7 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = validateChainDefinition(this.raw);
+    const invalidSchema = getChainDefinitionValidator()(this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();

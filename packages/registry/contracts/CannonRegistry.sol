@@ -12,7 +12,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   error TooManyTags();
   error PackageNotFound();
 
-  event PackagePublish(bytes32 indexed name, bytes32 indexed version, bytes32[] indexed tags, string url, address owner);
+  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, string url, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
@@ -56,7 +56,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
 
   function publish(
     bytes32 _packageName,
-    bytes32 _packageVersionName,
+    bytes32 variant,
     bytes32[] memory _packageTags,
     string memory _packageVersionUrl
   ) external {
@@ -82,23 +82,12 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
       _p.owner = msg.sender;
     }
 
-    if (bytes(_p.versionUrls[_packageVersionName]).length == 0) {
-      _p.versions.push(_packageVersionName);
-    }
-
-    _p.versionUrls[_packageVersionName] = _packageVersionUrl;
-
     for (uint i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
-
-      if (bytes(_p.versionUrls[_tag]).length == 0) {
-        _p.versions.push(_tag);
-      }
-
-      _p.versionUrls[_tag] = _packageVersionUrl;
+      _p.deployments[_tag] = _packageVersionUrl;
     }
 
-    emit PackagePublish(_packageName, _packageVersionName, _packageTags, _packageVersionUrl, msg.sender);
+    emit PackagePublish(_packageName, _packageTags, _packageVersionUrl, msg.sender);
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
@@ -152,7 +141,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     return _store().packages[_packageName].versions;
   }
 
-  function getPackageUrl(bytes32 _packageName, bytes32 _packageVersionName) external view returns (string memory) {
-    return _store().packages[_packageName].versionUrls[_packageVersionName];
+  function getPackageUrl(bytes32 _packageName, bytes32 _packageVersionName, bytes32 _packageVariant) external view returns (string memory) {
+    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant];
   }
 }

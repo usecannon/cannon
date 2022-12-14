@@ -6,7 +6,7 @@ import { JsonFragment } from '@ethersproject/abi';
 
 import _ from 'lodash';
 
-import type { RawChainDefinition } from './definition';
+import type { RawChainDefinition } from './actions';
 import { CannonWrapperGenericProvider } from './error/provider';
 
 export type OptionTypesTs = string | number | boolean;
@@ -92,12 +92,6 @@ export interface ChainBuilderRuntimeInfo {
   // Directory where relative file resolutions should originate from. Usually the location of package.json for currently built project
   baseDir: string | null;
 
-  // Directory where cannon stores all of its packages. `packageDir` is derived from this
-  packagesDir: string;
-
-  // Directory where cannon package is located
-  packageDir: string | null;
-
   // Should record snapshots?
   snapshots: boolean;
 }
@@ -124,10 +118,7 @@ export type DeploymentInfo = {
   state: DeploymentState;
 
   // ipfs hash additional required files for possible build
-  miscHash: string;
-
-  // version of cannon that this was built with
-  buildVersion: number;
+  miscUrl: string;
 };
 
 export type DeploymentManifest = {

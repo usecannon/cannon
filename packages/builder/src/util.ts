@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import _ from 'lodash';
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
-import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
+import { ChainBuilderContext, ChainArtifacts } from './types';
 
 import { CannonWrapperGenericProvider } from './error/provider';
 import { JsonFragment } from '@ethersproject/abi';
@@ -18,26 +18,6 @@ export const ChainDefinitionScriptSchema = {
     env: { elements: { type: 'string' } },
   },
 } as const;
-
-export function hashFs(path: string): Buffer {
-  return Buffer.from('');
-  /*const dirHasher = crypto.createHash('sha256');
-
-  // iterate through every file at path and build a checksum
-  if (fs.statSync(path).isFile()) {
-    const hasher = crypto.createHash('sha256');
-    dirHasher.update(hasher.update(fs.readFileSync(path)).digest());
-  } else {
-    const subpaths = fs.readdirSync(path);
-
-    for (const subpath of subpaths) {
-      const fullname = `${path}/${subpath}`;
-      dirHasher.update(hashFs(fullname));
-    }
-  }
-
-  return dirHasher.digest();*/
-}
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new

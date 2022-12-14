@@ -9,42 +9,37 @@ const debug = Debug('cannon:builder:registry');
 
 export class CannonRegistry {
   provider?: ethers.providers.Provider | null;
-  contract?: ethers.Contract | null;
   signer?: ethers.Signer | null;
+  contract: ethers.Contract;
+  overrides: ethers.Overrides
 
   constructor({
-    signerOrProvider = null,
-    address = null,
+    signerOrProvider,
+    address,
+    overrides = {}
   }: {
-    address: string | null;
-    signerOrProvider: ethers.Signer | ethers.providers.Provider | null;
+    address: string;
+    signerOrProvider: ethers.Signer | ethers.providers.Provider;
+    overrides?: Overrides;
   }) {
-    if (signerOrProvider) {
-      if ((signerOrProvider as ethers.Signer).provider) {
-        this.signer = signerOrProvider as ethers.Signer;
-        this.provider = this.signer.provider;
-      } else {
-        this.provider = signerOrProvider as ethers.providers.Provider;
-      }
-
-      if (address) {
-        this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
-      }
+    if ((signerOrProvider as ethers.Signer).provider) {
+      this.signer = signerOrProvider as ethers.Signer;
+      this.provider = this.signer.provider;
+    } else {
+      this.provider = signerOrProvider as ethers.providers.Provider;
     }
+
+    this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
+    this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
   }
 
   async publish(
-    name: string,
-    version: string,
-    tags: string[],
+    packagesNames: string[],
     url: string,
-    overrides: Overrides = {}
-  ): Promise<ethers.providers.TransactionReceipt> {
-    if (!this.contract) {
-      throw new Error('Contract not initialized');
-    }
+    variant: string,
+  ): Promise<string[]> {
 
     if (!this.signer) {
       throw new Error('Missing signer needed for publishing');
@@ -56,25 +51,33 @@ export class CannonRegistry {
       );
     }
 
-    const tx = await this.contract.connect(this.signer).publish(
-      ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version),
-      tags.map((t) => ethers.utils.formatBytes32String(t)),
-      url,
-      overrides
-    );
+    const txns: ethers.providers.TransactionReceipt[] = [];
+    for (const registerPackages of _.values(_.groupBy(packagesNames.map(n => n.split(':')), (p: string[]) => p[0]))) {
+      const tx = await this.contract.connect(this.signer).publish(
+        registerPackages[0][0],
+        registerPackages.map(p => p[1]),
+        variant,
+        url,
+        this.overrides
+      );
 
-    return await tx.wait();
-  }
-
-  async getUrl(name: string, version: string) {
-    if (!this.contract) {
-      throw new Error('Contract not initialized');
+      txns.push(await tx.wait());
     }
 
-    return await this.contract.getPackageUrl(
+    return txns.map(t => t.transactionHash);
+  }
+
+  async getUrl(name: string, version: string, variant: string): Promise<string | null> {
+    if (name === '@ipfs') {
+      return `ipfs://${version}`;
+    }
+
+    const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version)
+      ethers.utils.formatBytes32String(version),
+      ethers.utils.formatBytes32String(variant)
     );
+
+    return url === '' ? null : url;
   }
 }

@@ -7,7 +7,7 @@ import {
   BuildOptions,
 } from './types';
 
-import { ChainDefinition, ActionKinds } from './definition';
+import { ChainDefinition } from './definition';
 
 import {
   printChainDefinitionProblems,
@@ -23,6 +23,7 @@ import {
 } from '.';
 import { ChainBuilderRuntime } from './runtime';
 import { BUILD_VERSION } from './constants';
+import { ActionKinds } from './actions';
 
 export enum Events {
   PreStepExecute = 'pre-step-execute',

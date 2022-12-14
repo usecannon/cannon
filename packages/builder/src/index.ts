@@ -1,6 +1,7 @@
 export { createInitialContext, build, Events } from './builder';
-export type { RawChainDefinition } from './definition';
-export { ChainDefinition, validateChainDefinition } from './definition';
+export { registerAction } from './actions'
+export type { RawChainDefinition } from './actions';
+export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, IPFSChainBuilderRuntime } from './runtime';
 
 export * from './types';

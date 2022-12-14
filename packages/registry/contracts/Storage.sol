@@ -11,7 +11,7 @@ contract Storage {
     address owner;
     address nominatedOwner;
     bytes32[] versions;
-    mapping(bytes32 => string) versionUrls;
+    mapping(bytes32 => mapping (bytes32 => string)) deployments;
   }
 
   function _store() internal pure returns (Store storage store) {

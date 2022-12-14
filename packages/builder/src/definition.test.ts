@@ -1,7 +1,8 @@
-import { ChainDefinition, RawChainDefinition } from './definition';
+import { ChainDefinition } from './definition';
 
 import 'jest';
 import _ from 'lodash';
+import { RawChainDefinition } from './actions';
 
 function makeFakeChainDefinition(nodes: { [n: string]: any }) {
   const rawDef: RawChainDefinition = {

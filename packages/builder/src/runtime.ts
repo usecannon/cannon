@@ -19,13 +19,12 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
   getArtifact: (name: string) => Promise<ContractArtifact>;
   baseDir: string | null;
-  packagesDir: string;
-  packageDir: string | null;
   snapshots: boolean;
 
   private cleanSnapshot: any;
 
-  private misc: {
+  private loadedMisc: string | null = null;
+  protected misc: {
     artifacts: { [label: string]: any }
   };
 
@@ -46,8 +45,6 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     };
 
     this.baseDir = info.baseDir;
-    this.packagesDir = info.packagesDir;
-    this.packageDir = info.packageDir;
     this.snapshots = info.snapshots;
 
     this.misc = { artifacts: {} };
@@ -93,6 +90,24 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   async putDeploy(deployInfo: DeploymentInfo): Promise<string> {
+    throw new Error('not implemented');
+  }
+
+  async readMisc(url: string) {
+    if (url === this.loadedMisc) {
+      return;
+    }
+
+    this.readMiscInternal(url);
+
+    this.loadedMisc = url;
+  }
+
+  protected async readMiscInternal(url: string) {
+    throw new Error('not implemented');
+  }
+
+  async recordMisc(): Promise<string> {
     throw new Error('not implemented');
   }
 }
@@ -168,6 +183,14 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
     // TODO: have to link the manifest as well
 
     return deployHash;
+  }
+
+  protected async readMiscInternal(url: string) {
+    this.misc = await this.readIpfs(url.split('ipfs://')[1]);
+  }
+
+  async recordMisc(): Promise<string> {
+    return this.writeIpfs(this.misc);
   }
 }
 
