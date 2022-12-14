@@ -1,30 +1,30 @@
 import _ from 'lodash';
-import fs from 'fs-extra';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
 import {
-  associateTag,
   CANNON_CHAIN_ID,
-  ChainBuilder,
   ChainDefinition,
   ContractArtifact,
-  downloadPackagesRecursive,
   Events,
-  patchDeploymentManifest,
   getPackageDir,
+  IPFSChainBuilderRuntime,
+  build as cannonBuild,
+  createInitialContext
 } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { getProvider, CannonRpcNode } from '../rpc';
-import { PackageDefinition } from '../types';
+import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
-import { writeModuleDeployments } from '../util/write-deployments';
 import { CannonRegistry } from '@usecannon/builder';
+import { resolveCliSettings } from '../settings';
+import { createDefaultReadRegistry } from '../registry';
+import { getOutputs } from '@usecannon/builder/dist/src/builder';
 
 interface Params {
   node: CannonRpcNode;
   cannonfilePath?: string;
-  packageDefinition: PackageDefinition;
+  packageDefinition: PackageSpecification;
   upgradeFrom?: string;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
@@ -102,23 +102,18 @@ export async function build({
     );
   }
 
-  const readMode = wipe ? 'none' : 'all';
-  const writeMode = persist ? 'all' : 'none';
+  const settings = resolveCliSettings();
 
   const provider = await getProvider(node);
 
-  const builder = new ChainBuilder({
+  const runtimeOptions = {
     name: packageDefinition.name,
     version: packageDefinition.version,
     def,
     preset,
 
-    readMode,
-    writeMode,
-
     provider,
     chainId: CANNON_CHAIN_ID,
-    baseDir: projectDirectory,
     savedPackagesDir: cannonDirectory,
     // if building locally, override the package directory to be an alternate to prevent clashing with registry packages or other sources
     overridePackageDir: persist
@@ -130,75 +125,35 @@ export async function build({
       await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
       return provider.getSigner(addr);
     },
-    getArtifact,
-  });
 
-  const dependencies = await builder.def.getRequiredImports(await builder.populateSettings(packageDefinition.settings));
+    baseDir: projectDirectory,
+    snapshots: true,
+  };
 
-  for (const dependency of dependencies) {
-    console.log(`Loading dependency tree ${dependency.source} (${dependency.chainId}-${dependency.preset})`);
-    await downloadPackagesRecursive(
-      dependency.source,
-      dependency.chainId,
-      dependency.preset,
-      registry,
-      provider,
-      builder.packagesDir
-    );
-  }
+  const resolver = createDefaultReadRegistry(settings);
 
-  // try to download any existing published artifacts for this bundle itself before we build it
-  if (!wipe) {
-    try {
-      await registry.downloadFullPackage(
-        upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`,
-        cannonDirectory
-      );
-      console.log('Downloaded package from registry');
-    } catch (err: any) {
-      if (upgradeFrom) {
-        throw new Error(`could not download package definition for upgradeFrom "${upgradeFrom}": ` + err.toString());
-      } else {
-        console.log('No existing build found on-chain for this package.');
-      }
-    }
-  }
+  const runtime = new IPFSChainBuilderRuntime(runtimeOptions, settings.ipfsUrl, resolver);
 
-  if (upgradeFrom && persist) {
-    console.log('Upgrade from', upgradeFrom);
+  runtime.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
+  runtime.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
+  runtime.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
+  runtime.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
 
-    const [upgradeFromName, upgradeFromTag] = upgradeFrom.split(':');
+  const initialCtx = await createInitialContext(def, {}, packageDefinition.settings);
 
-    if (fs.existsSync(builder.packageDir)) {
-      await fs.remove(builder.packageDir);
-    }
+  const newState = await cannonBuild(runtime, def, state, initialCtx);
 
-    await fs.copy(getPackageDir(builder.packagesDir, upgradeFromName, upgradeFromTag), builder.packageDir);
+  const outputs = (await getOutputs(runtime, def, newState))!;
 
-    await patchDeploymentManifest(builder.packageDir, { upgradeFrom });
-  }
+  // save the state to ipfs
+  const miscUrl = runtime.recordMisc();
 
-  builder.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
-  builder.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
-  builder.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
-  builder.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
-
-  const outputs = await builder.build(packageDefinition.settings);
-
-  if (deploymentPath) {
-    await writeModuleDeployments(deploymentPath, '', outputs);
-  }
-
-  // link the deployment so it can be accessed from elsewhere
-  if (persist) {
-    await associateTag(
-      cannonDirectory,
-      '@local',
-      `${packageDefinition.name}/${packageDefinition.version}`,
-      packageDefinition.name,
-      packageDefinition.version
-    );
-  }
+  runtime.putDeploy({
+    def: def.toJson(),
+    state: newState,
+    options: packageDefinition.settings,
+    miscHash: miscUrl
+  })
 
   printChainBuilderOutput(outputs);
 

@@ -8,7 +8,7 @@ import {
   getPackageDir,
   getSavedPackagesDir,
 } from '@usecannon/builder';
-import { PackageDefinition } from '../types';
+import { PackageSpecification } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
 import createRegistry from '../registry';
@@ -46,7 +46,7 @@ const INSTRUCTIONS = green(
   )} to interact with contracts via the command line.`
 );
 
-export async function run(packages: PackageDefinition[], options: RunOptions) {
+export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
 
   console.log(magentaBright('Starting local node...'));
@@ -77,7 +77,7 @@ export async function run(packages: PackageDefinition[], options: RunOptions) {
     await downloadPackagesRecursive(name, networkInfo.chainId, options.preset, registry, provider, options.cannonDirectory);
   }
 
-  const buildOutputs: { pkg: PackageDefinition; outputs: ChainBuilderContext }[] = [];
+  const buildOutputs: { pkg: PackageSpecification; outputs: ChainBuilderContext }[] = [];
 
   let signers: ethers.Signer[] = [];
 

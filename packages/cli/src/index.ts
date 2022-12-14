@@ -16,7 +16,7 @@ import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './h
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
-import { PackageDefinition } from './types';
+import { PackageSpecification } from './types';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
@@ -33,7 +33,6 @@ import { RegistrationOptions as PublishRegistrationOptions } from './commands/pu
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
-import createRegistry from './registry';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -100,7 +99,7 @@ function configureRun(program: Command) {
     )
     .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
     .option('--private-key <0x...>', 'Use the specified private key hex to interact with the contracts')
-    .action(async function (packages: PackageDefinition[], options, program) {
+    .action(async function (packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 
       const port = Number.parseInt(options.port) || 8545;

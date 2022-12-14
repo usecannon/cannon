@@ -8,13 +8,13 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
-import { PackageDefinition } from './types';
+import { PackageSpecification } from './types';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
-  packages: PackageDefinition[];
+  packages: PackageSpecification[];
   contracts: { [name: string]: Ethers.Contract }[];
   provider: CannonWrapperGenericProvider;
 
@@ -159,7 +159,7 @@ interface PackageChoice extends Choice {
   value: number;
 }
 
-async function pickPackage(packages: PackageDefinition[]) {
+async function pickPackage(packages: PackageSpecification[]) {
   const choices: PackageChoice[] = packages.map((p, i) => ({
     title: `${p.name}:${p.version}`,
     value: i,

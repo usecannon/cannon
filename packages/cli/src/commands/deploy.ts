@@ -1,18 +1,15 @@
 import {
   CANNON_CHAIN_ID,
   CannonWrapperGenericProvider,
-  ChainBuilder,
-  downloadPackagesRecursive,
   Events,
   StorageMode,
   ContractArtifact,
 } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { findPackage, loadCannonfile } from '../helpers';
-import { PackageDefinition } from '../types';
+import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
-import createRegistry from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
 import fs from 'fs';
@@ -20,7 +17,7 @@ import { red } from 'chalk';
 import { createSigners } from '../util/params';
 
 interface DeployOptions {
-  packageDefinition: PackageDefinition;
+  packageDefinition: PackageSpecification;
   cannonDirectory: string;
   projectDirectory?: string;
 

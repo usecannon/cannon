@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
-import { PackageDefinition, PackageSettings } from '../types';
+import { PackageSpecification, PackageSettings } from '../types';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { ethers } from 'ethers';
 
@@ -46,7 +46,7 @@ export function parseSettings(values: string[] = []) {
   return settings;
 }
 
-export function parsePackageArguments(val: string, result?: PackageDefinition): PackageDefinition {
+export function parsePackageArguments(val: string, result?: PackageSpecification): PackageSpecification {
   const packageMatch = val.match(packageRegExp);
 
   if (!result && !packageMatch) {
@@ -79,7 +79,7 @@ export function parsePackageArguments(val: string, result?: PackageDefinition): 
   throw new InvalidArgumentError(`Invalid argument given ${val}`);
 }
 
-export function parsePackagesArguments(val: string, result: PackageDefinition[] = []) {
+export function parsePackagesArguments(val: string, result: PackageSpecification[] = []) {
   const packageMatch = val.match(packageRegExp);
   if (packageMatch) {
     const { name, version = 'latest' } = packageMatch.groups!;

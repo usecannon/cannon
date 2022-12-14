@@ -1,6 +1,6 @@
 export type PackageSettings = { [k: string]: string };
 
-export interface PackageDefinition {
+export interface PackageSpecification {
   name: string;
   version: string;
   settings: PackageSettings;
