@@ -45,6 +45,7 @@ export { packages } from './commands/packages';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
+export { fetchDeployments } from './commands/fetch-deployments';
 export { runRpc } from './rpc';
 
 const program = new Command();
@@ -481,6 +482,54 @@ program
       signer: signers[0],
       provider,
     });
+  });
+
+program
+  .command('fetch-deployments')
+  .description('Export deployment data from a Cannon package')
+  .argument(
+    '<packageNames...>',
+    'List of packages to load, optionally with custom settings for each one',
+    parsePackagesArguments
+  )
+  .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+  .option('--output <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"', './deployments')
+  .option('--preset <name>', 'Load an alternate setting preset', 'main')
+  .option('--project-directory <directory>', 'Path to a custom running environment directory')
+  .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
+  .option(
+    '--registry-ipfs-url <https://something.com/ipfs/>',
+    'URL of the JSON-RPC server used to query the registry',
+    DEFAULT_REGISTRY_IPFS_ENDPOINT
+  )
+  .option(
+    '--registry-rpc-url <https://something.com/ipfs/>',
+    'Network endpoint for interacting with the registry',
+    DEFAULT_REGISTRY_ENDPOINT
+  )
+  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .action(async function (packages: PackageDefinition[], options) {
+    const { fetchDeployments } = await import('./commands/fetch-deployments');
+
+    let node: CannonRpcNode;
+    if (options.fork) {
+      const networkInfo = await new ethers.providers.JsonRpcProvider(options.fork).getNetwork();
+
+      node = await runRpc({
+        port: 8545,
+        forkUrl: options.fork,
+        chainId: networkInfo.chainId,
+      });
+    } else {
+      node = await runRpc({ port: 8545 });
+    }
+
+    await fetchDeployments(packages, {
+      ...options,
+      node,
+    });
+
+    await node.kill();
   });
 
 export default program;

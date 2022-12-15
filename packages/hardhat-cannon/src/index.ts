@@ -20,6 +20,7 @@ import './tasks/packages';
 import './tasks/publish';
 import './tasks/run';
 import './tasks/verify';
+import './tasks/fetch-deployments';
 import './subtasks/load-package-definition';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
