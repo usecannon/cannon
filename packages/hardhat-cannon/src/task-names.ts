@@ -10,6 +10,7 @@ export const TASK_EXPORT = `${TASK_PREFIX}:export`;
 export const TASK_INSPECT = `${TASK_PREFIX}:inspect`;
 export const TASK_PACKAGES = `${TASK_PREFIX}:packages`;
 export const TASK_DEPLOY = `${TASK_PREFIX}:deploy`;
+export const TASK_FETCH_DEPLOYMENTS = `${TASK_PREFIX}:fetch-deployments`;
 
 export const SUBTASK_LOAD_DEPLOY = `${TASK_PREFIX}:load-deploy`;
 export const SUBTASK_LOAD_PACKAGE_DEFINITION = `${TASK_PREFIX}:load-package-definition`;
