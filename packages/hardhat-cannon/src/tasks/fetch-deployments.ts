@@ -13,7 +13,7 @@ task(TASK_FETCH_DEPLOYMENTS, 'Export deployment data from a Cannon package')
   .addOptionalParam('port', 'Port which the JSON-RPC server will be exposed', '8545')
   .addOptionalParam('fork', 'Fork the specified network or the given RPC url')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
-  .addOptionalParam('output', 'Load an alternate setting preset', './deployments')
+  .addOptionalParam('output', 'Path to write the deployments data (address and ABIs), like "./deployments"', './deployments')
   .setAction(async ({ packageNames, port, fork, preset, output }, hre) => {
     const packages: PackageDefinition[] = ((packageNames || []) as string[]).reduce((result, val) => {
       return parsePackagesArguments(val, result);
