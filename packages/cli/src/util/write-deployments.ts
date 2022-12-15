@@ -30,9 +30,20 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const contractOutputs = outputs.contracts![contract];
 
+    // Add an empty 'name' string to outputs when undefined to make sure it complies with JSON schema requirements elsewhere
+    const abi = contractOutputs.abi.map((v) => {
+      let newAbiItem = { ...v };
+      let newOutputs = newAbiItem.outputs;
+      newOutputs = v.outputs?.map((o) => {
+        return o.name ? o : { ...o, name: '' };
+      });
+      newAbiItem.outputs = newOutputs;
+      return newAbiItem;
+    });
+
     const transformedOutput = {
       ...contractOutputs,
-      abi: contractOutputs.abi,
+      abi,
     };
 
     // JSON format is already correct, so we can just output what we have
