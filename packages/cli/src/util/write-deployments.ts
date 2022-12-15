@@ -32,6 +32,7 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
 
     const transformedOutput = {
       ...contractOutputs,
+      name: contractOutputs.contractName,
       abi: contractOutputs.abi,
     };
 
