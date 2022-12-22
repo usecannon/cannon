@@ -1,14 +1,24 @@
+import path from 'node:path';
 import { subtask } from 'hardhat/config';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { PackageDefinition, parsePackageArguments } from '@usecannon/cli';
 
 import { SUBTASK_LOAD_PACKAGE_DEFINITION } from '../task-names';
-import { PackageDefinition, parsePackageArguments } from '@usecannon/cli';
 import loadCannonfile from '../internal/load-cannonfile';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+
+interface Params {
+  cannonfile?: string;
+  packageWithSettingsParams: string[];
+}
 
 subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
-  async ({ packageWithSettingsParams }: { packageWithSettingsParams: string[] }, hre): Promise<PackageDefinition> => {
+  async ({ cannonfile, packageWithSettingsParams }: Params, hre): Promise<PackageDefinition> => {
+    if (!cannonfile) {
+      cannonfile = path.resolve(hre.config.paths.root, 'cannonfile.toml')
+    }
+
     if (!packageWithSettingsParams || !packageWithSettingsParams.length) {
-      return getDefaultPackageDefinition(hre);
+      return getDefaultPackageDefinition(hre, cannonfile);
     }
 
     let packageDefinition: PackageDefinition;
@@ -17,7 +27,7 @@ subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
         return parsePackageArguments(val, result);
       }, {} as PackageDefinition);
     } catch (err) {
-      packageDefinition = getDefaultPackageDefinition(hre);
+      packageDefinition = getDefaultPackageDefinition(hre, cannonfile);
 
       return (packageDefinition = packageWithSettingsParams.reduce((result, val) => {
         return parsePackageArguments(val, result);
@@ -26,8 +36,8 @@ subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
   }
 );
 
-function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment): PackageDefinition {
-  const { name, version } = loadCannonfile(hre, 'cannonfile.toml');
+function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment, cannonfile: string): PackageDefinition {
+  const { name, version } = loadCannonfile(hre, cannonfile);
   return {
     name,
     version,
