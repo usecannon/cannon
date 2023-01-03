@@ -3,7 +3,6 @@ import type { HardhatNetworkConfig } from 'hardhat/types/config';
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
     deployments?: string;
-    cannon?: string;
   }
 
   export interface HardhatUserConfig {
@@ -32,7 +31,6 @@ declare module 'hardhat/types/config' {
 
   export interface ProjectPathsConfig {
     deployments: string;
-    cannon: string;
   }
 
   export interface HardhatConfig {

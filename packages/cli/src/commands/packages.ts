@@ -2,11 +2,12 @@ import { resolve } from 'path';
 import fs from 'fs-extra';
 import prompts from 'prompts';
 import { bold, magentaBright } from 'chalk';
-import untildify from 'untildify';
 import { inspect } from './inspect';
+import { resolveCliSettings } from '../settings';
 
-export async function packages(cannonDirectory: string) {
-  cannonDirectory = untildify(cannonDirectory);
+export async function packages() {
+  const { cannonDirectory } = resolveCliSettings();
+
   const packages = await fs.readdir(cannonDirectory);
 
   const packageChoices = packages.sort().map((s) => {
@@ -38,7 +39,7 @@ export async function packages(cannonDirectory: string) {
     },
   ]);
 
-  await inspect(cannonDirectory, `${pickedPackageName}:${pickedVersionName}`, false);
+  await inspect(`${pickedPackageName}:${pickedVersionName}`, false);
 }
 
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'

@@ -124,7 +124,7 @@ export default {
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner(txn, config.salt);
+    const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner!(txn, config.salt);
 
     const txnData = await signer.sendTransaction(txn);
 

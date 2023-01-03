@@ -7,7 +7,17 @@ import _ from 'lodash';
 
 const debug = Debug('cannon:builder:registry');
 
-export class CannonRegistry {
+export interface CannonRegistry {
+  publish(
+    packagesNames: string[],
+    url: string,
+    variant: string,
+  ): Promise<string[]>;
+
+  getUrl(name: string, version: string, variant: string): Promise<string | null>;
+}
+
+export class OnChainRegistry implements CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;

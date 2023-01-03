@@ -5,11 +5,10 @@ import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
   CannonWrapperGenericProvider,
-  ChainBuilder,
+  ChainDefinition,
   ContractArtifact,
-  getAllDeploymentInfos,
-  getPackageDir,
-  getSavedPackagesDir,
+  getOutputs,
+  IPFSChainBuilderRuntime,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
@@ -18,7 +17,6 @@ import { createSigners, parsePackageArguments, parsePackagesArguments, parseSett
 import pkg from '../package.json';
 import { PackageSpecification } from './types';
 import {
-  DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
@@ -33,18 +31,20 @@ import { RegistrationOptions as PublishRegistrationOptions } from './commands/pu
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
+import { createDefaultReadRegistry } from './registry';
+import { resolveCliSettings } from './settings';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
-export { deploy } from './commands/deploy';
-export { exportPackage } from './commands/export';
-export { importPackage } from './commands/import';
 export { inspect } from './commands/inspect';
 export { packages } from './commands/packages';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { runRpc } from './rpc';
+
+export { createDefaultReadRegistry } from './registry';
+export { resolveCliSettings } from './settings';
 
 const program = new Command();
 
@@ -75,7 +75,6 @@ function configureRun(program: Command) {
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
     .option('--project-directory <directory>', 'Path to a custom running environment directory')
-    .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
     .option(
       '--registry-ipfs-url <https://something.com/ipfs/>',
       'URL of the JSON-RPC server used to query the registry',
@@ -145,7 +144,6 @@ program
     './src'
   )
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
-  .option('-d --cannon-directory [directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option(
     '--registry-ipfs-url <https://something.com/ipfs/>',
     'URL of the JSON-RPC server used to query the registry',
@@ -207,13 +205,6 @@ program
     const { build } = await import('./commands/build');
     const { name, version } = loadCannonfile(cannonfilePath);
 
-    const registry = createRegistry({
-      registryAddress: opts.registryAddress,
-      registryRpc: opts.registryRpcUrl,
-      ipfsUrl: opts.registryIpfsUrl,
-      ipfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
-    });
-
     await build({
       node,
       cannonfilePath,
@@ -223,72 +214,13 @@ program
         settings: parsedSettings,
       },
       getArtifact,
-      cannonDirectory: opts.cannonDirectory,
       projectDirectory,
       upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
-      registry,
       deploymentPath,
     });
 
     await node.kill();
-  });
-
-program
-  .command('deploy')
-  .description('Deploy a cannon package to a network')
-  .argument('<packageWithSettings...>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
-  .requiredOption('-p --private-key <privateKey>', 'Private key of the wallet to use for deployment')
-  .requiredOption('-n --network-rpc <networkRpc>', 'URL of a JSON-RPC server to use for deployment')
-  .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
-  .option('-d --cannon-directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('--prefix <prefix>', 'Specify a prefix to apply to the deployment artifact outputs')
-  .option('--dry-run', 'Simulate this deployment process without deploying the contracts to the specified network')
-  .option('--wipe', 'Delete old, and do not attempt to download any from the repository')
-  .option(
-    '--registry-ipfs-url <https://something.com/ipfs>',
-    'URL of the JSON-RPC server used to query the registry',
-    DEFAULT_REGISTRY_IPFS_ENDPOINT
-  )
-  .option(
-    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
-    'Authorization header for requests to the IPFS endpoint'
-  )
-  .option(
-    '--registry-rpc-url <https://something.com/>',
-    'Network endpoint for interacting with the registry',
-    DEFAULT_REGISTRY_ENDPOINT
-  )
-  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
-  .action(async function (packageDefinition, opts) {
-    const { deploy } = await import('./commands/deploy');
-
-    const projectDirectory = process.cwd();
-    const deploymentPath = opts.writeDeployments
-      ? path.resolve(opts.writeDeployments)
-      : path.resolve(projectDirectory, 'deployments');
-
-    const provider = new ethers.providers.JsonRpcProvider(opts.networkRpc);
-
-    await deploy({
-      packageDefinition,
-      cannonDirectory: opts.cannonDirectory,
-      projectDirectory,
-      provider,
-      mnemonic: opts.mnemonic,
-      privateKey: opts.privateKey,
-      impersonate: opts.impersonate,
-      preset: opts.preset,
-      dryRun: opts.dryRun || false,
-      wipe: opts.wipe || false,
-      prefix: opts.prefix,
-      deploymentPath,
-      registryIpfsUrl: opts.registryIpfsUrl,
-      registryIpfsAuthorizationHeader: opts.registryIpfsAuthorizationHeader,
-      registryRpcUrl: opts.registryRpcUrl,
-      registryAddress: opts.registryAddress,
-    });
   });
 
 program
@@ -297,30 +229,27 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
-  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
-    await verify(packageName, options.apiKey, options.network, options.directory);
+    await verify(packageName, options.apiKey, options.network);
   });
 
 program
   .command('packages')
   .description('List all packages in the local Cannon directory')
-  .argument('[directory]', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .action(async function (directory) {
     const { packages } = await import('./commands/packages');
-    await packages(directory);
+    await packages();
   });
 
 program
   .command('inspect')
   .description('Inspect the details of a Cannon package')
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
-  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-j --json', 'Output as JSON')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
-    await inspect(options.directory, packageName, options.json);
+    await inspect(packageName, options.json);
   });
 
 program
@@ -328,7 +257,6 @@ program
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
-  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(
@@ -358,7 +286,7 @@ program
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
-    let registrationOptions: PublishRegistrationOptions | undefined = undefined;
+    let registrationOptions: PublishRegistrationOptions;
 
     if (options.registryRpcUrl && options.privateKey) {
       const provider = new ethers.providers.JsonRpcProvider(options.registryRpcUrl);
@@ -398,37 +326,16 @@ program
         }
       }
     }
+    else {
+      throw new Error('must specify private key and registry rpc');
+    }
 
     await publish(
-      options.directory,
       packageName,
       options.tags,
-      options.registryIpfsUrl,
-      options.registryIpfsAuthorizationHeader,
       registrationOptions,
       options.quiet
     );
-  });
-
-program
-  .command('import')
-  .description('Import a Cannon package from a zip archive')
-  .argument('<importFile>', 'Relative path and filename to package archive')
-  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .action(async function (importFile, options) {
-    const { importPackage } = await import('./commands/import');
-    await importPackage(options.directory, importFile);
-  });
-
-program
-  .command('export')
-  .description('Export a Cannon package as a zip archive')
-  .argument('<packageName>', 'Name and version of the cannon package to export')
-  .argument('[outputFile]', 'Relative path and filename to export package archive')
-  .option('-d --directory <directory>', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .action(async function (packageName, outputFile, options) {
-    const { exportPackage } = await import('./commands/export');
-    await exportPackage(options.directory, outputFile, packageName);
   });
 
 program
@@ -445,26 +352,25 @@ program
 
     const networkInfo = await provider.getNetwork();
 
-    const manifest = await getAllDeploymentInfos(
-      getPackageDir(getSavedPackagesDir(), packageDefinition.name, packageDefinition.version)
-    );
+    const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-    const builder = new ChainBuilder({
-      name: packageDefinition.name,
-      version: packageDefinition.version,
-      def: manifest.deploys[networkInfo.chainId.toString()][opts.preset].def || manifest.def,
-      preset: opts.preset,
-
-      readMode: 'metadata',
-      writeMode: 'none',
-
+    const runtime = new IPFSChainBuilderRuntime({
       provider,
-      chainId: networkInfo.chainId,
-      savedPackagesDir: opts.cannonDirectory,
-      getSigner: async () => signers[0],
-    });
+      chainId: (await provider.getNetwork()).chainId,
+      async getSigner(addr: string) {
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      },
 
-    const outputs = await builder.getOutputs();
+      baseDir: null,
+      snapshots: false,
+    }, resolveCliSettings().ipfsUrl, resolver);
+
+    const deployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, opts.preset || 'main');
+
+    const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
     if (!outputs) {
       throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${opts.preset}. Did you mean to run instead?`);

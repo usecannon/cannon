@@ -1,7 +1,8 @@
-import { CannonRegistry, getAllDeploymentInfos, getPackageDir, getSavedPackagesDir } from '@usecannon/builder';
+import { OnChainRegistry } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import _ from 'lodash';
-import untildify from 'untildify';
+import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
 import { parsePackageRef } from '../util/params';
 
 export interface RegistrationOptions {
@@ -11,78 +12,45 @@ export interface RegistrationOptions {
 }
 
 export async function publish(
-  cannonDirectory: string,
   packageRef: string,
   tags: string,
-  ipfsEndpoint: string,
-  ipfsAuthorizationHeader: string,
-  registrationOptions?: RegistrationOptions,
+  registrationOptions: RegistrationOptions,
   quiet = false
 ) {
-  cannonDirectory = untildify(cannonDirectory);
+  const cliSettings = resolveCliSettings();
   const { name, version } = parsePackageRef(packageRef);
 
-  const ipfsOptions = {
-    url: ipfsEndpoint,
-    headers: {
-      authorization: ipfsAuthorizationHeader,
-    },
-  };
+  const localRegistry = createDefaultReadRegistry(cliSettings);
 
-  const registry = new CannonRegistry({
-    ipfsOptions,
-    signerOrProvider: registrationOptions?.signer ?? null,
-    address: registrationOptions?.registryAddress ?? null,
-  });
+  const toPublishUrl = await localRegistry.getUrl(name, version);
 
-  const manifestIpfsInfo = await registry.uploadPackage(`${name}:${version}`, cannonDirectory);
-
-  const ipfsHash = manifestIpfsInfo.cid.toV0().toString();
-
-  if (!quiet) {
-    console.log('Uploaded to IPFS:', ipfsHash);
+  if (!toPublishUrl) {
+    throw new Error(`no locally linked package: '${name}:${version}'`);
   }
 
-  const manifest = await getAllDeploymentInfos(getPackageDir(getSavedPackagesDir(), name, version));
-  let registerHash: string | null = null;
+  const registry = new OnChainRegistry({
+    signerOrProvider: registrationOptions.signer,
+    address: registrationOptions.registryAddress,
+  });
 
-  let splitTags = tags.split(',');
-
-  if (registrationOptions) {
-    if (name === manifest.def.name && version !== manifest.def.version) {
-      splitTags.push(version);
+  const registrationReceipts = [];
+  
+  for (const tag of [version, ...tags.split(',')]) {
+    if (toPublishUrl !== await registry.getUrl(name, version, 'main')) {
+      registrationReceipts.push(await registry.publish([`${name}:${tag}`], toPublishUrl, 'main'));
+      if (!quiet) {
+        console.log(`Published: ${name}:${tag}`);
+      }
     }
-
-    splitTags = _.uniq(splitTags);
-
-    if (!quiet) {
-      console.log(`Register package ${manifest.def.name}:${manifest.def.version} (tags: ${splitTags.join(', ')})...`);
-    }
-
-    const txn = await registry.publish(
-      manifest.def.name,
-      manifest.def.version,
-      splitTags,
-      ipfsHash,
-      registrationOptions.overrides
-    );
-
-    if (!quiet) {
-      console.log('Publish Txn:', txn.transactionHash, txn.status);
-    }
-
-    registerHash = txn.transactionHash;
-  } else {
-    console.log('Skipping registration (registration parameters not specified).');
   }
 
   console.log(
     JSON.stringify({
-      name: manifest.def.name,
-      version: manifest.def.version,
-      tags: splitTags,
-      ipfsHash,
-      registerHash,
+      name: name,
+      version: version,
+      tags: tags.split(','),
+      ipfsHash: toPublishUrl,
+      registrationReceipts,
     })
   );
 }

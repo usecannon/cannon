@@ -1,31 +1,39 @@
-import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import untildify from 'untildify';
+import { ChainDefinition, getOutputs, IPFSChainBuilderRuntime } from '@usecannon/builder';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
-import { parsePackageRef } from '../util/params';
+import { createDefaultReadRegistry } from '../registry';
+import { getProvider, runRpc } from '../rpc';
+import { resolveCliSettings } from '../settings';
 
-export async function verify(packageRef: string, apiKey: string, network: string, cannonDirectory: string) {
+export async function verify(packageRef: string, apiKey: string, network: string) {
   await setupAnvil();
-  const { name, version } = parsePackageRef(packageRef);
-  cannonDirectory = untildify(cannonDirectory);
   const chainId = getChainId(network);
 
-  const builder = new ChainBuilder({
-    name,
-    version,
-    readMode: 'metadata',
-    chainId: chainId,
-    savedPackagesDir: cannonDirectory,
+  // create temporary provider 
+  // todo: really shouldn't be necessary
+  const provider = getProvider(
+    await runRpc({
+     port: 30000 + Math.floor(Math.random() * 30000)
+   }));
 
-    provider: {} as CannonWrapperGenericProvider,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async getSigner(_: string) {
-      return new Promise(() => {
-        return null;
-      });
-    },
-  });
+  const resolver = createDefaultReadRegistry(resolveCliSettings());
+ 
+   const runtime = new IPFSChainBuilderRuntime({
+     provider,
+     chainId: (await provider.getNetwork()).chainId,
+     async getSigner(addr: string) {
+       // on test network any user can be conjured
+       await provider.send('hardhat_impersonateAccount', [addr]);
+       await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+       return provider.getSigner(addr);
+     },
+ 
+     baseDir: null,
+     snapshots: false,
+   }, resolveCliSettings().ipfsUrl, resolver);
+ 
+   const deployData = await runtime.readDeploy(packageRef, 'main');
 
-  const outputs = await builder.getOutputs();
+  const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
     throw new Error('No chain outputs found. Has the requested chain already been built?');

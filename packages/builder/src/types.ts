@@ -84,7 +84,7 @@ export interface ChainBuilderRuntimeInfo {
   getSigner: (addr: string) => Promise<ethers.Signer>;
 
   // returns a signer which should be used for sending the specified transaction.
-  getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+  getDefaultSigner?: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
 
   // returns contract information from the specified artifact name.
   getArtifact?: (name: string) => Promise<ContractArtifact>;

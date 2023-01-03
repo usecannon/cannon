@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HardhatRuntimeEnvironment, HttpNetworkConfig } from 'hardhat/types';
-import { PackageDefinition, run, parsePackagesArguments, runRpc } from '@usecannon/cli';
+import { run, parsePackagesArguments, runRpc, PackageSpecification } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
 import loadCannonfile from '../internal/load-cannonfile';
 import { isURL } from '../internal/is-url';
@@ -18,9 +18,9 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets')
   .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
   .setAction(async ({ packageNames, port, fork, logs, preset, writeDeployments, impersonate, fundAddresses }, hre) => {
-    const packages: PackageDefinition[] = ((packageNames || []) as string[]).reduce((result, val) => {
+    const packages: PackageSpecification[] = ((packageNames || []) as string[]).reduce((result, val) => {
       return parsePackagesArguments(val, result);
-    }, [] as PackageDefinition[]);
+    }, [] as PackageSpecification[]);
 
     if (!packages.length) {
       // derive from the default cannonfile
@@ -59,7 +59,6 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       preset,
       privateKey,
       writeDeployments: writeDeployments ? hre.config.paths.deployments : '',
-      cannonDirectory: hre.config.paths.cannon,
       projectDirectory: hre.config.paths.root,
       registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
       registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,

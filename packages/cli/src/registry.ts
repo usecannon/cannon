@@ -1,4 +1,4 @@
-import { CannonRegistry } from "@usecannon/builder";
+import { CannonRegistry, OnChainRegistry } from "@usecannon/builder";
 
 import path from 'path';
 import fs from 'fs-extra';
@@ -8,7 +8,7 @@ import { ethers } from 'ethers';
 
 
 // in addition to loading packages from the , also stores tags locally to remember between local builds
-export class LocalRegistry /* TODO: implements something? */ {
+export class LocalRegistry implements CannonRegistry {
 
     packagesDir: string;
 
@@ -38,7 +38,7 @@ export class LocalRegistry /* TODO: implements something? */ {
     }
 }
 
-export class FallbackRegistry /* TODO: implements something? */ {
+export class FallbackRegistry implements CannonRegistry {
 
     registries: any[];
 
@@ -70,7 +70,7 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
     const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
     return new FallbackRegistry([
-        new CannonRegistry({ signerOrProvider: provider, address: '' }),
+        new OnChainRegistry({ signerOrProvider: provider, address: '' }),
         new LocalRegistry('~/.local/share/cannon')
     ])
 }

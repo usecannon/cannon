@@ -2,7 +2,7 @@ import path from 'path';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
-import { CANNON_CHAIN_ID, getSavedPackagesDir } from '@usecannon/builder';
+import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
@@ -29,10 +29,6 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   config.paths.deployments = userConfig.paths?.deployments
     ? path.resolve(config.paths.root, userConfig.paths.deployments)
     : path.join(config.paths.root, 'deployments');
-
-  config.paths.cannon = userConfig.paths?.cannon
-    ? path.resolve(config.paths.root, userConfig.paths.cannon)
-    : getSavedPackagesDir();
 
   config.cannon = {
     cannonDirectory: userConfig.cannon?.cannonDirectory || DEFAULT_CANNON_DIRECTORY,

@@ -1,36 +1,43 @@
 import _ from 'lodash';
 import { task } from 'hardhat/config';
 import prompts from 'prompts';
-import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_VERIFY } from '../task-names';
-import { CannonWrapperGenericProvider, ChainBuilder } from '@usecannon/builder';
-import { DEFAULT_CANNON_DIRECTORY, PackageDefinition } from '@usecannon/cli';
+import { TASK_VERIFY } from '../task-names';
+import { ChainDefinition, getOutputs, IPFSChainBuilderRuntime } from '@usecannon/builder';
+import { createDefaultReadRegistry, resolveCliSettings, runRpc } from '@usecannon/cli';
+import { getProvider } from '@usecannon/cli/dist/src/rpc';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addOptionalPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addOptionalParam('apiKey', 'Etherscan API key')
-  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .setAction(async ({ packageName, directory, apiKey }, hre) => {
-    if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
-      directory = hre.config.paths.cannon;
-    }
+  .setAction(async ({ packageName, apiKey }, hre) => {
 
-    const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
-      packageWithSettingsParams: packageName ? [packageName] : [],
-    });
+    // create temporary provider 
+    // todo: really shouldn't be necessary
+    const provider = getProvider(
+      await runRpc({
+      port: 30000 + Math.floor(Math.random() * 30000)
+    }));
 
-    const builder = new ChainBuilder({
-      name: packageDefinition.name,
-      version: packageDefinition.version,
-      readMode: 'metadata',
-      chainId: (await hre.ethers.provider.getNetwork()).chainId,
-      provider: new CannonWrapperGenericProvider({}, hre.ethers.provider),
+    const resolver = createDefaultReadRegistry(resolveCliSettings());
+  
+    const runtime = new IPFSChainBuilderRuntime({
+      provider,
+      chainId: (await provider.getNetwork()).chainId,
       async getSigner(addr: string) {
-        return hre.ethers.getSigner(addr);
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
       },
-      savedPackagesDir: directory,
-    });
+  
+      baseDir: null,
+      snapshots: false,
+    }, resolveCliSettings().ipfsUrl, resolver);
+  
+    const deployData = await runtime.readDeploy(packageName, 'main');
 
-    const outputs = await builder.getOutputs();
+    const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
+
 
     if (!outputs) {
       throw new Error('No chain outputs found. Has the requested chain already been built?');

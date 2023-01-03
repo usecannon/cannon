@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
@@ -9,6 +10,7 @@ import Debug from 'debug';
 import { create, IPFSHTTPClient, Options } from 'ipfs-http-client';
 import { DeploymentInfo, DeploymentManifest } from './types';
 import { CannonRegistry } from './registry';
+import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -34,7 +36,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     this.provider = info.provider;
     this.chainId = info.chainId;
     this.getSigner = info.getSigner;
-    this.getDefaultSigner = info.getDefaultSigner;
+    this.getDefaultSigner = info.getDefaultSigner || _.partial(getExecutionSigner, this.provider);
 
     this.getArtifact = (n: string) => {
       if (info.getArtifact) {

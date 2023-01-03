@@ -7,10 +7,10 @@ import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
   ChainBuilderContext,
-  validateChainDefinition,
   ChainDefinition,
   RawChainDefinition,
 } from '@usecannon/builder';
+import { getChainDefinitionValidator } from '@usecannon/builder/dist/actions';
 
 export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath: string) {
   if (!fs.existsSync(filepath)) {
@@ -50,10 +50,12 @@ export default function loadCannonfile(hre: HardhatRuntimeEnvironment, filepath:
     throw new Error(msg);
   }
 
-  if (!validateChainDefinition(rawDef)) {
+  const defValidator = getChainDefinitionValidator();
+
+  if (!defValidator(rawDef)) {
     console.error('cannonfile failed parse:');
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    for (const error of validateChainDefinition.errors || []) {
+    for (const error of defValidator.errors || []) {
       console.log(`> at .${error.schemaPath}: ${error.message} (${JSON.stringify(error.params)})`);
     }
 

@@ -7,10 +7,10 @@ import {
   ChainDefinition,
   ContractArtifact,
   Events,
-  getPackageDir,
   IPFSChainBuilderRuntime,
   build as cannonBuild,
-  createInitialContext
+  createInitialContext,
+  getOutputs
 } from '@usecannon/builder';
 import { findPackage, loadCannonfile } from '../helpers';
 import { getProvider, CannonRpcNode } from '../rpc';
@@ -19,7 +19,6 @@ import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
-import { getOutputs } from '@usecannon/builder/dist/src/builder';
 
 interface Params {
   node: CannonRpcNode;
@@ -28,12 +27,11 @@ interface Params {
   upgradeFrom?: string;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  cannonDirectory: string;
   projectDirectory?: string;
   preset?: string;
   forkUrl?: string;
   chainId?: number;
-  registry: CannonRegistry;
+  overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
   deploymentPath?: string;
@@ -45,17 +43,17 @@ export async function build({
   packageDefinition,
   upgradeFrom,
   getArtifact,
-  cannonDirectory,
   projectDirectory,
   preset = 'main',
-  registry,
+  overrideResolver,
   wipe = false,
-  persist = true,
-  deploymentPath,
+  persist = true
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
+
+  const cliSettings = resolveCliSettings();
 
   let def: ChainDefinition;
   if (cannonfilePath) {
@@ -75,7 +73,7 @@ export async function build({
 
     def = overrideDef;
   } else {
-    def = new ChainDefinition(findPackage(cannonDirectory, packageDefinition.name, packageDefinition.version).def);
+    def = new ChainDefinition(findPackage(cliSettings.cannonDirectory, packageDefinition.name, packageDefinition.version).def);
   }
 
   const defSettings = def.getSettings();
@@ -102,8 +100,6 @@ export async function build({
     );
   }
 
-  const settings = resolveCliSettings();
-
   const provider = await getProvider(node);
 
   const runtimeOptions = {
@@ -114,11 +110,6 @@ export async function build({
 
     provider,
     chainId: CANNON_CHAIN_ID,
-    savedPackagesDir: cannonDirectory,
-    // if building locally, override the package directory to be an alternate to prevent clashing with registry packages or other sources
-    overridePackageDir: persist
-      ? getPackageDir(cannonDirectory, '@local', `${packageDefinition.name}/${packageDefinition.version}`)
-      : undefined,
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
@@ -126,41 +117,58 @@ export async function build({
       return provider.getSigner(addr);
     },
 
-    baseDir: projectDirectory,
+    baseDir: projectDirectory || null,
     snapshots: true,
   };
 
-  const resolver = createDefaultReadRegistry(settings);
+  const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
 
-  const runtime = new IPFSChainBuilderRuntime(runtimeOptions, settings.ipfsUrl, resolver);
+  const runtime = new IPFSChainBuilderRuntime(runtimeOptions, cliSettings.ipfsUrl, resolver);
 
   runtime.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
   runtime.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
   runtime.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
   runtime.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
 
-  const initialCtx = await createInitialContext(def, {}, packageDefinition.settings);
 
-  const newState = await cannonBuild(runtime, def, state, initialCtx);
+  let oldDeployData = null;
+  try {
+    oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
+  } catch (err) {
+    // do nothing
+  }
+
+  const initialCtx = await createInitialContext(def, {}, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
+
+  const newState = await cannonBuild(
+    runtime, 
+    def, 
+    oldDeployData ? oldDeployData.state : {}, 
+    initialCtx
+  );
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
   // save the state to ipfs
-  const miscUrl = runtime.recordMisc();
+  const miscUrl = await runtime.recordMisc();
 
-  runtime.putDeploy({
+  const deployUrl = await runtime.putDeploy({
     def: def.toJson(),
     state: newState,
     options: packageDefinition.settings,
-    miscHash: miscUrl
-  })
+    miscUrl: miscUrl
+  });
+
+  if (persist) {
+    await resolver.publish([`${packageDefinition.name}:${packageDefinition.version}`], deployUrl, `${runtime.chainId}-${preset}`);
+  }
 
   printChainBuilderOutput(outputs);
 
   console.log(
     greenBright(
       `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} to ${bold(
-        tildify(cannonDirectory)
+        tildify(cliSettings.cannonDirectory)
       )}`
     )
   );

@@ -1,7 +1,7 @@
 import { task } from 'hardhat/config';
 import { bold, yellowBright } from 'chalk';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_PUBLISH } from '../task-names';
-import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageDefinition } from '@usecannon/cli';
+import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageSpecification } from '@usecannon/cli';
 import { RegistrationOptions } from '@usecannon/cli/dist/src/commands/publish';
 import { ethers, Wallet } from 'ethers';
 import _ from 'lodash';
@@ -28,12 +28,10 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
     'maxPriorityFeePerGas',
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
-  .addFlag('skipRegister', 'Just upload to IPFS. Do not register the package on-chain')
   .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
   .setAction(
     async (
       {
-        directory,
         packageName,
         privateKey,
         tags,
@@ -53,10 +51,6 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         process.exit();
       }
 
-      if (directory === DEFAULT_CANNON_DIRECTORY && hre.config.paths.cannon) {
-        directory = hre.config.paths.cannon;
-      }
-
       if (hre.config.cannon.ipfsEndpoint) {
         ipfsEndpoint = hre.config.cannon.ipfsEndpoint;
       }
@@ -65,48 +59,42 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
         ipfsAuthorizationHeader = hre.config.cannon.ipfsAuthorizationHeader;
       }
 
-      let registrationOptions: RegistrationOptions | undefined = undefined;
-      if (!skipRegister) {
-        registrationOptions = {
-          registryAddress,
-          signer: (await hre.ethers.getSigners())[0],
-        };
+      let registrationOptions: RegistrationOptions = {
+        registryAddress,
+        signer: (await hre.ethers.getSigners())[0],
+      };
 
-        if (registryAddress === DEFAULT_REGISTRY_ADDRESS && hre.config.cannon.registryAddress) {
-          registryAddress = hre.config.cannon.registryAddress;
-        }
-
-        if (privateKey) {
-          registrationOptions.signer = new Wallet(privateKey, hre.ethers.provider);
-        }
-
-        if (maxFeePerGas) {
-          _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(maxFeePerGas, 'gwei'));
-        }
-
-        if (maxPriorityFeePerGas) {
-          _.set(
-            registrationOptions,
-            'overrides.maxPriorityFeePerGas',
-            ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei')
-          );
-        }
-
-        if (gasLimit) {
-          _.set(registrationOptions, 'overrides.gasLimit', gasLimit);
-        }
+      if (registryAddress === DEFAULT_REGISTRY_ADDRESS && hre.config.cannon.registryAddress) {
+        registryAddress = hre.config.cannon.registryAddress;
       }
 
-      const packageDefinition: PackageDefinition = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      if (privateKey) {
+        registrationOptions.signer = new Wallet(privateKey, hre.ethers.provider);
+      }
+
+      if (maxFeePerGas) {
+        _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(maxFeePerGas, 'gwei'));
+      }
+
+      if (maxPriorityFeePerGas) {
+        _.set(
+          registrationOptions,
+          'overrides.maxPriorityFeePerGas',
+          ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei')
+        );
+      }
+
+      if (gasLimit) {
+        _.set(registrationOptions, 'overrides.gasLimit', gasLimit);
+      }
+
+      const packageDefinition: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
         packageWithSettingsParams: packageName ? [packageName] : [],
       });
 
       await publish(
-        directory,
         `${packageDefinition.name}:${packageDefinition.version}`,
         tags,
-        ipfsEndpoint,
-        ipfsAuthorizationHeader,
         registrationOptions,
         quiet
       );

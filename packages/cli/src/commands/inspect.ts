@@ -1,10 +1,12 @@
 import _ from 'lodash';
-import { ChainDefinition, DeploymentInfo, getAllDeploymentInfos } from '@usecannon/builder';
-import { bold, cyan, gray, green, magenta, red } from 'chalk';
+import { ChainDefinition, IPFSChainBuilderRuntime } from '@usecannon/builder';
+import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
-import { getChainName } from '../helpers';
+import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
+import { getProvider, runRpc } from '../rpc';
 
-export async function inspect(cannonDirectory: string, packageRef: string, json: boolean) {
+export async function inspect(packageRef: string, json: boolean) {
   const { name, version } = parsePackageRef(packageRef);
 
   if (version === 'latest') {
@@ -12,46 +14,41 @@ export async function inspect(cannonDirectory: string, packageRef: string, json:
     throw new Error(`You must specify a valid package version, given: "${version}"`);
   }
 
-  const deployInfo = await getAllDeploymentInfos(`${cannonDirectory}/${name}/${version}`);
-  const chainDefinition = new ChainDefinition(deployInfo.def);
+
+  const resolver = createDefaultReadRegistry(resolveCliSettings());
+
+  // create temporary provider 
+  // todo: really shouldn't be necessary
+  const provider = getProvider(
+   await runRpc({
+    port: 30000 + Math.floor(Math.random() * 30000)
+  }));
+
+  const runtime = new IPFSChainBuilderRuntime({
+    provider,
+    chainId: (await provider.getNetwork()).chainId,
+    async getSigner(addr: string) {
+      // on test network any user can be conjured
+      await provider.send('hardhat_impersonateAccount', [addr]);
+      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+      return provider.getSigner(addr);
+    },
+
+    baseDir: null,
+    snapshots: false,
+  }, resolveCliSettings().ipfsUrl, resolver);
+
+  const deployData = await runtime.readDeploy(packageRef, 'main');
+
+  const chainDefinition = new ChainDefinition(deployData.def);
 
   if (json) {
-    console.log(JSON.stringify(deployInfo, null, 2));
+    console.log(JSON.stringify(deployData, null, 2));
   } else {
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
     console.log(cyan(bold('\nCannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
-    if (!_.isEmpty(deployInfo?.deploys)) {
-      console.log(cyan(bold('\n\nCannonfile Builds/Deployments')));
-      for (const [chainId, chainData] of Object.entries(deployInfo.deploys)) {
-        const chainName = getChainName(parseInt(chainId));
-        renderDeployment(chainName, chainId, chainData);
-      }
-    } else {
-      console.log('This package has not been built for any chains yet.');
-    }
   }
 
-  return deployInfo;
-}
-
-function renderDeployment(chainName: string | undefined, chainId: string, chainData: { [preset: string]: DeploymentInfo }) {
-  console.log('\n' + magenta(bold(chainName || '')) + ' ' + gray(`(Chain ID: ${chainId})`));
-  for (const [presetName, presetData] of Object.entries(chainData)) {
-    renderPreset(presetName, presetData);
-  }
-  console.log('');
-}
-
-function renderPreset(presetName: string, presetData: DeploymentInfo) {
-  const publishedStatus = presetData.ipfsHash.length
-    ? 'Published to the registry (IPFS hash: ' + presetData.ipfsHash + ')'
-    : bold(red('Not published to the registry'));
-  console.log(`${bold(presetName)}${presetName == 'main' ? gray(' (Default)') : ''}: ${publishedStatus}`);
-
-  if (Object.keys(presetData.options).length !== 0) {
-    console.log('\nOptions');
-    console.log(gray(JSON.stringify(presetData.options, null, 2)));
-    console.log('');
-  }
+  return deployData;
 }

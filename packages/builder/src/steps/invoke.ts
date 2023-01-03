@@ -215,7 +215,7 @@ export default {
 
     const mainSigner: ethers.Signer = config.from
       ? await runtime.getSigner(config.from)
-      : await runtime.getDefaultSigner({}, '');
+      : await runtime.getDefaultSigner!({}, '');
 
     const customAbi =
       typeof config.abi === 'string'
