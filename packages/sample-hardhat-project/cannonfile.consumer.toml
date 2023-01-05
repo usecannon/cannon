@@ -7,10 +7,10 @@ keywords = ["sample", "consumer"]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter:<%= package.version %>"
+source = "greeter:1.1.20"
 
 [import.more_greeters]
-source = "greeter:<%= package.version %>"
+source = "greeter:1.1.20"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 
