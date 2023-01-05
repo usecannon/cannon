@@ -1,8 +1,9 @@
 import fs from 'fs-extra';
+import path from 'path';
 import untildify from 'untildify';
 import { DEFAULT_CANNON_DIRECTORY } from './constants';
 
-const CLI_SETTINGS_STORE = '~/.local/share/cannon/settings.json';
+const CLI_SETTINGS_STORE = 'settings.json';
 
 export type CliSettings = {
     ipfsUrl: string;
@@ -11,11 +12,13 @@ export type CliSettings = {
 }
 
 export function resolveCliSettings(): CliSettings {
-    const fileSettings: CliSettings | null = fs.existsSync(CLI_SETTINGS_STORE) ? fs.readJsonSync(CLI_SETTINGS_STORE) : null;
+    const cliSettingsStore = untildify(path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE));
+
+    const fileSettings: CliSettings | null = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : null;
 
     if (!fileSettings) {
         // TODO: prompt user instead of printing error here
-        throw new Error(`settings not configured: please create file ${CLI_SETTINGS_STORE} and put settings.`);
+        throw new Error(`settings not configured: please create file ${cliSettingsStore} and put settings.`);
     }
 
     return {

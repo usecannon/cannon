@@ -14,6 +14,7 @@ export interface RegistrationOptions {
 export async function publish(
   packageRef: string,
   tags: string,
+  variants: string,
   registrationOptions: RegistrationOptions,
   quiet = false
 ) {
@@ -36,10 +37,12 @@ export async function publish(
   const registrationReceipts = [];
   
   for (const tag of [version, ...tags.split(',')]) {
-    if (toPublishUrl !== await registry.getUrl(name, version, 'main')) {
-      registrationReceipts.push(await registry.publish([`${name}:${tag}`], toPublishUrl, 'main'));
-      if (!quiet) {
-        console.log(`Published: ${name}:${tag}`);
+    for (const variant of variants.split(',')) {
+      if (toPublishUrl !== await registry.getUrl(`${name}:${version}`, variant)) {
+        registrationReceipts.push(await registry.publish([`${name}:${tag}`], toPublishUrl, 'main'));
+        if (!quiet) {
+          console.log(`Published: ${name}:${tag}`);
+        }
       }
     }
   }

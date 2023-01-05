@@ -62,11 +62,15 @@ export default {
     const [name, version] = config.source.split(':');
 
     const preset = config.preset ?? 'main';
-    const chainId = (config.chainId ?? runtime.chainId).toString();
+    //const chainId = (config.chainId ?? runtime.chainId).toString();
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
     const deployInfo = await runtime.readDeploy(config.source, preset);
+
+    if (!deployInfo) {
+      throw new Error(`deployment not found: ${config.source}. please make sure it exists for the given preset and current network.`)
+    }
 
     /*const builder = new ChainBuilder({
       name,

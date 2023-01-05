@@ -40,6 +40,10 @@ export async function inspect(packageRef: string, json: boolean) {
 
   const deployData = await runtime.readDeploy(packageRef, 'main');
 
+  if (!deployData) {
+    throw new Error(`deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`)
+  }
+
   const chainDefinition = new ChainDefinition(deployData.def);
 
   if (json) {

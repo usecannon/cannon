@@ -14,7 +14,7 @@ export interface CannonRegistry {
     variant: string,
   ): Promise<string[]>;
 
-  getUrl(name: string, version: string, variant: string): Promise<string | null>;
+  getUrl(packageName: string, variant: string): Promise<string | null>;
 }
 
 export class OnChainRegistry implements CannonRegistry {
@@ -77,10 +77,9 @@ export class OnChainRegistry implements CannonRegistry {
     return txns.map(t => t.transactionHash);
   }
 
-  async getUrl(name: string, version: string, variant: string): Promise<string | null> {
-    if (name === '@ipfs') {
-      return `ipfs://${version}`;
-    }
+  async getUrl(packageName: string, variant: string): Promise<string | null> {
+
+    const [name, version] = packageName.split(':');
 
     const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),

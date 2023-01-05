@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import { CliSettings } from "./settings";
 
 import { ethers } from 'ethers';
+import _ from "lodash";
 
 
 // in addition to loading packages from the , also stores tags locally to remember between local builds
@@ -16,12 +17,12 @@ export class LocalRegistry implements CannonRegistry {
         this.packagesDir = packagesDir;
     }
 
-    getTagReferenceStorage(name: string, version: string, variant: string): string {
-        return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt`);
+    getTagReferenceStorage(packageRef: string, variant: string): string {
+        return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
     }
 
-    async getUrl(name: string, version: string, variant: string): Promise<string | null> {
-        return (await fs.readFile(this.getTagReferenceStorage(name, version, variant))).toString()
+    async getUrl(packageRef: string, variant: string): Promise<string | null> {
+        return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString()
     }
 
     async publish(
@@ -30,8 +31,11 @@ export class LocalRegistry implements CannonRegistry {
         url: string
     ): Promise<string[]> {
         for (const packageName of packagesNames) {
-            const [name, version] = packageName.split(':');
-            await fs.writeFile(this.getTagReferenceStorage(name, version, variant), url);
+            const file = this.getTagReferenceStorage(packageName, variant);
+            console.log('write file', file);
+            await fs.mkdirp(path.dirname(file));
+            await fs.writeFile(file, url);
+            console.log('wrote');
         }
 
         return [];
@@ -48,10 +52,14 @@ export class FallbackRegistry implements CannonRegistry {
     
     async getUrl(name: string, version: string): Promise<string | null> {
         for (const registry of this.registries) {
-            const result = await registry.getUrl(name, version);
+            try {
+                const result = await registry.getUrl(name, version);
 
-            if (result) {
-                return result;
+                if (result) {
+                    return result;
+                }
+            } catch (err) {
+                console.error('WARNING: error caught in registry:', err);
             }
         }
 
@@ -60,9 +68,11 @@ export class FallbackRegistry implements CannonRegistry {
 
     async publish(
         packagesNames: string[],
+        variant: string,
         url: string
     ): Promise<string[]> {
-        return this.registries[0].publish(packagesNames, url);
+        // the fallback registry is usually something easy to write to or get to later
+        return _.last(this.registries).publish(packagesNames, variant, url);
     }
 }
 
@@ -71,6 +81,6 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
 
     return new FallbackRegistry([
         new OnChainRegistry({ signerOrProvider: provider, address: '' }),
-        new LocalRegistry('~/.local/share/cannon')
+        new LocalRegistry(settings.cannonDirectory)
     ])
 }

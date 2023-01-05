@@ -12,9 +12,6 @@ import {
 import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';
-import './tasks/deploy';
-import './tasks/export';
-import './tasks/import';
 import './tasks/inspect';
 import './tasks/packages';
 import './tasks/publish';

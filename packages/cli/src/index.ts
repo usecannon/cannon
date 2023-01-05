@@ -23,6 +23,9 @@ import {
 } from './constants';
 import { CannonRpcNode, runRpc } from './rpc';
 
+// the run step should be made available any time the `cli` module is in use
+import './custom-steps/run';
+
 export * from './types';
 export * from './constants';
 export * from './util/params';
@@ -333,6 +336,7 @@ program
     await publish(
       packageName,
       options.tags,
+      'all', // todo
       registrationOptions,
       options.quiet
     );
@@ -369,6 +373,10 @@ program
     }, resolveCliSettings().ipfsUrl, resolver);
 
     const deployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, opts.preset || 'main');
+
+    if (!deployData) {
+      throw new Error(`deployment not found: ${packageDefinition.name}:${packageDefinition.version}. please make sure it exists for the given preset and current network.`)
+    }
 
     const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 

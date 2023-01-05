@@ -95,6 +95,7 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
       await publish(
         `${packageDefinition.name}:${packageDefinition.version}`,
         tags,
+        'all', // todo: get all variatns?
         registrationOptions,
         quiet
       );

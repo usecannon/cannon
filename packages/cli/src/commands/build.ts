@@ -19,6 +19,7 @@ import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
+import debug from 'debug';
 
 interface Params {
   node: CannonRpcNode;
@@ -110,6 +111,9 @@ export async function build({
 
     provider,
     chainId: CANNON_CHAIN_ID,
+
+    getArtifact,
+
     async getSigner(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
@@ -131,12 +135,9 @@ export async function build({
   runtime.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
 
 
-  let oldDeployData = null;
-  try {
-    oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
-  } catch (err) {
-    // do nothing
-  }
+  const oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
+  console.log(oldDeployData ? 'loaded previous deployment' : 'did not find previous deployment');
+  console.log('tmp', oldDeployData?.state);
 
   const initialCtx = await createInitialContext(def, {}, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
 
@@ -160,7 +161,7 @@ export async function build({
   });
 
   if (persist) {
-    await resolver.publish([`${packageDefinition.name}:${packageDefinition.version}`], deployUrl, `${runtime.chainId}-${preset}`);
+    await resolver.publish([`${packageDefinition.name}:${packageDefinition.version}`], `${runtime.chainId}-${preset}`, deployUrl);
   }
 
   printChainBuilderOutput(outputs);

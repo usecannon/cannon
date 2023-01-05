@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import axios from 'axios';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
@@ -7,10 +8,11 @@ import { ChainBuilderRuntimeInfo, ContractArtifact } from './types';
 import pako from 'pako';
 
 import Debug from 'debug';
-import { create, IPFSHTTPClient, Options } from 'ipfs-http-client';
-import { DeploymentInfo, DeploymentManifest } from './types';
+import { DeploymentInfo } from './types';
 import { CannonRegistry } from './registry';
 import { getExecutionSigner } from './util';
+
+import FormData from 'form-data';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -40,7 +42,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
     this.getArtifact = (n: string) => {
       if (info.getArtifact) {
-        this.misc.artifacts[n] = this.misc.artifacts[n];
+        this.misc.artifacts[n] = info.getArtifact(n);
       }
 
       return this.misc.artifacts[n] || null;
@@ -61,14 +63,14 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     }
   }
 
-  async loadState(stateDump: Buffer): Promise<void> {
+  async loadState(stateDump: string): Promise<void> {
     debug('load state', stateDump.length);
-    await this.provider.send('hardhat_loadState', ['0x' + stateDump.toString('hex')]);
+    await this.provider.send('hardhat_loadState', [stateDump]);
   }
   
   async dumpState() {
     debug('dump state');
-    return Buffer.from((await this.provider.send('hardhat_dumpState', [])), 'hex');
+    return await this.provider.send('hardhat_dumpState', []);
   }
   
   async clearNode() {
@@ -87,7 +89,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     }
   }
 
-  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo> {
+  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo | null> {
     throw new Error('not implemented');
   }
 
@@ -117,7 +119,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
 
   ipfsUrl: string;
-  resolver: any;
+  resolver: CannonRegistry;
 
   constructor(info: ChainBuilderRuntimeInfo, ipfsUrl: string, resolver: CannonRegistry) {
     super(info);
@@ -129,61 +131,44 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   async readIpfs(hash: string): Promise<any> {
     debug(`downloading content from ${hash}`);
 
-    const inflator = new pako.Inflate();
+    const result = await axios.post(this.ipfsUrl + `/api/v0/cat?arg=${hash}`, {}, {
+      responseEncoding: 'application/octet-stream',
+      responseType: 'arraybuffer'
+    });
 
-    const ipfsOptions = parseIpfsOptions(this.ipfsUrl);
-
-    if (ipfsOptions) {
-
-      const ipfs: IPFSHTTPClient = create(ipfsOptions);
-
-      for await (const chunk of ipfs.cat(hash)) {
-        inflator.push(chunk);
-      }
-  
-      if (inflator.err) {
-        throw new Error('failed decompress:' + inflator.err);
-      }
-    }
-    else {
-      const response = await fetch(`${this.ipfsUrl}/${hash}`);
-
-      inflator.push(await response.arrayBuffer());
-    }
-  
-    return JSON.parse(inflator.result as string);
+    return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
   }
 
   async writeIpfs(info: any): Promise<string> {
     const data = JSON.stringify(info);
 
-    const options = parseIpfsOptions(this.ipfsUrl);
+    const buf = pako.deflate(data);
+    debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
 
-    if (!options) {
-      throw new Error('configured ipfs url is not capable of uploading packages. please supply an IPFS API URL.');
-    }
+    const formData = new FormData();
+    formData.append('data', Buffer.from(buf));
+    
+    const result = await axios.post(this.ipfsUrl + '/api/v0/add', formData);
 
-    debug('upload to ipfs:')
-    const ipfs: IPFSHTTPClient = create(options);
-    const ipfsInfo = await ipfs.add(pako.deflate(data));
+    debug('upload', result.statusText, result.data.Hash);
 
-    return ipfsInfo.cid.toV0().toString();
+    return result.data.Hash;
   }
 
-  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo> {
-    const manifestHash = await this.resolver.findPackage(packageName);
-    const manifest: DeploymentManifest = await this.readIpfs(manifestHash);
-    const deployHash = manifest.deploys[this.chainId][preset].hash;
-    const deployInfo: DeploymentInfo = await this.readIpfs(deployHash);
+  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo | null> {
+    const h = await this.resolver.getUrl(packageName, `${this.chainId}-${preset}`);
+
+    if (!h) {
+      return null;
+    }
+
+    const deployInfo: DeploymentInfo = await this.readIpfs(h);
 
     return deployInfo;
   }
 
   async putDeploy(deployInfo: DeploymentInfo): Promise<string> {
     const deployHash = await this.writeIpfs(deployInfo);
-
-    // TODO: have to link the manifest as well
-
     return deployHash;
   }
 
@@ -194,20 +179,4 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   async recordMisc(): Promise<string> {
     return this.writeIpfs(this.misc);
   }
-}
-
-function parseIpfsOptions(urlString: string): Options | null {
-  const url = new URL(urlString);
-
-  if (url.port == '5001' || url.protocol === 'https+ipfs' || url.protocol === 'http+ipfs') {
-    const options: Options = {
-      //host: url.host,
-      //port: typeof url.port === 'string' ? parseInt(url.port) : url.port,
-      url
-    };
-
-    return options;
-  }
-
-  return null;
 }

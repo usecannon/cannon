@@ -110,7 +110,7 @@ ${printChainDefinitionProblems(problems)}`);
         const newCtx = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
         state[n] = {
           ctx: newCtx,
-          hash: '',
+          hash: await def.getState(n, runtime, newCtx),
           version: BUILD_VERSION
         };
       } else {
@@ -160,7 +160,7 @@ async function buildLayer(
         ctx = combineCtx([ctx, state[dep].ctx]);
       }
 
-      if (state[action].hash !== await def.getState(action, runtime, ctx)) {
+      if (!state[action] || state[action].hash !== await def.getState(action, runtime, ctx)) {
         isCompleteLayer = false;
         break;
       }
@@ -194,7 +194,7 @@ async function buildLayer(
     for (const action of layer.actions) {
       state[action] = {
         ctx: newCtx,
-        hash: '',
+        hash: await def.getState(action, runtime, newCtx),
         version: BUILD_VERSION,
         chainDump,
       }

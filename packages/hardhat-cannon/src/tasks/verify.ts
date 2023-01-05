@@ -8,8 +8,9 @@ import { getProvider } from '@usecannon/cli/dist/src/rpc';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addOptionalPositionalParam('packageName', 'Name and version of the Cannon package to verify')
+  .addPositionalParam('preset', 'Specify an alternate preset', 'main')
   .addOptionalParam('apiKey', 'Etherscan API key')
-  .setAction(async ({ packageName, apiKey }, hre) => {
+  .setAction(async ({ packageName, preset, apiKey }, hre) => {
 
     // create temporary provider 
     // todo: really shouldn't be necessary
@@ -34,7 +35,11 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       snapshots: false,
     }, resolveCliSettings().ipfsUrl, resolver);
   
-    const deployData = await runtime.readDeploy(packageName, 'main');
+    const deployData = await runtime.readDeploy(packageName, `${hre.network.config.chainId}-${preset}`);
+
+    if (!deployData) {
+      throw new Error(`deployment not found: ${packageName}. please make sure it exists for the given preset and current network.`)
+    }
 
     const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 

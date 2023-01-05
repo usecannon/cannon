@@ -147,9 +147,9 @@ export type DeploymentManifest = {
 
 export type StepState = {
   version: number;
-  hash: string;
+  hash: string|null;
   ctx: ChainBuilderContext;
-  chainDump?: Buffer; // only included if cannon network build
+  chainDump?: string; // only included if cannon network build
 }
 
 export type DeploymentState = { [label: string]: StepState };

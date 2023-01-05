@@ -88,6 +88,10 @@ export default {
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
+    if (!artifactData) {
+      throw new Error(`bytecode/abi for artifact ${config.artifact} not found. please double check the contract name and your build configuration`);
+    }
+
     let injectedBytecode = artifactData.bytecode;
     for (const file in artifactData.linkReferences) {
       for (const lib in artifactData.linkReferences[file]) {
