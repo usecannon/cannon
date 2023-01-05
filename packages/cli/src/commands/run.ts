@@ -82,7 +82,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   for (const pkg of packages) {
     const { name, version } = pkg;
     
-    console.log(magentaBright(`Building ${name}:${version}...`));
+    console.log(magentaBright(`Loading ${name}:${version}...`));
 
     const { outputs } = await build({
       ...options,

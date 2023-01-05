@@ -64,8 +64,6 @@ export function registerAction(label: string, action: Action) {
 }
 
 export function getChainDefinitionValidator() {
-    console.log('got schema', ChainDefinitionSchema)
-
     return ajv.compile(ChainDefinitionSchema);
 }
 

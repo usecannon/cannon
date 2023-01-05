@@ -19,10 +19,10 @@ export async function inspect(packageRef: string, json: boolean) {
 
   // create temporary provider 
   // todo: really shouldn't be necessary
-  const provider = getProvider(
-   await runRpc({
+  const node = await runRpc({
     port: 30000 + Math.floor(Math.random() * 30000)
-  }));
+  });
+  const provider = getProvider(node);
 
   const runtime = new IPFSChainBuilderRuntime({
     provider,
@@ -53,6 +53,8 @@ export async function inspect(packageRef: string, json: boolean) {
     console.log(cyan(bold('\nCannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
   }
+
+  node.kill();
 
   return deployData;
 }

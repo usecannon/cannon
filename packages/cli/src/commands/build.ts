@@ -10,9 +10,10 @@ import {
   IPFSChainBuilderRuntime,
   build as cannonBuild,
   createInitialContext,
-  getOutputs
+  getOutputs,
+  DeploymentInfo
 } from '@usecannon/builder';
-import { findPackage, loadCannonfile } from '../helpers';
+import { loadCannonfile } from '../helpers';
 import { getProvider, CannonRpcNode } from '../rpc';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
@@ -56,57 +57,12 @@ export async function build({
 
   const cliSettings = resolveCliSettings();
 
-  let def: ChainDefinition;
-  if (cannonfilePath) {
-    const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
-
-    if (!name) {
-      throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
-    }
-
-    if (!version) {
-      throw new Error(red('Your cannonfile is missing a version. Add one to the top of the file like: version = "1.0.0"'));
-    }
-
-    if (name !== packageDefinition.name || version !== packageDefinition.version) {
-      throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
-    }
-
-    def = overrideDef;
-  } else {
-    def = new ChainDefinition(findPackage(cliSettings.cannonDirectory, packageDefinition.name, packageDefinition.version).def);
-  }
-
-  const defSettings = def.getSettings();
-  if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
-    const displaySettings = Object.entries(defSettings).map((setting) => [
-      setting[0],
-      setting[1].defaultValue || dim('No default value'),
-      setting[1].description || dim('No description'),
-    ]);
-    console.log('This package can be built with custom settings.');
-    console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
-    console.log('\nSETTINGS:');
-    console.log(table([[bold('Name'), bold('Default Value'), bold('Description')], ...displaySettings]));
-  }
-
-  if (!_.isEmpty(packageDefinition.settings)) {
-    console.log(
-      green(
-        `Creating preset ${bold(preset)} with the following settings: ` +
-          Object.entries(packageDefinition.settings)
-            .map((setting) => `${setting[0]}=${setting[1]}`)
-            .join(' ')
-      )
-    );
-  }
 
   const provider = await getProvider(node);
 
   const runtimeOptions = {
     name: packageDefinition.name,
     version: packageDefinition.version,
-    def,
     preset,
 
     provider,
@@ -134,10 +90,62 @@ export async function build({
   runtime.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
   runtime.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
 
+  let oldDeployData: DeploymentInfo | null = null;
+  if (!wipe) {
+    oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
 
-  const oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
+    if (oldDeployData) {
+      await runtime.restoreMisc(oldDeployData.miscUrl);
+    }
+  }
   console.log(oldDeployData ? 'loaded previous deployment' : 'did not find previous deployment');
-  console.log('tmp', oldDeployData?.state);
+
+  let def: ChainDefinition;
+  if (cannonfilePath) {
+    const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
+
+    if (!name) {
+      throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
+    }
+
+    if (!version) {
+      throw new Error(red('Your cannonfile is missing a version. Add one to the top of the file like: version = "1.0.0"'));
+    }
+
+    if (name !== packageDefinition.name || version !== packageDefinition.version) {
+      throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
+    }
+
+    def = overrideDef;
+  } else if (oldDeployData) {
+    def = new ChainDefinition(oldDeployData.def);
+  } else {
+    throw new Error(red('No deployment definition found. Make sure you have a recorded deployment for the requested cannon package, or supply a cannonfile to build one.'));
+  }
+
+  const defSettings = def.getSettings();
+  if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
+    const displaySettings = Object.entries(defSettings).map((setting) => [
+      setting[0],
+      setting[1].defaultValue || dim('No default value'),
+      setting[1].description || dim('No description'),
+    ]);
+    console.log('This package can be built with custom settings.');
+    console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
+    console.log('\nSETTINGS:');
+    console.log(table([[bold('Name'), bold('Default Value'), bold('Description')], ...displaySettings]));
+  }
+
+  if (!_.isEmpty(packageDefinition.settings)) {
+    console.log(
+      green(
+        `Creating preset ${bold(preset)} with the following settings: ` +
+          Object.entries(packageDefinition.settings)
+            .map((setting) => `${setting[0]}=${setting[1]}`)
+            .join(' ')
+      )
+    );
+  }
 
   const initialCtx = await createInitialContext(def, {}, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
 

@@ -32,10 +32,8 @@ export class LocalRegistry implements CannonRegistry {
     ): Promise<string[]> {
         for (const packageName of packagesNames) {
             const file = this.getTagReferenceStorage(packageName, variant);
-            console.log('write file', file);
             await fs.mkdirp(path.dirname(file));
             await fs.writeFile(file, url);
-            console.log('wrote');
         }
 
         return [];

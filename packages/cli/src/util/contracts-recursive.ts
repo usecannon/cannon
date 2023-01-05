@@ -9,7 +9,10 @@ export function getContractsRecursive(
 ): {
   [x: string]: ethers.Contract;
 } {
-  let contracts = mapValues(outputs.contracts, (ci) => new ethers.Contract(ci.address, ci.abi, signerOrProvider));
+  let contracts = mapValues(outputs.contracts, (ci) => {
+    console.log(ci);
+    return new ethers.Contract(ci.address, ci.abi, signerOrProvider)
+  });
   if (prefix) {
     contracts = mapKeys(contracts, (_, contractName) => `${prefix}.${contractName}`);
   }

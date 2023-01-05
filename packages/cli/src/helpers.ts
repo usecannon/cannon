@@ -123,18 +123,6 @@ export function loadCannonfile(filepath: string) {
   return { def, name, version };
 }
 
-export function findPackage(cannonDirectory: string, packageName: string, packageVersion: string) {
-  try {
-    const pathname = path.resolve(cannonDirectory, packageName, packageVersion, 'deploy.json');
-    const deployFile = fs.readFileSync(pathname);
-    return JSON.parse(deployFile.toString()) as DeploymentManifest;
-  } catch {
-    console.error(redBright(`Unable to find package ${packageName}:${packageVersion} in ${cannonDirectory}`));
-    console.error(red('Download it using the run command or build it from a local cannonfile.'));
-    process.exit(1);
-  }
-}
-
 export function getChainName(chainId: number): string {
   if (chainId == CANNON_CHAIN_ID) return 'cannon';
   if (chainId == 31337) return 'hardhat';

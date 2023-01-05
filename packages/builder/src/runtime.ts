@@ -40,9 +40,11 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     this.getSigner = info.getSigner;
     this.getDefaultSigner = info.getDefaultSigner || _.partial(getExecutionSigner, this.provider);
 
-    this.getArtifact = (n: string) => {
+    this.getArtifact = async (n: string) => {
+      debug(`resolve artifact ${n}`);
       if (info.getArtifact) {
-        this.misc.artifacts[n] = info.getArtifact(n);
+        debug(`need to find artifact externally`);
+        this.misc.artifacts[n] = _.cloneDeep(await info.getArtifact(n));
       }
 
       return this.misc.artifacts[n] || null;
@@ -114,6 +116,10 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   async recordMisc(): Promise<string> {
     throw new Error('not implemented');
   }
+
+  async restoreMisc(url: string) {
+    throw new Error('not implemented');
+  }
 }
 
 export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
@@ -177,6 +183,12 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   }
 
   async recordMisc(): Promise<string> {
+    debug('record misc');
     return this.writeIpfs(this.misc);
+  }
+
+  async restoreMisc(url: string) {
+    debug('restore misc');
+    this.misc = await this.readIpfs(url);
   }
 }

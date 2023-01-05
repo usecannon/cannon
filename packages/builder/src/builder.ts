@@ -92,12 +92,14 @@ ${printChainDefinitionProblems(problems)}`);
   const topologicalActions = def.topologicalActions;
 
   if (runtime.snapshots) {
+    debug('building by layer');
     const ctx = _.clone(initialCtx);
 
     for (const leaf of def.leaves) {
       await buildLayer(runtime, def, ctx, state, leaf, tainted);
     }
   } else {
+    debug('building isolated');
     for (const n of topologicalActions) {
       let ctx = _.clone(initialCtx);
 
@@ -105,12 +107,15 @@ ${printChainDefinitionProblems(problems)}`);
         ctx = combineCtx([ctx, state[dep].ctx]);
       }
 
-      if (state[n].hash !== await def.getState(n, runtime, ctx)) {
+      const curHash = await def.getState(n, runtime, ctx);
+
+      console.log('comparing states', state[n] ? state[n].hash : null, curHash);
+      if (!state[n] || state[n].hash !== curHash) {
         debug('run isolated', n);
         const newCtx = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
         state[n] = {
           ctx: newCtx,
-          hash: await def.getState(n, runtime, newCtx),
+          hash: curHash,
           version: BUILD_VERSION
         };
       } else {
@@ -134,14 +139,17 @@ async function buildLayer(
   cur: string,
   tainted: Set<string> = new Set()
 ) {
+
   const layers = def.getStateLayers();
 
   const layer = layers[cur];
 
   // if layer is already done
-  if (layer.actions.find((a) => state[a])) {
+  /*if (layer.actions.find((a) => state[a])) {
     return;
-  }
+  }*/
+
+  debug('eval build layer name', cur);
 
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
@@ -160,7 +168,10 @@ async function buildLayer(
         ctx = combineCtx([ctx, state[dep].ctx]);
       }
 
-      if (!state[action] || state[action].hash !== await def.getState(action, runtime, ctx)) {
+      const curHash = await def.getState(action, runtime, ctx);
+
+      debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
+      if (!state[action] || (curHash && state[action].hash !== curHash)) {
         isCompleteLayer = false;
         break;
       }

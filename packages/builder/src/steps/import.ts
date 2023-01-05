@@ -57,10 +57,6 @@ export default {
   async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
     debug('exec', config);
 
-    // download if necessary upstream
-    // then provision a builder and build the cannonfile
-    const [name, version] = config.source.split(':');
-
     const preset = config.preset ?? 'main';
     //const chainId = (config.chainId ?? runtime.chainId).toString();
 
@@ -104,7 +100,9 @@ export default {
     // TODO: needs npm package from the manifest
     const initialCtx = await createInitialContext(def, {}, importPkgOptions);
 
+    debug('start build');
     const builtState = await build(runtime, def, deployInfo.state, initialCtx);
+    debug('finish build');
 
     return (await getOutputs(runtime, def, builtState))!;
   },
