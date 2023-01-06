@@ -7,7 +7,7 @@ import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builde
 
 const debug = Debug('cannon:cli:rpc');
 
-type RpcOptions = {
+export type RpcOptions = {
   port: number;
   forkUrl?: string;
   chainId?: number;

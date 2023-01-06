@@ -13,6 +13,7 @@ import { CannonRegistry } from './registry';
 import { getExecutionSigner } from './util';
 
 import FormData from 'form-data';
+import { RawChainDefinition } from '.';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -66,13 +67,19 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   async loadState(stateDump: string): Promise<void> {
-    debug('load state', stateDump.length);
-    await this.provider.send('hardhat_loadState', [stateDump]);
+    if (this.snapshots) {
+      debug('load state', stateDump.length);
+      await this.provider.send('hardhat_loadState', [stateDump]);
+    }
   }
   
   async dumpState() {
-    debug('dump state');
-    return await this.provider.send('hardhat_dumpState', []);
+    if (this.snapshots) {
+      debug('dump state');
+      return await this.provider.send('hardhat_dumpState', []);
+    }
+
+    return null;
   }
   
   async clearNode() {
@@ -91,7 +98,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     }
   }
 
-  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo | null> {
+  async readDeploy(packageName: string, preset: string, chainId?: number): Promise<DeploymentInfo | null> {
     throw new Error('not implemented');
   }
 
@@ -161,8 +168,8 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
     return result.data.Hash;
   }
 
-  async readDeploy(packageName: string, preset: string): Promise<DeploymentInfo | null> {
-    const h = await this.resolver.getUrl(packageName, `${this.chainId}-${preset}`);
+  async readDeploy(packageName: string, preset: string, chainId = this.chainId): Promise<DeploymentInfo | null> {
+    const h = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
 
     if (!h) {
       return null;

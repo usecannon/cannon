@@ -109,8 +109,8 @@ ${printChainDefinitionProblems(problems)}`);
 
       const curHash = await def.getState(n, runtime, ctx);
 
-      console.log('comparing states', state[n] ? state[n].hash : null, curHash);
-      if (!state[n] || state[n].hash !== curHash) {
+      debug('comparing states', state[n] ? state[n].hash : null, curHash);
+      if (!state[n] || (curHash && state[n].hash !== curHash)) {
         debug('run isolated', n);
         const newCtx = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
         state[n] = {

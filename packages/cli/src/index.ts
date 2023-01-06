@@ -21,7 +21,7 @@ import {
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
-import { CannonRpcNode, runRpc } from './rpc';
+import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
 // the run step should be made available any time the `cli` module is in use
 import './custom-steps/run';
@@ -209,7 +209,7 @@ program
     const { name, version } = loadCannonfile(cannonfilePath);
 
     await build({
-      node,
+      provider: getProvider(node),
       cannonfilePath,
       packageDefinition: {
         name,

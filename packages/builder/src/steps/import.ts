@@ -2,10 +2,11 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentManifest } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentManifest, DeploymentInfo } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
+import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:import');
 
@@ -58,50 +59,32 @@ export default {
     debug('exec', config);
 
     const preset = config.preset ?? 'main';
-    //const chainId = (config.chainId ?? runtime.chainId).toString();
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.readDeploy(config.source, preset);
+    const deployInfo = await runtime.readDeploy(config.source, preset, config.chainId);
 
+    let deployCannonNetInfo: DeploymentInfo | null = null;
     if (!deployInfo) {
-      throw new Error(`deployment not found: ${config.source}. please make sure it exists for the given preset and current network.`)
+      debug('old deployment data not found for package, trying to get definition');
+      deployCannonNetInfo = await runtime.readDeploy(config.source, 'main', 13370);
+
+      if (!deployCannonNetInfo) {
+        throw new Error(`deployment not found: ${config.source}. please make sure it exists for the cannon network and main preset.`)
+      }
     }
-
-    /*const builder = new ChainBuilder({
-      name,
-      version,
-      def: new ChainDefinition(deployInfo?.def || deployManifest.def),
-      writeMode: 'none',
-
-      // unfortunately the read mode can be quite complicated becuase cannon only builds certain files in certain contexts
-      // TODO: this needs a work
-      readMode:
-        runtime.readMode === 'none'
-          ? chainId === runtime.chainId.toString() && runtime.chainId === CANNON_CHAIN_ID
-            ? 'all'
-            : 'metadata'
-          : runtime.readMode,
-
-      provider: runtime.provider,
-      preset: preset,
-      chainId: parseInt(chainId),
-      savedPackagesDir: runtime.packagesDir,
-      getSigner: runtime.getSigner,
-      getDefaultSigner: runtime.getDefaultSigner,
-    });*/
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.options || {}) };
 
     debug('imported package options', importPkgOptions);
 
-    const def = new ChainDefinition(deployInfo.def);
+    const def = new ChainDefinition(deployInfo?.def ?? deployCannonNetInfo!.def);
 
     // TODO: needs npm package from the manifest
     const initialCtx = await createInitialContext(def, {}, importPkgOptions);
 
     debug('start build');
-    const builtState = await build(runtime, def, deployInfo.state, initialCtx);
+    const builtState = await build(runtime, def, deployInfo?.state ?? {}, initialCtx);
     debug('finish build');
 
     return (await getOutputs(runtime, def, builtState))!;

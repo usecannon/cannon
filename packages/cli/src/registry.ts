@@ -7,6 +7,9 @@ import { CliSettings } from "./settings";
 import { ethers } from 'ethers';
 import _ from "lodash";
 
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:registry');
 
 // in addition to loading packages from the , also stores tags locally to remember between local builds
 export class LocalRegistry implements CannonRegistry {
@@ -57,7 +60,7 @@ export class FallbackRegistry implements CannonRegistry {
                     return result;
                 }
             } catch (err) {
-                console.error('WARNING: error caught in registry:', err);
+                debug('WARNING: error caught in registry:', err);
             }
         }
 

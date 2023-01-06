@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import ethers from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
 import tildify from 'tildify';
@@ -11,10 +12,10 @@ import {
   build as cannonBuild,
   createInitialContext,
   getOutputs,
-  DeploymentInfo
+  DeploymentInfo,
+  CannonWrapperGenericProvider
 } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
-import { getProvider, CannonRpcNode } from '../rpc';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
@@ -23,15 +24,16 @@ import { createDefaultReadRegistry } from '../registry';
 import debug from 'debug';
 
 interface Params {
-  node: CannonRpcNode;
+  provider: CannonWrapperGenericProvider;
   cannonfilePath?: string;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
+  getSigner?: (addr: string) => Promise<ethers.Signer>;
+  getDefaultSigner?: () => Promise<ethers.Signer>;
   projectDirectory?: string;
   preset?: string;
-  forkUrl?: string;
   chainId?: number;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
@@ -40,11 +42,13 @@ interface Params {
 }
 
 export async function build({
-  node,
+  provider,
   cannonfilePath,
   packageDefinition,
   upgradeFrom,
   getArtifact,
+  getSigner,
+  getDefaultSigner,
   projectDirectory,
   preset = 'main',
   overrideResolver,
@@ -57,8 +61,7 @@ export async function build({
 
   const cliSettings = resolveCliSettings();
 
-
-  const provider = await getProvider(node);
+  const chainId = (await provider.getNetwork()).chainId;
 
   const runtimeOptions = {
     name: packageDefinition.name,
@@ -66,19 +69,21 @@ export async function build({
     preset,
 
     provider,
-    chainId: CANNON_CHAIN_ID,
+    chainId,
 
     getArtifact,
 
-    async getSigner(addr: string) {
+    getSigner: getSigner || async function(addr: string) {
       // on test network any user can be conjured
       await provider.send('hardhat_impersonateAccount', [addr]);
       await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
       return provider.getSigner(addr);
     },
 
+    getDefaultSigner,
+
     baseDir: projectDirectory || null,
-    snapshots: true,
+    snapshots: chainId === CANNON_CHAIN_ID,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
@@ -176,9 +181,7 @@ export async function build({
 
   console.log(
     greenBright(
-      `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} to ${bold(
-        tildify(cliSettings.cannonDirectory)
-      )}`
+      `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
     )
   );
 

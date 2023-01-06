@@ -87,7 +87,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     const { outputs } = await build({
       ...options,
       packageDefinition: pkg,
-      node,
+      provider,
       overrideResolver: resolver,
       preset: options.preset,
       persist: false,
