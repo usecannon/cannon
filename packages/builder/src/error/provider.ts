@@ -13,6 +13,10 @@ export class CannonWrapperGenericProvider extends ethers.providers.Provider {
   constructor(artifacts: ChainArtifacts, passThroughProvider: ethers.providers.Provider, managedJsonRpc = true) {
     super();
 
+    if ((passThroughProvider as CannonWrapperGenericProvider)._isCannonWrapperProvider) {
+      throw new Error('wrapping a cannon wrapped provider with a wrapper.')
+    }
+
     this.artifacts = artifacts;
 
     const connection = (passThroughProvider as ethers.providers.JsonRpcProvider).connection;

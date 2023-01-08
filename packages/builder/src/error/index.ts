@@ -5,6 +5,7 @@ import { ChainArtifacts } from '../types';
 /* eslint-disable no-case-declarations */
 
 import Debug from 'debug';
+import { Logger } from 'ethers/lib/utils';
 
 const debug = Debug('cannon:builder:error');
 
@@ -15,11 +16,13 @@ export async function handleTxnError(
   provider: ethers.providers.Provider,
   err: any
 ): Promise<any> {
-  debug('handle txn error received', err);
-  if (err instanceof CannonTraceError) {
+  if (err instanceof CannonTraceError || (err.toString() as string).includes('CannonTraceError')) {
     // error already parsed
+    debug('skipping trace of error because already processed', err.toString());
     throw err;
   }
+
+  debug('handle txn error received', err.toString());
 
   let errorData: string | null = null;
   let txnData: ethers.providers.TransactionRequest | null = null;
@@ -100,6 +103,10 @@ function getErrorData(err: ErrorObject): string | null {
 
 class CannonTraceError extends Error {
   error: Error;
+
+  // this is needed here to prevent ethers from intercepting the error
+  // `NONCE_EXPIRED` is a very innocent looking error, so ethers will simply forward it.
+  code: string = Logger.errors.NONCE_EXPIRED;
 
   constructor(error: Error, ctx: ChainArtifacts, traces: TraceEntry[]) {
     // first, try to lift up the actual error reason
@@ -275,7 +282,16 @@ function parseFunctionData(
     // console logs have no output
     parsedOutput = '';
   } else {
-    const info = findContract(ctx, ({ address }) => address.toLowerCase() === contractAddress.toLowerCase());
+    const info = findContract(ctx, ({ address, abi }) => {
+      if (address.toLowerCase() === contractAddress.toLowerCase()) {
+        try {
+          new ethers.Contract(address, abi).interface.parseTransaction({ data: input, value: 0 });
+          return true;
+        } catch {}
+      }
+
+      return false;
+    }) || findContract(ctx, ({ address }) => address.toLowerCase() === contractAddress.toLowerCase());
 
     if (info) {
       contractName = info.name;

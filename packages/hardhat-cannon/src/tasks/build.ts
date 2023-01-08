@@ -63,6 +63,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     let signers: ethers.Signer[] = [];
     if (!impersonate) {
       signers = getHardhatSigners(hre, provider);
+
+      for (const signer of signers) {
+        await provider.send('hardhat_setBalance', [await signer.getAddress(), `0x${(1e22).toString(16)}`]);
+      }
     }
 
     let defaultSigner: ethers.Signer | null = null;
@@ -70,6 +74,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       await provider.send('hardhat_impersonateAccount', [impersonate]);
       await provider.send('hardhat_setBalance', [impersonate, `0x${(1e22).toString(16)}`]);
       defaultSigner = provider.getSigner(impersonate);
+      signers.push(defaultSigner);
     } else if (hre.network.name !== CANNON_NETWORK_NAME) {
       defaultSigner = signers[0].connect(provider);
     }
@@ -121,6 +126,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     //const signers: ethers.Signer[] = [];
 
     augmentProvider(hre, outputs);
+    provider.artifacts = outputs;
 
     return { outputs, provider, signers };
   });
