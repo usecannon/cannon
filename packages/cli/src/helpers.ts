@@ -1,14 +1,14 @@
 import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
 import path from 'node:path';
-import fs from 'node:fs';
+import _ from 'lodash';
+import fs from 'fs-extra';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold, redBright, red } from 'chalk';
 import toml from '@iarna/toml';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
-  DeploymentManifest,
   RawChainDefinition,
   ChainBuilderContext,
 } from '@usecannon/builder';
@@ -96,12 +96,12 @@ function loadPackageJson(filepath: string): { name: string; version: string } {
   }
 }
 
-export function loadCannonfile(filepath: string) {
+export async function loadCannonfile(filepath: string) {
   if (!fs.existsSync(filepath)) {
     throw new Error(`Cannonfile '${filepath}' not found.`);
   }
 
-  const rawDef = toml.parse(fs.readFileSync(filepath).toString('utf8')) as RawChainDefinition;
+  const rawDef = await loadChainDefinitionToml(filepath, []) as RawChainDefinition;
   const def = new ChainDefinition(rawDef);
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
@@ -121,6 +121,45 @@ export function loadCannonfile(filepath: string) {
   const version = def.getVersion(ctx);
 
   return { def, name, version };
+}
+
+async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<Partial<RawChainDefinition>> {
+  if (!fs.existsSync(filepath)) {
+    throw new Error(`Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map(p => ' => ' + p).join('\n')}`);
+  }
+
+  const buf = await fs.readFile(filepath);
+
+  const rawDef = toml.parse(buf.toString('utf8')) as Partial<RawChainDefinition> & { include?: string[] };
+
+  const assembledDef: Partial<RawChainDefinition> = {};
+
+  // we only want to "override" new steps with old steps. So, if we get 2 levels deep, that means we are parsing
+  // a step contents, and we should just take the srcValue
+  const customMerge = (objValue: any, srcValue: any, _key: string, _object: string, _source: any, stack: any) => {
+    if (stack.size === 2) {
+      // cut off merge for any deeper than this
+      return srcValue;
+    }
+  }
+
+  for (const additionalFilepath of rawDef.include || []) {
+    const abspath = path.join(path.dirname(filepath), additionalFilepath);
+
+    _.mergeWith(
+      assembledDef, 
+      await loadChainDefinitionToml(abspath, [filepath].concat(trace)),
+      customMerge
+    );
+  }
+
+  _.mergeWith(
+    assembledDef, 
+    _.omit(rawDef, 'include'),
+    customMerge
+  );
+
+  return assembledDef;
 }
 
 export function getChainName(chainId: number): string {

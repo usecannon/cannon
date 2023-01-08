@@ -1,8 +1,9 @@
+import path from 'path';
+
 import { subtask } from 'hardhat/config';
 
 import { SUBTASK_LOAD_PACKAGE_DEFINITION } from '../task-names';
-import { PackageSpecification, parsePackageArguments } from '@usecannon/cli';
-import loadCannonfile from '../internal/load-cannonfile';
+import { PackageSpecification, parsePackageArguments, loadCannonfile } from '@usecannon/cli';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
@@ -17,7 +18,7 @@ subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
         return parsePackageArguments(val, result);
       }, {} as PackageSpecification);
     } catch (err) {
-      packageSpec = getDefaultPackageDefinition(hre);
+      packageSpec = await getDefaultPackageDefinition(hre);
 
       return (packageSpec = packageWithSettingsParams.reduce((result, val) => {
         return parsePackageArguments(val, result);
@@ -26,8 +27,8 @@ subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
   }
 );
 
-function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment): PackageSpecification {
-  const { name, version } = loadCannonfile(hre, 'cannonfile.toml');
+async function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment): Promise<PackageSpecification> {
+  const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, 'cannonfile.toml'));
   return {
     name,
     version,

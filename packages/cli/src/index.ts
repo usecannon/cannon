@@ -45,6 +45,7 @@ export { runRpc } from './rpc';
 
 export { createDefaultReadRegistry } from './registry';
 export { resolveCliSettings } from './settings';
+export { loadCannonfile } from './helpers';
 
 const program = new Command();
 
@@ -203,7 +204,7 @@ program
     };
 
     const { build } = await import('./commands/build');
-    const { name, version } = loadCannonfile(cannonfilePath);
+    const { name, version } = await loadCannonfile(cannonfilePath);
 
     await build({
       provider: getProvider(node),

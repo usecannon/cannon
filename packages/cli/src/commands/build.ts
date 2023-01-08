@@ -107,7 +107,7 @@ export async function build({
 
   let def: ChainDefinition;
   if (cannonfilePath) {
-    const { def: overrideDef, name, version } = loadCannonfile(cannonfilePath);
+    const { def: overrideDef, name, version } = await loadCannonfile(cannonfilePath);
 
     if (!name) {
       throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));

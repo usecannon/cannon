@@ -1,8 +1,9 @@
+import path from 'path';
+
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HardhatRuntimeEnvironment, HttpNetworkConfig } from 'hardhat/types';
-import { run, parsePackagesArguments, runRpc, PackageSpecification } from '@usecannon/cli';
+import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
-import loadCannonfile from '../internal/load-cannonfile';
 import { isURL } from '../internal/is-url';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
@@ -24,7 +25,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
 
     if (!packages.length) {
       // derive from the default cannonfile
-      const { name, version } = loadCannonfile(hre, 'cannonfile.toml');
+      const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, 'cannonfile.toml'));
 
       packages.push({
         name,

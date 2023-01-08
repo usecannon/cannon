@@ -2,11 +2,10 @@ import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
-import { build, runRpc, parseSettings } from '@usecannon/cli';
+import { build, runRpc, parseSettings, loadCannonfile } from '@usecannon/cli';
 import { TASK_BUILD } from '../task-names';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
-import loadCannonfile from '../internal/load-cannonfile';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { getProvider, RpcOptions} from '@usecannon/cli/dist/src/rpc';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
@@ -43,7 +42,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const cannonfilePath = path.resolve(hre.config.paths.root, cannonfile);
     const parsedSettings = parseSettings(settings);
 
-    const { name, version } = loadCannonfile(hre, cannonfile);
+    const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
     const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
