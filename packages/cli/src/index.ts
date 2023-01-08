@@ -23,9 +23,6 @@ import {
 } from './constants';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
-// the run step should be made available any time the `cli` module is in use
-import './custom-steps/run';
-
 export * from './types';
 export * from './constants';
 export * from './util/params';

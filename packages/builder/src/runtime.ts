@@ -127,6 +127,10 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   async restoreMisc(url: string) {
     throw new Error('not implemented');
   }
+
+  derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
+    throw new Error('not implemented');
+  }
 }
 
 export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
@@ -197,5 +201,9 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   async restoreMisc(url: string) {
     debug('restore misc');
     this.misc = await this.readIpfs(url);
+  }
+
+  derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
+    return new IPFSChainBuilderRuntime({ ...this, ...overrides }, this.ipfsUrl, this.resolver);
   }
 }

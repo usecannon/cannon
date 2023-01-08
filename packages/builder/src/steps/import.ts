@@ -83,10 +83,19 @@ export default {
     // TODO: needs npm package from the manifest
     const initialCtx = await createInitialContext(def, {}, importPkgOptions);
 
+    // use separate runtime to ensure everything is clear
+    const importRuntime = runtime.derive({
+      getArtifact: undefined
+    });
+
+    // need to import the misc data for the imported package
+    debug('restore misc');
+    await importRuntime.restoreMisc(deployInfo?.miscUrl?? deployCannonNetInfo!.miscUrl);
+
     debug('start build');
-    const builtState = await build(runtime, def, deployInfo?.state ?? {}, initialCtx);
+    const builtState = await build(importRuntime, def, deployInfo?.state ?? {}, initialCtx);
     debug('finish build');
 
-    return (await getOutputs(runtime, def, builtState))!;
+    return (await getOutputs(importRuntime, def, builtState))!;
   },
 };
