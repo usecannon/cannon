@@ -89,6 +89,7 @@ ${printChainDefinitionProblems(problems)}`);
   state = _.cloneDeep(state);
 
   const tainted = new Set<string>();
+  const built = new Set<string>();
   const topologicalActions = def.topologicalActions;
 
   if (runtime.snapshots) {
@@ -96,7 +97,7 @@ ${printChainDefinitionProblems(problems)}`);
     const ctx = _.clone(initialCtx);
 
     for (const leaf of def.leaves) {
-      await buildLayer(runtime, def, ctx, state, leaf, tainted);
+      await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
     }
   } else {
     debug('building isolated');
@@ -137,7 +138,8 @@ async function buildLayer(
   baseCtx: ChainBuilderContext,
   state: DeploymentState,
   cur: string,
-  tainted: Set<string> = new Set()
+  tainted: Set<string> = new Set(),
+  built: Set<string> = new Set()
 ) {
 
   const layers = def.getStateLayers();
@@ -145,16 +147,20 @@ async function buildLayer(
   const layer = layers[cur];
 
   // if layer is already done
-  /*if (layer.actions.find((a) => state[a])) {
+  if (built.has(cur)) {
     return;
-  }*/
+  }
+
+  for (const action of layers[cur].actions) {
+    built.add(action);
+  }
 
   debug('eval build layer name', cur);
 
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
   for (const dep of layer.depends) {
-    await buildLayer(runtime, def, baseCtx, state, dep, tainted);
+    await buildLayer(runtime, def, baseCtx, state, dep, tainted, built);
 
     // if a prior layer had to be rebuilt, we must rebuild the current layer as well
     isCompleteLayer = isCompleteLayer && !tainted.has(dep);

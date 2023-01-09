@@ -48,7 +48,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
 
-    if (dryRun || hre.network.name === 'cannon') {
+    if (hre.network.name === 'hardhat') {
+      // hardhat network is "special" in that it looks like its a jsonrpc provider, 
+      // but really you can't use it like that.
+      console.log('using hardhat network provider');
+      provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
+    } if (dryRun || hre.network.name === 'cannon') {
       const opts: RpcOptions = { port: hre.config.networks.cannon.port };
 
       if (dryRun) {
@@ -118,7 +123,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       upgradeFrom,
       wipe,
       deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,
-      persist: !dryRun
+      persist: !dryRun && hre.network.name !== 'hardhat'
     } as const;
 
     const { outputs } = await build(params);

@@ -37,6 +37,8 @@ export class ChainDefinition {
   // actions which are not depended on by anything
   readonly leaves: Set<string>;
 
+  private cachedLayers: StateLayers | null = null;
+
   constructor(def: RawChainDefinition) {
     this.raw = def;
 
@@ -301,12 +303,17 @@ export class ChainDefinition {
 
   // on local nodes, steps depending on the same base need to be merged into "layers" to prevent state collisions
   // returns an array of layers which can be deployed as a unit in topological order
-  getStateLayers(
-    actions = this.topologicalActions,
-    layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {},
-    layerOfActions = new Map<string, string>(),
-    layerDependingOn = new Map<string, string>()
-  ): StateLayers {
+  getStateLayers(): StateLayers {
+
+    if (this.cachedLayers) {
+      return this.cachedLayers;
+    }
+
+    const actions = this.topologicalActions;
+    const layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {};
+    const layerOfActions = new Map<string, string>();
+    const layerDependingOn = new Map<string, string>();
+
     debug('start compute state layers', actions);
     for (const n of actions) {
       if (layerOfActions.has(n)) {
@@ -379,6 +386,8 @@ export class ChainDefinition {
     }
 
     debug('end compute state layer', actions);
+
+    this.cachedLayers = layers;
 
     return layers;
   }
