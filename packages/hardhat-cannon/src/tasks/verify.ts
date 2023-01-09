@@ -11,38 +11,43 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('preset', 'Specify an alternate preset', 'main')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .setAction(async ({ packageName, preset, apiKey }, hre) => {
-
-    // create temporary provider 
+    // create temporary provider
     // todo: really shouldn't be necessary
     const provider = getProvider(
       await runRpc({
-      port: 30000 + Math.floor(Math.random() * 30000)
-    }));
+        port: 30000 + Math.floor(Math.random() * 30000),
+      })
+    );
 
     const resolver = createDefaultReadRegistry(resolveCliSettings());
-  
-    const runtime = new IPFSChainBuilderRuntime({
-      provider,
-      chainId: (await provider.getNetwork()).chainId,
-      async getSigner(addr: string) {
-        // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+
+    const runtime = new IPFSChainBuilderRuntime(
+      {
+        provider,
+        chainId: (await provider.getNetwork()).chainId,
+        async getSigner(addr: string) {
+          // on test network any user can be conjured
+          await provider.send('hardhat_impersonateAccount', [addr]);
+          await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+          return provider.getSigner(addr);
+        },
+
+        baseDir: null,
+        snapshots: false,
       },
-  
-      baseDir: null,
-      snapshots: false,
-    }, resolveCliSettings().ipfsUrl, resolver);
-  
+      resolveCliSettings().ipfsUrl,
+      resolver
+    );
+
     const deployData = await runtime.readDeploy(packageName, `${hre.network.config.chainId}-${preset}`);
 
     if (!deployData) {
-      throw new Error(`deployment not found: ${packageName}. please make sure it exists for the given preset and current network.`)
+      throw new Error(
+        `deployment not found: ${packageName}. please make sure it exists for the given preset and current network.`
+      );
     }
 
     const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
-
 
     if (!outputs) {
       throw new Error('No chain outputs found. Has the requested chain already been built?');

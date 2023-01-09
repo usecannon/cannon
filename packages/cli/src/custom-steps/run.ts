@@ -2,12 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import {
-  ChainBuilderContext, 
-  ChainBuilderRuntimeInfo, 
-  ChainArtifacts, 
-  registerAction 
-} from '@usecannon/builder';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, registerAction } from '@usecannon/builder';
 
 import crypto from 'crypto';
 import fs from 'fs-extra';
@@ -133,7 +128,12 @@ const runAction = {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
+  async exec(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    currentLabel: string
+  ): Promise<ChainArtifacts> {
     debug('exec', config);
 
     if (!runtime.baseDir) {

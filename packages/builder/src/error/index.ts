@@ -282,16 +282,19 @@ function parseFunctionData(
     // console logs have no output
     parsedOutput = '';
   } else {
-    const info = findContract(ctx, ({ address, abi }) => {
-      if (address.toLowerCase() === contractAddress.toLowerCase()) {
-        try {
-          new ethers.Contract(address, abi).interface.parseTransaction({ data: input, value: 0 });
-          return true;
-        } catch {}
-      }
+    const info =
+      findContract(ctx, ({ address, abi }) => {
+        if (address.toLowerCase() === contractAddress.toLowerCase()) {
+          try {
+            new ethers.Contract(address, abi).interface.parseTransaction({ data: input, value: 0 });
+            return true;
+          } catch {
+            return false;
+          }
+        }
 
-      return false;
-    }) || findContract(ctx, ({ address }) => address.toLowerCase() === contractAddress.toLowerCase());
+        return false;
+      }) || findContract(ctx, ({ address }) => address.toLowerCase() === contractAddress.toLowerCase());
 
     if (info) {
       contractName = info.name;

@@ -2,7 +2,6 @@ import _ from 'lodash';
 import ethers from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red } from 'chalk';
-import tildify from 'tildify';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -13,7 +12,7 @@ import {
   createInitialContext,
   getOutputs,
   DeploymentInfo,
-  CannonWrapperGenericProvider
+  CannonWrapperGenericProvider,
 } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -21,7 +20,6 @@ import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
-import debug from 'debug';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -53,7 +51,7 @@ export async function build({
   preset = 'main',
   overrideResolver,
   wipe = false,
-  persist = true
+  persist = true,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -73,12 +71,14 @@ export async function build({
 
     getArtifact,
 
-    getSigner: getSigner || async function(addr: string) {
-      // on test network any user can be conjured
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-      return provider.getSigner(addr);
-    },
+    getSigner:
+      getSigner ||
+      async function (addr: string) {
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      },
 
     getDefaultSigner,
 
@@ -125,7 +125,11 @@ export async function build({
   } else if (oldDeployData) {
     def = new ChainDefinition(oldDeployData.def);
   } else {
-    throw new Error(red('No deployment definition found. Make sure you have a recorded deployment for the requested cannon package, or supply a cannonfile to build one.'));
+    throw new Error(
+      red(
+        'No deployment definition found. Make sure you have a recorded deployment for the requested cannon package, or supply a cannonfile to build one.'
+      )
+    );
   }
 
   const defSettings = def.getSettings();
@@ -154,12 +158,7 @@ export async function build({
 
   const initialCtx = await createInitialContext(def, {}, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
 
-  const newState = await cannonBuild(
-    runtime, 
-    def, 
-    oldDeployData ? oldDeployData.state : {}, 
-    initialCtx
-  );
+  const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
@@ -170,11 +169,15 @@ export async function build({
     def: def.toJson(),
     state: newState,
     options: packageDefinition.settings,
-    miscUrl: miscUrl
+    miscUrl: miscUrl,
   });
 
   if (persist) {
-    await resolver.publish([`${packageDefinition.name}:${packageDefinition.version}`], `${runtime.chainId}-${preset}`, deployUrl);
+    await resolver.publish(
+      [`${packageDefinition.name}:${packageDefinition.version}`],
+      `${runtime.chainId}-${preset}`,
+      deployUrl
+    );
   }
 
   printChainBuilderOutput(outputs);

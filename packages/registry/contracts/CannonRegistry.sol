@@ -141,7 +141,11 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
     return _store().packages[_packageName].versions;
   }
 
-  function getPackageUrl(bytes32 _packageName, bytes32 _packageVersionName, bytes32 _packageVariant) external view returns (string memory) {
+  function getPackageUrl(
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) external view returns (string memory) {
     return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant];
   }
 }

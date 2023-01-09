@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { ChainDefinition, IPFSChainBuilderRuntime } from '@usecannon/builder';
 import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
@@ -14,34 +13,39 @@ export async function inspect(packageRef: string, json: boolean) {
     throw new Error(`You must specify a valid package version, given: "${version}"`);
   }
 
-
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-  // create temporary provider 
+  // create temporary provider
   // todo: really shouldn't be necessary
   const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000)
+    port: 30000 + Math.floor(Math.random() * 30000),
   });
   const provider = getProvider(node);
 
-  const runtime = new IPFSChainBuilderRuntime({
-    provider,
-    chainId: (await provider.getNetwork()).chainId,
-    async getSigner(addr: string) {
-      // on test network any user can be conjured
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-      return provider.getSigner(addr);
-    },
+  const runtime = new IPFSChainBuilderRuntime(
+    {
+      provider,
+      chainId: (await provider.getNetwork()).chainId,
+      async getSigner(addr: string) {
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      },
 
-    baseDir: null,
-    snapshots: false,
-  }, resolveCliSettings().ipfsUrl, resolver);
+      baseDir: null,
+      snapshots: false,
+    },
+    resolveCliSettings().ipfsUrl,
+    resolver
+  );
 
   const deployData = await runtime.readDeploy(packageRef, 'main');
 
   if (!deployData) {
-    throw new Error(`deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`)
+    throw new Error(
+      `deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`
+    );
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);

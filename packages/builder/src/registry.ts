@@ -8,11 +8,7 @@ import _ from 'lodash';
 const debug = Debug('cannon:builder:registry');
 
 export interface CannonRegistry {
-  publish(
-    packagesNames: string[],
-    url: string,
-    variant: string,
-  ): Promise<string[]>;
+  publish(packagesNames: string[], url: string, variant: string): Promise<string[]>;
 
   getUrl(packageName: string, variant: string): Promise<string | null>;
 }
@@ -21,12 +17,12 @@ export class OnChainRegistry implements CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
-  overrides: ethers.Overrides
+  overrides: ethers.Overrides;
 
   constructor({
     signerOrProvider,
     address,
-    overrides = {}
+    overrides = {},
   }: {
     address: string;
     signerOrProvider: ethers.Signer | ethers.providers.Provider;
@@ -45,12 +41,7 @@ export class OnChainRegistry implements CannonRegistry {
     debug(`created registry on address "${address}"`);
   }
 
-  async publish(
-    packagesNames: string[],
-    url: string,
-    variant: string,
-  ): Promise<string[]> {
-
+  async publish(packagesNames: string[], url: string, variant: string): Promise<string[]> {
     if (!this.signer) {
       throw new Error('Missing signer needed for publishing');
     }
@@ -62,10 +53,15 @@ export class OnChainRegistry implements CannonRegistry {
     }
 
     const txns: ethers.providers.TransactionReceipt[] = [];
-    for (const registerPackages of _.values(_.groupBy(packagesNames.map(n => n.split(':')), (p: string[]) => p[0]))) {
+    for (const registerPackages of _.values(
+      _.groupBy(
+        packagesNames.map((n) => n.split(':')),
+        (p: string[]) => p[0]
+      )
+    )) {
       const tx = await this.contract.connect(this.signer).publish(
         registerPackages[0][0],
-        registerPackages.map(p => p[1]),
+        registerPackages.map((p) => p[1]),
         variant,
         url,
         this.overrides
@@ -74,11 +70,10 @@ export class OnChainRegistry implements CannonRegistry {
       txns.push(await tx.wait());
     }
 
-    return txns.map(t => t.transactionHash);
+    return txns.map((t) => t.transactionHash);
   }
 
   async getUrl(packageName: string, variant: string): Promise<string | null> {
-
     const [name, version] = packageName.split(':');
 
     const url = await this.contract.getPackageUrl(

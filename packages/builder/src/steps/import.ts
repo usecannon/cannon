@@ -2,11 +2,10 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentManifest, DeploymentInfo } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentInfo } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
-import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:import');
 
@@ -55,7 +54,7 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
+  async exec(runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const preset = config.preset ?? 'main';
@@ -70,7 +69,9 @@ export default {
       deployCannonNetInfo = await runtime.readDeploy(config.source, 'main', 13370);
 
       if (!deployCannonNetInfo) {
-        throw new Error(`deployment not found: ${config.source}. please make sure it exists for the cannon network and main preset.`)
+        throw new Error(
+          `deployment not found: ${config.source}. please make sure it exists for the cannon network and main preset.`
+        );
       }
     }
 
@@ -85,12 +86,12 @@ export default {
 
     // use separate runtime to ensure everything is clear
     const importRuntime = runtime.derive({
-      getArtifact: undefined
+      getArtifact: undefined,
     });
 
     // need to import the misc data for the imported package
     debug('restore misc');
-    await importRuntime.restoreMisc(deployInfo?.miscUrl?? deployCannonNetInfo!.miscUrl);
+    await importRuntime.restoreMisc(deployInfo?.miscUrl ?? deployCannonNetInfo!.miscUrl);
 
     debug('start build');
     const builtState = await build(importRuntime, def, deployInfo?.state ?? {}, initialCtx);

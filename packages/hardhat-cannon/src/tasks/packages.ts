@@ -5,6 +5,6 @@ import { DEFAULT_CANNON_DIRECTORY } from '@usecannon/cli';
 
 task(TASK_PACKAGES, 'List all packages in the local Cannon directory')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-  .setAction(async ({}) => {
+  .setAction(async () => {
     await packages();
   });

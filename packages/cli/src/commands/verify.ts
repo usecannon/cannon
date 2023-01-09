@@ -8,33 +8,40 @@ export async function verify(packageRef: string, apiKey: string, network: string
   await setupAnvil();
   const chainId = getChainId(network);
 
-  // create temporary provider 
+  // create temporary provider
   // todo: really shouldn't be necessary
   const provider = getProvider(
     await runRpc({
-     port: 30000 + Math.floor(Math.random() * 30000)
-   }));
+      port: 30000 + Math.floor(Math.random() * 30000),
+    })
+  );
 
   const resolver = createDefaultReadRegistry(resolveCliSettings());
- 
-  const runtime = new IPFSChainBuilderRuntime({
-    provider,
-    chainId: (await provider.getNetwork()).chainId,
-    async getSigner(addr: string) {
-      // on test network any user can be conjured
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-      return provider.getSigner(addr);
-    },
 
-    baseDir: null,
-    snapshots: false,
-  }, resolveCliSettings().ipfsUrl, resolver);
+  const runtime = new IPFSChainBuilderRuntime(
+    {
+      provider,
+      chainId: (await provider.getNetwork()).chainId,
+      async getSigner(addr: string) {
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      },
+
+      baseDir: null,
+      snapshots: false,
+    },
+    resolveCliSettings().ipfsUrl,
+    resolver
+  );
 
   const deployData = await runtime.readDeploy(packageRef, 'main');
 
   if (!deployData) {
-    throw new Error(`deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`)
+    throw new Error(
+      `deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`
+    );
   }
 
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);

@@ -2,25 +2,15 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import {
-  ChainBuilderContext,
-  BuildOptions,
-} from './types';
+import { ChainBuilderContext, BuildOptions } from './types';
 
 import { ChainDefinition } from './definition';
 
-import {
-  printChainDefinitionProblems,
-} from './util';
+import { printChainDefinitionProblems } from './util';
 
 const debug = Debug('cannon:builder');
 
-import {
-  combineCtx,
-  ContractMap,
-  DeploymentState,
-  TransactionMap,
-} from '.';
+import { combineCtx, ContractMap, DeploymentState, TransactionMap } from '.';
 import { ChainBuilderRuntime } from './runtime';
 import { BUILD_VERSION } from './constants';
 import { ActionKinds } from './actions';
@@ -33,7 +23,11 @@ export enum Events {
   DeployExtra = 'deploy-extra',
 }
 
-export async function createInitialContext(def: ChainDefinition, pkg: any, opts: BuildOptions): Promise<ChainBuilderContext> {
+export async function createInitialContext(
+  def: ChainDefinition,
+  pkg: any,
+  opts: BuildOptions
+): Promise<ChainBuilderContext> {
   const settings: ChainBuilderContext['settings'] = {};
 
   const pkgSettings = def.getSettings();
@@ -65,7 +59,12 @@ export async function createInitialContext(def: ChainDefinition, pkg: any, opts:
   };
 }
 
-export async function build(runtime: ChainBuilderRuntime, def: ChainDefinition, state: DeploymentState, initialCtx: ChainBuilderContext): Promise<DeploymentState> {
+export async function build(
+  runtime: ChainBuilderRuntime,
+  def: ChainDefinition,
+  state: DeploymentState,
+  initialCtx: ChainBuilderContext
+): Promise<DeploymentState> {
   debug('preflight');
 
   const problems = def.checkAll();
@@ -82,7 +81,7 @@ ${printChainDefinitionProblems(problems)}`);
   debug('build');
 
   // sanity check the network
-  runtime.checkNetwork();
+  await runtime.checkNetwork();
 
   initialCtx.chainId = runtime.chainId;
 
@@ -117,7 +116,7 @@ ${printChainDefinitionProblems(problems)}`);
         state[n] = {
           ctx: newCtx,
           hash: curHash,
-          version: BUILD_VERSION
+          version: BUILD_VERSION,
         };
       } else {
         debug('skip isolated', n);
@@ -141,7 +140,6 @@ async function buildLayer(
   tainted: Set<string> = new Set(),
   built: Set<string> = new Set()
 ) {
-
   const layers = def.getStateLayers();
 
   const layer = layers[cur];
@@ -214,7 +212,7 @@ async function buildLayer(
         hash: await def.getState(action, runtime, newCtx),
         version: BUILD_VERSION,
         chainDump,
-      }
+      };
 
       tainted.add(action);
     }
@@ -283,8 +281,11 @@ previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
   return ctx;
 }
 
-export async function getOutputs(runtime: ChainBuilderRuntime, def: ChainDefinition, state: DeploymentState): Promise<ChainBuilderContext|null> {
-
+export async function getOutputs(
+  runtime: ChainBuilderRuntime,
+  def: ChainDefinition,
+  state: DeploymentState
+): Promise<ChainBuilderContext | null> {
   let ctx = await createInitialContext(def, {}, {});
 
   for (const leaf of def.leaves) {

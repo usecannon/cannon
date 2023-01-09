@@ -14,7 +14,7 @@ export class CannonWrapperGenericProvider extends ethers.providers.Provider {
     super();
 
     if ((passThroughProvider as CannonWrapperGenericProvider)._isCannonWrapperProvider) {
-      throw new Error('wrapping a cannon wrapped provider with a wrapper.')
+      throw new Error('wrapping a cannon wrapped provider with a wrapper.');
     }
 
     this.artifacts = artifacts;

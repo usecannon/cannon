@@ -208,7 +208,12 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
+  async exec(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    currentLabel: string
+  ): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const txns: TransactionMap = {};

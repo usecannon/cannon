@@ -18,8 +18,6 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
     'Address for a custom package registry. Ignored if `--skip-register` is supplied',
     DEFAULT_REGISTRY_ADDRESS
   )
-  .addOptionalParam('ipfsEndpoint', 'Address for an IPFS endpoint')
-  .addOptionalParam('ipfsAuthorizationHeader', 'Authorization header for requests to the IPFS endpoint')
   .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
 
   .addOptionalParam('gasLimit', 'The maximum units of gas spent for the registration transaction')
@@ -30,36 +28,13 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   )
   .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
   .setAction(
-    async (
-      {
-        packageName,
-        privateKey,
-        tags,
-        registryAddress,
-        gasLimit,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        ipfsEndpoint,
-        ipfsAuthorizationHeader,
-        skipRegister,
-        quiet,
-      },
-      hre
-    ) => {
+    async ({ packageName, privateKey, tags, registryAddress, gasLimit, maxFeePerGas, maxPriorityFeePerGas, quiet }, hre) => {
       if (hre.network.name == 'hardhat') {
         console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));
         process.exit();
       }
 
-      if (hre.config.cannon.ipfsEndpoint) {
-        ipfsEndpoint = hre.config.cannon.ipfsEndpoint;
-      }
-
-      if (!ipfsAuthorizationHeader && hre.config.cannon.ipfsAuthorizationHeader) {
-        ipfsAuthorizationHeader = hre.config.cannon.ipfsAuthorizationHeader;
-      }
-
-      let registrationOptions: RegistrationOptions = {
+      const registrationOptions: RegistrationOptions = {
         registryAddress,
         signer: (await hre.ethers.getSigners())[0],
       };
@@ -77,11 +52,7 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
       }
 
       if (maxPriorityFeePerGas) {
-        _.set(
-          registrationOptions,
-          'overrides.maxPriorityFeePerGas',
-          ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei')
-        );
+        _.set(registrationOptions, 'overrides.maxPriorityFeePerGas', ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei'));
       }
 
       if (gasLimit) {

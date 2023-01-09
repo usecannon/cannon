@@ -1,6 +1,5 @@
 import { OnChainRegistry } from '@usecannon/builder';
 import { ethers } from 'ethers';
-import _ from 'lodash';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { parsePackageRef } from '../util/params';
@@ -35,10 +34,10 @@ export async function publish(
   });
 
   const registrationReceipts = [];
-  
+
   for (const tag of [version, ...tags.split(',')]) {
     for (const variant of variants.split(',')) {
-      if (toPublishUrl !== await registry.getUrl(`${name}:${version}`, variant)) {
+      if (toPublishUrl !== (await registry.getUrl(`${name}:${version}`, variant))) {
         registrationReceipts.push(await registry.publish([`${name}:${tag}`], toPublishUrl, 'main'));
         if (!quiet) {
           console.log(`Published: ${name}:${tag}`);

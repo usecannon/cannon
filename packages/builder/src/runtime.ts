@@ -13,7 +13,6 @@ import { CannonRegistry } from './registry';
 import { getExecutionSigner } from './util';
 
 import FormData from 'form-data';
-import { RawChainDefinition } from '.';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -30,7 +29,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
   private loadedMisc: string | null = null;
   protected misc: {
-    artifacts: { [label: string]: any }
+    artifacts: { [label: string]: any };
   };
 
   constructor(info: ChainBuilderRuntimeInfo) {
@@ -44,7 +43,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     this.getArtifact = async (n: string) => {
       debug(`resolve artifact ${n}`);
       if (info.getArtifact) {
-        debug(`need to find artifact externally`);
+        debug('need to find artifact externally');
         this.misc.artifacts[n] = _.cloneDeep(await info.getArtifact(n));
       }
 
@@ -72,7 +71,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
       await this.provider.send('hardhat_loadState', [stateDump]);
     }
   }
-  
+
   async dumpState() {
     if (this.snapshots) {
       debug('dump state');
@@ -81,7 +80,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
     return null;
   }
-  
+
   async clearNode() {
     if (this.snapshots) {
       debug('clear node');
@@ -93,30 +92,33 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
           throw new Error('node state clear failed');
         }
       }
-  
+
       this.cleanSnapshot = await this.provider.send('evm_snapshot', []);
     }
   }
 
-  async readDeploy(packageName: string, preset: string, chainId?: number): Promise<DeploymentInfo | null> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async readDeploy(_packageName: string, _preset: string, _chainId?: number): Promise<DeploymentInfo | null> {
     throw new Error('not implemented');
   }
 
-  async putDeploy(deployInfo: DeploymentInfo): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async putDeploy(_deployInfo: DeploymentInfo): Promise<string> {
     throw new Error('not implemented');
   }
 
-  async readMisc(url: string) {
+  async restoreMisc(url: string) {
     if (url === this.loadedMisc) {
       return;
     }
 
-    this.readMiscInternal(url);
+    await this.restoreMiscInternal(url);
 
     this.loadedMisc = url;
   }
 
-  protected async readMiscInternal(url: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async readMiscInternal(_url: string) {
     throw new Error('not implemented');
   }
 
@@ -124,17 +126,18 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     throw new Error('not implemented');
   }
 
-  async restoreMisc(url: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async restoreMiscInternal(_url: string) {
     throw new Error('not implemented');
   }
 
-  derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  derive(_overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
     throw new Error('not implemented');
   }
 }
 
 export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
-
   ipfsUrl: string;
   resolver: CannonRegistry;
 
@@ -148,10 +151,14 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   async readIpfs(hash: string): Promise<any> {
     debug(`downloading content from ${hash}`);
 
-    const result = await axios.post(this.ipfsUrl + `/api/v0/cat?arg=${hash}`, {}, {
-      responseEncoding: 'application/octet-stream',
-      responseType: 'arraybuffer'
-    });
+    const result = await axios.post(
+      this.ipfsUrl + `/api/v0/cat?arg=${hash}`,
+      {},
+      {
+        responseEncoding: 'application/octet-stream',
+        responseType: 'arraybuffer',
+      }
+    );
 
     return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
   }
@@ -164,7 +171,7 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
 
     const formData = new FormData();
     formData.append('data', Buffer.from(buf));
-    
+
     const result = await axios.post(this.ipfsUrl + '/api/v0/add', formData);
 
     debug('upload', result.statusText, result.data.Hash);
@@ -198,7 +205,7 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
     return this.writeIpfs(this.misc);
   }
 
-  async restoreMisc(url: string) {
+  async restoreMiscInternal(url: string) {
     debug('restore misc');
     this.misc = await this.readIpfs(url);
   }

@@ -16,11 +16,7 @@ import { createSigners, parsePackageArguments, parsePackagesArguments, parseSett
 
 import pkg from '../package.json';
 import { PackageSpecification } from './types';
-import {
-  DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_ENDPOINT,
-  DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from './constants';
+import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT, DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
 export * from './types';
@@ -238,7 +234,7 @@ program
 program
   .command('packages')
   .description('List all packages in the local Cannon directory')
-  .action(async function (directory) {
+  .action(async function () {
     const { packages } = await import('./commands/packages');
     await packages();
   });
@@ -326,8 +322,7 @@ program
           process.exit();
         }
       }
-    }
-    else {
+    } else {
       throw new Error('must specify private key and registry rpc');
     }
 
@@ -356,24 +351,33 @@ program
 
     const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-    const runtime = new IPFSChainBuilderRuntime({
-      provider,
-      chainId: (await provider.getNetwork()).chainId,
-      async getSigner(addr: string) {
-        // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+    const runtime = new IPFSChainBuilderRuntime(
+      {
+        provider,
+        chainId: (await provider.getNetwork()).chainId,
+        async getSigner(addr: string) {
+          // on test network any user can be conjured
+          await provider.send('hardhat_impersonateAccount', [addr]);
+          await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+          return provider.getSigner(addr);
+        },
+
+        baseDir: null,
+        snapshots: false,
       },
+      resolveCliSettings().ipfsUrl,
+      resolver
+    );
 
-      baseDir: null,
-      snapshots: false,
-    }, resolveCliSettings().ipfsUrl, resolver);
-
-    const deployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, opts.preset || 'main');
+    const deployData = await runtime.readDeploy(
+      `${packageDefinition.name}:${packageDefinition.version}`,
+      opts.preset || 'main'
+    );
 
     if (!deployData) {
-      throw new Error(`deployment not found: ${packageDefinition.name}:${packageDefinition.version}. please make sure it exists for the given preset and current network.`)
+      throw new Error(
+        `deployment not found: ${packageDefinition.name}:${packageDefinition.version}. please make sure it exists for the given preset and current network.`
+      );
     }
 
     const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);

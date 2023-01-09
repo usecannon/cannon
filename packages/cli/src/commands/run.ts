@@ -1,8 +1,6 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import {
-  ChainBuilderContext,
-} from '@usecannon/builder';
+import { ChainBuilderContext } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -10,7 +8,6 @@ import { interact } from '../interact';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
-import _ from 'lodash';
 import { getContractsRecursive } from '../util/contracts-recursive';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
@@ -56,21 +53,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const networkInfo = await provider.getNetwork();
-
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainBuilderContext }[] = [];
 
   let signers: ethers.Signer[] = [];
-
-  const getSigner = async (addr: string) => {
-    // on test network any user can be conjured
-    await provider.send('hardhat_impersonateAccount', [addr]);
-    await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-
-    return provider.getSigner(addr);
-  };
 
   // set up signers
   for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
@@ -81,7 +68,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   for (const pkg of packages) {
     const { name, version } = pkg;
-    
+
     console.log(magentaBright(`Loading ${name}:${version}...`));
 
     const { outputs } = await build({

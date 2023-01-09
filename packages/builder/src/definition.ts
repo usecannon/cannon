@@ -5,10 +5,7 @@ import _ from 'lodash';
 import { ChainBuilderContext } from './types';
 import { ChainBuilderRuntimeInfo } from './types';
 
-import Ajv from 'ajv/dist/jtd';
 import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
-
-const ajv = new Ajv();
 
 const debug = Debug('cannon:builder:definition');
 
@@ -304,7 +301,6 @@ export class ChainDefinition {
   // on local nodes, steps depending on the same base need to be merged into "layers" to prevent state collisions
   // returns an array of layers which can be deployed as a unit in topological order
   getStateLayers(): StateLayers {
-
     if (this.cachedLayers) {
       return this.cachedLayers;
     }

@@ -83,13 +83,20 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config, currentLabel: string): Promise<ChainArtifacts> {
+  async exec(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    currentLabel: string
+  ): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
     if (!artifactData) {
-      throw new Error(`bytecode/abi for artifact ${config.artifact} not found. please double check the contract name and your build configuration`);
+      throw new Error(
+        `bytecode/abi for artifact ${config.artifact} not found. please double check the contract name and your build configuration`
+      );
     }
 
     let injectedBytecode = artifactData.bytecode;

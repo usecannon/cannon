@@ -1,7 +1,5 @@
 import { ethers } from 'ethers';
 
-import { EventEmitter } from 'events';
-
 import { JsonFragment } from '@ethersproject/abi';
 
 import _ from 'lodash';
@@ -147,10 +145,10 @@ export type DeploymentManifest = {
 
 export type StepState = {
   version: number;
-  hash: string|null;
+  hash: string | null;
   ctx: ChainBuilderContext;
   chainDump?: string; // only included if cannon network build
-}
+};
 
 export type DeploymentState = { [label: string]: StepState };
 
