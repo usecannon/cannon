@@ -2,7 +2,13 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, DeploymentInfo } from '../types';
+import {
+  ChainBuilderContext,
+  ChainBuilderRuntimeInfo,
+  ChainArtifacts,
+  DeploymentInfo,
+  ChainBuilderContextWithHelpers,
+} from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
@@ -35,11 +41,11 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     return this.configInject(ctx, config);
   },
 
-  configInject(ctx: ChainBuilderContext, config: Config) {
+  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);

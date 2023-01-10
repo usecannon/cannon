@@ -19,6 +19,8 @@ import { PackageSpecification } from './types';
 import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT, DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
+import './custom-steps/run';
+
 export * from './types';
 export * from './constants';
 export * from './util/params';

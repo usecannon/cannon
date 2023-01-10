@@ -7,12 +7,12 @@ import contractSpec from './steps/contract';
 import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from './types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 
 export interface Action {
-  configInject: (ctx: ChainBuilderContext, config: any) => any;
+  configInject: (ctx: ChainBuilderContextWithHelpers, config: any) => any;
 
-  getState: (runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: any) => any;
+  getState: (runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: any) => any;
 
   exec: (
     runtime: ChainBuilderRuntime,

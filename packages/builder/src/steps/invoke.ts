@@ -2,7 +2,13 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, TransactionMap } from '../types';
+import {
+  ChainBuilderContext,
+  ChainBuilderRuntimeInfo,
+  ChainArtifacts,
+  TransactionMap,
+  ChainBuilderContextWithHelpers,
+} from '../types';
 import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
@@ -150,11 +156,11 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 export default {
   validate: config,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     return this.configInject(ctx, config);
   },
 
-  configInject(ctx: ChainBuilderContext, config: Config) {
+  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
     if (config.target) {

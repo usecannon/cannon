@@ -17,7 +17,7 @@ options.msg = "a message from second greeter set"
 [invoke.change_greeting2]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= settings.change_greeting2 %>"]
+args = ["<%= formatBytes32String(settings.change_greeting2) %>"]
 depends = ["import.greeters"]
 
 # test for factory functionality

@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 
 import _ from 'lodash';
+import { ethers } from 'ethers';
 import { ChainBuilderContext } from './types';
 import { ChainBuilderRuntimeInfo } from './types';
 
@@ -78,7 +79,10 @@ export class ChainDefinition {
       throw new Error(`getConfig step name not found: ${n}`);
     }
 
-    return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(ctx, _.get(this.raw, n))!;
+    return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
+      { ...ctx, ...ethers.utils, ...ethers.constants },
+      _.get(this.raw, n)
+    )!;
   }
 
   /**
@@ -90,7 +94,7 @@ export class ChainDefinition {
   async getState(n: string, runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext): Promise<string | null> {
     const obj = await ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].getState(
       runtime,
-      ctx,
+      { ...ctx, ...ethers.utils, ...ethers.constants },
       this.getConfig(n, ctx) as any
     );
 

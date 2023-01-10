@@ -30,6 +30,9 @@ export type ContractMap = {
     address: string;
     abi: JsonFragment[];
     constructorArgs?: any[]; // only needed for etherscan verification
+    // only needed for etherscan verification,
+    // only should be supplied when generated solidity as a single file
+    sourceCode?: string;
     deployTxnHash: string;
     contractName: string;
     sourceName: string;
@@ -66,6 +69,8 @@ export interface ChainBuilderContext {
 
   extras: { [label: string]: string };
 }
+
+export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof ethers.utils & typeof ethers.constants;
 
 export type BuildOptions = { [val: string]: OptionTypesTs };
 

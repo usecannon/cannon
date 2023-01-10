@@ -4,7 +4,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers } from '../types';
 import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:contract');
@@ -41,7 +41,7 @@ export interface ContractOutputs {
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
+  async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
@@ -50,7 +50,7 @@ export default {
     };
   },
 
-  configInject(ctx: ChainBuilderContext, config: Config) {
+  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
     config.from = _.template(config.from)(ctx);
