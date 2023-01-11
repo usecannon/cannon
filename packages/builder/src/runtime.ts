@@ -103,7 +103,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async putDeploy(_deployInfo: DeploymentInfo): Promise<string|null> {
+  async putDeploy(_deployInfo: DeploymentInfo): Promise<string | null> {
     throw new Error('not implemented');
   }
 
@@ -141,6 +141,8 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
   ipfsUrl: string;
   resolver: CannonRegistry;
 
+  static PREFIX = 'ipfs://';
+
   constructor(info: ChainBuilderRuntimeInfo, ipfsUrl: string, resolver: CannonRegistry) {
     super(info);
 
@@ -162,8 +164,8 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
 
     if (this.isIpfsGateway()) {
       result = await axios.get(this.ipfsUrl + `/ipfs/${hash}`, {
-        responseType: 'arraybuffer', 
-        responseEncoding: 'application/octet-stream'
+        responseType: 'arraybuffer',
+        responseEncoding: 'application/octet-stream',
       });
     } else {
       result = await axios.post(
@@ -179,7 +181,7 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
     return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
   }
 
-  async writeIpfs(info: any): Promise<string|null> {
+  async writeIpfs(info: any): Promise<string | null> {
     if (this.isIpfsGateway()) {
       // cannot write to IPFS on gateway
       return null;
@@ -207,28 +209,29 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
       return null;
     }
 
-    const deployInfo: DeploymentInfo = await this.readIpfs(h.replace('ipfs://', ''));
+    const deployInfo: DeploymentInfo = await this.readIpfs(h.replace(IPFSChainBuilderRuntime.PREFIX, ''));
 
     return deployInfo;
   }
 
-  async putDeploy(deployInfo: DeploymentInfo): Promise<string|null> {
+  async putDeploy(deployInfo: DeploymentInfo): Promise<string | null> {
     const deployHash = await this.writeIpfs(deployInfo);
-    return 'ipfs://' + deployHash;
+    return deployHash ? IPFSChainBuilderRuntime.PREFIX + deployHash : deployHash;
   }
 
   protected async readMiscInternal(url: string) {
-    this.misc = await this.readIpfs(url.split('ipfs://')[1]);
+    this.misc = await this.readIpfs(url.split(IPFSChainBuilderRuntime.PREFIX)[1]);
   }
 
   async recordMisc(): Promise<string | null> {
     debug('record misc');
-    return 'ipfs://' + this.writeIpfs(this.misc);
+    const hash = await this.writeIpfs(this.misc);
+    return hash ? IPFSChainBuilderRuntime.PREFIX + hash : hash;
   }
 
   async restoreMiscInternal(url: string) {
     debug('restore misc');
-    this.misc = await this.readIpfs(url.replace('ipfs://', ''));
+    this.misc = await this.readIpfs(url.replace(IPFSChainBuilderRuntime.PREFIX, ''));
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {

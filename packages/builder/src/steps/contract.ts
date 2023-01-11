@@ -5,9 +5,8 @@ import { JTDDataType } from 'ajv/dist/core';
 import { ethers } from 'ethers';
 
 import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers } from '../types';
-import { getContractFromPath, getMergedAbiFromContractPaths, makeArachnidCreate2 } from '../util';
-import { keccak256 } from 'ethers/lib/utils';
-import { ARACHNID_CREATE2_PROXY } from '../constants';
+import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
+import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -143,15 +142,19 @@ export default {
     let transactionHash: string;
     let contractAddress: string;
     if (config.create2) {
+      await ensureArachnidCreate2Exists(runtime);
+
       debug('performing arachnid create2');
-      const [create2Txn, addr] = makeArachnidCreate2(config.salt || '', txn.data!);
+      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
 
       const pendingTxn = await signer.sendTransaction(create2Txn);
-      await pendingTxn.wait();
+      const receipt = await pendingTxn.wait();
+
+      debug('arachnid create2 complete', receipt);
 
       contractAddress = addr;
       transactionHash = pendingTxn.hash;
-    } else { 
+    } else {
       const txnData = await signer.sendTransaction(txn);
       const receipt = await txnData.wait();
       contractAddress = receipt.contractAddress;

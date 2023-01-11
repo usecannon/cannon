@@ -97,7 +97,7 @@ export async function build({
 
   let oldDeployData: DeploymentInfo | null = null;
   if (!wipe) {
-    console.log(blueBright('downloading IPFS (this can take some time...)'))
+    console.log(blueBright('downloading IPFS (this can take some time...)'));
     oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
 
     if (oldDeployData) {
@@ -173,7 +173,7 @@ export async function build({
       options: packageDefinition.settings,
       miscUrl: miscUrl,
     });
-  
+
     if (persist) {
       await resolver.publish(
         [`${packageDefinition.name}:${packageDefinition.version}`],
@@ -188,7 +188,13 @@ export async function build({
       )
     );
   } else {
-    console.log(bold(yellow('Chain state could not be saved. For best performance and usage, please follow our guide https://TODOTODO to set up your IPFS connection.')));
+    console.log(
+      bold(
+        yellow(
+          'Chain state could not be saved. For best performance and usage, please follow our guide https://TODOTODO to set up your IPFS connection.'
+        )
+      )
+    );
   }
 
   printChainBuilderOutput(outputs);

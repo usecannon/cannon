@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "test": "mocha --exit ./test/**/*.test.ts",
+    "test": "jest",
     "start": "node dist/bin/cannon.js"
   },
   "keywords": [

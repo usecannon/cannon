@@ -100,7 +100,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         },
         getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
         async getSigner(addr: string) {
-          if (impersonate) {
+          if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
             // on test network any user can be conjured
             await provider.send('hardhat_impersonateAccount', [addr]);
             await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
