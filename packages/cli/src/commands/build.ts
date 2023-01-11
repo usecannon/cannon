@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import ethers from 'ethers';
 import { table } from 'table';
-import { bold, greenBright, green, dim, red } from 'chalk';
+import { bold, greenBright, green, dim, red, yellow, blueBright } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -97,6 +97,7 @@ export async function build({
 
   let oldDeployData: DeploymentInfo | null = null;
   if (!wipe) {
+    console.log(blueBright('downloading IPFS (this can take some time...)'))
     oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
 
     if (oldDeployData) {
@@ -165,28 +166,32 @@ export async function build({
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
 
-  const deployUrl = await runtime.putDeploy({
-    def: def.toJson(),
-    state: newState,
-    options: packageDefinition.settings,
-    miscUrl: miscUrl,
-  });
+  if (miscUrl) {
+    const deployUrl = await runtime.putDeploy({
+      def: def.toJson(),
+      state: newState,
+      options: packageDefinition.settings,
+      miscUrl: miscUrl,
+    });
+  
+    if (persist) {
+      await resolver.publish(
+        [`${packageDefinition.name}:${packageDefinition.version}`],
+        `${runtime.chainId}-${preset}`,
+        deployUrl!
+      );
+    }
 
-  if (persist) {
-    await resolver.publish(
-      [`${packageDefinition.name}:${packageDefinition.version}`],
-      `${runtime.chainId}-${preset}`,
-      deployUrl
+    console.log(
+      greenBright(
+        `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
+      )
     );
+  } else {
+    console.log(bold(yellow('Chain state could not be saved. For best performance and usage, please follow our guide https://TODOTODO to set up your IPFS connection.')));
   }
 
   printChainBuilderOutput(outputs);
-
-  console.log(
-    greenBright(
-      `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
-    )
-  );
 
   provider.artifacts = outputs;
 

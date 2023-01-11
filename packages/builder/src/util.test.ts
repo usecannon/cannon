@@ -1,8 +1,9 @@
-import { getContractFromPath, getMergedAbiFromContractPaths } from './util';
+import { getContractFromPath, getMergedAbiFromContractPaths, makeArachnidCreate2 } from './util';
 
 import 'jest';
 import { ChainBuilderContext } from '.';
 import { JsonFragment } from '@ethersproject/abi';
+import { ARACHNID_CREATE2_PROXY } from './constants';
 
 describe('util.ts', () => {
   const fakeTransferFragment: JsonFragment = {
@@ -163,5 +164,37 @@ describe('util.ts', () => {
       const def = getMergedAbiFromContractPaths(fakeCtx, ['FakeContract', 'AnotherFake', 'FakeImport.AnotherFake']);
       expect(def).toEqual([fakeEventFragment, fakeReadFragment, fakeTransferFragment]);
     });
+  });
+
+  describe('makeArachnidCreate2', () => {
+    it('returns the correct address', async () => {
+      const [, addr] = makeArachnidCreate2(
+        '0x0000000000000000000000000000000000000000000000000000000000000000', 
+        '0x00', 
+        '0x0000000000000000000000000000000000000000'
+      );
+
+      expect(addr).toEqual('0x4D1A2e2bB4F88F0250f26Ffff098B0b30B26BF38');
+    });
+
+    it('returns the correct txn', async () => {
+      const [txn] = makeArachnidCreate2(
+        '0x0987654321000000000000000000000000000000000000000000000000000000', 
+        '0x1234567890'
+      );
+
+      expect(txn.to).toEqual(ARACHNID_CREATE2_PROXY);
+      expect(txn.data).toEqual('0x09876543210000000000000000000000000000000000000000000000000000001234567890')
+    });
+
+    it('works with arbitrary string salt', async () => {
+      const [, addr] = makeArachnidCreate2(
+        'hello world',  // arbitrary string salt
+        '0x00', 
+        '0x0000000000000000000000000000000000000000'
+      );
+
+      expect(addr).toEqual('0x69D36DFe281136ef662ED1A2E80a498A5461226D');
+    })
   });
 });

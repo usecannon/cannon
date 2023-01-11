@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
@@ -103,7 +103,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async putDeploy(_deployInfo: DeploymentInfo): Promise<string> {
+  async putDeploy(_deployInfo: DeploymentInfo): Promise<string|null> {
     throw new Error('not implemented');
   }
 
@@ -122,7 +122,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     throw new Error('not implemented');
   }
 
-  async recordMisc(): Promise<string> {
+  async recordMisc(): Promise<string | null> {
     throw new Error('not implemented');
   }
 
@@ -148,22 +148,43 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
     this.resolver = resolver;
   }
 
+  // IPFS Gateway is a special type of read-only endpoint which may be supplied by the user. If that is the case,
+  // we need to alter how we are communicating with IPFS.
+  isIpfsGateway() {
+    const url = new URL(this.ipfsUrl);
+    return url.port !== '5001' && url.protocol !== 'http+ipfs' && url.protocol !== 'https+ipfs';
+  }
+
   async readIpfs(hash: string): Promise<any> {
     debug(`downloading content from ${hash}`);
 
-    const result = await axios.post(
-      this.ipfsUrl + `/api/v0/cat?arg=${hash}`,
-      {},
-      {
-        responseEncoding: 'application/octet-stream',
-        responseType: 'arraybuffer',
-      }
-    );
+    let result: AxiosResponse;
+
+    if (this.isIpfsGateway()) {
+      result = await axios.get(this.ipfsUrl + `/ipfs/${hash}`, {
+        responseType: 'arraybuffer', 
+        responseEncoding: 'application/octet-stream'
+      });
+    } else {
+      result = await axios.post(
+        this.ipfsUrl + `/api/v0/cat?arg=${hash}`,
+        {},
+        {
+          responseEncoding: 'application/octet-stream',
+          responseType: 'arraybuffer',
+        }
+      );
+    }
 
     return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
   }
 
-  async writeIpfs(info: any): Promise<string> {
+  async writeIpfs(info: any): Promise<string|null> {
+    if (this.isIpfsGateway()) {
+      // cannot write to IPFS on gateway
+      return null;
+    }
+
     const data = JSON.stringify(info);
 
     const buf = pako.deflate(data);
@@ -186,28 +207,28 @@ export class IPFSChainBuilderRuntime extends ChainBuilderRuntime {
       return null;
     }
 
-    const deployInfo: DeploymentInfo = await this.readIpfs(h);
+    const deployInfo: DeploymentInfo = await this.readIpfs(h.replace('ipfs://', ''));
 
     return deployInfo;
   }
 
-  async putDeploy(deployInfo: DeploymentInfo): Promise<string> {
+  async putDeploy(deployInfo: DeploymentInfo): Promise<string|null> {
     const deployHash = await this.writeIpfs(deployInfo);
-    return deployHash;
+    return 'ipfs://' + deployHash;
   }
 
   protected async readMiscInternal(url: string) {
     this.misc = await this.readIpfs(url.split('ipfs://')[1]);
   }
 
-  async recordMisc(): Promise<string> {
+  async recordMisc(): Promise<string | null> {
     debug('record misc');
-    return this.writeIpfs(this.misc);
+    return 'ipfs://' + this.writeIpfs(this.misc);
   }
 
   async restoreMiscInternal(url: string) {
     debug('restore misc');
-    this.misc = await this.readIpfs(url);
+    this.misc = await this.readIpfs(url.replace('ipfs://', ''));
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {

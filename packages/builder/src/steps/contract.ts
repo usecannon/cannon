@@ -5,7 +5,9 @@ import { JTDDataType } from 'ajv/dist/core';
 import { ethers } from 'ethers';
 
 import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers } from '../types';
-import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
+import { getContractFromPath, getMergedAbiFromContractPaths, makeArachnidCreate2 } from '../util';
+import { keccak256 } from 'ethers/lib/utils';
+import { ARACHNID_CREATE2_PROXY } from '../constants';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -14,6 +16,7 @@ const config = {
     artifact: { type: 'string' },
   },
   optionalProperties: {
+    create2: { type: 'boolean' },
     from: { type: 'string' },
     abi: { type: 'string' },
     abiOf: { elements: { type: 'string' } },
@@ -137,9 +140,23 @@ export default {
 
     const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner!(txn, config.salt);
 
-    const txnData = await signer.sendTransaction(txn);
+    let transactionHash: string;
+    let contractAddress: string;
+    if (config.create2) {
+      debug('performing arachnid create2');
+      const [create2Txn, addr] = makeArachnidCreate2(config.salt || '', txn.data!);
 
-    const receipt = await txnData.wait();
+      const pendingTxn = await signer.sendTransaction(create2Txn);
+      await pendingTxn.wait();
+
+      contractAddress = addr;
+      transactionHash = pendingTxn.hash;
+    } else { 
+      const txnData = await signer.sendTransaction(txn);
+      const receipt = await txnData.wait();
+      contractAddress = receipt.contractAddress;
+      transactionHash = receipt.transactionHash;
+    }
 
     let abi = JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string);
 
@@ -156,15 +173,15 @@ export default {
       abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
     }
 
-    debug('contract deployed to address', receipt.contractAddress);
+    debug('contract deployed to address', contractAddress);
 
     return {
       contracts: {
         [currentLabel?.split('.')[1] || '']: {
-          address: receipt.contractAddress,
+          address: contractAddress,
           abi,
           constructorArgs: config.args || [],
-          deployTxnHash: receipt.transactionHash,
+          deployTxnHash: transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
           deployedOn: currentLabel!,
