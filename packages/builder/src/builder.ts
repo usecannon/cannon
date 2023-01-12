@@ -103,11 +103,14 @@ ${printChainDefinitionProblems(problems)}`);
     for (const n of topologicalActions) {
       let ctx = _.clone(initialCtx);
 
+      let depsTainted = false;
+
       for (const dep of def.getDependencies(n)) {
         ctx = combineCtx([ctx, state[dep].ctx]);
+        depsTainted = depsTainted || tainted.has(dep);
       }
 
-      const curHash = await def.getState(n, runtime, ctx);
+      const curHash = await def.getState(n, runtime, ctx, depsTainted);
 
       debug('comparing states', state[n] ? state[n].hash : null, curHash);
       if (!state[n] || (curHash && state[n].hash !== curHash)) {
@@ -118,6 +121,7 @@ ${printChainDefinitionProblems(problems)}`);
           hash: curHash,
           version: BUILD_VERSION,
         };
+        tainted.add(n);
       } else {
         debug('skip isolated', n);
         // even if this step has already been completed, there is a possibility that prior steps were executed and had unrelated changes
@@ -172,7 +176,7 @@ async function buildLayer(
         ctx = combineCtx([ctx, state[dep].ctx]);
       }
 
-      const curHash = await def.getState(action, runtime, ctx);
+      const curHash = await def.getState(action, runtime, ctx, false);
 
       debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
       if (!state[action] || (curHash && state[action].hash !== curHash)) {
@@ -209,7 +213,7 @@ async function buildLayer(
     for (const action of layer.actions) {
       state[action] = {
         ctx: newCtx,
-        hash: await def.getState(action, runtime, newCtx),
+        hash: await def.getState(action, runtime, newCtx, false),
         version: BUILD_VERSION,
         chainDump,
       };

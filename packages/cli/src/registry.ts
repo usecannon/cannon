@@ -12,10 +12,11 @@ import Debug from 'debug';
 const debug = Debug('cannon:cli:registry');
 
 // in addition to loading packages from the , also stores tags locally to remember between local builds
-export class LocalRegistry implements CannonRegistry {
+export class LocalRegistry extends CannonRegistry {
   packagesDir: string;
 
   constructor(packagesDir: string) {
+    super();
     this.packagesDir = packagesDir;
   }
 
@@ -24,11 +25,18 @@ export class LocalRegistry implements CannonRegistry {
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageRef, variant)
+    if (baseResolved) {
+      return baseResolved;
+    }
+
+    debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
     return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString();
   }
 
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
     for (const packageName of packagesNames) {
+      debug('package local link', packageName);
       const file = this.getTagReferenceStorage(packageName, variant);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
@@ -62,6 +70,7 @@ export class FallbackRegistry implements CannonRegistry {
   }
 
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
+    debug('publish to fallback database: ', packagesNames);
     // the fallback registry is usually something easy to write to or get to later
     return _.last(this.registries).publish(packagesNames, variant, url);
   }

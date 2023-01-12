@@ -41,11 +41,13 @@ export class ChainDefinition {
     this.raw = def;
 
     const actions = [];
-    for (const kind in ActionKinds) {
-      for (const n in (def as any)[kind as keyof typeof ActionKinds]) {
-        const fn = `${kind}.${n}`;
+
+    // best way to g et a list of actions is just to iterate over the entire def, and filter out anything
+    // that is not an action (because those are known)
+    for (const t in _.omit(def, 'name', 'version', 'description', 'keywords', 'setting') as any) {
+      for (const n in (def as any)[t]) {
+        const fn = `${t}.${n}`;
         actions.push(fn);
-        //actions.set(fn, new Set(this.getDependencies(fn)));
       }
     }
 
@@ -79,6 +81,12 @@ export class ChainDefinition {
       throw new Error(`getConfig step name not found: ${n}`);
     }
 
+    const kind = n.split('.')[0] as keyof typeof ActionKinds;
+
+    if (!ActionKinds[kind]) {
+      throw new Error(`action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`);
+    }
+
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
       _.get(this.raw, n)
@@ -91,8 +99,23 @@ export class ChainDefinition {
    * @param ctx context used to generate configuration for the action
    * @returns string representing the current state of the action
    */
-  async getState(n: string, runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext): Promise<string | null> {
-    const obj = await ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].getState(
+  async getState(n: string, runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, tainted: boolean): Promise<string | null> {
+
+    const kind = n.split('.')[0] as keyof typeof ActionKinds;
+
+    if (!ActionKinds[kind]) {
+      debug('action plugin not installed for state eval:', kind);
+      
+      if (tainted) {
+        debug('state is tainted for custom plugin. cant recompute state. issuing invalid state.');
+        return 'INVALID';
+      } else {
+        // no dependencies have changed, though it is possible that a setting inject means this need to be rebuilt
+        return null; 
+      }
+    }
+
+    const obj = await ActionKinds[kind].getState(
       runtime,
       { ...ctx, ...ethers.utils, ...ethers.constants },
       this.getConfig(n, ctx) as any

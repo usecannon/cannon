@@ -7,13 +7,23 @@ import _ from 'lodash';
 
 const debug = Debug('cannon:builder:registry');
 
-export interface CannonRegistry {
-  publish(packagesNames: string[], url: string, variant: string): Promise<string[]>;
+export abstract class CannonRegistry {
 
-  getUrl(packageName: string, variant: string): Promise<string | null>;
+  abstract publish(packagesNames: string[], url: string, variant: string): Promise<string[]>;
+
+  // in general a "catchall" is that if the packageName is in format "@service:path", then 
+  // that is a direct service resolve
+  // ex @ipfs:Qm... is ipfs://Qm...
+  async getUrl(packageName: string, variant: string): Promise<string | null> {
+    if (packageName.startsWith('@')) {
+      return packageName.replace(':', '://').replace('@', '');
+    }
+
+    return null;
+  }
 }
 
-export class OnChainRegistry implements CannonRegistry {
+export class OnChainRegistry extends CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
@@ -28,6 +38,7 @@ export class OnChainRegistry implements CannonRegistry {
     signerOrProvider: ethers.Signer | ethers.providers.Provider;
     overrides?: Overrides;
   }) {
+    super();
     if ((signerOrProvider as ethers.Signer).provider) {
       this.signer = signerOrProvider as ethers.Signer;
       this.provider = this.signer.provider;
@@ -74,6 +85,11 @@ export class OnChainRegistry implements CannonRegistry {
   }
 
   async getUrl(packageName: string, variant: string): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageName, variant);
+    if (baseResolved) {
+      return baseResolved;
+    }
+
     const [name, version] = packageName.split(':');
 
     const url = await this.contract.getPackageUrl(

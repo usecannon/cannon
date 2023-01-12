@@ -23,14 +23,14 @@
     "@types/lodash": "^4.14.183",
     "@types/pako": "^2.0.0",
     "@types/semver": "^7.3.12",
-    "@types/jest": "^28.1.7",
-    "axios": "^1.2.2",
-    "form-data": "^4.0.0"
+    "@types/jest": "^28.1.7"
   },
   "peerDependencies": {
     "ethers": ">=5.6.0"
   },
   "dependencies": {
+    "axios": "^1.2.2",
+    "form-data": "^4.0.0",
     "ajv": "^8.11.0",
     "debug": "^4.3.4",
     "lodash": "^4.17.21",

@@ -160,6 +160,7 @@ program
   .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
   .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+  .option('--wipe', 'Clear existing deployment state, start this deploy from scratch.')
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -217,9 +218,12 @@ program
       upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
       deploymentPath,
+      persist: opts.wipe
     });
 
     await node.kill();
+    // ensure the cli actually exits
+    process.exit();
   });
 
 program
