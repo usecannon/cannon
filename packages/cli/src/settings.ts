@@ -51,5 +51,5 @@ export function resolveCliSettings(): CliSettings {
 
   debug('got settings', finalSettings);
 
-  return finalSettings
+  return finalSettings;
 }

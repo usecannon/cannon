@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import _ from 'lodash';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
@@ -295,13 +294,12 @@ program
 
       const overrides: ethers.Overrides = {};
 
-
       if (options.maxFeePerGas) {
         overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
       }
 
       if (options.maxPriorityFeePerGas) {
-        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei')
+        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei');
       }
 
       if (options.gasLimit) {
@@ -321,14 +319,7 @@ program
         }
       }
 
-      await publish(
-        packageName,
-        options.tags,
-        options.preset,
-        wallet,
-        overrides,
-        options.quiet
-      );
+      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet);
     } else {
       throw new Error('must specify private key and registry rpc');
     }

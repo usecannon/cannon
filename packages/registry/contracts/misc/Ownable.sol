@@ -9,91 +9,91 @@ import "../interfaces/IOwnable.sol";
  * See IOwnable.
  */
 contract Ownable is IOwnable {
-    error OwnerZeroAddress();
-    error OwnerNoChange();
+  error OwnerZeroAddress();
+  error OwnerNoChange();
 
-    /**
-     * @inheritdoc IOwnable
-     */
-    function acceptOwnership() public override {
-        OwnableStorage.Data storage store = OwnableStorage.load();
+  /**
+   * @inheritdoc IOwnable
+   */
+  function acceptOwnership() public override {
+    OwnableStorage.Data storage store = OwnableStorage.load();
 
-        address currentNominatedOwner = store.nominatedOwner;
-        if (msg.sender != currentNominatedOwner) {
-            revert NotNominated(msg.sender);
-        }
-
-        emit OwnerChanged(store.owner, currentNominatedOwner);
-        store.owner = currentNominatedOwner;
-
-        store.nominatedOwner = address(0);
+    address currentNominatedOwner = store.nominatedOwner;
+    if (msg.sender != currentNominatedOwner) {
+      revert NotNominated(msg.sender);
     }
 
-    /**
-     * @inheritdoc IOwnable
-     */
-    function nominateNewOwner(address newNominatedOwner) public override onlyOwnerIfSet {
-        OwnableStorage.Data storage store = OwnableStorage.load();
+    emit OwnerChanged(store.owner, currentNominatedOwner);
+    store.owner = currentNominatedOwner;
 
-        if (newNominatedOwner == address(0)) {
-            revert OwnerZeroAddress();
-        }
+    store.nominatedOwner = address(0);
+  }
 
-        if (newNominatedOwner == store.nominatedOwner) {
-            revert OwnerNoChange();
-        }
+  /**
+   * @inheritdoc IOwnable
+   */
+  function nominateNewOwner(address newNominatedOwner) public override onlyOwnerIfSet {
+    OwnableStorage.Data storage store = OwnableStorage.load();
 
-        store.nominatedOwner = newNominatedOwner;
-        emit OwnerNominated(newNominatedOwner);
+    if (newNominatedOwner == address(0)) {
+      revert OwnerZeroAddress();
     }
 
-    /**
-     * @inheritdoc IOwnable
-     */
-    function renounceNomination() external override {
-        OwnableStorage.Data storage store = OwnableStorage.load();
-
-        if (store.nominatedOwner != msg.sender) {
-            revert NotNominated(msg.sender);
-        }
-
-        store.nominatedOwner = address(0);
+    if (newNominatedOwner == store.nominatedOwner) {
+      revert OwnerNoChange();
     }
 
-    /**
-     * @inheritdoc IOwnable
-     */
-    function owner() external view override returns (address) {
-        return OwnableStorage.load().owner;
+    store.nominatedOwner = newNominatedOwner;
+    emit OwnerNominated(newNominatedOwner);
+  }
+
+  /**
+   * @inheritdoc IOwnable
+   */
+  function renounceNomination() external override {
+    OwnableStorage.Data storage store = OwnableStorage.load();
+
+    if (store.nominatedOwner != msg.sender) {
+      revert NotNominated(msg.sender);
     }
 
-    /**
-     * @inheritdoc IOwnable
-     */
-    function nominatedOwner() external view override returns (address) {
-        return OwnableStorage.load().nominatedOwner;
+    store.nominatedOwner = address(0);
+  }
+
+  /**
+   * @inheritdoc IOwnable
+   */
+  function owner() external view override returns (address) {
+    return OwnableStorage.load().owner;
+  }
+
+  /**
+   * @inheritdoc IOwnable
+   */
+  function nominatedOwner() external view override returns (address) {
+    return OwnableStorage.load().nominatedOwner;
+  }
+
+  /**
+   * @dev Reverts if the caller is not the owner.
+   */
+  modifier onlyOwner() {
+    OwnableStorage.onlyOwner();
+
+    _;
+  }
+
+  /**
+   * @dev Reverts if the caller is not the owner, except if it is not set yet.
+   */
+  modifier onlyOwnerIfSet() {
+    address theOwner = OwnableStorage.getOwner();
+
+    // if owner is set then check if msg.sender is the owner
+    if (theOwner != address(0)) {
+      OwnableStorage.onlyOwner();
     }
 
-    /**
-     * @dev Reverts if the caller is not the owner.
-     */
-    modifier onlyOwner() {
-        OwnableStorage.onlyOwner();
-
-        _;
-    }
-
-    /**
-     * @dev Reverts if the caller is not the owner, except if it is not set yet.
-     */
-    modifier onlyOwnerIfSet() {
-        address theOwner = OwnableStorage.getOwner();
-
-        // if owner is set then check if msg.sender is the owner
-        if (theOwner != address(0)) {
-            OwnableStorage.onlyOwner();
-        }
-
-        _;
-    }
+    _;
+  }
 }

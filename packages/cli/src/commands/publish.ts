@@ -23,24 +23,28 @@ export async function publish(
   // get a list of all deployments the user is requesting
   const deploys = await (localRegistry.registries[1] as LocalRegistry).scanDeploys(packageRef, `-${preset}`);
 
-  console.log('Found deployment networks:', deploys.map(d => d.variant).join(', '));
-  
+  console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
+
   const registry = new OnChainRegistry({
     signerOrProvider: signer.connect(new ethers.providers.JsonRpcProvider(cliSettings.registryProviderUrl)),
     address: cliSettings.registryAddress,
-    overrides
+    overrides,
   });
-  
+
   const registrationReceipts = [];
 
   for (const deploy of deploys) {
     const toPublishUrl = await localRegistry.getUrl(deploy.name, deploy.variant);
 
     const [name, version] = deploy.name.split(':');
-  
+
     if (toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
       registrationReceipts.push(
-        await registry.publish([version, ...splitTags].map(t => `${name}:${t}`), toPublishUrl!, deploy.variant)
+        await registry.publish(
+          [version, ...splitTags].map((t) => `${name}:${t}`),
+          toPublishUrl!,
+          deploy.variant
+        )
       );
       if (!quiet) {
         console.log(`Published: ${name}:${version} (${deploy.variant})`);
@@ -51,7 +55,6 @@ export async function publish(
       }
     }
   }
-
 
   console.log(
     JSON.stringify({

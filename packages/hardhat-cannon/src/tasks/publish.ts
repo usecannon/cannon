@@ -2,7 +2,6 @@ import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_PUBLISH } from '../task-names';
 import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageSpecification } from '@usecannon/cli';
 import { ethers, Wallet } from 'ethers';
-import _ from 'lodash';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
@@ -27,40 +26,37 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
-  .setAction(
-    async ({ packageName, preset, privateKey, tags, gasLimit, maxFeePerGas, maxPriorityFeePerGas, quiet }, hre) => {
+  .setAction(async ({ packageName, preset, privateKey, tags, gasLimit, maxFeePerGas, maxPriorityFeePerGas, quiet }, hre) => {
+    let signer = getHardhatSigners(hre, hre.ethers.provider)[0];
 
-      let signer = getHardhatSigners(hre, hre.ethers.provider)[0];
-
-      if (privateKey) {
-        signer = new Wallet(privateKey, hre.ethers.provider);
-      }
-
-      let overrides: ethers.Overrides = {};
-
-      if (maxFeePerGas) {
-        overrides.maxFeePerGas = ethers.utils.parseUnits(maxFeePerGas, 'gwei');
-      }
-
-      if (maxPriorityFeePerGas) {
-        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei');
-      }
-
-      if (gasLimit) {
-        overrides.gasLimit = gasLimit;
-      }
-
-      const packageDefinition: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
-        packageWithSettingsParams: packageName ? [packageName] : [],
-      });
-
-      await publish(
-        `${packageDefinition.name}:${packageDefinition.version}`,
-        tags,
-        preset, // todo: get all variatns?
-        signer,
-        overrides,
-        quiet
-      );
+    if (privateKey) {
+      signer = new Wallet(privateKey, hre.ethers.provider);
     }
-  );
+
+    const overrides: ethers.Overrides = {};
+
+    if (maxFeePerGas) {
+      overrides.maxFeePerGas = ethers.utils.parseUnits(maxFeePerGas, 'gwei');
+    }
+
+    if (maxPriorityFeePerGas) {
+      overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei');
+    }
+
+    if (gasLimit) {
+      overrides.gasLimit = gasLimit;
+    }
+
+    const packageDefinition: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
+      packageWithSettingsParams: packageName ? [packageName] : [],
+    });
+
+    await publish(
+      `${packageDefinition.name}:${packageDefinition.version}`,
+      tags,
+      preset, // todo: get all variatns?
+      signer,
+      overrides,
+      quiet
+    );
+  });

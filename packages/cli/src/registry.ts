@@ -45,17 +45,19 @@ export class LocalRegistry extends CannonRegistry {
     return [];
   }
 
-  async scanDeploys(packageName: RegExp|string, variant: RegExp|string): Promise<{ name: string, variant: string }[]> {
+  async scanDeploys(packageName: RegExp | string, variant: RegExp | string): Promise<{ name: string; variant: string }[]> {
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
 
-    return allTags.filter(t => {
-      const [name, version,tagVariant] = t.replace('.txt', '').split('_');
+    return allTags
+      .filter((t) => {
+        const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
-      return `${name}:${version}`.match(packageName) && tagVariant.match(variant)
-    }).map(t => {
-      const [name, version,tagVariant] = t.replace('.txt', '').split('_');
-      return { name: `${name}:${version}`, variant: tagVariant };
-    });
+        return `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+      })
+      .map((t) => {
+        const [name, version, tagVariant] = t.replace('.txt', '').split('_');
+        return { name: `${name}:${version}`, variant: tagVariant };
+      });
   }
 }
 

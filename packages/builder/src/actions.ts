@@ -34,7 +34,7 @@ export interface Action {
 export const ActionKinds: { [label: string]: Action } = {};
 
 /**
- * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of 
+ * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
  */
 const ChainDefinitionSchema = {
   properties: {
