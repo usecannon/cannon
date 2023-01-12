@@ -8,13 +8,13 @@ import _ from 'lodash';
 const debug = Debug('cannon:builder:registry');
 
 export abstract class CannonRegistry {
-
   abstract publish(packagesNames: string[], url: string, variant: string): Promise<string[]>;
 
-  // in general a "catchall" is that if the packageName is in format "@service:path", then 
+  // in general a "catchall" is that if the packageName is in format "@service:path", then
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
-  async getUrl(packageName: string, variant: string): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getUrl(packageName: string, _variant: string): Promise<string | null> {
     if (packageName.startsWith('@')) {
       return packageName.replace(':', '://').replace('@', '');
     }

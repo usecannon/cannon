@@ -25,7 +25,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    const baseResolved = await super.getUrl(packageRef, variant)
+    const baseResolved = await super.getUrl(packageRef, variant);
     if (baseResolved) {
       return baseResolved;
     }

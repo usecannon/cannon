@@ -84,7 +84,9 @@ export class ChainDefinition {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
     if (!ActionKinds[kind]) {
-      throw new Error(`action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`);
+      throw new Error(
+        `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
+      );
     }
 
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
@@ -99,19 +101,23 @@ export class ChainDefinition {
    * @param ctx context used to generate configuration for the action
    * @returns string representing the current state of the action
    */
-  async getState(n: string, runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, tainted: boolean): Promise<string | null> {
-
+  async getState(
+    n: string,
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    tainted: boolean
+  ): Promise<string | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
     if (!ActionKinds[kind]) {
       debug('action plugin not installed for state eval:', kind);
-      
+
       if (tainted) {
         debug('state is tainted for custom plugin. cant recompute state. issuing invalid state.');
         return 'INVALID';
       } else {
         // no dependencies have changed, though it is possible that a setting inject means this need to be rebuilt
-        return null; 
+        return null;
       }
     }
 

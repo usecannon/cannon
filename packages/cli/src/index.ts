@@ -218,7 +218,7 @@ program
       upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
       deploymentPath,
-      persist: opts.wipe
+      persist: opts.wipe,
     });
 
     await node.kill();
