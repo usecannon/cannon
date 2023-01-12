@@ -53,9 +53,33 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CannonRegistry__factory>;
     getContractFactory(
-      name: "Proxy",
+      name: "IOwnable",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Proxy__factory>;
+    ): Promise<Contracts.IOwnable__factory>;
+    getContractFactory(
+      name: "IUUPSImplementation",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IUUPSImplementation__factory>;
+    getContractFactory(
+      name: "Ownable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Ownable__factory>;
+    getContractFactory(
+      name: "OwnableStorage",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.OwnableStorage__factory>;
+    getContractFactory(
+      name: "UUPSImplementation",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UUPSImplementation__factory>;
+    getContractFactory(
+      name: "UUPSProxyWithOwner",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UUPSProxyWithOwner__factory>;
+    getContractFactory(
+      name: "OwnedUpgradable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.OwnedUpgradable__factory>;
 
     getContractAt(
       name: "AccessError",
@@ -108,10 +132,40 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.CannonRegistry>;
     getContractAt(
-      name: "Proxy",
+      name: "IOwnable",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.Proxy>;
+    ): Promise<Contracts.IOwnable>;
+    getContractAt(
+      name: "IUUPSImplementation",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IUUPSImplementation>;
+    getContractAt(
+      name: "Ownable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Ownable>;
+    getContractAt(
+      name: "OwnableStorage",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.OwnableStorage>;
+    getContractAt(
+      name: "UUPSImplementation",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UUPSImplementation>;
+    getContractAt(
+      name: "UUPSProxyWithOwner",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UUPSProxyWithOwner>;
+    getContractAt(
+      name: "OwnedUpgradable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.OwnedUpgradable>;
 
     // default types
     getContractFactory(

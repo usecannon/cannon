@@ -25,7 +25,6 @@ export * from './types';
 export * from './constants';
 export * from './util/params';
 
-import { RegistrationOptions as PublishRegistrationOptions } from './commands/publish';
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
@@ -259,6 +258,7 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
+  .option('--preset <preset>', 'The preset of the packages that are deployed')
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -289,31 +289,23 @@ program
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
-    let registrationOptions: PublishRegistrationOptions;
-
     if (options.registryRpcUrl && options.privateKey) {
       const provider = new ethers.providers.JsonRpcProvider(options.registryRpcUrl);
       const wallet = new ethers.Wallet(options.privateKey, provider);
 
-      registrationOptions = {
-        signer: wallet,
-        registryAddress: options.registryAddress,
-      };
+      const overrides: ethers.Overrides = {};
+
 
       if (options.maxFeePerGas) {
-        _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(options.maxFeePerGas, 'gwei'));
+        overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
       }
 
       if (options.maxPriorityFeePerGas) {
-        _.set(
-          registrationOptions,
-          'overrides.maxPriorityFeePerGas',
-          ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei')
-        );
+        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei')
       }
 
       if (options.gasLimit) {
-        _.set(registrationOptions, 'overrides.gasLimit', options.gasLimit);
+        overrides.gasLimit = options.gasLimit;
       }
 
       if (!options.quiet) {
@@ -328,17 +320,18 @@ program
           process.exit();
         }
       }
+
+      await publish(
+        packageName,
+        options.tags,
+        options.preset,
+        wallet,
+        overrides,
+        options.quiet
+      );
     } else {
       throw new Error('must specify private key and registry rpc');
     }
-
-    await publish(
-      packageName,
-      options.tags,
-      'all', // todo
-      registrationOptions,
-      options.quiet
-    );
   });
 
 program

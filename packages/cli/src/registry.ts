@@ -44,6 +44,19 @@ export class LocalRegistry extends CannonRegistry {
 
     return [];
   }
+
+  async scanDeploys(packageName: RegExp|string, variant: RegExp|string): Promise<{ name: string, variant: string }[]> {
+    const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
+
+    return allTags.filter(t => {
+      const [name, version,tagVariant] = t.replace('.txt', '').split('_');
+
+      return `${name}:${version}`.match(packageName) && tagVariant.match(variant)
+    }).map(t => {
+      const [name, version,tagVariant] = t.replace('.txt', '').split('_');
+      return { name: `${name}:${version}`, variant: tagVariant };
+    });
+  }
 }
 
 export class FallbackRegistry implements CannonRegistry {
@@ -53,10 +66,10 @@ export class FallbackRegistry implements CannonRegistry {
     this.registries = registries;
   }
 
-  async getUrl(name: string, version: string): Promise<string | null> {
+  async getUrl(packageRef: string, variant: string): Promise<string | null> {
     for (const registry of this.registries) {
       try {
-        const result = await registry.getUrl(name, version);
+        const result = await registry.getUrl(packageRef, variant);
 
         if (result) {
           return result;
@@ -80,7 +93,7 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   return new FallbackRegistry([
-    new OnChainRegistry({ signerOrProvider: provider, address: '' }),
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
     new LocalRegistry(settings.cannonDirectory),
   ]);
 }

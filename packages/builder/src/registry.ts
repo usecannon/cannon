@@ -71,9 +71,9 @@ export class OnChainRegistry extends CannonRegistry {
       )
     )) {
       const tx = await this.contract.connect(this.signer).publish(
-        registerPackages[0][0],
-        registerPackages.map((p) => p[1]),
-        variant,
+        ethers.utils.formatBytes32String(registerPackages[0][0]),
+        ethers.utils.formatBytes32String(variant),
+        registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
         url,
         this.overrides
       );

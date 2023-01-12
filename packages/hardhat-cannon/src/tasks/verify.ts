@@ -24,7 +24,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     const runtime = new IPFSChainBuilderRuntime(
       {
         provider,
-        chainId: (await provider.getNetwork()).chainId,
+        chainId: hre.network.config.chainId!,
         async getSigner(addr: string) {
           // on test network any user can be conjured
           await provider.send('hardhat_impersonateAccount', [addr]);
@@ -39,7 +39,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       resolver
     );
 
-    const deployData = await runtime.readDeploy(packageName, `${hre.network.config.chainId}-${preset}`);
+    const deployData = await runtime.readDeploy(packageName, preset);
 
     if (!deployData) {
       throw new Error(

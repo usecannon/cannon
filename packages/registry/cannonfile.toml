@@ -2,25 +2,36 @@ name = "registry"
 version = "<%= package.version %>"
 
 [setting.salt]
-defaultValue = "registry"
+defaultValue = "official-registry"
 
-[setting.owner]
+[setting.initialOwner]
 defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 
-[contract.registry]
+
+[contract.InitialImpl]
+artifact = "OwnedUpgradable"
+salt = "<%= settings.salt %>"
+create2 = true
+
+[contract.InitialProxy]
+artifact = "UUPSProxyWithOwner"
+abi = "InitialImpl"
+create2 = true
+salt = "<%= settings.salt %>"
+args = ["<%= contracts.InitialImpl.address %>", "<%= settings.initialOwner %>"]
+depends = ["contract.InitialImpl"]
+
+[contract.Implementation]
 artifact = "CannonRegistry"
 
-[contract.proxy]
-artifact = "Proxy"
-abi = "registry"
-salt = "<%= settings.salt %>"
-args = ["<%= contracts.registry.address %>"]
-depends = ["contract.registry"]
+[invoke.upgrade_proxy]
+target = ["InitialProxy"]
+func = "upgradeTo"
+args = ["<%= contracts.Implementation.address %>"]
+fromCall.func = "owner"
 
-[invoke.nominate_owner]
-target = ["proxy"]
-func = "nominateNewOwner"
-args = ["<%= settings.owner %>"]
-depends = ["contract.proxy"]
+factory.Proxy.abiOf = ["Implementation"]
+factory.Proxy.event = "Upgraded"
+factory.Proxy.arg = 0
 
-# todo: add acceptOwnership later when cannon supports external calls
+depends = ["contract.InitialProxy", "contract.Implementation"]

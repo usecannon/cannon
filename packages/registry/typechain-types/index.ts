@@ -26,5 +26,9 @@ export type { UUPSProxy } from "./@synthetixio/core-contracts/contracts/proxy/UU
 export { UUPSProxy__factory } from "./factories/@synthetixio/core-contracts/contracts/proxy/UUPSProxy__factory";
 export type { CannonRegistry } from "./contracts/CannonRegistry";
 export { CannonRegistry__factory } from "./factories/contracts/CannonRegistry__factory";
-export type { Proxy } from "./contracts/Proxy";
-export { Proxy__factory } from "./factories/contracts/Proxy__factory";
+export type { OwnableStorage } from "./contracts/misc/OwnableStorage";
+export { OwnableStorage__factory } from "./factories/contracts/misc/OwnableStorage__factory";
+export type { UUPSProxyWithOwner } from "./contracts/misc/UUPSProxyWithOwner";
+export { UUPSProxyWithOwner__factory } from "./factories/contracts/misc/UUPSProxyWithOwner__factory";
+export type { OwnedUpgradable } from "./contracts/OwnedUpgradable";
+export { OwnedUpgradable__factory } from "./factories/contracts/OwnedUpgradable__factory";

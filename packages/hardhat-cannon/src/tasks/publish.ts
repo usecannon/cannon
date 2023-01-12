@@ -1,13 +1,13 @@
 import { task } from 'hardhat/config';
-import { bold, yellowBright } from 'chalk';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_PUBLISH } from '../task-names';
 import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageSpecification } from '@usecannon/cli';
-import { RegistrationOptions } from '@usecannon/cli/dist/src/commands/publish';
 import { ethers, Wallet } from 'ethers';
 import _ from 'lodash';
+import { getHardhatSigners } from '../internal/get-hardhat-signers';
 
 task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addOptionalPositionalParam('packageName', 'Name and version of the package to publish')
+  .addOptionalParam('preset', 'The deployment preset used', 'main')
   .addOptionalParam(
     'privateKey',
     'Private key of the wallet to use when publishing. Ignored if `--skip-register` is supplied'
@@ -28,35 +28,26 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   )
   .addFlag('quiet', 'Only print JSON result at the end, no human readable output')
   .setAction(
-    async ({ packageName, privateKey, tags, registryAddress, gasLimit, maxFeePerGas, maxPriorityFeePerGas, quiet }, hre) => {
-      if (hre.network.name == 'hardhat') {
-        console.log(yellowBright(`The ${TASK_PUBLISH} task must be run with ${bold('--network mainnet')}`));
-        process.exit();
-      }
+    async ({ packageName, preset, privateKey, tags, gasLimit, maxFeePerGas, maxPriorityFeePerGas, quiet }, hre) => {
 
-      const registrationOptions: RegistrationOptions = {
-        registryAddress,
-        signer: (await hre.ethers.getSigners())[0],
-      };
-
-      if (registryAddress === DEFAULT_REGISTRY_ADDRESS && hre.config.cannon.registryAddress) {
-        registryAddress = hre.config.cannon.registryAddress;
-      }
+      let signer = getHardhatSigners(hre, hre.ethers.provider)[0];
 
       if (privateKey) {
-        registrationOptions.signer = new Wallet(privateKey, hre.ethers.provider);
+        signer = new Wallet(privateKey, hre.ethers.provider);
       }
 
+      let overrides: ethers.Overrides = {};
+
       if (maxFeePerGas) {
-        _.set(registrationOptions, 'overrides.maxFeePerGas', ethers.utils.parseUnits(maxFeePerGas, 'gwei'));
+        overrides.maxFeePerGas = ethers.utils.parseUnits(maxFeePerGas, 'gwei');
       }
 
       if (maxPriorityFeePerGas) {
-        _.set(registrationOptions, 'overrides.maxPriorityFeePerGas', ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei'));
+        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(maxPriorityFeePerGas, 'gwei');
       }
 
       if (gasLimit) {
-        _.set(registrationOptions, 'overrides.gasLimit', gasLimit);
+        overrides.gasLimit = gasLimit;
       }
 
       const packageDefinition: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
@@ -66,8 +57,9 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
       await publish(
         `${packageDefinition.name}:${packageDefinition.version}`,
         tags,
-        'all', // todo: get all variatns?
-        registrationOptions,
+        preset, // todo: get all variatns?
+        signer,
+        overrides,
         quiet
       );
     }

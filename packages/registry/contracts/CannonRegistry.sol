@@ -2,10 +2,10 @@
 pragma solidity ^0.8.11;
 
 import {Storage} from "./Storage.sol";
-import {Ownable} from "@synthetixio/core-contracts/contracts/ownership/Ownable.sol";
-import {UUPSImplementation} from "@synthetixio/core-contracts/contracts/proxy/UUPSImplementation.sol";
 
-contract CannonRegistry is Storage, Ownable, UUPSImplementation {
+import "./OwnedUpgradable.sol";
+
+contract CannonRegistry is Storage, OwnedUpgradable {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
@@ -17,10 +17,6 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
-
-  function upgradeTo(address _newImplementation) public override onlyOwner {
-    _upgradeTo(_newImplementation);
-  }
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset
@@ -56,7 +52,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
 
   function publish(
     bytes32 _packageName,
-    bytes32 variant,
+    bytes32 _variant,
     bytes32[] memory _packageTags,
     string memory _packageVersionUrl
   ) external {
@@ -84,7 +80,7 @@ contract CannonRegistry is Storage, Ownable, UUPSImplementation {
 
     for (uint i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
-      _p.deployments[_tag] = _packageVersionUrl;
+      _p.deployments[_tag][_variant] = _packageVersionUrl;
     }
 
     emit PackagePublish(_packageName, _packageTags, _packageVersionUrl, msg.sender);

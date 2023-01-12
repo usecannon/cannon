@@ -8,6 +8,10 @@ import {
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
 } from './constants';
 
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:settings');
+
 const CLI_SETTINGS_STORE = 'settings.json';
 
 export type CliSettings = {
@@ -37,11 +41,15 @@ export function resolveCliSettings(): CliSettings {
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_ENDPOINT})`);
   }
 
-  return {
+  const finalSettings = {
     cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
     ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
     registryProviderUrl:
       process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT,
     registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
   };
+
+  debug('got settings', finalSettings);
+
+  return finalSettings
 }

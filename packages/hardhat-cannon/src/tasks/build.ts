@@ -69,10 +69,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       let signers: ethers.Signer[] = [];
       if (!impersonate) {
         signers = getHardhatSigners(hre, provider);
-
-        for (const signer of signers) {
-          await provider.send('hardhat_setBalance', [await signer.getAddress(), `0x${(1e22).toString(16)}`]);
-        }
       }
 
       let defaultSigner: ethers.Signer | null = null;
