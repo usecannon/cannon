@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.1",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "browser": "dist/browser.umd.js",
   "main": "dist/index.js",
@@ -20,19 +20,19 @@
     "@types/adm-zip": "^0.5.0",
     "@types/debug": "^4.1.7",
     "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^28.1.7",
     "@types/lodash": "^4.14.183",
     "@types/pako": "^2.0.0",
-    "@types/semver": "^7.3.12",
-    "@types/jest": "^28.1.7"
+    "@types/semver": "^7.3.12"
   },
   "peerDependencies": {
     "ethers": ">=5.6.0"
   },
   "dependencies": {
-    "axios": "^1.2.2",
-    "form-data": "^4.0.0",
     "ajv": "^8.11.0",
+    "axios": "^1.2.2",
     "debug": "^4.3.4",
+    "form-data": "^4.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0"
   },
