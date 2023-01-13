@@ -1,4 +1,4 @@
-import { ChainDefinition, IPFSChainBuilderRuntime } from '@usecannon/builder';
+import { ChainDefinition, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
 import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
@@ -22,25 +22,12 @@ export async function inspect(packageRef: string, json: boolean) {
   });
   const provider = getProvider(node);
 
-  const runtime = new IPFSChainBuilderRuntime(
-    {
-      provider,
-      chainId: (await provider.getNetwork()).chainId,
-      async getSigner(addr: string) {
-        // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
-      },
-
-      baseDir: null,
-      snapshots: false,
-    },
+  const loader = new IPFSLoader(
     resolveCliSettings().ipfsUrl,
     resolver
   );
 
-  const deployData = await runtime.readDeploy(packageRef, 'main');
+  const deployData = await loader.readDeploy(packageRef, 'main', (await provider.getNetwork()).chainId);
 
   if (!deployData) {
     throw new Error(

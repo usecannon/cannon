@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { task } from 'hardhat/config';
 import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
-import { ChainDefinition, getOutputs, IPFSChainBuilderRuntime } from '@usecannon/builder';
+import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
 import { createDefaultReadRegistry, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 
@@ -21,7 +21,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
 
     const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-    const runtime = new IPFSChainBuilderRuntime(
+    const runtime = new ChainBuilderRuntime(
       {
         provider,
         chainId: hre.network.config.chainId!,
@@ -35,8 +35,10 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
         baseDir: null,
         snapshots: false,
       },
-      resolveCliSettings().ipfsUrl,
-      resolver
+      new IPFSLoader(
+        resolveCliSettings().ipfsUrl,
+        resolver
+      )
     );
 
     const deployData = await runtime.readDeploy(packageName, preset);

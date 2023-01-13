@@ -12,7 +12,7 @@ contract CannonRegistry is Storage, OwnedUpgradable {
   error TooManyTags();
   error PackageNotFound();
 
-  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, string url, address owner);
+  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
@@ -83,7 +83,7 @@ contract CannonRegistry is Storage, OwnedUpgradable {
       _p.deployments[_tag][_variant] = _packageVersionUrl;
     }
 
-    emit PackagePublish(_packageName, _packageTags, _packageVersionUrl, msg.sender);
+    emit PackagePublish(_packageName, _packageTags, _variant, _packageVersionUrl, msg.sender);
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {

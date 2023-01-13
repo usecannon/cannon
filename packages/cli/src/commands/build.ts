@@ -7,12 +7,13 @@ import {
   ChainDefinition,
   ContractArtifact,
   Events,
-  IPFSChainBuilderRuntime,
+  ChainBuilderRuntime,
   build as cannonBuild,
   createInitialContext,
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
+  IPFSLoader,
 } from '@usecannon/builder';
 import { loadCannonfile } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -88,7 +89,7 @@ export async function build({
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
 
-  const runtime = new IPFSChainBuilderRuntime(runtimeOptions, cliSettings.ipfsUrl, resolver);
+  const runtime = new ChainBuilderRuntime(runtimeOptions, new IPFSLoader(cliSettings.ipfsUrl, resolver));
 
   runtime.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
   runtime.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
@@ -167,7 +168,7 @@ export async function build({
   const miscUrl = await runtime.recordMisc();
 
   if (miscUrl) {
-    const deployUrl = await runtime.putDeploy({
+    const deployUrl = await runtime.loader.putDeploy({
       def: def.toJson(),
       state: newState,
       options: packageDefinition.settings,

@@ -1,4 +1,4 @@
-import { ChainDefinition, getOutputs, IPFSChainBuilderRuntime } from '@usecannon/builder';
+import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
 import { getChainId, setupAnvil, execPromise } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
@@ -18,7 +18,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
 
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-  const runtime = new IPFSChainBuilderRuntime(
+  const runtime = new ChainBuilderRuntime(
     {
       provider,
       chainId: (await provider.getNetwork()).chainId,
@@ -32,8 +32,10 @@ export async function verify(packageRef: string, apiKey: string, network: string
       baseDir: null,
       snapshots: false,
     },
-    resolveCliSettings().ipfsUrl,
-    resolver
+    new IPFSLoader(
+      resolveCliSettings().ipfsUrl,
+      resolver
+    )
   );
 
   const deployData = await runtime.readDeploy(packageRef, 'main');

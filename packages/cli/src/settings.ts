@@ -16,6 +16,7 @@ const CLI_SETTINGS_STORE = 'settings.json';
 
 export type CliSettings = {
   ipfsUrl: string;
+  publishIpfsUrl?: string;
   registryProviderUrl: string;
   registryAddress: string;
   cannonDirectory: string;
@@ -44,6 +45,7 @@ export function resolveCliSettings(): CliSettings {
   const finalSettings = {
     cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
     ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
+    publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
     registryProviderUrl:
       process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT,
     registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,

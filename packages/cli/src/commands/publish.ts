@@ -1,4 +1,4 @@
-import { OnChainRegistry } from '@usecannon/builder';
+import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
 import { createDefaultReadRegistry, LocalRegistry } from '../registry';
@@ -10,7 +10,8 @@ export async function publish(
   preset: string,
   signer: ethers.Signer,
   overrides?: ethers.Overrides,
-  quiet = false
+  quiet = false,
+  force = false
 ) {
   console.log(blueBright('publishing signer is', await signer.getAddress()));
 
@@ -38,7 +39,23 @@ export async function publish(
 
     const [name, version] = deploy.name.split(':');
 
-    if (toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
+    if (!force && toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
+      // ensure the deployment is on the remote registry
+      if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
+        console.log('re-uploading to publish ipfs');
+        const localLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
+        const remoteLoader = new IPFSLoader(cliSettings.publishIpfsUrl, localRegistry);
+
+        const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[1]));
+
+        if (!deployData) {
+          throw new Error(`deployment data not found for tagged deployment:, ${deploy.name}, (${deploy.variant})`);
+        }
+
+        await remoteLoader.putMisc(await localLoader.readMisc(deployData!.miscUrl));
+        await remoteLoader.putDeploy(deployData!);
+      }
+
       registrationReceipts.push(
         await registry.publish(
           [version, ...splitTags].map((t) => `${name}:${t}`),

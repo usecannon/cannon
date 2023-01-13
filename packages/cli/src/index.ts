@@ -7,7 +7,8 @@ import {
   ChainDefinition,
   ContractArtifact,
   getOutputs,
-  IPFSChainBuilderRuntime,
+  ChainBuilderRuntime,
+  IPFSLoader,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
@@ -341,7 +342,7 @@ program
 
     const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-    const runtime = new IPFSChainBuilderRuntime(
+    const runtime = new ChainBuilderRuntime(
       {
         provider,
         chainId: (await provider.getNetwork()).chainId,
@@ -355,8 +356,10 @@ program
         baseDir: null,
         snapshots: false,
       },
-      resolveCliSettings().ipfsUrl,
-      resolver
+      new IPFSLoader(
+        resolveCliSettings().ipfsUrl,
+        resolver
+      )
     );
 
     const deployData = await runtime.readDeploy(
