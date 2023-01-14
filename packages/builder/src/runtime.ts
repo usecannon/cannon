@@ -96,16 +96,6 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async readDeploy(_packageName: string, _preset: string, _chainId?: number): Promise<DeploymentInfo | null> {
-    throw new Error('not implemented');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async putDeploy(_deployInfo: DeploymentInfo): Promise<string | null> {
-    throw new Error('not implemented');
-  }
-
   async recordMisc() {
     return await this.loader.putMisc(this.misc);
   }

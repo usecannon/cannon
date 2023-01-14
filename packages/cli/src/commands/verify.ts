@@ -21,7 +21,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
   const runtime = new ChainBuilderRuntime(
     {
       provider,
-      chainId: (await provider.getNetwork()).chainId,
+      chainId: chainId,
       async getSigner(addr: string) {
         // on test network any user can be conjured
         await provider.send('hardhat_impersonateAccount', [addr]);
@@ -38,7 +38,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
     )
   );
 
-  const deployData = await runtime.readDeploy(packageRef, 'main');
+  const deployData = await runtime.loader.readDeploy(packageRef, 'main', chainId);
 
   if (!deployData) {
     throw new Error(

@@ -67,12 +67,12 @@ export default {
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.readDeploy(config.source, preset, config.chainId);
+    const deployInfo = await runtime.loader.readDeploy(config.source, preset, config.chainId || runtime.chainId);
 
     let deployCannonNetInfo: DeploymentInfo | null = null;
     if (!deployInfo) {
       debug('old deployment data not found for package, trying to get definition');
-      deployCannonNetInfo = await runtime.readDeploy(config.source, 'main', 13370);
+      deployCannonNetInfo = await runtime.loader.readDeploy(config.source, 'main', 13370);
 
       if (!deployCannonNetInfo) {
         throw new Error(

@@ -362,9 +362,10 @@ program
       )
     );
 
-    const deployData = await runtime.readDeploy(
+    const deployData = await runtime.loader.readDeploy(
       `${packageDefinition.name}:${packageDefinition.version}`,
-      opts.preset || 'main'
+      opts.preset || 'main',
+      runtime.chainId
     );
 
     if (!deployData) {

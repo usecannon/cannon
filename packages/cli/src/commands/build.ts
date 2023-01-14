@@ -99,7 +99,7 @@ export async function build({
   let oldDeployData: DeploymentInfo | null = null;
   if (!wipe) {
     console.log(blueBright('downloading IPFS (this can take some time...)'));
-    oldDeployData = await runtime.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main');
+    oldDeployData = await runtime.loader.readDeploy(`${packageDefinition.name}:${packageDefinition.version}`, preset || 'main', runtime.chainId);
 
     if (oldDeployData) {
       await runtime.restoreMisc(oldDeployData.miscUrl);

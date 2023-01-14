@@ -3,14 +3,31 @@ import { task } from 'hardhat/config';
 import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
-import { createDefaultReadRegistry, resolveCliSettings, runRpc } from '@usecannon/cli';
+import { createDefaultReadRegistry, loadCannonfile, PackageSpecification, parsePackagesArguments, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
+import path from 'path';
 
 task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addOptionalPositionalParam('packageName', 'Name and version of the Cannon package to verify')
   .addPositionalParam('preset', 'Specify an alternate preset', 'main')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .setAction(async ({ packageName, preset, apiKey }, hre) => {
+
+    const packages: PackageSpecification[] = ((packageName || []) as string[]).reduce((result, val) => {
+      return parsePackagesArguments(val, result);
+    }, [] as PackageSpecification[]);
+
+    if (!packages.length) {
+      // derive from the default cannonfile
+      const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, 'cannonfile.toml'));
+
+      packages.push({
+        name,
+        version,
+        settings: {},
+      });
+    }
+
     // create temporary provider
     // todo: really shouldn't be necessary
     const provider = getProvider(
@@ -41,7 +58,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
       )
     );
 
-    const deployData = await runtime.readDeploy(packageName, preset);
+    const deployData = await runtime.loader.readDeploy(`${packages[0].name}:${packages[0].version}`, preset, runtime.chainId);
 
     if (!deployData) {
       throw new Error(
