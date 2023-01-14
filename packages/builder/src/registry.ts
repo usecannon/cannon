@@ -52,7 +52,7 @@ export class OnChainRegistry extends CannonRegistry {
     debug(`created registry on address "${address}"`);
   }
 
-  async publish(packagesNames: string[], url: string, variant: string): Promise<string[]> {
+  async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     if (!this.signer) {
       throw new Error('Missing signer needed for publishing');
     }
@@ -75,6 +75,7 @@ export class OnChainRegistry extends CannonRegistry {
         ethers.utils.formatBytes32String(variant),
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
         url,
+        metaUrl || '',
         this.overrides
       );
 
