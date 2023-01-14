@@ -13,8 +13,6 @@ export async function publish(
   quiet = false,
   force = false
 ) {
-  console.log(blueBright('publishing signer is', await signer.getAddress()));
-
   const cliSettings = resolveCliSettings();
 
   const splitTags = tags.split(',');
@@ -24,7 +22,10 @@ export async function publish(
   // get a list of all deployments the user is requesting
   const deploys = await (localRegistry.registries[1] as LocalRegistry).scanDeploys(packageRef, `-${preset}`);
 
-  console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
+  if (!quiet) {
+    console.log(blueBright('publishing signer is', await signer.getAddress()));
+    console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
+  }
 
   const registry = new OnChainRegistry({
     signerOrProvider: signer.connect(new ethers.providers.JsonRpcProvider(cliSettings.registryProviderUrl)),
@@ -42,25 +43,31 @@ export async function publish(
     if (!force && toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
       // ensure the deployment is on the remote registry
       if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
-        console.log('re-uploading to publish ipfs');
+        if (!quiet) {
+          console.log('re-uploading to publish ipfs');
+        }
         const localLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
         const remoteLoader = new IPFSLoader(cliSettings.publishIpfsUrl, localRegistry);
 
-        const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[1]));
+        const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[0]));
 
         if (!deployData) {
           throw new Error(`deployment data not found for tagged deployment:, ${deploy.name}, (${deploy.variant})`);
         }
 
-        await remoteLoader.putMisc(await localLoader.readMisc(deployData!.miscUrl));
-        await remoteLoader.putDeploy(deployData!);
+        const miscUrl = await remoteLoader.putMisc(await localLoader.readMisc(deployData!.miscUrl));
+        const url = await remoteLoader.putDeploy(deployData!);
+
+        if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
+          throw new Error('re-deployed urls do not match up');
+        }
       }
 
       registrationReceipts.push(
         await registry.publish(
           [version, ...splitTags].map((t) => `${name}:${t}`),
-          toPublishUrl!,
-          deploy.variant
+          deploy.variant,
+          toPublishUrl!
         )
       );
       if (!quiet) {

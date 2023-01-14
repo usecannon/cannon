@@ -102,6 +102,11 @@ export default [
   },
   {
     inputs: [],
+    name: 'ValueAlreadyInSet',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'ZeroAddress',
     type: 'error',
   },
@@ -154,8 +159,20 @@ export default [
       },
       {
         indexed: false,
+        internalType: 'bytes32',
+        name: 'variant',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
         internalType: 'string',
-        name: 'url',
+        name: 'deployUrl',
+        type: 'string',
+      },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'metaUrl',
         type: 'string',
       },
       {
@@ -266,6 +283,35 @@ export default [
         internalType: 'address',
         name: '',
         type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVersionName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_packageVariant',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getPackageMeta',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
       },
     ],
     stateMutability: 'view',
@@ -434,6 +480,11 @@ export default [
       {
         internalType: 'string',
         name: '_packageVersionUrl',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: '_packageMetaUrl',
         type: 'string',
       },
     ],

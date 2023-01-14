@@ -32,10 +32,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
       baseDir: null,
       snapshots: false,
     },
-    new IPFSLoader(
-      resolveCliSettings().ipfsUrl,
-      resolver
-    )
+    new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
   );
 
   const deployData = await runtime.loader.readDeploy(packageRef, 'main', chainId);

@@ -7,8 +7,6 @@ import FormData from 'form-data';
 
 const debug = Debug('cannon:builder:ipfs');
 
-
-
 // IPFS Gateway is a special type of read-only endpoint which may be supplied by the user. If that is the case,
 // we need to alter how we are communicating with IPFS.
 export function isIpfsGateway(ipfsUrl: string) {

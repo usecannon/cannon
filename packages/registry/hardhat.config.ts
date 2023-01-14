@@ -11,7 +11,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.11',
+  solidity: '0.8.17',
   defaultNetwork: 'cannon',
   networks: {
     hardhat: {

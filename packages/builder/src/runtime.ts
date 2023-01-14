@@ -5,7 +5,6 @@ import { CannonWrapperGenericProvider } from './error/provider';
 import { ChainBuilderRuntimeInfo, ContractArtifact } from './types';
 
 import Debug from 'debug';
-import { DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 import { CannonLoader } from './loader';
 

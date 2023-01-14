@@ -16,7 +16,14 @@ contract CannonRegistry is Storage, OwnedUpgradable {
   error TooManyTags();
   error PackageNotFound();
 
-  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string deployUrl, string metaUrl, address owner);
+  event PackagePublish(
+    bytes32 indexed name,
+    bytes32[] indexed tags,
+    bytes32 variant,
+    string deployUrl,
+    string metaUrl,
+    address owner
+  );
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
@@ -85,12 +92,11 @@ contract CannonRegistry is Storage, OwnedUpgradable {
 
     for (uint i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
-      _p.deployments[_tag][_variant] = CannonDeployInfo({
-        deploy: _packageVersionUrl,
-        meta: _packageMetaUrl
-      });
+      _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: _packageVersionUrl, meta: _packageMetaUrl});
 
-      _p.versions.add(_tag);
+      if (!_p.versions.contains(_tag)) {
+        _p.versions.add(_tag);
+      }
     }
 
     emit PackagePublish(_packageName, _packageTags, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
@@ -156,7 +162,6 @@ contract CannonRegistry is Storage, OwnedUpgradable {
   }
 
   function getPackageMeta(
-
     bytes32 _packageName,
     bytes32 _packageVersionName,
     bytes32 _packageVariant

@@ -3,7 +3,14 @@ import { task } from 'hardhat/config';
 import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
-import { createDefaultReadRegistry, loadCannonfile, PackageSpecification, parsePackagesArguments, resolveCliSettings, runRpc } from '@usecannon/cli';
+import {
+  createDefaultReadRegistry,
+  loadCannonfile,
+  PackageSpecification,
+  parsePackagesArguments,
+  resolveCliSettings,
+  runRpc,
+} from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import path from 'path';
 
@@ -12,7 +19,6 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('preset', 'Specify an alternate preset', 'main')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .setAction(async ({ packageName, preset, apiKey }, hre) => {
-
     const packages: PackageSpecification[] = ((packageName || []) as string[]).reduce((result, val) => {
       return parsePackagesArguments(val, result);
     }, [] as PackageSpecification[]);
@@ -52,13 +58,14 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
         baseDir: null,
         snapshots: false,
       },
-      new IPFSLoader(
-        resolveCliSettings().ipfsUrl,
-        resolver
-      )
+      new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
     );
 
-    const deployData = await runtime.loader.readDeploy(`${packages[0].name}:${packages[0].version}`, preset, runtime.chainId);
+    const deployData = await runtime.loader.readDeploy(
+      `${packages[0].name}:${packages[0].version}`,
+      preset,
+      runtime.chainId
+    );
 
     if (!deployData) {
       throw new Error(

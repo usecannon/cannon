@@ -1,4 +1,4 @@
-import { ChainDefinition, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
+import { ChainDefinition, IPFSLoader } from '@usecannon/builder';
 import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
@@ -22,10 +22,7 @@ export async function inspect(packageRef: string, json: boolean) {
   });
   const provider = getProvider(node);
 
-  const loader = new IPFSLoader(
-    resolveCliSettings().ipfsUrl,
-    resolver
-  );
+  const loader = new IPFSLoader(resolveCliSettings().ipfsUrl, resolver);
 
   const deployData = await loader.readDeploy(packageRef, 'main', (await provider.getNetwork()).chainId);
 

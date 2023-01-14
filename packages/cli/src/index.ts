@@ -356,10 +356,7 @@ program
         baseDir: null,
         snapshots: false,
       },
-      new IPFSLoader(
-        resolveCliSettings().ipfsUrl,
-        resolver
-      )
+      new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
     );
 
     const deployData = await runtime.loader.readDeploy(
