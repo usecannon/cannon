@@ -3,16 +3,20 @@ pragma solidity ^0.8.11;
 
 import {Storage} from "./Storage.sol";
 
+import "./misc/SetUtil.sol";
+
 import "./OwnedUpgradable.sol";
 
 contract CannonRegistry is Storage, OwnedUpgradable {
+  using SetUtil for SetUtil.Bytes32Set;
+
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
   error TooManyTags();
   error PackageNotFound();
 
-  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string url, address owner);
+  event PackagePublish(bytes32 indexed name, bytes32[] indexed tags, bytes32 variant, string deployUrl, string metaUrl, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
@@ -54,7 +58,8 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     bytes32 _packageName,
     bytes32 _variant,
     bytes32[] memory _packageTags,
-    string memory _packageVersionUrl
+    string memory _packageVersionUrl,
+    string memory _packageMetaUrl
   ) external {
     if (_packageTags.length > 5) {
       revert TooManyTags();
@@ -80,10 +85,15 @@ contract CannonRegistry is Storage, OwnedUpgradable {
 
     for (uint i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
-      _p.deployments[_tag][_variant] = _packageVersionUrl;
+      _p.deployments[_tag][_variant] = CannonDeployInfo({
+        deploy: _packageVersionUrl,
+        meta: _packageMetaUrl
+      });
+
+      _p.versions.add(_tag);
     }
 
-    emit PackagePublish(_packageName, _packageTags, _variant, _packageVersionUrl, msg.sender);
+    emit PackagePublish(_packageName, _packageTags, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
@@ -134,7 +144,7 @@ contract CannonRegistry is Storage, OwnedUpgradable {
   }
 
   function getPackageVersions(bytes32 _packageName) external view returns (bytes32[] memory) {
-    return _store().packages[_packageName].versions;
+    return _store().packages[_packageName].versions.values();
   }
 
   function getPackageUrl(
@@ -142,6 +152,15 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     bytes32 _packageVersionName,
     bytes32 _packageVariant
   ) external view returns (string memory) {
-    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant];
+    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy;
+  }
+
+  function getPackageMeta(
+
+    bytes32 _packageName,
+    bytes32 _packageVersionName,
+    bytes32 _packageVariant
+  ) external view returns (string memory) {
+    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta;
   }
 }

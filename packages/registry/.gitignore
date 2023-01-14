@@ -6,3 +6,4 @@ deployments/localhost
 deployments/local
 coverage.json
 .env
+typechain-types/

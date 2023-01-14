@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
+import "./misc/SetUtil.sol";
+
 contract Storage {
   struct Store {
     mapping(bytes32 => Package) packages;
@@ -10,8 +12,13 @@ contract Storage {
   struct Package {
     address owner;
     address nominatedOwner;
-    bytes32[] versions;
-    mapping(bytes32 => mapping(bytes32 => string)) deployments;
+    SetUtil.Bytes32Set versions;
+    mapping(bytes32 => mapping(bytes32 => CannonDeployInfo)) deployments;
+  }
+
+  struct CannonDeployInfo {
+    string deploy;
+    string meta;
   }
 
   function _store() internal pure returns (Store storage store) {
