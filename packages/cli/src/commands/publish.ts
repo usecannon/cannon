@@ -17,10 +17,10 @@ export async function publish(
 
   const splitTags = tags.split(',');
 
-  const localRegistry = createDefaultReadRegistry(cliSettings);
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   // get a list of all deployments the user is requesting
-  const deploys = await (localRegistry.registries[1] as LocalRegistry).scanDeploys(packageRef, `-${preset}`);
+  const deploys = await localRegistry.scanDeploys(packageRef, `-${preset}`);
 
   if (!quiet) {
     console.log(blueBright('publishing signer is', await signer.getAddress()));

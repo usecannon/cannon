@@ -258,7 +258,7 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
-  .option('--preset <preset>', 'The preset of the packages that are deployed')
+  .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -271,26 +271,12 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .option(
-    '--registry-ipfs-url <https://...>',
-    'URL of the JSON-RPC server used to query the registry',
-    DEFAULT_REGISTRY_IPFS_ENDPOINT
-  )
-  .option(
-    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
-    'Authorization header for requests to the IPFS endpoint'
-  )
-  .option(
-    '--registry-rpc-url <https://...>',
-    'Network endpoint for interacting with the registry',
-    DEFAULT_REGISTRY_ENDPOINT
-  )
   .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
-    if (options.registryRpcUrl && options.privateKey) {
-      const provider = new ethers.providers.JsonRpcProvider(options.registryRpcUrl);
+    if (options.privateKey) {
+      const provider = new ethers.providers.JsonRpcProvider(resolveCliSettings().registryProviderUrl);
       const wallet = new ethers.Wallet(options.privateKey, provider);
 
       const overrides: ethers.Overrides = {};
@@ -322,7 +308,7 @@ program
 
       await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet);
     } else {
-      throw new Error('must specify private key and registry rpc');
+      throw new Error('must specify private key');
     }
   });
 

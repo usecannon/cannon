@@ -48,6 +48,9 @@ export class LocalRegistry extends CannonRegistry {
   async scanDeploys(packageName: RegExp | string, variant: RegExp | string): Promise<{ name: string; variant: string }[]> {
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
 
+    debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
+    debug(`looking for ${packageName}, ${variant}`);
+
     return allTags
       .filter((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
