@@ -8,10 +8,12 @@ import {
   ChainArtifacts,
   DeploymentInfo,
   ChainBuilderContextWithHelpers,
+  DeploymentState,
 } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
+import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:import');
 
@@ -48,7 +50,9 @@ export default {
     const preset = config.preset ?? 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
-    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`);
+    const url = 
+      await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`) ||
+      await runtime.loader.resolver.getUrl(cfg.source, `13370-main`);
 
     return {
       url,
@@ -73,10 +77,11 @@ export default {
 
   async exec(
     runtime: ChainBuilderRuntime,
-    _ctx: ChainBuilderContext,
+    ctx: ChainBuilderContext,
     config: Config,
     currentLabel: string
   ): Promise<ChainArtifacts> {
+    const importLabel = currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
     const preset = config.preset ?? 'main';
@@ -89,7 +94,7 @@ export default {
     let deployCannonNetInfo: DeploymentInfo | null = null;
     if (!deployInfo) {
       debug('old deployment data not found for package, trying to get definition');
-      deployCannonNetInfo = await runtime.loader.readDeploy(config.source, 'main', 13370);
+      deployCannonNetInfo = await runtime.loader.readDeploy(config.source, 'main', CANNON_CHAIN_ID);
 
       if (!deployCannonNetInfo) {
         throw new Error(
@@ -104,6 +109,18 @@ export default {
 
     const def = new ChainDefinition(deployInfo?.def ?? deployCannonNetInfo!.def);
 
+    // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.
+    // if all else fails, we can load from scratch (aka this is first deployment)
+    let prevState: DeploymentState = {};
+    if (deployInfo?.state) {
+      debug('using state from upstream source');
+      prevState = deployInfo.state;
+    } else if (ctx.imports[importLabel].url) {
+      debug('')
+      // TODO: this exposes a bad mismatch in capabilities for the loader. shouldnt have to work around this and read misc
+      prevState = await runtime.loader.readMisc(ctx.imports[importLabel].url);
+    }
+
     // TODO: needs npm package from the manifest
     const initialCtx = await createInitialContext(def, {}, importPkgOptions);
 
@@ -117,12 +134,24 @@ export default {
     await importRuntime.restoreMisc(deployInfo?.miscUrl ?? deployCannonNetInfo!.miscUrl);
 
     debug('start build');
-    const builtState = await build(importRuntime, def, deployInfo?.state ?? {}, initialCtx);
+    const builtState = await build(importRuntime, def, prevState, initialCtx);
     debug('finish build');
+
+    // need to save state to IPFS now so we can access it in future builds
+    const newSubDeployUrl = await runtime.loader.putDeploy({
+      def: def.toJson(),
+      miscUrl: deployInfo?.miscUrl ?? deployCannonNetInfo!.miscUrl,
+      options: importPkgOptions,
+      state: builtState
+    });
+
+    if (!newSubDeployUrl) {
+      console.warn('warn: cannot record built state for import nested state');
+    }
 
     return {
       imports: {
-        [currentLabel?.split('.')[1] || '']: (await getOutputs(importRuntime, def, builtState))!
+        [importLabel]: { url: newSubDeployUrl || '', ...(await getOutputs(importRuntime, def, builtState))! }
       }
     };
   },

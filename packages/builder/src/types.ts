@@ -100,7 +100,7 @@ export interface ChainBuilderRuntimeInfo {
 }
 
 export interface BundledChainBuilderOutputs {
-  [module: string]: ChainArtifacts;
+  [module: string]: { url: string } & ChainArtifacts;
 }
 
 export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'extras'>>;

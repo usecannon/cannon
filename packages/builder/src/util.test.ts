@@ -91,8 +91,10 @@ describe('util.ts', () => {
     },
     imports: {
       FakeImport: {
+        url: '',
         imports: {
           SuperFake: {
+            url: '',
             contracts: {
               TheFakest: {
                 address: '0x0000000000000000000000000000000000000002',

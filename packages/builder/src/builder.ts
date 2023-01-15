@@ -106,6 +106,11 @@ ${printChainDefinitionProblems(problems)}`);
 
       addOutputsToContext(ctx, artifacts);
 
+      // also add self artifacts here so that we can self-reference from inside the step
+      if (state[n]) {
+        addOutputsToContext(ctx, state[n].artifacts);
+      }
+
       const curHash = await def.getState(n, runtime, ctx, depsTainted);
 
       debug('comparing states', state[n] ? state[n].hash : null, curHash);
@@ -172,6 +177,11 @@ async function buildLayer(
 
     addOutputsToContext(ctx, depArtifacts);
 
+    // also add self artifacts here so that we can self-reference from inside the step
+    if (state[action] && state[action].artifacts) {
+      addOutputsToContext(ctx, state[action].artifacts);
+    }
+
     const curHash = await def.getState(action, runtime, ctx, false);
 
     if (isCompleteLayer) {
@@ -208,6 +218,11 @@ async function buildLayer(
 
       addOutputsToContext(ctx, depArtifacts);
 
+      // also add self artifacts here so that we can self-reference from inside the step
+      if (state[action] && state[action].artifacts) {
+        addOutputsToContext(ctx, state[action].artifacts);
+      }
+
       debug('run action in layer', action);
       const newArtifacts = await runStep(runtime, action, def.getConfig(action, ctx), _.clone(ctx));
 
@@ -236,6 +251,7 @@ export async function runStep(runtime: ChainBuilderRuntime, n: string, cfg: any,
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
+  // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.provider.artifacts = ctx;
 
   const output = await ActionKinds[type].exec(runtime, ctx, cfg as any, n);
