@@ -1,7 +1,7 @@
 import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
-import { createDefaultReadRegistry, LocalRegistry } from '../registry';
+import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
 export async function publish(

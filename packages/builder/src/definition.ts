@@ -4,7 +4,6 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import { ChainBuilderContext } from './types';
-import { ChainBuilderRuntimeInfo } from './types';
 
 import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
 import { ChainBuilderRuntime } from './runtime';

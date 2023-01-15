@@ -1,4 +1,4 @@
-import { ChainArtifacts, ChainBuilderContext } from '@usecannon/builder';
+import { ChainArtifacts } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { mapKeys, mapValues } from 'lodash';
 

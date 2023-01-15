@@ -10,7 +10,7 @@ import { printChainDefinitionProblems } from './util';
 
 const debug = Debug('cannon:builder');
 
-import { combineCtx, ContractMap, DeploymentState, TransactionMap } from '.';
+import { ContractMap, DeploymentState, TransactionMap } from '.';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { BUILD_VERSION } from './constants';
 import { ActionKinds } from './actions';
@@ -93,7 +93,7 @@ ${printChainDefinitionProblems(problems)}`);
   } else {
     debug('building isolated');
     for (const n of topologicalActions) {
-      let ctx = _.clone(initialCtx);
+      const ctx = _.clone(initialCtx);
 
       const artifacts: ChainArtifacts = {};
 
@@ -165,7 +165,7 @@ async function buildLayer(
 
   // do all state layers match? if so, load the layer from cache and continue
   for (const action of layer.actions) {
-    let ctx = _.cloneDeep(baseCtx);
+    const ctx = _.cloneDeep(baseCtx);
 
     const depArtifacts: ChainArtifacts = {};
 
@@ -208,7 +208,7 @@ async function buildLayer(
     }
 
     for (const action of layer.actions) {
-      let ctx = _.cloneDeep(baseCtx);
+      const ctx = _.cloneDeep(baseCtx);
 
       const depArtifacts: ChainArtifacts = {};
 
@@ -266,7 +266,7 @@ export async function getOutputs(
   def: ChainDefinition,
   state: DeploymentState
 ): Promise<ChainBuilderContext | null> {
-  let ctx = await createInitialContext(def, {}, {});
+  const ctx = await createInitialContext(def, {}, {});
 
   for (const step of def.topologicalActions) {
     await addOutputsToContext(ctx, state[step].artifacts);

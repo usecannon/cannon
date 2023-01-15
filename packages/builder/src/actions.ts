@@ -7,7 +7,8 @@ import contractSpec from './steps/contract';
 import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
+import provisionSpec from './steps/provision';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers } from './types';
 
 export interface Action {
   configInject: (ctx: ChainBuilderContextWithHelpers, config: any) => any;
@@ -77,3 +78,4 @@ registerAction('contract', contractSpec);
 registerAction('import', importSpec);
 registerAction('invoke', invokeSpec);
 registerAction('keeper', keeperSpec);
+registerAction('provision', provisionSpec);

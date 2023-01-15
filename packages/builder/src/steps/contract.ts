@@ -4,7 +4,13 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers, ContractArtifact } from '../types';
+import {
+  ChainBuilderContext,
+  ChainBuilderRuntimeInfo,
+  ChainArtifacts,
+  ChainBuilderContextWithHelpers,
+  ContractArtifact,
+} from '../types';
 import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
@@ -25,14 +31,13 @@ const config = {
     // used to force new copy of a contract (not actually used)
     salt: { type: 'string' },
 
-
     value: { type: 'string' },
     overrides: {
       optionalProperties: {
         gasLimit: { type: 'int32' },
         gasPrice: { type: 'string' },
         priorityGasPrice: { type: 'string' },
-      }
+      },
     },
 
     depends: { elements: { type: 'string' } },
@@ -88,7 +93,7 @@ export default {
       bytecode: await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig),
       args: parsedConfig.args || [],
       salt: parsedConfig.salt,
-      value: parsedConfig.value || []
+      value: parsedConfig.value || [],
     };
   },
 
@@ -136,9 +141,7 @@ export default {
     // sanity check that any connected libraries are bytecoded
     for (const lib in config.libraries || {}) {
       if ((await runtime.provider.getCode(config.libraries![lib])) === '0x') {
-        throw new Error(
-          `library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`
-        );
+        throw new Error(`library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`);
       }
     }
 

@@ -10,7 +10,6 @@ import { CannonLoader } from './loader';
 
 const debug = Debug('cannon:builder:runtime');
 
-
 export enum Events {
   PreStepExecute = 'pre-step-execute',
   PostStepExecute = 'post-step-execute',

@@ -40,7 +40,7 @@ const config = {
         gasLimit: { type: 'int32' },
         gasPrice: { type: 'string' },
         priorityGasPrice: { type: 'string' },
-      }
+      },
     },
     extra: {
       values: {
@@ -186,9 +186,9 @@ export default {
     const cfg = this.configInject(ctx, config);
 
     return {
-      to: cfg.target?.map(t => getContractFromPath(ctx, t)?.address),
+      to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
       data: cfg.func + '[' + (cfg.args?.map((a: any) => a.toString()).join(',') || '') + ']',
-      value: cfg.value || '0'
+      value: cfg.value || '0',
     };
   },
 
