@@ -12,7 +12,7 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, Ch
 export interface Action {
   configInject: (ctx: ChainBuilderContextWithHelpers, config: any) => any;
 
-  getState: (runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: any) => any;
+  getState: (runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: any) => any;
 
   exec: (
     runtime: ChainBuilderRuntime,

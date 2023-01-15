@@ -7,6 +7,7 @@ import { ChainBuilderContext } from './types';
 import { ChainBuilderRuntimeInfo } from './types';
 
 import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
+import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
 
@@ -103,7 +104,7 @@ export class ChainDefinition {
    */
   async getState(
     n: string,
-    runtime: ChainBuilderRuntimeInfo,
+    runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     tainted: boolean
   ): Promise<string | null> {

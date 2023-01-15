@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { ChainBuilderContext, BuildOptions } from './types';
+import { ChainBuilderContext, BuildOptions, ChainArtifacts } from './types';
 
 import { ChainDefinition } from './definition';
 
@@ -11,17 +11,9 @@ import { printChainDefinitionProblems } from './util';
 const debug = Debug('cannon:builder');
 
 import { combineCtx, ContractMap, DeploymentState, TransactionMap } from '.';
-import { ChainBuilderRuntime } from './runtime';
+import { ChainBuilderRuntime, Events } from './runtime';
 import { BUILD_VERSION } from './constants';
 import { ActionKinds } from './actions';
-
-export enum Events {
-  PreStepExecute = 'pre-step-execute',
-  PostStepExecute = 'post-step-execute',
-  DeployContract = 'deploy-contract',
-  DeployTxn = 'deploy-txn',
-  DeployExtra = 'deploy-extra',
-}
 
 export async function createInitialContext(
   def: ChainDefinition,
@@ -88,7 +80,7 @@ ${printChainDefinitionProblems(problems)}`);
   state = _.cloneDeep(state);
 
   const tainted = new Set<string>();
-  const built = new Set<string>();
+  const built = new Map<string, ChainArtifacts>();
   const topologicalActions = def.topologicalActions;
 
   if (runtime.snapshots) {
@@ -103,32 +95,34 @@ ${printChainDefinitionProblems(problems)}`);
     for (const n of topologicalActions) {
       let ctx = _.clone(initialCtx);
 
+      const artifacts: ChainArtifacts = {};
+
       let depsTainted = false;
 
       for (const dep of def.getDependencies(n)) {
-        ctx = combineCtx([ctx, state[dep].ctx]);
+        _.merge(artifacts, built.get(dep));
         depsTainted = depsTainted || tainted.has(dep);
       }
+
+      addOutputsToContext(ctx, artifacts);
 
       const curHash = await def.getState(n, runtime, ctx, depsTainted);
 
       debug('comparing states', state[n] ? state[n].hash : null, curHash);
       if (!state[n] || (curHash && state[n].hash !== curHash)) {
         debug('run isolated', n);
-        const newCtx = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
+        const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
         state[n] = {
-          ctx: newCtx,
+          artifacts: newArtifacts,
           hash: curHash,
           version: BUILD_VERSION,
         };
         tainted.add(n);
       } else {
         debug('skip isolated', n);
-        // even if this step has already been completed, there is a possibility that prior steps were executed and had unrelated changes
-        // since context is only able to add context, its safe to apply properties to downstream
-
-        state[n].ctx = { ...ctx, ...state[n].ctx };
       }
+
+      built.set(n, _.merge(artifacts, state[n].artifacts));
     }
   }
 
@@ -142,7 +136,7 @@ async function buildLayer(
   state: DeploymentState,
   cur: string,
   tainted: Set<string> = new Set(),
-  built: Set<string> = new Set()
+  built: Map<string, ChainArtifacts> = new Map()
 ) {
   const layers = def.getStateLayers();
 
@@ -151,10 +145,6 @@ async function buildLayer(
   // if layer is already done
   if (built.has(cur)) {
     return;
-  }
-
-  for (const action of layers[cur].actions) {
-    built.add(action);
   }
 
   debug('eval build layer name', cur);
@@ -169,56 +159,74 @@ async function buildLayer(
   }
 
   // do all state layers match? if so, load the layer from cache and continue
-  if (isCompleteLayer) {
-    for (const action of layer.actions) {
-      let ctx = _.cloneDeep(baseCtx);
-      for (const dep of def.getDependencies(action)) {
-        ctx = combineCtx([ctx, state[dep].ctx]);
-      }
+  for (const action of layer.actions) {
+    let ctx = _.cloneDeep(baseCtx);
 
-      const curHash = await def.getState(action, runtime, ctx, false);
+    const depArtifacts: ChainArtifacts = {};
 
+    for (const dep of def.getDependencies(action)) {
+      _.merge(depArtifacts, built.get(dep));
+    }
+
+    debug('adding dep artifacts to ctx', depArtifacts);
+
+    addOutputsToContext(ctx, depArtifacts);
+
+    const curHash = await def.getState(action, runtime, ctx, false);
+
+    if (isCompleteLayer) {
       debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
       if (!state[action] || (curHash && state[action].hash !== curHash)) {
+        debug('step', action, 'in layer needs to be rebuilt');
         isCompleteLayer = false;
         break;
       }
+
+      // in case we do not need to rebuild this layer we still need to set the built entry
+      built.set(action, _.merge(depArtifacts, state[action].artifacts));
     }
-  } else {
-    debug(`layer for ${cur} is tainted, not checking hashes`);
   }
 
   // if we get here, need to run a rebuild of layer
   if (!isCompleteLayer) {
     debug('run to complete layer', layer.actions, layer.depends);
-    let ctx = _.cloneDeep(baseCtx);
 
     await runtime.clearNode();
 
     for (const dep of layer.depends) {
-      ctx = combineCtx([ctx, state[dep].ctx]);
-
       await runtime.loadState(state[dep].chainDump!);
     }
 
-    let newCtx = _.clone(ctx);
     for (const action of layer.actions) {
+      let ctx = _.cloneDeep(baseCtx);
+
+      const depArtifacts: ChainArtifacts = {};
+
+      for (const dep of def.getDependencies(action)) {
+        _.merge(depArtifacts, built.get(dep));
+      }
+
+      addOutputsToContext(ctx, depArtifacts);
+
       debug('run action in layer', action);
-      newCtx = combineCtx([newCtx, await runStep(runtime, action, def.getConfig(action, ctx), _.clone(ctx))]);
+      const newArtifacts = await runStep(runtime, action, def.getConfig(action, ctx), _.clone(ctx));
+
+      state[action] = {
+        artifacts: newArtifacts,
+        hash: await def.getState(action, runtime, ctx, false),
+        version: BUILD_VERSION,
+        // add the chain dump later once all steps have been executed
+      };
+
+      tainted.add(action);
+      built.set(action, _.merge(depArtifacts, state[action].artifacts));
     }
 
     // after all contexts are built, save all of them at the same time
     const chainDump = await runtime.dumpState();
 
     for (const action of layer.actions) {
-      state[action] = {
-        ctx: newCtx,
-        hash: await def.getState(action, runtime, newCtx, false),
-        version: BUILD_VERSION,
-        chainDump,
-      };
-
-      tainted.add(action);
+      state[action].chainDump = chainDump;
     }
   }
 }
@@ -226,63 +234,15 @@ async function buildLayer(
 export async function runStep(runtime: ChainBuilderRuntime, n: string, cfg: any, ctx: ChainBuilderContext) {
   const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
 
-  runtime.emit(Events.PreStepExecute, type, label, cfg);
+  runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
   runtime.provider.artifacts = ctx;
 
   const output = await ActionKinds[type].exec(runtime, ctx, cfg as any, n);
 
-  if (type === 'import') {
-    ctx.imports[label] = output;
-  } else {
-    const contracts = output.contracts as ContractMap;
+  runtime.emit(Events.PostStepExecute, type, label, output, 0);
 
-    for (const contract in contracts) {
-      if (ctx.contracts[contract]) {
-        // name reused
-        throw new Error(
-          `duplicate contract label ${contract}. Please double check your cannonfile/scripts to ensure a contract name is used only once.
-
-previous contract deployed at: ${ctx.contracts[contract].address} in step ${ctx.contracts[contract].deployedOn}`
-        );
-      }
-
-      ctx.contracts[contract] = contracts[contract];
-      runtime.emit(Events.DeployContract, n, contracts[contract]);
-    }
-
-    const txns = output.txns as TransactionMap;
-
-    for (const txn in txns) {
-      if (ctx.txns[txn]) {
-        // name reused
-        throw new Error(
-          `duplicate transaction label ${txn}. Please double check your cannonfile/scripts to ensure a txn name is used only once.
-
-previous txn deployed at: ${ctx.txns[txn].hash} in step ${'tbd'}`
-        );
-      }
-
-      ctx.txns[txn] = txns[txn];
-      runtime.emit(Events.DeployTxn, n, txns[txn]);
-    }
-
-    for (const n in output.extras) {
-      if (ctx.extras[n]) {
-        // name reused
-        throw new Error(
-          `duplicate extra label ${n}. Please double check your cannonfile/scripts to ensure a txn name is used only once.`
-        );
-      }
-
-      ctx.extras[n] = output.extras[n];
-      runtime.emit(Events.DeployExtra, n, ctx.extras[n]);
-    }
-  }
-
-  runtime.emit(Events.PostStepExecute, type, label, output);
-
-  return ctx;
+  return output;
 }
 
 export async function getOutputs(
@@ -292,8 +252,8 @@ export async function getOutputs(
 ): Promise<ChainBuilderContext | null> {
   let ctx = await createInitialContext(def, {}, {});
 
-  for (const leaf of def.leaves) {
-    ctx = await combineCtx([ctx, state[leaf].ctx]);
+  for (const step of def.topologicalActions) {
+    await addOutputsToContext(ctx, state[step].artifacts);
   }
 
   if (runtime.snapshots) {
@@ -313,4 +273,29 @@ export async function getOutputs(
   }
 
   return ctx;
+}
+
+// TODO: this func is dumb but I need to walk through this time period before I want to turn it into something of beauty
+function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
+  const imports = outputs.imports;
+
+  for (const imp in imports) {
+    ctx.imports[imp] = imports[imp];
+  }
+
+  const contracts = outputs.contracts as ContractMap;
+
+  for (const contract in contracts) {
+    ctx.contracts[contract] = contracts[contract];
+  }
+
+  const txns = outputs.txns as TransactionMap;
+
+  for (const txn in txns) {
+    ctx.txns[txn] = txns[txn];
+  }
+
+  for (const n in outputs.extras) {
+    ctx.extras[n] = outputs.extras[n];
+  }
 }

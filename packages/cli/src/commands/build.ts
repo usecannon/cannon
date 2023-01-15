@@ -91,10 +91,10 @@ export async function build({
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, new IPFSLoader(cliSettings.ipfsUrl, resolver));
 
-  runtime.on(Events.PreStepExecute, (t, n) => console.log(`\nexec: ${t}.${n}`));
-  runtime.on(Events.DeployContract, (n, c) => console.log(`deployed contract ${n} (${c.address})`));
-  runtime.on(Events.DeployTxn, (n, t) => console.log(`ran txn ${n} (${t.hash})`));
-  runtime.on(Events.DeployExtra, (n, v) => console.log(`extra data ${n} (${v})`));
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
+  runtime.on(Events.DeployContract, (n, c, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${c.address})`));
+  runtime.on(Events.DeployTxn, (n, t, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${t.hash})`));
+  runtime.on(Events.DeployExtra, (n, v, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${v})`));
 
   let oldDeployData: DeploymentInfo | null = null;
   if (!wipe) {

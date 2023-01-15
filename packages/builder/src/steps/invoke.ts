@@ -18,10 +18,10 @@ const debug = Debug('cannon:builder:invoke');
 
 const config = {
   properties: {
+    target: { elements: { type: 'string' } },
     func: { type: 'string' },
   },
   optionalProperties: {
-    target: { elements: { type: 'string' } },
     abi: { type: 'string' },
 
     args: { elements: {} },
@@ -33,6 +33,14 @@ const config = {
       optionalProperties: {
         args: { elements: {} },
       },
+    },
+    value: { type: 'string' },
+    overrides: {
+      optionalProperties: {
+        gasLimit: { type: 'int32' },
+        gasPrice: { type: 'string' },
+        priorityGasPrice: { type: 'string' },
+      }
     },
     extra: {
       values: {
@@ -86,6 +94,24 @@ async function runTxn(
     );
   }
 
+  const overrides: ethers.Overrides & { value?: string } = {};
+
+  if (config.overrides?.gasLimit) {
+    overrides.gasLimit = config.overrides.gasLimit;
+  }
+
+  if (config.overrides?.gasPrice) {
+    overrides.maxFeePerGas = config.overrides.gasPrice;
+  }
+
+  if (config.overrides?.priorityGasPrice) {
+    overrides.maxPriorityFeePerGas = config.overrides.gasLimit;
+  }
+
+  if (config.value) {
+    overrides.value = config.value;
+  }
+
   if (config.fromCall) {
     debug('resolve from address', contract.address);
 
@@ -95,9 +121,9 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    txn = await contract.connect(callSigner)[config.func](...(config.args || []));
+    txn = await contract.connect(callSigner)[config.func](...(config.args || []), overrides);
   } else {
-    txn = await contract.connect(signer)[config.func](...(config.args || []));
+    txn = await contract.connect(signer)[config.func](...(config.args || []), overrides);
   }
 
   const receipt = await txn.wait();
@@ -157,7 +183,13 @@ export default {
   validate: config,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    return this.configInject(ctx, config);
+    const cfg = this.configInject(ctx, config);
+
+    return {
+      to: cfg.target?.map(t => getContractFromPath(ctx, t)?.address),
+      data: cfg.func + '[' + (cfg.args?.map((a: any) => a.toString()).join(',') || '') + ']',
+      value: cfg.value || '0'
+    };
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
@@ -190,6 +222,20 @@ export default {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
+    }
+
+    if (config.value) {
+      config.value = _.template(config.value)(ctx);
+    }
+
+    if (config.overrides) {
+      if (config.overrides.gasPrice) {
+        config.overrides.gasPrice = _.template(config.overrides.gasPrice)(ctx);
+      }
+
+      if (config.overrides.priorityGasPrice) {
+        config.overrides.priorityGasPrice = _.template(config.overrides.priorityGasPrice)(ctx);
+      }
     }
 
     for (const name in config.factory) {

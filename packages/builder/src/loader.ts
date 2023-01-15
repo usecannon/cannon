@@ -7,6 +7,7 @@ import Debug from 'debug';
 const debug = Debug('cannon:builder:loader');
 
 export interface CannonLoader {
+  resolver: CannonRegistry;
   readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null>;
   putDeploy(deployInfo: DeploymentInfo): Promise<string | null>;
   readMisc(url: string): Promise<any | null>;

@@ -41,8 +41,19 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
-    return this.configInject(ctx, config);
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
+
+    const cfg = this.configInject(ctx, config);
+
+    const preset = config.preset ?? 'main';
+    const chainId = config.chainId ?? runtime.chainId;
+
+    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`);
+
+    return {
+      url,
+      options: cfg.options
+    };
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
@@ -60,14 +71,20 @@ export default {
     return config;
   },
 
-  async exec(runtime: ChainBuilderRuntime, _ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
+  async exec(
+    runtime: ChainBuilderRuntime,
+    _ctx: ChainBuilderContext,
+    config: Config,
+    currentLabel: string
+  ): Promise<ChainArtifacts> {
     debug('exec', config);
 
     const preset = config.preset ?? 'main';
+    const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.loader.readDeploy(config.source, preset, config.chainId || runtime.chainId);
+    const deployInfo = await runtime.loader.readDeploy(config.source, preset, chainId);
 
     let deployCannonNetInfo: DeploymentInfo | null = null;
     if (!deployInfo) {
@@ -103,6 +120,10 @@ export default {
     const builtState = await build(importRuntime, def, deployInfo?.state ?? {}, initialCtx);
     debug('finish build');
 
-    return (await getOutputs(importRuntime, def, builtState))!;
+    return {
+      imports: {
+        [currentLabel?.split('.')[1] || '']: (await getOutputs(importRuntime, def, builtState))!
+      }
+    };
   },
 };

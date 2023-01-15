@@ -65,9 +65,9 @@ export interface ChainBuilderContext {
 
   txns: TransactionMap;
 
-  imports: BundledChainBuilderOutputs;
-
   extras: { [label: string]: string };
+
+  imports: BundledChainBuilderOutputs;
 }
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof ethers.utils & typeof ethers.constants;
@@ -151,7 +151,7 @@ export type DeploymentManifest = {
 export type StepState = {
   version: number;
   hash: string | null;
-  ctx: ChainBuilderContext;
+  artifacts: ChainArtifacts;
   chainDump?: string; // only included if cannon network build
 };
 

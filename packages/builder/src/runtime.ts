@@ -10,6 +10,15 @@ import { CannonLoader } from './loader';
 
 const debug = Debug('cannon:builder:runtime');
 
+
+export enum Events {
+  PreStepExecute = 'pre-step-execute',
+  PostStepExecute = 'post-step-execute',
+  DeployContract = 'deploy-contract',
+  DeployTxn = 'deploy-txn',
+  DeployExtra = 'deploy-extra',
+}
+
 export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRuntimeInfo {
   provider: CannonWrapperGenericProvider;
   chainId: number;
@@ -110,6 +119,15 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
-    return new ChainBuilderRuntime({ ...this, ...overrides }, this.loader);
+    const newRuntime = new ChainBuilderRuntime({ ...this, ...overrides }, this.loader);
+
+    // forward any events which come from our child
+    newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
+    newRuntime.on(Events.PostStepExecute, (t, n, o, d) => this.emit(Events.PostStepExecute, t, n, o, d + 1));
+    newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
+    newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
+    newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
+
+    return newRuntime;
   }
 }

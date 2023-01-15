@@ -4,7 +4,7 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers } from '../types';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, ChainBuilderContextWithHelpers, ContractArtifact } from '../types';
 import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
@@ -25,6 +25,16 @@ const config = {
     // used to force new copy of a contract (not actually used)
     salt: { type: 'string' },
 
+
+    value: { type: 'string' },
+    overrides: {
+      optionalProperties: {
+        gasLimit: { type: 'int32' },
+        gasPrice: { type: 'string' },
+        priorityGasPrice: { type: 'string' },
+      }
+    },
+
     depends: { elements: { type: 'string' } },
   },
 } as const;
@@ -37,6 +47,34 @@ export interface ContractOutputs {
   deployTxnHash: string;
 }
 
+async function resolveBytecode(artifactData: ContractArtifact, config: Config) {
+  let injectedBytecode = artifactData.bytecode;
+  for (const file in artifactData.linkReferences) {
+    for (const lib in artifactData.linkReferences[file]) {
+      // get the lib from the config
+      const libraryAddress = _.get(config, `libraries.${lib}`);
+
+      if (!libraryAddress) {
+        throw new Error(`library not defined: ${lib}`);
+      }
+
+      debug('lib ref', lib, libraryAddress);
+
+      // afterwards, inject link references
+      const linkReferences = artifactData.linkReferences[file][lib];
+
+      for (const ref of linkReferences) {
+        injectedBytecode =
+          injectedBytecode.substring(0, 2 + ref.start * 2) +
+          libraryAddress.substring(2) +
+          injectedBytecode.substring(2 + (ref.start + ref.length) * 2);
+      }
+    }
+  }
+
+  return injectedBytecode;
+}
+
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
@@ -47,8 +85,10 @@ export default {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: (await runtime.getArtifact!(parsedConfig.artifact)).bytecode,
-      config: parsedConfig,
+      bytecode: await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig),
+      args: parsedConfig.args || [],
+      salt: parsedConfig.salt,
+      value: parsedConfig.value || []
     };
   },
 
@@ -93,6 +133,15 @@ export default {
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
+    // sanity check that any connected libraries are bytecoded
+    for (const lib in config.libraries || {}) {
+      if ((await runtime.provider.getCode(config.libraries![lib])) === '0x') {
+        throw new Error(
+          `library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`
+        );
+      }
+    }
+
     const artifactData = await runtime.getArtifact!(config.artifact);
 
     if (!artifactData) {
@@ -101,36 +150,7 @@ export default {
       );
     }
 
-    let injectedBytecode = artifactData.bytecode;
-    for (const file in artifactData.linkReferences) {
-      for (const lib in artifactData.linkReferences[file]) {
-        // get the lib from the config
-        const libraryAddress = _.get(config, `libraries.${lib}`);
-
-        if (!libraryAddress) {
-          throw new Error(`library for contract ${config.artifact} not defined: ${lib}`);
-        }
-
-        // sanity check the library we are linking to has code defined
-        if ((await runtime.provider.getCode(libraryAddress)) === '0x') {
-          throw new Error(
-            `library ${lib} for contract ${config.artifact} has no bytecode. This is most likely a missing dependency or bad state.`
-          );
-        }
-
-        debug('lib ref', lib, libraryAddress);
-
-        // afterwards, inject link references
-        const linkReferences = artifactData.linkReferences[file][lib];
-
-        for (const ref of linkReferences) {
-          injectedBytecode =
-            injectedBytecode.substr(0, 2 + ref.start * 2) +
-            libraryAddress.substr(2) +
-            injectedBytecode.substr(2 + (ref.start + ref.length) * 2);
-        }
-      }
-    }
+    const injectedBytecode = await resolveBytecode(artifactData, config);
 
     // finally, deploy
     const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
