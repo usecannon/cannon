@@ -34,19 +34,6 @@
           >Rapidly create dev environments with existing protocols configured
           however you like.</CText
         >
-        <CLink
-          fontSize="xs"
-          fontWeight="600"
-          letterSpacing="0.3px"
-          opacity="0.9"
-          as="nuxt-link"
-          to="/docs#build-a-protocol"
-          :_hover="{ textDecoration: 'none', opacity: 1 }"
-          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
-            >Learn more</CText
-          >
-          ›</CLink
-        >
       </CBox>
       <CBox>
         <CImage
@@ -63,19 +50,6 @@
           >Build interfaces that interact with protocols. Addresses and ABIs are
           automatically exported.
         </CText>
-        <CLink
-          fontSize="xs"
-          fontWeight="600"
-          letterSpacing="0.3px"
-          opacity="0.9"
-          as="nuxt-link"
-          to="/docs#build-a-dapp"
-          :_hover="{ textDecoration: 'none', opacity: 1 }"
-          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
-            >Learn more</CText
-          >
-          ›</CLink
-        >
       </CBox>
       <CBox>
         <CImage
@@ -95,19 +69,6 @@
             ></u
           >.
         </CText>
-        <CLink
-          fontSize="xs"
-          fontWeight="600"
-          letterSpacing="0.3px"
-          opacity="0.9"
-          as="nuxt-link"
-          to="/docs#build-an-e2e-test"
-          :_hover="{ textDecoration: 'none', opacity: 1 }"
-          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
-            >Learn more</CText
-          >
-          ›</CLink
-        >
       </CBox>
       <CBox>
         <CImage
@@ -121,19 +82,6 @@
         <CText fontSize="sm" mb="2"
           >Include the name of a chain with the <code>--network</code> option to
           deploy your protocol to a live network.</CText
-        >
-        <CLink
-          fontSize="xs"
-          fontWeight="600"
-          letterSpacing="0.3px"
-          opacity="0.9"
-          as="nuxt-link"
-          to="/docs#deploy-a-protocol"
-          :_hover="{ textDecoration: 'none', opacity: 1 }"
-          ><CText as="span" borderBottom="rgba(255,255,255,0.66) 1px dotted "
-            >Learn more</CText
-          >
-          ›</CLink
         >
       </CBox>
     </CSimpleGrid>
