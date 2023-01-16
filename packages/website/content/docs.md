@@ -125,7 +125,7 @@ Verify a package on Etherscan.
 
 ### publish
 
-Publish a Cannon package to the registry.
+Publish a Cannon package to the registry for all networks where this package has been deployed.
 
 **Arguments**
 
@@ -133,11 +133,13 @@ Publish a Cannon package to the registry.
 
 **Options**
 
-- `--privateKey` - Private key of the wallet to use when publishing
-- `--preset` -
-- `--tags` - Comma separated list of labels for your package (_Default: "latest"_)
-- `--registryAddress` - Address for a custom package registry (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
-- `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
+- `--privateKey` - Private key of the wallet to use when publishing.
+- `--preset` - Preset name to use (_Default: "main"_)
+- `--tags` - Comma separated list of labels (_Default: "latest"_)
+- `--gas-limit` - The maximum units of gas spent for the registration transaction')
+- `--max-fee-per-gas` - `The maximum value (in gwei) for the base fee when submitting the registry transaction.
+- `--max-priority-fee-per-gas` - The maximum value (in gwei) for the miner tip when submitting the registry transaction.
+- `--quiet` - Only output final JSON object at the end, no human readable output.
 
 ### inspect
 
@@ -219,8 +221,12 @@ The `contract` action deploys a contract.
 **Optional Inputs**
 
 - `args` - Specifies the arguments to provide the constructor function
-- `abi` - Specifies the contract that should be used for the ABI. This is useful when deploying proxy contracts.
+- `abiOf` - An array of contract artifacts that you've already deployed with Cannon. This is useful when deploying proxy contracts.
+- `abi` - Specifies the contract that should be used for the ABI.
 - `libraries` - An array of contract action names that deploy libraries this contract depends on. **Make sure you also specify these steps in a `depends` input to make sure the libraries are deployed prior to this step.**
+- `from` - Address to send the transaction from. It
+- `salt` - The salt is a string which, when changed, will result in a new contract deployment. (_Default: ''_)
+- `create2` - Uses `CREATE2` resulting in the same contract deployment address across networks (assuming the same contract bytecode, constructor arguments, and salt are used). (_Default: false_)
 
 **Outputs**
 This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
@@ -233,17 +239,14 @@ This action updates the return object by adding an entry to the `contracts` key 
 
 The `import` action will import a cannonfile from a package hosted with the package manager.
 
-<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
-⚠️ <strong>Third-party packages can execute arbitrary code on your computer when imported. Only import packages that you have verified or trust.</strong>
-</div>
-
 **Required Inputs**
 
 - `source` - The name of the package to import
 
 **Optional Inputs**
 
-- `options` - The options to be used when initializing this cannonfile
+- `chainId` - Optionally override the chain ID for the deployment information to import.
+- `preset` - Optionally override "main" as the preset for the deployment information to import.
 
 **Outputs**
 This action updates the return object by adding an entry to the `imports` key with the action’s name. The value of the entry is the return object of the imported cannonfile. For example, if a package is imported with `[imports.uniswap]` and its cannonfile deploys a contract with `[contract.pair]` which outputs `address`, this address would be accessible at `<%= imports.uniswap.contracts.pair.address %>`.
@@ -304,9 +307,28 @@ The `setting` action defines a user-configurable option that can be referenced i
 **Outputs**
 This action updates the return object by adding an entry to the `settings` key with the action’s name. The value of the entry is what has been passed in by the user at run time. Otherwise, the default value is used if specified.
 
+### provision
+
+The `provision` command attempts to deploy the specified package (unlike the import command, which only injests existing deployment data).
+
+<div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
+⚠️ <strong>Third-party packages can execute arbitrary code on your computer when provisioning. Only provision packages that you have verified or trust.</strong>
+</div>
+
+**Required Inputs**
+
+- `source` - The name of the package to provision
+
+**Optional Inputs**
+
+- `options` - The settings to be used when initializing this Cannonfile which overrides any defaults preset in the source package.
+- `chainId` - Override the chain ID to use when provisioning this package. (_Default: 13370_)
+- `preset` - Override the preset to use when provisioning this package. (_Default: main_)
+- `tags` - Additional tags to set on the registry for when this provisioned package is published.
+
 ### run
 
-The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **Use the provider in the chain builder object when interacting with your deployment.**
+The `run` action executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **The run command breaks composability. Only use this as a last resort.** Use a custom Cannon plug-in if this is necessary for your deployment.
 
 **Required Inputs**
 
@@ -322,10 +344,6 @@ The `run` action executes a custom script. This script is passed a [ChainBuilder
 **Outputs**
 This action updates the return object by merging the object returned from the script under keys `contracts` and `txns`. These objects should follow the structure of output modifications created by a `contract` action.
 
-### provision
-
-_t.c._
-
 ## Cannon Plug-ins
 
-_t.c._
+Cannon plug-ins can be added and removed via NPM. This is allow for the creation of custom steps in Cannonfiles. _Additional documentation coming soon._

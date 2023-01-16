@@ -259,7 +259,6 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 

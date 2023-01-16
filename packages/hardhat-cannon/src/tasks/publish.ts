@@ -10,8 +10,6 @@ task(TASK_PUBLISH, 'Publish a Cannon package to the registry')
   .addOptionalParam('privateKey', 'Private key of the wallet to use when publishing.')
   .addOptionalParam('tags', 'Comma separated list of labels for your package', 'latest')
   .addOptionalParam('registryAddress', 'Address for a custom package registry.', DEFAULT_REGISTRY_ADDRESS)
-  .addOptionalParam('directory', 'Path to a custom package directory', DEFAULT_CANNON_DIRECTORY)
-
   .addOptionalParam('gasLimit', 'The maximum units of gas spent for the registration transaction')
   .addOptionalParam('maxFeePerGas', 'The maximum value (in gwei) for the base fee when submitting the registry transaction')
   .addOptionalParam(
