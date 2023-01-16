@@ -3,11 +3,10 @@ import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
 import fs from 'fs-extra';
 import path from 'path';
 
-export async function inspect(packageRef: string, json: boolean, writeDeployments: string) {
+export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
   const { name, version } = parsePackageRef(packageRef);
 
   // TODO I don't think it's adding 'latest' as expected
@@ -18,16 +17,9 @@ export async function inspect(packageRef: string, json: boolean, writeDeployment
 
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-  // create temporary provider
-  // todo: really shouldn't be necessary
-  const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000),
-  });
-  const provider = getProvider(node);
-
   const loader = new IPFSLoader(resolveCliSettings().ipfsUrl, resolver);
 
-  const deployData = await loader.readDeploy(packageRef, 'main', (await provider.getNetwork()).chainId);
+  const deployData = await loader.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error(
@@ -36,9 +28,6 @@ export async function inspect(packageRef: string, json: boolean, writeDeployment
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);
-
-  //const misc = await loader.readMisc(deployData.miscUrl);
-  //console.log(Object.values(misc.artifacts).map((a) => a.abi));
 
   if (writeDeployments) {
     const deploymentData = Object.values(deployData.state)
@@ -61,8 +50,6 @@ export async function inspect(packageRef: string, json: boolean, writeDeployment
     console.log(cyan(bold('\nCannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
   }
-
-  node.kill();
 
   return deployData;
 }
