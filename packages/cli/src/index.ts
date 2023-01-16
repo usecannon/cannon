@@ -246,8 +246,8 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
-  .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
   .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
+  .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(

@@ -133,13 +133,11 @@ Publish a Cannon package to the registry.
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
+- `--privateKey` - Private key of the wallet to use when publishing
+- `--preset` -
 - `--tags` - Comma separated list of labels for your package (_Default: "latest"_)
 - `--registryAddress` - Address for a custom package registry (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
 - `--registryEndpoint` - Address for RPC endpoint for the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
-- `--ipfsEndpoint` - Address for an IPFS endpoint (_Example: https://ipfs.infura.io:5001_)
-- `--ipfsAuthorizationHeader` - Authorization header for requests to the IPFS endpoint (_Example: Basic abc:123_)
-- `--privateKey` - Private key of the wallet to use when publishing
 
 ### inspect
 
@@ -147,12 +145,18 @@ Inspect the details of a Cannon package.
 
 **Arguments**
 
-- `packageName` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+- `packageName:packageVersion` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
 
 **Options**
 
-- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
+- `--chain-id` - Chain ID of the variant to inspect
+- `--preset` - Preset of the variant to inspect
 - `--json` - Output as JSON (_Default: false_)
+- `--write-deployments` - Path to write the deployments data (address and ABIs), like "./deployments"
+
+### interact
+
+_t.c._
 
 ### plugin
 
