@@ -37,7 +37,6 @@ import { installPlugin, removePlugin } from './plugins';
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
 export { inspect } from './commands/inspect';
-export { packages } from './commands/packages';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
@@ -273,17 +272,9 @@ program
   });
 
 program
-  .command('packages')
-  .description('List all packages in the local Cannon directory')
-  .action(async function () {
-    const { packages } = await import('./commands/packages');
-    await packages();
-  });
-
-program
   .command('inspect')
   .description('Inspect the details of a Cannon package')
-  .argument('<packageName>', 'Name and version of the cannon package to inspect')
+  .argument('[packageName]', 'Name and version of the cannon package to inspect')
   .option('-j --json', 'Output as JSON')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');

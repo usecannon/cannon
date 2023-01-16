@@ -203,14 +203,6 @@ Publish a Cannon package to the registry.
 - `--ipfsAuthorizationHeader` - Authorization header for requests to the IPFS endpoint (_Example: Basic abc:123_)
 - `--privateKey` - Private key of the wallet to use when publishing
 
-### packages
-
-List all packages in the local Cannon directory.
-
-**Options**
-
-- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
-
 ### inspect
 
 Inspect the details of a Cannon package.
