@@ -8,7 +8,7 @@ import _ from 'lodash';
 export async function installPlugin(name: string) {
   await mkdirp(getPluginDir());
   // npm has a bit of a freakout fit when it sees dependencies it does not know about
-  await shellExec(`rm -rf node_modules/@usecannon node_modules/ethers`)
+  await shellExec('rm -rf node_modules/@usecannon node_modules/ethers');
 
   // now install the dependency the user asked for
   await shellExec(`npm install ${name}`);
@@ -20,7 +20,7 @@ export async function installPlugin(name: string) {
 
 export async function removePlugin(name: string) {
   // npm has a bit of a freakout fit when it sees dependencies it does not know about
-  await shellExec(`rm -rf node_modules/@usecannon node_modules/ethers`)
+  await shellExec('rm -rf node_modules/@usecannon node_modules/ethers');
 
   await shellExec(`npm uninstall ${name}`);
 
@@ -41,12 +41,11 @@ export async function listInstalledPlugins() {
 
 export async function loadPlugin(name: string) {
   // read pkg to get the actual plugin load dir
-  // eslint-ignore-next-line @typescript-eslint/no-var-requires
+  /* eslint-disable @typescript-eslint/no-var-requires */
   const pkg = require(path.join(getPluginDir(), 'node_modules', name, 'package.json'));
 
   const loadFile = pkg.cannon || pkg.main;
 
-  // eslint-ignore-next-line @typescript-eslint/no-var-requires
   return require(path.join(getPluginDir(), 'node_modules', name, loadFile));
 }
 

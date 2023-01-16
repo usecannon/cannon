@@ -1,6 +1,6 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import { ChainArtifacts, ChainBuilderContext } from '@usecannon/builder';
+import { ChainArtifacts } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';

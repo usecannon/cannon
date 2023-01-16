@@ -71,10 +71,10 @@ export class LocalRegistry extends CannonRegistry {
  * useful for testing and deployment dry-runs
  */
 export class InMemoryRegistry extends CannonRegistry {
-  readonly pkgs: { [name: string]: {[variant: string]: string } } = {};
+  readonly pkgs: { [name: string]: { [variant: string]: string } } = {};
 
-  count: number = 0;
-  
+  count = 0;
+
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
     const receipts: string[] = [];
     for (const name of packagesNames) {
@@ -144,6 +144,6 @@ export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
   return new FallbackRegistry([
     new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
     new LocalRegistry(settings.cannonDirectory),
-    new InMemoryRegistry()
+    new InMemoryRegistry(),
   ]);
 }

@@ -264,7 +264,6 @@ export async function getOutputs(
   def: ChainDefinition,
   state: DeploymentState
 ): Promise<ChainArtifacts | null> {
-
   const artifacts: ChainArtifacts = {};
 
   for (const step of def.topologicalActions) {

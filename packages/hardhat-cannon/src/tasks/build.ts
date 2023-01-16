@@ -121,7 +121,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         wipe,
         deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,
         persist: !dryRun && hre.network.name !== 'hardhat',
-        overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined
+        overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
       } as const;
 
       const { outputs } = await build(params);

@@ -102,7 +102,9 @@ export default {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
       if (await runtime.loader.readDeploy(config.source, preset, runtime.chainId)) {
-        console.warn('warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?');
+        console.warn(
+          'warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?'
+        );
       }
 
       debug('no previous state found, deploying from scratch');
@@ -136,7 +138,7 @@ export default {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.loader.resolver.publish(
-        [config.source, ...(config.tags || []).map(t => config.source.split(':')[1] + ':' + t)],
+        [config.source, ...(config.tags || []).map((t) => config.source.split(':')[1] + ':' + t)],
         `${runtime.chainId}-${preset}`,
         newSubDeployUrl
       );

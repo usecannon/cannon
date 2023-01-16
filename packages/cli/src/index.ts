@@ -10,7 +10,6 @@ import {
   ChainBuilderRuntime,
   IPFSLoader,
   CANNON_CHAIN_ID,
-  OnChainRegistry,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
@@ -179,10 +178,9 @@ program
     let provider: CannonWrapperGenericProvider;
     let node: CannonRpcNode | null = null;
     if (!opts.network || opts.dryRun) {
-
-      const chainId = opts.network ?
-        (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId :
-        CANNON_CHAIN_ID;
+      const chainId = opts.network
+        ? (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId
+        : CANNON_CHAIN_ID;
 
       await setupAnvil();
 
@@ -193,25 +191,26 @@ program
       });
 
       provider = getProvider(node);
-    }
-    else {
+    } else {
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), true);
     }
 
     let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
     let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
     if (opts.privateKey) {
-      const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider))
+      const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider));
 
       getSigner = async (s) => {
-        const w = wallets.find(w => w.address.toLowerCase() === s.toLowerCase());
+        const w = wallets.find((w) => w.address.toLowerCase() === s.toLowerCase());
 
         if (!w) {
-          throw new Error(`signer not found for address ${s}. Please add the private key for this address to your command line.`);
+          throw new Error(
+            `signer not found for address ${s}. Please add the private key for this address to your command line.`
+          );
         }
 
         return w;
-      }
+      };
 
       getDefaultSigner = async () => wallets[0];
     }
@@ -254,7 +253,7 @@ program
       preset: opts.preset,
       deploymentPath,
       persist: opts.wipe,
-      overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined
+      overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
     });
 
     await node?.kill();
