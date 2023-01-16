@@ -92,7 +92,7 @@ The `run` command starts a local node with the specified package. It opens an in
 
 ### build
 
-The `build` command takes Cannonfile and generates a package in your local cannon directory.
+The `build` command will attempt to build a specified blockchain into the state defined by a Cannonfile.
 
 **Arguments**
 
@@ -101,13 +101,14 @@ The `build` command takes Cannonfile and generates a package in your local canno
 
 **Options**
 
+- `--network` - RPC endpoint to execute the deployment on. This builds for a local node if not specified. (For the Hardhat plug-in, reference a network in your Hardhat configuration instead.)
 - `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
-- `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
-- `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
-- `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
-- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
+- `--dry-run` - Simulate building on a local fork rather than deploying on the real network.
+- `--private-key` - Specify a private key which may be needed to sign a transaction.
+- `--wipe` - Clear the existing deployment state and start this deploy from scratch.
+- `--upgrade-from` - Specify a package to use as a new base for the deployment.
 - `--contracts-directory` - Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts (_Default: "./src"_)
+- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
 
 ### verify
 

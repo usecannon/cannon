@@ -121,22 +121,18 @@ program
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
-  .option('-n --network [url]', 'Ethereum RPC endpoint to build for')
+  .option('-n --network [url]', 'RPC endpoint to execute the deployment on')
+  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
   .option('--private-key [key]', 'Specify a private key which may be needed to sign a transaction', concatArrayOption)
-  .option(
-    '--upgrade-from [cannon-package:0.0.1]',
-    'Wipe the deployment files, and use the deployment files from another cannon package as base'
-  )
-  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
+  .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
+  .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
   .option(
     '-c --contracts-directory [contracts]',
     'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
     './src'
   )
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
-  .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('--wipe', 'Clear existing deployment state, start this deploy from scratch.')
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
     // If the first param is not a cannonfile, it should be parsed as settings
@@ -149,9 +145,6 @@ program
 
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
-    const deploymentPath = opts.writeDeployments
-      ? path.resolve(opts.writeDeployments)
-      : path.resolve(projectDirectory, 'deployments');
 
     let provider: CannonWrapperGenericProvider;
     let node: CannonRpcNode | null = null;
