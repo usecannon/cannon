@@ -379,24 +379,24 @@ program
     });
   });
 
-const pluginCmd = program.command('plugin').description('Manage Cannon plugin modules');
+const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');
 
 pluginCmd
   .command('add')
-  .argument('<name>', 'Name of an NPM package to use as a cannon plugin')
+  .argument('<name>', 'Name of an NPM package to add as a Cannon plug-in')
   .action(async function (name) {
-    console.log(`installing plugin ${name}...`);
+    console.log(`Installing plugin ${name}...`);
     await installPlugin(name);
-    console.log('complete!');
+    console.log('Complete!');
   });
 
 pluginCmd
   .command('remove')
-  .argument('<name>', 'Name of an NPM package to remove')
+  .argument('<name>', 'Name of an NPM package to remove as a Cannon plug-in')
   .action(async function (name) {
-    console.log(`removing plugin ${name}...`);
+    console.log(`Removing plugin ${name}...`);
     await removePlugin(name);
-    console.log('complete!');
+    console.log('Complete!');
   });
 
 export default program;

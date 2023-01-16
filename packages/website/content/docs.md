@@ -169,9 +169,21 @@ Start an interactive terminal to use with a Cannon package's deployment on a liv
 - `--mnemonic` - Use the specified mnemonic to initialize a chain of signers while running.
 - `--private-key` - Use the specified private key hex to interact with the contracts.
 
-### plugin
+### plugin add
 
-_t.c._
+Specify a package to install via NPM and register as a Cannon plug-in.
+
+**Arguments**
+
+- `name` - The name of the NPM package.
+
+### plugin remove
+
+Specify a package that was added as a Cannon plug-in and remove it.
+
+**Arguments**
+
+- `name` - The name of the NPM package.
 
 ## Cannonfile Specification
 
