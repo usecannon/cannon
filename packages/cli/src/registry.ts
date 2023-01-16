@@ -11,7 +11,9 @@ import Debug from 'debug';
 
 const debug = Debug('cannon:cli:registry');
 
-// in addition to loading packages from the , also stores tags locally to remember between local builds
+/**
+ * stores packages in the filesystem, using the filename as a key and the contents as the value. very simple is the intent.
+ */
 export class LocalRegistry extends CannonRegistry {
   packagesDir: string;
 
@@ -64,6 +66,39 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
+/**
+ * keeps track of packages in a simple JS object
+ * useful for testing and deployment dry-runs
+ */
+export class InMemoryRegistry extends CannonRegistry {
+  readonly pkgs: { [name: string]: {[variant: string]: string } } = {};
+
+  count: number = 0;
+  
+  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
+    const receipts: string[] = [];
+    for (const name of packagesNames) {
+      if (!this.pkgs[name]) {
+        this.pkgs[name] = {};
+      }
+
+      this.pkgs[name][variant] = url;
+      receipts.push((++this.count).toString());
+    }
+
+    return receipts;
+  }
+
+  async getUrl(packageRef: string, variant: string): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageRef, variant);
+    if (baseResolved) {
+      return baseResolved;
+    }
+
+    return this.pkgs[packageRef][variant];
+  }
+}
+
 export class FallbackRegistry implements CannonRegistry {
   registries: any[];
 
@@ -100,5 +135,15 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   return new FallbackRegistry([
     new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
     new LocalRegistry(settings.cannonDirectory),
+  ]);
+}
+
+export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
+  const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
+
+  return new FallbackRegistry([
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
+    new LocalRegistry(settings.cannonDirectory),
+    new InMemoryRegistry()
   ]);
 }

@@ -2,7 +2,7 @@ import path from 'path';
 import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
-import { build, runRpc, parseSettings, loadCannonfile } from '@usecannon/cli';
+import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
 import { TASK_BUILD } from '../task-names';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
@@ -121,6 +121,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         wipe,
         deploymentPath: writeDeployments ? path.resolve(writeDeployments) : undefined,
         persist: !dryRun && hre.network.name !== 'hardhat',
+        overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined
       } as const;
 
       const { outputs } = await build(params);

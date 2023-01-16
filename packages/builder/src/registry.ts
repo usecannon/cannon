@@ -8,7 +8,7 @@ import _ from 'lodash';
 const debug = Debug('cannon:builder:registry');
 
 export abstract class CannonRegistry {
-  abstract publish(packagesNames: string[], url: string, variant: string): Promise<string[]>;
+  abstract publish(packagesNames: string[], variant: string, url: string): Promise<string[]>;
 
   // in general a "catchall" is that if the packageName is in format "@service:path", then
   // that is a direct service resolve

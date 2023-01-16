@@ -1,6 +1,6 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainArtifacts, ChainBuilderContext } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -55,7 +55,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-  const buildOutputs: { pkg: PackageSpecification; outputs: ChainBuilderContext }[] = [];
+  const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
   let signers: ethers.Signer[] = [];
 

@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { table } from 'table';
 
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainArtifacts } from '@usecannon/builder';
 
-export function printChainBuilderOutput(output: ChainBuilderContext) {
+export function printChainBuilderOutput(output: ChainArtifacts) {
   if (output.contracts) {
     const formattedData = _.map(output.contracts, (v, k) => [k, v.address]);
 

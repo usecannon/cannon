@@ -9,6 +9,8 @@ import {
   getOutputs,
   ChainBuilderRuntime,
   IPFSLoader,
+  CANNON_CHAIN_ID,
+  OnChainRegistry,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
@@ -28,7 +30,7 @@ export * from './util/params';
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { createDefaultReadRegistry } from './registry';
+import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 import { resolveCliSettings } from './settings';
 
 import { installPlugin, removePlugin } from './plugins';
@@ -42,7 +44,7 @@ export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { runRpc } from './rpc';
 
-export { createDefaultReadRegistry } from './registry';
+export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveCliSettings } from './settings';
 export { loadCannonfile } from './helpers';
 
@@ -128,11 +130,23 @@ function configureRun(program: Command) {
     });
 }
 
+function concatArrayOption(val: string, prev: string[]) {
+  if (prev) {
+    prev.push(val);
+    return prev;
+  }
+
+  return [val];
+}
+
 program
   .command('build')
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
+  .option('-n --network [url]', 'Ethereum RPC endpoint to build for')
+  .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
+  .option('--private-key [key]', 'Specify a private key which may be needed to sign a transaction', concatArrayOption)
   .option(
     '--upgrade-from [cannon-package:0.0.1]',
     'Wipe the deployment files, and use the deployment files from another cannon package as base'
@@ -144,23 +158,7 @@ program
     './src'
   )
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
-  .option(
-    '--registry-ipfs-url <https://something.com/ipfs/>',
-    'URL of the JSON-RPC server used to query the registry',
-    DEFAULT_REGISTRY_IPFS_ENDPOINT
-  )
-  .option(
-    '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
-    'Authorization header for requests to the IPFS endpoint'
-  )
-  .option(
-    '--registry-rpc-url <https://something.com/ipfs/>',
-    'Network endpoint for interacting with the registry',
-    DEFAULT_REGISTRY_ENDPOINT
-  )
-  .option('--registry-address <0x...>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-  .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
   .option('--wipe', 'Clear existing deployment state, start this deploy from scratch.')
   .showHelpAfterError('Use --help for more information.')
   .action(async function (cannonfile, settings, opts) {
@@ -178,11 +176,45 @@ program
       ? path.resolve(opts.writeDeployments)
       : path.resolve(projectDirectory, 'deployments');
 
-    await setupAnvil();
+    let provider: CannonWrapperGenericProvider;
+    let node: CannonRpcNode | null = null;
+    if (!opts.network || opts.dryRun) {
 
-    const node = await runRpc({
-      port: 8545,
-    });
+      const chainId = opts.network ?
+        (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId :
+        CANNON_CHAIN_ID;
+
+      await setupAnvil();
+
+      node = await runRpc({
+        port: 8545,
+        forkUrl: opts.network,
+        chainId,
+      });
+
+      provider = getProvider(node);
+    }
+    else {
+      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), true);
+    }
+
+    let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
+    let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
+    if (opts.privateKey) {
+      const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider))
+
+      getSigner = async (s) => {
+        const w = wallets.find(w => w.address.toLowerCase() === s.toLowerCase());
+
+        if (!w) {
+          throw new Error(`signer not found for address ${s}. Please add the private key for this address to your command line.`);
+        }
+
+        return w;
+      }
+
+      getDefaultSigner = async () => wallets[0];
+    }
 
     // Build project to get the artifacts
     const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
@@ -207,7 +239,7 @@ program
     const { name, version } = await loadCannonfile(cannonfilePath);
 
     await build({
-      provider: getProvider(node),
+      provider,
       cannonfilePath,
       packageDefinition: {
         name,
@@ -215,14 +247,17 @@ program
         settings: parsedSettings,
       },
       getArtifact,
+      getSigner,
+      getDefaultSigner,
       projectDirectory,
       upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
       deploymentPath,
       persist: opts.wipe,
+      overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined
     });
 
-    await node.kill();
+    await node?.kill();
     // ensure the cli actually exits
     process.exit();
   });

@@ -263,11 +263,12 @@ export async function getOutputs(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
   state: DeploymentState
-): Promise<ChainBuilderContext | null> {
-  const ctx = await createInitialContext(def, {}, {});
+): Promise<ChainArtifacts | null> {
+
+  const artifacts: ChainArtifacts = {};
 
   for (const step of def.topologicalActions) {
-    await addOutputsToContext(ctx, state[step].artifacts);
+    _.merge(artifacts, state[step].artifacts);
   }
 
   if (runtime.snapshots) {
@@ -286,7 +287,7 @@ export async function getOutputs(
     }
   }
 
-  return ctx;
+  return artifacts;
 }
 
 // TODO: this func is dumb but I need to walk through this time period before I want to turn it into something of beauty
