@@ -13,10 +13,9 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
   .addOptionalParam('port', 'Port which the JSON-RPC server will be exposed', '8545')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
   .addOptionalParam('fundAddresses', 'Comma separated list of addresses to receive a balance of 10,000 ETH', '')
-  .addFlag('writeDeployments', 'Wether or not to write deployments data to the path.deployments folder')
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets')
   .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
-  .setAction(async ({ packageNames, port, logs, preset, writeDeployments, impersonate, fundAddresses }, hre) => {
+  .setAction(async ({ packageNames, port, logs, preset, impersonate, fundAddresses }, hre) => {
     const packages: PackageSpecification[] = ((packageNames || []) as string[]).reduce((result, val) => {
       return parsePackagesArguments(val, result);
     }, [] as PackageSpecification[]);
@@ -61,12 +60,6 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       logs,
       preset,
       privateKey,
-      writeDeployments: writeDeployments ? hre.config.paths.deployments : '',
-      projectDirectory: hre.config.paths.root,
-      registryIpfsUrl: hre.config.cannon.ipfsEndpoint,
-      registryIpfsAuthorizationHeader: hre.config.cannon.ipfsAuthorizationHeader,
-      registryRpcUrl: hre.config.cannon.registryEndpoint,
-      registryAddress: hre.config.cannon.registryAddress,
       impersonate: toImpersonate.join(','),
       fundAddresses: fundAddresses
         .split(',')

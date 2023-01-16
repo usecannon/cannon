@@ -5,7 +5,6 @@ import { PackageSpecification } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { interact } from '../interact';
-import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { getContractsRecursive } from '../util/contracts-recursive';
@@ -14,15 +13,8 @@ import { resolveCliSettings } from '../settings';
 
 export interface RunOptions {
   node: CannonRpcNode;
-  file?: string;
   logs?: boolean;
-  writeDeployments?: string;
   preset: string;
-  projectDirectory?: string;
-  registryIpfsUrl: string;
-  registryIpfsAuthorizationHeader?: string;
-  registryRpcUrl: string;
-  registryAddress: string;
   impersonate: string;
   mnemonic?: string;
   privateKey?: string;
@@ -78,7 +70,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       overrideResolver: resolver,
       preset: options.preset,
       persist: false,
-      deploymentPath: options.writeDeployments ? resolve(options.writeDeployments) : undefined,
     });
 
     buildOutputs.push({ pkg, outputs });

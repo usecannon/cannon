@@ -71,25 +71,8 @@ function configureRun(program: Command) {
     )
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-f --fork <url>', 'Fork the network at the specified RPC url')
-    .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
-    .option('--write-deployments <path>', 'Path to write the deployments data (address and ABIs), like "./deployments"')
-    .option('--project-directory <directory>', 'Path to a custom running environment directory')
-    .option(
-      '--registry-ipfs-url <https://something.com/ipfs/>',
-      'URL of the JSON-RPC server used to query the registry',
-      DEFAULT_REGISTRY_IPFS_ENDPOINT
-    )
-    .option(
-      '--registry-ipfs-authorization-header <ipfsAuthorizationHeader>',
-      'Authorization header for requests to the IPFS endpoint'
-    )
-    .option(
-      '--registry-rpc-url <https://something.com/ipfs/>',
-      'Network endpoint for interacting with the registry',
-      DEFAULT_REGISTRY_ENDPOINT
-    )
-    .option('--registry-address <0xdeadbeef>', 'Address of the registry contract', DEFAULT_REGISTRY_ADDRESS)
+    .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
       '--impersonate <address>',
@@ -114,10 +97,6 @@ function configureRun(program: Command) {
         });
       } else {
         node = await runRpc({ port });
-      }
-
-      if (options.projectDirectory) {
-        options.projectDirectory = path.resolve(options.projectDirectory);
       }
 
       await run(packages, {
@@ -250,7 +229,6 @@ program
       projectDirectory,
       upgradeFrom: opts.upgradeFrom,
       preset: opts.preset,
-      deploymentPath,
       persist: opts.wipe,
       overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
     });

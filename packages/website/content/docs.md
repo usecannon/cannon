@@ -67,35 +67,32 @@ _t.c._
 
 ## Cannon Commands
 
+Run the commands below with `npx @usecannon/cli <command>`. If no command is specified, the CLI will execute the "run" command.
+
 If you’re using the Hardhat plug-in, you can access the following commands as tasks. For example, the build command could be executed with `npx hardhat cannon:build`.
 
 ### run
 
-The `run` command starts an [Anvil](https://github.com/foundry-rs/foundry/tree/master/anvil) node with the specified package. If it isn't found in your your local cannon directory (`~/.local/share/cannon`), it will be downloaded there from the [Cannon registry](/search).
-
-If the CLI is run without a command specified, it will use the run command.
+The `run` command starts a local node with the specified package. It opens an interactive CLI where you can access logs and interact with the deployed contracts.
 
 **Arguments**
 
-- `<packageNames>` - Name and version of the package to run. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name. For example, `synthetix` and `npx @usecannon/cli synthetix:2.75 owner=0x0000 erc20 symbol=TKN` are both valid arguments.
+- `<packageNames>` - Name and version of the package to run. Assumes `latest` if no version if specified. Settings for the package can be specified following the package name. For example, `npx @usecannon/cli synthetix` and `npx @usecannon/cli synthetix:2.75 owner=0x0000 erc20 symbol=TKN` is a valid command.
 
 **Options**
 
-- `--port` - Port which the JSON-RPC server will be exposed (_Default: "8545"_)
-- `--fork` - Fork the network at the specified RPC url
-- `--preset` - Load an alternate setting preset (_Default: "main"_)
-- `--cannon-directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
-- `--registry-rpc-url` - URL of the JSON-RPC server used to query the registry (_Default: "https://cloudflare-eth.com/v1/mainnet"_)
-- `--registry-address` - Address of the registry contract (_Default: "0xA98BE35415Dd28458DA4c1C034056766cbcaf642"_)
-- `--registry-ipfs-url` - Endpoint used to retrieve IPFS resources (_Default: "https://usecannon.infura-ipfs.io"_)
-- `--write-deployments` - Path to write the deployments data (address and ABIs), like `./deployments`
-- `--logs` - Show RPC logs instead of an interactive prompt
-- `--impersonate` - Create impersonated signers instead of using real wallets')
-- `--fund-addresses` - Pass a list of addresses to receive a balance of 10,000 ETH
+- `--port` - Port which the JSON-RPC server will be exposed. (_Default: "8545"_)
+- `--fork` - Fork the network at the specified RPC url. The chain ID for the deployment used from the package is determined by the RPC endpoint. (For the Hardhat plug-in, use `--network` to reference a network in your Hardhat configuration instead.)
+- `--preset` - Load an alternative preset. (_Default: "main"_)
+- `--logs` - Show RPC logs instead of an interactive prompt.
+- `--impersonate` - Create impersonated signers instead of using real wallets. (_Default: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"_)
+- `--fund-addresses` - Pass a list of addresses to receive a balance of 10,000 ETH.
+- `--mnemonic` - Use the specified mnemonic to initialize a chain of signers while running.
+- `--private-key` - Use the specified private key hex to interact with the contracts.
 
 ### build
 
-The `build` command takes a cannonfile and generates a package in your local cannon directory.
+The `build` command takes Cannonfile and generates a package in your local cannon directory.
 
 **Arguments**
 

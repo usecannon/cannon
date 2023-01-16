@@ -39,7 +39,6 @@ interface Params {
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
-  deploymentPath?: string;
 }
 
 export async function build({
