@@ -173,8 +173,6 @@ async function buildLayer(
       _.merge(depArtifacts, built.get(dep));
     }
 
-    debug('adding dep artifacts to ctx', depArtifacts);
-
     addOutputsToContext(ctx, depArtifacts);
 
     // also add self artifacts here so that we can self-reference from inside the step

@@ -22,6 +22,8 @@ import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
+import { listInstalledPlugins, loadPlugin } from '../plugins';
+
 interface Params {
   provider: CannonWrapperGenericProvider;
   cannonfilePath?: string;
@@ -59,6 +61,15 @@ export async function build({
   }
 
   const cliSettings = resolveCliSettings();
+
+  const plugins = await listInstalledPlugins();
+
+  if (plugins.length) {
+    console.log('loading installed plugins:', plugins.join(', '));
+    for (const plugin of plugins) {
+      await loadPlugin(plugin);
+    }
+  }
 
   const chainId = (await provider.getNetwork()).chainId;
 

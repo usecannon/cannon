@@ -127,7 +127,12 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
 
   const buf = await fs.readFile(filepath);
 
-  const rawDef = toml.parse(buf.toString('utf8')) as Partial<RawChainDefinition> & { include?: string[] };
+  let rawDef: Partial<RawChainDefinition> & { include?: string[] };
+  try {
+    rawDef = toml.parse(buf.toString('utf8'));
+  } catch (err: any) {
+    throw new Error(`error encountered while parsing toml file ${filepath}: ${err.toString()}`);
+  }
 
   const assembledDef: Partial<RawChainDefinition> = {};
 

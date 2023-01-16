@@ -31,6 +31,8 @@ import { getContractsRecursive } from './util/contracts-recursive';
 import { createDefaultReadRegistry } from './registry';
 import { resolveCliSettings } from './settings';
 
+import { installPlugin, removePlugin } from './plugins';
+
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
 export { inspect } from './commands/inspect';
@@ -373,6 +375,26 @@ program
       signer: signers[0],
       provider,
     });
+  });
+
+const pluginCmd = program.command('plugin').description('Manage Cannon plugin modules');
+
+pluginCmd
+  .command('add')
+  .argument('<name>', 'Name of an NPM package to use as a cannon plugin')
+  .action(async function (name) {
+    console.log(`installing plugin ${name}...`);
+    await installPlugin(name);
+    console.log('complete!');
+  });
+
+pluginCmd
+  .command('remove')
+  .argument('<name>', 'Name of an NPM package to remove')
+  .action(async function (name) {
+    console.log(`removing plugin ${name}...`);
+    await removePlugin(name);
+    console.log('complete!');
   });
 
 export default program;

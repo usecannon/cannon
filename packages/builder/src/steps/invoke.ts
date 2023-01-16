@@ -306,6 +306,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${t}`;
 
       debug('ran txn', label);
+      debug('got events', txnEvents);
 
       txns[label] = {
         hash: receipt.transactionHash,
