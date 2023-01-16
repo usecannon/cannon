@@ -156,7 +156,18 @@ Inspect the details of a Cannon package.
 
 ### interact
 
-_t.c._
+Start an interactive terminal to use with a Cannon package's deployment on a live network. (This is an alternative to interacting with a local fork using the run command.) This command is not available in the Hardhat plug-in.
+
+**Arguments**
+
+- `packageName:packageVersion` - The name and version of a package. Version defaults to `latest` if not specified. (_Example: synthetix:latest_)
+
+**Options**
+
+- `--network` - RPC endpoint to execute interactions on. The chain ID for the deployment used from the package is determined by the RPC endpoint.
+- `--preset` - The preset to load. (_Default: "main"_)
+- `--mnemonic` - Use the specified mnemonic to initialize a chain of signers while running.
+- `--private-key` - Use the specified private key hex to interact with the contracts.
 
 ### plugin
 
