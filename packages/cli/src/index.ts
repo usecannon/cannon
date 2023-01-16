@@ -276,9 +276,13 @@ program
   .description('Inspect the details of a Cannon package')
   .argument('[packageName]', 'Name and version of the cannon package to inspect')
   .option('-j --json', 'Output as JSON')
+  .option(
+    '-w --write-deployments <writeDeployments>',
+    'Path to write the deployments data (address and ABIs), like "./deployments"'
+  )
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
-    await inspect(packageName, options.json);
+    await inspect(packageName, options.json, options.writeDeployments);
   });
 
 program
