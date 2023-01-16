@@ -116,13 +116,12 @@ Verify a package on Etherscan.
 
 **Arguments**
 
-- `<packageName>` - Name and version of the package to publish
+- `<packageName:packageVersion>` - Name and version of the package to verify
 
 **Options**
 
-- `--apiKey` - Etherscan API key
+- `--api-key` - Etherscan API key
 - `--network` - Network of deployment to verify (_Default: "mainnet"_)
-- `--directory` - Path to a custom package directory (_Default: "~/.local/share/cannon"_)
 
 ### publish
 
@@ -130,7 +129,7 @@ Publish a Cannon package to the registry.
 
 **Arguments**
 
-- `<packageName>` - Name and version of the package to publish
+- `<packageName:packageVersion>` - Name and version of the package to publish
 
 **Options**
 

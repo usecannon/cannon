@@ -243,22 +243,6 @@ program
   });
 
 program
-  .command('inspect')
-  .description('Inspect the details of a Cannon package')
-  .argument('<packageName>', 'Name and version of the cannon package to inspect')
-  .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
-  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
-  .option('-j --json', 'Output as JSON')
-  .option(
-    '-w --write-deployments <writeDeployments>',
-    'Path to write the deployments data (address and ABIs), like "./deployments"'
-  )
-  .action(async function (packageName, options) {
-    const { inspect } = await import('./commands/inspect');
-    await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
-  });
-
-program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
@@ -314,6 +298,22 @@ program
     } else {
       throw new Error('must specify private key');
     }
+  });
+
+program
+  .command('inspect')
+  .description('Inspect the details of a Cannon package')
+  .argument('<packageName>', 'Name and version of the cannon package to inspect')
+  .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-j --json', 'Output as JSON')
+  .option(
+    '-w --write-deployments <writeDeployments>',
+    'Path to write the deployments data (address and ABIs), like "./deployments"'
+  )
+  .action(async function (packageName, options) {
+    const { inspect } = await import('./commands/inspect');
+    await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
   });
 
 program
