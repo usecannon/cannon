@@ -202,11 +202,7 @@ export async function build({
     );
   } else {
     console.log(
-      bold(
-        yellow(
-          'Chain state could not be saved. For best performance and usage, please follow our guide https://TODOTODO to set up your IPFS connection.'
-        )
-      )
+      bold(yellow('Chain state could not be saved. Run `npx @usecannon/cli setup` to set up your IPFS connection.'))
     );
   }
 

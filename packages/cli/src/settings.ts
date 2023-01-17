@@ -6,13 +6,12 @@ import {
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_ENDPOINT,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
+  CLI_SETTINGS_STORE,
 } from './constants';
 
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:settings');
-
-const CLI_SETTINGS_STORE = 'settings.json';
 
 export type CliSettings = {
   ipfsUrl: string;

@@ -187,6 +187,10 @@ Specify a package that was added as a Cannon plug-in and remove it.
 
 - `name` - The name of the NPM package.
 
+### setup
+
+Start the wizard to create or update a `settings.json` file for Cannon that specifies IPFS and Ethereum RPC configuration.
+
 ## Cannonfile Specification
 
 Cannonfiles contain a series of actions defined in a TOML file.

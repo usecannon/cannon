@@ -12,12 +12,11 @@ import {
   CANNON_CHAIN_ID,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, execPromise, loadCannonfile, setupAnvil } from './helpers';
+import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
 import { PackageSpecification } from './types';
-import { DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_ENDPOINT, DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
 import './custom-steps/run';
@@ -40,6 +39,7 @@ export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
+export { setup } from './commands/setup';
 export { runRpc } from './rpc';
 
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
@@ -152,8 +152,6 @@ program
       const chainId = opts.network
         ? (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId
         : CANNON_CHAIN_ID;
-
-      await setupAnvil();
 
       node = await runRpc({
         port: 8545,
@@ -376,6 +374,14 @@ program
       signer: signers[0],
       provider,
     });
+  });
+
+program
+  .command('setup')
+  .description('')
+  .action(async function () {
+    const { setup } = await import('./commands/setup');
+    await setup();
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');

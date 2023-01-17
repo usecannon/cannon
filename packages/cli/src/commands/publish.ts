@@ -1,5 +1,5 @@
 import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
-import { blueBright } from 'chalk';
+import { blueBright, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
@@ -61,6 +61,12 @@ export async function publish(
         if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
           throw new Error('re-deployed urls do not match up');
         }
+      } else {
+        console.log(
+          yellowBright(
+            'Your package has not been pushed to a remote IPFS endpoint. Run `npx @usecannon/cli setup` to update your settings and run this command again to make sure the package is available remotely.'
+          )
+        );
       }
 
       registrationReceipts.push(

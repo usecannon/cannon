@@ -2,7 +2,6 @@ import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import { ChainArtifacts } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
-import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { interact } from '../interact';
 import onKeypress from '../util/on-keypress';
@@ -10,6 +9,7 @@ import { build } from './build';
 import { getContractsRecursive } from '../util/contracts-recursive';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+import { setupAnvil } from '../helpers';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -31,7 +31,6 @@ const INSTRUCTIONS = green(
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
-
   console.log(magentaBright('Starting local node...'));
 
   // Start the rpc server

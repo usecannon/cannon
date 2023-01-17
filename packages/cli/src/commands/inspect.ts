@@ -5,8 +5,10 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
+import { setupAnvil } from '../helpers';
 
 export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
+  await setupAnvil();
   const { name, version } = parsePackageRef(packageRef);
 
   // TODO I don't think it's adding 'latest' as expected
