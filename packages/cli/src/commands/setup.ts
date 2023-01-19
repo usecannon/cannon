@@ -3,7 +3,12 @@ import fs from 'fs-extra';
 import path from 'path';
 import untildify from 'untildify';
 import prompts from 'prompts';
-import { DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE } from '../constants';
+import {
+  DEFAULT_CANNON_DIRECTORY,
+  CLI_SETTINGS_STORE,
+  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_ADDRESS,
+} from '../constants';
 import _ from 'lodash';
 
 export async function setup() {
@@ -52,8 +57,24 @@ export async function setup() {
     name: 'registryProviderUrl',
     message:
       'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
+    initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT || '',
   });
-  fileSettings.registryProviderUrl = response3.registryProviderUrl;
+  // Only write this to the file if it's different than the default, so this can be upgraded in the future.
+  if (response3.registryProviderUrl != DEFAULT_REGISTRY_ENDPOINT) {
+    fileSettings.registryProviderUrl = response3.registryProviderUrl;
+  }
+
+  const response4 = await prompts({
+    type: 'text',
+    name: 'registryAddress',
+    message: 'Optionally, you can set a custom registry address. It is strongly recommended that you use the default.\n',
+    initial: fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS || '',
+  });
+  // Only write this to the file if it's different than the default, so this can be upgraded in the future.
+  if (response4.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
+    fileSettings.registryAddress = response4.registryAddress;
+  }
+  fileSettings.registryAddress = response4.registryAddress;
 
   console.log(`Writing configuration to ${cliSettingsStore}...`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
