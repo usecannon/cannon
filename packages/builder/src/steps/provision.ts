@@ -96,8 +96,9 @@ export default {
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
     if (ctx.imports[importLabel]) {
-      debug('using state from upstream source');
-      prevState = (await runtime.loader.readDeploy(config.source, preset, chainId))!.state;
+      const prevUrl = ctx.imports[importLabel].url;
+      debug(`using state from previous deploy: ${prevUrl}`);
+      prevState = (await runtime.loader.readMisc(prevUrl))!.state;
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.

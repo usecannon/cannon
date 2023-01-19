@@ -13,7 +13,6 @@ import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';
 import './tasks/inspect';
-import './tasks/packages';
 import './tasks/publish';
 import './tasks/run';
 import './tasks/verify';
