@@ -39,6 +39,7 @@ interface Params {
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;
+  plugins?: boolean;
 }
 
 export async function build({
@@ -54,6 +55,7 @@ export async function build({
   overrideResolver,
   wipe = false,
   persist = true,
+  plugins = true,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -61,12 +63,14 @@ export async function build({
 
   const cliSettings = resolveCliSettings();
 
-  const plugins = await listInstalledPlugins();
+  if (plugins) {
+    const pluginList = await listInstalledPlugins();
 
-  if (plugins.length) {
-    console.log('loading installed plugins:', plugins.join(', '));
-    for (const plugin of plugins) {
-      await loadPlugin(plugin);
+    if (pluginList.length) {
+      console.log('loading installed plugins:', pluginList.join(', '));
+      for (const plugin of pluginList) {
+        await loadPlugin(plugin);
+      }
     }
   }
 
