@@ -119,7 +119,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       wipe,
       persist: !dryRun && hre.network.name !== 'hardhat',
       overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
-      plugins: false
+      plugins: false,
     } as const;
 
     const { outputs } = await build(params);

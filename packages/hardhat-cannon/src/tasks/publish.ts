@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_PUBLISH } from '../task-names';
-import { publish, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, PackageSpecification } from '@usecannon/cli';
+import { publish, DEFAULT_REGISTRY_ADDRESS, PackageSpecification } from '@usecannon/cli';
 import { ethers, Wallet } from 'ethers';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 

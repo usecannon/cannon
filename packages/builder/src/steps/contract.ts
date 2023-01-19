@@ -11,7 +11,7 @@ import {
   ChainBuilderContextWithHelpers,
   ContractArtifact,
 } from '../types';
-import { getContractFromPath, getMergedAbiFromContractPaths } from '../util';
+import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
 const debug = Debug('cannon:builder:contract');
@@ -184,17 +184,17 @@ export default {
       transactionHash = receipt.transactionHash;
     }
 
-    let abi = JSON.parse(factory.interface.format(ethers.utils.FormatTypes.json) as string);
+    let abi = artifactData.abi;
 
     // override abi?
     if (config.abi) {
-      const implContract = getContractFromPath(ctx, config.abi);
+      const implContract = getContractDefinitionFromPath(ctx, config.abi);
 
       if (!implContract) {
         throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
       }
 
-      abi = JSON.parse(implContract.interface.format(ethers.utils.FormatTypes.json) as string);
+      abi = implContract.abi;
     } else if (config.abiOf) {
       abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
     }
