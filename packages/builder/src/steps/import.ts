@@ -76,6 +76,12 @@ export default {
       );
     }
 
+    if (deployInfo.status === 'partial') {
+      throw new Error(
+        `deployment status is incomplete for ${config.source}. cannot generate artifacts safely. please complete deployment to continue import.`
+      );
+    }
+
     return {
       imports: {
         [importLabel]: {

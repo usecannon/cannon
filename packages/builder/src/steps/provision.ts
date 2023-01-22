@@ -5,7 +5,7 @@ import { JTDDataType } from 'ajv/dist/core';
 import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, DeploymentState } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime } from '../runtime';
+import { ChainBuilderRuntime, Events } from '../runtime';
 import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
@@ -119,13 +119,18 @@ export default {
       getArtifact: undefined,
     });
 
+    let partialDeploy = false;
+    importRuntime.on(Events.SkipDeploy, () => {
+      partialDeploy = true;
+    });
+
     // need to import the misc data for the imported package
     debug('load misc');
     await importRuntime.restoreMisc(deployInfo?.miscUrl ?? deployInfo!.miscUrl);
 
     debug('start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
-    debug('finish build');
+    debug('finish build. is partial:', partialDeploy);
 
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.loader.putDeploy({
@@ -133,6 +138,7 @@ export default {
       miscUrl: deployInfo?.miscUrl ?? deployInfo!.miscUrl,
       options: importPkgOptions,
       state: builtState,
+      status: partialDeploy ? 'partial' : 'complete',
     });
 
     if (!newSubDeployUrl) {

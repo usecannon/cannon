@@ -99,16 +99,19 @@ export async function build({
 
     baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
+    allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, new IPFSLoader(cliSettings.ipfsUrl, resolver));
 
+  let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
-  runtime.on(Events.DeployContract, (n, c, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${c.address})`));
-  runtime.on(Events.DeployTxn, (n, t, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${t.hash})`));
-  runtime.on(Events.DeployExtra, (n, v, d) => console.log(`${'  '.repeat(d)}↪ ${n} (${v})`));
+  runtime.on(Events.SkipDeploy, (n, err, d) => {
+    partialDeploy = true;
+    console.log(`${'  '.repeat(d)}  -> skip ${n} (${err.toString()})`);
+  });
 
   let oldDeployData: DeploymentInfo | null = null;
   if (!wipe) {
@@ -188,6 +191,7 @@ export async function build({
       def: def.toJson(),
       state: newState,
       options: packageDefinition.settings,
+      status: partialDeploy ? 'partial' : 'complete',
       miscUrl: miscUrl,
     });
 
@@ -199,11 +203,25 @@ export async function build({
       );
     }
 
-    console.log(
-      greenBright(
-        `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
-      )
-    );
+    if (partialDeploy) {
+      console.log(
+        yellow(
+          bold(
+            'WARNING: your deployment was not fully completed. Please inspect the issues listed above, and resolve as necessary.'
+          )
+        )
+      );
+
+      console.log(
+        yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
+      );
+    } else {
+      console.log(
+        greenBright(
+          `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
+        )
+      );
+    }
   } else {
     console.log(
       bold(yellow('Chain state could not be saved. Run `npx @usecannon/cli setup` to set up your IPFS connection.'))

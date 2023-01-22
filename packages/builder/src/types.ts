@@ -97,6 +97,9 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should record snapshots?
   snapshots: boolean;
+
+  // Should gracefully continue after failures and return a partial release?
+  allowPartialDeploy: boolean;
 }
 
 export interface BundledChainBuilderOutputs {
@@ -116,6 +119,9 @@ export type DeploymentInfo = {
 
   // setting overrides used to build this chain
   options: ChainBuilderOptions;
+
+  // defines whether this deployment has been fully completed or only partially or completely unbuilt
+  status?: 'complete' | 'partial' | 'none';
 
   // the result of all the build steps for the last build
   state: DeploymentState;

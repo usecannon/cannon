@@ -31,6 +31,7 @@ export async function verify(packageRef: string, apiKey: string, network: string
 
       baseDir: null,
       snapshots: false,
+      allowPartialDeploy: false,
     },
     new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
   );

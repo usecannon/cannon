@@ -91,8 +91,8 @@ ${printChainDefinitionProblems(problems)}`);
       await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
     }
   } else {
-    debug('building isolated');
-    for (const n of topologicalActions) {
+    debug('building individual');
+    doActions: for (const n of topologicalActions) {
       const ctx = _.clone(initialCtx);
 
       const artifacts: ChainArtifacts = {};
@@ -100,6 +100,12 @@ ${printChainDefinitionProblems(problems)}`);
       let depsTainted = false;
 
       for (const dep of def.getDependencies(n)) {
+        if (!built.has(dep)) {
+          debug('skip because previous step incomplete');
+          runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
+          continue doActions;
+        }
+
         _.merge(artifacts, built.get(dep));
         depsTainted = depsTainted || tainted.has(dep);
       }
@@ -111,23 +117,36 @@ ${printChainDefinitionProblems(problems)}`);
         addOutputsToContext(ctx, state[n].artifacts);
       }
 
-      const curHash = await def.getState(n, runtime, ctx, depsTainted);
+      try {
+        const curHash = await def.getState(n, runtime, ctx, depsTainted);
 
-      debug('comparing states', state[n] ? state[n].hash : null, curHash);
-      if (!state[n] || (curHash && state[n].hash !== curHash)) {
-        debug('run isolated', n);
-        const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
-        state[n] = {
-          artifacts: newArtifacts,
-          hash: curHash,
-          version: BUILD_VERSION,
-        };
-        tainted.add(n);
-      } else {
-        debug('skip isolated', n);
+        debug('comparing states', state[n] ? state[n].hash : null, curHash);
+        if (!state[n] || (curHash && state[n].hash !== curHash)) {
+          debug('run isolated', n);
+          const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
+          state[n] = {
+            artifacts: newArtifacts,
+            hash: curHash,
+            version: BUILD_VERSION,
+          };
+          tainted.add(n);
+        } else {
+          debug('skip isolated', n);
+        }
+
+        built.set(n, _.merge(artifacts, state[n].artifacts));
+      } catch (err: any) {
+        if (runtime.allowPartialDeploy) {
+          runtime.emit(Events.SkipDeploy, n, err, 0);
+          continue; // will skip saving the build artifacts, which should block any future jobs from finishing
+        } else {
+          // make sure its possible to debug the original error
+          debug('error', err);
+
+          // now log a more friendly message
+          throw new Error(`failure on step ${n}: ${(err as Error).toString()}`);
+        }
       }
-
-      built.set(n, _.merge(artifacts, state[n].artifacts));
     }
   }
 
@@ -180,18 +199,26 @@ async function buildLayer(
       addOutputsToContext(ctx, state[action].artifacts);
     }
 
-    const curHash = await def.getState(action, runtime, ctx, false);
+    try {
+      const curHash = await def.getState(action, runtime, ctx, false);
 
-    if (isCompleteLayer) {
-      debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
-      if (!state[action] || (curHash && state[action].hash !== curHash)) {
-        debug('step', action, 'in layer needs to be rebuilt');
-        isCompleteLayer = false;
-        break;
+      if (isCompleteLayer) {
+        debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
+        if (!state[action] || (curHash && state[action].hash !== curHash)) {
+          debug('step', action, 'in layer needs to be rebuilt');
+          isCompleteLayer = false;
+          break;
+        }
+
+        // in case we do not need to rebuild this layer we still need to set the built entry
+        built.set(action, _.merge(depArtifacts, state[action].artifacts));
       }
+    } catch (err) {
+      // make sure its possible to debug the original error
+      debug('error', err);
 
-      // in case we do not need to rebuild this layer we still need to set the built entry
-      built.set(action, _.merge(depArtifacts, state[action].artifacts));
+      // now log a more friendly message
+      throw new Error(`failure on step ${action}: ${(err as Error).toString()}`);
     }
   }
 

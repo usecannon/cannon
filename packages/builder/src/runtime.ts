@@ -11,11 +11,12 @@ import { CannonLoader } from './loader';
 const debug = Debug('cannon:builder:runtime');
 
 export enum Events {
-  PreStepExecute = 'pre-step-execute',
-  PostStepExecute = 'post-step-execute',
+  PreStepExecute = 'pre-step-execute', // step name,
+  PostStepExecute = 'post-step-execute', // step name,
   DeployContract = 'deploy-contract',
   DeployTxn = 'deploy-txn',
   DeployExtra = 'deploy-extra',
+  SkipDeploy = 'skip-deploy', // step name, error causing skip
 }
 
 export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRuntimeInfo {
@@ -26,6 +27,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   getArtifact: (name: string) => Promise<ContractArtifact>;
   baseDir: string | null;
   snapshots: boolean;
+  allowPartialDeploy: boolean;
 
   private cleanSnapshot: any;
 
@@ -58,6 +60,8 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
     this.baseDir = info.baseDir;
     this.snapshots = info.snapshots;
+
+    this.allowPartialDeploy = info.allowPartialDeploy;
 
     this.misc = { artifacts: {} };
   }
@@ -126,6 +130,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
+    newRuntime.on(Events.SkipDeploy, (n, e, d) => this.emit(Events.SkipDeploy, n, e, d + 1));
 
     return newRuntime;
   }

@@ -57,6 +57,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
 
         baseDir: null,
         snapshots: false,
+        allowPartialDeploy: false,
       },
       new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
     );
