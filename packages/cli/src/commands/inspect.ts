@@ -11,21 +11,15 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   await setupAnvil();
   const { name, version } = parsePackageRef(packageRef);
 
-  // TODO I don't think it's adding 'latest' as expected
-  if (version === 'latest') {
-    // TODO fetch the current latest version from the registry?
-    throw new Error(`You must specify a valid package version, given: "${version}"`);
-  }
-
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
   const loader = new IPFSLoader(resolveCliSettings().ipfsUrl, resolver);
 
-  const deployData = await loader.readDeploy(packageRef, preset, chainId);
+  const deployData = await loader.readDeploy(`${name}:${version}`, preset, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the given preset and current network.`
     );
   }
 

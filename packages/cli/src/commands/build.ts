@@ -197,7 +197,7 @@ export async function build({
 
     if (persist) {
       await resolver.publish(
-        [`${packageDefinition.name}:${packageDefinition.version}`],
+        [`${packageDefinition.name}:latest`, `${packageDefinition.name}:${packageDefinition.version}`],
         `${runtime.chainId}-${preset}`,
         deployUrl!
       );
