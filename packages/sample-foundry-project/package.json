@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "test": "forge test",
-    "build-cannonfile": "npx @usecannon/cli build cannonfile.toml",
+    "build-cannonfile": "npx @usecannon/cli build cannonfile.toml && npx @usecannon/cli build cannonfile.consumer.toml",
     "run": "npx @usecannon/cli greeter",
-    "deploy": "npx @usecannon/cli deploy greeter",
     "run-synthetix": "npx @usecannon/cli synthetix"
   },
   "devDependencies": {
