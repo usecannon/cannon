@@ -1,11 +1,9 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity 0.8.17;
 
+import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
+import {OwnedUpgradable} from "./OwnedUpgradable.sol";
 import {Storage} from "./Storage.sol";
-
-import "./misc/SetUtil.sol";
-
-import "./OwnedUpgradable.sol";
 
 contract CannonRegistry is Storage, OwnedUpgradable {
   using SetUtil for SetUtil.Bytes32Set;

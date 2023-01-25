@@ -16,18 +16,17 @@ describe('CannonRegistry', function () {
   });
 
   before('deploy contract', async function () {
+    const ownerAddress = await owner.getAddress();
+
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
     const Implementation = await CannonRegistryFactory.deploy();
     await Implementation.deployed();
+
     const ProxyFactory = await ethers.getContractFactory('Proxy');
-    const Proxy = await ProxyFactory.deploy(Implementation.address);
+    const Proxy = await ProxyFactory.deploy(Implementation.address, ownerAddress);
     await Proxy.deployed();
 
     CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
-
-    const ownerAddress = await owner.getAddress();
-    await CannonRegistry.nominateNewOwner(ownerAddress).then((tx) => tx.wait());
-    await CannonRegistry.acceptOwnership().then((tx) => tx.wait());
   });
 
   describe('Upgradedability', function () {

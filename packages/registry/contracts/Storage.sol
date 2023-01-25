@@ -1,9 +1,11 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity 0.8.17;
 
-import "./misc/SetUtil.sol";
+import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 
 contract Storage {
+  bytes32 private constant _SLOT_CANNON_REGISTRY_STORAGE = keccak256(abi.encode("usecannon.cannon.registry"));
+
   struct Store {
     mapping(bytes32 => Package) packages;
     mapping(address => bool) verifiers;
@@ -22,9 +24,10 @@ contract Storage {
   }
 
   function _store() internal pure returns (Store storage store) {
+    bytes32 s = _SLOT_CANNON_REGISTRY_STORAGE;
+
     assembly {
-      // bytes32(uint(keccak256("usecannon.cannon.registry")) - 1)
-      store.slot := 0xc1d43f226fc86c5ffbb0bdc2447f5a3d1ab534c239d7dc14b283a49f5d5dbd2a
+      store.slot := s
     }
   }
 }
