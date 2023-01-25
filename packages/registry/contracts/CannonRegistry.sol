@@ -11,7 +11,7 @@ contract CannonRegistry is Storage, OwnedUpgradable {
   error Unauthorized();
   error InvalidUrl(string url);
   error InvalidName(bytes32 name);
-  error TooManyTags();
+  error InvalidTags();
   error PackageNotFound();
 
   event PackagePublish(
@@ -66,8 +66,8 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     string memory _packageVersionUrl,
     string memory _packageMetaUrl
   ) external {
-    if (_packageTags.length > 5) {
-      revert TooManyTags();
+    if (_packageTags.length == 0 || _packageTags.length > 5) {
+      revert InvalidTags();
     }
 
     if (bytes(_packageVersionUrl).length == 0) {

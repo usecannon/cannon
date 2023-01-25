@@ -72,33 +72,59 @@ describe('CannonRegistry', function () {
   describe('publish()', function () {
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.publish(toBytes32('some-module'), toBytes32('0.0.1'), [], '');
+        await CannonRegistry.publish(
+          toBytes32('some-module-'),
+          toBytes32('1337-main'),
+          [toBytes32('0.0.1')],
+          '',
+          'ipfs://some-module-meta@0.0.1'
+        );
       }, 'InvalidUrl("")');
     });
 
     it('should not allow invalid name', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.publish(toBytes32('some-module-'), toBytes32('0.0.1'), [], 'ipfs://some-module-hash@0.0.1');
+        await CannonRegistry.publish(
+          toBytes32('some-module-'),
+          toBytes32('1337-main'),
+          [toBytes32('0.0.1')],
+          'ipfs://some-module-hash@0.0.1',
+          'ipfs://some-module-meta@0.0.1'
+        );
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
+    });
+
+    it('should validate missing tags', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          [],
+          'ipfs://some-module-hash@0.0.1',
+          'ipfs://some-module-meta@0.0.1'
+        );
+      }, 'InvalidTags()');
     });
 
     it('should not allow more than 5 tags', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module'),
-          toBytes32('0.0.1'),
+          toBytes32('1337-main'),
           ['one', 'two', 'three', 'four', 'five', 'six'].map(toBytes32),
+          'ipfs://some-module-hash@0.0.1',
           'ipfs://some-module-hash@0.0.1'
         );
-      }, 'TooManyTags()');
+      }, 'InvalidTags()');
     });
 
     it('should create the first package and assign the owner', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
-        toBytes32('0.0.1'),
-        [],
-        'ipfs://some-module-hash@0.0.1'
+        toBytes32('1337-main'),
+        [toBytes32('0.0.1')],
+        'ipfs://some-module-hash@0.0.1',
+        'ipfs://some-module-meta@0.0.1'
       );
 
       const { events } = await tx.wait();
@@ -106,17 +132,28 @@ describe('CannonRegistry', function () {
       equal(events!.length, 1);
       equal(events![0].event, 'PackagePublish');
 
-      const resultUrl = await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('0.0.1'));
+      const resultUrl = await CannonRegistry.getPackageUrl(
+        toBytes32('some-module'),
+        toBytes32('0.0.1'),
+        toBytes32('1337-main')
+      );
+      const metaUrl = await CannonRegistry.getPackageMeta(
+        toBytes32('some-module'),
+        toBytes32('0.0.1'),
+        toBytes32('1337-main')
+      );
 
       equal(resultUrl, 'ipfs://some-module-hash@0.0.1');
+      equal(metaUrl, 'ipfs://some-module-meta@0.0.1');
     });
 
     it('should be able to publish new version', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
-        toBytes32('0.0.2'),
-        [],
-        'ipfs://some-module-hash@0.0.2'
+        toBytes32('1337-main'),
+        [toBytes32('0.0.2')],
+        'ipfs://some-module-hash@0.0.2',
+        'ipfs://some-module-meta@0.0.2'
       );
 
       const { events } = await tx.wait();
@@ -128,9 +165,10 @@ describe('CannonRegistry', function () {
     it('should be able to update an older version', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
-        toBytes32('0.0.1'),
-        [],
-        'ipfs://updated-module-hash@0.0.1'
+        toBytes32('1337-main'),
+        [toBytes32('0.0.1')],
+        'ipfs://some-module-hash@0.0.1',
+        'ipfs://some-module-meta@0.0.1'
       );
 
       const { events } = await tx.wait();
@@ -142,9 +180,10 @@ describe('CannonRegistry', function () {
     it('pushes tags', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
-        toBytes32('0.0.3'),
-        ['latest', 'stable'].map(toBytes32),
-        'ipfs://updated-module-hash@0.0.3'
+        toBytes32('1337-main'),
+        ['0.0.3', 'latest', 'stable'].map(toBytes32),
+        'ipfs://updated-module-hash@0.0.3',
+        'ipfs://updated-module-meta@0.0.3'
       );
 
       const { events } = await tx.wait();
@@ -153,11 +192,11 @@ describe('CannonRegistry', function () {
       equal(events![0].event, 'PackagePublish');
 
       equal(
-        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('latest')),
+        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('latest'), toBytes32('1337-main')),
         'ipfs://updated-module-hash@0.0.3'
       );
       equal(
-        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('stable')),
+        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('stable'), toBytes32('1337-main')),
         'ipfs://updated-module-hash@0.0.3'
       );
     });
@@ -166,9 +205,10 @@ describe('CannonRegistry', function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).publish(
           toBytes32('some-module'),
-          toBytes32('0.0.4'),
-          [],
-          'ipfs://updated-module-hash@0.0.4'
+          toBytes32('1337-main'),
+          ['0.0.4', 'latest', 'stable'].map(toBytes32),
+          'ipfs://some-module-hash@0.0.4',
+          'ipfs://some-module-meta@0.0.4'
         );
       }, 'Unauthorized()');
     });
