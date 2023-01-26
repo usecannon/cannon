@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+import _ from 'lodash';
 import untildify from 'untildify';
 import {
   DEFAULT_CANNON_DIRECTORY,
@@ -21,10 +22,8 @@ export type CliSettings = {
   cannonDirectory: string;
 };
 
-let defaultWarnPrinted = false;
-
 // TODO: this function is ugly
-export function resolveCliSettings(): CliSettings {
+function _resolveCliSettings(): CliSettings {
   const cliSettingsStore = untildify(
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
   );
@@ -36,8 +35,7 @@ export function resolveCliSettings(): CliSettings {
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
-  if (!defaultWarnPrinted && !Object.values(fileSettings).length) {
-    defaultWarnPrinted = true;
+  if (!Object.values(fileSettings).length) {
     console.warn(
       `settings not configured: please create file ${cliSettingsStore} for better performance. See http:// for more information.`
     );
@@ -57,3 +55,5 @@ export function resolveCliSettings(): CliSettings {
 
   return finalSettings;
 }
+
+export const resolveCliSettings = _.memoize(_resolveCliSettings);
