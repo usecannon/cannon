@@ -7,6 +7,7 @@ import {
   createDefaultReadRegistry,
   loadCannonfile,
   PackageSpecification,
+  parsePackageArguments,
   parsePackagesArguments,
   resolveCliSettings,
   runRpc,
@@ -19,19 +20,18 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
   .addPositionalParam('preset', 'Specify an alternate preset', 'main')
   .addOptionalParam('apiKey', 'Etherscan API key')
   .setAction(async ({ packageName, preset, apiKey }, hre) => {
-    const packages: PackageSpecification[] = ((packageName || []) as string[]).reduce((result, val) => {
-      return parsePackagesArguments(val, result);
-    }, [] as PackageSpecification[]);
+    let cannonPackage: PackageSpecification;
 
-    if (!packages.length) {
+    if (packageName) {
+      cannonPackage = parsePackageArguments(packageName);
+    } else {
       // derive from the default cannonfile
       const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, 'cannonfile.toml'));
-
-      packages.push({
+      cannonPackage = {
         name,
         version,
         settings: {},
-      });
+      };
     }
 
     // create temporary provider
@@ -63,7 +63,7 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     );
 
     const deployData = await runtime.loader.readDeploy(
-      `${packages[0].name}:${packages[0].version}`,
+      `${cannonPackage.name}:${cannonPackage.version}`,
       preset,
       runtime.chainId
     );
@@ -96,23 +96,23 @@ task(TASK_VERIFY, 'Verify a package on Etherscan')
     }
 
     for (const c in outputs.contracts) {
-      if (_.has(outputs, ['contracts', c, 'sourceName']) && _.has(outputs, ['contracts', c, 'contractName'])) {
-        console.log('Verifying contract:', c);
-        try {
-          await hre.run('verify:verify', {
-            contract: `${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName}`,
-            address: outputs.contracts[c].address,
-            constructorArguments: outputs.contracts[c].constructorArgs || [],
-          });
-        } catch (err) {
-          console.log(
-            `Unable to verify ${outputs.contracts[c].sourceName}:${outputs.contracts[c].contractName} - ${
-              (err as Error).message
-            }`
-          );
-        }
-      } else {
+      const contract = outputs.contracts[c];
+
+      if (!contract.sourceName || !contract.contractName) {
         console.log(`Skipping ${c}: sourceName or contractName has not been set.`);
+        continue;
+      }
+
+      console.log('Verifying contract:', c);
+
+      try {
+        await hre.run('verify:verify', {
+          contract: `${contract.sourceName}:${contract.contractName}`,
+          address: contract.address,
+          constructorArguments: contract.constructorArgs || [],
+        });
+      } catch (err) {
+        console.log(`Unable to verify ${contract.sourceName}:${contract.contractName} - ${(err as Error).message}`);
       }
     }
   });
