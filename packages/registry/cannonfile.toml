@@ -1,5 +1,5 @@
 name = "registry"
-version = "2.0.0"
+version = "<%= package.version %>"
 
 [setting.salt]
 defaultValue = "official-registry"
