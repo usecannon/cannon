@@ -1,6 +1,6 @@
 <template>
   <CCode variant-color="black" background="black" py="1" px="3" width="100%"
-    ><span v-html="command" />
+    ><span v-html="colorizedCommand" />
     <CBox as="span" :display="['none', 'none', 'inline']">
       <div
         @click="copy"
@@ -14,6 +14,13 @@ export default {
   name: 'CommandPreview',
   props: {
     command: String
+  },
+  computed: {
+    colorizedCommand(){
+      let words = this.command.split(' ')
+      words[0] = "<span style='color: #61afef'>" + words[0] + "</span>"
+      return words.join(' ');
+    }
   },
   methods: {
     copy(){
