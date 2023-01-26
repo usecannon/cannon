@@ -37,7 +37,7 @@ function _resolveCliSettings(): CliSettings {
 
   if (!Object.values(fileSettings).length) {
     console.warn(
-      `settings not configured: please create file ${cliSettingsStore} for better performance. See http:// for more information.`
+      `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/docs for more information.`
     );
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_ENDPOINT})`);
   }
