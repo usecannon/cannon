@@ -214,6 +214,7 @@ program
         version,
         settings: parsedSettings,
       },
+      meta: {},
       getArtifact,
       getSigner,
       getDefaultSigner,

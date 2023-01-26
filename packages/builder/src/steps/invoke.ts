@@ -94,6 +94,18 @@ async function runTxn(
     );
   }
 
+  if (!contract.functions[config.func]) {
+    throw new Error(
+      `contract ${contract.address} for ${currentLabel} does not contain the function "${config.func}". List of recongized functions is:\n${Object.keys(contract.functions).join('\n')}`
+    )
+  }
+
+  if (config.fromCall && !contract.functions[config.fromCall.func]) {
+    throw new Error(
+      `contract ${contract.address} for ${currentLabel} does not contain the function "${config.func}" to determine owner. List of recongized functions is:\n${Object.keys(contract.functions).join('\n')}`
+    );
+  }
+
   const overrides: ethers.Overrides & { value?: string } = {};
 
   if (config.overrides?.gasLimit) {

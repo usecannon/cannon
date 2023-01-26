@@ -112,7 +112,7 @@ export default {
     }
 
     // TODO: needs npm package from the manifest
-    const initialCtx = await createInitialContext(def, {}, importPkgOptions);
+    const initialCtx = await createInitialContext(def, deployInfo.meta, importPkgOptions);
 
     // use separate runtime to ensure everything is clear
     const importRuntime = runtime.derive({
@@ -138,6 +138,7 @@ export default {
       miscUrl: deployInfo?.miscUrl ?? deployInfo!.miscUrl,
       options: importPkgOptions,
       state: builtState,
+      meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
     });
 

@@ -170,13 +170,19 @@ export default {
       debug('performing arachnid create2');
       const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
 
-      const pendingTxn = await signer.sendTransaction(create2Txn);
-      const receipt = await pendingTxn.wait();
-
-      debug('arachnid create2 complete', receipt);
+      if (await runtime.provider.getCode(addr) !== '0x') {
+        debug('create2 contract already completed');
+        // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
+        transactionHash = '';
+      } else {
+        const pendingTxn = await signer.sendTransaction(create2Txn);
+        const receipt = await pendingTxn.wait();
+        transactionHash = pendingTxn.hash;
+  
+        debug('arachnid create2 complete', receipt);
+      }
 
       contractAddress = addr;
-      transactionHash = pendingTxn.hash;
     } else {
       const txnData = await signer.sendTransaction(txn);
       const receipt = await txnData.wait();

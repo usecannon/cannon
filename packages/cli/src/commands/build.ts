@@ -29,6 +29,7 @@ interface Params {
   cannonfilePath?: string;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
+  meta: any;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   getSigner?: (addr: string) => Promise<ethers.Signer>;
@@ -47,6 +48,7 @@ export async function build({
   cannonfilePath,
   packageDefinition,
   upgradeFrom,
+  meta,
   getArtifact,
   getSigner,
   getDefaultSigner,
@@ -77,10 +79,6 @@ export async function build({
   const chainId = (await provider.getNetwork()).chainId;
 
   const runtimeOptions = {
-    name: packageDefinition.name,
-    version: packageDefinition.version,
-    preset,
-
     provider,
     chainId,
 
@@ -177,7 +175,7 @@ export async function build({
     );
   }
 
-  const initialCtx = await createInitialContext(def, {}, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
+  const initialCtx = await createInitialContext(def, meta, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 
@@ -192,6 +190,7 @@ export async function build({
       state: newState,
       options: packageDefinition.settings,
       status: partialDeploy ? 'partial' : 'complete',
+      meta,
       miscUrl: miscUrl,
     });
 

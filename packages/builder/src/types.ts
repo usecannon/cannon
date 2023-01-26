@@ -126,6 +126,9 @@ export type DeploymentInfo = {
   // the result of all the build steps for the last build
   state: DeploymentState;
 
+  // additional package information. could be `package.json` file from a hardhat project, for example.
+  meta: any;
+
   // ipfs hash additional required files for possible build
   miscUrl: string;
 };
