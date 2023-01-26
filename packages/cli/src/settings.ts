@@ -21,6 +21,8 @@ export type CliSettings = {
   cannonDirectory: string;
 };
 
+let defaultWarnPrinted = false;
+
 // TODO: this function is ugly
 export function resolveCliSettings(): CliSettings {
   const cliSettingsStore = untildify(
@@ -34,7 +36,8 @@ export function resolveCliSettings(): CliSettings {
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
-  if (!Object.values(fileSettings).length) {
+  if (!defaultWarnPrinted && !Object.values(fileSettings).length) {
+    defaultWarnPrinted = true;
     console.warn(
       `settings not configured: please create file ${cliSettingsStore} for better performance. See http:// for more information.`
     );
