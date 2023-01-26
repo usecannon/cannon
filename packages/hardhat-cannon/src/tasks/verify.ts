@@ -8,7 +8,6 @@ import {
   loadCannonfile,
   PackageSpecification,
   parsePackageArguments,
-  parsePackagesArguments,
   resolveCliSettings,
   runRpc,
 } from '@usecannon/cli';
