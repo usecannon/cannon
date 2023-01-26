@@ -16,7 +16,8 @@ const config = {
   },
   optionalProperties: {
     chainId: { type: 'int32' },
-    preset: { type: 'string' },
+    sourcePreset: { type: 'string' },
+    targetPreset: { type: 'string' },
     options: {
       values: { type: 'string' },
     },
@@ -40,14 +41,15 @@ export default {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    const preset = config.preset ?? 'main';
+    const sourcePreset = config.sourcePreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
-    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`);
+    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
 
     return {
       url,
       options: cfg.options,
+      targetPreset: cfg.targetPreset,
     };
   },
 
@@ -55,7 +57,8 @@ export default {
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
-    config.preset = _.template(config.preset)(ctx) || 'main';
+    config.sourcePreset = _.template(config.sourcePreset)(ctx) || 'main';
+    config.targetPreset = _.template(config.targetPreset)(ctx) || 'main';
 
     if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
@@ -75,14 +78,15 @@ export default {
     const importLabel = currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    const preset = config.preset ?? 'main';
+    const sourcePreset = config.sourcePreset ?? 'main';
+    const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.loader.readDeploy(config.source, preset, chainId);
+    const deployInfo = await runtime.loader.readDeploy(config.source, sourcePreset, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${config.source}. please make sure it exists for preset ${preset} and network ${chainId}.`
+        `deployment not found: ${config.source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
       );
     }
 
@@ -102,7 +106,7 @@ export default {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.loader.readDeploy(config.source, preset, runtime.chainId)) {
+      if (await runtime.loader.readDeploy(config.source, targetPreset, runtime.chainId)) {
         console.warn(
           'warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?'
         );
@@ -147,7 +151,7 @@ export default {
     } else {
       await runtime.loader.resolver.publish(
         [config.source, ...(config.tags || []).map((t) => config.source.split(':')[1] + ':' + t)],
-        `${runtime.chainId}-${preset}`,
+        `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl
       );
     }

@@ -14,6 +14,7 @@ import { setupAnvil } from '../helpers';
 export interface RunOptions {
   node: CannonRpcNode;
   logs?: boolean;
+  meta: any;
   preset: string;
   impersonate: string;
   mnemonic?: string;
@@ -68,6 +69,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       provider,
       overrideResolver: resolver,
       preset: options.preset,
+      meta: options.meta,
       persist: false,
     });
 

@@ -175,7 +175,11 @@ export async function build({
     );
   }
 
-  const initialCtx = await createInitialContext(def, meta, _.assign(oldDeployData?.options ?? {}, packageDefinition.settings));
+  const initialCtx = await createInitialContext(
+    def,
+    meta,
+    _.assign(oldDeployData?.options ?? {}, packageDefinition.settings)
+  );
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
@@ -10,6 +11,7 @@ import {
   ChainBuilderRuntime,
   IPFSLoader,
   CANNON_CHAIN_ID,
+  ChainArtifacts,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
@@ -32,6 +34,9 @@ import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 import { resolveCliSettings } from './settings';
 
 import { installPlugin, removePlugin } from './plugins';
+import Debug from 'debug';
+import { writeModuleDeployments } from './util/write-deployments';
+const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -116,6 +121,101 @@ function concatArrayOption(val: string, prev: string[]) {
   return [val];
 }
 
+async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+  debug('do build called with', cannonfile, settings, opts);
+  // If the first param is not a cannonfile, it should be parsed as settings
+  if (!cannonfile.endsWith('.toml')) {
+    settings.unshift(cannonfile);
+    cannonfile = 'cannonfile.toml';
+  }
+
+  const parsedSettings = parseSettings(settings);
+
+  const cannonfilePath = path.resolve(cannonfile);
+  const projectDirectory = path.dirname(cannonfilePath);
+
+  let provider: CannonWrapperGenericProvider;
+  let node: CannonRpcNode | null = null;
+  if (!opts.network || opts.dryRun) {
+    const chainId = opts.network
+      ? (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId
+      : CANNON_CHAIN_ID;
+
+    node = await runRpc({
+      port: 8545,
+      forkUrl: opts.network,
+      chainId,
+    });
+
+    provider = getProvider(node);
+  } else {
+    provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), true);
+  }
+
+  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
+  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
+  if (opts.privateKey) {
+    const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider));
+
+    getSigner = async (s) => {
+      const w = wallets.find((w) => w.address.toLowerCase() === s.toLowerCase());
+
+      if (!w) {
+        throw new Error(
+          `signer not found for address ${s}. Please add the private key for this address to your command line.`
+        );
+      }
+
+      return w;
+    };
+
+    getDefaultSigner = async () => wallets[0];
+  }
+
+  // Build project to get the artifacts
+  const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
+  const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
+  await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
+
+  const getArtifact = async (name: string): Promise<ContractArtifact> => {
+    // TODO: Theres a bug that if the file has a different name than the contract it would not work
+    const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
+    const artifactBuffer = await fs.readFile(artifactPath);
+    const artifact = JSON.parse(artifactBuffer.toString()) as any;
+    return {
+      contractName: name,
+      sourceName: artifact.ast.absolutePath,
+      abi: artifact.abi,
+      bytecode: artifact.bytecode.object,
+      linkReferences: artifact.bytecode.linkReferences,
+    };
+  };
+
+  const { build } = await import('./commands/build');
+  const { name, version } = await loadCannonfile(cannonfilePath);
+
+  const { outputs } = await build({
+    provider,
+    cannonfilePath,
+    packageDefinition: {
+      name,
+      version,
+      settings: parsedSettings,
+    },
+    meta: {},
+    getArtifact,
+    getSigner,
+    getDefaultSigner,
+    projectDirectory,
+    upgradeFrom: opts.upgradeFrom,
+    preset: opts.preset,
+    persist: opts.wipe,
+    overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
+  });
+
+  return [node, outputs];
+}
+
 program
   .command('build')
   .description('Build a package from a Cannonfile')
@@ -134,96 +234,8 @@ program
   )
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
-  .action(async function (cannonfile, settings, opts) {
-    // If the first param is not a cannonfile, it should be parsed as settings
-    if (!cannonfile.endsWith('.toml')) {
-      settings.unshift(cannonfile);
-      cannonfile = 'cannonfile.toml';
-    }
-
-    const parsedSettings = parseSettings(settings);
-
-    const cannonfilePath = path.resolve(cannonfile);
-    const projectDirectory = path.dirname(cannonfilePath);
-
-    let provider: CannonWrapperGenericProvider;
-    let node: CannonRpcNode | null = null;
-    if (!opts.network || opts.dryRun) {
-      const chainId = opts.network
-        ? (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId
-        : CANNON_CHAIN_ID;
-
-      node = await runRpc({
-        port: 8545,
-        forkUrl: opts.network,
-        chainId,
-      });
-
-      provider = getProvider(node);
-    } else {
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), true);
-    }
-
-    let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
-    let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
-    if (opts.privateKey) {
-      const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider));
-
-      getSigner = async (s) => {
-        const w = wallets.find((w) => w.address.toLowerCase() === s.toLowerCase());
-
-        if (!w) {
-          throw new Error(
-            `signer not found for address ${s}. Please add the private key for this address to your command line.`
-          );
-        }
-
-        return w;
-      };
-
-      getDefaultSigner = async () => wallets[0];
-    }
-
-    // Build project to get the artifacts
-    const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
-    const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
-    await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
-
-    const getArtifact = async (name: string): Promise<ContractArtifact> => {
-      // TODO: Theres a bug that if the file has a different name than the contract it would not work
-      const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
-      const artifactBuffer = await fs.readFile(artifactPath);
-      const artifact = JSON.parse(artifactBuffer.toString()) as any;
-      return {
-        contractName: name,
-        sourceName: artifact.ast.absolutePath,
-        abi: artifact.abi,
-        bytecode: artifact.bytecode.object,
-        linkReferences: artifact.bytecode.linkReferences,
-      };
-    };
-
-    const { build } = await import('./commands/build');
-    const { name, version } = await loadCannonfile(cannonfilePath);
-
-    await build({
-      provider,
-      cannonfilePath,
-      packageDefinition: {
-        name,
-        version,
-        settings: parsedSettings,
-      },
-      meta: {},
-      getArtifact,
-      getSigner,
-      getDefaultSigner,
-      projectDirectory,
-      upgradeFrom: opts.upgradeFrom,
-      preset: opts.preset,
-      persist: opts.wipe,
-      overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
-    });
+  .action(async (cannonfile, settings, opts) => {
+    const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
     // ensure the cli actually exits
@@ -312,6 +324,36 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+  });
+
+program
+  .command('test')
+  .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
+  .argument('[settings...]', 'Custom settings for building the cannonfile')
+  .description('Run forge tests on a cannon deployment')
+  .option('-f --fork <url>', 'Fork off of the given url')
+  .action(async function (cannonfile, settings, opts) {
+    const [node, outputs] = await doBuild(cannonfile, settings, opts);
+
+    // basically we need to write deployments here
+    await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
+
+    // after the build is done we can run the forge tests for the user
+    const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545']);
+
+    forgeCmd.stdout.on('data', (data: Buffer) => {
+      process.stdout.write(data);
+    });
+
+    forgeCmd.stderr.on('data', (data: Buffer) => {
+      process.stderr.write(data);
+    });
+
+    forgeCmd.on('close', (code: number) => {
+      console.log(`forge exited with code ${code}`);
+      node?.kill();
+      process.exit(code);
+    });
   });
 
 program

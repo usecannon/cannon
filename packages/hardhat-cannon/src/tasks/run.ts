@@ -4,6 +4,7 @@ import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
 import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
+import { loadPackageJson } from '../internal/load-pkg-json';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(
@@ -59,6 +60,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       node,
       logs,
       preset,
+      meta: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       privateKey,
       impersonate: toImpersonate.join(','),
       fundAddresses: fundAddresses
