@@ -294,7 +294,9 @@ export async function getOutputs(
   const artifacts: ChainArtifacts = {};
 
   for (const step of def.topologicalActions) {
-    _.merge(artifacts, state[step].artifacts);
+    if (state[step] && state[step].artifacts) {
+      _.merge(artifacts, state[step].artifacts);
+    }
   }
 
   if (runtime.snapshots) {
