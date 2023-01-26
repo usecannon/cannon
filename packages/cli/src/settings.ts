@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+import _ from 'lodash';
 import untildify from 'untildify';
 import {
   DEFAULT_CANNON_DIRECTORY,
@@ -22,7 +23,7 @@ export type CliSettings = {
 };
 
 // TODO: this function is ugly
-export function resolveCliSettings(): CliSettings {
+function _resolveCliSettings(): CliSettings {
   const cliSettingsStore = untildify(
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
   );
@@ -36,7 +37,7 @@ export function resolveCliSettings(): CliSettings {
 
   if (!Object.values(fileSettings).length) {
     console.warn(
-      `settings not configured: please create file ${cliSettingsStore} for better performance. See http:// for more information.`
+      `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/docs for more information.`
     );
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_ENDPOINT})`);
   }
@@ -54,3 +55,5 @@ export function resolveCliSettings(): CliSettings {
 
   return finalSettings;
 }
+
+export const resolveCliSettings = _.memoize(_resolveCliSettings);

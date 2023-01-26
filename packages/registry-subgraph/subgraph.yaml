@@ -11,9 +11,9 @@ dataSources:
     name: CannonRegistry
     network: mainnet
     source:
-      address: '0xA98BE35415Dd28458DA4c1C034056766cbcaf642'
+      address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba'
       abi: CannonRegistry
-      startBlock: 15124536
+      startBlock: 16493776
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
