@@ -7,10 +7,10 @@ keywords = ["sample", "consumer"]
 defaultValue = "new greeting!"
 
 [import.greeters]
-source = "greeter-foundry:2.0.0-alpha.0"
+source = "greeter-foundry"
 
 [import.more_greeters]
-source = "greeter-foundry:2.0.0-alpha.0"
+source = "greeter-foundry"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 

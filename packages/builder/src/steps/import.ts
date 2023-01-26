@@ -63,29 +63,30 @@ export default {
     const importLabel = currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
+    const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
     const preset = config.preset ?? 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.loader.readDeploy(config.source, preset, chainId);
+    const deployInfo = await runtime.loader.readDeploy(packageRef, preset, chainId);
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${config.source}. please make sure it exists for the cannon network and main preset.`
+        `deployment not found: ${packageRef}. please make sure it exists for the cannon network and main preset.`
       );
     }
 
     if (deployInfo.status === 'partial') {
       throw new Error(
-        `deployment status is incomplete for ${config.source}. cannot generate artifacts safely. please complete deployment to continue import.`
+        `deployment status is incomplete for ${packageRef}. cannot generate artifacts safely. please complete deployment to continue import.`
       );
     }
 
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.loader.resolver.getUrl(config.source, `${chainId}-${preset}`))!, // todo: duplication
+          url: (await runtime.loader.resolver.getUrl(packageRef, `${chainId}-${preset}`))!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },
