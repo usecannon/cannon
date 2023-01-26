@@ -1,1 +1,1 @@
-### Foundry guide here
+### Foundry guide coming soon

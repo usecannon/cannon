@@ -55,9 +55,9 @@
           </CText>
           <CText as="p" :mb="[12, 0]"
             >Cannon’s <strong>packages</strong> allow for maximum composability.
-            They can be <em>imported</em> into Cannonfiles for integrations,
-            <em>provisioned</em> by Cannonfiles to deploy new instances, and
-            <em>run</em> on their own for local development and testing.</CText
+            They can be imported into Cannonfiles for integrations, provisioned
+            by Cannonfiles to deploy new instances, and run on their own for
+            local development and testing.</CText
           >
         </CGridItem>
         <CGridItem :col-span="[12, 5]" position="relative">

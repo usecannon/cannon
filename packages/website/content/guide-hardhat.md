@@ -1,1 +1,1 @@
-### Hardhat guide here
+### Hardhat guide coming soon
