@@ -80,8 +80,8 @@
         />
         <CHeading size="sm" mb="2" letterSpacing="1px">Deployment</CHeading>
         <CText fontSize="sm" mb="2"
-          >Include the name of a chain with the <code>--network</code> option to
-          deploy your protocol to a live network.</CText
+          >Use the same workflow for local and live deployments on any
+          EVM-compatible blockchain.</CText
         >
       </CBox>
     </CSimpleGrid>

@@ -10,8 +10,31 @@
     >
       <CGridItem :col-span="[12, 3]">
         <CBox top="0" :position="[null, 'sticky']" :pt="[0, 8]">
+          <CBox mb="6">
+            <CButton
+              variant-color="gray"
+              bg="gray.600"
+              :_hover="{ bg: 'gray.700' }"
+              size="xs"
+              mr="2"
+              as="nuxt-link"
+              to="/docs"
+            >
+              Overview</CButton
+            >
+
+            <CButton
+              variant-color="teal"
+              bg="teal.600"
+              size="xs"
+              mr="2"
+              as="nuxt-link"
+              to="/docs/technical-reference"
+              >Tech Reference</CButton
+            ></CBox
+          >
           <CLink
-            v-for="link of page.toc"
+            v-for="link of technical.toc"
             :key="link.id"
             as="nuxt-link"
             fontFamily="'Miriam Libre'"
@@ -30,7 +53,7 @@
         </CBox>
       </CGridItem>
       <CGridItem :col-span="[12, 9]" class="prose" :pt="[0, 8]">
-        <nuxt-content :document="page" />
+        <nuxt-content :document="technical" />
       </CGridItem>
     </CGrid>
   </CBox>
@@ -40,14 +63,14 @@
 export default {
   name: 'Docs',
   async asyncData({ $content, params, error }) {
-    const page = await $content('docs')
+    const technical = await $content('docs-technical')
       .fetch()
       .catch(err => {
         error({ statusCode: 404, message: "Page not found" });
       });
       
     return {
-      page
+      technical
     };
   }
 }

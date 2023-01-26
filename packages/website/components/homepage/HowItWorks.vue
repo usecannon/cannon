@@ -21,11 +21,18 @@
             textTransform="uppercase"
             fontWeight="normal"
             letterSpacing="1px"
-            mb="3"
+            mb="4"
             >How it works</CHeading
           >
-          <CText as="p" mb="3" :pr="[0, 2]">
-            <strong>Cannon</strong> is a CLI (compatible with
+          <CText as="p" mb="4" :pr="[0, 2]">
+            <strong>Cannon</strong> is like
+            <CLink
+              isExternal
+              href="https://www.terraform.io/"
+              textDecoration="underline"
+              >Terraform</CLink
+            >
+            for
             <CLink
               isExternal
               href="https://github.com/foundry-rs/foundry"
@@ -38,19 +45,20 @@
               href="https://hardhat.org/"
               textDecoration="underline"
               >Hardhat</CLink
-            >) inspired by Docker and Terraform.
+            >.
           </CText>
-          <CText as="p" mb="3"
-            >Use existing packages or define your protocol’s contracts,
-            initialization scripts, and on-chain dependencies in Cannonfiles for
-            <strong>automated deployments on local and live chains.</strong>
+          <CText as="p" mb="4"
+            >Use <strong>Cannonfiles</strong> instead of deploy scripts for a
+            declarative approach to managing protocols, including upgrades and
+            configuration. Then, export deployment information into a package
+            and share it on the registry.
           </CText>
-          <CText as="p" :mb="[12, 0]">
-            Cannon comes with a
-            <strong>built-in package manager</strong> (backed on Ethereum and
-            IPFS) so you can easily include existing protocols for development
-            and testing.
-          </CText>
+          <CText as="p" :mb="[12, 0]"
+            >Cannon’s <strong>packages</strong> allow for maximum composability.
+            They can be <em>imported</em> into Cannonfiles for integrations,
+            <em>provisioned</em> by Cannonfiles to deploy new instances, and
+            <em>run</em> on their own for local development and testing.</CText
+          >
         </CGridItem>
         <CGridItem :col-span="[12, 5]" position="relative">
           <CBox position="relative" zIndex="1">
@@ -66,21 +74,9 @@
             <CText fontWeight="semibold" mb="1"
               >Start a local chain with a deployment of Synthetix</CText
             >
-            <CCode
-              variant-color="black"
-              background="black"
-              py="1"
-              px="3"
-              width="100%"
-              mb="2"
-              ><span style="color: #61afef">npx</span> @usecannon/cli
-              synthetix:3
-              <CBox as="span" :display="['none', 'none', 'inline']">
-                <div
-                  @click="copy"
-                  class="copy-button"
-                  v-html="$feathericons['copy'].toSvg()" /></CBox
-            ></CCode>
+            <CBox mb="3">
+              <CommandPreview command="npx @usecannon/cli synthetix:3" />
+            </CBox>
             <CText fontSize="sm" :mb="[6, 0]">
               <small
                 ><CLink as="nuxt-link" to="/search" textDecoration="underline"
@@ -98,51 +94,17 @@
 </template>
 
 <script lang="js">
+import CommandPreview from "../shared/CommandPreview"
+
 export default {
   name: 'HowItWorks',
-  methods: {
-    copy(){
-      var textToCopy = "npx @usecannon/cli synthetix:3";
-
-    // navigator clipboard api needs a secure context (https)
-    if (navigator.clipboard && window.isSecureContext) {
-        // navigator clipboard api method'
-        return navigator.clipboard.writeText(textToCopy);
-    } else {
-        // text area method
-        let textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        // make the textarea out of viewport
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        return new Promise((res, rej) => {
-            // here the magic happens
-            document.execCommand('copy') ? res() : rej();
-            textArea.remove();
-        });
-    }
-    }
+  components: {
+    CommandPreview
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.copy-button {
-  float: right;
-  transform: scale(0.66);
-  transform-origin: center left;
-  opacity: 0.75;
-  transition: opacity 0.2s;
-  cursor: pointer;
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
 .teal-burst {
   display: block;
   position: absolute;

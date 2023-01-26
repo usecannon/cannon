@@ -48,7 +48,21 @@
         letterSpacing="1px"
         d="inline-block"
         to="/docs"
+        mr="5"
         >Docs</CLink
+      >
+
+      <CButton
+        as="nuxt-link"
+        fontFamily="'Miriam Libre'"
+        textTransform="uppercase"
+        letterSpacing="1px"
+        to="/get-started"
+        variant-color="teal"
+        bg="teal.600"
+        transform="translateY(-3px)"
+        size="sm"
+        >Get Started</CButton
       >
     </CBox>
   </CFlex>

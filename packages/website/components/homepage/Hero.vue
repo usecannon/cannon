@@ -11,43 +11,38 @@
       zIndex="1"
     >
       <CHeading as="h1" size="xl" mb="2"
-        >Cannon manages protocol deployment on blockchains</CHeading
+        >Cannon manages protocol deployments on blockchains</CHeading
       >
-      <CHeading as="h2" size="md" fontWeight="normal" mb="6" lineHeight="1.5"
-        >Develop and test your smart contracts with existing protocols
-        configured however you like.</CHeading
-      >
+      <CHeading
+        as="h2"
+        size="lg"
+        fontWeight="normal"
+        mb="6"
+        lineHeight="1.5"
+        opacity="0.85"
+        >'Infrastructure as Code' for Foundry and Hardhat
+      </CHeading>
       <CBox>
         <CButton
           as="nuxt-link"
-          to="/search"
           mr="6"
+          to="/get-started"
           variant-color="teal"
-          bg="teal.600"
           mb="6"
-          ><div
-            style="
-              transform: scale(0.8) translateY(-1px);
-              transform-origin: center left;
-            "
-            v-html="$feathericons['package'].toSvg()"
-          />
-          Browse packages</CButton
+          bg="teal.600"
+        >
+          Get Started</CButton
         >
         <CButton
           as="nuxt-link"
-          to="/docs"
-          variant-color="teal"
+          to="/search"
+          variant-color="black"
+          variant="outline"
           mb="6"
-          bg="teal.600"
-          ><div
-            style="
-              transform: scale(0.8) translateY(-1px);
-              transform-origin: center left;
-            "
-            v-html="$feathericons['file-text'].toSvg()"
-          />
-          Read the Docs</CButton
+          opacity="0.85"
+          :_hover="{ opacity: 1 }"
+        >
+          Browse packages</CButton
         >
       </CBox>
     </CBox>

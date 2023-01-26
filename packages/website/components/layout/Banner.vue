@@ -11,7 +11,7 @@
     borderBottom="1px solid hsl(220deg 100% 12%)"
   >
     <big style="display: inline-block; transform: translateY(1px)">🎉</big>
-    <strong>Version 1.1 is live!</strong> Provide feedback and contribute pull
+    <strong>Version 2.0 is live!</strong> Provide feedback and contribute pull
     requests on
     <CLink
       isExternal
