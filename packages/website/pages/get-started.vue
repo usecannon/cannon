@@ -2,7 +2,7 @@
   <CBox maxWidth="containers.sm" mx="auto" px="4" my="8">
     <CHeading mb="8">Get Started with Cannon</CHeading>
 
-    <CHeading mb="4" size="lg">Run a Package</CHeading>
+    <CHeading mb="4" size="lg">📦 Run a Package</CHeading>
 
     <CText mb="4">Start by installing Cannon with the following command:</CText>
 
@@ -68,7 +68,7 @@
       for more information.
     </CText>
 
-    <CHeading size="lg" mb="4">Build with Cannon</CHeading>
+    <CHeading size="lg" mb="4">🏗️ Build with Cannon</CHeading>
 
     <CText mb="4"
       >Run the setup command to prepare your development environment:</CText
