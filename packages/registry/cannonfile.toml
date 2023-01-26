@@ -7,14 +7,13 @@ defaultValue = "official-registry"
 [setting.initialOwner]
 defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 
-
 [contract.InitialImpl]
 artifact = "OwnedUpgradable"
 salt = "<%= settings.salt %>"
 create2 = true
 
 [contract.InitialProxy]
-artifact = "UUPSProxyWithOwner"
+artifact = "Proxy"
 abi = "InitialImpl"
 create2 = true
 salt = "<%= settings.salt %>"
