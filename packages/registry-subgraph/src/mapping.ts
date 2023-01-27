@@ -1,27 +1,35 @@
-import { Package, Variant } from '../generated/schema';
+import { Package, Variant, Tag } from '../generated/schema';
 import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handlePublish(event: PackagePublish): void {
-  const id = event.params.name.toString();
-  let cannon_package = Package.load(id);
+  const package_name = event.params.name.toString();
+  let cannon_package = Package.load(package_name);
   if (!cannon_package) {
-    cannon_package = new Package(id);
+    cannon_package = new Package(package_name);
   }
-  cannon_package.name = id;
-  cannon_package.added = event.block.timestamp;
+  cannon_package.name = package_name;
+  cannon_package.last_updated = event.block.timestamp;
   cannon_package.save();
 
-  const variant_string = event.params.variant.toString();
-  let variant = Variant.load(id + ':' + variant_string);
-  if (!variant) {
-    variant = new Variant(id + ':' + variant_string);
+  const tag_name = event.params.tag.toString();
+  let tag = Tag.load(package_name + ':' + tag_name);
+  if (!tag) {
+    tag = new Tag(package_name + ':' + tag_name);
   }
-  variant.name = variant_string;
-  variant.deploy_url = event.params.deployUrl;
-  variant.meta_url = event.params.metaUrl;
+  tag.last_updated = event.block.timestamp;
+  tag.cannon_package = cannon_package.id;
+  tag.save();
+
+  const variant_name = event.params.variant.toString();
+  let variant = Variant.load(package_name + ':' + variant_name);
+  if (!variant) {
+    variant = new Variant(package_name + ':' + variant_name);
+  }
+  variant.name = variant_name;
   variant.publisher = event.params.owner.toHexString();
   variant.added = event.block.timestamp;
-  variant.cannon_package = cannon_package.id;
-  //variant.tags = event.params.tags.toString().split(',');
+  variant.tag = tag.id;
+  variant.deploy_url = event.params.deployUrl;
+  variant.meta_url = event.params.metaUrl;
   variant.save();
 }

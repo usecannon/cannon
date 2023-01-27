@@ -1,15 +1,22 @@
 type Package @entity {
   id: ID!
   name: String!
-  added: BigInt!
+  last_updated: BigInt!
+  tags: [Tag!]! @derivedFrom(field: "cannon_package")
+}
+
+type Tag @entity {
+  id: ID!
+  name: String!
+  last_updated: BigInt!
+  cannon_package: Package!
   variants: [Variant!]! @derivedFrom(field: "cannon_package")
 }
 
 type Variant @entity {
   id: ID!
   name: String!
-  cannon_package: Package!
-  tags: [String!]
+  cannon_package: Tag!
   deploy_url: String!
   meta_url: String!
   publisher: String!
