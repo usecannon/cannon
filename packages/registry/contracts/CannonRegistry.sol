@@ -16,8 +16,8 @@ contract CannonRegistry is Storage, OwnedUpgradable {
 
   event PackagePublish(
     bytes32 indexed name,
-    bytes32[] indexed tags,
-    bytes32 variant,
+    bytes32 indexed tag,
+    bytes32 indexed variant,
     string deployUrl,
     string metaUrl,
     address owner
@@ -95,9 +95,8 @@ contract CannonRegistry is Storage, OwnedUpgradable {
       if (!_p.versions.contains(_tag)) {
         _p.versions.add(_tag);
       }
+      emit PackagePublish(_packageName, _tag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
     }
-
-    emit PackagePublish(_packageName, _packageTags, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
