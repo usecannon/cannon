@@ -1,6 +1,6 @@
 //import { Bytes, ByteArray, BigInt, ipfs, json, log } from '@graphprotocol/graph-ts';
 
-import { Package, Version } from '../generated/schema';
+import { Package, Variant } from '../generated/schema';
 import { PackagePublish } from '../generated/CannonRegistry/CannonRegistry';
 
 export function handlePublish(event: PackagePublish): void {
@@ -13,18 +13,19 @@ export function handlePublish(event: PackagePublish): void {
   cannon_package.added = event.block.timestamp;
   cannon_package.save();
 
-  const version_string = event.params.version.toString();
-  let version = Version.load(id + ':' + version_string);
-  if (!version) {
-    version = new Version(id + ':' + version_string);
+  const variant_string = event.params.variant.toString();
+  let variant = Variant.load(id + ':' + variant_string);
+  if (!variant) {
+    variant = new Variant(id + ':' + variant_string);
   }
-  version.name = version_string;
-  version.url = event.params.url;
-  version.publisher = event.params.owner.toHexString();
-  version.added = event.block.timestamp;
-  version.cannon_package = cannon_package.id;
-  //version.tags = event.params.tags.map<string>((item) => item.toHexString());
-  version.save();
+  variant.name = variant_string;
+  variant.deploy_url = event.params.deployUrl;
+  variant.meta_url = event.params.metaUrl;
+  variant.publisher = event.params.owner.toHexString();
+  variant.added = event.block.timestamp;
+  variant.cannon_package = cannon_package.id;
+  //variant.tags = event.params.tags.map<string>((item) => item.toHexString());
+  variant.save();
 
   /*
   const metadata_path = entity.url.slice(7) + '/cannonfile.json';
@@ -40,7 +41,7 @@ export function handlePublish(event: PackagePublish): void {
     if (keywords) {
       const keywordsArray = keywords.toArray();
       for (let i = 0; i < keywordsArray.length; ++i) {
-        addKeyword(keywordsArray[i].toString(), version.id);
+        addKeyword(keywordsArray[i].toString(), variant.id);
       }
     }
   } else {
@@ -66,7 +67,7 @@ export function handlePublish(event: PackagePublish): void {
   entity.save();
 }
 
-function addKeyword(keywordId: string, versionId: string): void {
+function addKeyword(keywordId: string, variantId: string): void {
   let entity = Keyword.load(keywordId);
   if (!entity) {
     entity = new Keyword(keywordId);
@@ -74,10 +75,10 @@ function addKeyword(keywordId: string, versionId: string): void {
   entity.count = entity.count.plus(BigInt.fromI32(1));
   entity.save();
 
-  let join_entity = PackageKeyword.load(versionId + '-' + keywordId);
+  let join_entity = PackageKeyword.load(variantId + '-' + keywordId);
   if (!join_entity) {
-    join_entity = new PackageKeyword(versionId + '-' + keywordId);
-    join_entity.cannon_package = versionId;
+    join_entity = new PackageKeyword(variantId + '-' + keywordId);
+    join_entity.cannon_package = variantId;
     join_entity.keyword = keywordId;
     join_entity.save();
   }

@@ -23,8 +23,8 @@
       >
     </CBox>
     <CText color="gray.300" fontSize="xs" fontFamily="mono"
-      >version {{ recentVersion.name }} published by
-      <span class="truncate">{{ recentVersion.publisher }}</span>
+      >published by
+      <span class="truncate">{{ recentVariant.publisher }}</span>
       {{ timeAgo }}</CText
     >
   </CBox>
@@ -42,8 +42,8 @@ export default {
       }
   },
   computed: {
-    recentVersion(){
-      return this.p.versions[0]
+    recentVariant(){
+      return this.p.variants[0]
     },
     timeAgo(){
       return formatDistanceToNow(new Date(this.p.added * 1000), { addSuffix: true });

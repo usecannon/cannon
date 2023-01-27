@@ -36,28 +36,6 @@
           v-model="query"
         />
       </CInputGroup>
-
-      <!--
-      <CHeading
-        as="h3"
-        size="sm"
-        textTransform="uppercase"
-        fontWeight="normal"
-        letterSpacing="1px"
-        mb="2"
-        v-if="keywords.length"
-        >Filter</CHeading
-      >
-      <CCheckboxGroup mb="4">
-        <CCheckbox v-for="t in keywords" :key="t.id">{{ t.id }}</CCheckbox>
-      </CCheckboxGroup>
-      <CFormControl>
-        <CSwitch size="sm" id="testnet" />
-        <CFormLabel size="sm" html-for="testnet">
-          Show testnet packages</CFormLabel
-        >
-      </CFormControl>
-      -->
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
       <CBox v-if="$apollo.loading" py="20" textAlign="center">
@@ -80,8 +58,6 @@ export default {
   data() {
     return {
       packages: [],
-      keywords: [],
-      selectedKeywords: [],
       query: '',
     }
   },
@@ -101,10 +77,8 @@ export default {
         packages: packages(first: 20, orderDirection: desc, orderBy: added, where: {name_contains: $query}){
           name
           added
-          versions {
+          variants {
             name,
-            description,
-            url,
             publisher,
             added
           }
@@ -114,16 +88,6 @@ export default {
         query: ''
       }
     },
-    /*
-    keywords: {
-      query: gql`query getKeywords {
-        keywords: keywords(first: 10, orderDirection: desc, orderBy: count){
-          id
-          count
-        }
-      }`
-    }
-    */
   }
 }
 </script>

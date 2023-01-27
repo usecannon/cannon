@@ -2,56 +2,16 @@ type Package @entity {
   id: ID!
   name: String!
   added: BigInt!
-  versions: [Version!]! @derivedFrom(field: "cannon_package")
-  # verifiers: [String!]
+  variants: [Variant!]! @derivedFrom(field: "cannon_package")
 }
 
-type Version @entity {
+type Variant @entity {
   id: ID!
   name: String!
   cannon_package: Package!
-  description: String
   tags: [String!]
-  url: String!
+  deploy_url: String!
+  meta_url: String!
   publisher: String!
   added: BigInt!
-  # keywords: [PackageKeyword!] @derivedFrom(field: "version")
-  # readme: String
-  # cannonfile: String
-  # dependents: [DependencyDependent!] @derivedFrom(field: "dependent")
-  # dependencies: [DependencyDependent!] @derivedFrom(field: "dependency")
-  # chains: [Chain!] @derivedFrom(field: "version")
 }
-
-# type Chain @entity {
-#   id: ID!
-#   name: String!
-#   chain_id: BigInt!
-#   version: Version! # Should this be many-to-many, so there's only one entity per network?
-#   presets: [Preset!]! @derivedFrom(field: "chain")
-# }
-#
-# type Preset @entity {
-#   id: ID!
-#   name: String!
-#   chain: Chain!
-# }
-#
-# type Keyword @entity {
-#   id: ID!
-#   count: BigInt!
-#   versions: [PackageKeyword!] @derivedFrom(field: "keyword")
-# }
-#
-# # Join models
-# type DependencyDependent @entity {
-#   id: ID!
-#   dependency: Version!
-#   dependent: Version!
-# }
-#
-# type PackageKeyword @entity {
-#   id: ID!
-#   version: Version!
-#   keyword: Keyword!
-# }

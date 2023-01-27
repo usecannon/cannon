@@ -22,8 +22,8 @@ dataSources:
         - Package
       abis:
         - name: CannonRegistry
-          file: ./abis/CannonRegistry.json
+          file: ./deployments/Implementation.json
       eventHandlers:
-        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32[],string,address)
+        - event: PackagePublish(indexed bytes32,indexed bytes32[],bytes32,string,string,address)
           handler: handlePublish
       file: ./src/mapping.ts
