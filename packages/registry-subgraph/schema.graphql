@@ -10,13 +10,13 @@ type Tag @entity {
   name: String!
   last_updated: BigInt!
   cannon_package: Package!
-  variants: [Variant!]! @derivedFrom(field: "cannon_package")
+  variants: [Variant!]! @derivedFrom(field: "tag")
 }
 
 type Variant @entity {
   id: ID!
   name: String!
-  cannon_package: Tag!
+  tag: Tag!
   deploy_url: String!
   meta_url: String!
   publisher: String!
