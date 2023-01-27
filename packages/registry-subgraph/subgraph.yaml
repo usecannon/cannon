@@ -1,9 +1,6 @@
 specVersion: 0.0.5
 description: Cannon Registry
 repository: https://github.com/usecannon/cannon
-features:
-  - ipfsOnEthereumContracts
-  - fullTextSearch
 schema:
   file: ./schema.graphql
 dataSources:
