@@ -328,18 +328,22 @@ program
 
 program
   .command('test')
+  .usage('[cannonfile] [-- forge options...]')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
-  .argument('[settings...]', 'Custom settings for building the cannonfile')
-  .description('Run forge tests on a cannon deployment')
+  .argument('[forge options...]', 'Additional options to send to forge')
+  .description('Run forge tests on a cannon deployment. To pass arguments through to `forge test`, use `--`.')
   .option('-f --fork <url>', 'Fork off of the given url')
-  .action(async function (cannonfile, settings, opts) {
-    const [node, outputs] = await doBuild(cannonfile, settings, opts);
+  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
+  .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
+  .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .action(async function (cannonfile, forgeOpts, opts) {
+    const [node, outputs] = await doBuild(cannonfile, [], opts);
 
     // basically we need to write deployments here
     await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
     // after the build is done we can run the forge tests for the user
-    const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545']);
+    const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
 
     forgeCmd.stdout.on('data', (data: Buffer) => {
       process.stdout.write(data);
