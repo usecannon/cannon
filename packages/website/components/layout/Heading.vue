@@ -20,6 +20,7 @@
         size="lg"
         fontSize="26px"
         letterSpacing="2.5px"
+        :mb="[4, 0]"
         ><NuxtLink to="/"
           ><CImage
             d="inline-block"

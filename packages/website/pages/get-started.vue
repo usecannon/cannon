@@ -77,7 +77,7 @@
       <CommandPreview command="cannon setup" />
     </CBox>
 
-    <CText mb="4"
+    <CText mb="6"
       >Cannon relies on IPFS for file storage. You can
       <CLink
         href="https://docs.ipfs.tech/install/ipfs-desktop/"
@@ -96,7 +96,7 @@
       step-by-step.</CText
     >
 
-    <CBox mb="4">
+    <CBox my="4">
       <CButton
         :variant-color="showHardhat ? 'gray' : 'teal'"
         :bg="showHardhat ? 'gray.600' : 'teal.600'"
@@ -126,42 +126,29 @@
         >Hardhat</CButton
       >
     </CBox>
-    <CBox v-if="showHardhat" class="prose">
-      <nuxt-content :document="hardhatPage" />
+    <CBox v-if="showHardhat">
+      <HardhatGuide />
     </CBox>
-    <CBox v-else class="prose">
-      <nuxt-content :document="foundryPage" />
+    <CBox v-else>
+      <FoundryGuide />
     </CBox>
   </CBox>
 </template>
 
 <script lang="js">
 import CommandPreview from "../components/shared/CommandPreview"
+import FoundryGuide from "../components/get-started/FoundryGuide"
+import HardhatGuide from "../components/get-started/HardhatGuide"
 
 export default {
   name: 'Get Started',
   components: {
-    CommandPreview
+    CommandPreview,
+    FoundryGuide,
+    HardhatGuide,
   },
   data() {
     return { showHardhat: false }
-  },
-  async asyncData({ $content, params, error }) {
-    const hardhatPage = await $content('guide-hardhat')
-      .fetch()
-      .catch(err => {
-        error({ statusCode: 404, message: "Page not found" });
-      });
-    const foundryPage = await $content('guide-foundry')
-      .fetch()
-      .catch(err => {
-        error({ statusCode: 404, message: "Page not found" });
-      });
-      
-    return {
-        hardhatPage,
-        foundryPage
-    };
-  },
+  }
 }
 </script>

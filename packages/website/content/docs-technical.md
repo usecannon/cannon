@@ -285,4 +285,4 @@ This action updates the return object by merging the object returned from the sc
 
 ## Cannon Plug-ins
 
-Cannon plug-ins can be added and removed via NPM. This is allow for the creation of custom steps in Cannonfiles. _Additional documentation coming soon._
+Plug-ins for Cannon can be added and removed via NPM. This allows for the creation of custom action types in Cannonfiles. _Additional documentation coming soon._

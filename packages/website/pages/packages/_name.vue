@@ -17,25 +17,14 @@
           :borderRight="[null, '1px solid rgba(255,255,255,0.25)']"
         >
           <CHeading as="h4" size="md" mb="1">{{ p.name }}</CHeading>
-          <CText color="gray.300" mb="3">{{ p.description }}</CText>
-          <CBox mb="2">
-            <CTag
-              size="sm"
-              variantColor="blue"
-              mr="2"
-              v-for="t in v.keywords"
-              :key="t.keyword.id"
-              >{{ t.keyword.id }}</CTag
-            >
-          </CBox>
           <CText color="gray.300" fontSize="xs" fontFamily="mono"
             >published by
             <CLink
               isExternal
               textDecoration="underline"
-              :href="`https://etherscan.io/address/${v.publisher}`"
+              :href="`https://etherscan.io/address/${p.last_publisher}`"
               class="truncate"
-              >{{ v.publisher }}</CLink
+              >{{ p.last_publisher }}</CLink
             >
             {{ timeAgo }}</CText
           >
@@ -122,28 +111,26 @@ export default {
     p(){
       return this.packages.length ? this.packages[0] : null
     },
-    v(){
-      return this.p ? this.p.variants[0] : null
-    },
     timeAgo(){
-      return formatDistanceToNow(new Date(this.v.added * 1000), { addSuffix: true });
-    }
-  },
-  watch: {
-    v(){
-      //this.readme = this.v.readme ? markdown(this.v.readme) : ''
+      return formatDistanceToNow(new Date(this.p.last_updated * 1000), { addSuffix: true });
     }
   },
   apollo: {
     packages: {
       query: gql`query getPackage($name: String!) {
-        packages(first: 1, orderDirection: desc, orderBy: added, where: {name: $name}){
+        packages(first: 1, orderDirection: desc, orderBy: last_updated, where: {name: $name}){
           name
-          added
-          variants {
+          last_updated
+          last_publisher
+          tags {
             name
-            added
-            publisher
+            last_updated
+            last_publisher
+            variants {
+              name
+              last_updated
+              last_publisher
+            }
           }
         }
       }`,

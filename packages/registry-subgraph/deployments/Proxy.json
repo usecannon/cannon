@@ -145,12 +145,12 @@
         },
         {
           "indexed": true,
-          "internalType": "bytes32[]",
-          "name": "tags",
-          "type": "bytes32[]"
+          "internalType": "bytes32",
+          "name": "tag",
+          "type": "bytes32"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "variant",
           "type": "bytes32"

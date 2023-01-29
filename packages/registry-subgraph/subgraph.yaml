@@ -10,7 +10,7 @@ dataSources:
     source:
       address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba'
       abi: CannonRegistry
-      startBlock: 16493776
+      startBlock: 16512800
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -21,6 +21,6 @@ dataSources:
         - name: CannonRegistry
           file: ./deployments/Implementation.json
       eventHandlers:
-        - event: PackagePublish(indexed bytes32,indexed bytes32[],bytes32,string,string,address)
+        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32,string,string,address)
           handler: handlePublish
       file: ./src/mapping.ts

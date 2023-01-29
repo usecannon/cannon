@@ -31,7 +31,7 @@ Builds are created as packages which contain all the deployment results and buil
 
 ## Foundry Plug-in
 
-t.c.
+_Coming soon._
 
 ## Hardhat Plug-in
 
@@ -67,4 +67,4 @@ Now you’ll be able to use the Hardhat plug-in commands specified in the [Canno
 
 ## Gnosis Safe Plug-in
 
-_t.c._
+_Coming soon._

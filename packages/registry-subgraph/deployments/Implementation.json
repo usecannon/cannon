@@ -1,5 +1,5 @@
 {
-  "address": "0xAefDF108304b35E3b5113Eca216cb45Bf60366d9",
+  "address": "0x5c3b576B95fb903f022Ce3E33938EB79F69B5745",
   "abi": [
     {
       "inputs": [
@@ -145,12 +145,12 @@
         },
         {
           "indexed": true,
-          "internalType": "bytes32[]",
-          "name": "tags",
-          "type": "bytes32[]"
+          "internalType": "bytes32",
+          "name": "tag",
+          "type": "bytes32"
         },
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "variant",
           "type": "bytes32"
@@ -565,7 +565,7 @@
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "0xc244106770e5c54d7a32e4cb892eec6f77fb05c48a039a762c80f47f66fe0a98",
+  "deployTxnHash": "0x1959e592268516be70e9ffb36736dfda5ad4be634409e90e31727445ca8e4a49",
   "sourceName": "contracts/CannonRegistry.sol",
   "contractName": "CannonRegistry",
   "deployedOn": "contract.Implementation"

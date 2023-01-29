@@ -74,13 +74,19 @@ export default {
   apollo: {
     packages: {
       query: gql`query getPackages($query: String!) {
-        packages: packages(first: 20, orderDirection: desc, orderBy: added, where: {name_contains: $query}){
+        packages: packages(first: 20, orderDirection: desc, orderBy: last_updated, where: {name_contains: $query}){
           name
-          added
-          variants {
-            name,
-            publisher,
-            added
+          last_updated
+          last_publisher
+          tags {
+            name
+            last_updated
+            last_publisher
+            variants {
+              name
+              last_updated
+              last_publisher
+            }
           }
         }
       }`,
