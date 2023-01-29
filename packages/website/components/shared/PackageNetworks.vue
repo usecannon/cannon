@@ -14,7 +14,7 @@
       v-for="chain in chains"
       :key="chain.id"
       :variantColor="chain.color || 'gray'"
-      opacity="0.75"
+      opacity="0.66"
       >{{ chain.name || chain.id }}</CTag
     >
   </CBox>

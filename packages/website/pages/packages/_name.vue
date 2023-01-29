@@ -38,9 +38,13 @@
 
       <CTabs variant-color="teal">
         <CTabList>
+          <CTab>About</CTab>
           <CTab>Versions</CTab>
         </CTabList>
         <CTabPanels>
+          <CTabPanel py="8">
+            <About :p="p" />
+          </CTabPanel>
           <CTabPanel py="8">
             <Versions :p="p" />
           </CTabPanel>
@@ -60,6 +64,7 @@ import PackageNetworks from "../../components/shared/PackageNetworks"
 import PublishInfo from "../../components/shared/PublishInfo"
 import CommandPreview from "../../components/shared/CommandPreview"
 import Versions from "../../components/search/Versions"
+import About from "../../components/search/About"
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
@@ -82,7 +87,8 @@ export default {
     PublishInfo,
     PackageNetworks,
     CommandPreview,
-    Versions
+    Versions,
+    About,
   },
   methods: {
     highlighter(code) {
@@ -114,6 +120,8 @@ export default {
               last_publisher
               preset
               chain_id
+              deploy_url
+              meta_url
             }
           }
         }

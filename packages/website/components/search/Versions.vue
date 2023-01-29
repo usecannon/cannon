@@ -1,13 +1,13 @@
 <template>
   <CBox>
     <CBox pb="3" mb="3" v-for="tag in p.tags" :key="tag.id">
-      <CHeading mb="2" size="md">{{ tag.name }}</CHeading>
+      <CHeading mb="3" size="md">{{ tag.name }}</CHeading>
       <CGrid
-        pb="3"
-        mb="3"
+        pt="2"
+        mb="2"
         v-for="variants in variantsByTag(tag)"
         :key="variants[0].preset"
-        borderBottom="1px solid"
+        borderTop="1px solid"
         borderColor="gray.700"
         template-columns="repeat(12, 1fr)"
         gap="2"
