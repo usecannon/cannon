@@ -78,14 +78,16 @@ export default {
           name
           last_updated
           last_publisher
-          tags {
+          tags(orderDirection: desc, orderBy: last_updated) {
             name
             last_updated
             last_publisher
-            variants {
+            variants(orderDirection: desc, orderBy: last_updated) {
               name
               last_updated
               last_publisher
+              preset
+              chain_id
             }
           }
         }

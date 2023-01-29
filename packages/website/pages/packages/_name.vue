@@ -12,22 +12,15 @@
       >
         <CGridItem
           :col-span="[12, 7]"
-          py="6"
+          py="4"
           :pr="[0, 4]"
           :borderRight="[null, '1px solid rgba(255,255,255,0.25)']"
         >
           <CHeading as="h4" size="md" mb="1">{{ p.name }}</CHeading>
-          <CText color="gray.300" fontSize="xs" fontFamily="mono"
-            >published by
-            <CLink
-              isExternal
-              textDecoration="underline"
-              :href="`https://etherscan.io/address/${p.last_publisher}`"
-              class="truncate"
-              >{{ p.last_publisher }}</CLink
-            >
-            {{ timeAgo }}</CText
-          >
+          <CBox mb="2">
+            <PublishInfo :p="p" />
+          </CBox>
+          <PackageNetworks :p="p" />
         </CGridItem>
         <CGridItem :col-span="[12, 5]">
           <CHeading
@@ -39,39 +32,20 @@
             mb="2"
             >Quick Start</CHeading
           >
-          <CCode
-            variant-color="black"
-            background="black"
-            py="1"
-            px="3"
-            width="100%"
-            mb="2"
-            >npx @usecannon/cli {{ p.name }}</CCode
-          >
+          <CommandPreview :command="`npx @usecannon/cli ${p.name}`" />
         </CGridItem>
       </CGrid>
-      <!--
+
       <CTabs variant-color="teal">
         <CTabList>
-          <CTab v-if="p.readme.length">Readme</CTab>
-          <CTab v-if="p.cannonfile.length">Cannonfile</CTab>
+          <CTab>Versions</CTab>
         </CTabList>
         <CTabPanels>
-          <CTabPanel v-if="p.readme.length" py="8">
-            <div v-html="readme" class="prose" />
-          </CTabPanel>
-          <CTabPanel py="4" v-if="p.cannonfile.length">
-            <client-only :placeholder="p.cannonfile">
-              <prism-editor
-                class="code-editor"
-                v-model="p.cannonfile"
-                :highlight="highlighter"
-              ></prism-editor>
-            </client-only>
+          <CTabPanel py="8">
+            <Versions :p="p" />
           </CTabPanel>
         </CTabPanels>
       </CTabs>
-      -->
     </div>
     <div v-else>
       <CText textAlign="center"><CSpinner my="12" /></CText>
@@ -82,6 +56,10 @@
 <script lang="js">
 import gql from 'graphql-tag'
 import { formatDistanceToNow } from 'date-fns'
+import PackageNetworks from "../../components/shared/PackageNetworks"
+import PublishInfo from "../../components/shared/PublishInfo"
+import CommandPreview from "../../components/shared/CommandPreview"
+import Versions from "../../components/search/Versions"
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
@@ -101,6 +79,10 @@ export default {
   },
   components: {
     PrismEditor,
+    PublishInfo,
+    PackageNetworks,
+    CommandPreview,
+    Versions
   },
   methods: {
     highlighter(code) {
@@ -122,14 +104,16 @@ export default {
           name
           last_updated
           last_publisher
-          tags {
+          tags(orderDirection: desc, orderBy: last_updated) {
             name
             last_updated
             last_publisher
-            variants {
+            variants(orderDirection: desc, orderBy: last_updated) {
               name
               last_updated
               last_publisher
+              preset
+              chain_id
             }
           }
         }
