@@ -1,5 +1,5 @@
 import { Signer } from 'ethers';
-import { equal, deepEqual } from 'assert/strict';
+import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 
@@ -10,14 +10,14 @@ const toBytes32 = ethers.utils.formatBytes32String;
 describe('CannonRegistry', function () {
   let CannonRegistry: TCannonRegistry;
   let owner: Signer, user2: Signer, user3: Signer;
+  let ownerAddress: string;
 
   before('identify signers', async function () {
     [owner, user2, user3] = await ethers.getSigners();
+    ownerAddress = await owner.getAddress();
   });
 
   before('deploy contract', async function () {
-    const ownerAddress = await owner.getAddress();
-
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
     const Implementation = await CannonRegistryFactory.deploy();
     await Implementation.deployed();
@@ -178,26 +178,30 @@ describe('CannonRegistry', function () {
     });
 
     it('pushes tags', async function () {
+      const tags = ['0.0.3', 'latest', 'stable'];
+
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
         toBytes32('1337-main'),
-        ['0.0.3', 'latest', 'stable'].map(toBytes32),
+        tags.map(toBytes32),
         'ipfs://updated-module-hash@0.0.3',
         'ipfs://updated-module-meta@0.0.3'
       );
 
+      const expectedEvents = tags.map((tagName) => [
+        toBytes32('some-module'),
+        toBytes32(tagName),
+        toBytes32('1337-main'),
+        'ipfs://updated-module-hash@0.0.3',
+        'ipfs://updated-module-meta@0.0.3',
+        ownerAddress,
+      ]);
+
       const { events } = await tx.wait();
-
-      equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
-
-      equal(
-        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('latest'), toBytes32('1337-main')),
-        'ipfs://updated-module-hash@0.0.3'
-      );
-      equal(
-        await CannonRegistry.getPackageUrl(toBytes32('some-module'), toBytes32('stable'), toBytes32('1337-main')),
-        'ipfs://updated-module-hash@0.0.3'
+      ok(Array.isArray(events));
+      deepEqual(
+        events.map((evt) => [...evt.args!]),
+        expectedEvents
       );
     });
 

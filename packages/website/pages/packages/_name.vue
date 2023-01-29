@@ -29,7 +29,7 @@
             >
           </CBox>
           <CText color="gray.300" fontSize="xs" fontFamily="mono"
-            >version {{ v.name }} published by
+            >published by
             <CLink
               isExternal
               textDecoration="underline"
@@ -57,7 +57,7 @@
             px="3"
             width="100%"
             mb="2"
-            >npx @usecannon/cli@latest {{ p.name }}:{{ v.name }}</CCode
+            >npx @usecannon/cli {{ p.name }}</CCode
           >
         </CGridItem>
       </CGrid>
@@ -123,7 +123,7 @@ export default {
       return this.packages.length ? this.packages[0] : null
     },
     v(){
-      return this.p ? this.p.versions[0] : null
+      return this.p ? this.p.variants[0] : null
     },
     timeAgo(){
       return formatDistanceToNow(new Date(this.v.added * 1000), { addSuffix: true });
@@ -140,10 +140,8 @@ export default {
         packages(first: 1, orderDirection: desc, orderBy: added, where: {name: $name}){
           name
           added
-          versions {
+          variants {
             name
-            description
-            url
             added
             publisher
           }
