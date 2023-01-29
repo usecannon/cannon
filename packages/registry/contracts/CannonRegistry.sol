@@ -95,6 +95,7 @@ contract CannonRegistry is Storage, OwnedUpgradable {
       if (!_p.versions.contains(_tag)) {
         _p.versions.add(_tag);
       }
+
       emit PackagePublish(_packageName, _tag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
     }
   }
