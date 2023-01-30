@@ -1,9 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
-
 import Debug from 'debug';
 import pako from 'pako';
 
 import FormData from 'form-data';
+
+const REQUEST_HEADERS = {
+  'User-Agent': `cannon-cli-2`,
+  origin: 'https://usecannon.com',
+};
 
 const debug = Debug('cannon:builder:ipfs');
 
@@ -23,6 +27,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
     result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
       responseType: 'arraybuffer',
       responseEncoding: 'application/octet-stream',
+      headers: REQUEST_HEADERS,
     });
   } else {
     result = await axios.post(
@@ -31,6 +36,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
       {
         responseEncoding: 'application/octet-stream',
         responseType: 'arraybuffer',
+        headers: REQUEST_HEADERS,
       }
     );
   }
@@ -52,7 +58,7 @@ export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | nu
   const formData = new FormData();
   formData.append('data', Buffer.from(buf));
 
-  const result = await axios.post(ipfsUrl + '/api/v0/add', formData);
+  const result = await axios.post(ipfsUrl + '/api/v0/add', formData, { headers: REQUEST_HEADERS });
 
   debug('upload', result.statusText, result.data.Hash);
 
