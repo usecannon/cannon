@@ -9,6 +9,7 @@ import toml from '@iarna/toml';
 import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
 import { chains } from './chains';
 import { IChainData } from './types';
+import { resolveCliSettings } from './settings';
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -96,8 +97,8 @@ export async function loadCannonfile(filepath: string) {
     throw new Error(`Cannonfile '${filepath}' not found.`);
   }
 
-  const rawDef = (await loadChainDefinitionToml(filepath, [])) as RawChainDefinition;
-  const def = new ChainDefinition(rawDef);
+  const [rawDef, buf] = await loadChainDefinitionToml(filepath, []);
+  const def = new ChainDefinition(rawDef as RawChainDefinition);
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
 
   const ctx: ChainBuilderContext = {
@@ -115,10 +116,10 @@ export async function loadCannonfile(filepath: string) {
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
 
-  return { def, name, version };
+  return { def, name, version, cannonfile: buf.toString() };
 }
 
-async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<Partial<RawChainDefinition>> {
+async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
   if (!fs.existsSync(filepath)) {
     throw new Error(
       `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`
@@ -148,12 +149,12 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   for (const additionalFilepath of rawDef.include || []) {
     const abspath = path.join(path.dirname(filepath), additionalFilepath);
 
-    _.mergeWith(assembledDef, await loadChainDefinitionToml(abspath, [filepath].concat(trace)), customMerge);
+    _.mergeWith(assembledDef, (await loadChainDefinitionToml(abspath, [filepath].concat(trace)))[0], customMerge);
   }
 
   _.mergeWith(assembledDef, _.omit(rawDef, 'include'), customMerge);
 
-  return assembledDef;
+  return [assembledDef, buf];
 }
 
 export function getChainName(chainId: number): string {
@@ -171,4 +172,19 @@ export function getChainId(chainName: string): number {
   } else {
     return chainData.chainId;
   }
+}
+
+function getMetadataPath(packageName: string): string {
+  const cliSettings = resolveCliSettings();
+  return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
+}
+
+export async function saveToMetadataCache(packageName: string, key: string, value: string) {
+  const metadataCache = await readMetadataCache(packageName);
+  metadataCache[key] = value;
+  await fs.writeJson(getMetadataPath(packageName), metadataCache);
+}
+
+export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {
+  return await fs.readJson(getMetadataPath(packageName));
 }

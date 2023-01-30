@@ -15,7 +15,7 @@ import {
   CannonWrapperGenericProvider,
   IPFSLoader,
 } from '@usecannon/builder';
-import { loadCannonfile } from '../helpers';
+import { loadCannonfile, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
@@ -126,7 +126,7 @@ export async function build({
 
   let def: ChainDefinition;
   if (cannonfilePath) {
-    const { def: overrideDef, name, version } = await loadCannonfile(cannonfilePath);
+    const { def: overrideDef, name, version, cannonfile } = await loadCannonfile(cannonfilePath);
 
     if (!name) {
       throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
@@ -139,6 +139,8 @@ export async function build({
     if (name !== packageDefinition.name || version !== packageDefinition.version) {
       throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
     }
+
+    await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile);
 
     def = overrideDef;
   } else if (oldDeployData) {

@@ -1,6 +1,7 @@
 import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import { blueBright, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
+import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 
@@ -41,6 +42,7 @@ export async function publish(
     const [name, version] = deploy.name.split(':');
 
     if (!force && toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
+      let metaUrl;
       // ensure the deployment is on the remote registry
       if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
         if (!quiet) {
@@ -56,6 +58,7 @@ export async function publish(
         }
 
         const miscUrl = await remoteLoader.putMisc(await localLoader.readMisc(deployData!.miscUrl));
+        metaUrl = await remoteLoader.putMisc(await readMetadataCache(`${name}:${version}`));
         const url = await remoteLoader.putDeploy(deployData!);
 
         if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
@@ -73,7 +76,8 @@ export async function publish(
         await registry.publish(
           [version, ...splitTags].map((t) => `${name}:${t}`),
           deploy.variant,
-          toPublishUrl!
+          toPublishUrl!,
+          metaUrl || undefined
         )
       );
       if (!quiet) {
