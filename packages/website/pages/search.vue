@@ -51,7 +51,6 @@
       <CBox v-else>
         <Preview v-for="p in packages" :key="p.id" :p="p" />
         <CButton
-          mt="6"
           size="sm"
           variant-color="teal"
           bg="teal.600"
@@ -62,7 +61,6 @@
         >
         <CButton
           float="right"
-          mt="6"
           size="sm"
           variant-color="teal"
           bg="teal.600"

@@ -4,10 +4,13 @@
     bg="blue.975"
     d="block"
     as="nuxt-link"
+    borderWidth="1px"
+    borderStyle="solid"
+    borderColor="rgba(255,255,255,0.15)"
     :to="'/packages/' + p.name"
-    mb="5"
+    mb="6"
     borderRadius="4px"
-    :_hover="{ bg: 'blue.950' }"
+    :_hover="{ bg: 'blue.950', borderColor: 'rgba(255,255,255,0.25)' }"
     transition="0.12s"
   >
     <CFlex alignItems="['', 'center']" :direction="['column', 'row']" mb="2">
