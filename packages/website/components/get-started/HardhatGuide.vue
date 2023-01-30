@@ -30,15 +30,34 @@
         isExternal
       >
         here</CLink
-      >
-      and then install the Cannon Hardhat plug-in following
-      <CLink
-        as="nuxt-link"
-        to="/docs#hardhat-plug-in"
-        textDecoration="underline"
-        >these instructions </CLink
-      >. Your project should have the following contract:</CText
+      >.</CText
     >
+
+    <CText mb="4">Then install the Hardhat Cannon plug-in:</CText>
+    <CBox mb="8">
+      <CommandPreview command="npm install hardhat-cannon" />
+    </CBox>
+
+    <CText mb="4">
+      Load the plug-in at the top of your hardhat.config.js file with
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800"
+        >require('hardhat-cannon');</CCode
+      >
+      or
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800"
+        >import 'hardhat-cannon';</CCode
+      >
+      if your’re using Typescript.
+    </CText>
+
+    <CText mb="4">
+      In the configuration file, set the default network like so:
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800"
+        >defaultNetwork: "cannon"</CCode
+      >
+    </CText>
+
+    <CText mb="4"> Your project should have the following contract:</CText>
 
     <CBox mb="8">
       <prism-editor
