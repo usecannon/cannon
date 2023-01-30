@@ -10,9 +10,9 @@
     :_hover="{ bg: 'blue.950' }"
     transition="0.12s"
   >
-    <CFlex alignItems="center" mb="2">
+    <CFlex alignItems="['', 'center']" :direction="['column', 'row']" mb="2">
       <CHeading as="h4" size="md" :mb="[1, 0]">{{ p.name }}</CHeading>
-      <CBox ml="auto">
+      <CBox :ml="[0, 'auto']">
         <PublishInfo :p="p" />
       </CBox>
     </CFlex>

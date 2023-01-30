@@ -2,14 +2,16 @@
   <CBox>
     <CText
       fontSize="sm"
-      fontWeight="600"
       display="inline-block"
       mr="2"
       transform="translateY(1px)"
       opacity="0.8"
-      >Deployment{{ download ? ' Data' : 's' }}:</CText
-    >
-    <CButton
+      ><strong
+        >{{ download ? 'Download ' : '' }}Deployment{{
+          download ? ' Data' : 's'
+        }}:</strong
+      ></CText
+    ><CButton
       size="xs"
       mr="2"
       v-for="chain in chains"
