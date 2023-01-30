@@ -20,12 +20,194 @@
       >
     </CAlert>
 
-    <CText mb="4">Full guide coming soon.</CText>
+    <CHeading size="md" mb="4" mt="12">👩‍💻 Create a Cannonfile</CHeading>
+
+    <CText mb="4"
+      >Create a new Hardhat project by following the instructions
+      <CLink
+        textDecoration="underline"
+        href="https://hardhat.org/tutorial/creating-a-new-hardhat-project"
+        isExternal
+      >
+        here</CLink
+      >
+      and then install the Cannon Hardhat plug-in following
+      <CLink
+        as="nuxt-link"
+        to="/docs#hardhat-plug-in"
+        textDecoration="underline"
+        >these instructions </CLink
+      >. Your project should have the following contract:</CText
+    >
+
+    <CBox mb="8">
+      <prism-editor
+        class="code-editor"
+        v-model="exampleContract"
+        :highlight="highlighterSolidity"
+      ></prism-editor
+    ></CBox>
+
+    <CText mb="4"
+      >Create a <kbd>cannonfile.toml</kbd> in the root directory of the project
+      with the following contents. If you plan to publish this package, you
+      should at least customize the name. This will deploy the contract and set
+      the unlock time to 1700000000:</CText
+    >
+
+    <CBox mb="8">
+      <prism-editor
+        class="code-editor"
+        v-model="exampleCannonfile"
+        :highlight="highlighterToml"
+      ></prism-editor
+    ></CBox>
+
+    <CText mb="4"
+      >Now <kbd>build</kbd> the cannonfile for local development and
+      testing:</CText
+    >
+
+    <CBox mb="8">
+      <CommandPreview command="npx hardhat cannon:build" />
+    </CBox>
+
+    <CText mb="4">
+      This created a local deployment of your nascent protocol. You can now run
+      this package locally using the command-line tool:</CText
+    >
+    <CBox mb="8">
+      <CommandPreview command="cannon sample-hardhat-project" />
+    </CBox>
+
+    <CHeading size="md" mb="4" mt="12">🚀 Deploy your Protocol</CHeading>
+    <CText mb="4"
+      >Deploying is just building on a remote network! Be sure to use a network
+      name that you’ve
+      <CLink
+        textDecoration="underline"
+        href="https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks"
+        isExternal
+        >specified in your Hardhat Configuration file</CLink
+      >.</CText
+    >
+
+    <CBox mb="8">
+      <CommandPreview
+        command="npx hardhat cannon:build --network REPLACE_WITH_NETWORK_NAME"
+      />
+    </CBox>
+
+    <CText mb="4"
+      >Set up the
+      <CLink
+        textDecoration="underline"
+        href="https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan"
+        isExternal
+        >hardhat-etherscan plug-in</CLink
+      >
+      and verify your project’s contracts:</CText
+    >
+    <CBox mb="8">
+      <CommandPreview command="npx hardhat cannon:verify" />
+    </CBox>
+
+    <CText mb="4"
+      >Finally, publish your package on the
+      <CLink as="nuxt-link" to="/search" textDecoration="underline"
+        >Cannon registry</CLink
+      >:</CText
+    >
+    <CBox mb="8">
+      <CommandPreview
+        command="npx hardhat cannon:publish --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_MAINNET_GAS_TOKENS"
+      />
+    </CBox>
+
+    <CText mb="4"
+      ><strong>Great work!</strong> Check out the
+      <CLink
+        as="nuxt-link"
+        to="/docs/technical-reference"
+        textDecoration="underline"
+        >technical reference</CLink
+      >
+      for more information about the command-line tool and the actions you can
+      define in a Cannonfile.</CText
+    >
   </CBox>
 </template>
 
 <script lang="js">
+import CommandPreview from "../shared/CommandPreview"
+// import Prism Editor
+import { PrismEditor } from 'vue-prism-editor';
+import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-toml';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-solidity';
+
 export default {
   name: 'HardhatGuide',
+  components: {
+    CommandPreview,
+    PrismEditor,
+  },
+  methods: {
+    highlighterToml(code) {
+      return  highlight(code, languages.toml);
+    },
+    highlighterSolidity(code) {
+      return  highlight(code, languages.solidity);
+    },
+  },
+  created(){
+    this.exampleContract = `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+
+// Uncomment this line to use console.log
+// import "hardhat/console.sol";
+
+contract Lock {
+    uint public unlockTime;
+    address payable public owner;
+
+    event Withdrawal(uint amount, uint when);
+
+    constructor(uint _unlockTime) payable {
+        require(
+            block.timestamp < _unlockTime,
+            "Unlock time should be in the future"
+        );
+
+        unlockTime = _unlockTime;
+        owner = payable(msg.sender);
+    }
+
+    function withdraw() public {
+        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
+        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+
+        require(block.timestamp >= unlockTime, "You can't withdraw yet");
+        require(msg.sender == owner, "You aren't the owner");
+
+        emit Withdrawal(address(this).balance, block.timestamp);
+
+        owner.transfer(address(this).balance);
+    }
+}`
+    this.exampleCannonfile = `name = "sample-hardhat-project"
+version = "0.1"
+description = "Sample Hardhat Project"
+
+[setting.unlock_time]
+defaultValue = "1700000000"
+description="Initialization value for the unlock time"
+
+[contract.lock]
+artifact = "Lock"
+args = ["<%= settings.unlock_time %>"]`
+  }
 }
 </script>

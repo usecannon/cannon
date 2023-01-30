@@ -153,7 +153,7 @@ contract Counter {
         number++;
     }
 }`
-    this.exampleCannonfile = `name = "my-sample-foundry-project"
+    this.exampleCannonfile = `name = "sample-foundry-project"
 version = "0.1"
 description = "Sample Foundry Project"
 
