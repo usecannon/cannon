@@ -74,6 +74,7 @@ export async function publish(
           [version, ...splitTags].map((t) => `${name}:${t}`),
           deploy.variant,
           toPublishUrl!
+          // add metaUrl here
         )
       );
       if (!quiet) {

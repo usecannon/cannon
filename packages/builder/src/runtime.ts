@@ -28,6 +28,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   baseDir: string | null;
   snapshots: boolean;
   allowPartialDeploy: boolean;
+  cannonfile: string | null;
 
   private cleanSnapshot: any;
 
@@ -36,6 +37,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   private loadedMisc: string | null = null;
   protected misc: {
     artifacts: { [label: string]: any };
+    cannonfile: string | null;
   };
 
   constructor(info: ChainBuilderRuntimeInfo, loader: CannonLoader) {
@@ -60,10 +62,11 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
     this.baseDir = info.baseDir;
     this.snapshots = info.snapshots;
+    this.cannonfile = info.cannonfile;
 
     this.allowPartialDeploy = info.allowPartialDeploy;
 
-    this.misc = { artifacts: {} };
+    this.misc = { artifacts: {}, cannonfile: info.cannonfile };
   }
 
   async checkNetwork() {

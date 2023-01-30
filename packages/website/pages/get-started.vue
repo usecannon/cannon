@@ -18,7 +18,7 @@
     >
 
     <CBox mb="4">
-      <CommandPreview command="cannon synthetix:3" />
+      <CommandPreview command="cannon synthetix" />
     </CBox>
 
     <CText mb="4"
@@ -35,13 +35,12 @@
     >
 
     <CText mb="4"
-      >Find more information about the <code>synthetix:3</code> package,
-      including which networks it has been deployed on, using the inspect
-      command:</CText
+      >Find more information about the <code>synthetix</code> package, including
+      which networks it has been deployed on, using the inspect command:</CText
     >
 
     <CBox mb="4">
-      <CommandPreview command="cannon inspect synthetix:3" />
+      <CommandPreview command="cannon inspect synthetix" />
     </CBox>
 
     <CText mb="3"
@@ -51,7 +50,7 @@
 
     <CBox mb="4">
       <CommandPreview
-        command="cannon inspect synthetix:3 --chain-id 5 --write-deployments ./deployments/goerli"
+        command="cannon inspect synthetix --chain-id 5 --write-deployments ./deployments/goerli"
       />
     </CBox>
 

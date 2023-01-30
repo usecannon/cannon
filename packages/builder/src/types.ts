@@ -100,6 +100,9 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
+
+  // Cannonfile, for inclusive in the miscUrl and display on the registry explorer
+  cannonfile: string | null;
 }
 
 export interface BundledChainBuilderOutputs {

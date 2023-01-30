@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import fs from 'fs-extra';
 import ethers from 'ethers';
 import { table } from 'table';
 import { bold, greenBright, green, dim, red, yellow, blueBright } from 'chalk';
@@ -98,6 +99,7 @@ export async function build({
     baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
+    cannonfile: cannonfilePath ? (await fs.readFile(cannonfilePath)).toString('utf8') : null,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);

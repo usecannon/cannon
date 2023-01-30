@@ -3,11 +3,11 @@
     <CBox v-if="loading" py="20" textAlign="center">
       <CSpinner />
     </CBox>
-    <CBox v-else-if="metadata.cannonfile">
-      <client-only :placeholder="metadata.cannonfile">
+    <CBox v-else-if="deployData.cannonfile">
+      <client-only :placeholder="deployData.cannonfile">
         <prism-editor
           class="code-editor"
-          v-model="metadata.cannonfile"
+          v-model="deployData.cannonfile"
           :highlight="highlighter"
         ></prism-editor>
       </client-only>
@@ -20,6 +20,7 @@
 
 <script lang="js">
 import axios from 'axios';
+import pako from "pako";
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
@@ -45,21 +46,24 @@ export default {
   data() {
     return {
       loading: true,
-      metadata: ''
+      deployData: ''
     }
   },
-    async mounted(){
-      if(this.latestVariant.meta_url){
-        await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.meta_url.replace("ipfs://",'')}`)
-      .then(response => {
-        this.metadata = response.data;
+  async mounted(){
+    this.loading = true;
+    if(this.latestVariant.meta_url){
+      await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.deploy_url.replace("ipfs://",'')}`)
+      .then(response => {    
+        const uint8Array = new Uint8Array(response.data);
+        const inflated = pako.inflate(uint8Array);
+        const raw = new TextDecoder().decode(inflated);
+        this.deployData = JSON.parse(raw)
       })
       .catch(error => {
         console.error(error);
       });
-      }
+    }
     this.loading = false;
-    
   },
   computed: {
     latestVariant(){

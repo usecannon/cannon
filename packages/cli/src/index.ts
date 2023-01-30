@@ -390,6 +390,7 @@ program
         baseDir: null,
         snapshots: false,
         allowPartialDeploy: false,
+        cannonfile: null,
       },
       new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
     );
