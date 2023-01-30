@@ -1,12 +1,11 @@
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
-import { getChainId, execPromise, setupAnvil } from '../helpers';
+import { execPromise, setupAnvil } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
 
-export async function verify(packageRef: string, apiKey: string, network: string) {
+export async function verify(packageRef: string, apiKey: string, chainId: number) {
   await setupAnvil();
-  const chainId = getChainId(network);
 
   // create temporary provider
   // todo: really shouldn't be necessary

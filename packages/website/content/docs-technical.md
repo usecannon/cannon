@@ -56,7 +56,7 @@ Verify a package on Etherscan.
 **Options**
 
 - `--api-key` - Etherscan API key
-- `--network` - Network of deployment to verify (_Default: "mainnet"_)
+- `--chain-id` - Chain ID of deployment to verify (_Default: "1"_)
 
 ### publish
 

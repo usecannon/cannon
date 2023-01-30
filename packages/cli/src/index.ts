@@ -247,10 +247,10 @@ program
   .description('Verify a package on Etherscan')
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --api-key <apiKey>', 'Etherscan API key')
-  .option('-n --network <network>', 'Network of deployment to verify', 'mainnet')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to verify', '1')
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
-    await verify(packageName, options.apiKey, options.network);
+    await verify(packageName, options.apiKey, options.chainId);
   });
 
 program

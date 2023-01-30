@@ -29,10 +29,6 @@ This command will download the latest [synthetix package](/packages/synthetix) f
 
 Builds are created as packages which contain all the deployment results and build settings for your chain. Based on your local system configuration, these packages are uploaded as blobs to IPFS. You can share packages by either sending the IPFS Qm hash, or by registering the package on-chain with our registry contract.
 
-## Foundry Plug-in
-
-_Coming soon._
-
 ## Hardhat Plug-in
 
 The Hardhat plug-in wraps the command-line tool to automatically use defaults from a project's Hardhat configuration file.
@@ -57,9 +53,9 @@ import 'hardhat-cannon';
 
 Finally, set `cannon` as your default network in your Hardhat config file:
 
-```json
+```
 {
-  "defaultNetwork": "cannon"
+  defaultNetwork: "cannon"
 }
 ```
 
