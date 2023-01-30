@@ -107,6 +107,7 @@ export default {
 <style lang="scss" scoped>
 .teal-burst {
   display: block;
+  pointer-events: none !important;
   position: absolute;
   width: 50vw;
   height: 50vw;
@@ -123,6 +124,7 @@ export default {
 
 .light-burst {
   display: block;
+  pointer-events: none !important;
   position: absolute;
   width: 150%;
   max-width: 100vw;

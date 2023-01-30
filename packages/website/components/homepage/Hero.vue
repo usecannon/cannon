@@ -58,6 +58,7 @@ export default {
 <style scoped>
 .purple-burst {
   display: block;
+  pointer-events: none !important;
   position: absolute;
   width: 50vw;
   height: 50vw;
