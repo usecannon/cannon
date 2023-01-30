@@ -20,7 +20,7 @@
           <CBox mb="2">
             <PublishInfo :p="p" />
           </CBox>
-          <PackageNetworks :p="p" />
+          <PackageNetworks download :p="p" />
         </CGridItem>
         <CGridItem :col-span="[12, 5]">
           <CHeading
@@ -38,12 +38,12 @@
 
       <CTabs variant-color="teal">
         <CTabList>
-          <CTab>About</CTab>
+          <CTab>Cannonfile</CTab>
           <CTab>Versions</CTab>
         </CTabList>
         <CTabPanels>
           <CTabPanel py="8">
-            <About :p="p" />
+            <Cannonfile :p="p" />
           </CTabPanel>
           <CTabPanel py="8">
             <Versions :p="p" />
@@ -64,36 +64,21 @@ import PackageNetworks from "../../components/shared/PackageNetworks"
 import PublishInfo from "../../components/shared/PublishInfo"
 import CommandPreview from "../../components/shared/CommandPreview"
 import Versions from "../../components/search/Versions"
-import About from "../../components/search/About"
-
-// import Prism Editor
-import { PrismEditor } from 'vue-prism-editor';
-import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
-import { highlight, languages } from 'prismjs/components/prism-core';
-import 'prismjs/components/prism-toml';
-
-var markdown = require('remarked');
+import Cannonfile from "../../components/search/Cannonfile"
 
 export default {
   name: 'Package',
   data() {
     return {
-      packages: [],
-      readme: ''
+      packages: []
     }
   },
   components: {
-    PrismEditor,
     PublishInfo,
     PackageNetworks,
     CommandPreview,
     Versions,
-    About,
-  },
-  methods: {
-    highlighter(code) {
-      return  highlight(code, languages.toml);
-    },
+    Cannonfile,
   },
   computed: {
     p(){

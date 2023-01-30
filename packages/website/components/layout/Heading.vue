@@ -10,7 +10,6 @@
     mx="auto"
     alignContent="center"
     position="relative"
-    zIndex="1"
   >
     <CFlex align="center">
       <CText

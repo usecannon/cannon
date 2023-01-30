@@ -15,11 +15,11 @@
         <CGridItem col-span="2" pt="1">
           <CHeading size="sm" my="auto">{{ variants[0].preset }}</CHeading>
         </CGridItem>
-        <CGridItem col-span="4">
-          <PackageNetworks :p="{ variants }" />
+        <CGridItem col-span="7">
+          <PackageNetworks download :p="{ variants }" />
         </CGridItem>
-        <CGridItem col-span="6" textAlign="right" pt="1">
-          <PublishInfo :p="latestVariantByTag(tag)" />
+        <CGridItem col-span="3" textAlign="right">
+          <PublishInfo :linebreak="true" :p="latestVariantByTag(tag)" />
         </CGridItem>
       </CGrid>
     </CBox>

@@ -4,11 +4,13 @@
       >published by
       <CLink
         isExternal
-        textDecoration="underline"
+        :hover="{ textDecoration: 'none' }"
+        borderBottom="1px dotted rgba(255,255,255,0.8)"
         :href="`https://etherscan.io/address/${p.last_publisher}`"
-        class="truncate"
-        >{{ p.last_publisher }}</CLink
-      >
+        >{{ p.last_publisher.substring(0, 6) }}...{{
+          p.last_publisher.slice(-4)
+        }}</CLink
+      ><br v-if="linebreak" />
       {{ timeAgo }}</CText
     >
   </CBox>
@@ -21,6 +23,9 @@ export default {
   props: {
     p: {
       type: Object
+    },
+    linebreak: {
+      type: Boolean
     }
   },
   computed: {

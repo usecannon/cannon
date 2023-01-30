@@ -6,52 +6,182 @@
       display="inline-block"
       mr="2"
       transform="translateY(1px)"
-      >Deployments:</CText
+      opacity="0.8"
+      >Deployment{{ download ? ' Data' : 's' }}:</CText
     >
-    <CTag
+    <CButton
       size="xs"
       mr="2"
       v-for="chain in chains"
       :key="chain.id"
       :variantColor="chain.color || 'gray'"
-      opacity="0.66"
-      >{{ chain.name || chain.id }}</CTag
+      :opacity="download ? '0.75' : '0.66 !important'"
+      :disabled="!download"
+      @click="openModal(chain.url)"
+      >{{ chain.name || chain.id }}</CButton
     >
+    <c-modal size="6xl" :is-open="isOpen" :on-close="closeModal">
+      <c-modal-content bg="black" color="white" ref="content">
+        <c-modal-header
+          ><CHeading size="lg"
+            >Contract Addresses + ABIs</CHeading
+          ></c-modal-header
+        >
+        <c-modal-close-button @click="closeModal" />
+        <c-modal-body>
+          <CBox v-if="loading" py="20" textAlign="center">
+            <CSpinner />
+          </CBox>
+          <CBox v-else-if="deployData">
+            <CButton variant-color="teal" mb="3" bg="teal.600" @click="copy">
+              <div class="copy-button" v-html="$feathericons['copy'].toSvg()" />
+              &nbsp;Copy to clipboard</CButton
+            >
+            <client-only :placeholder="deployData">
+              <prism-editor
+                class="code-editor"
+                v-model="deployData"
+                :highlight="highlighter"
+              ></prism-editor>
+            </client-only>
+          </CBox>
+          <CBox v-else textAlign="center" py="20" opacity="0.5"
+            >Contract Addresses & ABIs unavailable</CBox
+          >
+        </c-modal-body>
+      </c-modal-content>
+      <c-modal-overlay bg="blue.900" opacity="0.66" />
+    </c-modal>
   </CBox>
 </template>
 
 <script lang="js">
+import axios from 'axios';
+import pako from "pako";
+import { merge, mapValues, omit } from 'lodash';
+import chains from '../../helpers/chains'
+
+// import Prism Editor
+import { PrismEditor } from 'vue-prism-editor';
+import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-json';
+
+let CHAIN_DATA = []
+
+chains.forEach((c) => {
+  CHAIN_DATA[c.chainId] = {
+    name: c.shortName
+  }
+});
+
+CHAIN_DATA = merge(CHAIN_DATA, {
+  13370: {
+    name: 'local',
+    color: 'whiteAlpha'
+  },
+  1: {
+    name: 'mainnet',
+    color: 'indigo'
+  },
+  5: {
+    name: 'goerli',
+    color: 'green'
+  },
+  56: {
+    name: 'bnb',
+    color: 'yellow'
+  },
+  10: {
+    name: 'optimism',
+    color: 'red'
+  },
+  420: {
+    name: 'optimism goerli',
+    color: 'pink'
+  },
+  42161: {
+    name: 'arbitrum',
+    color: 'blue'
+  }
+});
+
 export default {
   name: 'PackageNetworks',
   props: {
     p: {
       type: Object
+    },
+    download: {
+      type: Boolean
+    }
+  },
+  data () {
+    return {
+      loading: false,
+      isOpen: false,
+      deployData: '',
+      deployUrl: ''
+    }
+  },
+  components: {
+    PrismEditor,
+  },
+  methods: {
+
+    highlighter(code) {
+      return  highlight(code, languages.json);
+    },
+
+    async openModal(url) {
+      this.isOpen = true
+      this.deployUrl = url
+      this.loading = true
+      await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+      .then(response => {        
+        const uint8Array = new Uint8Array(response.data);
+        const inflated = pako.inflate(uint8Array);
+        const raw = new TextDecoder().decode(inflated);
+        const json = mapValues(JSON.parse(raw)["state"], (value) => omit(value, 'chainDump'));
+        this.deployData = JSON.stringify(json, null, 2)
+      })
+      .catch(error => {
+        console.error(error);
+      });
+      this.loading = false;
+    },
+    closeModal() {
+      this.isOpen = false
+      this.deployUrl = ''
+    },
+    copy(){
+      var textToCopy = this.deployData;
+
+    // navigator clipboard api needs a secure context (https)
+    if (navigator.clipboard && window.isSecureContext) {
+        // navigator clipboard api method'
+        return navigator.clipboard.writeText(textToCopy);
+    } else {
+        // text area method
+        let textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        // make the textarea out of viewport
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((res, rej) => {
+            // here the magic happens
+            document.execCommand('copy') ? res() : rej();
+            textArea.remove();
+        });
+    }
     }
   },
   computed: {
     chains() {
-      const CHAIN_DATA = {
-        13370: {
-          name: 'local',
-          color: 'whiteAlpha'
-        },
-        1: {
-          name: 'mainnet',
-          color: 'indigo'
-        },
-        5: {
-          name: 'goerli',
-          color: 'green'
-        },
-        10: {
-          name: 'optimism',
-          color: 'red'
-        },
-        420: {
-          name: 'optimism goerli',
-          color: 'pink'
-        }
-      }
       let variants =[]
       if(this.p.tags){
         const latestTag = this.p.tags.find((t) => t.name == 'latest');
@@ -59,8 +189,22 @@ export default {
       }else if(this.p.variants){
         variants = this.p.variants;
       }
-      return variants.map(v => {return {id: v.chain_id, ...CHAIN_DATA[v.chain_id]}})
+      return variants.map(v => {return {id: v.chain_id, url: v.deploy_url, ...CHAIN_DATA[v.chain_id]}}).sort((a, b) => {
+        if (a.id === 13370) {
+          return -1;
+        } else if (b.id === 13370) {
+          return 1;
+        } else {
+          return a.id - b.id;
+        }
+      });
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.copy-button {
+  transform: scale(0.75);
+}
+</style>
