@@ -139,7 +139,7 @@
     >
     <CBox mb="8">
       <CommandPreview
-        command="npx hardhat cannon:publish --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_MAINNET_GAS_TOKENS"
+        command="npx hardhat cannon:publish --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_ON_MAINNET"
       />
     </CBox>
 

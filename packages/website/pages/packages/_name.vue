@@ -42,10 +42,10 @@
           <CTab>Versions</CTab>
         </CTabList>
         <CTabPanels>
-          <CTabPanel py="8">
+          <CTabPanel pt="8" pb="2">
             <Cannonfile :p="p" />
           </CTabPanel>
-          <CTabPanel py="8">
+          <CTabPanel pt="8" pb="2">
             <Versions :p="p" />
           </CTabPanel>
         </CTabPanels>

@@ -96,7 +96,7 @@
     >
     <CBox mb="8">
       <CommandPreview
-        command="cannon publish sample-foundry-project --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_MAINNET_GAS_TOKENS"
+        command="cannon publish sample-foundry-project --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_ON_MAINNET"
       />
     </CBox>
 

@@ -2,7 +2,7 @@ import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import _ from 'lodash';
-import fs from 'fs-extra';
+import fs, { mkdirp } from 'fs-extra';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';
@@ -182,9 +182,14 @@ function getMetadataPath(packageName: string): string {
 export async function saveToMetadataCache(packageName: string, key: string, value: string) {
   const metadataCache = await readMetadataCache(packageName);
   metadataCache[key] = value;
+  await fs.mkdirp(path.dirname(getMetadataPath(packageName)));
   await fs.writeJson(getMetadataPath(packageName), metadataCache);
 }
 
 export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {
-  return await fs.readJson(getMetadataPath(packageName));
+  try {
+    return await fs.readJson(getMetadataPath(packageName));
+  } catch {
+    return {};
+  }
 }

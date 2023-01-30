@@ -4,9 +4,12 @@ import pako from 'pako';
 
 import FormData from 'form-data';
 
-const REQUEST_HEADERS = {
-  'User-Agent': `cannon-cli-2`,
-  origin: 'https://usecannon.com',
+const getRequestHeaders = (isPublicInfura: boolean) => {
+  let headers = {
+    'User-Agent': `cannon-cli-2`,
+    origin: isPublicInfura ? 'https://usecannon.com' : undefined,
+  };
+  return headers;
 };
 
 const debug = Debug('cannon:builder:ipfs');
@@ -27,7 +30,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
     result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
       responseType: 'arraybuffer',
       responseEncoding: 'application/octet-stream',
-      headers: REQUEST_HEADERS,
+      headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
     });
   } else {
     result = await axios.post(
@@ -36,7 +39,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
       {
         responseEncoding: 'application/octet-stream',
         responseType: 'arraybuffer',
-        headers: REQUEST_HEADERS,
+        headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
       }
     );
   }
@@ -58,7 +61,9 @@ export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | nu
   const formData = new FormData();
   formData.append('data', Buffer.from(buf));
 
-  const result = await axios.post(ipfsUrl + '/api/v0/add', formData, { headers: REQUEST_HEADERS });
+  const result = await axios.post(ipfsUrl + '/api/v0/add', formData, {
+    headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
+  });
 
   debug('upload', result.statusText, result.data.Hash);
 
