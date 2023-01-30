@@ -20,6 +20,7 @@
 
 <script lang="js">
 import axios from 'axios';
+import pako from "pako";
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
@@ -45,21 +46,22 @@ export default {
   data() {
     return {
       loading: true,
-      metadata: ''
+      metadata: {}
     }
   },
-    async mounted(){
-      if(this.latestVariant.meta_url){
-        await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.meta_url.replace("ipfs://",'')}`)
-      .then(response => {
-        this.metadata = response.data;
-      })
-      .catch(error => {
-        console.error(error);
-      });
-      }
+  async mounted(){
+    this.loading = true
+    await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.meta_url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+    .then(response => {        
+      const uint8Array = new Uint8Array(response.data);
+      const inflated = pako.inflate(uint8Array);
+      const raw = new TextDecoder().decode(inflated);
+      this.metadata = JSON.parse(raw);
+    })
+    .catch(error => {
+      console.error(error);
+    });
     this.loading = false;
-    
   },
   computed: {
     latestVariant(){
