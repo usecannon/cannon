@@ -17,10 +17,11 @@
       :variantColor="chain.color || 'gray'"
       :opacity="download ? '0.75' : '0.66 !important'"
       :disabled="!download"
-      @click="openModal(chain.url)"
+      :class="!download && 'disabled-button'"
+      @click="download && openModal(chain.url)"
       >{{ chain.name || chain.id }}</CButton
     >
-    <c-modal size="6xl" :is-open="isOpen" :on-close="closeModal">
+    <c-modal size="5xl" :is-open="isOpen" :on-close="closeModal">
       <c-modal-content bg="black" color="white" ref="content">
         <c-modal-header
           ><CHeading size="lg"
@@ -157,6 +158,12 @@ export default {
     copy(){
       var textToCopy = this.deployData;
 
+      this.$toast({
+        title: `Copied to clipboard`,
+        status: 'info',
+        duration: 4000
+      })
+
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         // navigator clipboard api method'
@@ -206,5 +213,9 @@ export default {
 <style lang="scss" scoped>
 .copy-button {
   transform: scale(0.75);
+}
+
+.disabled-button {
+  pointer-events: none !important;
 }
 </style>

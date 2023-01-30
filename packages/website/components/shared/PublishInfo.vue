@@ -4,7 +4,7 @@
       >published by
       <CLink
         isExternal
-        :hover="{ textDecoration: 'none' }"
+        :style="{ 'text-decoration': 'none' }"
         borderBottom="1px dotted rgba(255,255,255,0.8)"
         :href="`https://etherscan.io/address/${p.last_publisher}`"
         >{{ p.last_publisher.substring(0, 6) }}...{{

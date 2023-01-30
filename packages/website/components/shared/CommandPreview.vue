@@ -26,6 +26,12 @@ export default {
     copy(){
       var textToCopy = this.command;
 
+      this.$toast({
+        title: `Copied to clipboard`,
+        status: 'info',
+        duration: 4000
+      })
+
     // navigator clipboard api needs a secure context (https)
     if (navigator.clipboard && window.isSecureContext) {
         // navigator clipboard api method'
