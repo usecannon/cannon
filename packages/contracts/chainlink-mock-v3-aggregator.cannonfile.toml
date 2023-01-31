@@ -1,0 +1,16 @@
+name = "chainlink-mock-v3-aggregator"
+version = "1.0"
+description = "Based on the FluxAggregator contract. Use this contract when you need to test other contract's ability to read data from an aggregator contract, but how the aggregator got its answer is unimportant"
+
+[setting.decimals]
+defaultValue = "18"
+
+[setting.initialAnswer]
+defaultValue = "1000000000000000000"
+
+[contract.MockV3Aggregator]
+artifact = "MockV3Aggregator"
+args = [
+    "<%= settings.decimals %>",
+    "<%= settings.initialAnswer %>"
+]
