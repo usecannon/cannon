@@ -1,6 +1,7 @@
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'solidity-coverage';
+import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-ethers';
 
 import '../hardhat-cannon/src/index';
@@ -34,6 +35,12 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY || '',
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+    currency: 'USD',
+    coinmarketcap: process.env.REPORT_GAS_API_KEY || '',
+    gasPriceApi: process.env.ETHERSCAN_API_KEY || '',
   },
 } as any;
 

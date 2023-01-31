@@ -30,6 +30,7 @@
     "ethers": "5.7.1",
     "hardhat": "^2.12.6",
     "hardhat-cannon": "^2.0.2",
+    "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",
     "solidity-coverage": "0.7.21",
     "ts-node": "10.8.1",

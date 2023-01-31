@@ -88,15 +88,22 @@ contract CannonRegistry is Storage, OwnedUpgradable {
       _p.owner = msg.sender;
     }
 
-    for (uint i = 0; i < _packageTags.length; i++) {
-      bytes32 _tag = _packageTags[i];
-      _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: _packageVersionUrl, meta: _packageMetaUrl});
+    bytes32 _firstTag = _packageTags[0];
+    _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: _packageVersionUrl, meta: _packageMetaUrl});
+    CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
+    emit PackagePublish(_packageName, _firstTag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
 
-      if (!_p.versions.contains(_tag)) {
-        _p.versions.add(_tag);
+    if (_packageTags.length > 1) {
+      for (uint i = 1; i < _packageTags.length; i++) {
+        bytes32 _tag = _packageTags[i];
+        _p.deployments[_tag][_variant] = _deployInfo;
+
+        if (!_p.versions.contains(_tag)) {
+          _p.versions.add(_tag);
+        }
+
+        emit PackagePublish(_packageName, _tag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
       }
-
-      emit PackagePublish(_packageName, _tag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
     }
   }
 
