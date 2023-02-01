@@ -46,14 +46,14 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that is not an action (because those are known)
-    const actinoNames: string[] = [];
+    const actionNames: string[] = [];
     for (const [action, data] of Object.entries(actionsDef)) {
       for (const name of Object.keys(data as any)) {
-        if (actinoNames.includes(name)) {
+        if (actionNames.includes(name)) {
           throw new Error(`Duplicated step name found "${name}"`);
         }
 
-        actinoNames.push(name);
+        actionNames.push(name);
         actions.push(`${action}.${name}`);
       }
     }
