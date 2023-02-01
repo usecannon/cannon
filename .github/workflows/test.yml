@@ -20,4 +20,4 @@ jobs:
           npx lerna bootstrap
           npm run build
           cd ./packages/registry
-          npm test
+          REPORT_GAS=1 npm test
