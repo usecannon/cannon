@@ -159,7 +159,10 @@
 
     <CHeading size="md" mb="4" mt="12">🧪 Test Your Protocol</CHeading>
 
-    <CText mb="4">At the beginning of your tests, run the build command:</CText>
+    <CText mb="4"
+      >At the beginning of your tests, run the build and inspect command to
+      generate the addresses and ABIs:</CText
+    >
     <CBox mb="8">
       <prism-editor
         class="code-editor"
