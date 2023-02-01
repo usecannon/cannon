@@ -6,24 +6,24 @@ import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 contract Storage {
   bytes32 private constant _SLOT_CANNON_REGISTRY_STORAGE = keccak256(abi.encode("usecannon.cannon.registry"));
 
-  struct Store {
-    mapping(bytes32 => Package) packages;
+  struct OldStore {
+    mapping(bytes32 => OldPackage) packages;
     mapping(address => bool) verifiers;
   }
 
-  struct Package {
+  struct OldPackage {
     address owner;
     address nominatedOwner;
     SetUtil.Bytes32Set versions;
-    mapping(bytes32 => mapping(bytes32 => CannonDeployInfo)) deployments;
+    mapping(bytes32 => mapping(bytes32 => OldCannonDeployInfo)) deployments;
   }
 
-  struct CannonDeployInfo {
+  struct OldCannonDeployInfo {
     string deploy;
     string meta;
   }
 
-  function _store() internal pure returns (Store storage store) {
+  function _oldStore() internal pure returns (OldStore storage store) {
     bytes32 s = _SLOT_CANNON_REGISTRY_STORAGE;
 
     assembly {
