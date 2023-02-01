@@ -253,20 +253,6 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('getPackageVersions()', function () {
-    it('returns package versions', async function () {
-      const result = await CannonRegistry.getPackageVersions(toBytes32('some-module'));
-
-      deepEqual(result, [
-        toBytes32('0.0.1'),
-        toBytes32('0.0.2'),
-        toBytes32('0.0.3'),
-        toBytes32('latest'),
-        toBytes32('stable'),
-      ]);
-    });
-  });
-
   describe('package verification', function () {
     it('does not allow to verify unexistant packages', async function () {
       await assertRevert(async () => {
