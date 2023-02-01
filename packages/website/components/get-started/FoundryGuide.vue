@@ -36,8 +36,8 @@
     <CText mb="4"
       >Create a <kbd>cannonfile.toml</kbd> in the root directory of the project
       with the following contents. If you plan to publish this package, you
-      should at least customize the name. This will deploy the contract and set
-      the number to 420:</CText
+      should customize the name. This will deploy the contract and set the
+      number to 420:</CText
     >
 
     <CBox mb="8">
@@ -65,7 +65,7 @@
       <CommandPreview command="cannon sample-foundry-project" />
     </CBox>
 
-    <CHeading size="md" mb="4" mt="12">🚀 Deploy your Protocol</CHeading>
+    <CHeading size="md" mb="4" mt="12">🚀 Deploy Your Protocol</CHeading>
     <CText mb="4">Deploying is just building on a remote network!</CText>
     <CBox mb="8">
       <CommandPreview
@@ -111,11 +111,61 @@
       for more information about the command-line tool and the actions you can
       define in a Cannonfile.</CText
     >
+
+    <ImportProvision />
+
+    <CHeading size="md" mb="4" mt="12">🧪 Test Your Protocol</CHeading>
+
+    <CText mb="4">Install Cannon for Foundry:</CText>
+
+    <CBox mb="8">
+      <CommandPreview command="forge install usecannon/cannon-std" />
+    </CBox>
+
+    <CText mb="4"
+      >Grant your Foundry project permission to read from the filesystem. Add
+      the following line to your
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800">foundry.toml</CCode>
+      file:</CText
+    >
+
+    <CBox mb="8">
+      <CommandPreview
+        command='fs_permissions = [{ access = "read", path = "./"}]'
+      />
+    </CBox>
+
+    <CText mb="4"
+      >Include the
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800">Cannon.sol</CCode>
+      library in your tests. Here’s an example:</CText
+    >
+
+    <CBox mb="8">
+      <prism-editor
+        class="code-editor"
+        v-model="exampleTest"
+        :highlight="highlighterSolidity"
+      ></prism-editor
+    ></CBox>
+
+    <CText mb="4"
+      >Use the
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800">test</CCode> command to
+      run them. (Note that the
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800">--fork</CCode> option is
+      supported.)</CText
+    >
+
+    <CBox mb="8">
+      <CommandPreview command="npx cannon test" />
+    </CBox>
   </CBox>
 </template>
 
 <script lang="js">
 import CommandPreview from "../shared/CommandPreview"
+import ImportProvision from "./ImportProvision"
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
@@ -129,6 +179,7 @@ export default {
   components: {
     CommandPreview,
     PrismEditor,
+    ImportProvision,
   },
   methods: {
     highlighterToml(code) {
@@ -169,6 +220,29 @@ target = ["counter"]
 func = "setNumber"
 args = ["<%= settings.number %>"]
 depends = ["contract.counter"]`
+    this.exampleTest = `pragma solidity ^0.8.13;
+
+import "forge-std/Test.sol";
+import "forge-std/console.sol";
+
+import "cannon-std/Cannon.sol";
+
+import "../src/SampleIntegration.sol";
+
+contract SampleIntegrationTest is Test {
+    using Cannon for Vm;
+
+    SampleIntegration sampleIntegration;
+
+    function setUp() public {
+        sampleIntegration = SampleIntegration(vm.getAddress("SampleIntegration"));
+    }
+
+    function testFailSetThresholdRequiresOwner() public {
+        vm.expectRevert();
+        sampleIntegration.setThreshold(3);
+    }
+}`
   }
 }
 </script>

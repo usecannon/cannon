@@ -15,14 +15,14 @@ options.salt = "second"
 options.msg = "a message from second greeter set"
 
 [invoke.change_greeting2]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "setGreeting"
 args = ["<%= formatBytes32String(settings.change_greeting2) %>"]
 depends = ["import.greeters"]
 
 # test for factory functionality
 [invoke.clone]
-target = ["greeters.greeter"]
+target = ["greeters.Greeter"]
 func = "doCloning"
 depends = ["import.greeters"]
 

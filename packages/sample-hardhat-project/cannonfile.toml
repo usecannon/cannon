@@ -13,7 +13,7 @@ description="The greeting passed to the constructor"
 [contract.library]
 artifact = "Library"
 
-[contract.greeter]
+[contract.Greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"

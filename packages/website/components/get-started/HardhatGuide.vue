@@ -70,8 +70,8 @@
     <CText mb="4"
       >Create a <kbd>cannonfile.toml</kbd> in the root directory of the project
       with the following contents. If you plan to publish this package, you
-      should at least customize the name. This will deploy the contract and set
-      the unlock time to 1700000000:</CText
+      should customize the name. This will deploy the contract and set the
+      unlock time to 1700000000:</CText
     >
 
     <CBox mb="8">
@@ -99,7 +99,7 @@
       <CommandPreview command="cannon sample-hardhat-project" />
     </CBox>
 
-    <CHeading size="md" mb="4" mt="12">🚀 Deploy your Protocol</CHeading>
+    <CHeading size="md" mb="4" mt="12">🚀 Deploy Your Protocol</CHeading>
     <CText mb="4"
       >Deploying is just building on a remote network! Be sure to use a network
       name that you’ve
@@ -154,11 +154,41 @@
       for more information about the command-line tool and the actions you can
       define in a Cannonfile.</CText
     >
+
+    <ImportProvision />
+
+    <CHeading size="md" mb="4" mt="12">🧪 Test Your Protocol</CHeading>
+
+    <CText mb="4"
+      >You can use the <kbd>build</kbd> task in your tests and optionally use
+      the built-in
+      <CLink
+        textDecoration="underline"
+        href="https://github.com/dethcrypto/TypeChain"
+        isExternal
+        >TypeChain</CLink
+      >
+      support. Here’s an example from the
+      <CLink
+        textDecoration="underline"
+        isExternal
+        href="https://github.com/usecannon/cannon/tree/main/packages/sample-hardhat-project"
+        >Hardhat sample project</CLink
+      >:</CText
+    >
+    <CBox mb="8">
+      <prism-editor
+        class="code-editor"
+        v-model="exampleTest"
+        :highlight="highlighterJavascript"
+      ></prism-editor
+    ></CBox>
   </CBox>
 </template>
 
 <script lang="js">
 import CommandPreview from "../shared/CommandPreview"
+import ImportProvision from "./ImportProvision"
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
@@ -166,12 +196,14 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-toml';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-solidity';
+import 'prismjs/components/prism-javascript';
 
 export default {
   name: 'HardhatGuide',
   components: {
     CommandPreview,
     PrismEditor,
+    ImportProvision
   },
   methods: {
     highlighterToml(code) {
@@ -179,6 +211,9 @@ export default {
     },
     highlighterSolidity(code) {
       return  highlight(code, languages.solidity);
+    },
+    highlighterJavascript(code) {
+      return  highlight(code, languages.javascript);
     },
   },
   created(){
@@ -227,6 +262,31 @@ description="Initialization value for the unlock time"
 [contract.lock]
 artifact = "Lock"
 args = ["<%= settings.unlock_time %>"]`
+this.exampleTest = `import { expect } from 'chai';
+import { Contract } from 'ethers';
+import hre from 'hardhat';
+import { Greeter } from '../typechain';
+
+describe('Greeter', function () {
+  let Greeter: Greeter;
+
+  before('load', async function () {
+    const { outputs, signers } = await hre.run('cannon:build');
+    const { address, abi } = outputs.contracts.Greeter;
+    Greeter = new Contract(address, abi, signers[0]) as Greeter;
+  });
+
+  it('Should return the new greeting once it is changed', async function () {
+    expect(await Greeter.greet()).to.equal('Hello world!');
+
+    const setGreetingTx = await Greeter.setGreeting('Hola mundo!');
+
+    // wait until the transaction is mined
+    await setGreetingTx.wait();
+
+    expect(await Greeter.greet()).to.equal('Hola mundo!');
+  });
+});`
   }
 }
 </script>

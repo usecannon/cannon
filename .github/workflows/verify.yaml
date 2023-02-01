@@ -41,4 +41,4 @@ jobs:
       - run: npm ci
       - run: npx lerna bootstrap
       - run: npm run build
-      - run: cd ./packages/sample-foundry-project && npm run test
+      - run: cd ./packages/sample-hardhat-project && npm run test
