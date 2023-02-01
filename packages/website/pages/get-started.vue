@@ -1,5 +1,5 @@
 <template>
-  <CBox maxWidth="containers.sm" mx="auto" px="4" my="8">
+  <CBox maxWidth="containers.md" mx="auto" px="4" my="8">
     <CHeading mb="8">Get Started with Cannon</CHeading>
 
     <CHeading mb="4" size="lg">📦 Run a Package</CHeading>
@@ -34,18 +34,8 @@
       the command-line interface.</CText
     >
 
-    <CText mb="4"
-      >Find more information about the <code>synthetix-sandbox</code> package,
-      including which networks it has been deployed on, using the inspect
-      command:</CText
-    >
-
-    <CBox mb="4">
-      <CommandPreview command="cannon inspect synthetix-sandbox" />
-    </CBox>
-
     <CText mb="3"
-      >You can also use the inspect command to retrieve deployment data. For
+      >You can use the inspect command to retrieve deployment data. For
       example:</CText
     >
 
