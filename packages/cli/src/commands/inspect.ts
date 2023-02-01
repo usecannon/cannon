@@ -1,4 +1,4 @@
-import { ChainDefinition, IPFSLoader } from '@usecannon/builder';
+import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState, IPFSLoader } from '@usecannon/builder';
 import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
@@ -26,17 +26,14 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   const chainDefinition = new ChainDefinition(deployData.def);
 
   if (writeDeployments) {
-    const deploymentData = Object.values(deployData.state)
-      .map((a) => a.artifacts)
-      .map((a) => a.contracts);
+    const stateContracts = _getNestedStateContracts(deployData.state, writeDeployments);
+    const files = Array.from(stateContracts.entries());
 
-    for (const contract of deploymentData) {
-      if (contract && Object.entries(contract).length) {
-        const [contractName, contractData] = Object.entries(contract)[0];
-        const file = path.join(writeDeployments, `${contractName}.json`);
-        await fs.outputFile(file, JSON.stringify(contractData, null, 2));
-      }
-    }
+    await Promise.all(
+      files.map(([filepath, contractData]) => {
+        return fs.outputFile(filepath, JSON.stringify(contractData, null, 2));
+      })
+    );
   }
 
   if (json) {
@@ -48,4 +45,29 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   }
 
   return deployData;
+}
+
+function _getNestedStateContracts(state: DeploymentState, pathname = '', result = new Map<string, ContractData>()) {
+  for (const { artifacts } of Object.values(state)) {
+    _getNestedStateFiles(artifacts, pathname, result);
+  }
+
+  return result;
+}
+
+function _getNestedStateFiles(artifacts: ChainArtifacts, pathname: string, result: Map<string, ContractData>) {
+  if (artifacts.contracts) {
+    for (const [contractName, contractData] of Object.entries(artifacts.contracts)) {
+      const filepath = path.join(pathname, `${contractName}.json`);
+      result.set(filepath, contractData);
+    }
+  }
+
+  if (artifacts.imports) {
+    for (const [importName, importArtifacts] of Object.entries(artifacts.imports)) {
+      _getNestedStateFiles(importArtifacts, path.join(pathname, importName), result);
+    }
+  }
+
+  return result;
 }

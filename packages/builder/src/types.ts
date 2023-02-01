@@ -25,19 +25,21 @@ export type ContractArtifact = {
   };
 };
 
+export type ContractData = {
+  address: string;
+  abi: JsonFragment[];
+  constructorArgs?: any[]; // only needed for etherscan verification
+  // only needed for etherscan verification,
+  // only should be supplied when generated solidity as a single file
+  sourceCode?: string;
+  deployTxnHash: string;
+  contractName: string;
+  sourceName: string;
+  deployedOn: string;
+};
+
 export type ContractMap = {
-  [label: string]: {
-    address: string;
-    abi: JsonFragment[];
-    constructorArgs?: any[]; // only needed for etherscan verification
-    // only needed for etherscan verification,
-    // only should be supplied when generated solidity as a single file
-    sourceCode?: string;
-    deployTxnHash: string;
-    contractName: string;
-    sourceName: string;
-    deployedOn: string;
-  };
+  [label: string]: ContractData;
 };
 
 export type TransactionMap = {
