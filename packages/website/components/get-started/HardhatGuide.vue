@@ -160,8 +160,21 @@
     <CHeading size="md" mb="4" mt="12">🧪 Test Your Protocol</CHeading>
 
     <CText mb="4"
-      >At the beginning of your tests, run the build and inspect command to
-      generate the addresses and ABIs:</CText
+      >You can use the <kbd>build</kbd> task in your tests and optionally use
+      the built-in
+      <CLink
+        textDecoration="underline"
+        href="https://github.com/dethcrypto/TypeChain"
+        isExternal
+        >TypeChain</CLink
+      >
+      support. Here’s an example from the
+      <CLink
+        textDecoration="underline"
+        isExternal
+        href="https://github.com/usecannon/cannon/tree/main/packages/sample-hardhat-project"
+        >Hardhat sample project</CLink
+      >:</CText
     >
     <CBox mb="8">
       <prism-editor
@@ -170,25 +183,6 @@
         :highlight="highlighterJavascript"
       ></prism-editor
     ></CBox>
-
-    <CText mb="4"
-      >If you’re using TypeScript for your tests, Cannon's export format is
-      <CLink
-        textDecoration="underline"
-        href="https://github.com/dethcrypto/TypeChain"
-        isExternal
-        >TypeChain</CLink
-      >
-      compatible. See the
-      <CLink
-        textDecoration="underline"
-        href="https://github.com/Synthetixio/synthetix-v3/tree/main/protocol/synthetix/test
-"
-        isExternal
-        >Synthetix testing suite</CLink
-      >
-      for an example.
-    </CText>
   </CBox>
 </template>
 
@@ -268,18 +262,29 @@ description="Initialization value for the unlock time"
 [contract.lock]
 artifact = "Lock"
 args = ["<%= settings.unlock_time %>"]`
-this.exampleTest = `const hre = require('hardhat');
+this.exampleTest = `import { expect } from 'chai';
+import { Contract } from 'ethers';
+import hre from 'hardhat';
+import { Greeter } from '../typechain';
 
-describe('SampleTest', () => {
-  let MyTestContract;
-  before("load", async () => {
-    const { outputs } = await hre.run('cannon:build');
-    const contractInfo = outputs.contracts.MyTestContract;
-    myTestContract = new ethers.Contract(contractInfo.abi, contractInfo.address);
+describe('Greeter', function () {
+  let Greeter: Greeter;
+
+  before('load', async function () {
+    const { outputs, signers } = await hre.run('cannon:build');
+    const { address, abi } = outputs.contracts.Greeter;
+    Greeter = new Contract(address, abi, signers[0]) as Greeter;
   });
 
-  it('works', async () => {
-    expect(myTestContract.greet()).to.equal('hello');
+  it('Should return the new greeting once it is changed', async function () {
+    expect(await Greeter.greet()).to.equal('Hello world!');
+
+    const setGreetingTx = await Greeter.setGreeting('Hola mundo!');
+
+    // wait until the transaction is mined
+    await setGreetingTx.wait();
+
+    expect(await Greeter.greet()).to.equal('Hola mundo!');
   });
 });`
   }
