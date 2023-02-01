@@ -35,7 +35,7 @@
     >
 
     <CText mb="3"
-      >You can use the inspect command to retrieve deployment data. For
+      >You can use the inspect command to retrieve the contract addresses and ABIs. For
       example:</CText
     >
 
