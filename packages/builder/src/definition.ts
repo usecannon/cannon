@@ -42,12 +42,21 @@ export class ChainDefinition {
 
     const actions = [];
 
-    // best way to g et a list of actions is just to iterate over the entire def, and filter out anything
-    // that is not an action (because those are known)
-    for (const t in _.omit(def, 'name', 'version', 'description', 'keywords', 'setting') as any) {
-      for (const n in (def as any)[t]) {
-        const fn = `${t}.${n}`;
-        actions.push(fn);
+    // best way to get a list of actions is just to iterate over the entire def, and filter out anything
+    // that are not an actions (because those are known)
+    const actionsDef = _.omit(def, 'name', 'version', 'description', 'keywords', 'setting');
+
+    // Used to validate that there are not 2 steps with the same name
+    const actionNames: string[] = [];
+
+    for (const [action, data] of Object.entries(actionsDef)) {
+      for (const name of Object.keys(data as any)) {
+        if (actionNames.includes(name)) {
+          throw new Error(`Duplicated step name found "${name}"`);
+        }
+
+        actionNames.push(name);
+        actions.push(`${action}.${name}`);
       }
     }
 
