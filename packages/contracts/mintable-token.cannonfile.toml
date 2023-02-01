@@ -1,0 +1,20 @@
+name = "mintable-token"
+version = "1.1"
+description = "Token that allows the owner to mint as many tokens as desired"
+
+[setting.name]
+defaultValue = "Token"
+
+[setting.symbol]
+defaultValue = "TKN"
+
+[setting.initialSupply]
+defaultValue = "0"
+
+[contract.MintableToken]
+artifact = "MintableToken"
+args = [
+    "<%= settings.name %>",
+    "<%= settings.symbol %>",
+    "<%= settings.initialSupply %>",
+]
