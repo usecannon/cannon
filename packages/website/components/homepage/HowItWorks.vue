@@ -75,7 +75,7 @@
               >Start a local chain with a deployment of Synthetix</CText
             >
             <CBox mb="3">
-              <CommandPreview command="npx @usecannon/cli synthetix:3" />
+              <CommandPreview command="npx @usecannon/cli synthetix-sandbox" />
             </CBox>
             <CText fontSize="sm" :mb="[6, 0]">
               <small
