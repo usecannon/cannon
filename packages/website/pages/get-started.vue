@@ -51,7 +51,7 @@
 
     <CBox mb="4">
       <CommandPreview
-        command="cannon inspect synthetix-sandbox --chain-id 5 --write-deployments ./deployments/goerli"
+        command="cannon inspect synthetix-sandbox --write-deployments ./deployments/goerli"
       />
     </CBox>
 
