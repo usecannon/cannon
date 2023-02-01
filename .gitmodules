@@ -1,0 +1,3 @@
+[submodule "packages/sample-foundry-project/lib/cannon-std"]
+	path = packages/sample-foundry-project/lib/cannon-std
+	url = https://github.com/usecannon/cannon-std
