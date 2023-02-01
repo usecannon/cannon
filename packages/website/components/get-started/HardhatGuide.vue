@@ -70,8 +70,8 @@
     <CText mb="4"
       >Create a <kbd>cannonfile.toml</kbd> in the root directory of the project
       with the following contents. If you plan to publish this package, you
-      should at least customize the name. This will deploy the contract and set
-      the unlock time to 1700000000:</CText
+      should customize the name. This will deploy the contract and set the
+      unlock time to 1700000000:</CText
     >
 
     <CBox mb="8">
@@ -99,7 +99,7 @@
       <CommandPreview command="cannon sample-hardhat-project" />
     </CBox>
 
-    <CHeading size="md" mb="4" mt="12">🚀 Deploy your Protocol</CHeading>
+    <CHeading size="md" mb="4" mt="12">🚀 Deploy Your Protocol</CHeading>
     <CText mb="4"
       >Deploying is just building on a remote network! Be sure to use a network
       name that you’ve
@@ -154,11 +154,32 @@
       for more information about the command-line tool and the actions you can
       define in a Cannonfile.</CText
     >
+
+    <ImportProvision />
+
+    <CHeading size="md" mb="4" mt="12">🧪 Test Your Protocol</CHeading>
+
+    <CText mb="4">At the beginning of your tests, run the build command:</CText>
+    <CBox mb="8">
+      <prism-editor
+        class="code-editor"
+        v-model="exampleTest"
+        :highlight="highlighterJavascript"
+      ></prism-editor
+    ></CBox>
+
+    <CText mb="4"
+      >TODO: oh, for hardhat, might also be worth mentioning that there are
+      typescript options available as well and link to how we are doing it in
+      the synthetix project since the format exported by cannon works with
+      typechain</CText
+    >
   </CBox>
 </template>
 
 <script lang="js">
 import CommandPreview from "../shared/CommandPreview"
+import ImportProvision from "./ImportProvision"
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
@@ -166,12 +187,14 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-toml';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-solidity';
+import 'prismjs/components/prism-javascript';
 
 export default {
   name: 'HardhatGuide',
   components: {
     CommandPreview,
     PrismEditor,
+    ImportProvision
   },
   methods: {
     highlighterToml(code) {
@@ -179,6 +202,9 @@ export default {
     },
     highlighterSolidity(code) {
       return  highlight(code, languages.solidity);
+    },
+    highlighterJavascript(code) {
+      return  highlight(code, languages.javascript);
     },
   },
   created(){
@@ -227,6 +253,22 @@ description="Initialization value for the unlock time"
 [contract.lock]
 artifact = "Lock"
 args = ["<%= settings.unlock_time %>"]`
+this.exampleTest = `const hre = require('hardhat');
+
+describe('SampleTest', () => {
+  let MyTestContract;
+  before("load", async () => {
+    await hre.run('cannon:build');
+    await hre.run('cannon:inspect', { writeDeployments: './deployments' });
+    let contractInfo = require(hre.config.paths.root + '/deployments/MyTestContract.json');
+    myTestContract = new ethers.Contract(contractInfo.abi, contractInfo.address);
+  });
+
+  it('works', async () => {
+
+    expect(myTestContract.greet()).to.equal('hello');
+  });
+});`
   }
 }
 </script>
