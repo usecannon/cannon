@@ -159,7 +159,9 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     bytes32 _packageVersionName,
     bytes32 _packageVariant
   ) external view returns (string memory) {
-    string memory v = _store().strings[_store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy];
+    string memory v = _store().strings[
+      _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy
+    ];
 
     if (bytes(v).length == 0) {
       v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy;
@@ -173,7 +175,9 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     bytes32 _packageVersionName,
     bytes32 _packageVariant
   ) external view returns (string memory) {
-    string memory v = _store().strings[_store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta];
+    string memory v = _store().strings[
+      _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta
+    ];
 
     if (bytes(v).length == 0) {
       v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta;
@@ -184,6 +188,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
 
   function _writeString(string memory str) internal returns (bytes32) {
     bytes16 k = bytes16(keccak256(bytes(str)));
+
     if (bytes(_store().strings[k]).length == 0) {
       _store().strings[k] = str;
     }
