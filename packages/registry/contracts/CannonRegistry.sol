@@ -3,9 +3,10 @@ pragma solidity 0.8.17;
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnedUpgradable} from "./OwnedUpgradable.sol";
+import {EfficientStorage} from "./EfficientStorage.sol";
 import {Storage} from "./Storage.sol";
 
-contract CannonRegistry is Storage, OwnedUpgradable {
+contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   using SetUtil for SetUtil.Bytes32Set;
 
   error Unauthorized();
@@ -63,15 +64,15 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     bytes32 _packageName,
     bytes32 _variant,
     bytes32[] memory _packageTags,
-    string memory _packageVersionUrl,
+    string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external {
     if (_packageTags.length == 0 || _packageTags.length > 5) {
       revert InvalidTags();
     }
 
-    if (bytes(_packageVersionUrl).length == 0) {
-      revert InvalidUrl(_packageVersionUrl);
+    if (bytes(_packageDeployUrl).length == 0) {
+      revert InvalidUrl(_packageDeployUrl);
     }
 
     Package storage _p = _store().packages[_packageName];
@@ -88,21 +89,20 @@ contract CannonRegistry is Storage, OwnedUpgradable {
       _p.owner = msg.sender;
     }
 
+    bytes16 packageDeployString = bytes16(_writeString(_packageDeployUrl));
+    bytes16 packageMetaString = bytes16(_writeString(_packageMetaUrl));
+
     bytes32 _firstTag = _packageTags[0];
-    _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: _packageVersionUrl, meta: _packageMetaUrl});
+    _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
     CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
-    emit PackagePublish(_packageName, _firstTag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
+    emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, msg.sender);
 
     if (_packageTags.length > 1) {
       for (uint i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
-        if (!_p.versions.contains(_tag)) {
-          _p.versions.add(_tag);
-        }
-
-        emit PackagePublish(_packageName, _tag, _variant, _packageVersionUrl, _packageMetaUrl, msg.sender);
+        emit PackagePublish(_packageName, _tag, _variant, _packageDeployUrl, _packageMetaUrl, msg.sender);
       }
     }
   }
@@ -154,16 +154,18 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     return _store().packages[_packageName].nominatedOwner;
   }
 
-  function getPackageVersions(bytes32 _packageName) external view returns (bytes32[] memory) {
-    return _store().packages[_packageName].versions.values();
-  }
-
   function getPackageUrl(
     bytes32 _packageName,
     bytes32 _packageVersionName,
     bytes32 _packageVariant
   ) external view returns (string memory) {
-    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy;
+    string memory v = _store().strings[_store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy];
+
+    if (bytes(v).length == 0) {
+      v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy;
+    }
+
+    return v;
   }
 
   function getPackageMeta(
@@ -171,6 +173,21 @@ contract CannonRegistry is Storage, OwnedUpgradable {
     bytes32 _packageVersionName,
     bytes32 _packageVariant
   ) external view returns (string memory) {
-    return _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta;
+    string memory v = _store().strings[_store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta];
+
+    if (bytes(v).length == 0) {
+      v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta;
+    }
+
+    return v;
+  }
+
+  function _writeString(string memory str) internal returns (bytes32) {
+    bytes16 k = bytes16(keccak256(bytes(str)));
+    if (bytes(_store().strings[k]).length == 0) {
+      _store().strings[k] = str;
+    }
+
+    return k;
   }
 }
