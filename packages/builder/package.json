@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "browser": "dist/browser.umd.js",
   "main": "dist/index.js",
