@@ -3,7 +3,7 @@
   "version": "2.0.2",
   "private": true,
   "scripts": {
-    "test": "npx @usecannon/cli build cannonfile.toml && npx @usecannon/cli build cannonfile.consumer.toml && forge test",
+    "test": "forge test",
     "build-cannonfile": "npx @usecannon/cli build cannonfile.toml && npx @usecannon/cli build cannonfile.consumer.toml",
     "run": "npx @usecannon/cli greeter",
     "run-synthetix": "npx @usecannon/cli synthetix"
