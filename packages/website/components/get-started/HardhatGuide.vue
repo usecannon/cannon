@@ -273,9 +273,8 @@ this.exampleTest = `const hre = require('hardhat');
 describe('SampleTest', () => {
   let MyTestContract;
   before("load", async () => {
-    await hre.run('cannon:build');
-    await hre.run('cannon:inspect', { writeDeployments: './deployments' });
-    let contractInfo = require(hre.config.paths.root + '/deployments/MyTestContract.json');
+    const { outputs } = await hre.run('cannon:build');
+    const contractInfo = outputs.contracts.MyTestContract;
     myTestContract = new ethers.Contract(contractInfo.abi, contractInfo.address);
   });
 
