@@ -41,7 +41,9 @@ export async function setup() {
       'What IPFS endpoint would you like to use when publishing packages? (This may look like https://<project-id>:<api-key-secret>@ipfs.infura.io:5001) You can leave this blank and set it later.\n',
     initial: fileSettings.publishIpfsUrl,
   });
-  fileSettings.publishIpfsUrl = response1.publishIpfsUrl;
+  if (response1.publishIpfsUrl) {
+    fileSettings.publishIpfsUrl = response1.publishIpfsUrl;
+  }
 
   const response2 = await prompts({
     type: 'text',
@@ -50,7 +52,9 @@ export async function setup() {
       'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote, like Infura.\n',
     initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
   });
-  fileSettings.ipfsUrl = response2.ipfsUrl;
+  if (response2.ipfsUrl) {
+    fileSettings.ipfsUrl = response2.ipfsUrl;
+  }
 
   const response3 = await prompts({
     type: 'text',
@@ -60,7 +64,7 @@ export async function setup() {
     initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT || '',
   });
   // Only write this to the file if it's different than the default, so this can be upgraded in the future.
-  if (response3.registryProviderUrl != DEFAULT_REGISTRY_ENDPOINT) {
+  if (response3.registryProviderUrl && response3.registryProviderUrl != DEFAULT_REGISTRY_ENDPOINT) {
     fileSettings.registryProviderUrl = response3.registryProviderUrl;
   }
 
@@ -71,7 +75,7 @@ export async function setup() {
     initial: fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS || '',
   });
   // Only write this to the file if it's different than the default, so this can be upgraded in the future.
-  if (response4.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
+  if (response4.registryAddress && response4.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
     fileSettings.registryAddress = response4.registryAddress;
   }
   fileSettings.registryAddress = response4.registryAddress;
