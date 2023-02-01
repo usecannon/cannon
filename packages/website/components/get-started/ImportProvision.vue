@@ -42,7 +42,7 @@
       >. The relevant code looks like this:
     </CText>
 
-    <CBox mb="12">
+    <CBox mb="8">
       <prism-editor
         class="code-editor"
         v-model="exampleCannonfile1"

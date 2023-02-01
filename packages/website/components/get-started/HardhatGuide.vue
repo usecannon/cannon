@@ -169,11 +169,23 @@
     ></CBox>
 
     <CText mb="4"
-      >TODO: oh, for hardhat, might also be worth mentioning that there are
-      typescript options available as well and link to how we are doing it in
-      the synthetix project since the format exported by cannon works with
-      typechain</CText
-    >
+      >If you’re using TypeScript for your tests, Cannon's export format is
+      <CLink
+        textDecoration="underline"
+        href="https://github.com/dethcrypto/TypeChain"
+        isExternal
+        >TypeChain</CLink
+      >
+      compatible. See the
+      <CLink
+        textDecoration="underline"
+        href="https://github.com/Synthetixio/synthetix-v3/tree/main/protocol/synthetix/test
+"
+        isExternal
+        >Synthetix testing suite</CLink
+      >
+      for an example.
+    </CText>
   </CBox>
 </template>
 
@@ -265,7 +277,6 @@ describe('SampleTest', () => {
   });
 
   it('works', async () => {
-
     expect(myTestContract.greet()).to.equal('hello');
   });
 });`

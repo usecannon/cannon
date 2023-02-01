@@ -229,7 +229,7 @@ import "cannon-std/Cannon.sol";
 
 import "../src/SampleIntegration.sol";
 
-contract TestScript is Test {
+contract SampleIntegrationTest is Test {
     using Cannon for Vm;
 
     SampleIntegration sampleIntegration;
@@ -239,11 +239,7 @@ contract TestScript is Test {
     }
 
     function testFailSetThresholdRequiresOwner() public {
-        sampleIntegration.setThreshold(3);
-    }
-
-    function testSetThreshold() public {
-        vm.broadcast(0xDEB48C91bDF743AA0a9025485d2dE08fC502655c);
+        vm.expectRevert();
         sampleIntegration.setThreshold(3);
     }
 }`

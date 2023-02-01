@@ -78,6 +78,7 @@ export async function setup() {
 
   console.log(`Writing configuration to ${cliSettingsStore}...`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
+  await fs.mkdirp(path.dirname(cliSettingsStore));
   fs.writeFileSync(cliSettingsStore, JSON.stringify(fileSettings), 'utf8');
   console.log('Done!');
 }
