@@ -1,9 +1,12 @@
 import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import { blueBright, yellowBright } from 'chalk';
+import Debug from 'debug';
 import { ethers } from 'ethers';
 import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+
+const debug = Debug('cannon:cli:publish');
 
 export async function publish(
   packageRef: string,
@@ -62,6 +65,8 @@ export async function publish(
         const url = await remoteLoader.putDeploy(deployData!);
 
         if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
+          debug('main url', url, toPublishUrl);
+          debug('misc url', miscUrl, deployData.miscUrl);
           throw new Error('re-deployed urls do not match up');
         }
       } else {

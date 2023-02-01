@@ -183,7 +183,9 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
             label += '_' + i;
           }
 
-          vals[label] = e.args[extra.arg];
+          const v = e.args[extra.arg];
+
+          vals[label] = v.toString ? v.toString() : v;
         }
       }
     }

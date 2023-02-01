@@ -177,11 +177,9 @@ export async function build({
     );
   }
 
-  const initialCtx = await createInitialContext(
-    def,
-    meta,
-    _.assign(oldDeployData?.options ?? {}, packageDefinition.settings)
-  );
+  const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
+
+  const initialCtx = await createInitialContext(def, meta, resolvedSettings);
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 
@@ -194,7 +192,7 @@ export async function build({
     const deployUrl = await runtime.loader.putDeploy({
       def: def.toJson(),
       state: newState,
-      options: packageDefinition.settings,
+      options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
       meta,
       miscUrl: miscUrl,

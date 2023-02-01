@@ -5,8 +5,8 @@ import pako from 'pako';
 import FormData from 'form-data';
 
 const getRequestHeaders = (isPublicInfura: boolean) => {
-  let headers = {
-    'User-Agent': `cannon-cli-2`,
+  const headers = {
+    'User-Agent': 'cannon-cli-2',
     origin: isPublicInfura ? 'https://usecannon.com' : undefined,
   };
   return headers;

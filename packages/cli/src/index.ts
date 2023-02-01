@@ -209,7 +209,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     projectDirectory,
     upgradeFrom: opts.upgradeFrom,
     preset: opts.preset,
-    persist: opts.wipe,
+    wipe: opts.wipe,
+    persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
   });
 
