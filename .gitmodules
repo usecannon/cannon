@@ -5,3 +5,7 @@
 [submodule "packages/sample-foundry-project/lib/cannon-std"]
 	path = packages/sample-foundry-project/lib/cannon-std
 	url = https://github.com/usecannon/cannon-std
+	
+[submodule "packages/contracts/lib/forge-std"]
+	path = packages/contracts/lib/forge-std
+	url = https://github.com/foundry/forge-std
