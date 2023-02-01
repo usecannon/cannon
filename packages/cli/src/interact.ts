@@ -460,31 +460,31 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
 
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
-    const contractsByAddress = _.groupBy(_.flatten(ctx.contracts.map(_.values)), 'address');
+    const contractsByAddress = _.mapKeys(
+      _.groupBy(_.flatten(ctx.contracts.map((contract) => Object.values(contract))), 'address'),
+      (v, k) => k.toLowerCase()
+    );
 
     for (let i = 0; i < receipt.logs.length; i++) {
       const log = receipt.logs[i];
 
-      // find contract matching address of the log
-      const logContracts = contractsByAddress[log.address];
-
       let foundLog = false;
-      for (const logContract of logContracts) {
-        try {
-          const parsedLog = logContract.interface.parseLog(log);
+      try {
+        // find contract matching address of the log
+        const logContract = contractsByAddress[log.address.toLowerCase()][0];
 
-          foundLog = true;
-          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name));
+        const parsedLog = logContract.interface.parseLog(log);
+        foundLog = true;
+        console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name));
 
-          for (let i = 0; i < (parsedLog.args.length || 0); i++) {
-            const output = parsedLog.args[i];
-            const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+        for (let i = 0; i < (parsedLog.args.length || 0); i++) {
+          const output = parsedLog.args[i];
+          const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
 
-            console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
-          }
-        } catch (err) {
-          // nothing
+          console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
         }
+      } catch (err) {
+        // nothing
       }
 
       if (!foundLog) {
