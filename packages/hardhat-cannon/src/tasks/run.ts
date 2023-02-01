@@ -14,9 +14,10 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
   .addOptionalParam('port', 'Port which the JSON-RPC server will be exposed', '8545')
   .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
   .addOptionalParam('fundAddresses', 'Comma separated list of addresses to receive a balance of 10,000 ETH', '')
+  .addOptionalParam('upgradeFrom', 'Perform an upgrade on existing contracts before running')
   .addFlag('impersonate', 'Create impersonated signers instead of using real wallets')
   .addFlag('logs', 'Show RPC logs instead of an interactive prompt')
-  .setAction(async ({ packageNames, port, logs, preset, impersonate, fundAddresses }, hre) => {
+  .setAction(async ({ packageNames, port, logs, preset, impersonate, upgradeFrom, fundAddresses }, hre) => {
     const packages: PackageSpecification[] = ((packageNames || []) as string[]).reduce((result, val) => {
       return parsePackagesArguments(val, result);
     }, [] as PackageSpecification[]);
@@ -60,6 +61,8 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       node,
       logs,
       preset,
+      upgradeFrom,
+      getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
       meta: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       privateKey,
       impersonate: toImpersonate.join(','),

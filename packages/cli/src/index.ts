@@ -76,6 +76,7 @@ function configureRun(program: Command) {
     )
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+    .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')

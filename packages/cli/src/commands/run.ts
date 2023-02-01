@@ -1,6 +1,6 @@
 import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import { ChainArtifacts } from '@usecannon/builder';
+import { ChainArtifacts, ContractArtifact } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { interact } from '../interact';
@@ -19,6 +19,8 @@ export interface RunOptions {
   impersonate: string;
   mnemonic?: string;
   privateKey?: string;
+  upgradeFrom?: string;
+  getArtifact?: (name: string) => Promise<ContractArtifact>;
   fundAddresses?: string[];
   helpInformation?: string;
 }
@@ -70,6 +72,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       overrideResolver: resolver,
       preset: options.preset,
       meta: options.meta,
+      upgradeFrom: options.upgradeFrom,
       persist: false,
     });
 
