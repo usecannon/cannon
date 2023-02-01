@@ -42,11 +42,13 @@ export class ChainDefinition {
 
     const actions = [];
 
+    // best way to get a list of actions is just to iterate over the entire def, and filter out anything
+    // that are not an actions (because those are known)
     const actionsDef = _.omit(def, 'name', 'version', 'description', 'keywords', 'setting');
 
-    // best way to get a list of actions is just to iterate over the entire def, and filter out anything
-    // that is not an action (because those are known)
+    // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
+
     for (const [action, data] of Object.entries(actionsDef)) {
       for (const name of Object.keys(data as any)) {
         if (actionNames.includes(name)) {
