@@ -2,7 +2,7 @@ import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import _ from 'lodash';
-import fs, { mkdirp } from 'fs-extra';
+import fs from 'fs-extra';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';

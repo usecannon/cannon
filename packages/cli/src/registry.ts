@@ -33,7 +33,7 @@ export class LocalRegistry extends CannonRegistry {
     }
 
     debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
-    return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString();
+    return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
   }
 
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {

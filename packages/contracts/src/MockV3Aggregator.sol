@@ -10,7 +10,7 @@ pragma solidity ^0.6.0;
  * its answer is unimportant
  */
 contract MockV3Aggregator {
-  uint256 constant public version = 0;
+  uint256 public constant version = 0;
 
   uint8 public decimals;
   int256 public latestAnswer;
@@ -21,17 +21,12 @@ contract MockV3Aggregator {
   mapping(uint256 => uint256) public getTimestamp;
   mapping(uint256 => uint256) private getStartedAt;
 
-  constructor(
-    uint8 _decimals,
-    int256 _initialAnswer
-  ) public {
+  constructor(uint8 _decimals, int256 _initialAnswer) public {
     decimals = _decimals;
     updateAnswer(_initialAnswer);
   }
 
-  function updateAnswer(
-    int256 _answer
-  ) public {
+  function updateAnswer(int256 _answer) public {
     latestAnswer = _answer;
     latestTimestamp = block.timestamp;
     latestRound++;
@@ -57,7 +52,6 @@ contract MockV3Aggregator {
   function getRoundData(uint80 _roundId)
     external
     view
-  
     returns (
       uint80 roundId,
       int256 answer,
@@ -66,19 +60,12 @@ contract MockV3Aggregator {
       uint80 answeredInRound
     )
   {
-    return (
-      _roundId,
-      getAnswer[_roundId],
-      getStartedAt[_roundId],
-      getTimestamp[_roundId],
-      _roundId
-    );
+    return (_roundId, getAnswer[_roundId], getStartedAt[_roundId], getTimestamp[_roundId], _roundId);
   }
 
   function latestRoundData()
     external
     view
-  
     returns (
       uint80 roundId,
       int256 answer,
@@ -96,12 +83,7 @@ contract MockV3Aggregator {
     );
   }
 
-  function description()
-    external
-    view
-  
-    returns (string memory)
-  {
+  function description() external view returns (string memory) {
     return "v0.6/tests/MockV3Aggregator.sol";
   }
 }

@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { task } from 'hardhat/config';
 import prompts from 'prompts';
 import { TASK_VERIFY } from '../task-names';

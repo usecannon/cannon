@@ -3,3 +3,4 @@ node_modules
 **/dist/**
 packages/hardhat-cannon/dist
 packages/registry-subgraph/generated
+packages/registry-subgraph/src

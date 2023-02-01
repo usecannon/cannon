@@ -9,6 +9,7 @@ import { ChainDefinition } from './definition';
 import { printChainDefinitionProblems } from './util';
 
 const debug = Debug('cannon:builder');
+const debugVerbose = Debug('cannon:verbose:builder');
 
 import { ContractMap, DeploymentState, TransactionMap } from '.';
 import { ChainBuilderRuntime, Events } from './runtime';
@@ -70,7 +71,7 @@ ${printChainDefinitionProblems(problems)}`);
     console.log(def.printTopology().join('\n'));
   }
 
-  debug('build');
+  debug('build', initialCtx.settings);
 
   // sanity check the network
   await runtime.checkNetwork();
@@ -275,6 +276,8 @@ export async function runStep(runtime: ChainBuilderRuntime, n: string, cfg: any,
   const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
+
+  debugVerbose('ctx for step', n, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.provider.artifacts = ctx;
