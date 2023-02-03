@@ -37,8 +37,10 @@
         />
       </CInputGroup>
       <CBox opacity="0.75" v-if="packages.length"
-        >Showing {{ packages.length }} of
-        {{ totalPackages.length }} results</CBox
+        >Showing {{ (page - 1) * perPage + 1 }}-{{
+          (page - 1) * perPage + packages.length
+        }}
+        of {{ totalPackages.length }} results</CBox
       >
     </CGridItem>
     <CGridItem :col-span="[12, 9]">
