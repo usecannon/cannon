@@ -205,7 +205,8 @@ export default {
 
     return {
       to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
-      data: cfg.func + '[' + (cfg.args?.map((a: any) => a.toString()).join(',') || '') + ']',
+      func: cfg.func,
+      args: cfg.args,
       value: cfg.value || '0',
     };
   },
