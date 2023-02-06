@@ -54,7 +54,9 @@ export async function publish(
         const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[0]));
 
         if (!deployData) {
-          throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
+          throw new Error(
+            'ipfs could not find deployment artifact. please double check your settings, and rebuild your package.'
+          );
         }
 
         const [url, miscUrl] = await reuploadIpfs(localLoader, remoteLoader, deployData);
@@ -104,7 +106,6 @@ export async function publish(
 }
 
 async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: DeploymentInfo) {
-
   // check imports for any urls. If any exist, we need to reupload those also
   for (const stepState of Object.entries(deployData.state.imports || {})) {
     for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
@@ -118,7 +119,7 @@ async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: Deploy
       }
     }
   }
-        
+
   const miscUrl = await dst.putMisc(await src.readMisc(deployData!.miscUrl));
   debug(`ipfs re-uploaded: ${miscUrl}`);
 
