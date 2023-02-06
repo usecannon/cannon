@@ -1,4 +1,4 @@
-import { IPFSLoader, OnChainRegistry } from '@usecannon/builder';
+import { DeploymentInfo, IPFSLoader, OnChainRegistry, StepState } from '@usecannon/builder';
 import { blueBright, yellowBright } from 'chalk';
 import Debug from 'debug';
 import { ethers } from 'ethers';
@@ -48,26 +48,25 @@ export async function publish(
       let metaUrl;
       // ensure the deployment is on the remote registry
       if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
-        if (!quiet) {
-          console.log('re-uploading to publish ipfs');
-        }
         const localLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
         const remoteLoader = new IPFSLoader(cliSettings.publishIpfsUrl, localRegistry);
 
         const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[0]));
 
         if (!deployData) {
-          throw new Error(`deployment data not found for tagged deployment:, ${deploy.name}, (${deploy.variant})`);
+          throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
         }
 
-        const miscUrl = await remoteLoader.putMisc(await localLoader.readMisc(deployData!.miscUrl));
-        metaUrl = await remoteLoader.putMisc(await readMetadataCache(`${name}:${version}`));
-        const url = await remoteLoader.putDeploy(deployData!);
+        const [url, miscUrl] = await reuploadIpfs(localLoader, remoteLoader, deployData);
 
         if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
-          debug('main url', url, toPublishUrl);
-          debug('misc url', miscUrl, deployData.miscUrl);
           throw new Error('re-deployed urls do not match up');
+        }
+
+        metaUrl = await remoteLoader.putMisc(await readMetadataCache(`${name}:${version}`));
+
+        if (!deployData) {
+          throw new Error(`deployment data not found for tagged deployment:, ${deploy.name}, (${deploy.variant})`);
         }
       } else {
         console.log(
@@ -102,4 +101,29 @@ export async function publish(
       registrationReceipts,
     })
   );
+}
+
+async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: DeploymentInfo) {
+
+  // check imports for any urls. If any exist, we need to reupload those also
+  for (const stepState of Object.entries(deployData.state.imports || {})) {
+    for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
+      if (importArtifact[1].url) {
+        // we need to upload nested ipfs deploys as well
+        const info = await src.readMisc(importArtifact[1].url);
+        const [url, miscUrl] = await reuploadIpfs(src, dst, info);
+        if (url !== importArtifact[1].url || miscUrl !== info!.miscUrl) {
+          throw new Error('re-deployed urls do not match up');
+        }
+      }
+    }
+  }
+        
+  const miscUrl = await dst.putMisc(await src.readMisc(deployData!.miscUrl));
+  debug(`ipfs re-uploaded: ${miscUrl}`);
+
+  const url = await dst.putDeploy(deployData!);
+  debug(`ipfs re-uploaded: ${url}`);
+
+  return [url, miscUrl];
 }
