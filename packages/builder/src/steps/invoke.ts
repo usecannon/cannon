@@ -206,7 +206,7 @@ export default {
     return {
       to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
       func: cfg.func,
-      args: cfg.args,
+      args: cfg.args?.map((v) => JSON.stringify(v)),
       value: cfg.value || '0',
     };
   },
