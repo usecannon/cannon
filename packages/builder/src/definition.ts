@@ -133,7 +133,8 @@ export class ChainDefinition {
     const obj = await ActionKinds[kind].getState(
       runtime,
       { ...ctx, ...ethers.utils, ...ethers.constants },
-      this.getConfig(n, ctx) as any
+      this.getConfig(n, ctx) as any,
+      n
     );
 
     if (!obj) {

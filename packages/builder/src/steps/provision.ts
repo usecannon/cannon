@@ -38,16 +38,26 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config, currentLabel?: string) {
+    const importLabel = currentLabel?.split('.')[1] || '';
     const cfg = this.configInject(ctx, config);
 
     const sourcePreset = config.sourcePreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
-    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
+    if (ctx.imports[importLabel].url) {
+      const prevUrl = ctx.imports[importLabel].url;
+
+      if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
+        // partial build always need to be re-evaluated
+        return 'REBUILD PARTIAL DEPLOYMENT ' + Math.random();
+      }
+    }
+
+    const srcUrl = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
 
     return {
-      url,
+      url: srcUrl,
       options: cfg.options,
       targetPreset: cfg.targetPreset,
     };

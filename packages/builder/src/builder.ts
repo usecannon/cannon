@@ -94,7 +94,7 @@ ${printChainDefinitionProblems(problems)}`);
   } else {
     debug('building individual');
     doActions: for (const n of topologicalActions) {
-      const ctx = _.clone(initialCtx);
+      const ctx = _.cloneDeep(initialCtx);
 
       const artifacts: ChainArtifacts = {};
 
@@ -115,6 +115,7 @@ ${printChainDefinitionProblems(problems)}`);
 
       // also add self artifacts here so that we can self-reference from inside the step
       if (state[n]) {
+        debug('adding self artifacts to context', state[n].artifacts);
         addOutputsToContext(ctx, state[n].artifacts);
       }
 
@@ -246,6 +247,7 @@ async function buildLayer(
 
       // also add self artifacts here so that we can self-reference from inside the step
       if (state[action] && state[action].artifacts) {
+        debug('adding self artifacts to context', state[action].artifacts);
         addOutputsToContext(ctx, state[action].artifacts);
       }
 
