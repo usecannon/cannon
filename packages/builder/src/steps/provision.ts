@@ -45,7 +45,7 @@ export default {
     const sourcePreset = config.sourcePreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
-    if (ctx.imports[importLabel].url) {
+    if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url;
 
       if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
