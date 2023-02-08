@@ -59,6 +59,6 @@ With appropriate permissions on npm, publish updates using the [lerna publish](h
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-This project is licensed under the terms of the GNU General Public License v3.0, except for the code available in `packages/contracts` which is licensed under the terms of the licensed under the MIT License.
+This project is licensed under the terms of the GNU General Public License v3.0, except for the code available in `packages/contracts` which is licensed under the terms of the MIT License.
 
 Copyright (C) 2023 Daniel Beal, Noah Litvin, Matías Lescano
