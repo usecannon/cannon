@@ -40,5 +40,6 @@
     "hooks": {
       "pre-commit": "npm run lint"
     }
-  }
+  },
+  "license": "GNU GPL V3.0"
 }
