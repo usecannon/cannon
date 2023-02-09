@@ -39,11 +39,15 @@
       <CTabs variant-color="teal">
         <CTabList>
           <CTab>Cannonfile</CTab>
+          <CTab>Interact</CTab>
           <CTab>Versions</CTab>
         </CTabList>
         <CTabPanels>
           <CTabPanel pt="8" pb="2">
             <Cannonfile :p="p" />
+          </CTabPanel>
+          <CTabPanel pt="8" pb="2">
+            <Interact :p="p" />
           </CTabPanel>
           <CTabPanel pt="8" pb="2">
             <Versions :p="p" />
@@ -65,6 +69,7 @@ import PublishInfo from "../../components/shared/PublishInfo"
 import CommandPreview from "../../components/shared/CommandPreview"
 import Versions from "../../components/search/Versions"
 import Cannonfile from "../../components/search/Cannonfile"
+import Interact from "../../components/search/Interact"
 
 export default {
   name: 'Package',
@@ -79,6 +84,7 @@ export default {
     CommandPreview,
     Versions,
     Cannonfile,
+    Interact
   },
   computed: {
     p(){
