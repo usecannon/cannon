@@ -1,8 +1,16 @@
 <template>
-  <CBox mb="2">
+  <CBox mb="8">
     <CBox v-for="o in output" :key="JSON.stringify(o)">
-      <CHeading mb="1" size="lg">{{ o.title }}</CHeading>
-      <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{ o.url }}</CCode>
+      <CFlex mb="2">
+        <CHeading mb="1" size="lg" display="inline-block">{{
+          o.title
+        }}</CHeading>
+        <CBox ml="auto">
+          <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{
+            o.url
+          }}</CCode></CBox
+        >
+      </CFlex>
       <ContractStep :contracts="o.contracts" />
       <ProvisionStep v-if="o.imports" :imports="o.imports" />
     </CBox>

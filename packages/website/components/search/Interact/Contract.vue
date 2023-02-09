@@ -1,8 +1,29 @@
 <template>
-  <CBox mb="2">
-    <CHeading mb="1" size="md">{{ title }}</CHeading>
-    <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{ address }}</CCode>
-    <Abi :abi="abi" />
+  <CBox
+    mb="4"
+    borderRadius="4px"
+    p="4"
+    border="1px solid rgba(255,255,255,0.3)"
+  >
+    <CFlex mb="2">
+      <CHeading mb="1" size="lg" display="inline-block">{{ title }}</CHeading>
+      <CBox ml="auto">
+        <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{
+          address
+        }}</CCode></CBox
+      >
+    </CFlex>
+    <CCollapse :is-open="show">
+      <Abi v-if="show" :abi="abi" />
+    </CCollapse>
+    <CButton
+      variant-color="blue"
+      variant="outline"
+      @click="show = !show"
+      size="xs"
+    >
+      {{ show ? 'Hide' : 'Show' }} contract functions
+    </CButton>
   </CBox>
 </template>
 
@@ -11,6 +32,11 @@ import Abi from './abi';
 
 export default {
   name: 'Contract',
+  data () {
+    return {
+      show: false
+    }
+  },
   components: {
     Abi
   },

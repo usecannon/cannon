@@ -10,15 +10,12 @@
     color="#ffffff"
     borderBottom="1px solid hsl(220deg 100% 12%)"
   >
-    <big style="display: inline-block; transform: translateY(1px)">🎉</big>
-    <strong>Version 2.0 is live!</strong> Provide feedback and contribute pull
-    requests on
-    <CLink
-      isExternal
-      href="https://github.com/usecannon/cannon"
-      textDecoration="underline"
-      >GitHub</CLink
-    >.
+    <big style="display: inline-block; transform: translateY(1px)">ℹ️</big>
+    Cannon is under active development.
+    <strong
+      >Use the tool with caution when conducting high-risk transactions and
+      deployments.</strong
+    >
   </CBox>
 </template>
 

@@ -1,7 +1,7 @@
 <template>
-  <CFormControl mb="2">
+  <CFormControl mb="4">
     <CFormLabel v-if="input.name" color="white">{{ input.name }}</CFormLabel>
-    <CInput size="xs" />
+    <CInput type="text" bg="black" borderColor="whiteAlpha.400" />
   </CFormControl>
 </template>
     

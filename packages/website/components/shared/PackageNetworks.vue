@@ -61,53 +61,14 @@
 <script lang="js">
 import axios from 'axios';
 import pako from "pako";
-import { merge, mapValues, omit } from 'lodash';
-import chains from '../../helpers/chains'
+import { mapValues, omit } from 'lodash';
+import chains from '../../helpers/chains';
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
 import 'vue-prism-editor/dist/prismeditor.min.css'; // import the styles somewhere
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-json';
-
-let CHAIN_DATA = []
-
-chains.forEach((c) => {
-  CHAIN_DATA[c.chainId] = {
-    name: c.shortName
-  }
-});
-
-CHAIN_DATA = merge(CHAIN_DATA, {
-  13370: {
-    name: 'local',
-    color: 'whiteAlpha'
-  },
-  1: {
-    name: 'mainnet',
-    color: 'indigo'
-  },
-  5: {
-    name: 'goerli',
-    color: 'green'
-  },
-  56: {
-    name: 'bnb',
-    color: 'yellow'
-  },
-  10: {
-    name: 'optimism',
-    color: 'red'
-  },
-  420: {
-    name: 'optimism goerli',
-    color: 'pink'
-  },
-  42161: {
-    name: 'arbitrum',
-    color: 'blue'
-  }
-});
 
 export default {
   name: 'PackageNetworks',
@@ -198,7 +159,7 @@ export default {
       }else if(this.p.variants){
         variants = this.p.variants;
       }
-      return variants.map(v => {return {id: v.chain_id, url: v.deploy_url, ...CHAIN_DATA[v.chain_id]}}).sort((a, b) => {
+      return variants.map(v => {return {id: v.chain_id, url: v.deploy_url, ...chains[v.chain_id]}}).sort((a, b) => {
         if (a.id === 13370) {
           return -1;
         } else if (b.id === 13370) {

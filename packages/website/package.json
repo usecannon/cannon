@@ -17,6 +17,7 @@
     "@nuxtclub/feathericons": "^1.0.0",
     "@nuxtjs/apollo": "^4.0.1-rc.5",
     "@nuxtjs/emotion": "^0.1.0",
+    "@web3-onboard/vue": "^2.5.1",
     "axios": "^1.2.6",
     "core-js": "^3.19.3",
     "date-fns": "^2.28.0",

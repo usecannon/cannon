@@ -1,5 +1,5 @@
 <template>
-  <CBox mb="2">
+  <CBox mb="8">
     <Contract
       v-for="o in output"
       :key="JSON.stringify(o)"

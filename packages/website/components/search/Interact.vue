@@ -1,24 +1,28 @@
 <template>
   <CBox>
-    <CFlex mb="4">
-      <CBox>
-        Use the command-line tool to interact with the contracts:
-        <CommandPreview
-          command="npx @usecannon/cli interact packagename:version
-        --private-key"
-      /></CBox>
-      <CBox ml="auto">version switcher dropdown</CBox>
+    <CFlex mb="8" align="center">
+      <ConnectWallet />
+      <CBox ml="auto">
+        <VersionSelect :p="p" v-model="selectedVariant" />
+      </CBox>
     </CFlex>
-    <CButton mb="4" variant="outline">Connect Wallet</CButton>
-    <CBox v-for="o in output" :key="o.title">
-      <ContractStep
-        v-if="o.title.startsWith('contract.')"
-        :contracts="o.artifacts.contracts"
-      />
-      <ProvisionStep
-        v-if="o.title.startsWith('provision.')"
-        :imports="o.artifacts.imports"
-      />
+    <CBox mb="8">
+      <InteractCommand :packageName="p.name" :variant="selectedVariant" />
+    </CBox>
+    <CBox v-if="loading" py="20" textAlign="center">
+      <CSpinner />
+    </CBox>
+    <CBox v-else>
+      <CBox v-for="o in output" :key="o.title">
+        <ContractStep
+          v-if="o.title.startsWith('contract.')"
+          :contracts="o.artifacts.contracts"
+        />
+        <ProvisionStep
+          v-if="o.title.startsWith('provision.')"
+          :imports="o.artifacts.imports"
+        />
+      </CBox>
     </CBox>
   </CBox>
 </template>
@@ -26,56 +30,39 @@
 <script lang="js">
 import axios from 'axios';
 import pako from "pako";
+import VersionSelect from "./Interact/VersionSelect";
 import ContractStep from "./Interact/ContractStep";
 import ProvisionStep from "./Interact/ProvisionStep";
-import CommandPreview from "../shared/CommandPreview";
+import ConnectWallet from "./Interact/ConnectWallet";
+import InteractCommand from "./Interact/InteractCommand";
 
 export default {
   name: 'Interact',
   props: {
       p: {
           type: Object
+      },
+      selectedVariant: {
+        type: Object
       }
   },
   components: {
+    VersionSelect,
     ContractStep,
     ProvisionStep,
-    CommandPreview
+    InteractCommand,
+    ConnectWallet
   },
   data() {
     return {
       loading: true,
       ipfs: {},
-
-      model: {},
-      state: {},
-      valid: false,
-      schema: {
-        type: "object",
-        properties: {
-          firstName: {
-            type: "string",
-          },
-        },
-      },
-      uiSchema: [
-        {
-          component: "input",
-          model: "firstName",
-          fieldOptions: {
-            class: ["form-control"],
-            on: ["input"],
-            attrs: {
-              placeholder: "Please enter your name",
-            },
-          },
-        },
-      ],
     };
   },
-  async mounted(){
-    this.loading = true
-    await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.deploy_url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+  watch:{
+    async selectedVariant(){
+      this.loading = true
+    await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
     .then(response => {        
       const uint8Array = new Uint8Array(response.data);
       const inflated = pako.inflate(uint8Array);
@@ -86,6 +73,7 @@ export default {
       console.error(error);
     });
     this.loading = false;
+    }
   },
   computed: {
     latestVariant(){
