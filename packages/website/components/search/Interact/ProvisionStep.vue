@@ -7,7 +7,7 @@
         }}</CHeading>
         <CBox ml="auto">
           <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{
-            o.url
+            o.url.replace('ipfs://', '@ipfs:')
           }}</CCode></CBox
         >
       </CFlex>
