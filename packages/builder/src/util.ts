@@ -1,13 +1,14 @@
 import crypto from 'crypto';
 import { ethers } from 'ethers';
-
+import { Buffer } from 'buffer';
 import _ from 'lodash';
+import { JsonFragment } from '@ethersproject/abi';
+
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ChainArtifacts } from './types';
 
 import { CannonWrapperGenericProvider } from './error/provider';
-import { JsonFragment } from '@ethersproject/abi';
 
 export const ChainDefinitionScriptSchema = {
   properties: {
@@ -61,7 +62,7 @@ export async function passThroughSigner(
 
   if (!signer) {
     throw new Error(`signer not provided for address ${addr}
-    
+
 This error occurs becuase your cannonfile is requesting to sign a transaction, but the corresponding signer has not been made
 available in your configuration. Please double check your configuration & integrations and try again.`);
   }

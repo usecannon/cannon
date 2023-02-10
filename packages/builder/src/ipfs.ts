@@ -1,16 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
 import Debug from 'debug';
 import pako from 'pako';
-
+import { Buffer } from 'buffer';
 import FormData from 'form-data';
 
-const getRequestHeaders = (isPublicInfura: boolean) => {
-  const headers = {
-    'User-Agent': 'cannon-cli-2',
-    origin: isPublicInfura ? 'https://usecannon.com' : undefined,
-  };
-  return headers;
-};
+export interface Headers {
+  [key: string]: string | string[] | number | boolean | null
+}
 
 const debug = Debug('cannon:builder:ipfs');
 
@@ -21,7 +17,7 @@ export function isIpfsGateway(ipfsUrl: string) {
   return url.port !== '5001' && url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
 }
 
-export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
+export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<any> {
   debug(`downloading content from ${hash}`);
 
   let result: AxiosResponse;
@@ -30,7 +26,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
     result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
       responseType: 'arraybuffer',
       responseEncoding: 'application/octet-stream',
-      headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
+      headers: customHeaders,
     });
   } else {
     // the +ipfs extension used to indicate a gateway is not recognized by
@@ -42,7 +38,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
       {
         responseEncoding: 'application/octet-stream',
         responseType: 'arraybuffer',
-        headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
+        headers: customHeaders,
       }
     );
   }
@@ -50,7 +46,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
   return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
 }
 
-export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | null> {
+export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Headers = {}): Promise<string | null> {
   if (isIpfsGateway(ipfsUrl)) {
     // cannot write to IPFS on gateway
     return null;
@@ -62,11 +58,14 @@ export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | nu
   debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
 
   const formData = new FormData();
+
   formData.append('data', Buffer.from(buf));
   try {
-    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, {
-      headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
-    });
+    const result = await axios.post(
+      ipfsUrl.replace('+ipfs', '') + '/api/v0/add',
+      formData,
+      { headers: customHeaders }
+    );
 
     debug('upload', result.statusText, result.data.Hash);
 

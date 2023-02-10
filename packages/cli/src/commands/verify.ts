@@ -1,4 +1,4 @@
-import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
+import { ChainDefinition, getOutputs, ChainBuilderRuntime } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import { getChainDataFromId, setupAnvil } from '../helpers';
@@ -6,6 +6,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
 import Debug from 'debug';
+import { IPFSLoader } from '../util/loader';
 
 const debug = Debug('cannon:cli:verify');
 

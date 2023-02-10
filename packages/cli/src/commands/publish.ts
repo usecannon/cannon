@@ -1,10 +1,11 @@
-import { DeploymentInfo, IPFSLoader, OnChainRegistry, StepState } from '@usecannon/builder';
+import { DeploymentInfo, OnChainRegistry, StepState } from '@usecannon/builder';
 import { blueBright, yellowBright } from 'chalk';
 import Debug from 'debug';
 import { ethers } from 'ethers';
 import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+import { IPFSLoader } from '../util/loader';
 
 const debug = Debug('cannon:cli:publish');
 

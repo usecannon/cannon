@@ -2,8 +2,8 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { createDefaultReadRegistry } from '../registry';
 import {
+  createInitialContext,
   ChainDefinition,
-  IPFSLoader,
   ChainBuilderRuntime,
   getOutputs,
   CANNON_CHAIN_ID,
@@ -11,7 +11,7 @@ import {
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
-import { createInitialContext } from '@usecannon/builder';
+import { IPFSLoader } from '../util/loader';
 
 const debug = Debug('cannon:cli:alter');
 

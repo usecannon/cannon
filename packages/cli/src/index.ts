@@ -7,7 +7,6 @@ import {
   ChainDefinition,
   getOutputs,
   ChainBuilderRuntime,
-  IPFSLoader,
   CANNON_CHAIN_ID,
   ChainArtifacts,
 } from '@usecannon/builder';
@@ -34,7 +33,9 @@ import { resolveCliSettings } from './settings';
 import { installPlugin, removePlugin } from './plugins';
 import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
+import { IPFSLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
+
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?

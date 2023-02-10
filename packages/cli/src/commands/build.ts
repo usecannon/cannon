@@ -13,7 +13,6 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
-  IPFSLoader,
 } from '@usecannon/builder';
 import { loadCannonfile, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -23,6 +22,7 @@ import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
 import { listInstalledPlugins, loadPlugin } from '../plugins';
+import { IPFSLoader } from '../util/loader';
 
 interface Params {
   provider: CannonWrapperGenericProvider;

@@ -1,6 +1,10 @@
 {
   "name": "cannon-registry",
+<<<<<<< HEAD
   "version": "2.1.8",
+=======
+  "version": "2.1.8-alpha.4",
+>>>>>>> 4335e34 (fix browser build)
   "private": true,
   "description": "Contract registry for Cannon images",
   "scripts": {
@@ -29,7 +33,11 @@
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.12.6",
+<<<<<<< HEAD
     "hardhat-cannon": "^2.1.8",
+=======
+    "hardhat-cannon": "^2.1.8-alpha.4",
+>>>>>>> 4335e34 (fix browser build)
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",

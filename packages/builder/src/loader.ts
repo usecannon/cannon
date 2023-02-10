@@ -1,4 +1,4 @@
-import { readIpfs, writeIpfs } from './ipfs';
+import { Headers, readIpfs, writeIpfs } from './ipfs';
 import { CannonRegistry } from './registry';
 import { DeploymentInfo } from './types';
 
@@ -17,22 +17,26 @@ export interface CannonLoader {
 export class IPFSLoader implements CannonLoader {
   ipfsUrl: string;
   resolver: CannonRegistry;
+  customHeaders: Headers = {};
 
   static PREFIX = 'ipfs://';
 
-  constructor(ipfsUrl: string, resolver: CannonRegistry) {
+  constructor(ipfsUrl: string, resolver: CannonRegistry, customHeaders: Headers = {}) {
     this.ipfsUrl = ipfsUrl;
     this.resolver = resolver;
+    this.customHeaders = customHeaders;
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
-    const h = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
+    const uri = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
 
-    if (!h) {
-      return null;
-    }
+    if (!uri) return null;
 
-    const deployInfo: DeploymentInfo = await readIpfs(this.ipfsUrl, h.replace(IPFSLoader.PREFIX, ''));
+    const deployInfo: DeploymentInfo = await readIpfs(
+      this.ipfsUrl,
+      uri.replace(IPFSLoader.PREFIX, ''),
+      this.customHeaders
+    );
 
     return deployInfo;
   }
@@ -43,17 +47,32 @@ export class IPFSLoader implements CannonLoader {
   }
 
   protected async readMiscInternal(url: string) {
-    return await readIpfs(this.ipfsUrl, url.split(IPFSLoader.PREFIX)[1]);
+    return await readIpfs(
+      this.ipfsUrl,
+      url.split(IPFSLoader.PREFIX)[1],
+      this.customHeaders
+    );
   }
 
   async putMisc(misc: any): Promise<string | null> {
     debug('record misc');
-    const hash = await writeIpfs(this.ipfsUrl, misc);
+
+    const hash = await writeIpfs(
+      this.ipfsUrl,
+      misc,
+      this.customHeaders
+    );
+
     return hash ? IPFSLoader.PREFIX + hash : hash;
   }
 
   async readMisc(url: string) {
     debug('restore misc');
-    return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''));
+
+    return await readIpfs(
+      this.ipfsUrl,
+      url.replace(IPFSLoader.PREFIX, ''),
+      this.customHeaders
+    );
   }
 }
