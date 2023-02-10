@@ -11,13 +11,29 @@
         {{ input.type }}</CText
       ></CFormLabel
     >
-    <CInput type="text" bg="black" borderColor="whiteAlpha.400" />
+    <CInput
+      type="text"
+      bg="black"
+      v-model="value"
+      borderColor="whiteAlpha.400"
+      @input="updateValue"
+    />
   </CFormControl>
 </template>
     
 <script lang="js">
   export default {
     name: 'FunctionInput',
+    data(){
+      return {
+        value: null
+      }
+    },
+    methods: {
+      updateValue() {
+        this.$emit("update:value", this.value);
+      }
+    },
     props: {
         input: {
             type: Object

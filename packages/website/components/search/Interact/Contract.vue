@@ -3,7 +3,7 @@
     mb="4"
     borderRadius="4px"
     p="4"
-    border="1px solid rgba(255,255,255,0.3)"
+    border="1px solid rgba(255,255,255,0.2)"
     bg="blackAlpha.500"
   >
     <CFlex mb="2">

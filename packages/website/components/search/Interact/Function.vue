@@ -2,11 +2,15 @@
   <CBox mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
     <CHeading size="sm" mb="2">{{ f.name }}()</CHeading>
     <FunctionInput
-      v-for="input in f.inputs"
+      v-for="(input, index) of f.inputs"
       :key="JSON.stringify(input)"
       :input="input"
+      v-on:update:value="updateParams(index, $event)"
     />
     <CBox v-if="loading" my="4"><CSpinner /></CBox>
+    <CAlert mb="4" status="error" bg="red.700" v-else-if="error">
+      {{ error }}
+    </CAlert>
     <CBox v-else-if="result">
       <CBox
         mb="4"
@@ -17,7 +21,9 @@
         <CText fontSize="xs" color="whiteAlpha.700" display="inline">
           {{ output.type }}</CText
         >
-        <CText>{{ Array.isArray(result) ? result[ind] : result }}</CText>
+        <CText>{{
+          Array.isArray(result) ? result[ind] : result.toString()
+        }}</CText>
       </CBox>
     </CBox>
     <CButton
@@ -32,6 +38,7 @@
 </template>
     
 <script lang="js">
+import Vue from 'vue';
 import FunctionInput from './FunctionInput';
 const ethers = require("ethers");
 
@@ -51,7 +58,9 @@ export default {
   data(){
     return {
       loading: false,
-      result: null
+      result: null,
+      error: null,
+      params: []
     }
   },
   computed:{
@@ -60,18 +69,26 @@ export default {
     }
   },
   methods: {
+    updateParams(index, value) {
+      Vue.set(this.params,index, value)
+    },
     async submit(){
+      this.error = null
       this.loading = true;
       const provider = this.$store.getters.getProvider;
       const contract = new ethers.Contract(this.address, [this.f], provider);
-      // try/catch below
-      if(this.readOnly){
-        this.result = await contract[this.f.name]();
-      }else{
-        // connect wallet first if necessary
-        await contract[this.f.name]();
+      try {
+        if(this.readOnly){
+          this.result = await contract[this.f.name](...this.params);
+        }else{
+          // connect wallet first if necessary
+          await contract[this.f.name]();
+        }
+      }catch(e){
+        this.error = e
+      }finally{
+        this.loading = false;
       }
-      this.loading = false;
     }
   }
 }
