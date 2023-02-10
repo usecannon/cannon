@@ -35,11 +35,14 @@ export class OnChainRegistry extends CannonRegistry {
     overrides = {},
   }: {
     address: string;
-    signerOrProvider: ethers.Signer | ethers.providers.Provider;
+    signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
     overrides?: Overrides;
   }) {
     super();
-    if ((signerOrProvider as ethers.Signer).provider) {
+
+    if (typeof signerOrProvider === 'string') {
+      this.provider = new ethers.providers.JsonRpcProvider(signerOrProvider);
+    } else if ((signerOrProvider as ethers.Signer).provider) {
       this.signer = signerOrProvider as ethers.Signer;
       this.provider = this.signer.provider;
     } else {

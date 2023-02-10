@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import Debug from 'debug';
 import pako from 'pako';
-
+import { Buffer } from 'buffer';
 import FormData from 'form-data';
 
 const getRequestHeaders = (isPublicInfura: boolean) => {

@@ -1,19 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "commonjs",
+    "noEmit": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./dist",
     "strict": true,
-    "rootDirs": ["./src", "./test"],
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": false
   },
-  "exclude": ["dist", "node_modules"],
-  "include": [
-    "./test",
-    "./src", "../cli/run.ts", "../cli/import-from.ts",
-  ]
+  "include": ["./src", "../cli/run.ts", "../cli/import-from.ts"],
+  "exclude": ["dist", "node_modules"]
 }
