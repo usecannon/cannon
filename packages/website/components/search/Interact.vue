@@ -41,9 +41,6 @@ export default {
   props: {
       p: {
           type: Object
-      },
-      selectedVariant: {
-        type: Object
       }
   },
   components: {
@@ -57,22 +54,24 @@ export default {
     return {
       loading: true,
       ipfs: {},
+      selectedVariant: {}
     };
   },
   watch:{
     async selectedVariant(){
       this.loading = true
-    await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+      await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
     .then(response => {        
       const uint8Array = new Uint8Array(response.data);
       const inflated = pako.inflate(uint8Array);
       const raw = new TextDecoder().decode(inflated);
       this.ipfs = JSON.parse(raw);
+      this.loading = false;
     })
     .catch(error => {
       console.error(error);
     });
-    this.loading = false;
+    this.$store.dispatch('changeChainId', this.selectedVariant.chain_id)
     }
   },
   computed: {

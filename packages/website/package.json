@@ -31,7 +31,6 @@
     "vue-prism-editor": "^1.3.0",
     "vue-server-renderer": "^2.6.14",
     "vue-template-compiler": "^2.6.14",
-    "web3": "^1.8.2",
     "web3modal": "github:WalletConnect/web3modal#V1",
     "webpack": "^4.46.0"
   },

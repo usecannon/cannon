@@ -13,7 +13,7 @@
     <big style="display: inline-block; transform: translateY(1px)">ℹ️</big>
     Cannon is under active development.
     <strong
-      >Use the tool with caution when conducting high-risk transactions and
+      >Use it with caution when conducting high-risk transactions and
       deployments.</strong
     >
   </CBox>

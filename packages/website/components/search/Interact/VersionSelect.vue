@@ -49,7 +49,7 @@ import chains from '../../../helpers/chains';
     computed: {
       options() {
         return _.flatten(this.p.tags.map(t => {
-          return t.variants.map(v => {
+          return t.variants.sort((a,b)=> a.chaind_id > b.chain_id ? 1 : -1).map(v => {
             return {
               name: `${t.name} on ${chains[v.chain_id].name}${v.preset !== 'main' ? ' ('+v.preset+')': ''}`,
               tag: t.name,

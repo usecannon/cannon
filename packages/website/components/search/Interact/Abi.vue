@@ -1,7 +1,7 @@
 <template>
   <CBox mb="2">
     <CBox v-for="f of functions" :key="JSON.stringify(f)">
-      <Function :f="f" />
+      <Function :f="f" :address="address" />
     </CBox>
   </CBox>
 </template>
@@ -12,9 +12,12 @@ import Function from './Function';
 export default {
   name: 'Abi',
   props: {
-      abi: {
-          type: Array
-      }
+    abi: {
+        type: Array
+    },
+    address: {
+        type: String
+    }
   },
   components: {Function},
   computed:{

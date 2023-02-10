@@ -4,6 +4,7 @@
     borderRadius="4px"
     p="4"
     border="1px solid rgba(255,255,255,0.3)"
+    bg="blackAlpha.500"
   >
     <CFlex mb="2">
       <CHeading mb="1" size="lg" display="inline-block">{{ title }}</CHeading>
@@ -14,7 +15,7 @@
       >
     </CFlex>
     <CCollapse :is-open="show">
-      <Abi v-if="show" :abi="abi" />
+      <Abi v-if="show" :abi="abi" :address="address" />
     </CCollapse>
     <CButton
       variant-color="blue"
