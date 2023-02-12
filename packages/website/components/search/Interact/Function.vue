@@ -75,13 +75,17 @@ export default {
     async submit(){
       this.error = null
       this.loading = true;
-      const provider = this.$store.getters.getProvider;
+      const providerUrl = this.$store.getters.getProviderUrl;
+      const provider = new ethers.providers.JsonRpcProvider(providerUrl); // maybe Web3Provider?
       const contract = new ethers.Contract(this.address, [this.f], provider);
+
       try {
         if(this.readOnly){
           this.result = await contract[this.f.name](...this.params);
         }else{
-          // connect wallet first if necessary
+          if(!this.$store.state.account){
+            await this.$store.dispatch('connect')
+          }
           await contract[this.f.name]();
         }
       }catch(e){

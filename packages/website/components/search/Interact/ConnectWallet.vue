@@ -14,7 +14,11 @@ export default {
   name: 'ConnectWallet',
   methods:{
     async connect(){
-      this.$store.dispatch('connect')
+      if(this.account){
+        this.$store.dispatch('disconnect', this.$toast)
+      }else{
+        this.$store.dispatch('connect', this.$toast)
+      }
     }
   },
   computed: {
