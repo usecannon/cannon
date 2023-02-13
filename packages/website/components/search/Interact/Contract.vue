@@ -29,7 +29,7 @@
 </template>
 
 <script lang="js">
-import Abi from './abi';
+import Abi from './Abi';
 
 export default {
   name: 'Contract',
