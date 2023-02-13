@@ -10,13 +10,8 @@
     color="#ffffff"
     borderBottom="1px solid hsl(220deg 100% 12%)"
   >
-    <big style="display: inline-block; transform: translateY(1px)">🚨</big>
-    Cannon is under active development.
-    <strong
-      >Use it with caution when conducting high-risk transactions and
-      deployments.</strong
-    >
-    <big style="display: inline-block; transform: translateY(1px)">🚨</big>
+    <big style="display: inline-block; transform: translateY(1px)">🙂</big>
+    Placeholder
   </CBox>
 </template>
 

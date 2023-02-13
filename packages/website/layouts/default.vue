@@ -12,7 +12,7 @@
       >
         <CReset />
         <CBox flex="1">
-          <Banner />
+          <Banner v-if="false" />
           <Heading />
           <Nuxt />
         </CBox>
