@@ -59,7 +59,7 @@ export default {
   },
   watch:{
     async selectedVariant(){
-      this.$store.dispatch('changeChainId', this.selectedVariant.chain_id)
+      this.$store.dispatch('changeChainId', this.selectedVariant.chain_id, this.$toast)
       this.loading = true
       await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
       .then(response => {        

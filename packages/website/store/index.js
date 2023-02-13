@@ -73,7 +73,7 @@ export const actions = {
         web3Modal.clearCachedProvider();
         commit('setAccount', null);
     },
-    async changeChainId({ state, commit }, chainId) {
+    async changeChainId({ state, commit }, chainId, toast) {
         if (state.account) {
             await switchMetamaskChain(chainId, toast)
         }
