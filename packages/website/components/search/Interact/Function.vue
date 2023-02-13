@@ -89,6 +89,12 @@ export default {
           const signer = provider.getSigner();
           const contract = new ethers.Contract(this.address, [this.f], signer);
           await contract[this.f.name](...this.params);
+          this.$toast({
+            title: 'Transaction submitted',
+            description: "Check your wallet app for the status of the transaction.",
+            status: 'info',
+            duration: 10000
+          })
         }
       }catch(e){
         this.error = e

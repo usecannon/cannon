@@ -14,7 +14,7 @@ const providerOptions = {
 };
 
 const web3Modal = new Web3Modal({
-    cacheProvider: true,
+    cacheProvider: false,
     providerOptions
 });
 
@@ -32,10 +32,10 @@ export const getters = {
             return metamaskProvider
         }
         if (state.chainId == 13370) {
-            return new ethers.providers.Web3Provider('http://localhost:8545')
+            return new ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
         if (state.chainId == 420) {
-            return new ethers.providers.Web3Provider('https://goerli.optimism.io')
+            return new ethers.providers.JsonRpcProvider('https://goerli.optimism.io')
         }
         return ethers.getDefaultProvider(ethers.providers.getNetwork(state.chainId), { infura: INFURA_ID })
     },
@@ -56,7 +56,7 @@ export const mutations = {
 export const actions = {
     async connect({ state, commit }, toast) {
         const instance = await web3Modal.connect();
-        metamaskProvider = new ethers.providers.Web3Provider(instance);
+        metamaskProvider = new ethers.providers.Web3Provider(instance, "any");
 
         metamaskProvider.on('accountsChanged', function (accounts) {
             commit('setAccount', accounts[0]);
@@ -71,6 +71,7 @@ export const actions = {
     },
     async disconnect({ state, commit }, toast) {
         web3Modal.clearCachedProvider();
+        metamaskProvider = null;
         commit('setAccount', null);
     },
     async changeChainId({ state, commit }, chainId, toast) {
@@ -83,31 +84,18 @@ export const actions = {
 }
 
 const switchMetamaskChain = async (chainId, toast) => {
-    /*
-    if (chainId == 13370) {
-        try {
-            await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{
-                    chainId: '0x' + (13370).toString(16),
-                    rpcUrls: ["http://localhost:8545"],
-                    chainName: "Cannon",
-                }]
-            });
-        } catch (error) {
-            toast({
-                title: 'Unable to connect',
-                description: "Make sure you're running a local Cannon node.",
-                status: 'error',
-                duration: 10000
-            })
-            return
-        }
+    try {
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x' + chainId.toString(16) }],    // chainId must be in HEX with 0x in front
+        });
+    } catch (error) {
+        toast({
+            title: 'Error',
+            description: error.message,
+            status: 'error',
+            duration: 10000
+        })
+        return
     }
-    */
-
-    await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x' + chainId.toString(16) }],    // chainId must be in HEX with 0x in front
-    });
 }
