@@ -26,13 +26,11 @@ export class IPFSLoader implements CannonLoader {
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
-    const h = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
+    const uri = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
 
-    if (!h) {
-      return null;
-    }
+    if (!uri) return null;
 
-    const deployInfo: DeploymentInfo = await readIpfs(this.ipfsUrl, h.replace(IPFSLoader.PREFIX, ''));
+    const deployInfo: DeploymentInfo = await readIpfs(this.ipfsUrl, uri.replace(IPFSLoader.PREFIX, ''));
 
     return deployInfo;
   }

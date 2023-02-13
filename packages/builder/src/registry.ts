@@ -90,9 +90,8 @@ export class OnChainRegistry extends CannonRegistry {
 
   async getUrl(packageName: string, variant: string): Promise<string | null> {
     const baseResolved = await super.getUrl(packageName, variant);
-    if (baseResolved) {
-      return baseResolved;
-    }
+
+    if (baseResolved) return baseResolved;
 
     const [name, version] = packageName.split(':');
 

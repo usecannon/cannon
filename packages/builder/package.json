@@ -47,8 +47,7 @@
     "debug": "^4.3.4",
     "form-data": "^4.0.0",
     "lodash": "^4.17.21",
-    "pako": "^2.1.0",
-    "tiny-buffer": "^2.1.0"
+    "pako": "^2.1.0"
   },
   "engines": {
     "node": ">=16.0.0"

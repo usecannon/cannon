@@ -4,13 +4,10 @@ import pako from 'pako';
 import { Buffer } from 'buffer';
 import FormData from 'form-data';
 
-const getRequestHeaders = (isPublicInfura: boolean) => {
-  const headers = {
-    'User-Agent': 'cannon-cli-2',
-    origin: isPublicInfura ? 'https://usecannon.com' : undefined,
-  };
-  return headers;
-};
+const getRequestHeaders = (isPublicInfura: boolean) => ({
+  'User-Agent': 'cannon-cli-2',
+  origin: isPublicInfura ? 'https://usecannon.com' : undefined,
+});
 
 const debug = Debug('cannon:builder:ipfs');
 
