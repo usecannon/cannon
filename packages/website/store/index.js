@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 const ethers = require("ethers");
@@ -19,25 +18,26 @@ const web3Modal = new Web3Modal({
     providerOptions
 });
 
+let metamaskProvider;
+
 export const state = () => ({
-    providerUrl: null,
     providerOptions,
     chainId: 0,
     account: null
 })
 
 export const getters = {
-    getProviderUrl(state) {
-        if (state.providerUrl) {
-            return state.providerUrl
+    getProvider(state) {
+        if (metamaskProvider) {
+            return metamaskProvider
         }
         if (state.chainId == 13370) {
-            return 'http://localhost:8545'
+            return new ethers.providers.Web3Provider('http://localhost:8545')
         }
         if (state.chainId == 420) {
-            return 'https://goerli.optimism.io'
+            return new ethers.providers.Web3Provider('https://goerli.optimism.io')
         }
-        return ethers.getDefaultProvider(ethers.providers.getNetwork(state.chainId), { infura: INFURA_ID }).connection.url
+        return ethers.getDefaultProvider(ethers.providers.getNetwork(state.chainId), { infura: INFURA_ID })
     },
     getChainId(state) {
         return state.chainId
@@ -50,24 +50,19 @@ export const mutations = {
     },
     setAccount(state, account) {
         state.account = account
-    },
-    setProviderUrl(state, provider) {
-        state.provider = provider
     }
 }
 
 export const actions = {
     async connect({ state, commit }, toast) {
         const instance = await web3Modal.connect();
-        const provider = new ethers.providers.Web3Provider(instance);
+        metamaskProvider = new ethers.providers.Web3Provider(instance);
 
-        provider.on('accountsChanged', function (accounts) {
+        metamaskProvider.on('accountsChanged', function (accounts) {
             commit('setAccount', accounts[0]);
         });
 
-        commit('setProviderUrl', provider.connection.url)
-
-        let accounts = await provider.send("eth_requestAccounts", []);
+        let accounts = await metamaskProvider.send("eth_requestAccounts", []);
         commit('setAccount', accounts[0]);
 
         if (state.chainId) {
@@ -76,7 +71,6 @@ export const actions = {
     },
     async disconnect({ state, commit }, toast) {
         web3Modal.clearCachedProvider();
-        commit('setProviderUrl', null);
         commit('setAccount', null);
     },
     async changeChainId({ state, commit }, chainId) {
@@ -89,6 +83,7 @@ export const actions = {
 }
 
 const switchMetamaskChain = async (chainId, toast) => {
+    /*
     if (chainId == 13370) {
         try {
             await window.ethereum.request({
@@ -109,6 +104,7 @@ const switchMetamaskChain = async (chainId, toast) => {
             return
         }
     }
+    */
 
     await window.ethereum.request({
         method: 'wallet_switchEthereumChain',

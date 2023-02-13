@@ -29,9 +29,12 @@
         value: null
       }
     },
+    mounted(){
+      this.updateValue()
+    },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value);
+        this.$emit("update:value", this.value ? this.value : '');
       }
     },
     props: {
