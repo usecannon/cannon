@@ -42,6 +42,7 @@
 </template>
 
 <script lang="js">
+import Vue from 'vue'
 import axios from 'axios';
 import pako from "pako";
 import VersionSelect from "./Interact/VersionSelect";
@@ -82,10 +83,24 @@ export default {
         const raw = new TextDecoder().decode(inflated);
         this.ipfs = JSON.parse(raw);
         this.loading = false;
+        Vue.nextTick(()=>{
+          this.scrollToAnchor();
+        })
       })
       .catch(error => {
         console.error(error);
       });
+    }
+  },
+  methods: {
+    scrollToAnchor() {
+      const anchor = window.location.hash.slice(1); // remove the '#' symbol
+      if (anchor) {
+        const element = document.getElementById(anchor);
+        if (element) {
+          element.scrollIntoView();
+        }
+      }
     }
   },
   computed: {

@@ -21,9 +21,14 @@
         <CText fontSize="xs" color="whiteAlpha.700" display="inline">
           {{ output.type }}</CText
         >
-        <CText>{{
-          Array.isArray(result) ? result[ind] : result.toString()
-        }}</CText>
+        <CBox v-if="result">
+          <CList as="ol" style-type="decimal" v-if="Array.isArray(result)">
+            <CListItem v-for="a in result" :key="a.toString()">
+              {{ a }}</CListItem
+            >
+          </CList>
+          <CText v-else>{{ result.toString() }}</CText>
+        </CBox>
       </CBox>
     </CBox>
     <CButton

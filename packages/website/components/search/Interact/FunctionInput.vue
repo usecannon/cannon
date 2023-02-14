@@ -12,16 +12,19 @@
       ></CFormLabel
     >
     <CInput
+      :is-invalid="invalid"
       type="text"
       bg="black"
       v-model="value"
-      borderColor="whiteAlpha.400"
+      :borderColor="invalid ? 'red.400' : 'whiteAlpha.400'"
       @input="updateValue"
     />
   </CFormControl>
 </template>
     
 <script lang="js">
+const ethers = require("ethers");
+
   export default {
     name: 'FunctionInput',
     data(){
@@ -41,6 +44,11 @@
         input: {
             type: Object
         }
+    },
+    computed:{
+      invalid(){
+        return this.value && (this.input.type == 'address' && !ethers.utils.isAddress(this.value))
+      }
     }
   }
   </script>
