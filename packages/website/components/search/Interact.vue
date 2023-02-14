@@ -18,8 +18,8 @@
       borderWidth="1px"
     >
       <CAlertIcon /><CBox>
-        Review high-risk transactions staged by this interface carefully in your
-        wallet application prior to execution.</CBox
+        Review high-risk transactions carefully in your wallet application prior
+        to execution.</CBox
       >
     </CAlert>
 

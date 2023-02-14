@@ -7,7 +7,12 @@
     bg="blackAlpha.500"
   >
     <CFlex mb="2">
-      <CHeading mb="1" size="lg" display="inline-block">{{ title }}</CHeading>
+      <CHeading :id="anchor" mb="1" size="lg" display="inline-block">{{
+        title
+      }}</CHeading>
+      <CLink :href="'#' + anchor" fontSize="lg" ml="2" color="gray.400"
+        >#</CLink
+      >
       <CBox ml="auto">
         <CCode bg="blackAlpha.800" color="whiteAlpha.800">{{
           address
@@ -46,5 +51,10 @@ export default {
     address: {type: String },
     abi: {type: Array },
   },
+  computed: {
+    anchor(){
+      return this.address + '-' + this.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    }
+  }
 }
 </script>
