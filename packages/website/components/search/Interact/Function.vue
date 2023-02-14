@@ -36,7 +36,7 @@
       variant-color="teal"
       bg="teal.600"
       size="sm"
-      @click="submit"
+      @click="submit(false)"
       >{{ readOnly ? 'Read' : 'Submit Transaction' }}</CButton
     >
   </CBox>
@@ -73,11 +73,16 @@ export default {
       return this.f.stateMutability == 'view' || this.f.stateMutability == 'pure'
     }
   },
+  mounted(){
+    if(this.readOnly && this.params.length == 0){
+      this.submit(true)
+    }
+  },
   methods: {
     updateParams(index, value) {
       Vue.set(this.params,index, value)
     },
-    async submit(){
+    async submit(supressError){
       this.error = null
       this.loading = true;
 
@@ -102,7 +107,9 @@ export default {
           })
         }
       }catch(e){
-        this.error = e
+        if(!supressError){
+          this.error = e
+        }
       }finally{
         this.loading = false;
       }

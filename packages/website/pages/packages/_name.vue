@@ -50,8 +50,7 @@
           p="3"
           as="nuxt-link"
           :to="`/packages/${p.name}/interact`"
-          exact
-          exact-active-class="active-link"
+          active-class="active-link"
           class="tab-link"
           >Interact</CLink
         >
@@ -59,8 +58,7 @@
           p="3"
           as="nuxt-link"
           :to="`/packages/${p.name}/versions`"
-          exact
-          exact-active-class="active-link"
+          active-class="active-link"
           class="tab-link"
           >Versions</CLink
         >
