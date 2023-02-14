@@ -9,6 +9,20 @@
     <CBox mb="8">
       <InteractCommand :packageName="p.name" :variant="selectedVariant" />
     </CBox>
+
+    <CAlert
+      my="8"
+      status="warning"
+      bg="blue.800"
+      borderColor="blue.700"
+      borderWidth="1px"
+    >
+      <CAlertIcon /><CBox>
+        Review high-risk transactions staged by this interface carefully in your
+        wallet application prior to execution.</CBox
+      >
+    </CAlert>
+
     <CBox v-if="loading" py="20" textAlign="center">
       <CSpinner />
     </CBox>
