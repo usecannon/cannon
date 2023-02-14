@@ -26,6 +26,7 @@ export default {
       return Object.entries(this.contracts).map(([k,v]) => {
         return {title:k, address: v.address, abi: v.abi}
       })
+      .sort((a, b) => a.title.localeCompare(b.title));
     }
   }
 }
