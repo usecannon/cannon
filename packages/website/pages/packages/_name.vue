@@ -36,24 +36,36 @@
         </CGridItem>
       </CGrid>
 
-      <CTabs variant-color="teal">
-        <CTabList>
-          <CTab>Cannonfile</CTab>
-          <CTab>Interact</CTab>
-          <CTab>Versions</CTab>
-        </CTabList>
-        <CTabPanels>
-          <CTabPanel pt="8" pb="2">
-            <Cannonfile :p="p" />
-          </CTabPanel>
-          <CTabPanel pt="8" pb="2">
-            <Interact :p="p" />
-          </CTabPanel>
-          <CTabPanel pt="8" pb="2">
-            <Versions :p="p" />
-          </CTabPanel>
-        </CTabPanels>
-      </CTabs>
+      <CBox borderBottom="1px solid rgba(255,255,255,0.25)" pb="2">
+        <CLink
+          p="3"
+          as="nuxt-link"
+          :to="`/packages/${p.name}/`"
+          exact
+          exact-active-class="active-link"
+          class="tab-link"
+          >Cannonfile</CLink
+        >
+        <CLink
+          p="3"
+          as="nuxt-link"
+          :to="`/packages/${p.name}/interact`"
+          exact
+          exact-active-class="active-link"
+          class="tab-link"
+          >Interact</CLink
+        >
+        <CLink
+          p="3"
+          as="nuxt-link"
+          :to="`/packages/${p.name}/versions`"
+          exact
+          exact-active-class="active-link"
+          class="tab-link"
+          >Versions</CLink
+        >
+      </CBox>
+      <NuxtChild :p="p" />
     </div>
     <div v-else>
       <CText textAlign="center"><CSpinner my="12" /></CText>
@@ -72,7 +84,7 @@ import Cannonfile from "../../components/search/Cannonfile"
 import Interact from "../../components/search/Interact"
 
 export default {
-  name: 'Package',
+  name: 'PackageLayout',
   data() {
     return {
       packages: []
@@ -128,18 +140,22 @@ export default {
 </script>
 
 <style scoped>
-div[data-chakra-component='CTabList'] {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+::v-deep .tab-link {
+  position: relative;
+  top: -2px;
 }
-::v-deep button[aria-selected='true'] {
+::v-deep .active-link {
   color: #00bce6;
-  border-bottom: 1px solid #00bce6;
-  margin-bottom: -1px;
+  border-bottom: 2px solid #00bce6;
 }
-::v-deep button[data-chakra-component='CTab']:focus {
+::v-deep .tab-link:hover {
+  text-decoration: none;
+  opacity: 0.8;
+}
+::v-deep .tab-link:focus {
   box-shadow: none;
 }
-::v-deep button[data-chakra-component='CTab']:active {
+::v-deep .tab-link:active {
   background: transparent;
 }
 </style>
