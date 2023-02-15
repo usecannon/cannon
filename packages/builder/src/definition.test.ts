@@ -287,6 +287,33 @@ describe('ChainDefinition', () => {
       // dependency on contract b should be nullified dependence on contract f (which indirectly on a deep layer depends on contract b)
       expect(layers['contract.a'].depends).toEqual(['contract.f']);
     });
+
+    /**
+     * this is yet another macho edge case that occurs when merging a layer that has already been merged
+     */
+    it('works when two subsequent merges are required', async () => {
+      const def = makeFakeChainDefinition({
+        'contract.a': { depends: [] },
+        'contract.b': { depends: [] },
+        'contract.c': { depends: ['contract.a'] },
+        'contract.d': { depends: ['contract.b'] },
+        'contract.e': { depends: ['contract.a', 'contract.b'] },
+      });
+
+      const layers = def.getStateLayers();
+
+      expect(layers['contract.a']).toEqual({
+        actions: ['contract.a'],
+        depending: [],
+        depends: [],
+      });
+
+      expect(layers['contract.e']).toEqual(layers['contract.d']);
+      expect(layers['contract.e']).toEqual(layers['contract.c']);
+
+      // make sure no extra structures were created in the process
+      expect(_.uniq(Object.values(layers))).toHaveLength(3);
+    });
   });
 
   describe('printTopology()', () => {

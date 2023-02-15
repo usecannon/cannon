@@ -2,7 +2,7 @@ import { ARACHNID_CREATE2_PROXY } from './constants';
 import { makeArachnidCreate2Txn } from './create2';
 
 describe('util.ts', () => {
-  describe('deployArachnidCreate2()', async () => {
+  describe('deployArachnidCreate2()', () => {
     // todo when we have mock/dummy runtime
   });
 
