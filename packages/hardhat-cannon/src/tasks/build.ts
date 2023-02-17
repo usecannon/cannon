@@ -53,6 +53,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       console.log('using hardhat network provider');
       provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
     }
+
     if (dryRun || hre.network.name === 'cannon') {
       const opts: RpcOptions = { port: hre.config.networks.cannon.port };
 
@@ -125,6 +126,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     } as const;
 
     const { outputs } = await build(params);
+
+    if (hre.network.name === 'hardhat') {
+      console.log(
+        yellow(
+          'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon'
+        )
+      );
+    }
 
     //const signers: ethers.Signer[] = [];
 
