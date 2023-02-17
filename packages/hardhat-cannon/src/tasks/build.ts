@@ -130,7 +130,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     if (hre.network.name === 'hardhat') {
       console.log(
         yellow(
-          'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used, you probably should use "--network cannon"'
+          'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon'
         )
       );
     }
