@@ -1,5 +1,6 @@
+import _ from 'lodash';
 import path from 'node:path';
-import fs from 'node:fs/promises';
+import fs from 'fs-extra';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
@@ -135,6 +136,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.dirname(cannonfilePath);
 
+  const { name: pkgName, version: pkgVersion } = await loadCannonfile(cannonfilePath);
+
   let provider: CannonWrapperGenericProvider;
   let node: CannonRpcNode | null = null;
   if (!opts.network || opts.dryRun) {
@@ -183,37 +186,40 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
     const artifactBuffer = await fs.readFile(artifactPath);
     const artifact = JSON.parse(artifactBuffer.toString()) as any;
-    
+
     // save build metadata
     // currently foundry only supports flattened output https://github.com/foundry-rs/foundry/issues/3382
 
-    const flattened = await execPromise(`forge flatten ${artifact.ast.absolutePath}`);
+    //const flattened = await execPromise(`forge flatten ${artifact.ast.absolutePath}`);
 
     // easiest way to get the solidity version used to compile a file is to inspect the contract info
-    const solcVersion = JSON.parse(
-      await execPromise(`forge inspect ${name} metadata`)
-    ).compiler.version;
+    const foundryInfo = JSON.parse(await execPromise(`forge inspect ${name} metadata`));
+
+    const solcVersion = foundryInfo.compiler.version;
+    const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
+      return {
+        content: fs.readFileSync(sourcePath).toString(),
+      };
+    });
 
     await saveToMetadataCache(
-      name, 
-      `sources.${name}`, 
+      `${pkgName}:${pkgVersion}`,
+      `sources:${artifact.ast.absolutePath}:${name}`,
       JSON.stringify({
         solcVersion: solcVersion,
         input: {
           language: 'Solidity',
-          sources: {
-            [`${artifact.contractName}Flat.sol`]: {
-              content: flattened,
-            },
-          },
+          sources,
           settings: {
+            optimizer: foundryInfo.settings.optimizer,
+            remappings: foundryInfo.settings.remappings,
             outputSelection: {
               '*': {
                 '*': ['*'],
               },
             },
           },
-        }
+        },
       })
     );
 

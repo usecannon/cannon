@@ -111,14 +111,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         if (art) {
           const buildInfo = await hre.artifacts.getBuildInfo(`${art.sourceName}:${art.contractName}`);
           await saveToMetadataCache(
-            packageName, 
-            `sources:${art.sourceName}:${art.contractName}`, JSON.stringify({
+            packageName,
+            `sources:${art.sourceName}:${art.contractName}`,
+            JSON.stringify({
               solcVersion: buildInfo!.solcLongVersion,
-              input: buildInfo!.input
+              input: buildInfo!.input,
             })
           );
         }
-        
 
         return art;
       },

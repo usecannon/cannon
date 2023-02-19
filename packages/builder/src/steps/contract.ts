@@ -52,9 +52,12 @@ export interface ContractOutputs {
   deployTxnHash: string;
 }
 
-function resolveBytecode(artifactData: ContractArtifact, config: Config): [string, {[sourceName: string]: {[libName: string]: string}}] {
+function resolveBytecode(
+  artifactData: ContractArtifact,
+  config: Config
+): [string, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
-  const linkedLibraries: {[sourceName: string]: {[libName: string]: string}} = {};
+  const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
     for (const lib in artifactData.linkReferences[file]) {
       // get the lib from the config

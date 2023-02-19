@@ -53,10 +53,12 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
   }
 
   const etherscanApi = settings.etherscanApiUrl || getChainDataFromId(chainId)?.etherscanApi;
-  const etherscanUrl = getChainDataFromId(chainId)?.etherscanUrl;
+  //const etherscanUrl = getChainDataFromId(chainId)?.etherscanUrl; // in case we need it later
 
   if (!etherscanApi) {
-    throw new Error(`couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`);
+    throw new Error(
+      `couldn't find etherscan api url for network with ${chainId}. Please set your etherscan URL with CANNON_ETHERSCAN_API_URL`
+    );
   }
 
   apiKey = apiKey || settings.etherscanApiKey;
@@ -73,7 +75,12 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
     const contractInfo = outputs.contracts[c];
 
     const rawContractSourceInfo = pkgMetadata[`sources:${contractInfo.sourceName}:${contractInfo.contractName}`];
-    
+
+    if (!rawContractSourceInfo) {
+      console.log(`${c}: cannot verify: no source code recorded in build data`);
+      continue;
+    }
+
     const contractSourceInfo = JSON.parse(rawContractSourceInfo);
 
     // find out if we have to supply libraries linked
@@ -93,39 +100,44 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
       //runs: contractSourceInfo.input.settings.optimizer.runs,
 
       // NOTE: below: yes, the etherscan api is misspelling
-      constructorArguements: (new ethers.utils.Interface(outputs.contracts[c].abi).encodeDeploy(contractInfo.constructorArgs)).slice(2),
+      constructorArguements: new ethers.utils.Interface(outputs.contracts[c].abi)
+        .encodeDeploy(contractInfo.constructorArgs)
+        .slice(2),
     };
 
-    const res = await axios.post(etherscanApi, reqData, {headers: {'content-type': 'application/x-www-form-urlencoded'}});
+    const res = await axios.post(etherscanApi, reqData, {
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    });
 
     if (res.data.status === '0') {
-      console.log(`not submitting ${c} for verification:`, res.data.result);
-    }
-    else {
-      console.log(`submitted verification for ${c} (${contractInfo.address})`);
+      console.log(`${c}:\tcannot verify:`, res.data.result);
+    } else {
+      console.log(`${c}:\tsubmitted verification (${contractInfo.address})`);
       guids[c] = res.data.result;
     }
   }
   for (const c in guids) {
-    while(true) {
-      const res = await axios.post(etherscanApi, {
-        apiKey,
-        module: 'contract',
-        action: 'checkverifystatus',
-        guid: guids[c]
-      }, {headers: {'content-type': 'application/x-www-form-urlencoded'}});
-  
+    for (;;) {
+      const res = await axios.post(
+        etherscanApi,
+        {
+          apiKey,
+          module: 'contract',
+          action: 'checkverifystatus',
+          guid: guids[c],
+        },
+        { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+      );
+
       if (res.data.status === '0') {
         if (res.data.result === 'Pending in queue') {
           await sleep(1000);
-        }
-        else {
+        } else {
           console.log(`❌ ${c}`, res.data.result);
           console.log(res.data);
           break;
         }
-      }
-      else {
+      } else {
         console.log(`✅ ${c}`);
         break;
       }

@@ -182,9 +182,7 @@ export function getChainDataFromId(chainId: number): IChainData | null {
       network: 'local',
       networkId: CANNON_CHAIN_ID,
       nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: [
-        'http://127.0.0.1',
-      ],
+      rpc: ['http://127.0.0.1'],
       faucets: [],
       infoURL: 'https://usecannon.com',
     };
@@ -198,14 +196,12 @@ export function getChainDataFromId(chainId: number): IChainData | null {
       network: 'local',
       networkId: 31337,
       nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: [
-        'http://127.0.0.1',
-      ],
+      rpc: ['http://127.0.0.1'],
       faucets: [],
       infoURL: 'https://hardhat.org',
     };
   }
-  return chains.find((c: IChainData) => c.chainId == chainId) || null
+  return chains.find((c: IChainData) => c.chainId == chainId) || null;
 }
 
 function getMetadataPath(packageName: string): string {

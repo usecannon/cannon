@@ -29,7 +29,7 @@ export type ContractData = {
   address: string;
   abi: JsonFragment[];
   constructorArgs?: any[]; // only needed for external verification
-  linkedLibraries?: {[sourceName: string]: {[libName: string]: string}}, // only needed for external verification
+  linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   // only should be supplied when generated solidity as a single file
   sourceCode?: string;
   deployTxnHash: string;
