@@ -401,6 +401,11 @@ export class ChainDefinition {
           layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
           layers[dependingLayer].depends = _.uniq([...layers[dependingLayer].depends, ...layers[attachingLayer].depends]);
 
+          // ensure the other nodes are now pointing to this structure
+          for (const a of layers[attachingLayer].actions) {
+            layers[a] = layers[dependingLayer];
+          }
+
           attachingLayer = dependingLayer;
         } else if (layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
