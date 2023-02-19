@@ -66,17 +66,26 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       provider = getProvider(node);
     }
 
-    let signers: ethers.Signer[] = [];
-    if (!impersonate) {
-      signers = getHardhatSigners(hre, provider);
-    }
+    const signers = getHardhatSigners(hre, provider);
+
+    const getSigner = async (addr: string) => {
+      addr = addr.toLowerCase();
+      for (const signer of signers) {
+        const signerAddr = await signer.getAddress();
+        if (addr === signerAddr.toLowerCase()) return signer.connect(provider);
+      }
+    };
 
     let defaultSigner: ethers.Signer | null = null;
     if (impersonate) {
       await provider.send('hardhat_impersonateAccount', [impersonate]);
       await provider.send('hardhat_setBalance', [impersonate, `0x${(1e22).toString(16)}`]);
-      defaultSigner = provider.getSigner(impersonate);
-      signers.push(defaultSigner);
+      defaultSigner = (await getSigner(impersonate)) || null;
+      // Add the impersonated signer if it is not part of the hardhat config
+      if (!defaultSigner) {
+        defaultSigner = provider.getSigner(impersonate);
+        signers.push(defaultSigner);
+      }
     } else if (hre.network.name !== CANNON_NETWORK_NAME) {
       defaultSigner = signers[0].connect(provider);
     }
@@ -103,11 +112,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           return provider.getSigner(addr);
         } else {
           // return the actual signer with private key
-          for (const signer of signers) {
-            if (addr.toLowerCase() === (await signer.getAddress()).toLowerCase()) {
-              return signer.connect(provider);
-            }
-          }
+          const signer = await getSigner(addr);
+          if (signer) return signer;
 
           throw new Error(
             `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
@@ -134,8 +140,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         )
       );
     }
-
-    //const signers: ethers.Signer[] = [];
 
     augmentProvider(hre, outputs);
     provider.artifacts = outputs;
