@@ -12,11 +12,11 @@
       ></CFormLabel
     >
     <CInput
-      :is-invalid="invalid"
-      type="text"
+      type="number"
       bg="black"
+      step="1"
       v-model="value"
-      :borderColor="invalid ? 'red.400' : 'whiteAlpha.400'"
+      borderColor="whiteAlpha.400"
       @input="updateValue"
     />
   </CFormControl>
@@ -26,10 +26,10 @@
 const ethers = require("ethers");
 
   export default {
-    name: 'FunctionInput',
+    name: 'NumberInput',
     data(){
       return {
-        value: null
+        value: '0'
       }
     },
     mounted(){
@@ -37,18 +37,13 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value ? this.value : '');
+        this.$emit("update:value", this.value ? this.value : '0');
       }
     },
     props: {
         input: {
             type: Object
         }
-    },
-    computed:{
-      invalid(){
-        return this.value && (this.input.type == 'address' && !ethers.utils.isAddress(this.value))
-      }
     }
   }
   </script>

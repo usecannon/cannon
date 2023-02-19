@@ -17,9 +17,23 @@
       borderColor="blue.700"
       borderWidth="1px"
     >
-      <CAlertIcon /><CBox>
+      <CAlertIcon /><CText fontWeight="bold">
         Review high-risk transactions carefully in your wallet application prior
-        to execution.</CBox
+        to execution.</CText
+      >
+    </CAlert>
+
+    <CAlert
+      v-if="hasProxy"
+      my="8"
+      status="info"
+      bg="blue.800"
+      borderColor="blue.700"
+      borderWidth="1px"
+    >
+      <CAlertIcon /><CText>
+        If this protocol has a proxy contract, you should typically interact
+        with it rather than the other contracts in the package.</CText
       >
     </CAlert>
 
@@ -106,6 +120,9 @@ export default {
   computed: {
     latestVariant(){
       return this.p.tags.find(t => t.name === 'latest').variants.find(v => v.preset === 'main')
+    },
+    hasProxy(){
+      return this.ipfs.state && JSON.stringify(this.ipfs.state).toLowerCase().includes('proxy')
     },
     output(){
       if(this.ipfs.state){

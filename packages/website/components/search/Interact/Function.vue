@@ -1,12 +1,30 @@
 <template>
   <CBox mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
     <CHeading size="sm" mb="2">{{ f.name }}()</CHeading>
-    <FunctionInput
-      v-for="(input, index) of f.inputs"
-      :key="JSON.stringify(input)"
-      :input="input"
-      v-on:update:value="updateParams(index, $event)"
-    />
+    <CBox v-for="(input, index) of f.inputs" :key="JSON.stringify(input)">
+      <BoolInput
+        v-if="input.type == 'bool'"
+        :input="input"
+        v-on:update:value="updateParams(index, $event)"
+      />
+      <AddressInput
+        v-if="input.type == 'address'"
+        :input="input"
+        v-on:update:value="updateParams(index, $event)"
+      />
+      <NumberInput
+        v-else-if="
+          input.type.startsWith('int') || input.type.startsWith('uint')
+        "
+        :input="input"
+        v-on:update:value="updateParams(index, $event)"
+      />
+      <DefaultInput
+        v-else
+        :input="input"
+        v-on:update:value="updateParams(index, $event)"
+      />
+    </CBox>
     <CBox v-if="loading" my="4"><CSpinner /></CBox>
     <CAlert mb="4" status="error" bg="red.700" v-else-if="error">
       {{ error }}
@@ -44,13 +62,19 @@
     
 <script lang="js">
 import Vue from 'vue';
-import FunctionInput from './FunctionInput';
+import BoolInput from './Function/BoolInput';
+import NumberInput from './Function/NumberInput';
+import AddressInput from './Function/AddressInput';
+import DefaultInput from './Function/DefaultInput';
 const ethers = require("ethers");
 
 export default {
   name: 'Function',
   components: {
-    FunctionInput
+    BoolInput,
+    NumberInput,
+    AddressInput,
+    DefaultInput
   },
   props: {
     f: {
