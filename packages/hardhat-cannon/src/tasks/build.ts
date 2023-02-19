@@ -133,6 +133,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
     const { outputs } = await build(params);
 
+    if (hre.network.name === 'hardhat') {
+      console.log(
+        yellow(
+          'Keep in mind that regardless this package was succefully built, it was not saved because the "hardhat" network is being used. If this is not what you want, consider using --network cannon'
+        )
+      );
+    }
+
     augmentProvider(hre, outputs);
     provider.artifacts = outputs;
 

@@ -171,7 +171,7 @@ The `contract` action deploys a contract.
 This action updates the return object by adding an entry to the `contracts` key with the action’s name. The value of the entry is an object with the following properties:
 
 - `abi` - The ABI of the deployed contract
-- `address` - The address fo the deployed contract
+- `address` - The address of the deployed contract
 - `deployTxnHash` - The transaction hash of the deployment
 
 ### import
@@ -196,7 +196,7 @@ The `invoke` action calls a specified function on your node.
 
 **Required Inputs**
 
-- `target` - The name of the contract action that deployed the contract to call or the address of the contract. If the contract was deployed from an imported package, it will be namespaced under the import action’s name using dot notation. For example, if a package were imported with `[import.uniswap]` and this package's cannonfile deploys a contract with `[contract.pair]`, you could call could call a function on this contract by passing `["uniswap.pair"]` into this input.
+- `target` - The name of the contract action that deployed the contract to call or the address of the contract. If the contract was deployed from an imported package, it will be namespaced under the import action’s name using dot notation. For example, if a package were imported with `[import.uniswap]` and this package's cannonfile deploys a contract with `[contract.pair]`, you could call a function on this contract by passing `["uniswap.pair"]` into this input.
 - `abi` - The ABI of the contract to call. This is optional if the target contains a contract action name rather than an address.
 - `func` - The name of the function to call
 
@@ -222,7 +222,7 @@ For example, if the `deployPool` function below deploys a contract, the followin
 target = ["PoolFactory"]
 func = "deployPool"
 factory.MyPoolDeployment.artifact = "Pool"
-# alternatively, if the code for the deployed contractis not available in your artifacts, you can also reference the ABI like:
+# alternatively, if the code for the deployed contract is not available in your artifacts, you can also reference the ABI like:
 # factory.MyPoolDeployment.abiOf = "PreviousPool"
 factory.MyPoolDeployment.event = "NewDeployment"
 factory.MyPoolDeployment.arg = 0
@@ -248,7 +248,7 @@ This action updates the return object by adding an entry to the `settings` key w
 
 ### provision
 
-The `provision` command attempts to deploy the specified package (unlike the import command, which only injests existing deployment data).
+The `provision` command attempts to deploy the specified package (unlike the import command, which only injects existing deployment data).
 
 <div style="padding: 20px; background: rgb(14 28 60); margin-bottom: 20px; border: 1px solid rgb(13 20 38)">
 ⚠️ <strong>Third-party packages can execute arbitrary code on your computer when provisioning. Only provision packages that you have verified or trust.</strong>
