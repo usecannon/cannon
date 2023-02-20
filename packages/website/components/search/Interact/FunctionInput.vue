@@ -15,6 +15,7 @@
             input.type.startsWith('int') || input.type.startsWith('uint')
           "
           :input="getValue(input)"
+          :positive-only="input.type.startsWith('uint')"
           v-on:update:value="handleUpdate(null, $event)" />
         <DefaultInput
           v-else
@@ -43,6 +44,7 @@
             input.type.startsWith('int') || input.type.startsWith('uint')
           "
           :input="getValue(inp)"
+          :positive-only="input.type.startsWith('uint')"
           v-on:update:value="handleUpdate(index, $event)" />
         <DefaultInput
           v-else

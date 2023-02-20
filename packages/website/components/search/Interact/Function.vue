@@ -34,14 +34,7 @@
         <CText fontSize="xs" color="whiteAlpha.700" display="inline">
           {{ output.type }}</CText
         >
-        <CBox v-if="result">
-          <CList as="ol" style-type="decimal" v-if="Array.isArray(result)">
-            <CListItem v-for="a in result" :key="a.toString()">
-              {{ a }}</CListItem
-            >
-          </CList>
-          <CText v-else>{{ result.toString() }}</CText>
-        </CBox>
+        <FunctionOutput v-if="result" :output="result" />
       </CBox>
     </CBox>
     <CButton
@@ -58,12 +51,14 @@
 <script lang="js">
 import Vue from 'vue';
 import FunctionInput from './FunctionInput';
+import FunctionOutput from './FunctionOutput';
 const ethers = require("ethers");
 
 export default {
   name: 'Function',
   components: {
-    FunctionInput
+    FunctionInput,
+    FunctionOutput
   },
   props: {
     f: {

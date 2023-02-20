@@ -4,7 +4,8 @@
     bg="black"
     step="1"
     v-model="value"
-    borderColor="whiteAlpha.400"
+    :borderColor="isInvalid ? 'red.500' : 'whiteAlpha.400'"
+    :is-invalid="isInvalid"
     @input="updateValue"
   />
 </template>
@@ -24,13 +25,27 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value ? this.value : '0');
+        this.$emit("update:value", ethers.BigNumber.from(this.value ? this.value : '0'));
+      }
+    },
+    computed: {
+      isInvalid() {
+        if(!Number.isInteger(Number(this.value))){
+          return true
+        }
+        if(this.positiveOnly && Number(this.value) < 0){
+          return true
+        }
+        return false
       }
     },
     props: {
-        input: {
-            type: Object
-        }
+      input: {
+        type: Object
+      },
+      positiveOnly:{
+        type: Boolean
+      }
     }
   }
   </script>
