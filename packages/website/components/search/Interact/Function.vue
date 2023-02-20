@@ -54,6 +54,19 @@ import FunctionInput from './FunctionInput';
 import FunctionOutput from './FunctionOutput';
 const ethers = require("ethers");
 
+const getProvider = (chainId) => {
+    if (window.metamaskProvider) {
+        return window.metamaskProvider
+    }
+    if (chainId == 13370) {
+        return new ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
+    if (chainId == 420) {
+        return new ethers.providers.JsonRpcProvider('https://goerli.optimism.io')
+    }
+    return ethers.getDefaultProvider(ethers.providers.getNetwork(chainId), { infura: INFURA_ID })
+}
+
 export default {
   name: 'Function',
   components: {
@@ -96,14 +109,14 @@ export default {
 
       try {
         if(this.readOnly){
-          const provider = this.$store.getters.getProvider;
+          const provider = this.$store.getters.getChainId;
           const contract = new ethers.Contract(this.address, [this.f], provider);
           this.result = await contract[this.f.name](...this.params);
         }else{
           if(!this.$store.state.account){
             await this.$store.dispatch('connect')
           }
-          const provider = this.$store.getters.getProvider;
+          const provider = getProvider(this.$store.getters.getChainId);
           const signer = provider.getSigner();
           const contract = new ethers.Contract(this.address, [this.f], signer);
           await contract[this.f.name](...this.params);

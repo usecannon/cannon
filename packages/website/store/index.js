@@ -28,19 +28,6 @@ export const state = () => ({
 })
 
 export const getters = {
-    getProvider(state) {
-        const mm = metamaskProvider; // force update
-        if (mm) {
-            return metamaskProvider
-        }
-        if (state.chainId == 13370) {
-            return new ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
-        if (state.chainId == 420) {
-            return new ethers.providers.JsonRpcProvider('https://goerli.optimism.io')
-        }
-        return ethers.getDefaultProvider(ethers.providers.getNetwork(state.chainId), { infura: INFURA_ID })
-    },
     getChainId(state) {
         return state.chainId
     }
@@ -58,13 +45,12 @@ export const mutations = {
 export const actions = {
     async connect({ state, commit }, toast) {
         const instance = await web3Modal.connect();
-        metamaskProvider = new ethers.providers.Web3Provider(instance, "any");
-        console.log
-        metamaskProvider.on('accountsChanged', function (accounts) {
+        window.metamaskProvider = new ethers.providers.Web3Provider(instance, "any");
+        window.metamaskProvider.on('accountsChanged', function (accounts) {
             commit('setAccount', accounts[0]);
         });
 
-        let accounts = await metamaskProvider.send("eth_requestAccounts", []);
+        let accounts = await window.metamaskProvider.send("eth_requestAccounts", []);
         commit('setAccount', accounts[0]);
 
         if (state.chainId) {
@@ -73,7 +59,7 @@ export const actions = {
     },
     async disconnect({ state, commit }, toast) {
         web3Modal.clearCachedProvider();
-        metamaskProvider = null;
+        window.metamaskProvider = null;
         commit('setAccount', null);
     },
     async changeChainId({ state, commit }, chainId, toast) {
