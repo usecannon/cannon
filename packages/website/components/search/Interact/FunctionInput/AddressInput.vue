@@ -5,6 +5,7 @@
     v-model="value"
     :borderColor="isInvalid ? 'red.500' : 'whiteAlpha.400'"
     :is-invalid="isInvalid"
+    placeholder="0x0000000000000000000000000000000000000000"
     @input="updateValue"
   />
 </template>
@@ -16,7 +17,7 @@ const ethers = require("ethers");
     name: 'AddressInput',
     data(){
       return {
-        value: '0x0000000000000000000000000000000000000000'
+        value: ''
       }
     },
     mounted(){
@@ -24,12 +25,12 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value ? this.value : '0x0000000000000000000000000000000000000000');
+        this.$emit("update:value", this.value ? this.value : '');
       }
     },
     computed: {
       isInvalid() {
-  if (!this.value) return true;
+  if (!this.value.length) return false;
   try {
     ethers.utils.getAddress(this.value.toLowerCase());
     return false;
