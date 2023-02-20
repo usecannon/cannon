@@ -15,7 +15,8 @@ const providerOptions = {
 
 const web3Modal = new Web3Modal({
     cacheProvider: false,
-    providerOptions
+    providerOptions,
+    theme: 'dark'
 });
 
 let metamaskProvider;
@@ -58,7 +59,7 @@ export const actions = {
     async connect({ state, commit }, toast) {
         const instance = await web3Modal.connect();
         metamaskProvider = new ethers.providers.Web3Provider(instance, "any");
-
+        console.log
         metamaskProvider.on('accountsChanged', function (accounts) {
             commit('setAccount', accounts[0]);
         });
