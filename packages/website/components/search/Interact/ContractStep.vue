@@ -6,6 +6,7 @@
       :title="o.title"
       :address="o.address"
       :abi="o.abi"
+      :cannonOutputs="cannonOutputs"
     />
   </CBox>
 </template>
@@ -19,7 +20,10 @@ export default {
   props: {
     contracts: {
         type: Object
-    }
+    },
+    cannonOutputs: {
+        type: Object
+    },
   },
   computed: {
     output(){

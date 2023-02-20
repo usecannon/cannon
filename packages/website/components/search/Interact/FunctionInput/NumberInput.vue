@@ -7,6 +7,9 @@
     :borderColor="isInvalid ? 'red.500' : 'whiteAlpha.400'"
     :is-invalid="isInvalid"
     @input="updateValue"
+    :_focus="{
+      borderColor: isInvalid ? 'red.500' : 'blue.300',
+    }"
   />
 </template>
     
@@ -25,14 +28,15 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", ethers.BigNumber.from(this.value ? this.value : '0'));
+        if(this.value.includes('.')){
+          this.$emit("update:value", ethers.utils.parseEther(this.value));
+        }else{
+          this.$emit("update:value", ethers.BigNumber.from(this.value ? this.value : '0'));
+        }
       }
     },
     computed: {
       isInvalid() {
-        if(!Number.isInteger(Number(this.value))){
-          return true
-        }
         if(this.positiveOnly && Number(this.value) < 0){
           return true
         }

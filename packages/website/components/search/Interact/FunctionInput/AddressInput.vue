@@ -7,6 +7,9 @@
     :is-invalid="isInvalid"
     placeholder="0x0000000000000000000000000000000000000000"
     @input="updateValue"
+    :_focus="{
+      borderColor: isInvalid ? 'red.500' : 'blue.300',
+    }"
   />
 </template>
     
@@ -30,13 +33,8 @@ const ethers = require("ethers");
     },
     computed: {
       isInvalid() {
-  if (!this.value.length) return false;
-  try {
-    ethers.utils.getAddress(this.value.toLowerCase());
-    return false;
-  } catch (e) {
-    return true;
-  }
+        if (!this.value.length) return false;
+        return !ethers.utils.isAddress(this.value);
       }
     },
     props: {

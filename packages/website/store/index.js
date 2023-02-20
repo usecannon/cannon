@@ -19,12 +19,11 @@ const web3Modal = new Web3Modal({
     theme: 'dark'
 });
 
-let metamaskProvider;
-
 export const state = () => ({
     providerOptions,
     chainId: 0,
-    account: null
+    account: null,
+    INFURA_ID
 })
 
 export const getters = {

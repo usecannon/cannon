@@ -50,16 +50,7 @@
       <CSpinner />
     </CBox>
     <CBox v-else>
-      <CBox v-for="o in output" :key="o.title">
-        <ContractStep
-          v-if="o.title.startsWith('contract.')"
-          :contracts="o.artifacts.contracts"
-        />
-        <ProvisionStep
-          v-if="o.title.startsWith('provision.')"
-          :imports="o.artifacts.imports"
-        />
-      </CBox>
+      <ProvisionStep :imports="output" :cannonOutputs="cannonOutputs" />
     </CBox>
   </CBox>
 </template>
@@ -73,6 +64,7 @@ import ContractStep from "./Interact/ContractStep";
 import ProvisionStep from "./Interact/ProvisionStep";
 import ConnectWallet from "./Interact/ConnectWallet";
 import InteractCommand from "./Interact/InteractCommand";
+import { ChainBuilderRuntime, getOutputs, ChainDefinition } from '@usecannon/builder';
 
 export default {
   name: 'Interact',
@@ -92,27 +84,39 @@ export default {
     return {
       loading: true,
       ipfs: {},
-      selectedVariant: {}
+      selectedVariant: {},
+      cannonOutputs: {}
     };
   },
   watch:{
     async selectedVariant(){
       this.$store.dispatch('changeChainId', this.selectedVariant.chain_id, this.$toast)
       this.loading = true
-      await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
-      .then(response => {        
-        const uint8Array = new Uint8Array(response.data);
-        const inflated = pako.inflate(uint8Array);
-        const raw = new TextDecoder().decode(inflated);
-        this.ipfs = JSON.parse(raw);
-        this.loading = false;
-        Vue.nextTick(()=>{
-          this.scrollToAnchor();
-        })
+      const response = await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+ 
+      // Parse IPFS data
+      const uint8Array = new Uint8Array(response.data);
+      const inflated = pako.inflate(uint8Array);
+      const raw = new TextDecoder().decode(inflated);
+      this.ipfs = JSON.parse(raw);
+
+      // Get Builder Outputs
+      const runtime = new ChainBuilderRuntime(
+      {
+        provider: {},
+        chainId: this.selectedVariant.chain_id,
+        baseDir: null,
+        snapshots: false,
+        allowPartialDeploy: false,
+      }
+      );
+      this.cannonOutputs = await getOutputs(runtime, new ChainDefinition(this.ipfs.def), this.ipfs.state);
+
+      this.loading = false;
+      Vue.nextTick(()=>{
+        this.scrollToAnchor();
       })
-      .catch(error => {
-        console.error(error);
-      });
+
     }
   },
   methods: {
@@ -135,18 +139,12 @@ export default {
       return this.ipfs.state && JSON.stringify(this.ipfs.state).toLowerCase().includes('proxy')
     },
     output(){
-      if(this.ipfs.state){
-      const o = Object.entries(this.ipfs.state).map(([k,v]) => {
-        if(k.startsWith('contract.')){
-          return {title:k, artifacts: v.artifacts}
-        }else if(k.startsWith('provision.')){
-          return {title:k, artifacts: v.artifacts}
-        }else{
-          return null
-        }
-      }).filter(x=>!!x);
-      return o
-      }
+      return {'': {
+        title: '',
+        url: '',
+        imports: this.cannonOutputs.imports,
+        contracts: this.cannonOutputs.contracts
+      }}
     }
   }
 }

@@ -1,5 +1,12 @@
 <template>
-  <CBox textAlign="center" fontSize="sm" mt="20" py="2" px="4" bg="blue.975">
+  <CBox
+    textAlign="center"
+    fontSize="sm"
+    mt="20"
+    py="2"
+    px="4"
+    bg="blackAlpha.700"
+  >
     <CText opacity="0.8">
       <div style="transform: scale(0.75); height: 15px; display: inline-block">
         <div v-html="$feathericons['github'].toSvg()" />

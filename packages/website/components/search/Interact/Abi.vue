@@ -1,7 +1,7 @@
 <template>
   <CBox mb="2">
     <CBox v-for="f of functions" :key="JSON.stringify(f)">
-      <Function :f="f" :address="address" />
+      <Function :f="f" :address="address" :cannonOutputs="cannonOutputs" />
     </CBox>
   </CBox>
 </template>
@@ -17,7 +17,10 @@ export default {
     },
     address: {
         type: String
-    }
+    },
+    cannonOutputs: {
+        type: Object
+    },
   },
   components: {Function},
   computed:{
