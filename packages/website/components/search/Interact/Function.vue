@@ -109,7 +109,7 @@ export default {
 
       try {
         if(this.readOnly){
-          const provider = this.$store.getters.getChainId;
+          const provider = getProvider(this.$store.getters.getChainId);
           const contract = new ethers.Contract(this.address, [this.f], provider);
           this.result = await contract[this.f.name](...this.params);
         }else{
