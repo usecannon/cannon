@@ -24,7 +24,7 @@
     <CAlert mb="4" status="error" bg="red.700" v-else-if="error">
       {{ error }}
     </CAlert>
-    <CBox v-else-if="result">
+    <CBox v-else-if="result != null">
       <CBox
         mb="4"
         v-for="(output, ind) of f.outputs"
@@ -34,16 +34,25 @@
         <CText fontSize="xs" color="whiteAlpha.700" display="inline">
           {{ output.type }}</CText
         >
-        <FunctionOutput v-if="result" :output="result" />
+        <FunctionOutput v-if="result != null" :output="result" />
       </CBox>
+    </CBox>
+
+    <CBox display="inline" v-if="readOnly && (result != null || error)">
+      <div
+        @click="submit(false)"
+        class="refresh-button"
+        v-html="$feathericons['refresh-cw'].toSvg()"
+      />
     </CBox>
     <CButton
       :loading="loading"
       variant-color="teal"
       bg="teal.600"
       size="sm"
+      v-else-if="!readOnly"
       @click="submit(false)"
-      >{{ readOnly ? 'Read' : 'Submit Transaction' }}</CButton
+      >Submit Transaction</CButton
     >
   </CBox>
 </template>
@@ -146,7 +155,6 @@ export default {
             await handleTxnError(this.cannonOutputs, provider, e)
           }catch(e2){
             this.error = e2
-            console.log(JSON.stringify(e2))
           }
         }
       }finally{
@@ -156,3 +164,16 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.refresh-button {
+  transform: scale(0.75);
+  transform-origin: center left;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.9;
+  }
+}
+</style>

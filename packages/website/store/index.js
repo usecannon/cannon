@@ -23,7 +23,7 @@ export const state = () => ({
     providerOptions,
     chainId: 0,
     account: null,
-    INFURA_ID
+    INFURA_ID,
 })
 
 export const getters = {

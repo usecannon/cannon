@@ -12,7 +12,9 @@
       </CBox>
     </CBox>
     <CText v-else
-      >{{ output.toString() }}
+      ><CCode variant-color="black" background="black">{{
+        outputDisplay
+      }}</CCode>
       <CText
         v-if="bigNumberDisplay"
         display="inline"
@@ -31,12 +33,21 @@ const { ethers } = require('ethers');
 export default {
   name: 'FunctionOutput',
   props: [
-    'output'
+    'output',
+    'outputType'
   ],
   computed: {
     bigNumberDisplay(){
       if(ethers.BigNumber.isBigNumber(this.output)){
         return ethers.utils.formatEther(this.output)
+      }
+    },
+    outputDisplay(){
+      const isString = typeof this.output == "string";
+      if(isString){
+        return '"' + this.output + '"'
+      }else{
+        return this.output.toString()
       }
     }
   }
