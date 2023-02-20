@@ -28,7 +28,8 @@ export const state = () => ({
 
 export const getters = {
     getProvider(state) {
-        if (metamaskProvider) {
+        const mm = metamaskProvider; // force update
+        if (mm) {
             return metamaskProvider
         }
         if (state.chainId == 13370) {
