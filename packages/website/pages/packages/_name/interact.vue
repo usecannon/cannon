@@ -1,5 +1,5 @@
 <template>
-  <CBox pt="8" pb="2">
+  <CBox pb="2">
     <Interact :p="p" />
   </CBox>
 </template>

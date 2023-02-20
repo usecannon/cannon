@@ -1,6 +1,15 @@
 <template>
   <CBox>
-    <CFlex mb="8" align="center">
+    <CFlex
+      py="6"
+      mb="8"
+      align="center"
+      position="sticky"
+      top="0"
+      bg="blue.900"
+      zIndex="1"
+      borderBottom="1px solid rgba(255,255,255,0.25)"
+    >
       <ConnectWallet />
       <CBox ml="auto">
         <VersionSelect :p="p" v-model="selectedVariant" />
@@ -33,7 +42,7 @@
     >
       <CAlertIcon /><CText>
         If this protocol has a proxy contract, you should typically interact
-        with it rather than the other contracts in the package.</CText
+        with it instead of the other contracts in the package.</CText
       >
     </CAlert>
 

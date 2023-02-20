@@ -2,28 +2,23 @@
   <CBox mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
     <CHeading size="sm" mb="2">{{ f.name }}()</CHeading>
     <CBox v-for="(input, index) of f.inputs" :key="JSON.stringify(input)">
-      <BoolInput
-        v-if="input.type == 'bool'"
-        :input="input"
-        v-on:update:value="updateParams(index, $event)"
-      />
-      <AddressInput
-        v-if="input.type == 'address'"
-        :input="input"
-        v-on:update:value="updateParams(index, $event)"
-      />
-      <NumberInput
-        v-else-if="
-          input.type.startsWith('int') || input.type.startsWith('uint')
-        "
-        :input="input"
-        v-on:update:value="updateParams(index, $event)"
-      />
-      <DefaultInput
-        v-else
-        :input="input"
-        v-on:update:value="updateParams(index, $event)"
-      />
+      <CFormControl mb="4">
+        <CFormLabel color="white"
+          ><CText display="inline" v-if="input.name">{{ input.name }}</CText>
+          <CText
+            v-if="input.type"
+            fontSize="xs"
+            color="whiteAlpha.700"
+            display="inline"
+          >
+            {{ input.type }}</CText
+          ></CFormLabel
+        >
+        <FunctionInput
+          :input="input"
+          v-on:update:value="updateParams(index, $event)"
+        />
+      </CFormControl>
     </CBox>
     <CBox v-if="loading" my="4"><CSpinner /></CBox>
     <CAlert mb="4" status="error" bg="red.700" v-else-if="error">
@@ -62,19 +57,13 @@
     
 <script lang="js">
 import Vue from 'vue';
-import BoolInput from './Function/BoolInput';
-import NumberInput from './Function/NumberInput';
-import AddressInput from './Function/AddressInput';
-import DefaultInput from './Function/DefaultInput';
+import FunctionInput from './FunctionInput';
 const ethers = require("ethers");
 
 export default {
   name: 'Function',
   components: {
-    BoolInput,
-    NumberInput,
-    AddressInput,
-    DefaultInput
+    FunctionInput
   },
   props: {
     f: {
@@ -95,7 +84,7 @@ export default {
   computed:{
     readOnly(){
       return this.f.stateMutability == 'view' || this.f.stateMutability == 'pure'
-    }
+    },
   },
   mounted(){
     if(this.readOnly && this.params.length == 0){
