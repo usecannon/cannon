@@ -37,6 +37,12 @@ import chains from '../../../helpers/chains';
     },
     mounted(){
       this.currentValue = JSON.stringify(this.options[0])
+      if(!window.location.hash){
+        this.$router.push({ hash: this.options[0].ipfs.replace("ipfs://","")})
+      }else{
+        const targetUrl = window.location.hash.replace('#',"ipfs://").split('-')[0]
+        this.currentValue = JSON.stringify(this.options.find(o => o.ipfs == targetUrl))
+      }
     },
     watch: {
       options(){
@@ -44,6 +50,11 @@ import chains from '../../../helpers/chains';
       },
       currentValue(){
         this.$emit('input', JSON.parse(this.currentValue));
+        let address = ''
+        if(window.location.hash.replace('#',"ipfs://").split('-')[1]){
+          address = '-' + window.location.hash.replace('#',"ipfs://").split('-')[1]
+        }
+        this.$router.push({ hash: JSON.parse(this.currentValue).ipfs.replace("ipfs://","") + address})
       }
     },
     computed: {

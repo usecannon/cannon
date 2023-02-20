@@ -10,7 +10,12 @@
       <CHeading :id="anchor" mb="1" size="lg" display="inline-block">{{
         title
       }}</CHeading>
-      <CLink :href="'#' + anchor" fontSize="lg" ml="2" color="gray.400"
+      <CLink
+        :href="'#' + anchor"
+        fontSize="lg"
+        ml="2"
+        color="gray.400"
+        @click="adjustScroll"
         >#</CLink
       >
       <CBox ml="auto">
@@ -53,7 +58,15 @@ export default {
   },
   computed: {
     anchor(){
-      return this.address + '-' + this.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      const currentHash = window.location.hash.replace("#","").split('-')[0]
+      return currentHash + '-' + this.address
+    }
+  },
+  methods: {
+    adjustScroll(){
+      setTimeout(() => {
+        window.scrollBy(0, -120)
+      },1)
     }
   }
 }

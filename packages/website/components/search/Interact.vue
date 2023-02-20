@@ -122,6 +122,7 @@ export default {
         const element = document.getElementById(anchor);
         if (element) {
           element.scrollIntoView();
+          window.scrollBy(0, -120);
         }
       }
     }
