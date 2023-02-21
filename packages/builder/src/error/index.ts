@@ -84,12 +84,6 @@ export async function handleTxnError(
   }
 }
 
-interface ErrorObject {
-  data?: string;
-  body?: string;
-  error?: ErrorObject;
-}
-
 class CannonTraceError extends Error {
   error: Error;
 
