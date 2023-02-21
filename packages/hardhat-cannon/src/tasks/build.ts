@@ -13,6 +13,7 @@ import { HttpNetworkConfig } from 'hardhat/types';
 
 import { yellow } from 'chalk';
 import { loadPackageJson } from '../internal/load-pkg-json';
+import { saveToMetadataCache } from '@usecannon/cli/dist/src/helpers';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -42,6 +43,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const parsedSettings = parseSettings(settings);
 
     const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
+
+    const packageName = `${name}:${version}`;
 
     const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
@@ -103,7 +106,22 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         version,
         settings: parsedSettings,
       },
-      getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
+      getArtifact: async (contractName: string) => {
+        const art = await hre.artifacts.readArtifact(contractName);
+        if (art) {
+          const buildInfo = await hre.artifacts.getBuildInfo(`${art.sourceName}:${art.contractName}`);
+          await saveToMetadataCache(
+            packageName, 
+            `sources:${art.sourceName}:${art.contractName}`, JSON.stringify({
+              solcVersion: buildInfo!.solcLongVersion,
+              input: buildInfo!.input
+            })
+          );
+        }
+        
+
+        return art;
+      },
       async getSigner(addr: string) {
         if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
           // on test network any user can be conjured

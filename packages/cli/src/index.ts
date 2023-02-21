@@ -14,7 +14,7 @@ import {
   ChainArtifacts,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
+import { checkCannonVersion, execPromise, loadCannonfile, saveToMetadataCache } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -183,6 +183,40 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
     const artifactBuffer = await fs.readFile(artifactPath);
     const artifact = JSON.parse(artifactBuffer.toString()) as any;
+    
+    // save build metadata
+    // currently foundry only supports flattened output https://github.com/foundry-rs/foundry/issues/3382
+
+    const flattened = await execPromise(`forge flatten ${artifact.ast.absolutePath}`);
+
+    // easiest way to get the solidity version used to compile a file is to inspect the contract info
+    const solcVersion = JSON.parse(
+      await execPromise(`forge inspect ${name} metadata`)
+    ).compiler.version;
+
+    await saveToMetadataCache(
+      name, 
+      `sources.${name}`, 
+      JSON.stringify({
+        solcVersion: solcVersion,
+        input: {
+          language: 'Solidity',
+          sources: {
+            [`${artifact.contractName}Flat.sol`]: {
+              content: flattened,
+            },
+          },
+          settings: {
+            outputSelection: {
+              '*': {
+                '*': ['*'],
+              },
+            },
+          },
+        }
+      })
+    );
+
     return {
       contractName: name,
       sourceName: artifact.ast.absolutePath,
@@ -253,6 +287,7 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.chainId);
+    process.exit();
   });
 
 program
