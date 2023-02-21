@@ -313,6 +313,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
+  .option('-f --force', 'Push even if the artifact appaers to be pushed to the registry with that url')
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
@@ -347,7 +348,7 @@ program
         }
       }
 
-      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet);
+      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet, options.force);
     } else {
       throw new Error('must specify private key');
     }

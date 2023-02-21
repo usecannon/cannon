@@ -44,7 +44,7 @@ export async function publish(
 
     const [name, version] = deploy.name.split(':');
 
-    if (!force && toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
+    if (force || toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
       let metaUrl;
       // ensure the deployment is on the remote registry
       if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
@@ -107,7 +107,7 @@ export async function publish(
 
 async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: DeploymentInfo) {
   // check imports for any urls. If any exist, we need to reupload those also
-  for (const stepState of Object.entries(deployData.state.imports || {})) {
+  for (const stepState of Object.entries(deployData.state || {})) {
     for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
       if (importArtifact[1].url) {
         // we need to upload nested ipfs deploys as well
