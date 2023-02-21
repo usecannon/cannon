@@ -96,7 +96,7 @@ export default {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig),
+      bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
       args: parsedConfig.args || [],
       salt: parsedConfig.salt,
       value: parsedConfig.value || [],
