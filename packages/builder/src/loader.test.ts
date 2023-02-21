@@ -1,20 +1,43 @@
-import { IPFSLoader, CannonLoader } from './loader';
+import { IPFSLoader } from './loader';
+import { ethers } from 'ethers';
+
+import { OnChainRegistry } from './registry';
+import { readIpfs, writeIpfs } from './ipfs';
+
+jest.mock('./ipfs');
+jest.mock('./registry');
 
 describe('loader.ts', () => {
   describe('IPFSLoader', () => {
+
+    jest.mocked(OnChainRegistry)
+
+    let registry: OnChainRegistry;
+    let loader: IPFSLoader;
+    beforeAll(() => {
+      const registry = new OnChainRegistry({ address: '', signerOrProvider: new ethers.Wallet('0x') })
+      loader = new IPFSLoader('hello', registry);
+    })
+
     describe('constructor', () => {
       it('sets props', () => {
-
+        expect(loader.ipfsUrl).toEqual('hello');
+        expect(loader.resolver).toBe(registry);
       });
     });
 
     describe('readDeploy()', () => {
       it('returns null when deployment is not found', async () => {
-
+        const deploy = await loader.readDeploy('foobar:1', 'main', 5);
+        expect(deploy).toBeNull();
       });
 
       it('calls readIpfs with correct url', async () => {
-
+        jest.mocked(registry.getUrl).mockResolvedValue('ipfs://Qmfoobar');
+        jest.mocked(readIpfs).mockResolvedValue({ hello: 'world' });
+        const deploy = await loader.readDeploy('foobar:1', 'main', 5);
+        expect(deploy).toEqual({ hello: 'world' });
+        expect(readIpfs).toBeCalledWith('ipfs://Qmfoobar');
       });
     });
 
@@ -26,13 +49,17 @@ describe('loader.ts', () => {
 
     describe('putMisc()', () => {
       it('calls ipfs write and returns the resulting ipfs Qmhash', async () => {
-
+        jest.mocked(writeIpfs).mockResolvedValue('ipfs://Qmfun');
+        expect(await loader.putMisc({ hello: 'fun' })).toEqual('ipfs://Qmfun');
+        expect(writeIpfs).toBeCalledWith({ hello: 'fun' });
       });
     });
 
     describe('readMisc()', () => {
       it('calls readIpfs', async () => {
-
+        jest.mocked(readIpfs).mockResolvedValue({ hello: 'world' });
+        const deploy = await loader.readMisc('ipfs://Qmfoobar');
+        expect(deploy).toEqual({ hello: 'world' });
       });
     });
   });
