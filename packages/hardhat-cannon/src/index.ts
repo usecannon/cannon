@@ -15,7 +15,6 @@ import './tasks/build';
 import './tasks/inspect';
 import './tasks/publish';
 import './tasks/run';
-import './tasks/verify';
 import './subtasks/load-package-definition';
 import './subtasks/load-deploy';
 import './subtasks/rpc';

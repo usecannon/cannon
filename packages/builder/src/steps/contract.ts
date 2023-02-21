@@ -52,8 +52,12 @@ export interface ContractOutputs {
   deployTxnHash: string;
 }
 
-async function resolveBytecode(artifactData: ContractArtifact, config: Config) {
+function resolveBytecode(
+  artifactData: ContractArtifact,
+  config: Config
+): [string, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
+  const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
     for (const lib in artifactData.linkReferences[file]) {
       // get the lib from the config
@@ -73,11 +77,13 @@ async function resolveBytecode(artifactData: ContractArtifact, config: Config) {
           injectedBytecode.substring(0, 2 + ref.start * 2) +
           libraryAddress.substring(2) +
           injectedBytecode.substring(2 + (ref.start + ref.length) * 2);
+
+        _.set(linkedLibraries, [file, lib], libraryAddress);
       }
     }
   }
 
-  return injectedBytecode;
+  return [injectedBytecode, linkedLibraries];
 }
 
 // ensure the specified contract is already deployed
@@ -153,7 +159,7 @@ export default {
       );
     }
 
-    const injectedBytecode = await resolveBytecode(artifactData, config);
+    const [injectedBytecode, linkedLibraries] = await resolveBytecode(artifactData, config);
 
     // finally, deploy
     const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
@@ -213,6 +219,7 @@ export default {
           address: contractAddress,
           abi,
           constructorArgs: config.args || [],
+          linkedLibraries,
           deployTxnHash: transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,

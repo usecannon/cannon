@@ -20,6 +20,8 @@ export type CliSettings = {
   registryProviderUrl: string;
   registryAddress: string;
   cannonDirectory: string;
+  etherscanApiUrl: string;
+  etherscanApiKey: string;
 };
 
 // TODO: this function is ugly
@@ -49,6 +51,8 @@ function _resolveCliSettings(): CliSettings {
     registryProviderUrl:
       process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT,
     registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
+    etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
+    etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
   };
 
   debug('got settings', finalSettings);
