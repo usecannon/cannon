@@ -1,4 +1,6 @@
-export default [
+import { merge } from 'lodash';
+
+const chains = [
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
@@ -1065,3 +1067,44 @@ export default [
     infoURL: 'https://community.optimism.io/docs/',
   },
 ];
+
+let CHAIN_DATA = []
+
+chains.forEach((c) => {
+  CHAIN_DATA[c.chainId] = {
+    name: c.shortName
+  }
+});
+
+CHAIN_DATA = merge(CHAIN_DATA, {
+  13370: {
+    name: 'local',
+    color: 'whiteAlpha'
+  },
+  1: {
+    name: 'mainnet',
+    color: 'indigo'
+  },
+  5: {
+    name: 'goerli',
+    color: 'green'
+  },
+  56: {
+    name: 'bnb',
+    color: 'yellow'
+  },
+  10: {
+    name: 'optimism',
+    color: 'red'
+  },
+  420: {
+    name: 'optimism goerli',
+    color: 'pink'
+  },
+  42161: {
+    name: 'arbitrum',
+    color: 'blue'
+  }
+});
+
+export default CHAIN_DATA

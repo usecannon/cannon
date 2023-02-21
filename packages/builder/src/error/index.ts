@@ -32,6 +32,11 @@ export async function handleTxnError(
 
   if (err.code === 'UNPREDICTABLE_GAS_LIMIT') {
     return handleTxnError(artifacts, provider, err.error);
+  } else if (err.code === 'CALL_EXCEPTION') {
+    txnData = err.transaction;
+    errorData = err.data;
+  } else if (err.code === -32603) {
+    errorData = err.data.originalError.data;
   }
   if (err.reason === 'processing response error') {
     txnData = JSON.parse(err.requestBody).params[0];
@@ -43,10 +48,6 @@ export async function handleTxnError(
       gasLimit: 20000000, // should ensure we get an actual failed receipt
       ...txnData,
     };
-
-    if (!errorData) {
-      // first, try to run the txn without
-    }
 
     // then, run it for real so we can get a trace
     try {
@@ -76,8 +77,8 @@ export async function handleTxnError(
     }
   }
 
-  if (traces.length || txnHash || txnData) {
-    throw new CannonTraceError(err, artifacts, traces);
+  if (traces.length || txnHash || txnData || errorData) {
+    throw new CannonTraceError(err, artifacts, errorData, traces);
   } else {
     throw err;
   }
@@ -89,18 +90,6 @@ interface ErrorObject {
   error?: ErrorObject;
 }
 
-function getErrorData(err: ErrorObject): string | null {
-  if (err.data) {
-    return err.data;
-  }
-
-  if (err.error) {
-    return getErrorData(err.error);
-  }
-
-  return null;
-}
-
 class CannonTraceError extends Error {
   error: Error;
 
@@ -108,16 +97,14 @@ class CannonTraceError extends Error {
   // `NONCE_EXPIRED` is a very innocent looking error, so ethers will simply forward it.
   code: string = Logger.errors.NONCE_EXPIRED;
 
-  constructor(error: Error, ctx: ChainArtifacts, traces: TraceEntry[]) {
-    // first, try to lift up the actual error reason
-    const data = getErrorData(error as ErrorObject);
-
+  constructor(error: Error, ctx: ChainArtifacts, errorData: string | null, traces: TraceEntry[]) {
+    let contractName = 'unknown';
     let decodedMsg = error.message;
-    if (data) {
+    if (errorData) {
       try {
         const r = findContract(ctx, ({ address, abi }) => {
           try {
-            new ethers.Contract(address, abi).interface.parseError(data);
+            new ethers.Contract(address, abi).interface.parseError(errorData);
             return true;
           } catch (_) {
             // intentionally empty
@@ -125,15 +112,17 @@ class CannonTraceError extends Error {
 
           return false;
         });
-
-        decodedMsg = parseErrorReason(r?.contract ?? null, data);
+        if (r !== null) {
+          contractName = r?.name;
+          decodedMsg = parseErrorReason(r?.contract ?? null, errorData);
+        }
       } catch {
         // intentionally empty
       }
     }
 
     // now we can make ourself a thing
-    super(`transaction reverted: ${decodedMsg}\n\n${renderTrace(ctx, traces)}\n\n`);
+    super(`transaction reverted in contract ${contractName}: ${decodedMsg}\n\n${renderTrace(ctx, traces)}\n\n`);
 
     this.error = error;
   }

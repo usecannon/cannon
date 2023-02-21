@@ -14,8 +14,7 @@
           isExternal
           href="https://github.com/usecannon/cannon/tree/main/packages/sample-foundry-project"
           >Foundry sample project</CLink
-        >
-        in the Cannon Monorepo.</CBox
+        >.</CBox
       >
     </CAlert>
 

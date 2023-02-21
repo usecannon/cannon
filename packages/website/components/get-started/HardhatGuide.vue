@@ -15,8 +15,7 @@
           isExternal
           href="https://github.com/usecannon/cannon/tree/main/packages/sample-hardhat-project"
           >Hardhat sample project</CLink
-        >
-        in the Cannon Monorepo.</CBox
+        >.</CBox
       >
     </CAlert>
 
