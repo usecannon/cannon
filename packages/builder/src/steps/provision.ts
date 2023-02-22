@@ -153,7 +153,7 @@ export default {
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.loader.putDeploy({
       def: def.toJson(),
-      miscUrl: newMiscUrl,
+      miscUrl: newMiscUrl || '',
       options: importPkgOptions,
       state: builtState,
       meta: deployInfo.meta,
