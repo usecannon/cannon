@@ -48,6 +48,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
 
     if (hre.network.name === 'hardhat') {
+      if (dryRun) {
+        throw new Error('You cannot use --dry-run param when using the "hardhat" network');
+      }
+
       // hardhat network is "special" in that it looks like its a jsonrpc provider,
       // but really you can't use it like that.
       console.log('using hardhat network provider');
