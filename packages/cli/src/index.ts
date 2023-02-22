@@ -188,11 +188,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const artifact = JSON.parse(artifactBuffer.toString()) as any;
 
     // save build metadata
-    // currently foundry only supports flattened output https://github.com/foundry-rs/foundry/issues/3382
-
-    //const flattened = await execPromise(`forge flatten ${artifact.ast.absolutePath}`);
-
-    // easiest way to get the solidity version used to compile a file is to inspect the contract info
     const foundryInfo = JSON.parse(await execPromise(`forge inspect ${name} metadata`));
 
     const solcVersion = foundryInfo.compiler.version;
@@ -202,26 +197,22 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       };
     });
 
-    await saveToMetadataCache(
-      `${pkgName}:${pkgVersion}`,
-      `sources:${artifact.ast.absolutePath}:${name}`,
-      JSON.stringify({
-        solcVersion: solcVersion,
-        input: {
-          language: 'Solidity',
-          sources,
-          settings: {
-            optimizer: foundryInfo.settings.optimizer,
-            remappings: foundryInfo.settings.remappings,
-            outputSelection: {
-              '*': {
-                '*': ['*'],
-              },
+    const source = {
+      solcVersion: solcVersion,
+      input: JSON.stringify({
+        language: 'Solidity',
+        sources,
+        settings: {
+          optimizer: foundryInfo.settings.optimizer,
+          remappings: foundryInfo.settings.remappings,
+          outputSelection: {
+            '*': {
+              '*': ['*'],
             },
           },
         },
-      })
-    );
+      }),
+    };
 
     return {
       contractName: name,
@@ -229,6 +220,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
       linkReferences: artifact.bytecode.linkReferences,
+      source
     };
   };
 
@@ -253,6 +245,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
+    // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
+    publicSourceCode: true
   });
 
   return [node, outputs];
@@ -290,9 +284,10 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to verify', '1')
+  .option('-p --preset <preset>', 'Preset of the deployment to verify', 'main')
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
-    await verify(packageName, options.apiKey, options.chainId);
+    await verify(packageName, options.apiKey, options.preset, options.chainId);
     process.exit();
   });
 

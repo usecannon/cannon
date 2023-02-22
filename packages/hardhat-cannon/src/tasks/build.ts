@@ -8,7 +8,7 @@ import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { getProvider, RpcOptions } from '@usecannon/cli/dist/src/rpc';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ContractArtifact } from '@usecannon/builder';
 import { HttpNetworkConfig } from 'hardhat/types';
 
 import { yellow } from 'chalk';
@@ -43,8 +43,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     const parsedSettings = parseSettings(settings);
 
     const { name, version } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
-
-    const packageName = `${name}:${version}`;
 
     const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
@@ -107,17 +105,13 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         settings: parsedSettings,
       },
       getArtifact: async (contractName: string) => {
-        const art = await hre.artifacts.readArtifact(contractName);
+        const art = await hre.artifacts.readArtifact(contractName) as ContractArtifact;
         if (art) {
           const buildInfo = await hre.artifacts.getBuildInfo(`${art.sourceName}:${art.contractName}`);
-          await saveToMetadataCache(
-            packageName,
-            `sources:${art.sourceName}:${art.contractName}`,
-            JSON.stringify({
-              solcVersion: buildInfo!.solcLongVersion,
-              input: buildInfo!.input,
-            })
-          );
+          art.source = {
+            solcVersion: buildInfo!.solcLongVersion,
+            input: JSON.stringify(buildInfo!.input),
+          };
         }
 
         return art;
@@ -147,6 +141,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       persist: !dryRun && hre.network.name !== 'hardhat',
       overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
       plugins: false,
+      publicSourceCode: hre.config.cannon.publicSourceCode,
     } as const;
 
     const { outputs } = await build(params);

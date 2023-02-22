@@ -23,6 +23,10 @@ export type ContractArtifact = {
       }[];
     };
   };
+  source?: {
+    solcVersion: string;
+    input: string;
+  }
 };
 
 export type ContractData = {
@@ -102,6 +106,9 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
+
+  // Should publish contract sources along with bytecode?
+  publicSourceCode?: boolean;
 }
 
 export interface BundledChainBuilderOutputs {

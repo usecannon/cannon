@@ -26,11 +26,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : path.join(config.paths.root, 'deployments');
 
   config.cannon = {
-    cannonDirectory: userConfig.cannon?.cannonDirectory || DEFAULT_CANNON_DIRECTORY,
-    registryEndpoint: userConfig.cannon?.registryEndpoint || DEFAULT_REGISTRY_ENDPOINT,
-    registryAddress: userConfig.cannon?.registryAddress || DEFAULT_REGISTRY_ADDRESS,
-    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
-    ipfsAuthorizationHeader: userConfig.cannon?.ipfsAuthorizationHeader,
+    publicSourceCode: userConfig.cannon?.publicSourceCode || false
   };
 
   config.networks.cannon = {

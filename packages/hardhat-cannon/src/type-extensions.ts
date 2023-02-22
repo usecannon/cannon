@@ -7,11 +7,7 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatUserConfig {
     cannon?: {
-      cannonDirectory?: string;
-      registryEndpoint?: string;
-      registryAddress?: string;
-      ipfsEndpoint?: string;
-      ipfsAuthorizationHeader?: string;
+      publicSourceCode: boolean;
     };
   }
 
@@ -35,11 +31,7 @@ declare module 'hardhat/types/config' {
 
   export interface HardhatConfig {
     cannon: {
-      cannonDirectory: string;
-      registryEndpoint: string;
-      registryAddress: string;
-      ipfsEndpoint: string;
-      ipfsAuthorizationHeader?: string;
+      publicSourceCode: boolean;
     };
   }
 }

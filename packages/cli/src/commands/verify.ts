@@ -5,8 +5,11 @@ import { getChainDataFromId, readMetadataCache, setupAnvil } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
+import Debug from 'debug';
 
-export async function verify(packageRef: string, apiKey: string, chainId: number) {
+const debug = Debug('cannon:cli:verify');
+
+export async function verify(packageRef: string, apiKey: string, preset: string, chainId: number) {
   await setupAnvil();
 
   // create temporary provider
@@ -38,13 +41,17 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
     new IPFSLoader(settings.ipfsUrl, resolver)
   );
 
-  const deployData = await runtime.loader.readDeploy(packageRef, 'main', chainId);
+  const deployData = await runtime.loader.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error(
       `deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`
     );
   }
+
+  const miscData = await runtime.loader.readMisc(deployData.miscUrl);
+
+  debug('misc data', miscData);
 
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
@@ -67,24 +74,29 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
     throw new Error('etherscan api key not supplied. Please set it with --api-key');
   }
 
-  const pkgMetadata = await readMetadataCache(packageRef);
-
   const guids: { [c: string]: string } = {};
 
   for (const c in outputs.contracts) {
     const contractInfo = outputs.contracts[c];
 
-    const rawContractSourceInfo = pkgMetadata[`sources:${contractInfo.sourceName}:${contractInfo.contractName}`];
+    // contracts can either be imported by just their name, or by a full path.
+    // technically it may be more correct to just load by the actual name of the `artifact` property used, but that is complicated
+    debug('finding contract:', contractInfo.sourceName, contractInfo.contractName);
+    const contractArtifact = miscData.artifacts[contractInfo.contractName] || miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
-    if (!rawContractSourceInfo) {
-      console.log(`${c}: cannot verify: no source code recorded in build data`);
+    if (!contractArtifact) {
+      console.log(`${c}: cannot verify: no contract artifact found`);
       continue;
     }
 
-    const contractSourceInfo = JSON.parse(rawContractSourceInfo);
+    if (!contractArtifact.source) {
+      console.log(`${c}: cannot verify: no source code recorded in deploy data`);
+      continue;
+    }
 
-    // find out if we have to supply libraries linked
-    contractSourceInfo.input.settings.libraries = contractInfo.linkedLibraries;
+    // supply any linked libraries within the inputs since those are calculated at runtime
+    const inputData = JSON.parse(contractArtifact.source.input);
+    inputData.settings.libraries = contractInfo.linkedLibraries;
 
     const reqData: { [k: string]: string } = {
       apikey: apiKey,
@@ -92,18 +104,18 @@ export async function verify(packageRef: string, apiKey: string, chainId: number
       action: 'verifysourcecode',
       contractaddress: contractInfo.address,
       // need to parse to get the inner structure, then stringify again
-      sourceCode: JSON.stringify(contractSourceInfo.input),
+      sourceCode: JSON.stringify(inputData),
       codeformat: 'solidity-standard-json-input',
       contractname: `${contractInfo.sourceName}:${contractInfo.contractName}`,
-      compilerversion: 'v' + contractSourceInfo.solcVersion,
-      //optimizationused: contractSourceInfo.input.settings.optimizer.enabled ? '1' : '0',
-      //runs: contractSourceInfo.input.settings.optimizer.runs,
+      compilerversion: 'v' + contractArtifact.source.solcVersion,
 
       // NOTE: below: yes, the etherscan api is misspelling
-      constructorArguements: new ethers.utils.Interface(outputs.contracts[c].abi)
+      constructorArguements: new ethers.utils.Interface(contractArtifact.abi)
         .encodeDeploy(contractInfo.constructorArgs)
         .slice(2),
     };
+
+    debug('verification request', reqData);
 
     const res = await axios.post(etherscanApi, reqData, {
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
