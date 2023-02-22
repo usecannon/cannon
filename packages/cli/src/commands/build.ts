@@ -100,7 +100,7 @@ export async function build({
     baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
-    publicSourceCode
+    publicSourceCode,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);

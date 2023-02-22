@@ -1,7 +1,7 @@
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, IPFSLoader } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { getChainDataFromId, readMetadataCache, setupAnvil } from '../helpers';
+import { getChainDataFromId, setupAnvil } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
@@ -82,7 +82,9 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
     // contracts can either be imported by just their name, or by a full path.
     // technically it may be more correct to just load by the actual name of the `artifact` property used, but that is complicated
     debug('finding contract:', contractInfo.sourceName, contractInfo.contractName);
-    const contractArtifact = miscData.artifacts[contractInfo.contractName] || miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
+    const contractArtifact =
+      miscData.artifacts[contractInfo.contractName] ||
+      miscData.artifacts[`${contractInfo.sourceName}:${contractInfo.contractName}`];
 
     if (!contractArtifact) {
       console.log(`${c}: cannot verify: no contract artifact found`);

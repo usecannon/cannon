@@ -26,7 +26,7 @@ export type ContractArtifact = {
   source?: {
     solcVersion: string;
     input: string;
-  }
+  };
 };
 
 export type ContractData = {

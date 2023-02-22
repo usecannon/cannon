@@ -15,7 +15,7 @@ import {
   ChainArtifacts,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, execPromise, loadCannonfile, saveToMetadataCache } from './helpers';
+import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -136,8 +136,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.dirname(cannonfilePath);
 
-  const { name: pkgName, version: pkgVersion } = await loadCannonfile(cannonfilePath);
-
   let provider: CannonWrapperGenericProvider;
   let node: CannonRpcNode | null = null;
   if (!opts.network || opts.dryRun) {
@@ -220,7 +218,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
       linkReferences: artifact.bytecode.linkReferences,
-      source
+      source,
     };
   };
 
@@ -246,7 +244,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
     // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
-    publicSourceCode: true
+    publicSourceCode: true,
   });
 
   return [node, outputs];

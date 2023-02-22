@@ -13,7 +13,6 @@ import { HttpNetworkConfig } from 'hardhat/types';
 
 import { yellow } from 'chalk';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { saveToMetadataCache } from '@usecannon/cli/dist/src/helpers';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -105,7 +104,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         settings: parsedSettings,
       },
       getArtifact: async (contractName: string) => {
-        const art = await hre.artifacts.readArtifact(contractName) as ContractArtifact;
+        const art = (await hre.artifacts.readArtifact(contractName)) as ContractArtifact;
         if (art) {
           const buildInfo = await hre.artifacts.getBuildInfo(`${art.sourceName}:${art.contractName}`);
           art.source = {

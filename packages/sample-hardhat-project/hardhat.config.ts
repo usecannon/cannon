@@ -11,7 +11,7 @@ import '../hardhat-cannon/src/index';
 import 'hardhat-interact';
 
 import * as dotenv from 'dotenv';
-import { HardhatUserConfig, task } from 'hardhat/config';
+import { task } from 'hardhat/config';
 
 dotenv.config();
 
@@ -56,8 +56,8 @@ const config: any = {
   },
   cannon: {
     // if your smart contracts are open source, set this to true to enable contract verification and pushing of your contact sources
-    publicSourceCode: true
-  }
+    publicSourceCode: true,
+  },
 };
 
 export default config;

@@ -3,12 +3,6 @@ import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'har
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import {
-  DEFAULT_CANNON_DIRECTORY,
-  DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_ENDPOINT,
-  DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from '@usecannon/cli';
 import { augmentProvider } from './internal/augment-provider';
 
 import './tasks/build';
@@ -26,7 +20,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : path.join(config.paths.root, 'deployments');
 
   config.cannon = {
-    publicSourceCode: userConfig.cannon?.publicSourceCode || false
+    publicSourceCode: userConfig.cannon?.publicSourceCode || false,
   };
 
   config.networks.cannon = {
