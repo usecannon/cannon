@@ -146,13 +146,17 @@ export default {
     const builtState = await build(importRuntime, def, prevState, initialCtx);
     debug('finish build. is partial:', partialDeploy);
 
+    const newMiscUrl = await importRuntime.recordMisc();
+
+    debug('new misc:', newMiscUrl);
+
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.loader.putDeploy({
       def: def.toJson(),
       miscUrl: deployInfo?.miscUrl ?? deployInfo!.miscUrl,
       options: importPkgOptions,
       state: builtState,
-      meta: deployInfo.meta,
+      meta: newMiscUrl,
       status: partialDeploy ? 'partial' : 'complete',
     });
 
