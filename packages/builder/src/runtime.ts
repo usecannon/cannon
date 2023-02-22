@@ -28,6 +28,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   baseDir: string | null;
   snapshots: boolean;
   allowPartialDeploy: boolean;
+  publicSourceCode: boolean | undefined;
 
   private cleanSnapshot: any;
 
@@ -52,7 +53,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
       debug(`resolve artifact ${n}`);
       if (info.getArtifact) {
         debug('need to find artifact externally');
-        this.misc.artifacts[n] = _.cloneDeep(await info.getArtifact(n));
+        this.reportContractArtifact(n, _.cloneDeep(await info.getArtifact(n)));
       }
 
       return this.misc.artifacts[n] || null;
@@ -62,6 +63,8 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     this.snapshots = info.snapshots;
 
     this.allowPartialDeploy = info.allowPartialDeploy;
+
+    this.publicSourceCode = info.publicSourceCode;
 
     this.misc = { artifacts: {} };
   }
@@ -119,6 +122,16 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
     this.misc = await this.loader.readMisc(url);
 
     this.loadedMisc = url;
+  }
+
+  reportContractArtifact(n: string, artifact: ContractArtifact) {
+    if (!this.publicSourceCode) {
+      delete artifact.source;
+    }
+
+    debug('reported contract artifact', n, artifact);
+
+    this.misc.artifacts[n] = artifact;
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {

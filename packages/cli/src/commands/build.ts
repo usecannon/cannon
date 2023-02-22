@@ -41,6 +41,7 @@ interface Params {
   wipe?: boolean;
   persist?: boolean;
   plugins?: boolean;
+  publicSourceCode?: boolean;
 }
 
 export async function build({
@@ -58,6 +59,7 @@ export async function build({
   wipe = false,
   persist = true,
   plugins = true,
+  publicSourceCode = false,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -98,6 +100,7 @@ export async function build({
     baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
+    publicSourceCode,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);

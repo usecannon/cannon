@@ -11,7 +11,7 @@ import '../hardhat-cannon/src/index';
 import 'hardhat-interact';
 
 import * as dotenv from 'dotenv';
-import { HardhatUserConfig, task } from 'hardhat/config';
+import { task } from 'hardhat/config';
 
 dotenv.config();
 
@@ -25,7 +25,8 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-const config: HardhatUserConfig = {
+// need to use `any` type here instead of HardhatUserConfig becuase somethign borky is going on with typescript resolution of cannon config overrides
+const config: any = {
   solidity: '0.8.4',
   defaultNetwork: 'cannon',
   networks: {
@@ -52,6 +53,10 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  cannon: {
+    // if your smart contracts are open source, set this to true to enable contract verification and pushing of your contact sources
+    publicSourceCode: true,
   },
 };
 
