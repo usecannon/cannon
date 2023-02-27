@@ -1,13 +1,10 @@
-import _ from 'lodash';
 import path from 'node:path';
-import fs from 'fs-extra';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
   CannonWrapperGenericProvider,
   ChainDefinition,
-  ContractArtifact,
   getOutputs,
   ChainBuilderRuntime,
   IPFSLoader,
@@ -15,7 +12,7 @@ import {
   ChainArtifacts,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
+import { checkCannonVersion, loadCannonfile } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -37,9 +34,11 @@ import { resolveCliSettings } from './settings';
 import { installPlugin, removePlugin } from './plugins';
 import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
+import { getFoundryArtifact } from './foundry';
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
@@ -174,54 +173,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     getDefaultSigner = async () => wallets[0];
   }
 
-  // Build project to get the artifacts
-  const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
-  const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
-  await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
-
-  const getArtifact = async (name: string): Promise<ContractArtifact> => {
-    // TODO: Theres a bug that if the file has a different name than the contract it would not work
-    const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
-    const artifactBuffer = await fs.readFile(artifactPath);
-    const artifact = JSON.parse(artifactBuffer.toString()) as any;
-
-    // save build metadata
-    const foundryInfo = JSON.parse(await execPromise(`forge inspect ${name} metadata`));
-
-    const solcVersion = foundryInfo.compiler.version;
-    const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
-      return {
-        content: fs.readFileSync(sourcePath).toString(),
-      };
-    });
-
-    const source = {
-      solcVersion: solcVersion,
-      input: JSON.stringify({
-        language: 'Solidity',
-        sources,
-        settings: {
-          optimizer: foundryInfo.settings.optimizer,
-          remappings: foundryInfo.settings.remappings,
-          outputSelection: {
-            '*': {
-              '*': ['*'],
-            },
-          },
-        },
-      }),
-    };
-
-    return {
-      contractName: name,
-      sourceName: artifact.ast.absolutePath,
-      abi: artifact.abi,
-      bytecode: artifact.bytecode.object,
-      linkReferences: artifact.bytecode.linkReferences,
-      source,
-    };
-  };
-
   const { build } = await import('./commands/build');
   const { name, version } = await loadCannonfile(cannonfilePath);
 
@@ -234,7 +185,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       settings: parsedSettings,
     },
     meta: {},
-    getArtifact,
+    getArtifact: getFoundryArtifact,
     getSigner,
     getDefaultSigner,
     projectDirectory,
@@ -286,6 +237,23 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
+    process.exit();
+  });
+
+program
+  .command('alter')
+  .description('Change a cannon package outside of the regular build process.')
+  .argument('<packageName>', 'Name and version of the Cannon package to alter')
+  .argument('<command>', 'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete')
+  .argument('[options...]', 'Additional options for your alteration command')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter', '1')
+  .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
+  .action(async function (packageName, command, options, flags) {
+    const { alter } = await import('./commands/alter');
+    // note: for command below, "meta" is empty because forge currently supplies no package meta
+    await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
+      getArtifact: getFoundryArtifact,
+    });
     process.exit();
   });
 

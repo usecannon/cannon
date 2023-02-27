@@ -5,10 +5,12 @@ import '@nomiclabs/hardhat-ethers';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { augmentProvider } from './internal/augment-provider';
 
+import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
 import './tasks/publish';
 import './tasks/run';
+import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
 import './subtasks/load-deploy';
 import './subtasks/rpc';

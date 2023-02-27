@@ -15,6 +15,7 @@ export type ContractArtifact = {
   sourceName: string;
   abi: JsonFragment[];
   bytecode: string;
+  deployedBytecode: string;
   linkReferences: {
     [fileName: string]: {
       [contractName: string]: {
