@@ -1,10 +1,11 @@
 <template>
-  <CBox>
+  <CBox verticalAlign="middle">
     <CText
+      height="24px"
       fontSize="sm"
       display="inline-block"
       mr="2"
-      transform="translateY(1px)"
+      transform="translateY(-4px)"
       opacity="0.8"
       ><strong
         >{{ download ? 'Download ' : '' }}Deployment{{
@@ -14,10 +15,11 @@
     ><CButton
       size="xs"
       mr="2"
+      mb="2"
       v-for="chain in chains"
       :key="chain.id"
-      :variantColor="chain.color || 'gray'"
-      :opacity="download ? '0.75' : '0.66 !important'"
+      :variantColor="chain.color || 'whiteAlpha'"
+      :opacity="download ? '0.8' : '0.7 !important'"
       :disabled="!download"
       :class="!download && 'disabled-button'"
       @click="download && openModal(chain.url)"

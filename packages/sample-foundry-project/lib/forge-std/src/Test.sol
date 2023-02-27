@@ -23,6 +23,6 @@ import {DSTest} from "ds-test/test.sol";
 
 // ⭐️ TEST
 abstract contract Test is DSTest, StdAssertions, StdChains, StdCheats, StdUtils, TestBase {
-// Note: IS_TEST() must return true.
-// Note: Must have failure system, https://github.com/dapphub/ds-test/blob/cd98eff28324bfac652e63a239a60632a761790b/src/test.sol#L39-L76.
+  // Note: IS_TEST() must return true.
+  // Note: Must have failure system, https://github.com/dapphub/ds-test/blob/cd98eff28324bfac652e63a239a60632a761790b/src/test.sol#L39-L76.
 }

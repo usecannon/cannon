@@ -1068,43 +1068,67 @@ const chains = [
   },
 ];
 
-let CHAIN_DATA = []
+let CHAIN_DATA = [];
 
 chains.forEach((c) => {
   CHAIN_DATA[c.chainId] = {
-    name: c.shortName
-  }
+    name: c.shortName,
+  };
 });
 
 CHAIN_DATA = merge(CHAIN_DATA, {
   13370: {
     name: 'local',
-    color: 'whiteAlpha'
+    color: 'whiteAlpha',
   },
   1: {
     name: 'mainnet',
-    color: 'indigo'
+    color: 'cyan',
   },
   5: {
     name: 'goerli',
-    color: 'green'
+    color: 'green',
   },
   56: {
     name: 'bnb',
-    color: 'yellow'
+    color: 'yellow',
   },
   10: {
     name: 'optimism',
-    color: 'red'
+    color: 'red',
   },
   420: {
     name: 'optimism goerli',
-    color: 'pink'
+    color: 'red',
   },
   42161: {
     name: 'arbitrum',
+    color: 'blue',
+  },
+  421613: {
+    name: 'arbitrum goerli',
     color: 'blue'
+  },
+  11155111: {
+    name: 'sepolia',
+    color: 'orange'
+  },
+  137: {
+    name: 'matic',
+    color: 'indigo',
+  },
+  80001: {
+    name: 'mumbai',
+    color: 'indigo',
+  },
+  43114: {
+    name: 'avax',
+    color: 'pink',
+  },
+  43113: {
+    name: 'fuji',
+    color: 'pink',
   }
 });
 
-export default CHAIN_DATA
+export default CHAIN_DATA;

@@ -4,3 +4,5 @@ node_modules
 packages/hardhat-cannon/dist
 packages/registry-subgraph/generated
 packages/registry-subgraph/src
+packages/contracts/lib/forge-std
+packages/contracts/lib/openzeppelin-contracts
