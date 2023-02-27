@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import path from 'node:path';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
