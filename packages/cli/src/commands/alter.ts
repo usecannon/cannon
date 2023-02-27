@@ -1,7 +1,14 @@
 import _ from 'lodash';
 import Debug from 'debug';
 import { createDefaultReadRegistry } from '../registry';
-import { ChainDefinition, IPFSLoader, ChainBuilderRuntime, getOutputs, CANNON_CHAIN_ID, DeploymentInfo } from '@usecannon/builder';
+import {
+  ChainDefinition,
+  IPFSLoader,
+  ChainBuilderRuntime,
+  getOutputs,
+  CANNON_CHAIN_ID,
+  DeploymentInfo,
+} from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { createInitialContext } from '@usecannon/builder';
@@ -14,7 +21,8 @@ export async function alter(
   preset: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'mark-complete',
-  targets: string[]
+  targets: string[],
+  runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
   const cliSettings = resolveCliSettings();
 
@@ -43,6 +51,7 @@ export async function alter(
       baseDir: null,
       snapshots: false,
       allowPartialDeploy: false,
+      ...runtimeOverrides,
     },
     loader
   );

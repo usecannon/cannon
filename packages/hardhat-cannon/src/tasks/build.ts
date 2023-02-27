@@ -3,12 +3,12 @@ import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
 import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
-import { TASK_BUILD } from '../task-names';
+import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { getProvider, RpcOptions } from '@usecannon/cli/dist/src/rpc';
-import { CannonWrapperGenericProvider, ContractArtifact } from '@usecannon/builder';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { HttpNetworkConfig } from 'hardhat/types';
 
 import { yellow } from 'chalk';
@@ -107,18 +107,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         version,
         settings: parsedSettings,
       },
-      getArtifact: async (contractName: string) => {
-        const art = (await hre.artifacts.readArtifact(contractName)) as ContractArtifact;
-        if (art) {
-          const buildInfo = await hre.artifacts.getBuildInfo(`${art.sourceName}:${art.contractName}`);
-          art.source = {
-            solcVersion: buildInfo!.solcLongVersion,
-            input: JSON.stringify(buildInfo!.input),
-          };
-        }
-
-        return art;
-      },
+      getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
       async getSigner(addr: string) {
         if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
           // on test network any user can be conjured
