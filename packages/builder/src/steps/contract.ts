@@ -4,6 +4,8 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
+import { getContractAddress } from '@ethersproject/address';
+
 import {
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
@@ -23,6 +25,7 @@ const config = {
   optionalProperties: {
     create2: { type: 'boolean' },
     from: { type: 'string' },
+    nonce: { type: 'string' },
     abi: { type: 'string' },
     abiOf: { elements: { type: 'string' } },
     args: { elements: {} },
@@ -108,6 +111,8 @@ export default {
 
     config.from = _.template(config.from)(ctx);
 
+    config.nonce = _.template(config.nonce)(ctx);
+
     config.artifact = _.template(config.artifact)(ctx);
 
     config.abi = _.template(config.abi)(ctx);
@@ -166,8 +171,6 @@ export default {
 
     const txn = factory.getDeployTransaction(...(config.args || []));
 
-    const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner!(txn, config.salt);
-
     let transactionHash: string;
     let contractAddress: string;
     if (config.create2) {
@@ -181,6 +184,9 @@ export default {
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
         transactionHash = '';
       } else {
+        const signer = config.from
+          ? await runtime.getSigner(config.from)
+          : await runtime.getDefaultSigner!(txn, config.salt);
         const pendingTxn = await signer.sendTransaction(create2Txn);
         const receipt = await pendingTxn.wait();
         transactionHash = pendingTxn.hash;
@@ -190,10 +196,38 @@ export default {
 
       contractAddress = addr;
     } else {
-      const txnData = await signer.sendTransaction(txn);
-      const receipt = await txnData.wait();
-      contractAddress = receipt.contractAddress;
-      transactionHash = receipt.transactionHash;
+      if (
+        config.from &&
+        config.nonce?.length &&
+        parseInt(config.nonce) < (await runtime.provider.getTransactionCount(config.from))
+      ) {
+        contractAddress = getContractAddress({ from: config.from, nonce: config.nonce });
+
+        debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
+
+        // check that the contract bytecode that was deployed matches the requested
+        const actualBytecode = await runtime.provider.getCode(contractAddress);
+        // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
+        // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
+        // lengt hshould be sufficient
+        if (artifactData.deployedBytecode.length !== actualBytecode.length) {
+          debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
+          throw new Error(
+            `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
+          );
+        }
+
+        // unfortunately it is not easy to figure out what the transaction hash was
+        transactionHash = '';
+      } else {
+        const signer = config.from
+          ? await runtime.getSigner(config.from)
+          : await runtime.getDefaultSigner!(txn, config.salt);
+        const txnData = await signer.sendTransaction(txn);
+        const receipt = await txnData.wait();
+        contractAddress = receipt.contractAddress;
+        transactionHash = receipt.transactionHash;
+      }
     }
 
     let abi = artifactData.abi;

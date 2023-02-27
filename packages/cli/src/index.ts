@@ -217,6 +217,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       sourceName: artifact.ast.absolutePath,
       abi: artifact.abi,
       bytecode: artifact.bytecode.object,
+      deployedBytecode: artifact.deployedBytecode.object,
       linkReferences: artifact.bytecode.linkReferences,
       source,
     };
@@ -286,6 +287,22 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
+    process.exit();
+  });
+
+program
+  .command('alter')
+  .description('Change a cannon package outside of the regular build process.')
+  .argument('<packageName>', 'Name and version of the Cannon package to alter')
+  .argument('<command>', 'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete')
+  .argument('[options...]', 'Additional options for your alteration command')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter', '1')
+  .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
+  .action(async function (packageName, command, options, flags) {
+    const { alter } = await import('./commands/alter');
+    // note: for command below, "meta" is empty because forge currently supplies no package meta
+    console.log('WE GOT A LOT OF STUFF', packageName, command, options, flags);
+    await alter(packageName, flags.chainId, flags.preset, {}, command, options);
     process.exit();
   });
 
