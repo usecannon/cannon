@@ -21,6 +21,6 @@ import {ScriptBase} from "./Base.sol";
 
 // ⭐️ SCRIPT
 abstract contract Script is StdChains, StdCheatsSafe, StdUtils, ScriptBase {
-    // Note: IS_SCRIPT() must return true.
-    bool public IS_SCRIPT = true;
+  // Note: IS_SCRIPT() must return true.
+  bool public IS_SCRIPT = true;
 }
