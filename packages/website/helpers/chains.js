@@ -1107,11 +1107,11 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   },
   421613: {
     name: 'arbitrum goerli',
-    color: 'blue'
+    color: 'blue',
   },
   11155111: {
     name: 'sepolia',
-    color: 'orange'
+    color: 'orange',
   },
   137: {
     name: 'matic',
@@ -1128,7 +1128,7 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   43113: {
     name: 'fuji',
     color: 'pink',
-  }
+  },
 });
 
 export default CHAIN_DATA;
