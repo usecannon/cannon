@@ -1,5 +1,5 @@
 <template>
-  <CBox>
+  <CBox position="relative">
     <CFlex
       py="6"
       mb="8"
