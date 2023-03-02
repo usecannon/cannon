@@ -18,7 +18,7 @@ const debug = Debug('cannon:builder:ipfs');
 // we need to alter how we are communicating with IPFS.
 export function isIpfsGateway(ipfsUrl: string) {
   const url = new URL(ipfsUrl);
-  return url.port !== '5001' && url.protocol !== 'http+ipfs' && url.protocol !== 'https+ipfs';
+  return url.port !== '5001' && url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
 }
 
 export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
@@ -64,7 +64,7 @@ export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | nu
   const formData = new FormData();
   formData.append('data', Buffer.from(buf));
 
-  const result = await axios.post(ipfsUrl + '/api/v0/add', formData, {
+  const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, {
     headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
   });
 
