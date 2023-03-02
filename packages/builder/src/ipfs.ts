@@ -33,7 +33,7 @@ export async function readIpfs(ipfsUrl: string, hash: string): Promise<any> {
       headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
     });
   } else {
-    // the +ipfs extension used to indicate a gateway is not recognized by 
+    // the +ipfs extension used to indicate a gateway is not recognized by
     // axios even though its just regular https
     // so we remove it if it exists
     result = await axios.post(
