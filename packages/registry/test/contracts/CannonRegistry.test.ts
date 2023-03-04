@@ -218,6 +218,50 @@ describe('CannonRegistry', function () {
     });
   });
 
+  describe('setAdditionalDeployers()', function () {
+    it('only works for owner', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(user2).setAdditionalDeployers(toBytes32('some-module'), []);
+      }, 'Unauthorized()');
+    });
+
+    describe('successful invoke', function () {
+      before('invoke', async function () {
+        await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), [await user2.getAddress()]);
+      });
+
+      it('returns the current list of deployers', async function () {
+        deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), [await user2.getAddress()]);
+      });
+
+      it('grants permission to publish to the user', async function () {
+        await CannonRegistry.connect(user2).publish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          ['0.0.10', 'latest', 'stable'].map(toBytes32),
+          'ipfs://some-module-hash@0.0.10',
+          'ipfs://some-module-meta@0.0.10'
+        );
+      });
+
+      describe('remove', function () {
+        before('invoke', async function () {
+          await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), []);
+        });
+
+        it('returns the current list of deployers', async function () {
+          deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), []);
+        });
+      });
+    });
+
+    it('nominates', async function () {
+      await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
+
+      equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
+    });
+  });
+
   describe('nominatePackageOwner()', function () {
     it('should not allow nomination from non-owner', async function () {
       await assertRevert(async () => {

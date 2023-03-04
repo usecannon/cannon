@@ -80,10 +80,16 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
 
     if (owner != address(0) && owner != msg.sender) {
-      revert Unauthorized();
-    }
+      uint additionalDeployersLength = _p.additionalDeployersLength;
+      bool foundAdditionalDeployer = false;
+      for (uint i = 0;i < additionalDeployersLength;i++) {
+        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
+      }
 
-    if (owner == address(0)) {
+      if (!foundAdditionalDeployer) {
+        revert Unauthorized();
+      }
+    } else if (owner == address(0)) {
       if (!validatePackageName(_packageName)) {
         revert InvalidName(_packageName);
       }
@@ -109,6 +115,30 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     }
   }
 
+  function setAdditionalDeployers(bytes32 _packageName, address[] memory additionalDeployers) external {
+    Package storage _p = _store().packages[_packageName];
+    address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
+
+    if (owner != msg.sender) {
+      revert Unauthorized();
+    }
+
+    for (uint i = 0;i < additionalDeployers.length;i++) {
+      _p.additionalDeployers[i] = additionalDeployers[i];
+    }
+
+    _p.additionalDeployersLength = additionalDeployers.length;
+  }
+
+  function getAdditionalDeployers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
+    Package storage _p = _store().packages[_packageName];
+    additionalDeployers = new address[](_p.additionalDeployersLength);
+
+    for (uint i = 0;i < additionalDeployers.length;i++) {
+      additionalDeployers[i] = _p.additionalDeployers[i];
+    }
+  }
+
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
@@ -131,6 +161,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
 
     _p.owner = newOwner;
     _p.nominatedOwner = address(0);
+    _p.additionalDeployersLength = 0;
   }
 
   function verifyPackage(bytes32 _packageName) external {
