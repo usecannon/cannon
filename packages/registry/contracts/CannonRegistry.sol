@@ -82,7 +82,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     if (owner != address(0) && owner != msg.sender) {
       uint additionalDeployersLength = _p.additionalDeployersLength;
       bool foundAdditionalDeployer = false;
-      for (uint i = 0;i < additionalDeployersLength;i++) {
+      for (uint i = 0; i < additionalDeployersLength; i++) {
         foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
       }
 
