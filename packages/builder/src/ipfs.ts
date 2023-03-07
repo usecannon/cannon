@@ -63,12 +63,18 @@ export async function writeIpfs(ipfsUrl: string, info: any): Promise<string | nu
 
   const formData = new FormData();
   formData.append('data', Buffer.from(buf));
+  try {
+    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, {
+      headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
+    });
 
-  const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, {
-    headers: getRequestHeaders(ipfsUrl.includes('infura-ipfs')),
-  });
+    debug('upload', result.statusText, result.data.Hash);
 
-  debug('upload', result.statusText, result.data.Hash);
-
-  return result.data.Hash;
+    return result.data.Hash;
+  } catch (err) {
+    throw new Error(
+      'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
+        err
+    );
+  }
 }
