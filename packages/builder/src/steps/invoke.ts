@@ -18,7 +18,14 @@ const debug = Debug('cannon:builder:invoke');
 
 const config = {
   properties: {
-    target: { elements: { type: 'string' } },
+    target: {
+      elements: [
+        'string',
+        {
+          elements: 'string',
+        },
+      ],
+    },
     func: { type: 'string' },
   },
   optionalProperties: {
@@ -215,6 +222,9 @@ export default {
     config = _.cloneDeep(config);
 
     if (config.target) {
+      if (!Array.isArray(config.target)) {
+        config.target = [config.target];
+      }
       config.target = config.target.map((v) => _.template(v)(ctx));
     }
 
@@ -299,6 +309,10 @@ export default {
           ? JSON.parse(config.abi)
           : getContractDefinitionFromPath(ctx, config.abi)?.abi
         : null;
+
+    if (!Array.isArray(config.target)) {
+      config.target = [config.target];
+    }
 
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
