@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "noEmit": false,
+    "noEmit": true,
     "target": "ESNext",
     "module": "CommonJS",
     "moduleResolution": "node",
@@ -10,7 +10,8 @@
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "resolveJsonModule": false
+    "resolveJsonModule": false,
+    "rootDirs": ["./src"]
   },
   "include": ["./src", "../cli/run.ts", "../cli/import-from.ts"],
   "exclude": ["dist", "node_modules"]
