@@ -2,7 +2,6 @@
   "name": "@usecannon/builder",
   "version": "2.1.8-alpha.1",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
-  "browser": "dist/cannon.umd.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -10,7 +9,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "rollup -c && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
