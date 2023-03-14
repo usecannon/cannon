@@ -220,6 +220,8 @@ program
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
+    await spawn('forge', ['build']);
+
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
