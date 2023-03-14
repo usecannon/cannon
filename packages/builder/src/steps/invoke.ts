@@ -98,7 +98,9 @@ async function runTxn(
     throw new Error(
       `contract ${contract.address} for ${currentLabel} does not contain the function "${
         config.func
-      }". List of recongized functions is:\n${Object.keys(contract.functions).join('\n')}`
+      }". List of recognized functions is:\n${Object.keys(contract.functions).join(
+        '\n'
+      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
     );
   }
 
@@ -106,7 +108,9 @@ async function runTxn(
     throw new Error(
       `contract ${contract.address} for ${currentLabel} does not contain the function "${
         config.func
-      }" to determine owner. List of recongized functions is:\n${Object.keys(contract.functions).join('\n')}`
+      }" to determine owner. List of recognized functions is:\n${Object.keys(contract.functions).join(
+        '\n'
+      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
     );
   }
 
