@@ -111,6 +111,12 @@ export class FallbackRegistry implements CannonRegistry {
       try {
         const result = await registry.getUrl(packageRef, variant);
 
+        if (registry instanceof LocalRegistry) {
+          console.log(
+            `You are using a local build of ${packageRef}. This may be different than the version available on the registry.`
+          );
+        }
+
         if (result) {
           return result;
         }
@@ -133,8 +139,8 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   return new FallbackRegistry([
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
     new LocalRegistry(settings.cannonDirectory),
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
   ]);
 }
 
@@ -142,8 +148,8 @@ export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   return new FallbackRegistry([
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-    new LocalRegistry(settings.cannonDirectory),
     new InMemoryRegistry(),
+    new LocalRegistry(settings.cannonDirectory),
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
   ]);
 }
