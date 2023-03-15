@@ -2,12 +2,14 @@ import { CannonRegistry, OnChainRegistry } from '@usecannon/builder';
 
 import path from 'path';
 import fs from 'fs-extra';
+import EventEmitter from 'promise-events';
 import { CliSettings } from './settings';
 
 import { ethers } from 'ethers';
 import _ from 'lodash';
 
 import Debug from 'debug';
+import { yellowBright } from 'chalk';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -99,10 +101,11 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 }
 
-export class FallbackRegistry implements CannonRegistry {
-  registries: any[];
+export class FallbackRegistry extends EventEmitter implements CannonRegistry {
+  readonly registries: any[];
 
   constructor(registries: any[]) {
+    super();
     this.registries = registries;
   }
 
@@ -112,6 +115,7 @@ export class FallbackRegistry implements CannonRegistry {
         const result = await registry.getUrl(packageRef, variant);
 
         if (result) {
+          await this.emit('getUrl', { packageRef, variant, result, registry });
           return result;
         }
       } catch (err) {
@@ -125,25 +129,40 @@ export class FallbackRegistry implements CannonRegistry {
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
     // the fallback registry is usually something easy to write to or get to later
-    return _.last(this.registries).publish(packagesNames, variant, url);
+    return _.first(this.registries).publish(packagesNames, variant, url);
   }
 }
 
 export function createDefaultReadRegistry(settings: CliSettings): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
-  return new FallbackRegistry([
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-    new LocalRegistry(settings.cannonDirectory),
-  ]);
+  const localRegistry = new LocalRegistry(settings.cannonDirectory);
+  const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
+  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
+
+  fallbackRegistry.on('getUrl', async ({ packageRef, variant, result, registry }) => {
+    const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
+    if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
+      console.log(
+        yellowBright(
+          `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
+            packageRef,
+            variant
+          )}`
+        )
+      );
+    }
+  });
+
+  return fallbackRegistry;
 }
 
 export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   return new FallbackRegistry([
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-    new LocalRegistry(settings.cannonDirectory),
     new InMemoryRegistry(),
+    new LocalRegistry(settings.cannonDirectory),
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
   ]);
 }
