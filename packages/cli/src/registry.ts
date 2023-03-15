@@ -131,7 +131,7 @@ export class FallbackRegistry implements CannonRegistry {
   async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
     // the fallback registry is usually something easy to write to or get to later
-    return _.last(this.registries).publish(packagesNames, variant, url);
+    return _.first(this.registries).publish(packagesNames, variant, url);
   }
 }
 
