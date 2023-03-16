@@ -56,7 +56,7 @@
     >
   </CBox>
 </template>
-    
+
 <script lang="js">
 import Vue from 'vue';
 import FunctionInput from './FunctionInput';

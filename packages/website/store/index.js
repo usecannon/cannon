@@ -1,5 +1,5 @@
-import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
+import Web3Modal from 'web3modal';
 import { ethers } from 'ethers';
 
 const INFURA_ID = '2ec6e503197e468ca2f04b8a017ee1b0';
@@ -44,12 +44,18 @@ export const mutations = {
 export const actions = {
   async connect({ state, commit }, toast) {
     const instance = await web3Modal.connect();
-    window.metamaskProvider = new ethers.providers.Web3Provider(instance, 'any');
+    window.metamaskProvider = new ethers.providers.Web3Provider(
+      instance,
+      'any'
+    );
     window.metamaskProvider.on('accountsChanged', function (accounts) {
       commit('setAccount', accounts[0]);
     });
 
-    const accounts = await window.metamaskProvider.send('eth_requestAccounts', []);
+    const accounts = await window.metamaskProvider.send(
+      'eth_requestAccounts',
+      []
+    );
     commit('setAccount', accounts[0]);
 
     if (state.chainId) {

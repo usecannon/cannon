@@ -5,6 +5,7 @@ import { ethers } from 'ethers';
 import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+import { getIpfsLoader } from '../util/loader';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -48,8 +49,8 @@ export async function publish(
       let metaUrl;
       // ensure the deployment is on the remote registry
       if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
-        const localLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
-        const remoteLoader = new IPFSLoader(cliSettings.publishIpfsUrl, localRegistry);
+        const localLoader = getIpfsLoader(cliSettings.ipfsUrl, localRegistry);
+        const remoteLoader = getIpfsLoader(cliSettings.publishIpfsUrl, localRegistry);
 
         const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[0]));
 

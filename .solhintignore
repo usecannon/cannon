@@ -1,6 +1,8 @@
-**/node_modules/**
-artifacts/
-cache/
-node_modules/
+artifacts
+cache
+node_modules
 packages/hardhat-cannon/dist
 packages/registry-subgraph/generated
+
+# TODO: fix
+packages/contracts/src/MockV3Aggregator.sol

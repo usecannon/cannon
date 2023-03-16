@@ -105,7 +105,7 @@ export default {
 
       this.loading = true
       const response = await axios.get(`https://ipfs.io/ipfs/${url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
- 
+
       // Parse IPFS data
       const uint8Array = new Uint8Array(response.data);
       const inflated = pako.inflate(uint8Array);
