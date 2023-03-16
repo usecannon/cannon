@@ -16,6 +16,8 @@ contract EfficientStorage {
     mapping(bytes32 => mapping(bytes32 => CannonDeployInfo)) deployments;
     address owner;
     address nominatedOwner;
+    uint additionalDeployersLength;
+    mapping(uint => address) additionalDeployers;
   }
 
   struct CannonDeployInfo {

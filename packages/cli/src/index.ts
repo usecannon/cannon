@@ -7,7 +7,6 @@ import {
   ChainDefinition,
   getOutputs,
   ChainBuilderRuntime,
-  IPFSLoader,
   CANNON_CHAIN_ID,
   ChainArtifacts,
 } from '@usecannon/builder';
@@ -34,7 +33,9 @@ import { resolveCliSettings } from './settings';
 import { installPlugin, removePlugin } from './plugins';
 import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
+import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
+
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
@@ -220,6 +221,8 @@ program
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
+    await spawn('forge', ['build']);
+
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
@@ -396,7 +399,7 @@ program
         snapshots: false,
         allowPartialDeploy: false,
       },
-      new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
+      getIpfsLoader(resolveCliSettings().ipfsUrl, resolver)
     );
 
     const deployData = await runtime.loader.readDeploy(

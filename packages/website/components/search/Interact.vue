@@ -92,8 +92,8 @@ export default {
     async selectedVariant(){
       this.$store.dispatch('changeChainId', this.selectedVariant.chain_id, this.$toast)
       this.loading = true
-      const response = await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
- 
+      const response = await axios.get(`https://ipfs.io/ipfs/${this.selectedVariant.ipfs.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+
       // Parse IPFS data
       const uint8Array = new Uint8Array(response.data);
       const inflated = pako.inflate(uint8Array);

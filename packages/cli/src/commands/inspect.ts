@@ -1,4 +1,4 @@
-import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState, IPFSLoader } from '@usecannon/builder';
+import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
@@ -6,6 +6,7 @@ import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { setupAnvil } from '../helpers';
+import { getIpfsLoader } from '../util/loader';
 
 export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
   await setupAnvil();
@@ -13,7 +14,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
 
   const resolver = createDefaultReadRegistry(resolveCliSettings());
 
-  const loader = new IPFSLoader(resolveCliSettings().ipfsUrl, resolver);
+  const loader = getIpfsLoader(resolveCliSettings().ipfsUrl, resolver);
 
   const deployData = await loader.readDeploy(`${name}:${version}`, preset, chainId);
 

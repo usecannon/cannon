@@ -20,6 +20,7 @@ export class CannonWrapperGenericProvider extends ethers.providers.Provider {
     this.artifacts = artifacts;
 
     const connection = (passThroughProvider as ethers.providers.JsonRpcProvider).connection;
+
     if (connection && managedJsonRpc) {
       this.passThroughProvider = new CannonWrapperJsonRpcProvider(this, connection);
     } else {

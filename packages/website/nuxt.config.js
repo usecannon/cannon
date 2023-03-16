@@ -1,10 +1,16 @@
+import builderPackage from '@usecannon/builder/package.json';
+
 import customTheme from './styles/theme.js';
 
 export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: 'static',
 
-  mode: 'spa',
+  ssr: false,
+
+  alias: {
+    '@usecannon/builder': '@usecannon/builder/dist/cannon.umd.js',
+  },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -61,7 +67,8 @@ export default {
   apollo: {
     clientConfigs: {
       default: {
-        httpEndpoint: 'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry-mainnet',
+        httpEndpoint:
+          'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry-mainnet',
       },
     },
   },
