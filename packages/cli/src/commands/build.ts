@@ -22,7 +22,7 @@ import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
 import { listInstalledPlugins, loadPlugin } from '../plugins';
-import { IPFSLoader } from '../util/loader';
+import { getIpfsLoader } from '../util/loader';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -105,7 +105,7 @@ export async function build({
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
 
-  const runtime = new ChainBuilderRuntime(runtimeOptions, new IPFSLoader(cliSettings.ipfsUrl, resolver));
+  const runtime = new ChainBuilderRuntime(runtimeOptions, getIpfsLoader(cliSettings.ipfsUrl, resolver));
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));

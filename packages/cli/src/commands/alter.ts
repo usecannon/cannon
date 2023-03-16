@@ -11,7 +11,7 @@ import {
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
-import { IPFSLoader } from '../util/loader';
+import { getIpfsLoader } from '../util/loader';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -36,7 +36,7 @@ export async function alter(
   const provider = getProvider(node);
 
   const resolver = createDefaultReadRegistry(cliSettings);
-  const loader = new IPFSLoader(cliSettings.ipfsUrl, resolver);
+  const loader = getIpfsLoader(cliSettings.ipfsUrl, resolver);
   const runtime = new ChainBuilderRuntime(
     {
       provider,

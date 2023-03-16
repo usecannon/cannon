@@ -1,9 +1,5 @@
-import { CannonRegistry, IPFSLoader as CannonIPFSLoader } from '@usecannon/builder';
+import { CannonRegistry, IPFSLoader } from '@usecannon/builder';
 
-export class IPFSLoader extends CannonIPFSLoader {
-  constructor(ipfsUrl: string, resolver: CannonRegistry) {
-    super(ipfsUrl, resolver, {
-      'User-Agent': 'cannon-cli-2'
-    })
-  }
+export function getIpfsLoader(ipfsUrl: string, resolver: CannonRegistry) {
+  return new IPFSLoader(ipfsUrl, resolver);
 }
