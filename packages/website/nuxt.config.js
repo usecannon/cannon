@@ -1,3 +1,5 @@
+import builderPackage from '@usecannon/builder/package.json';
+
 import customTheme from './styles/theme.js';
 
 export default {
