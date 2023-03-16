@@ -5,7 +5,7 @@ import { Buffer } from 'buffer';
 import FormData from 'form-data';
 
 export interface Headers {
-  [key: string]: string | string[] | number | boolean | null
+  [key: string]: string | string[] | number | boolean | null;
 }
 
 const debug = Debug('cannon:builder:ipfs');
@@ -61,11 +61,7 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 
   formData.append('data', Buffer.from(buf));
   try {
-    const result = await axios.post(
-      ipfsUrl.replace('+ipfs', '') + '/api/v0/add',
-      formData,
-      { headers: customHeaders }
-    );
+    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
 
     debug('upload', result.statusText, result.data.Hash);
 

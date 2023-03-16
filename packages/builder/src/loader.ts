@@ -32,11 +32,7 @@ export class IPFSLoader implements CannonLoader {
 
     if (!uri) return null;
 
-    const deployInfo: DeploymentInfo = await readIpfs(
-      this.ipfsUrl,
-      uri.replace(IPFSLoader.PREFIX, ''),
-      this.customHeaders
-    );
+    const deployInfo: DeploymentInfo = await readIpfs(this.ipfsUrl, uri.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
 
     return deployInfo;
   }
@@ -47,21 +43,13 @@ export class IPFSLoader implements CannonLoader {
   }
 
   protected async readMiscInternal(url: string) {
-    return await readIpfs(
-      this.ipfsUrl,
-      url.split(IPFSLoader.PREFIX)[1],
-      this.customHeaders
-    );
+    return await readIpfs(this.ipfsUrl, url.split(IPFSLoader.PREFIX)[1], this.customHeaders);
   }
 
   async putMisc(misc: any): Promise<string | null> {
     debug('record misc');
 
-    const hash = await writeIpfs(
-      this.ipfsUrl,
-      misc,
-      this.customHeaders
-    );
+    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders);
 
     return hash ? IPFSLoader.PREFIX + hash : hash;
   }
@@ -69,10 +57,6 @@ export class IPFSLoader implements CannonLoader {
   async readMisc(url: string) {
     debug('restore misc');
 
-    return await readIpfs(
-      this.ipfsUrl,
-      url.replace(IPFSLoader.PREFIX, ''),
-      this.customHeaders
-    );
+    return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
   }
 }

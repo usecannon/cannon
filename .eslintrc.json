@@ -19,7 +19,7 @@
   },
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
-    "prettier/prettier": ["error", { "singleQuote": true, "printWidth": 125 }],
+    "prettier/prettier": ["error", { "singleQuote": true }],
     "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
     "comma-dangle": [
       "error",

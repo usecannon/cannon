@@ -140,19 +140,24 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
   const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
 
-  fallbackRegistry.on('getUrl', async ({ packageRef, variant, result, registry }) => {
-    const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
-    if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
-      console.log(
-        yellowBright(
-          `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
-            packageRef,
-            variant
-          )}`
-        )
-      );
-    }
-  });
+  fallbackRegistry
+    .on('getUrl', async ({ packageRef, variant, result, registry }) => {
+      const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
+
+      if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
+        console.log(
+          yellowBright(
+            `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
+              packageRef,
+              variant
+            )}`
+          )
+        );
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 
   return fallbackRegistry;
 }

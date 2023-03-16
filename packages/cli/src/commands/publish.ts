@@ -1,4 +1,4 @@
-import { DeploymentInfo, OnChainRegistry, StepState } from '@usecannon/builder';
+import { DeploymentInfo, IPFSLoader, OnChainRegistry, StepState } from '@usecannon/builder';
 import { blueBright, yellowBright } from 'chalk';
 import Debug from 'debug';
 import { ethers } from 'ethers';
