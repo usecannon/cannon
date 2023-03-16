@@ -1,10 +1,6 @@
 {
   "name": "hardhat-cannon",
-<<<<<<< HEAD
   "version": "2.1.8",
-=======
-  "version": "2.1.8-alpha.4",
->>>>>>> 4335e34 (fix browser build)
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:usecannon/cannon",
   "author": "Synthetix",
