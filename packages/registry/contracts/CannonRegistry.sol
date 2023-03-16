@@ -123,7 +123,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       revert Unauthorized();
     }
 
-    for (uint i = 0;i < additionalDeployers.length;i++) {
+    for (uint i = 0; i < additionalDeployers.length; i++) {
       _p.additionalDeployers[i] = additionalDeployers[i];
     }
 
@@ -134,7 +134,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     Package storage _p = _store().packages[_packageName];
     additionalDeployers = new address[](_p.additionalDeployersLength);
 
-    for (uint i = 0;i < additionalDeployers.length;i++) {
+    for (uint i = 0; i < additionalDeployers.length; i++) {
       additionalDeployers[i] = _p.additionalDeployers[i];
     }
   }
