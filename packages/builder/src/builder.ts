@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { ChainBuilderContext, BuildOptions, ChainArtifacts } from './types';
+import { ChainBuilderContext, BuildOptions, ChainArtifacts, PreChainBuilderContext } from './types';
 
 import { ChainDefinition } from './definition';
 
@@ -19,11 +19,18 @@ import { ActionKinds } from './actions';
 export async function createInitialContext(
   def: ChainDefinition,
   pkg: any,
+  chainId: number,
   opts: BuildOptions
 ): Promise<ChainBuilderContext> {
+  const preCtx: PreChainBuilderContext = {
+    package: pkg,
+    timestamp: Math.floor(Date.now() / 1000).toString(),
+    chainId,
+  };
+
   const settings: ChainBuilderContext['settings'] = {};
 
-  const pkgSettings = def.getSettings();
+  const pkgSettings = def.getSettings(preCtx);
 
   for (const s in pkgSettings) {
     if (opts[s]) {
@@ -36,11 +43,9 @@ export async function createInitialContext(
   }
 
   return {
-    settings,
-    chainId: 0,
-    timestamp: Math.floor(Date.now() / 1000).toString(),
+    ...preCtx,
 
-    package: pkg,
+    settings,
 
     contracts: {},
 

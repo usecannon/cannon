@@ -6,11 +6,14 @@ keywords = ["sample", "consumer"]
 [setting.change_greeting2]
 defaultValue = "new greeting!"
 
+[setting.greeter_package]
+defaultValue = "greeter:<%= package.version %>"
+
 [import.greeters]
-source = "greeter:2.1.5"
+source = "<%= settings.greeter_package %>"
 
 [import.more_greeters]
-source = "greeter:2.1.5"
+source = "<%= settings.greeter_package %>"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 

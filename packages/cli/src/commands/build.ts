@@ -156,7 +156,7 @@ export async function build({
     );
   }
 
-  const defSettings = def.getSettings();
+  const defSettings = def.getSettings({ package: meta, chainId, timestamp: Math.floor(Date.now() / 1000).toString() });
   if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
     const displaySettings = Object.entries(defSettings).map((setting) => [
       setting[0],
@@ -182,7 +182,7 @@ export async function build({
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
-  const initialCtx = await createInitialContext(def, meta, resolvedSettings);
+  const initialCtx = await createInitialContext(def, meta, chainId, resolvedSettings);
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 
