@@ -61,12 +61,16 @@ export type EventMap = {
   }[];
 };
 
-export interface ChainBuilderContext {
-  settings: ChainBuilderOptions;
+export interface PreChainBuilderContext {
   chainId: number;
-  timestamp: string;
 
   package: any;
+
+  timestamp: string;
+}
+
+export interface ChainBuilderContext extends PreChainBuilderContext {
+  settings: ChainBuilderOptions;
 
   contracts: ContractMap;
 

@@ -69,7 +69,7 @@ export async function alter(
 
   let deployInfo = startDeployInfo;
 
-  const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, {});
+  const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, {});
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
   _.assign(ctx, outputs);
