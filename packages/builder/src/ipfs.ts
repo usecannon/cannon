@@ -17,10 +17,9 @@ export function isIpfsGateway(ipfsUrl: string) {
   return url.port !== '5001' && url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
 }
 
-function getUrlAuth(ipfsUrl: string) {
+function hasCredentials(ipfsUrl: string) {
   const url = new URL(ipfsUrl);
-  if (!url.username && !url.password) return null;
-  return { username: url.username, password: url.password };
+  return !!(url.username || url.password);
 }
 
 export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<any> {
@@ -32,10 +31,8 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
     responseType: 'arraybuffer',
     responseEncoding: 'application/octet-stream',
     headers: customHeaders,
+    withCredentials: hasCredentials(ipfsUrl),
   };
-
-  const auth = getUrlAuth(ipfsUrl);
-  if (auth) opts.auth = auth;
 
   if (isIpfsGateway(ipfsUrl)) {
     result = await axios.get(ipfsUrl + `/ipfs/${hash}`, opts);
@@ -64,10 +61,10 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 
   formData.append('data', Buffer.from(buf));
   try {
-    const opts: AxiosRequestConfig = { headers: customHeaders };
-
-    const auth = getUrlAuth(ipfsUrl);
-    if (auth) opts.auth = auth;
+    const opts: AxiosRequestConfig = {
+      headers: customHeaders,
+      withCredentials: hasCredentials(ipfsUrl),
+    };
 
     const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, opts);
 
