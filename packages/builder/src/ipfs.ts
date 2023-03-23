@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Debug from 'debug';
 import pako from 'pako';
 import { Buffer } from 'buffer';
@@ -17,30 +17,33 @@ export function isIpfsGateway(ipfsUrl: string) {
   return url.port !== '5001' && url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
 }
 
+function getUrlAuth(ipfsUrl: string) {
+  const url = new URL(ipfsUrl);
+  if (!url.username && !url.password) return null;
+  return { username: url.username, password: url.password };
+}
+
 export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<any> {
   debug(`downloading content from ${hash}`);
 
   let result: AxiosResponse;
 
+  const opts: AxiosRequestConfig = {
+    responseType: 'arraybuffer',
+    responseEncoding: 'application/octet-stream',
+    headers: customHeaders,
+  };
+
+  const auth = getUrlAuth(ipfsUrl);
+  if (auth) opts.auth = auth;
+
   if (isIpfsGateway(ipfsUrl)) {
-    result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
-      responseType: 'arraybuffer',
-      responseEncoding: 'application/octet-stream',
-      headers: customHeaders,
-    });
+    result = await axios.get(ipfsUrl + `/ipfs/${hash}`, opts);
   } else {
     // the +ipfs extension used to indicate a gateway is not recognized by
     // axios even though its just regular https
     // so we remove it if it exists
-    result = await axios.post(
-      ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`,
-      {},
-      {
-        responseEncoding: 'application/octet-stream',
-        responseType: 'arraybuffer',
-        headers: customHeaders,
-      }
-    );
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`, {}, opts);
   }
 
   return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
@@ -61,7 +64,12 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 
   formData.append('data', Buffer.from(buf));
   try {
-    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
+    const opts: AxiosRequestConfig = { headers: customHeaders };
+
+    const auth = getUrlAuth(ipfsUrl);
+    if (auth) opts.auth = auth;
+
+    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, opts);
 
     debug('upload', result.statusText, result.data.Hash);
 
