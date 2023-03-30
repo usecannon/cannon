@@ -13,7 +13,6 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
-  IPFSLoader,
 } from '@usecannon/builder';
 import { loadCannonfile, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -23,6 +22,7 @@ import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
 import { listInstalledPlugins, loadPlugin } from '../plugins';
+import { getIpfsLoader } from '../util/loader';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -41,6 +41,7 @@ interface Params {
   wipe?: boolean;
   persist?: boolean;
   plugins?: boolean;
+  publicSourceCode?: boolean;
 }
 
 export async function build({
@@ -58,6 +59,7 @@ export async function build({
   wipe = false,
   persist = true,
   plugins = true,
+  publicSourceCode = false,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -98,11 +100,12 @@ export async function build({
     baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
+    publicSourceCode,
   };
 
   const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
 
-  const runtime = new ChainBuilderRuntime(runtimeOptions, new IPFSLoader(cliSettings.ipfsUrl, resolver));
+  const runtime = new ChainBuilderRuntime(runtimeOptions, getIpfsLoader(cliSettings.ipfsUrl, resolver));
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
@@ -153,7 +156,7 @@ export async function build({
     );
   }
 
-  const defSettings = def.getSettings();
+  const defSettings = def.getSettings({ package: meta, chainId, timestamp: Math.floor(Date.now() / 1000).toString() });
   if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
     const displaySettings = Object.entries(defSettings).map((setting) => [
       setting[0],
@@ -179,7 +182,7 @@ export async function build({
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
-  const initialCtx = await createInitialContext(def, meta, resolvedSettings);
+  const initialCtx = await createInitialContext(def, meta, chainId, resolvedSettings);
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 

@@ -6,11 +6,14 @@ keywords = ["sample", "consumer"]
 [setting.change_greeting2]
 defaultValue = "new greeting!"
 
+[setting.greeter_package]
+defaultValue = "greeter:<%= package.version %>"
+
 [import.greeters]
-source = "greeter:2.0.0-alpha.3"
+source = "<%= settings.greeter_package %>"
 
 [import.more_greeters]
-source = "greeter:2.0.0-alpha.3"
+source = "<%= settings.greeter_package %>"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 
@@ -30,7 +33,7 @@ factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
 factory.cloned.artifact = "Greeter"
 
-[run.empty]
-exec = "scripts/deploy.js"
-func = "empty"
-modified = ["dummy.js"]
+#[run.empty]
+#exec = "scripts/deploy.js"
+#func = "empty"
+#modified = ["dummy.js"]

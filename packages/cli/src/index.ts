@@ -1,20 +1,17 @@
 import path from 'node:path';
-import fs from 'node:fs/promises';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
 import {
   CannonWrapperGenericProvider,
   ChainDefinition,
-  ContractArtifact,
   getOutputs,
   ChainBuilderRuntime,
-  IPFSLoader,
   CANNON_CHAIN_ID,
   ChainArtifacts,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, execPromise, loadCannonfile } from './helpers';
+import { checkCannonVersion, loadCannonfile } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -36,9 +33,13 @@ import { resolveCliSettings } from './settings';
 import { installPlugin, removePlugin } from './plugins';
 import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
+import { getIpfsLoader } from './util/loader';
+import { getFoundryArtifact } from './foundry';
+
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
@@ -173,25 +174,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     getDefaultSigner = async () => wallets[0];
   }
 
-  // Build project to get the artifacts
-  const contractsPath = opts.contracts ? path.resolve(opts.contracts) : path.join(projectDirectory, 'src');
-  const artifactsPath = opts.artifacts ? path.resolve(opts.artifacts) : path.join(projectDirectory, 'out');
-  await execPromise(`forge build -c ${contractsPath} -o ${artifactsPath}`);
-
-  const getArtifact = async (name: string): Promise<ContractArtifact> => {
-    // TODO: Theres a bug that if the file has a different name than the contract it would not work
-    const artifactPath = path.join(artifactsPath, `${name}.sol`, `${name}.json`);
-    const artifactBuffer = await fs.readFile(artifactPath);
-    const artifact = JSON.parse(artifactBuffer.toString()) as any;
-    return {
-      contractName: name,
-      sourceName: artifact.ast.absolutePath,
-      abi: artifact.abi,
-      bytecode: artifact.bytecode.object,
-      linkReferences: artifact.bytecode.linkReferences,
-    };
-  };
-
   const { build } = await import('./commands/build');
   const { name, version } = await loadCannonfile(cannonfilePath);
 
@@ -204,7 +186,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       settings: parsedSettings,
     },
     meta: {},
-    getArtifact,
+    getArtifact: getFoundryArtifact,
     getSigner,
     getDefaultSigner,
     projectDirectory,
@@ -213,6 +195,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
+    // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
+    publicSourceCode: true,
   });
 
   return [node, outputs];
@@ -237,6 +221,8 @@ program
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
+    await spawn('forge', ['build']);
+
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
@@ -250,9 +236,28 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to verify', '1')
+  .option('-p --preset <preset>', 'Preset of the deployment to verify', 'main')
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
-    await verify(packageName, options.apiKey, options.chainId);
+    await verify(packageName, options.apiKey, options.preset, options.chainId);
+    process.exit();
+  });
+
+program
+  .command('alter')
+  .description('Change a cannon package outside of the regular build process.')
+  .argument('<packageName>', 'Name and version of the Cannon package to alter')
+  .argument('<command>', 'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete')
+  .argument('[options...]', 'Additional options for your alteration command')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter', '1')
+  .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
+  .action(async function (packageName, command, options, flags) {
+    const { alter } = await import('./commands/alter');
+    // note: for command below, "meta" is empty because forge currently supplies no package meta
+    await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
+      getArtifact: getFoundryArtifact,
+    });
+    process.exit();
   });
 
 program
@@ -272,6 +277,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
+  .option('-f --force', 'Push even if the artifact appaers to be pushed to the registry with that url')
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
@@ -306,7 +312,7 @@ program
         }
       }
 
-      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet);
+      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet, options.force);
     } else {
       throw new Error('must specify private key');
     }
@@ -393,7 +399,7 @@ program
         snapshots: false,
         allowPartialDeploy: false,
       },
-      new IPFSLoader(resolveCliSettings().ipfsUrl, resolver)
+      getIpfsLoader(resolveCliSettings().ipfsUrl, resolver)
     );
 
     const deployData = await runtime.loader.readDeploy(

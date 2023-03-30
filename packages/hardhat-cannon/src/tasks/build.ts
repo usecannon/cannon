@@ -3,7 +3,7 @@ import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
 import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
-import { TASK_BUILD } from '../task-names';
+import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
@@ -48,6 +48,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
 
     if (hre.network.name === 'hardhat') {
+      if (dryRun) {
+        throw new Error('You cannot use --dry-run param when using the "hardhat" network');
+      }
+
       // hardhat network is "special" in that it looks like its a jsonrpc provider,
       // but really you can't use it like that.
       console.log('using hardhat network provider');
@@ -103,7 +107,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         version,
         settings: parsedSettings,
       },
-      getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
+      getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
       async getSigner(addr: string) {
         if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
           // on test network any user can be conjured
@@ -129,6 +133,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       persist: !dryRun && hre.network.name !== 'hardhat',
       overrideResolver: dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
       plugins: false,
+      publicSourceCode: hre.config.cannon.publicSourceCode,
     } as const;
 
     const { outputs } = await build(params);

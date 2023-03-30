@@ -3,19 +3,14 @@ import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'har
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import {
-  DEFAULT_CANNON_DIRECTORY,
-  DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_ENDPOINT,
-  DEFAULT_REGISTRY_IPFS_ENDPOINT,
-} from '@usecannon/cli';
 import { augmentProvider } from './internal/augment-provider';
 
+import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
 import './tasks/publish';
 import './tasks/run';
-import './tasks/verify';
+import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
 import './subtasks/load-deploy';
 import './subtasks/rpc';
@@ -27,11 +22,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : path.join(config.paths.root, 'deployments');
 
   config.cannon = {
-    cannonDirectory: userConfig.cannon?.cannonDirectory || DEFAULT_CANNON_DIRECTORY,
-    registryEndpoint: userConfig.cannon?.registryEndpoint || DEFAULT_REGISTRY_ENDPOINT,
-    registryAddress: userConfig.cannon?.registryAddress || DEFAULT_REGISTRY_ADDRESS,
-    ipfsEndpoint: userConfig.cannon?.ipfsEndpoint || DEFAULT_REGISTRY_IPFS_ENDPOINT,
-    ipfsAuthorizationHeader: userConfig.cannon?.ipfsAuthorizationHeader,
+    publicSourceCode: userConfig.cannon?.publicSourceCode || false,
   };
 
   config.networks.cannon = {

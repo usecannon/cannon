@@ -18,6 +18,8 @@ export interface IChainData {
     symbol: string;
     decimals: number;
   };
+  etherscanApi?: string;
+  etherscanUrl?: string;
   rpc: string[];
   faucets: string[];
   infoURL: string;

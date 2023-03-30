@@ -51,7 +51,7 @@ export default {
   },
   async mounted(){
     this.loading = true
-    await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${this.latestVariant.meta_url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+    await axios.get(`https://ipfs.io/ipfs/${this.latestVariant.meta_url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
     .then(response => {        
       const uint8Array = new Uint8Array(response.data);
       const inflated = pako.inflate(uint8Array);

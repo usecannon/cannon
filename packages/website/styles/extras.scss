@@ -123,3 +123,8 @@ input:not(:checked) + div[data-chakra-component='CControlBox'] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+span[id^='modal-portal'] {
+  position: relative;
+  z-index: 99;
+}

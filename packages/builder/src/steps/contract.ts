@@ -4,6 +4,8 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { ethers } from 'ethers';
 
+import { getContractAddress } from '@ethersproject/address';
+
 import {
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
@@ -23,6 +25,7 @@ const config = {
   optionalProperties: {
     create2: { type: 'boolean' },
     from: { type: 'string' },
+    nonce: { type: 'string' },
     abi: { type: 'string' },
     abiOf: { elements: { type: 'string' } },
     args: { elements: {} },
@@ -52,8 +55,12 @@ export interface ContractOutputs {
   deployTxnHash: string;
 }
 
-async function resolveBytecode(artifactData: ContractArtifact, config: Config) {
+function resolveBytecode(
+  artifactData: ContractArtifact,
+  config: Config
+): [string, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
+  const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
     for (const lib in artifactData.linkReferences[file]) {
       // get the lib from the config
@@ -73,11 +80,13 @@ async function resolveBytecode(artifactData: ContractArtifact, config: Config) {
           injectedBytecode.substring(0, 2 + ref.start * 2) +
           libraryAddress.substring(2) +
           injectedBytecode.substring(2 + (ref.start + ref.length) * 2);
+
+        _.set(linkedLibraries, [file, lib], libraryAddress);
       }
     }
   }
 
-  return injectedBytecode;
+  return [injectedBytecode, linkedLibraries];
 }
 
 // ensure the specified contract is already deployed
@@ -90,7 +99,7 @@ export default {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig),
+      bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
       args: parsedConfig.args || [],
       salt: parsedConfig.salt,
       value: parsedConfig.value || [],
@@ -101,6 +110,8 @@ export default {
     config = _.cloneDeep(config);
 
     config.from = _.template(config.from)(ctx);
+
+    config.nonce = _.template(config.nonce)(ctx);
 
     config.artifact = _.template(config.artifact)(ctx);
 
@@ -153,14 +164,12 @@ export default {
       );
     }
 
-    const injectedBytecode = await resolveBytecode(artifactData, config);
+    const [injectedBytecode, linkedLibraries] = await resolveBytecode(artifactData, config);
 
     // finally, deploy
     const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
 
     const txn = factory.getDeployTransaction(...(config.args || []));
-
-    const signer = config.from ? await runtime.getSigner(config.from) : await runtime.getDefaultSigner!(txn, config.salt);
 
     let transactionHash: string;
     let contractAddress: string;
@@ -175,6 +184,9 @@ export default {
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
         transactionHash = '';
       } else {
+        const signer = config.from
+          ? await runtime.getSigner(config.from)
+          : await runtime.getDefaultSigner!(txn, config.salt);
         const pendingTxn = await signer.sendTransaction(create2Txn);
         const receipt = await pendingTxn.wait();
         transactionHash = pendingTxn.hash;
@@ -184,10 +196,38 @@ export default {
 
       contractAddress = addr;
     } else {
-      const txnData = await signer.sendTransaction(txn);
-      const receipt = await txnData.wait();
-      contractAddress = receipt.contractAddress;
-      transactionHash = receipt.transactionHash;
+      if (
+        config.from &&
+        config.nonce?.length &&
+        parseInt(config.nonce) < (await runtime.provider.getTransactionCount(config.from))
+      ) {
+        contractAddress = getContractAddress({ from: config.from, nonce: config.nonce });
+
+        debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
+
+        // check that the contract bytecode that was deployed matches the requested
+        const actualBytecode = await runtime.provider.getCode(contractAddress);
+        // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
+        // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
+        // lengt hshould be sufficient
+        if (artifactData.deployedBytecode.length !== actualBytecode.length) {
+          debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
+          throw new Error(
+            `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
+          );
+        }
+
+        // unfortunately it is not easy to figure out what the transaction hash was
+        transactionHash = '';
+      } else {
+        const signer = config.from
+          ? await runtime.getSigner(config.from)
+          : await runtime.getDefaultSigner!(txn, config.salt);
+        const txnData = await signer.sendTransaction(txn);
+        const receipt = await txnData.wait();
+        contractAddress = receipt.contractAddress;
+        transactionHash = receipt.transactionHash;
+      }
     }
 
     let abi = artifactData.abi;
@@ -213,6 +253,7 @@ export default {
           address: contractAddress,
           abi,
           constructorArgs: config.args || [],
+          linkedLibraries,
           deployTxnHash: transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,

@@ -4,10 +4,10 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "lint:js": "eslint 'packages/**/*.{js,ts}'",
-    "lint:sol": "solhint 'packages/**/*.sol'",
+    "lint:sol": "solhint 'packages/*/{contracts,src}/**/*.sol'",
     "lint": "npm-run-parallel lint:js lint:sol",
     "lint:fix:js": "eslint --fix 'packages/**/*.{js,ts}'",
-    "lint:fix:sol": "prettier --write 'packages/**/*.sol'",
+    "lint:fix:sol": "prettier --write 'packages/*/{contracts,src}/**/*.sol'",
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
     "test-all": "lerna run test",
     "build": "lerna run build",
@@ -31,8 +31,6 @@
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "solhint": "^3.3.7",
     "solhint-plugin-prettier": "^0.0.5",
-    "jest": "^28.1.3",
-    "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.2"
   },

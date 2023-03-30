@@ -1,10 +1,11 @@
 <template>
-  <CBox>
+  <CBox verticalAlign="middle">
     <CText
+      height="24px"
       fontSize="sm"
       display="inline-block"
       mr="2"
-      transform="translateY(1px)"
+      transform="translateY(-4px)"
       opacity="0.8"
       ><strong
         >{{ download ? 'Download ' : '' }}Deployment{{
@@ -14,13 +15,14 @@
     ><CButton
       size="xs"
       mr="2"
+      mb="2"
       v-for="chain in chains"
       :key="chain.id"
-      :variantColor="chain.color || 'gray'"
-      :opacity="download ? '0.75' : '0.66 !important'"
+      :variantColor="chain.color || 'whiteAlpha'"
+      :opacity="download ? '0.8' : '0.7 !important'"
       :disabled="!download"
       :class="!download && 'disabled-button'"
-      @click="download && openModal(chain.url)"
+      @click="download && openModal(chain.url, chain.id)"
       >{{ chain.name || chain.id }}</CButton
     >
     <c-modal size="5xl" :is-open="isOpen" :on-close="closeModal">
@@ -61,8 +63,8 @@
 <script lang="js">
 import axios from 'axios';
 import pako from "pako";
-import { mapValues, omit } from 'lodash';
 import chains from '../../helpers/chains';
+import { ChainBuilderRuntime, getOutputs, ChainDefinition } from '@usecannon/builder';
 
 // import Prism Editor
 import { PrismEditor } from 'vue-prism-editor';
@@ -97,21 +99,33 @@ export default {
       return  highlight(code, languages.json);
     },
 
-    async openModal(url) {
+    async openModal(url, chainId) {
       this.isOpen = true
       this.deployUrl = url
+
       this.loading = true
-      await axios.get(`https://usecannon.infura-ipfs.io/ipfs/${url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
-      .then(response => {        
-        const uint8Array = new Uint8Array(response.data);
-        const inflated = pako.inflate(uint8Array);
-        const raw = new TextDecoder().decode(inflated);
-        const json = mapValues(JSON.parse(raw)["state"], (value) => omit(value, 'chainDump'));
-        this.deployData = JSON.stringify(json, null, 2)
-      })
-      .catch(error => {
-        console.error(error);
-      });
+      const response = await axios.get(`https://ipfs.io/ipfs/${url.replace("ipfs://",'')}`, { responseType: 'arraybuffer' })
+
+      // Parse IPFS data
+      const uint8Array = new Uint8Array(response.data);
+      const inflated = pako.inflate(uint8Array);
+      const raw = new TextDecoder().decode(inflated);
+      this.ipfs = JSON.parse(raw);
+
+      // Get Builder Outputs
+      const runtime = new ChainBuilderRuntime(
+      {
+        provider: {},
+        chainId,
+        baseDir: null,
+        snapshots: false,
+        allowPartialDeploy: false,
+      }
+      );
+      let cannonOutputs = await getOutputs(runtime, new ChainDefinition(this.ipfs.def), this.ipfs.state);
+
+      this.deployData = JSON.stringify(cannonOutputs.contracts, null, 2)
+
       this.loading = false;
     },
     closeModal() {

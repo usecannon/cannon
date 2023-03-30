@@ -3,7 +3,7 @@ import Debug from 'debug';
 
 import _ from 'lodash';
 import { ethers } from 'ethers';
-import { ChainBuilderContext } from './types';
+import { ChainBuilderContext, PreChainBuilderContext } from './types';
 
 import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
 import { ChainBuilderRuntime } from './runtime';
@@ -148,8 +148,12 @@ export class ChainDefinition {
    * Gets the `setting` field in the raw chain definition
    * @returns definition of settings
    */
-  getSettings() {
-    return this.raw.setting;
+  getSettings(ctx: PreChainBuilderContext) {
+    return _.mapValues(this.raw.setting, (s) => {
+      const newSetting = _.clone(s);
+      newSetting.defaultValue = _.template(s.defaultValue)(ctx);
+      return newSetting;
+    });
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.0.9-alpha.1",
+  "version": "2.1.10",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:usecannon/cannon",
   "author": "Synthetix",
@@ -16,7 +16,6 @@
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
     "lint": "tslint --config tslint.json --project tsconfig.json",
-    "test": "mocha --exit --recursive 'test/**/*.test.ts'",
     "build": "tsc",
     "watch": "tsc -w",
     "prepublishOnly": "npm run build"
@@ -32,18 +31,16 @@
     "@nomiclabs/hardhat-ethers": "2.0.5",
     "@types/adm-zip": "^0.5.0",
     "@types/archiver": "^5.3.1",
-    "@types/chai": "^4.3.0",
     "@types/debug": "^4.1.7",
     "@types/fs-extra": "^9.0.13",
     "@types/lodash": "^4.14.179",
-    "@types/mocha": "^9.1.0",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^16.0.0",
     "@types/prompts": "^2.0.14",
     "@types/yazl": "^2.4.2",
     "bn.js": "^5.2.0",
-    "hardhat": "^2.12.6",
-    "mocha": "^9.2.1",
-    "ts-node": "^10.6.0",
+    "hardhat": "^2.13.0",
+    "ts-node": "^10.9.1",
     "typescript": "^4.8.2"
   },
   "peerDependencies": {
@@ -53,8 +50,8 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "^2.0.8",
-    "@usecannon/cli": "^2.0.8",
+    "@usecannon/builder": "^2.1.10",
+    "@usecannon/cli": "^2.1.10",
     "adm-zip": "^0.5.9",
     "ajv": "^8.10.0",
     "chalk": "^4.1.2",

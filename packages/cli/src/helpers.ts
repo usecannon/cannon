@@ -158,9 +158,7 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
 }
 
 export function getChainName(chainId: number): string {
-  if (chainId == CANNON_CHAIN_ID) return 'cannon';
-  if (chainId == 31337) return 'hardhat';
-  return chains.find((c: IChainData) => c.chainId == chainId)?.name || 'unknown';
+  return getChainDataFromId(chainId)?.name || 'unknown';
 }
 
 export function getChainId(chainName: string): number {
@@ -172,6 +170,38 @@ export function getChainId(chainName: string): number {
   } else {
     return chainData.chainId;
   }
+}
+
+export function getChainDataFromId(chainId: number): IChainData | null {
+  if (chainId == CANNON_CHAIN_ID) {
+    return {
+      name: 'cannon',
+      chainId: CANNON_CHAIN_ID,
+      shortName: 'eth',
+      chain: 'ETH',
+      network: 'local',
+      networkId: CANNON_CHAIN_ID,
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpc: ['http://127.0.0.1'],
+      faucets: [],
+      infoURL: 'https://usecannon.com',
+    };
+  }
+  if (chainId == 31337) {
+    return {
+      name: 'hardhat',
+      chainId: 31337,
+      shortName: 'eth',
+      chain: 'ETH',
+      network: 'local',
+      networkId: 31337,
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpc: ['http://127.0.0.1'],
+      faucets: [],
+      infoURL: 'https://hardhat.org',
+    };
+  }
+  return chains.find((c: IChainData) => c.chainId == chainId) || null;
 }
 
 function getMetadataPath(packageName: string): string {

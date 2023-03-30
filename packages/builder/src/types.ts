@@ -15,6 +15,7 @@ export type ContractArtifact = {
   sourceName: string;
   abi: JsonFragment[];
   bytecode: string;
+  deployedBytecode: string;
   linkReferences: {
     [fileName: string]: {
       [contractName: string]: {
@@ -23,13 +24,17 @@ export type ContractArtifact = {
       }[];
     };
   };
+  source?: {
+    solcVersion: string;
+    input: string;
+  };
 };
 
 export type ContractData = {
   address: string;
   abi: JsonFragment[];
-  constructorArgs?: any[]; // only needed for etherscan verification
-  // only needed for etherscan verification,
+  constructorArgs?: any[]; // only needed for external verification
+  linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   // only should be supplied when generated solidity as a single file
   sourceCode?: string;
   deployTxnHash: string;
@@ -56,12 +61,16 @@ export type EventMap = {
   }[];
 };
 
-export interface ChainBuilderContext {
-  settings: ChainBuilderOptions;
+export interface PreChainBuilderContext {
   chainId: number;
-  timestamp: string;
 
   package: any;
+
+  timestamp: string;
+}
+
+export interface ChainBuilderContext extends PreChainBuilderContext {
+  settings: ChainBuilderOptions;
 
   contracts: ContractMap;
 
@@ -102,6 +111,9 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
+
+  // Should publish contract sources along with bytecode?
+  publicSourceCode?: boolean;
 }
 
 export interface BundledChainBuilderOutputs {
