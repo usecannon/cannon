@@ -38,7 +38,7 @@ export class IPFSLoader implements CannonLoader {
   }
 
   async putDeploy(deployInfo: DeploymentInfo): Promise<string | null> {
-    const deployHash = await writeIpfs(this.ipfsUrl, deployInfo);
+    const deployHash = await writeIpfs(this.ipfsUrl, deployInfo, this.customHeaders);
     return deployHash ? IPFSLoader.PREFIX + deployHash : deployHash;
   }
 

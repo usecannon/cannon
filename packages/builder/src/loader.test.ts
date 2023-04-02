@@ -15,7 +15,7 @@ describe('loader.ts', () => {
     let registry: OnChainRegistry;
     let loader: IPFSLoader;
     beforeAll(() => {
-      const registry = new OnChainRegistry({ address: '', signerOrProvider: new ethers.Wallet('0x') })
+      registry = new OnChainRegistry({ address: ethers.constants.AddressZero, signerOrProvider: ethers.Wallet.createRandom() })
       loader = new IPFSLoader('hello', registry);
     })
 
@@ -37,21 +37,24 @@ describe('loader.ts', () => {
         jest.mocked(readIpfs).mockResolvedValue({ hello: 'world' });
         const deploy = await loader.readDeploy('foobar:1', 'main', 5);
         expect(deploy).toEqual({ hello: 'world' });
-        expect(readIpfs).toBeCalledWith('ipfs://Qmfoobar');
+        expect(readIpfs).toBeCalledWith('hello', 'Qmfoobar', {});
       });
     });
 
     describe('putDeploy()', () => {
       it('calls ipfs write and returns the resulting ipfs Qmhash', async () => {
-
+        const fakeDeployDefinition = { def: { name: 'funny', version: 'woot' }, state: {}, meta: '', miscUrl: '', options: {} };
+        jest.mocked(writeIpfs).mockResolvedValue('Qmfun');
+        expect(await loader.putDeploy(fakeDeployDefinition)).toEqual('ipfs://Qmfun');
+        expect(writeIpfs).toBeCalledWith('hello', fakeDeployDefinition, {});
       });
     });
 
     describe('putMisc()', () => {
       it('calls ipfs write and returns the resulting ipfs Qmhash', async () => {
-        jest.mocked(writeIpfs).mockResolvedValue('ipfs://Qmfun');
+        jest.mocked(writeIpfs).mockResolvedValue('Qmfun');
         expect(await loader.putMisc({ hello: 'fun' })).toEqual('ipfs://Qmfun');
-        expect(writeIpfs).toBeCalledWith({ hello: 'fun' });
+        expect(writeIpfs).toBeCalledWith('hello', { hello: 'fun' }, {});
       });
     });
 

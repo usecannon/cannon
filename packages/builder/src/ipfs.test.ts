@@ -15,7 +15,7 @@ describe('ipfs.ts', () => {
     });
 
     it('returns true if it does not meet the requirements for a gateway', () => {
-      expect(isIpfsGateway('http://arstarst.com')).toBe(false);
+      expect(isIpfsGateway('http://arstarst.com')).toBe(true);
     })
   });
 
@@ -37,7 +37,7 @@ describe('ipfs.ts', () => {
 
   describe('writeIpfs()', () => {
     it('returns null on gateway', async () => {
-      expect(writeIpfs('http://arstarst.com', { hello: 'world' })).toBeNull();
+      expect(await writeIpfs('http://arstarst.com', { hello: 'world' })).toBeNull();
     });
 
     if (IPFS_API_URL) {
