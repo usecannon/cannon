@@ -8,7 +8,6 @@ import {
   getOutputs,
   CANNON_CHAIN_ID,
   DeploymentInfo,
-  DeploymentState,
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
@@ -93,7 +92,9 @@ export async function alter(
 
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
           // try to find the equivalent deployment for this network
-          const thisNetworkState: DeploymentInfo = await loader.readMisc(deployInfo.state[actionStep].artifacts.imports![imp].url);
+          const thisNetworkState: DeploymentInfo = await loader.readMisc(
+            deployInfo.state[actionStep].artifacts.imports![imp].url
+          );
 
           const thisNetworkDefinition = new ChainDefinition(thisNetworkState.def);
 
@@ -108,11 +109,10 @@ export async function alter(
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
           }
 
-          deployInfo.state[actionStep].artifacts.imports![imp] = _.assign({ url: '' }, await getOutputs(
-            runtime,
-            new ChainDefinition(newNetworkDeployment.def),
-            newNetworkDeployment.state
-          ));
+          deployInfo.state[actionStep].artifacts.imports![imp] = _.assign(
+            { url: '' },
+            await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state)
+          );
         }
       }
       // clear transaction hash for all contracts and transactions
