@@ -8,6 +8,7 @@ import {
   getOutputs,
   CANNON_CHAIN_ID,
   DeploymentInfo,
+  DeploymentState,
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
@@ -69,7 +70,7 @@ export async function alter(
 
   let deployInfo = startDeployInfo;
 
-  const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, {});
+  const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
   const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
   _.assign(ctx, outputs);
@@ -88,6 +89,30 @@ export async function alter(
 
         for (const txn in deployInfo.state[actionStep].artifacts.txns) {
           deployInfo.state[actionStep].artifacts.txns![txn].hash = '';
+        }
+
+        for (const imp in deployInfo.state[actionStep].artifacts.imports) {
+          // try to find the equivalent deployment for this network
+          const thisNetworkState: DeploymentInfo = await loader.readMisc(deployInfo.state[actionStep].artifacts.imports![imp].url);
+
+          const thisNetworkDefinition = new ChainDefinition(thisNetworkState.def);
+
+          const ctx = await createInitialContext(thisNetworkDefinition, thisNetworkState.meta, chainId, {});
+
+          const name = thisNetworkDefinition.getName(ctx);
+          const version = thisNetworkDefinition.getVersion(ctx);
+
+          const newNetworkDeployment = await loader.readDeploy(`${name}:${version}`, 'main', chainId);
+
+          if (!newNetworkDeployment) {
+            throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
+          }
+
+          deployInfo.state[actionStep].artifacts.imports![imp] = _.assign({ url: '' }, await getOutputs(
+            runtime,
+            new ChainDefinition(newNetworkDeployment.def),
+            newNetworkDeployment.state
+          ));
         }
       }
       // clear transaction hash for all contracts and transactions
