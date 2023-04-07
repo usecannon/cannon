@@ -103,10 +103,12 @@ export class InMemoryRegistry extends CannonRegistry {
 
 export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   readonly registries: any[];
+  readonly quiet: boolean;
 
-  constructor(registries: any[]) {
+  constructor(registries: any, quiet: boolean) {
     super();
     this.registries = registries;
+    this.quiet = quiet;
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
@@ -133,18 +135,18 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 }
 
-export function createDefaultReadRegistry(settings: CliSettings): FallbackRegistry {
+export function createDefaultReadRegistry(settings: CliSettings, quiet = true): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
-  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
+  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry], quiet);
 
   fallbackRegistry
     .on('getUrl', async ({ packageRef, variant, result, registry }) => {
       const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
 
-      if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
+      if (registry instanceof LocalRegistry && onChainResult && onChainResult != result && !quiet) {
         console.log(
           yellowBright(
             `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
@@ -162,12 +164,15 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   return fallbackRegistry;
 }
 
-export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
+export function createDryRunRegistry(settings: CliSettings, quiet = true): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
-  return new FallbackRegistry([
-    new InMemoryRegistry(),
-    new LocalRegistry(settings.cannonDirectory),
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-  ]);
+  return new FallbackRegistry(
+    [
+      new InMemoryRegistry(),
+      new LocalRegistry(settings.cannonDirectory),
+      new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
+    ],
+    quiet
+  );
 }
