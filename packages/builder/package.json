@@ -27,7 +27,6 @@
     "@types/lodash": "^4.14.183",
     "@types/pako": "^2.0.0",
     "jest": "^29.5.0",
-    "promise-events": "^0.2.4",
     "rollup": "^3.19.1",
     "ts-jest": "^29.0.5"
   },
@@ -41,7 +40,8 @@
     "debug": "^4.3.4",
     "form-data": "^4.0.0",
     "lodash": "^4.17.21",
-    "pako": "^2.1.0"
+    "pako": "^2.1.0",
+    "promise-events": "^0.2.4"
   },
   "engines": {
     "node": ">=16.0.0"
