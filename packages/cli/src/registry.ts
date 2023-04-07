@@ -1,15 +1,11 @@
-import { CannonRegistry, OnChainRegistry } from '@usecannon/builder';
-
+import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
 import path from 'path';
 import fs from 'fs-extra';
-import EventEmitter from 'promise-events';
-import { CliSettings } from './settings';
-
 import { ethers } from 'ethers';
-import _ from 'lodash';
-
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
+
+import { CliSettings } from './settings';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -68,71 +64,6 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
-/**
- * keeps track of packages in a simple JS object
- * useful for testing and deployment dry-runs
- */
-export class InMemoryRegistry extends CannonRegistry {
-  readonly pkgs: { [name: string]: { [variant: string]: string } } = {};
-
-  count = 0;
-
-  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
-    const receipts: string[] = [];
-    for (const name of packagesNames) {
-      if (!this.pkgs[name]) {
-        this.pkgs[name] = {};
-      }
-
-      this.pkgs[name][variant] = url;
-      receipts.push((++this.count).toString());
-    }
-
-    return receipts;
-  }
-
-  async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    const baseResolved = await super.getUrl(packageRef, variant);
-    if (baseResolved) {
-      return baseResolved;
-    }
-
-    return this.pkgs[packageRef][variant];
-  }
-}
-
-export class FallbackRegistry extends EventEmitter implements CannonRegistry {
-  readonly registries: any[];
-
-  constructor(registries: any[]) {
-    super();
-    this.registries = registries;
-  }
-
-  async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    for (const registry of this.registries) {
-      try {
-        const result = await registry.getUrl(packageRef, variant);
-
-        if (result) {
-          await this.emit('getUrl', { packageRef, variant, result, registry });
-          return result;
-        }
-      } catch (err) {
-        debug('WARNING: error caught in registry:', err);
-      }
-    }
-
-    return null;
-  }
-
-  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
-    debug('publish to fallback database: ', packagesNames);
-    // the fallback registry is usually something easy to write to or get to later
-    return _.first(this.registries).publish(packagesNames, variant, url);
-  }
-}
-
 export function createDefaultReadRegistry(settings: CliSettings): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
@@ -141,21 +72,34 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
   const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
 
   fallbackRegistry
-    .on('getUrl', async ({ packageRef, variant, result, registry }) => {
-      const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
+    .on(
+      'getUrl',
+      async ({
+        packageRef,
+        variant,
+        result,
+        registry,
+      }: {
+        packageRef: string;
+        variant: string;
+        result: string;
+        registry: LocalRegistry;
+      }) => {
+        const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
 
-      if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
-        console.log(
-          yellowBright(
-            `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
-              packageRef,
-              variant
-            )}`
-          )
-        );
+        if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
+          console.log(
+            yellowBright(
+              `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
+                packageRef,
+                variant
+              )}`
+            )
+          );
+        }
       }
-    })
-    .catch((err) => {
+    )
+    .catch((err: Error) => {
       throw err;
     });
 
