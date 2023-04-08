@@ -74,11 +74,6 @@ const runAction = {
   validate: config,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
-    if (!runtime.baseDir) {
-      return null; // skip consistency check
-      // todo: might want to do consistency check for config but not files, will see
-    }
-
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan) => {
@@ -86,8 +81,11 @@ const runAction = {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
         if ((err as any).code === 'ENOENT') {
-          console.warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
-          return 'notfound';
+          //console.warn(`warning: could not check modified file at path '${pathToScan}'. this may be an error.`);
+          //return 'notfound';
+
+          // TODO: there is no other way to tell if the runtime state is even supposed to be evaluated other than the existance or not of modified file paths
+          return null;
         } else {
           throw err;
         }
@@ -136,13 +134,7 @@ const runAction = {
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
-    if (!runtime.baseDir) {
-      throw new Error(
-        'run steps cannot be executed outside of their original project directory. This is likely a misconfiguration upstream.'
-      );
-    }
-
-    const runfile = await importFrom(runtime.baseDir, config.exec);
+    const runfile = await importFrom(process.cwd(), config.exec);
 
     const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
 

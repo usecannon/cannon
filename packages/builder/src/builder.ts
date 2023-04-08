@@ -169,7 +169,7 @@ ${printChainDefinitionProblems(problems)}`);
   return state;
 }
 
-async function buildLayer(
+export async function buildLayer(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
   baseCtx: ChainBuilderContext,

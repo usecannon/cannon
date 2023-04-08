@@ -47,8 +47,6 @@ export async function alter(
         await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
         return provider.getSigner(addr);
       },
-
-      baseDir: null,
       snapshots: false,
       allowPartialDeploy: false,
       ...runtimeOverrides,

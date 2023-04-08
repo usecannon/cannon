@@ -20,22 +20,21 @@ export enum Events {
 }
 
 export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRuntimeInfo {
-  provider: CannonWrapperGenericProvider;
-  chainId: number;
-  getSigner: (addr: string) => Promise<ethers.Signer>;
-  getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
-  getArtifact: (name: string) => Promise<ContractArtifact>;
-  baseDir: string | null;
-  snapshots: boolean;
-  allowPartialDeploy: boolean;
-  publicSourceCode: boolean | undefined;
+  readonly provider: CannonWrapperGenericProvider;
+  readonly chainId: number;
+  readonly getSigner: (addr: string) => Promise<ethers.Signer>;
+  readonly getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+  readonly getArtifact: (name: string) => Promise<ContractArtifact>;
+  readonly snapshots: boolean;
+  readonly allowPartialDeploy: boolean;
+  readonly publicSourceCode: boolean | undefined;
 
   private cleanSnapshot: any;
 
   readonly loader: CannonLoader;
 
   private loadedMisc: string | null = null;
-  protected misc: {
+  misc: {
     artifacts: { [label: string]: any };
   };
 
@@ -59,7 +58,6 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
       return this.misc.artifacts[n] || null;
     };
 
-    this.baseDir = info.baseDir;
     this.snapshots = info.snapshots;
 
     this.allowPartialDeploy = info.allowPartialDeploy;

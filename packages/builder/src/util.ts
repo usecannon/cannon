@@ -126,28 +126,31 @@ export function getAllContractPaths(ctx: ChainArtifacts): string[] {
   ];
 }
 
-export function printInternalOutputs(outputs: ChainArtifacts) {
+export function printInternalOutputs(outputs: ChainArtifacts): string[] {
+  const str: string[] = [];
   for (const c in outputs.contracts) {
-    console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
+    str.push(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
   }
 
   for (const t in outputs.txns) {
     const txn = outputs.txns[t];
 
-    console.log(`execed\t${t} (${txn.hash})`);
+    str.push(`execed\t${t} (${txn.hash})`);
 
     // decode events
     for (const n in txn.events) {
       for (const e of txn.events[n]) {
-        console.log(`\t-> ${n}(${e.args.map((s) => s.toString()).join(',')})`);
+        str.push(`\t-> ${n}(${e.args.map((s) => s.toString()).join(',')})`);
       }
     }
 
-    console.log();
+    str.push('');
   }
+
+  return str;
 }
 
-export function printChainDefinitionProblems(problems: ChainDefinitionProblems, def?: ChainDefinition): string {
+export function printChainDefinitionProblems(problems: ChainDefinitionProblems, def?: ChainDefinition): string[] {
   let counter = 1;
   const str: string[] = [];
 
@@ -171,7 +174,9 @@ ${def.allActionNames.join('\n')}`);
     str.push(
       `${counter}: The action ${extraneous.node} defines an unnecessary dependency ${extraneous.extraneous} (a sub-dependency of ${extraneous.inDep}). Please remove this unnecessary dependency.`
     );
+
+    counter++;
   }
 
-  return str.join('\n');
+  return str;
 }

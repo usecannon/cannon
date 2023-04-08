@@ -108,8 +108,9 @@ class CannonTraceError extends Error {
         });
         if (r !== null) {
           contractName = r?.name;
-          decodedMsg = parseErrorReason(r?.contract ?? null, errorData);
         }
+
+        decodedMsg = parseErrorReason(r?.contract ?? null, errorData);
       } catch {
         // intentionally empty
       }
