@@ -12,8 +12,9 @@ defaultValue = "greeter:<%= package.version %>"
 [import.greeters]
 source = "<%= settings.greeter_package %>"
 
-[import.more_greeters]
+[provision.more_greeters]
 source = "<%= settings.greeter_package %>"
+targetPreset = "another"
 options.salt = "second"
 options.msg = "a message from second greeter set"
 
