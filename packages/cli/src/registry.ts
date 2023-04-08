@@ -109,11 +109,9 @@ export function createDefaultReadRegistry(settings: CliSettings, quiet = true): 
 export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
-  return new FallbackRegistry(
-    [
-      new InMemoryRegistry(),
-      new LocalRegistry(settings.cannonDirectory),
-      new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-    ]
-  );
+  return new FallbackRegistry([
+    new InMemoryRegistry(),
+    new LocalRegistry(settings.cannonDirectory),
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
+  ]);
 }
