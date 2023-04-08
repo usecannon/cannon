@@ -123,6 +123,10 @@ export async function build({
 
     if (oldDeployData) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
+
+      if (!meta) {
+        meta = oldDeployData.meta;
+      }
     }
   }
   console.log(oldDeployData ? 'loaded previous deployment' : 'did not find previous deployment');

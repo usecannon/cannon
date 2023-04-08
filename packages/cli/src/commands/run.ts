@@ -47,7 +47,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const resolver = createDefaultReadRegistry(resolveCliSettings());
+  const resolver = createDefaultReadRegistry(resolveCliSettings(), false);
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
@@ -71,7 +71,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       provider,
       overrideResolver: resolver,
       preset: options.preset,
-      meta: options.meta,
       upgradeFrom: options.upgradeFrom,
       persist: false,
     });

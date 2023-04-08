@@ -11,6 +11,6 @@ export { CannonWrapperGenericProvider } from './error/provider';
 
 export { handleTxnError } from './error';
 
-export { CannonRegistry, OnChainRegistry } from './registry';
+export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
 export { CANNON_CHAIN_ID } from './constants';
