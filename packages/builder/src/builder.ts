@@ -88,73 +88,82 @@ ${printChainDefinitionProblems(problems)}`);
   const tainted = new Set<string>();
   const built = new Map<string, ChainArtifacts>();
   const topologicalActions = def.topologicalActions;
+  let ctx;
 
-  if (runtime.snapshots) {
-    debug('building by layer');
-    const ctx = _.clone(initialCtx);
+  try {
+    if (runtime.snapshots) {
+      debug('building by layer');
+      ctx = _.clone(initialCtx);
 
-    for (const leaf of def.leaves) {
-      await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
+      for (const leaf of def.leaves) {
+        await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
+      }
+    } else {
+      debug('building individual');
+      doActions: for (const n of topologicalActions) {
+        ctx = _.cloneDeep(initialCtx);
+
+        const artifacts: ChainArtifacts = {};
+
+        let depsTainted = false;
+
+        for (const dep of def.getDependencies(n)) {
+          if (!built.has(dep)) {
+            debug('skip because previous step incomplete');
+            runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
+            continue doActions;
+          }
+
+          _.merge(artifacts, built.get(dep));
+          depsTainted = depsTainted || tainted.has(dep);
+        }
+
+        addOutputsToContext(ctx, artifacts);
+
+        // also add self artifacts here so that we can self-reference from inside the step
+        if (state[n]) {
+          debug('adding self artifacts to context', state[n].artifacts);
+          addOutputsToContext(ctx, state[n].artifacts);
+        }
+
+        try {
+          const curHash = await def.getState(n, runtime, ctx, depsTainted);
+
+          debug('comparing states', state[n] ? state[n].hash : null, curHash);
+          if (!state[n] || (curHash && state[n].hash !== curHash)) {
+            debug('run isolated', n);
+            const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
+            state[n] = {
+              artifacts: newArtifacts,
+              hash: curHash,
+              version: BUILD_VERSION,
+            };
+            tainted.add(n);
+          } else {
+            debug('skip isolated', n);
+          }
+
+          built.set(n, _.merge(artifacts, state[n].artifacts));
+        } catch (err: any) {
+          if (runtime.allowPartialDeploy) {
+            runtime.emit(Events.SkipDeploy, n, err, 0);
+            continue; // will skip saving the build artifacts, which should block any future jobs from finishing
+          } else {
+            // make sure its possible to debug the original error
+            debug('error', err);
+
+            console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
+            throw new Error(`failure on step ${n}: ${(err as Error).toString()}`);
+          }
+        }
+      }
     }
-  } else {
-    debug('building individual');
-    doActions: for (const n of topologicalActions) {
-      const ctx = _.cloneDeep(initialCtx);
+  } catch (err: any) {
+    // make sure its possible to debug the original error
+    debug('error', err);
 
-      const artifacts: ChainArtifacts = {};
-
-      let depsTainted = false;
-
-      for (const dep of def.getDependencies(n)) {
-        if (!built.has(dep)) {
-          debug('skip because previous step incomplete');
-          runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
-          continue doActions;
-        }
-
-        _.merge(artifacts, built.get(dep));
-        depsTainted = depsTainted || tainted.has(dep);
-      }
-
-      addOutputsToContext(ctx, artifacts);
-
-      // also add self artifacts here so that we can self-reference from inside the step
-      if (state[n]) {
-        debug('adding self artifacts to context', state[n].artifacts);
-        addOutputsToContext(ctx, state[n].artifacts);
-      }
-
-      try {
-        const curHash = await def.getState(n, runtime, ctx, depsTainted);
-
-        debug('comparing states', state[n] ? state[n].hash : null, curHash);
-        if (!state[n] || (curHash && state[n].hash !== curHash)) {
-          debug('run isolated', n);
-          const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
-          state[n] = {
-            artifacts: newArtifacts,
-            hash: curHash,
-            version: BUILD_VERSION,
-          };
-          tainted.add(n);
-        } else {
-          debug('skip isolated', n);
-        }
-
-        built.set(n, _.merge(artifacts, state[n].artifacts));
-      } catch (err: any) {
-        if (runtime.allowPartialDeploy) {
-          runtime.emit(Events.SkipDeploy, n, err, 0);
-          continue; // will skip saving the build artifacts, which should block any future jobs from finishing
-        } else {
-          // make sure its possible to debug the original error
-          debug('error', err);
-
-          // now log a more friendly message
-          throw new Error(`failure on step ${n}: ${(err as Error).toString()}`);
-        }
-      }
-    }
+    console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
+    throw new Error(err?.toString());
   }
 
   return state;
