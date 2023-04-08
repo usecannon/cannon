@@ -16,7 +16,7 @@ describe('ipfs.ts', () => {
 
     it('returns true if it does not meet the requirements for a gateway', () => {
       expect(isIpfsGateway('http://arstarst.com')).toBe(true);
-    })
+    });
   });
 
   describe('readIpfs()', () => {

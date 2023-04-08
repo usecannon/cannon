@@ -1,4 +1,3 @@
-import { before } from 'lodash';
 import { ethers } from 'ethers';
 import { CannonRegistry, OnChainRegistry } from './registry';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
@@ -7,11 +6,11 @@ import { CannonWrapperGenericProvider } from './error/provider';
 jest.mock('./error/provider');
 
 describe('registry.ts', () => {
-
   describe('CannonRegistry', () => {
-
     class FakeCannonRegistry extends CannonRegistry {
-      async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> { return []; }
+      async publish(/* packagesNames: string[], variant: string, url: string */): Promise<string[]> {
+        return [];
+      }
     }
 
     describe('getUrl()', () => {
@@ -39,16 +38,16 @@ describe('registry.ts', () => {
     let registry: OnChainRegistry;
     let providerOnlyRegistry: OnChainRegistry;
 
-    const fakeRegistryAddress = '0x1234123412341234123412341234123412341234'
+    const fakeRegistryAddress = '0x1234123412341234123412341234123412341234';
 
     beforeAll(async () => {
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
       (provider._isProvider as any) = true;
       signer = ethers.Wallet.createRandom().connect(provider);
       registry = new OnChainRegistry({
-        address: fakeRegistryAddress, 
+        address: fakeRegistryAddress,
         signerOrProvider: signer,
-        overrides: { gasLimit: 1234000 }
+        overrides: { gasLimit: 1234000 },
       });
 
       providerOnlyRegistry = new OnChainRegistry({ signerOrProvider: provider, address: fakeRegistryAddress });
@@ -70,15 +69,17 @@ describe('registry.ts', () => {
 
     describe('publish()', () => {
       it('throws if signer is not specified', async () => {
-        await expect(() => providerOnlyRegistry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')).rejects
-          .toThrowError('Missing signer needed for publishing');
+        await expect(() =>
+          providerOnlyRegistry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')
+        ).rejects.toThrowError('Missing signer needed for publishing');
       });
 
       it('checks signer balance', async () => {
         jest.mocked(provider.getBalance).mockResolvedValue(ethers.BigNumber.from(0));
 
-        await expect(() => registry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')).rejects
-          .toThrowError(/Signer at .* is not funded with ETH./);
+        await expect(() => registry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')).rejects.toThrowError(
+          /Signer at .* is not funded with ETH./
+        );
       });
 
       it('makes call to register all specified packages, and returns list of published packages', async () => {
@@ -87,20 +88,26 @@ describe('registry.ts', () => {
           lastBaseFeePerGas: null,
           maxFeePerGas: null,
           maxPriorityFeePerGas: null,
-          gasPrice: ethers.utils.parseUnits('10', 'gwei')
+          gasPrice: ethers.utils.parseUnits('10', 'gwei'),
         });
 
         jest.mocked(provider.resolveName).mockResolvedValue(fakeRegistryAddress);
 
         jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 12341234, name: 'fake' });
 
-        jest.mocked(provider.sendTransaction)
-          .mockResolvedValueOnce({ wait: async () => ({ logs: [], transactionHash: '0x1234' } as unknown as ethers.providers.TransactionReceipt) } as any)
-          .mockResolvedValueOnce({ wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt) } as any);
+        jest
+          .mocked(provider.sendTransaction)
+          .mockResolvedValueOnce({
+            wait: async () => ({ logs: [], transactionHash: '0x1234' } as unknown as ethers.providers.TransactionReceipt),
+          } as any)
+          .mockResolvedValueOnce({
+            wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
+          } as any);
 
         const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], '1-main', 'ipfs://Qmsomething');
 
-        jest.mocked(provider.waitForTransaction)
+        jest
+          .mocked(provider.waitForTransaction)
           .mockResolvedValueOnce({ transactionHash: '0x1234' } as TransactionReceipt)
           .mockResolvedValueOnce({ transactionHash: '0x5678' } as TransactionReceipt);
 
@@ -118,18 +125,17 @@ describe('registry.ts', () => {
       });
 
       it('calls `getPackageUrl`', async () => {
-
         jest.mocked(provider.call).mockResolvedValue(ethers.utils.defaultAbiCoder.encode(['string'], ['ipfs://Qmwohoo']));
 
         const url = await registry.getUrl('dummyPackage:0.0.1', '13370-main');
 
         expect(url).toBe('ipfs://Qmwohoo');
 
-        expect(jest.mocked(provider.call).mock.lastCall?.[0].data)
-          .toBe(registry.contract.interface.encodeFunctionData('getPackageUrl', [
-            ethers.utils.formatBytes32String('dummyPackage'), 
-            ethers.utils.formatBytes32String('0.0.1'), 
-            ethers.utils.formatBytes32String('13370-main')
+        expect(jest.mocked(provider.call).mock.lastCall?.[0].data).toBe(
+          registry.contract.interface.encodeFunctionData('getPackageUrl', [
+            ethers.utils.formatBytes32String('dummyPackage'),
+            ethers.utils.formatBytes32String('0.0.1'),
+            ethers.utils.formatBytes32String('13370-main'),
           ])
         );
       });

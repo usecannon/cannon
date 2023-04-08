@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { ChainDefinition } from './definition';
 import { RawChainDefinition } from './actions';
 import { CannonWrapperGenericProvider } from './error/provider';
-import { build, buildLayer, getOutputs, runStep, createInitialContext } from './builder';
+import { build, getOutputs, runStep, createInitialContext } from './builder';
 import { IPFSLoader } from './loader';
 import { BUILD_VERSION } from './constants';
 
@@ -19,9 +19,7 @@ jest.mock('./steps/contract');
 jest.mock('./steps/invoke');
 
 describe('builder.ts', () => {
-
   const loader = new IPFSLoader('', null as any, {});
-
 
   const getSigner = jest.fn(async () => {
     return ethers.Wallet.createRandom();
@@ -38,29 +36,32 @@ describe('builder.ts', () => {
       abi: [],
       bytecode: '0x',
       deployedBytecode: '0x',
-      linkReferences: {}
+      linkReferences: {},
     };
   });
 
   const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
   jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 1234, name: 'dummy' });
-  jest.mocked(provider.send).mockImplementation(async (name: string, args: any[]) => {
+  jest.mocked(provider.send).mockImplementation(async (name: string) => {
     if (name.endsWith('_dumpState')) {
       return '0xfoobar';
     }
   });
 
-  const runtime = new ChainBuilderRuntime({
-    allowPartialDeploy: true,
-    provider,
-    chainId: 1234,
-    publicSourceCode: true,
-    snapshots: false,
-    getSigner,
-    getDefaultSigner,
-    getArtifact
-  }, loader);
+  const runtime = new ChainBuilderRuntime(
+    {
+      allowPartialDeploy: true,
+      provider,
+      chainId: 1234,
+      publicSourceCode: true,
+      snapshots: false,
+      getSigner,
+      getDefaultSigner,
+      getArtifact,
+    },
+    loader
+  );
 
   const fakeDefinition: RawChainDefinition = {
     name: 'superDuper',
@@ -72,16 +73,16 @@ describe('builder.ts', () => {
     contract: {
       Yoop: {
         artifact: 'Wohoo',
-      }
+      },
     },
     invoke: {
       smartFunc: {
         func: 'smartFunc',
-        args: [1,2,3,"<%= contracts.Yoop.address %>"],
+        args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
-        depends: ['contract.Yoop']
-      }
-    }
+        depends: ['contract.Yoop'],
+      },
+    },
   } as RawChainDefinition;
 
   const expectedStateOut: DeploymentState = {
@@ -94,76 +95,73 @@ describe('builder.ts', () => {
             sourceName: 'Wohoo.sol',
             contractName: 'Wohoo',
             abi: [],
-            deployedOn: 'contract.Yoop'
-          }
-        }
+            deployedOn: 'contract.Yoop',
+          },
+        },
       },
       version: BUILD_VERSION,
       hash: '12341234',
-      chainDump: '0x1234'
+      chainDump: '0x1234',
     },
     'invoke.smartFunc': {
       artifacts: {
         txns: {
           smartFunc: {
-            hash: '', 
-            events: {}, 
-            deployedOn: 'invoke.smartFunc'
-          }
-        }
+            hash: '',
+            events: {},
+            deployedOn: 'invoke.smartFunc',
+          },
+        },
       },
       version: BUILD_VERSION,
       hash: '56786789',
-      chainDump: '0x5678'
-    }
+      chainDump: '0x5678',
+    },
   };
 
   let initialCtx: ChainBuilderContext;
 
-  jest.mocked(contractStep.getState).mockResolvedValue(
-    {} as any
-  );
+  jest.mocked(contractStep.getState).mockResolvedValue({} as any);
 
   jest.mocked(contractStep.exec).mockResolvedValue({
-    contracts: { 
+    contracts: {
       Yoop: {
         address: '0x0987098709870987098709870987098709870987',
         deployTxnHash: '0x1234',
         sourceName: 'Wohoo.sol',
         contractName: 'Wohoo',
         abi: [],
-        deployedOn: 'contract.Yoop'
-      }
-    }
+        deployedOn: 'contract.Yoop',
+      },
+    },
   });
-  
-  jest.mocked(invokeStep.getState).mockResolvedValue(
-    {} as any
-  );
+
+  jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
-    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' }}
+    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } },
   });
 
   describe('build()', () => {
     beforeAll(async () => {
       initialCtx = await createInitialContext(new ChainDefinition(fakeDefinition), {}, 1234, {
-        baz: 'arst'
+        baz: 'arst',
       });
-    })
+    });
 
     it('checks chain definition', async () => {
       // build with an invalid dependency
-      expect(() => build(
-        runtime,
-        new ChainDefinition(_.assign({}, fakeDefinition, { invoke: { smartFunc: { depends: ['contract.Fake'] } } })),
-        {},
-        initialCtx
-      )).rejects.toThrowError('Your cannonfile is invalid: please resolve the following issues before building your project');
+      expect(() =>
+        build(
+          runtime,
+          new ChainDefinition(_.assign({}, fakeDefinition, { invoke: { smartFunc: { depends: ['contract.Fake'] } } })),
+          {},
+          initialCtx
+        )
+      ).rejects.toThrowError('Your cannonfile is invalid: please resolve the following issues before building your project');
     });
 
     describe('without layers and skipped steps', () => {
-
-      let handler = jest.fn();
+      const handler = jest.fn();
       let newState: DeploymentState;
 
       beforeAll(async () => {
@@ -172,12 +170,7 @@ describe('builder.ts', () => {
 
         jest.mocked(invokeStep.exec).mockRejectedValueOnce(new Error('cant do this right now'));
 
-        newState = await build(
-          runtime,
-          new ChainDefinition(fakeDefinition),
-          {},
-          initialCtx
-        );
+        newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
       });
 
       it('returns correct (partial) state', async () => {
@@ -195,45 +188,29 @@ describe('builder.ts', () => {
 
     describe('without layers', () => {
       it('returns correct state', async () => {
-        const newState = await build(
-          runtime,
-          new ChainDefinition(fakeDefinition),
-          {},
-          initialCtx
-        );
+        const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
 
         expect(newState['contract.Yoop'].artifacts).toStrictEqual({
-          contracts: { 
+          contracts: {
             Yoop: {
               address: '0x0987098709870987098709870987098709870987',
               deployTxnHash: '0x1234',
               sourceName: 'Wohoo.sol',
               contractName: 'Wohoo',
               abi: [],
-              deployedOn: 'contract.Yoop'
-            }
-          }
+              deployedOn: 'contract.Yoop',
+            },
+          },
         });
       });
 
       it('re-running with same state causes no events on subsequent invoke', async () => {
+        const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
 
-        const newState = await build(
-          runtime,
-          new ChainDefinition(fakeDefinition),
-          {},
-          initialCtx
-        );
-
-        let handler = jest.fn();
+        const handler = jest.fn();
         runtime.on(Events.PreStepExecute, handler);
 
-        const nextState = await build(
-          runtime,
-          new ChainDefinition(fakeDefinition),
-          newState,
-          initialCtx
-        );
+        const nextState = await build(runtime, new ChainDefinition(fakeDefinition), newState, initialCtx);
 
         // state should not have been changed at all
         expect(newState).toStrictEqual(nextState);
@@ -245,31 +222,24 @@ describe('builder.ts', () => {
     });
   });
 
-  describe.skip('buildLayer()', () => {
-    it('runs steps depth first', async () => {
+  /*describe.skip('buildLayer()', () => {
+    it('runs steps depth first', async () => {});
 
-    });
+    it('restores before each layer', async () => {});
 
-    it('restores before each layer', async () => {
+    it('takes snapshots after layer', async () => {});
 
-    });
-
-    it('takes snapshots after layer', async () => {
-
-    });
-
-    it('does not duplicate building of a layer', async () => {
-
-    });
-  });
+    it('does not duplicate building of a layer', async () => {});
+  });*/
 
   describe('getOutputs()', () => {
-
     it('merges chain artifacts', async () => {
       const artifacts = await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
-      expect(artifacts?.contracts?.Yoop.address).toStrictEqual(expectedStateOut['contract.Yoop'].artifacts.contracts!.Yoop.address);
-      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('')
+      expect(artifacts?.contracts?.Yoop.address).toStrictEqual(
+        expectedStateOut['contract.Yoop'].artifacts.contracts!.Yoop.address
+      );
+      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('');
     });
 
     it('loads state when snapshots are present', async () => {
@@ -293,16 +263,11 @@ describe('builder.ts', () => {
       expect(stepData).toStrictEqual(expectedStateOut['contract.Yoop'].artifacts);
     });
   });
-  
+
   describe('createInitialContext()', () => {
     it('assembles correctly', async () => {
       const pkg = { foo: 'bard' };
-      const ctx = await createInitialContext(
-        new ChainDefinition(fakeDefinition), 
-        pkg, 
-        5, 
-        { baz: 'boop' }
-      );
+      const ctx = await createInitialContext(new ChainDefinition(fakeDefinition), pkg, 5, { baz: 'boop' });
 
       expect(ctx.chainId).toBe(5);
       expect(ctx.package).toBe(pkg);

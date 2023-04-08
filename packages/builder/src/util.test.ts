@@ -1,10 +1,16 @@
-import { getAllContractPaths, getContractFromPath, getExecutionSigner, getMergedAbiFromContractPaths, printChainDefinitionProblems, printInternalOutputs } from './util';
+import {
+  getAllContractPaths,
+  getContractFromPath,
+  getExecutionSigner,
+  getMergedAbiFromContractPaths,
+  printChainDefinitionProblems,
+  printInternalOutputs,
+} from './util';
 
 import 'jest';
 import { ethers } from 'ethers';
 import { ChainBuilderContext } from '.';
 import { JsonFragment } from '@ethersproject/abi';
-
 
 import { CannonWrapperGenericProvider } from './error/provider';
 
@@ -174,13 +180,11 @@ describe('util.ts', () => {
   });
 
   describe('getExecutionSigner()', () => {
-
     const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
     jest.mocked(provider.getSigner).mockImplementation((addr) => new ethers.VoidSigner(addr, provider));
 
     it('returns a signer based on the hash of transaction data', async () => {
-
       const signer = await getExecutionSigner(provider, { data: 'woot' });
 
       expect(await signer.getAddress()).toStrictEqual(jest.mocked(provider.getSigner).mock.calls[0][0]);
@@ -191,7 +195,11 @@ describe('util.ts', () => {
 
     it('gives a different signer for different salt', async () => {
       const signer1 = await getExecutionSigner(provider, { data: 'woot' });
-      const signer2 = await getExecutionSigner(provider, { data: 'woot' }, 'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssss');
+      const signer2 = await getExecutionSigner(
+        provider,
+        { data: 'woot' },
+        'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssss'
+      );
 
       expect(await signer1.getAddress()).not.toStrictEqual(await signer2.getAddress());
     });
@@ -208,18 +216,18 @@ describe('util.ts', () => {
           fake: {
             url: '',
             contracts: {
-              SuperDuper: {} as any
+              SuperDuper: {} as any,
             },
             imports: {
               fake2: {
                 url: '',
                 contracts: {
-                  SuperFake: {} as any
-                }
-              }
-            }
-          }
-        }
+                  SuperFake: {} as any,
+                },
+              },
+            },
+          },
+        },
       });
 
       expect(allContractPaths).toHaveLength(4);
@@ -234,14 +242,14 @@ describe('util.ts', () => {
   describe('printInternalOutputs()', () => {
     it('prints contracts', async () => {
       const contractsInfo = printInternalOutputs({
-        contracts: { 
+        contracts: {
           Yoop: {
             address: '0x0987098709870987098709870987098709870987',
             deployTxnHash: '0x1234',
             sourceName: 'Wohoo.sol',
             contractName: 'Wohoo',
             abi: [],
-            deployedOn: 'contract.Yoop'
+            deployedOn: 'contract.Yoop',
           },
           Dupe: {
             address: '0x1234123412341234123412341234123412341234',
@@ -249,9 +257,9 @@ describe('util.ts', () => {
             sourceName: 'Dup.sol',
             contractName: 'Dupe',
             abi: [],
-            deployedOn: 'contract.Dupe'
-          }
-        }
+            deployedOn: 'contract.Dupe',
+          },
+        },
       });
 
       expect(contractsInfo).toContainEqual('deployed\tYoop at 0x0987098709870987098709870987098709870987 (0x1234)');
@@ -259,27 +267,23 @@ describe('util.ts', () => {
     });
 
     it('prints transactions', async () => {
-      const txnsInfo = printInternalOutputs({ 
-        txns: { 
-          smartFunc: { 
-            hash: '0x56785678', 
+      const txnsInfo = printInternalOutputs({
+        txns: {
+          smartFunc: {
+            hash: '0x56785678',
             events: {
               TestEvent: [
                 {
-                  args: ['one', '2', 'three']
-                }
-              ]
-            }, 
-            deployedOn: 'invoke.smartFunc' 
-          }
-        }
+                  args: ['one', '2', 'three'],
+                },
+              ],
+            },
+            deployedOn: 'invoke.smartFunc',
+          },
+        },
       });
 
-      expect(txnsInfo).toStrictEqual([
-        'execed\tsmartFunc (0x56785678)',
-        '\t-> TestEvent(one,2,three)',
-        ''
-      ]);
+      expect(txnsInfo).toStrictEqual(['execed\tsmartFunc (0x56785678)', '\t-> TestEvent(one,2,three)', '']);
     });
   });
 
@@ -289,15 +293,15 @@ describe('util.ts', () => {
         cycles: [],
         missing: [
           { action: 'contract.One', dependency: 'contract.Foo' },
-          { action: 'contract.One', dependency: 'contract.Bar' }
+          { action: 'contract.One', dependency: 'contract.Bar' },
         ],
         extraneous: [],
-        invalidSchema: {}
+        invalidSchema: {},
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: In action "contract.One", the dependency "contract.Foo" is not defined elsewhere.',
-        '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.'
+        '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.',
       ]);
     });
 
@@ -307,14 +311,14 @@ describe('util.ts', () => {
         missing: [],
         extraneous: [
           { node: 'contract.One', extraneous: 'contract.Two', inDep: 'contract.Three' },
-          { node: 'contract.Two', extraneous: 'contract.Four', inDep: 'contract.Five' }
+          { node: 'contract.Two', extraneous: 'contract.Four', inDep: 'contract.Five' },
         ],
-        invalidSchema: {}
+        invalidSchema: {},
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: The action contract.One defines an unnecessary dependency contract.Two (a sub-dependency of contract.Three). Please remove this unnecessary dependency.',
-        '2: The action contract.Two defines an unnecessary dependency contract.Four (a sub-dependency of contract.Five). Please remove this unnecessary dependency.'
+        '2: The action contract.Two defines an unnecessary dependency contract.Four (a sub-dependency of contract.Five). Please remove this unnecessary dependency.',
       ]);
     });
 
@@ -322,16 +326,16 @@ describe('util.ts', () => {
       const problemsInfo = printChainDefinitionProblems({
         cycles: [
           ['contract.One', 'contract.Two', 'contract.Three'],
-          ['contract.Three', 'contract.Five']
+          ['contract.Three', 'contract.Five'],
         ],
         missing: [],
         extraneous: [],
-        invalidSchema: {}
+        invalidSchema: {},
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: The actions contract.One, contract.Two, contract.Three form a dependency cycle and therefore cannot be deployed.',
-        '2: The actions contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.'
+        '2: The actions contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.',
       ]);
     });
   });

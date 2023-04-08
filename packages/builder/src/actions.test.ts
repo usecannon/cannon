@@ -1,26 +1,27 @@
 import { ActionKinds, registerAction, getChainDefinitionValidator, Action } from './actions';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 
-import _ from 'lodash';
-
 const FakeAction: Action = {
   validate: {
     properties: {
       hello: { type: 'string' },
-      foo: { type: 'int32' }
-    }
+      foo: { type: 'int32' },
+    },
   },
 
-  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: {}) {
+  async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
     return this.configInject(ctx, config);
   },
 
-  configInject(ctx: ChainBuilderContext, config: {}) {
+  configInject(ctx: ChainBuilderContext, config: Record<string, unknown>) {
     return config;
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async exec(_runtime: ChainBuilderRuntimeInfo, _ctx: ChainBuilderContext, _config: {}): Promise<ChainArtifacts> {
+  async exec(): /*_runtime: ChainBuilderRuntimeInfo,
+    _ctx: ChainBuilderContext,
+    _config: Record<string, unknown>*/
+  Promise<ChainArtifacts> {
     return {};
   },
 };

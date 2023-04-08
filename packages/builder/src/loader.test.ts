@@ -9,15 +9,17 @@ jest.mock('./registry');
 
 describe('loader.ts', () => {
   describe('IPFSLoader', () => {
-
-    jest.mocked(OnChainRegistry)
+    jest.mocked(OnChainRegistry);
 
     let registry: OnChainRegistry;
     let loader: IPFSLoader;
     beforeAll(() => {
-      registry = new OnChainRegistry({ address: ethers.constants.AddressZero, signerOrProvider: ethers.Wallet.createRandom() })
+      registry = new OnChainRegistry({
+        address: ethers.constants.AddressZero,
+        signerOrProvider: ethers.Wallet.createRandom(),
+      });
       loader = new IPFSLoader('hello', registry);
-    })
+    });
 
     describe('constructor', () => {
       it('sets props', () => {
@@ -43,7 +45,13 @@ describe('loader.ts', () => {
 
     describe('putDeploy()', () => {
       it('calls ipfs write and returns the resulting ipfs Qmhash', async () => {
-        const fakeDeployDefinition = { def: { name: 'funny', version: 'woot' }, state: {}, meta: '', miscUrl: '', options: {} };
+        const fakeDeployDefinition = {
+          def: { name: 'funny', version: 'woot' },
+          state: {},
+          meta: '',
+          miscUrl: '',
+          options: {},
+        };
         jest.mocked(writeIpfs).mockResolvedValue('Qmfun');
         expect(await loader.putDeploy(fakeDeployDefinition)).toEqual('ipfs://Qmfun');
         expect(writeIpfs).toBeCalledWith('hello', fakeDeployDefinition, {});

@@ -1,4 +1,3 @@
-import { _ } from 'ajv';
 import { ethers } from 'ethers';
 import { CannonWrapperGenericProvider } from './error/provider';
 import { IPFSLoader } from './loader';
@@ -10,7 +9,6 @@ jest.mock('./loader');
 
 describe('runtime.ts', () => {
   describe('ChainBuilderRuntime', () => {
-
     //jest.mocked(ethers.providers.JsonRpcProvider);
     jest.mocked(CannonWrapperGenericProvider);
 
@@ -33,25 +31,28 @@ describe('runtime.ts', () => {
         abi: [],
         bytecode: '0x',
         deployedBytecode: '0x',
-        linkReferences: {}
+        linkReferences: {},
       };
-    })
+    });
 
     beforeAll(async () => {
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider);
+      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
       loader = new IPFSLoader('', null as any, {});
 
-      runtime = new ChainBuilderRuntime({
-        allowPartialDeploy: true,
-        provider,
-        chainId: 1234,
-        publicSourceCode: true,
-        snapshots: true,
-        getSigner,
-        getDefaultSigner,
-        getArtifact
-      }, loader);
+      runtime = new ChainBuilderRuntime(
+        {
+          allowPartialDeploy: true,
+          provider,
+          chainId: 1234,
+          publicSourceCode: true,
+          snapshots: true,
+          getSigner,
+          getDefaultSigner,
+          getArtifact,
+        },
+        loader
+      );
     });
 
     describe('constructor', () => {
@@ -104,7 +105,7 @@ describe('runtime.ts', () => {
       it('does calls hardhat_dumpState if snapshots = true', async () => {
         (runtime as any).snapshots = true;
         jest.mocked(provider.send).mockResolvedValue('0xdeadbeef');
-        expect(await runtime.dumpState()).toBe('0xdeadbeef')
+        expect(await runtime.dumpState()).toBe('0xdeadbeef');
         expect(jest.mocked(provider.send)).toBeCalledWith('hardhat_dumpState', []);
       });
     });
@@ -157,21 +158,19 @@ describe('runtime.ts', () => {
       let newRuntime: ChainBuilderRuntime;
 
       beforeAll(async () => {
-
         newRuntime = runtime.derive({
           chainId: 5,
-          allowPartialDeploy: false
+          allowPartialDeploy: false,
         });
-      })
+      });
 
       it('is constructed with same values excluding the overridden properties', async () => {
-
         expect(newRuntime).not.toEqual(runtime);
         expect(newRuntime.allowPartialDeploy).toBeFalsy();
         expect(newRuntime.chainId).toBe(5);
         expect(newRuntime.getSigner).toBe(runtime.getSigner);
       });
-      
+
       it('forwards all events', async () => {
         const receiver = jest.fn();
 
