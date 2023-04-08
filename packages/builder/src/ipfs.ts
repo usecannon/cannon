@@ -22,28 +22,43 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
 
   let result: AxiosResponse;
 
-  if (isIpfsGateway(ipfsUrl)) {
-    result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
-      responseType: 'arraybuffer',
-      responseEncoding: 'application/octet-stream',
-      headers: customHeaders,
-    });
-  } else {
-    // the +ipfs extension used to indicate a gateway is not recognized by
-    // axios even though its just regular https
-    // so we remove it if it exists
-    result = await axios.post(
-      ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`,
-      {},
-      {
-        responseEncoding: 'application/octet-stream',
+  try {
+    if (isIpfsGateway(ipfsUrl)) {
+      result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
         responseType: 'arraybuffer',
+        responseEncoding: 'application/octet-stream',
         headers: customHeaders,
-      }
-    );
+      });
+    } else {
+      // the +ipfs extension used to indicate a gateway is not recognized by
+      // axios even though its just regular https
+      // so we remove it if it exists
+      result = await axios.post(
+        ipfsUrl.replace('+ipfs', '') + `/api/v0/cat?arg=${hash}`,
+        {},
+        {
+          responseEncoding: 'application/octet-stream',
+          responseType: 'arraybuffer',
+          headers: customHeaders,
+        }
+      );
+    }
+  } catch (err: any) {
+    let errMsg = `could not download cannon package data from ${hash}: ${err.toString()}`;
+
+    if (ipfsUrl.includes('infura')) {
+      errMsg +=
+        '\n\nNOTE: it appears you are using infura for IPFS. Please note that infura tends to be problematic when downloading IPFS artifacts outside of infura itself. Please consider using a different IPFS service.';
+    }
+
+    throw new Error(errMsg);
   }
 
-  return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
+  try {
+    return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
+  } catch (err: any) {
+    throw new Error(`could not decode cannon package data: ${err.toString()}`);
+  }
 }
 
 export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Headers = {}): Promise<string | null> {

@@ -64,7 +64,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
-export function createDefaultReadRegistry(settings: CliSettings): FallbackRegistry {
+export function createDefaultReadRegistry(settings: CliSettings, quiet = true): FallbackRegistry {
   const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
@@ -87,7 +87,7 @@ export function createDefaultReadRegistry(settings: CliSettings): FallbackRegist
       }) => {
         const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
 
-        if (registry instanceof LocalRegistry && onChainResult && onChainResult != result) {
+        if (registry instanceof LocalRegistry && onChainResult && onChainResult != result && !quiet) {
           console.log(
             yellowBright(
               `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
