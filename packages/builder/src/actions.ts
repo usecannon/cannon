@@ -8,18 +8,18 @@ import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers } from './types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
 export interface Action {
-  configInject: (ctx: ChainBuilderContextWithHelpers, config: any) => any;
+  configInject: (ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
 
-  getState: (runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: any, currentLabel?: string) => any;
+  getState: (runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
 
   exec: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: any,
-    currentLabel: string
+    packageState: PackageState,
   ) => Promise<ChainArtifacts>;
 
   validate: {

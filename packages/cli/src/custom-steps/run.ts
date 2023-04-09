@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, registerAction } from '@usecannon/builder';
+import { ChainBuilderContext, ChainBuilderRuntimeInfo, ChainArtifacts, registerAction, PackageState } from '@usecannon/builder';
 
 import crypto from 'crypto';
 import fs from 'fs-extra';
@@ -130,7 +130,7 @@ const runAction = {
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
     config: Config,
-    currentLabel: string
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -146,12 +146,12 @@ const runAction = {
 
     outputs.contracts = _.mapValues(outputs.contracts, (c) => ({
       ...c,
-      deployedOn: currentLabel,
+      deployedOn: packageState.currentLabel,
     }));
 
     outputs.txns = _.mapValues(outputs.txns, (t) => ({
       ...t,
-      deployedOn: currentLabel,
+      deployedOn: packageState.currentLabel,
     }));
 
     return outputs;
