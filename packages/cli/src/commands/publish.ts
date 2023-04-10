@@ -32,8 +32,6 @@ export async function publish(
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
 
-  
-
   const registry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
