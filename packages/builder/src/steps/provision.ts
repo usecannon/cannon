@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, DeploymentState } from '../types';
+import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, DeploymentState, PackageState } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime, Events } from '../runtime';
@@ -38,9 +38,9 @@ export interface Outputs {
 export default {
   validate: config,
 
-  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config, currentLabel?: string) {
-    const importLabel = currentLabel?.split('.')[1] || '';
-    const cfg = this.configInject(ctx, config);
+  async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
+    const importLabel = packageState.currentLabel?.split('.')[1] || '';
+    const cfg = this.configInject(ctx, config, packageState);
 
     const sourcePreset = config.sourcePreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
@@ -63,12 +63,12 @@ export default {
     };
   },
 
-  configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+  configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
     config.sourcePreset = _.template(config.sourcePreset)(ctx) || 'main';
-    config.targetPreset = _.template(config.targetPreset)(ctx) || 'main';
+    config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
@@ -83,9 +83,9 @@ export default {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    currentLabel: string
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
-    const importLabel = currentLabel?.split('.')[1] || '';
+    const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
     const sourcePreset = config.sourcePreset ?? 'main';
