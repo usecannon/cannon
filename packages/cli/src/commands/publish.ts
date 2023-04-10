@@ -7,6 +7,8 @@ import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getIpfsLoader } from '../util/loader';
 
+import provider from 'eth-provider';
+
 const debug = Debug('cannon:cli:publish');
 
 export async function publish(
@@ -31,6 +33,8 @@ export async function publish(
     console.log(blueBright('publishing signer is', await signer.getAddress()));
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
+
+  provider(['frame', 'direct'], { name: 'Cannon CLI' });
 
   const registry = new OnChainRegistry({
     signerOrProvider: signer.connect(new ethers.providers.JsonRpcProvider(cliSettings.registryProviderUrl)),

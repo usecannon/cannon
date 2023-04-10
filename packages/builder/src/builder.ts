@@ -153,7 +153,7 @@ ${printChainDefinitionProblems(problems)}`);
             debug('error', err);
 
             console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
-            throw new Error(`failure on step ${n}: ${(err as Error).toString()}`);
+            throw new Error(`failure on step ${n}: ${JSON.stringify(err)}`);
           }
         }
       }
@@ -162,8 +162,8 @@ ${printChainDefinitionProblems(problems)}`);
     // make sure its possible to debug the original error
     debug('error', err);
 
-    console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
-    throw new Error(err?.toString());
+    console.log(`\nContext:\n${JSON.stringify(ctx, null, 2)}\n`);
+    throw new Error(`${JSON.stringify(err)}`);
   }
 
   return state;

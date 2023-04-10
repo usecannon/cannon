@@ -15,12 +15,34 @@ import Debug from 'debug';
 const debug = Debug('cannon:cli:settings');
 
 export type CliSettings = {
+  /// provider used for `build`
+  providerUrl?: string;
+
+  /// private key(s) of default signer that should be used for build, comma separated
+  privateKey?: string;
+
+  /// the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
   ipfsUrl: string;
+
+  /// the IPFS url to use when publishing. If you have an IPFS cluster, or a pinning service, this is a good place to put its IPFS Proxy publish endpoint. If not specified, your packages wont be uploaded to remote ipfs.
   publishIpfsUrl?: string;
-  registryProviderUrl: string;
+
+  /// URL to use to write a package to the registry.
+  registryProviderUrl?: string;
+
+  /// chain Id of the registry. Defaults to `1`. Overridden by `registryProviderUrl`
+  registryChainId: string;
+
+  /// Address of the registry
   registryAddress: string;
+
+  /// Directory to load configurations from, for local registry, and
   cannonDirectory: string;
+
+  // URL of etherscan API for verification
   etherscanApiUrl: string;
+
+  // Etherscan API Key for verification
   etherscanApiKey: string;
 };
 
@@ -46,10 +68,13 @@ function _resolveCliSettings(): CliSettings {
 
   const finalSettings = {
     cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
+    providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl,
+    privateKey: process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey,
     ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
     publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
     registryProviderUrl:
       process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT,
+    registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
     registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
     etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
     etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',

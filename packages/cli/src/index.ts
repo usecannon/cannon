@@ -12,7 +12,7 @@ import {
 } from '@usecannon/builder';
 
 import { checkCannonVersion, loadCannonfile } from './helpers';
-import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
 import { PackageSpecification } from './types';
@@ -35,6 +35,7 @@ import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
 import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
+import { resolveProviderAndSigners } from './util/provider';
 
 const debug = Debug('cannon:cli');
 
@@ -49,6 +50,7 @@ export { setup } from './commands/setup';
 export { runRpc } from './rpc';
 
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
+export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { loadCannonfile } from './helpers';
 
@@ -77,6 +79,7 @@ function configureRun(program: Command) {
     )
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+    .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
@@ -94,13 +97,13 @@ function configureRun(program: Command) {
       const port = Number.parseInt(options.port) || 8545;
 
       let node: CannonRpcNode;
-      if (options.fork) {
-        const networkInfo = await new ethers.providers.JsonRpcProvider(options.fork).getNetwork();
+      if (options.chainId) {
+        const { provider } = await resolveProviderAndSigners(resolveCliSettings(), options.chainId);
 
         node = await runRpc({
           port,
-          forkUrl: options.fork,
-          chainId: networkInfo.chainId,
+          forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+          chainId: options.chainId,
         });
       } else {
         node = await runRpc({ port });
@@ -136,42 +139,59 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.dirname(cannonfilePath);
 
+  const cliSettings = resolveCliSettings();
+
   let provider: CannonWrapperGenericProvider;
   let node: CannonRpcNode | null = null;
-  if (!opts.network || opts.dryRun) {
-    const chainId = opts.network
-      ? (await new ethers.providers.JsonRpcProvider(opts.network).getNetwork()).chainId
-      : CANNON_CHAIN_ID;
 
+  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
+  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
+
+  if (!opts.chainId) {
+    // doing a local build, just create a anvil rpc
     node = await runRpc({
       port: 8545,
-      forkUrl: opts.network,
-      chainId,
     });
 
     provider = getProvider(node);
   } else {
-    provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), true);
-  }
+    const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
 
-  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
-  if (opts.privateKey) {
-    const wallets: ethers.Wallet[] = opts.privateKey.map((k: string) => new ethers.Wallet(k).connect(provider));
+    if (opts.dryRun) {
+      const chainId = opts.network ? (await p.provider.getNetwork()).chainId : CANNON_CHAIN_ID;
 
-    getSigner = async (s) => {
-      const w = wallets.find((w) => w.address.toLowerCase() === s.toLowerCase());
+      node = await runRpc({
+        port: 8545,
+        forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        chainId,
+      });
 
-      if (!w) {
+      provider = getProvider(node);
+
+      // need to set default signer to make sure it is accurate to the actual signer
+      getDefaultSigner = async () => {
+        const addr = await p.signers[0].getAddress();
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      };
+    } else {
+      provider = p.provider;
+
+      getSigner = async (s) => {
+        for (const signer of p.signers) {
+          if ((await signer.getAddress()) === s) {
+            return signer;
+          }
+        }
+
         throw new Error(
           `signer not found for address ${s}. Please add the private key for this address to your command line.`
         );
-      }
+      };
 
-      return w;
-    };
-
-    getDefaultSigner = async () => wallets[0];
+      getDefaultSigner = async () => p.signers[0];
+    }
   }
 
   const { build } = await import('./commands/build');
@@ -194,7 +214,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     preset: opts.preset,
     wipe: opts.wipe,
     persist: !opts.dryRun,
-    overrideResolver: opts.dryRun ? createDryRunRegistry(resolveCliSettings()) : undefined,
+    overrideResolver: opts.dryRun ? createDryRunRegistry(cliSettings) : undefined,
     // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
     publicSourceCode: true,
   });
@@ -208,6 +228,7 @@ program
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
   .option('-n --network [url]', 'RPC endpoint to execute the deployment on')
+  .option('-c --chain-id <number>', 'The chain id to run against')
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
   .option('--private-key [key]', 'Specify a private key which may be needed to sign a transaction', concatArrayOption)
@@ -249,7 +270,7 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to alter')
   .argument('<command>', 'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete')
   .argument('[options...]', 'Additional options for your alteration command')
-  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter', '1')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
   .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
   .action(async function (packageName, command, options, flags) {
     const { alter } = await import('./commands/alter');
@@ -373,26 +394,28 @@ program
   .description('Start an interactive terminal against a set of active cannon deployments')
   .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
   .requiredOption('-n --network <https://something.com/whatever>', 'URL to a JSONRPC endpoint to use for transactions')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
   .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
   .action(async function (packageDefinition, opts) {
-    const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(opts.network), false);
-    const signers = createSigners(provider, opts);
+    const cliSettings = resolveCliSettings();
 
-    const networkInfo = await provider.getNetwork();
+    const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
 
-    const resolver = createDefaultReadRegistry(resolveCliSettings());
+    const networkInfo = await p.provider.getNetwork();
+
+    const resolver = createDefaultReadRegistry(cliSettings);
 
     const runtime = new ChainBuilderRuntime(
       {
-        provider,
-        chainId: (await provider.getNetwork()).chainId,
+        provider: p.provider,
+        chainId: networkInfo.chainId,
         async getSigner(addr: string) {
           // on test network any user can be conjured
-          await provider.send('hardhat_impersonateAccount', [addr]);
-          await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-          return provider.getSigner(addr);
+          await p.provider.send('hardhat_impersonateAccount', [addr]);
+          await p.provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+          return p.provider.getSigner(addr);
         },
         snapshots: false,
         allowPartialDeploy: false,
@@ -418,15 +441,15 @@ program
       throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${opts.preset}. Did you mean to run instead?`);
     }
 
-    const contracts = [getContractsRecursive(outputs, signers.length ? signers[0] : provider)];
+    const contracts = [getContractsRecursive(outputs, p.signers.length ? p.signers[0] : p.provider)];
 
-    provider.artifacts = outputs;
+    p.provider.artifacts = outputs;
 
     await interact({
       packages: [packageDefinition],
       contracts,
-      signer: signers[0],
-      provider,
+      signer: p.signers[0],
+      provider: p.provider,
     });
   });
 

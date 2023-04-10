@@ -63,7 +63,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (dryRun) {
         opts.chainId = (await hre.ethers.provider.getNetwork()).chainId;
-        opts.forkUrl = providerUrl;
+        opts.forkProvider = new ethers.providers.JsonRpcProvider(providerUrl);
       }
 
       const node = await runRpc(opts);

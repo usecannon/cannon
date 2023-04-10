@@ -1,3 +1,7 @@
+import http from 'http';
+
+import { Readable } from 'stream';
+
 import { ethers } from 'ethers';
 
 import { spawn, ChildProcess } from 'child_process';
@@ -9,7 +13,7 @@ const debug = Debug('cannon:cli:rpc');
 
 export type RpcOptions = {
   port: number;
-  forkUrl?: string;
+  forkProvider?: ethers.providers.JsonRpcProvider;
   chainId?: number;
 };
 
@@ -21,7 +25,7 @@ export type CannonRpcNode = ChildProcess & RpcOptions;
 let anvilInstance: CannonRpcNode | null = null;
 let anvilProvider: CannonWrapperGenericProvider | null = null;
 
-export function runRpc({ port, forkUrl, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
+export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
@@ -29,7 +33,7 @@ export function runRpc({ port, forkUrl, chainId = CANNON_CHAIN_ID }: RpcOptions)
       new Promise<CannonRpcNode>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
-          resolve(await runRpc({ port, forkUrl, chainId }));
+          resolve(await runRpc({ port, forkProvider, chainId }));
         });
         anvilInstance!.kill();
       }),
@@ -43,8 +47,12 @@ export function runRpc({ port, forkUrl, chainId = CANNON_CHAIN_ID }: RpcOptions)
   // reduce image size by not creating unnecessary accounts
   opts.push('--accounts', '1');
 
-  if (forkUrl) {
-    opts.push('--fork-url', forkUrl);
+  if (forkProvider) {
+    // create a tiny proxy server (the most reliable way to make sure that the connection can work anywhere)
+
+    const url = await createProviderProxy(forkProvider);
+
+    opts.push('--fork-url', url);
   }
 
   return Promise.race<Promise<CannonRpcNode>>([
@@ -52,7 +60,7 @@ export function runRpc({ port, forkUrl, chainId = CANNON_CHAIN_ID }: RpcOptions)
       anvilInstance = spawn('anvil', opts) as CannonRpcNode;
 
       anvilInstance.port = port;
-      anvilInstance.forkUrl = forkUrl;
+      anvilInstance.forkProvider = forkProvider;
       anvilInstance.chainId = chainId;
 
       process.once('exit', () => anvilInstance?.kill());
@@ -115,4 +123,52 @@ export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperG
   } else {
     throw new Error('anvil instance is not as expected');
   }
+}
+
+export function createProviderProxy(provider: ethers.providers.JsonRpcProvider): Promise<string> {
+  return new Promise((resolve) => {
+    const server = http.createServer(async (req, res) => {
+      res.setHeader('Content-Type', 'application/json');
+      const reqJson = JSON.parse(await streamToString(req));
+
+      try {
+        const proxiedResult = await provider.send(reqJson.method, reqJson.params);
+
+        res.writeHead(200);
+        res.end(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            result: proxiedResult,
+            id: reqJson.id,
+          })
+        );
+      } catch (err) {
+        console.log('got rpc error', err);
+        res.writeHead(400);
+        res.end(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            error: err,
+            id: reqJson.id,
+          })
+        );
+      }
+    });
+
+    server.on('listening', () => {
+      const addrInfo = server.address() as { address: string; family: 'IPv4' | 'IPv6'; port: number };
+      resolve(`http://${addrInfo.family === 'IPv6' ? '[' + addrInfo.address + ']' : addrInfo.address}:${addrInfo.port}`);
+    });
+
+    server.listen();
+  });
+}
+
+function streamToString(stream: Readable): Promise<string> {
+  const chunks: Buffer[] = [];
+  return new Promise<string>((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  });
 }

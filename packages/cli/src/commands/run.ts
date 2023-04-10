@@ -83,8 +83,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       )
     );
 
-    if (node.forkUrl) {
-      console.log(gray(`Running from fork ${bold(node.forkUrl)}`));
+    if (node.forkProvider) {
+      console.log(gray('Running from fork provider'));
     }
   }
 
