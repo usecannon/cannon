@@ -163,7 +163,7 @@ ${printChainDefinitionProblems(problems)}`);
     debug('error', err);
 
     console.log(`\nContext:\n${JSON.stringify(ctx, null, 2)}\n`);
-    throw new Error(`${JSON.stringify(err)}`);
+    throw err;
   }
 
   return state;

@@ -285,7 +285,6 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
-  .option('-p --private-key <privateKey>', 'Private key of the wallet to use when publishing')
   .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -302,41 +301,37 @@ program
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
-    if (options.privateKey) {
-      const provider = new ethers.providers.JsonRpcProvider(resolveCliSettings().registryProviderUrl);
-      const wallet = new ethers.Wallet(options.privateKey, provider);
+    const cliSettings = resolveCliSettings();
+    const p = await resolveProviderAndSigners(cliSettings, parseInt(cliSettings.registryChainId));
 
-      const overrides: ethers.Overrides = {};
+    const overrides: ethers.Overrides = {};
 
-      if (options.maxFeePerGas) {
-        overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
-      }
-
-      if (options.maxPriorityFeePerGas) {
-        overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei');
-      }
-
-      if (options.gasLimit) {
-        overrides.gasLimit = options.gasLimit;
-      }
-
-      if (!options.quiet) {
-        const response = await prompts({
-          type: 'confirm',
-          name: 'confirmation',
-          message: `This will deploy your package to IPFS and use ${wallet.address} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
-          initial: true,
-        });
-
-        if (!response.confirmation) {
-          process.exit();
-        }
-      }
-
-      await publish(packageName, options.tags, options.preset, wallet, overrides, options.quiet, options.force);
-    } else {
-      throw new Error('must specify private key');
+    if (options.maxFeePerGas) {
+      overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
     }
+
+    if (options.maxPriorityFeePerGas) {
+      overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei');
+    }
+
+    if (options.gasLimit) {
+      overrides.gasLimit = options.gasLimit;
+    }
+
+    if (!options.quiet) {
+      const response = await prompts({
+        type: 'confirm',
+        name: 'confirmation',
+        message: `This will deploy your package to IPFS and use ${await p.signers[0].getAddress()} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
+        initial: true,
+      });
+
+      if (!response.confirmation) {
+        process.exit();
+      }
+    }
+
+    await publish(packageName, options.tags, options.preset, p.signers[0], overrides, options.quiet, options.force);
   });
 
 program
@@ -393,8 +388,7 @@ program
   .command('interact')
   .description('Start an interactive terminal against a set of active cannon deployments')
   .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
-  .requiredOption('-n --network <https://something.com/whatever>', 'URL to a JSONRPC endpoint to use for transactions')
-  .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
+  .requiredOption('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
   .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
