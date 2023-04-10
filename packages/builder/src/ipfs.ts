@@ -55,7 +55,7 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
   }
 
   try {
-    return JSON.parse(Buffer.from(await pako.inflate(result.data)).toString('utf8'));
+    return JSON.parse(pako.inflate(result.data, { to: 'string' }));
   } catch (err: any) {
     throw new Error(`could not decode cannon package data: ${err.toString()}`);
   }
@@ -74,7 +74,11 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 
   const formData = new FormData();
 
-  formData.append('data', Buffer.from(buf));
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+
+  formData.append('data', content);
   try {
     const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
 
