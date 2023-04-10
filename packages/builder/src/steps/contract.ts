@@ -12,6 +12,7 @@ import {
   ChainArtifacts,
   ChainBuilderContextWithHelpers,
   ContractArtifact,
+  PackageState,
 } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
@@ -145,7 +146,7 @@ export default {
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
     config: Config,
-    currentLabel: string
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -249,7 +250,7 @@ export default {
 
     return {
       contracts: {
-        [currentLabel?.split('.')[1] || '']: {
+        [packageState.currentLabel.split('.')[1] || '']: {
           address: contractAddress,
           abi,
           constructorArgs: config.args || [],
@@ -257,7 +258,7 @@ export default {
           deployTxnHash: transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
-          deployedOn: currentLabel!,
+          deployedOn: packageState.currentLabel!,
         },
       },
     };

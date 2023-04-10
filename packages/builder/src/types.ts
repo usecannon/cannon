@@ -113,6 +113,12 @@ export interface ChainBuilderRuntimeInfo {
   publicSourceCode?: boolean;
 }
 
+export interface PackageState {
+  name: string;
+  version: string;
+  currentLabel: string;
+}
+
 export interface BundledChainBuilderOutputs {
   [module: string]: { url: string } & ChainArtifacts;
 }

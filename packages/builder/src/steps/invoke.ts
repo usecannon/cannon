@@ -8,6 +8,7 @@ import {
   ChainArtifacts,
   TransactionMap,
   ChainBuilderContextWithHelpers,
+  PackageState,
 } from '../types';
 import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
@@ -81,7 +82,7 @@ async function runTxn(
   config: Config,
   contract: ethers.Contract,
   signer: ethers.Signer,
-  currentLabel: string
+  packageState: PackageState
 ): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
 
@@ -90,13 +91,13 @@ async function runTxn(
   // if invoke calls succeeding when no action was actually performed.
   if ((await runtime.provider.getCode(contract.address)) === '0x') {
     throw new Error(
-      `contract ${contract.address} for ${currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
+      `contract ${contract.address} for ${packageState.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
   }
 
   if (!contract.functions[config.func]) {
     throw new Error(
-      `contract ${contract.address} for ${currentLabel} does not contain the function "${
+      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
         config.func
       }". List of recognized functions is:\n${Object.keys(contract.functions).join(
         '\n'
@@ -106,7 +107,7 @@ async function runTxn(
 
   if (config.fromCall && !contract.functions[config.fromCall.func]) {
     throw new Error(
-      `contract ${contract.address} for ${currentLabel} does not contain the function "${
+      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
         config.func
       }" to determine owner. List of recognized functions is:\n${Object.keys(contract.functions).join(
         '\n'
@@ -287,7 +288,7 @@ export default {
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
     config: Config,
-    currentLabel: string
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -322,9 +323,9 @@ export default {
 ${getAllContractPaths(ctx).join('\n')}`);
       }
 
-      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, currentLabel);
+      const [receipt, txnEvents] = await runTxn(runtime, config, contract, mainSigner, packageState);
 
-      const splitLabel = currentLabel.split('.')[1];
+      const splitLabel = packageState.currentLabel.split('.')[1];
 
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${t}`;
 
@@ -334,7 +335,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       txns[label] = {
         hash: receipt.transactionHash,
         events: txnEvents,
-        deployedOn: currentLabel,
+        deployedOn: packageState.currentLabel,
       };
     }
 
@@ -376,7 +377,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           constructorArgs: factoryInfo.constructorArgs,
           sourceName: sourceName,
           contractName: contractName,
-          deployedOn: currentLabel,
+          deployedOn: packageState.currentLabel,
         };
       }
     }
