@@ -47,7 +47,7 @@ export type CliSettings = {
 };
 
 // TODO: this function is ugly
-function _resolveCliSettings(): CliSettings {
+function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   const cliSettingsStore = untildify(
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
   );
@@ -66,7 +66,7 @@ function _resolveCliSettings(): CliSettings {
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_ENDPOINT})`);
   }
 
-  const finalSettings = {
+  const finalSettings = _.assign({
     cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
     providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl,
     privateKey: process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey,
@@ -78,7 +78,7 @@ function _resolveCliSettings(): CliSettings {
     registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
     etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
     etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
-  };
+  }, overrides);
 
   debug('got settings', finalSettings);
 

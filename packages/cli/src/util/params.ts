@@ -1,8 +1,6 @@
 import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { ethers } from 'ethers';
 
 const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
@@ -105,29 +103,4 @@ export function parsePackagesArguments(val: string, result: PackageSpecification
   }
 
   throw new InvalidArgumentError(`Invalid argument given ${val}`);
-}
-
-export function createSigners(
-  provider: CannonWrapperGenericProvider,
-  options: { privateKey?: string; mnemonic?: string; impersonate?: string }
-): ethers.Signer[] {
-  const signers: ethers.Signer[] = [];
-
-  if (options.privateKey) {
-    if (options.privateKey.includes(',')) {
-      for (const pkey in options.privateKey.split(',')) {
-        signers.push(new ethers.Wallet(pkey, provider));
-      }
-    } else {
-      signers.push(new ethers.Wallet(options.privateKey, provider));
-    }
-  } else if (options.mnemonic) {
-    for (let i = 0; i < 10; i++) {
-      signers.push(ethers.Wallet.fromMnemonic(options.mnemonic, `m/44'/60'/0'/0/${i}`).connect(provider));
-    }
-  } else if (options.impersonate) {
-    signers.push(provider.getSigner(options.impersonate));
-  }
-
-  return signers;
 }

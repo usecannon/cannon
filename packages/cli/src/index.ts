@@ -78,7 +78,7 @@ function configureRun(program: Command) {
       parsePackagesArguments
     )
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
-    .option('-f --fork <url>', 'Fork the network at the specified RPC url')
+    .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
     .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
@@ -98,7 +98,7 @@ function configureRun(program: Command) {
 
       let node: CannonRpcNode;
       if (options.chainId) {
-        const { provider } = await resolveProviderAndSigners(resolveCliSettings(), options.chainId);
+        const { provider } = await resolveProviderAndSigners(resolveCliSettings(options), options.chainId);
 
         node = await runRpc({
           port,
@@ -139,7 +139,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const cannonfilePath = path.resolve(cannonfile);
   const projectDirectory = path.dirname(cannonfilePath);
 
-  const cliSettings = resolveCliSettings();
+  const cliSettings = resolveCliSettings(opts);
 
   let provider: CannonWrapperGenericProvider;
   let node: CannonRpcNode | null = null;
@@ -227,7 +227,7 @@ program
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
-  .option('-n --network [url]', 'RPC endpoint to execute the deployment on')
+  .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
   .option('-c --chain-id <number>', 'The chain id to run against')
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
@@ -285,6 +285,7 @@ program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
+  .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
   .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -301,7 +302,7 @@ program
   .action(async function (packageName, options) {
     const { publish } = await import('./commands/publish');
 
-    const cliSettings = resolveCliSettings();
+    const cliSettings = resolveCliSettings(options);
     const p = await resolveProviderAndSigners(cliSettings, parseInt(cliSettings.registryChainId));
 
     const overrides: ethers.Overrides = {};
@@ -356,7 +357,8 @@ program
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[forge options...]', 'Additional options to send to forge')
   .description('Run forge tests on a cannon deployment. To pass arguments through to `forge test`, use `--`.')
-  .option('-f --fork <url>', 'Fork off of the given url')
+  .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
+  .option('-c --chain-id', 'Chain ID to connect to and run fork tests with')
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
@@ -389,11 +391,12 @@ program
   .description('Start an interactive terminal against a set of active cannon deployments')
   .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
   .requiredOption('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
+  .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
   .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
   .action(async function (packageDefinition, opts) {
-    const cliSettings = resolveCliSettings();
+    const cliSettings = resolveCliSettings(opts);
 
     const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
 
@@ -414,7 +417,7 @@ program
         snapshots: false,
         allowPartialDeploy: false,
       },
-      getIpfsLoader(resolveCliSettings().ipfsUrl, resolver)
+      getIpfsLoader(cliSettings.ipfsUrl, resolver)
     );
 
     const deployData = await runtime.loader.readDeploy(
