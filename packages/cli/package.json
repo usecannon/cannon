@@ -2,7 +2,7 @@
   "name": "@usecannon/cli",
   "version": "2.2.1-alpha.0",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",

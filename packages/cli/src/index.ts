@@ -13,8 +13,6 @@ import {
 
 import { checkCannonVersion, loadCannonfile } from './helpers';
 import { createSigners, parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
-
-import pkg from '../package.json';
 import { PackageSpecification } from './types';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 
@@ -35,6 +33,9 @@ import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
 import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkg = require('../package.json');
 
 const debug = Debug('cannon:cli');
 
