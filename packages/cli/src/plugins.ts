@@ -12,18 +12,14 @@ export async function installPlugin(name: string) {
   await shellExec(`npm install ${name}`);
 
   // link our own @usecannon directory and ethers, needed for proper plugin hooking and etc.
-  await shellExec(`npm link ${resolveLocalDirname(`${__dirname}/../..`)}`);
-  await shellExec(`npm link ${resolveLocalDirname('@usecannon/builder')}`);
-  await shellExec(`npm link ${resolveLocalDirname('ethers')}`);
+  await linkPluginsDependencies();
 }
 
 export async function removePlugin(name: string) {
   await shellExec(`npm uninstall ${name}`);
 
   // link our own @usecannon directory and ethers, needed for proper plugin hooking and etc.
-  await shellExec(`npm link ${resolveLocalDirname(`${__dirname}/../..`)}`);
-  await shellExec(`npm link ${resolveLocalDirname('@usecannon/builder')}`);
-  await shellExec(`npm link ${resolveLocalDirname('ethers')}`);
+  await linkPluginsDependencies();
 }
 
 export async function listInstalledPlugins() {
@@ -50,6 +46,12 @@ export async function loadPlugins() {
   for (const plugin of await listInstalledPlugins()) {
     await loadPlugin(plugin);
   }
+}
+
+async function linkPluginsDependencies() {
+  await shellExec(`npm link ${resolveLocalDirname(`${__dirname}/..`)}`);
+  await shellExec(`npm link ${resolveLocalDirname('@usecannon/builder')}`);
+  await shellExec(`npm link ${resolveLocalDirname('ethers')}`);
 }
 
 function resolveLocalDirname(packageName: string) {
