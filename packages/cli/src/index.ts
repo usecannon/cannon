@@ -34,6 +34,9 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
 
+// When getting the local package.json we need to use require instead of import
+// because if we use `import` the package.json file will be copied to dist/package.json
+// by the tsc command, generating an extra depth with /dist/src & /dist/package.json
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../package.json');
 
