@@ -7,7 +7,6 @@ import {
   ChainDefinition,
   getOutputs,
   ChainBuilderRuntime,
-  CANNON_CHAIN_ID,
   ChainArtifacts,
 } from '@usecannon/builder';
 
@@ -90,7 +89,10 @@ function configureRun(program: Command) {
       '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
     )
     .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
-    .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
+    .option(
+      '--private-key [key]',
+      'Specify a comma separated list of private keys which may be needed to sign a transaction'
+    )
     .action(async function (packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 

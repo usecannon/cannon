@@ -34,7 +34,7 @@ export async function resolveProviderAndSigners(
     try {
       await rawProvider.enable();
     } catch (err) {
-      console.error(`Failed to connect signers:`, err);
+      console.error('Failed to connect signers:', err);
       throw err;
     }
 
