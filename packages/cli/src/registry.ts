@@ -66,11 +66,16 @@ export class LocalRegistry extends CannonRegistry {
 }
 
 export async function createDefaultReadRegistry(settings: CliSettings, quiet = true): Promise<FallbackRegistry> {
-  const { provider } = await resolveProviderAndSigners(settings, parseInt(settings.registryChainId));
+  let { provider } = await resolveProviderAndSigners(settings, parseInt(settings.registryChainId));
+  const fallbackProvider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
-  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
+  const onChainRegistryFallback = new OnChainRegistry({
+    signerOrProvider: fallbackProvider,
+    address: settings.registryAddress,
+  });
+  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry, onChainRegistryFallback]);
 
   fallbackRegistry
     .on(
