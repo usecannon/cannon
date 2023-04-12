@@ -22,7 +22,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
 
   const settings = resolveCliSettings();
 
-  const resolver = createDefaultReadRegistry(settings);
+  const resolver = await createDefaultReadRegistry(settings);
 
   const runtime = new ChainBuilderRuntime(
     {

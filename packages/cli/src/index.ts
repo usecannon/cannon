@@ -90,7 +90,7 @@ function configureRun(program: Command) {
       '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
     )
     .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
-    .option('--private-key <0x...>', 'Use the specified private key hex to interact with the contracts')
+    .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
     .action(async function (packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 
@@ -115,15 +115,6 @@ function configureRun(program: Command) {
         helpInformation: program.helpInformation(),
       });
     });
-}
-
-function concatArrayOption(val: string, prev: string[]) {
-  if (prev) {
-    prev.push(val);
-    return prev;
-  }
-
-  return [val];
 }
 
 async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
@@ -158,7 +149,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
 
     if (opts.dryRun) {
-      const chainId = opts.network ? (await p.provider.getNetwork()).chainId : CANNON_CHAIN_ID;
+      const chainId = (await p.provider.getNetwork()).chainId;
 
       node = await runRpc({
         port: 8545,
@@ -231,7 +222,7 @@ program
   .option('-c --chain-id <number>', 'The chain id to run against')
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
-  .option('--private-key [key]', 'Specify a private key which may be needed to sign a transaction', concatArrayOption)
+  .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
   .option(
@@ -394,7 +385,7 @@ program
   .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
-  .option('--private-key <0xkey>', 'Use the specified private key hex to interact with the contracts')
+  .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .action(async function (packageDefinition, opts) {
     const cliSettings = resolveCliSettings(opts);
 
@@ -402,7 +393,7 @@ program
 
     const networkInfo = await p.provider.getNetwork();
 
-    const resolver = createDefaultReadRegistry(cliSettings);
+    const resolver = await createDefaultReadRegistry(cliSettings);
 
     const runtime = new ChainBuilderRuntime(
       {

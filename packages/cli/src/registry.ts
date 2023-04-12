@@ -6,6 +6,7 @@ import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
+import { resolveProviderAndSigners } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -64,8 +65,8 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
-export function createDefaultReadRegistry(settings: CliSettings, quiet = true): FallbackRegistry {
-  const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
+export async function createDefaultReadRegistry(settings: CliSettings, quiet = true): Promise<FallbackRegistry> {
+  const { provider } = await resolveProviderAndSigners(settings, parseInt(settings.registryChainId));
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
