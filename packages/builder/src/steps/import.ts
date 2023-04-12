@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
 
-import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers } from '../types';
+import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
@@ -58,9 +58,9 @@ export default {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: Config,
-    currentLabel: string
+    packageState: PackageState
   ): Promise<ChainArtifacts> {
-    const importLabel = currentLabel?.split('.')[1] || '';
+    const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
     const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;

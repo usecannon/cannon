@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { ChainBuilderContext, BuildOptions, ChainArtifacts, PreChainBuilderContext } from './types';
+import { ChainBuilderContext, BuildOptions, ChainArtifacts, PreChainBuilderContext, PackageState } from './types';
 
 import { ChainDefinition } from './definition';
 
@@ -90,6 +90,9 @@ ${printChainDefinitionProblems(problems)}`);
   const topologicalActions = def.topologicalActions;
   let ctx;
 
+  const name = def.getName(initialCtx);
+  const version = def.getVersion(initialCtx);
+
   try {
     if (runtime.snapshots) {
       debug('building by layer');
@@ -132,7 +135,12 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHash);
           if (!state[n] || (curHash && state[n].hash !== curHash)) {
             debug('run isolated', n);
-            const newArtifacts = await runStep(runtime, n, def.getConfig(n, ctx), ctx);
+            const newArtifacts = await runStep(
+              runtime, 
+              { name, version, currentLabel: n }, 
+              def.getConfig(n, ctx), 
+              ctx
+            );
             state[n] = {
               artifacts: newArtifacts,
               hash: curHash,
@@ -188,6 +196,9 @@ export async function buildLayer(
   }
 
   debug('eval build layer name', cur);
+
+  const name = def.getName(baseCtx);
+  const version = def.getVersion(baseCtx);
 
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
@@ -266,7 +277,11 @@ export async function buildLayer(
       }
 
       debug('run action in layer', action);
-      const newArtifacts = await runStep(runtime, action, def.getConfig(action, ctx), _.clone(ctx));
+      const newArtifacts = await runStep(runtime, {
+        name,
+        version,
+        currentLabel: action
+      }, def.getConfig(action, ctx), _.clone(ctx));
 
       state[action] = {
         artifacts: newArtifacts,
@@ -288,17 +303,22 @@ export async function buildLayer(
   }
 }
 
-export async function runStep(runtime: ChainBuilderRuntime, n: string, cfg: any, ctx: ChainBuilderContext) {
-  const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageState, cfg: any, ctx: ChainBuilderContext) {
+  const [type, label] = pkgState.currentLabel.split('.') as [keyof typeof ActionKinds, string];
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
-  debugVerbose('ctx for step', n, ctx);
+  debugVerbose('ctx for step', pkgState.currentLabel, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.provider.artifacts = ctx;
 
-  const output = await ActionKinds[type].exec(runtime, ctx, cfg as any, n);
+  const output = await ActionKinds[type].exec(
+    runtime, 
+    ctx, 
+    cfg as any, 
+    pkgState 
+  );
 
   runtime.emit(Events.PostStepExecute, type, label, output, 0);
 

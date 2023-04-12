@@ -10,7 +10,7 @@ const FakeAction: Action = {
   },
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
-    return this.configInject(ctx, config);
+    return this.configInject(ctx, config, { name: '', version: '', currentLabel: '' });
   },
 
   configInject(ctx: ChainBuilderContext, config: Record<string, unknown>) {
