@@ -26,7 +26,7 @@ export async function resolveRegistryProvider(settings: CliSettings) {
 
 export async function resolveProviderAndSigners({
   chainId,
-  checkProviders = ['frame', 'direct'],
+  checkProviders = ['frame'],
   privateKey,
 }: {
   chainId: number | string;
