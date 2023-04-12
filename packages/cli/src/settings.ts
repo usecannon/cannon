@@ -73,7 +73,8 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       privateKey: process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl: process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl,
+      registryProviderUrl:
+        process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT,
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
