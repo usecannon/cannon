@@ -1,7 +1,7 @@
-import { ActionKinds, registerAction, getChainDefinitionValidator, Action } from './actions';
+import { ActionKinds, registerAction, getChainDefinitionValidator, CannonAction } from './actions';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 
-const FakeAction: Action = {
+const FakeAction: CannonAction = {
   label: 'fake',
 
   validate: {

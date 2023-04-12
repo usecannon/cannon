@@ -10,7 +10,7 @@ import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
-export interface Action {
+export interface CannonAction {
   label: string;
 
   configInject: (ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
@@ -39,7 +39,7 @@ export interface Action {
 /**
  * All the different types (and their implementations)
  */
-export const ActionKinds: { [label: string]: Action } = {};
+export const ActionKinds: { [label: string]: CannonAction } = {};
 
 /**
  * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
@@ -68,7 +68,7 @@ const ChainDefinitionSchema = {
 
 export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
 
-export function registerAction(action: Action) {
+export function registerAction(action: CannonAction) {
   if (typeof action.label !== 'string') {
     throw new Error('missing "label" property on plugin definition');
   }
