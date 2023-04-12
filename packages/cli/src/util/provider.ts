@@ -57,7 +57,7 @@ export async function resolveProviderAndSigners({
         signers.push(ethersProvider.getSigner(account));
       }
     } catch (err: any) {
-      debug(`Failed to connect signers: ${err.toString()}`);
+      debug('Failed to connect signers: ', err);
     }
   }
 

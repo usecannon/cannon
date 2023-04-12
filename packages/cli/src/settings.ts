@@ -76,7 +76,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       registryProviderUrl:
         process.env.CANNON_REGISTRY_PROVIDER_URL ||
         fileSettings.registryProviderUrl ||
-        `frame,direct,${DEFAULT_REGISTRY_PROVIDER_URL}`,
+        `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`,
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
