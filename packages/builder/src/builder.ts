@@ -135,12 +135,7 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHash);
           if (!state[n] || (curHash && state[n].hash !== curHash)) {
             debug('run isolated', n);
-            const newArtifacts = await runStep(
-              runtime, 
-              { name, version, currentLabel: n }, 
-              def.getConfig(n, ctx), 
-              ctx
-            );
+            const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
             state[n] = {
               artifacts: newArtifacts,
               hash: curHash,
@@ -161,7 +156,7 @@ ${printChainDefinitionProblems(problems)}`);
             debug('error', err);
 
             console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
-            throw new Error(`failure on step ${n}: ${(err as Error).toString()}`);
+            throw new Error(`failure on step ${n}: ${JSON.stringify(err)}`);
           }
         }
       }
@@ -170,8 +165,8 @@ ${printChainDefinitionProblems(problems)}`);
     // make sure its possible to debug the original error
     debug('error', err);
 
-    console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
-    throw new Error(err?.toString());
+    console.log(`\nContext:\n${JSON.stringify(ctx, null, 2)}\n`);
+    throw err;
   }
 
   return state;
@@ -277,11 +272,16 @@ export async function buildLayer(
       }
 
       debug('run action in layer', action);
-      const newArtifacts = await runStep(runtime, {
-        name,
-        version,
-        currentLabel: action
-      }, def.getConfig(action, ctx), _.clone(ctx));
+      const newArtifacts = await runStep(
+        runtime,
+        {
+          name,
+          version,
+          currentLabel: action,
+        },
+        def.getConfig(action, ctx),
+        _.clone(ctx)
+      );
 
       state[action] = {
         artifacts: newArtifacts,
@@ -313,12 +313,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.provider.artifacts = ctx;
 
-  const output = await ActionKinds[type].exec(
-    runtime, 
-    ctx, 
-    cfg as any, 
-    pkgState 
-  );
+  const output = await ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState);
 
   runtime.emit(Events.PostStepExecute, type, label, output, 0);
 

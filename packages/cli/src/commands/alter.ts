@@ -35,7 +35,7 @@ export async function alter(
   });
   const provider = getProvider(node);
 
-  const resolver = createDefaultReadRegistry(cliSettings);
+  const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getIpfsLoader(cliSettings.ipfsUrl, resolver);
   const runtime = new ChainBuilderRuntime(
     {

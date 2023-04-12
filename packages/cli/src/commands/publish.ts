@@ -33,7 +33,7 @@ export async function publish(
   }
 
   const registry = new OnChainRegistry({
-    signerOrProvider: signer.connect(new ethers.providers.JsonRpcProvider(cliSettings.registryProviderUrl)),
+    signerOrProvider: signer,
     address: cliSettings.registryAddress,
     overrides,
   });

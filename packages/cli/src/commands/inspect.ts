@@ -12,7 +12,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   await setupAnvil();
   const { name, version } = parsePackageRef(packageRef);
 
-  const resolver = createDefaultReadRegistry(resolveCliSettings());
+  const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
   const loader = getIpfsLoader(resolveCliSettings().ipfsUrl, resolver);
 

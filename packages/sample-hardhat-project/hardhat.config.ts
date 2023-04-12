@@ -13,6 +13,8 @@ import 'hardhat-interact';
 import * as dotenv from 'dotenv';
 import { task } from 'hardhat/config';
 
+import './tasks/get-build-info';
+
 dotenv.config();
 
 // This is a sample Hardhat task. To learn how to create your own go to

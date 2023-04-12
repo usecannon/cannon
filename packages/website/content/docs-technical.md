@@ -17,12 +17,12 @@ The `run` command starts a local node with the specified package. It opens an in
 **Options**
 
 - `--port` - Port which the JSON-RPC server will be exposed. (_Default: "8545"_)
-- `--fork` - Fork the network at the specified RPC url. The chain ID for the deployment used from the package is determined by the RPC endpoint. (For the Hardhat plug-in, use `--network` to reference a network in your Hardhat configuration instead.)
+- `--chain-id` - Fork the network with the given chain id. (For the Hardhat plug-in, use `--network` to reference a network in your Hardhat configuration instead.)
+- `--provider-url` - Fork the network at the specified RPC url. If specified, `--chain-id` is ignored.
 - `--preset` - Load an alternative preset. (_Default: "main"_)
 - `--logs` - Show RPC logs instead of an interactive prompt.
 - `--impersonate` - Create impersonated signers instead of using real wallets. (_Default: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"_)
 - `--fund-addresses` - Pass a list of addresses to receive a balance of 10,000 ETH.
-- `--mnemonic` - Use the specified mnemonic to initialize a chain of signers while running.
 - `--private-key` - Use the specified private key hex to interact with the contracts.
 
 ### build
@@ -36,7 +36,8 @@ The `build` command will attempt to build a specified blockchain into the state 
 
 **Options**
 
-- `--network` - RPC endpoint to execute the deployment on. This builds for a local node if not specified. (For the Hardhat plug-in, reference a network in your Hardhat configuration instead.)
+- `--chain-id` - Build a cannon package for the given chain id. Will connect to a local RPC provider (such as Frame).
+- `--provider-url` - RPC endpoint to execute the deployment on. (For the Hardhat plug-in, reference a network in your Hardhat configuration instead.)
 - `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
 - `--dry-run` - Simulate building on a local fork rather than deploying on the real network.
 - `--private-key` - Specify a private key which may be needed to sign a transaction.
@@ -68,7 +69,9 @@ Publish a Cannon package to the registry for all networks where this package has
 
 **Options**
 
-- `--privateKey` - Private key of the wallet to use when publishing.
+- `--chain-id` - The network which the registry to deploy to is on. Default: 1 (mainnet)
+- `--provider-url` - RPC endpoint to use for publishing. If not specified, uses a local wallet provider (such as Frame)
+- `--private-key` - Private key of the wallet to use when publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--preset` - Preset name to use (_Default: "main"_)
 - `--tags` - Comma separated list of labels (_Default: "latest"_)
 - `--gas-limit` - The maximum units of gas spent for the registration transaction')
@@ -88,7 +91,7 @@ Inspect the details of a Cannon package.
 
 - `--chain-id` - Chain ID of the variant to inspect
 - `--preset` - Preset of the variant to inspect
-- `--json` - Output as JSON (_Default: false_)
+- `--json` - Output full details as JSON (_Default: false_)
 - `--write-deployments` - Path to write the deployments data (address and ABIs), like "./deployments"
 
 ### interact
@@ -101,10 +104,11 @@ Start an interactive terminal to use with a Cannon package's deployment on a liv
 
 **Options**
 
-- `--network` - RPC endpoint to execute interactions on. The chain ID for the deployment used from the package is determined by the RPC endpoint.
+- `--chain-id` - The Chain ID of the package to interact with. Default: 1 (mainnet)
+- `--provider-url` - RPC endpoint to execute interactions on. The chain ID for the deployment used from the package is determined by the RPC endpoint. Ignores `--chain-id` if specified
 - `--preset` - The preset to load. (_Default: "main"_)
 - `--mnemonic` - Use the specified mnemonic to initialize a chain of signers while running.
-- `--private-key` - Use the specified private key hex to interact with the contracts.
+- `--private-key` - Use the specified private key hex to interact with the contracts. Uses the local wallet provider's signer if unspecified.
 
 ### plugin add
 

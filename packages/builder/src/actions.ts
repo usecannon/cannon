@@ -13,13 +13,18 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, Pa
 export interface Action {
   configInject: (ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
 
-  getState: (runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
+  getState: (
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContextWithHelpers,
+    config: any,
+    packageState: PackageState
+  ) => any;
 
   exec: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     config: any,
-    packageState: PackageState,
+    packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
   validate: {

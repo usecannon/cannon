@@ -5,6 +5,7 @@ import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
 import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
 import { loadPackageJson } from '../internal/load-pkg-json';
+import { ethers } from 'ethers';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(
@@ -47,7 +48,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
           }
         : {
             port: Number.parseInt(port) || hre.config.networks.cannon.port,
-            forkUrl: networkConfig.url,
+            forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url),
             chainId: networkConfig.chainId,
           }
     );

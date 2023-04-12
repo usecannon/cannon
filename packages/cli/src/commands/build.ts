@@ -103,7 +103,7 @@ export async function build({
     publicSourceCode,
   };
 
-  const resolver = overrideResolver || createDefaultReadRegistry(cliSettings);
+  const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, getIpfsLoader(cliSettings.ipfsUrl, resolver));
 

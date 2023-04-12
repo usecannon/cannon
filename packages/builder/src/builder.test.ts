@@ -258,7 +258,12 @@ describe('builder.ts', () => {
       const handler = jest.fn();
       runtime.on(Events.PreStepExecute, handler);
       runtime.on(Events.PostStepExecute, handler);
-      const stepData = await runStep(runtime, { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'contract.Yoop' }, (fakeDefinition as any).contract.Yoop, initialCtx);
+      const stepData = await runStep(
+        runtime,
+        { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'contract.Yoop' },
+        (fakeDefinition as any).contract.Yoop,
+        initialCtx
+      );
 
       expect(stepData).toStrictEqual(expectedStateOut['contract.Yoop'].artifacts);
     });

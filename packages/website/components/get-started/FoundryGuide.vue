@@ -152,8 +152,7 @@
       >Use the
       <CCode bg="blackAlpha.800" color="whiteAlpha.800">test</CCode> command to
       run them. (Note that the
-      <CCode bg="blackAlpha.800" color="whiteAlpha.800">--fork</CCode> option is
-      supported.)</CText
+      <CCode bg="blackAlpha.800" color="whiteAlpha.800">--chain-id</CCode> option can be used to run tests against a forked network.)</CText
     >
 
     <CBox mb="8">

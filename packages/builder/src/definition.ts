@@ -101,10 +101,10 @@ export class ChainDefinition {
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
       _.get(this.raw, n),
-      { 
+      {
         name: this.getName(ctx),
         version: this.getVersion(ctx),
-        currentLabel: n
+        currentLabel: n,
       }
     )!;
   }
@@ -139,10 +139,10 @@ export class ChainDefinition {
       runtime,
       { ...ctx, ...ethers.utils, ...ethers.constants },
       this.getConfig(n, ctx) as any,
-      { 
+      {
         name: this.getName(ctx),
         version: this.getVersion(ctx),
-        currentLabel: n
+        currentLabel: n,
       }
     );
 
