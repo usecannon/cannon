@@ -4,6 +4,10 @@ import provider from 'eth-provider';
 import { CliSettings } from '../settings';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:provider');
+
 export async function resolveProviderAndSigners(
   cliSettings: CliSettings,
   chainId: number
@@ -33,13 +37,11 @@ export async function resolveProviderAndSigners(
   } else {
     try {
       await rawProvider.enable();
-    } catch (err) {
-      console.error('Failed to connect signers:', err);
-      throw err;
-    }
-
-    for (const account of rawProvider.accounts) {
-      signers.push(ethersProvider.getSigner(account));
+      for (const account of rawProvider.accounts) {
+        signers.push(ethersProvider.getSigner(account));
+      }
+    } catch (err: any) {
+      debug(`Failed to connect signers: ${err.toString()}`);
     }
   }
 
