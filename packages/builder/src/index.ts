@@ -5,6 +5,7 @@ export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, Events } from './runtime';
 export { CannonLoader, IPFSLoader } from './loader';
 
+export * from './util';
 export * from './types';
 
 export { CannonWrapperGenericProvider } from './error/provider';
