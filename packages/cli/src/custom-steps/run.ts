@@ -77,6 +77,8 @@ export type Config = JTDDataType<typeof config>;
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
 const runAction = {
+  label: 'run',
+
   validate: config,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
@@ -164,4 +166,4 @@ const runAction = {
   },
 };
 
-registerAction('run', runAction);
+registerAction(runAction);

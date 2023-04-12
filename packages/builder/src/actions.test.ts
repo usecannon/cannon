@@ -2,6 +2,8 @@ import { ActionKinds, registerAction, getChainDefinitionValidator, Action } from
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 
 const FakeAction: Action = {
+  label: 'fake',
+
   validate: {
     properties: {
       hello: { type: 'string' },
@@ -29,11 +31,17 @@ const FakeAction: Action = {
 describe('actions.ts', () => {
   describe('registerAction()', () => {
     it('does not allow redeclaration of step with same name', () => {
-      expect(() => registerAction('contract', FakeAction)).toThrowError('already declared');
+      expect(() => registerAction({ ...FakeAction, label: 'contract' })).toThrowError('already declared');
+    });
+
+    it('throws an error on missing "label"', () => {
+      expect(() => registerAction({ ...FakeAction, label: undefined as unknown as string })).toThrowError(
+        'missing "label" property on plugin definition'
+      );
     });
 
     it('registers action kind on success', () => {
-      registerAction('fake', FakeAction);
+      registerAction(FakeAction);
 
       expect(ActionKinds).toHaveProperty('fake');
 

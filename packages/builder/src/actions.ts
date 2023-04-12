@@ -11,6 +11,8 @@ import provisionSpec from './steps/provision';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
 export interface Action {
+  label: string;
+
   configInject: (ctx: ChainBuilderContextWithHelpers, config: any, packageState: PackageState) => any;
 
   getState: (
@@ -66,8 +68,14 @@ const ChainDefinitionSchema = {
 
 export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
 
-export function registerAction(label: string, action: Action) {
-  if (ActionKinds[label]) {
+export function registerAction(action: Action) {
+  if (typeof action.label !== 'string') {
+    throw new Error('missing "label" property on plugin definition');
+  }
+
+  const { label } = action;
+
+  if (ActionKinds[action.label]) {
     throw new Error('action kind already declared: ' + label);
   }
 
@@ -79,8 +87,8 @@ export function getChainDefinitionValidator() {
   return ajv.compile(ChainDefinitionSchema);
 }
 
-registerAction('contract', contractSpec);
-registerAction('import', importSpec);
-registerAction('invoke', invokeSpec);
-registerAction('keeper', keeperSpec);
-registerAction('provision', provisionSpec);
+registerAction(contractSpec);
+registerAction(importSpec);
+registerAction(invokeSpec);
+registerAction(keeperSpec);
+registerAction(provisionSpec);

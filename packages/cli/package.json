@@ -5,6 +5,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "start": "node dist/bin/cannon.js"

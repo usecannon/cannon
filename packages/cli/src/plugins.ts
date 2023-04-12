@@ -1,52 +1,36 @@
-import { exec } from 'child_process';
 import path from 'path';
-
+import { exec } from 'child_process';
+import _ from 'lodash';
 import { existsSync, mkdirp } from 'fs-extra';
 import { resolveCliSettings } from './settings';
-import _ from 'lodash';
 
 export async function installPlugin(name: string) {
-  await mkdirp(getPluginDir());
-  // npm has a bit of a freakout fit when it sees dependencies it does not know about
-  await shellExec('rm -rf node_modules/@usecannon node_modules/ethers');
-
-  // now install the dependency the user asked for
-  await shellExec(`npm install ${name}`);
-
-  // link our own @usecannon directory and ethers, needed for proper plugin hooking and etc.
-  await shellExec(`ln -sf ${__dirname}/../../node_modules/@usecannon node_modules`);
-  await shellExec(`ln -sf ${__dirname}/../../node_modules/ethers node_modules`);
+  await mkdirp(_getPluginDir());
+  await _exec(`npm install ${name}`);
 }
 
 export async function removePlugin(name: string) {
-  // npm has a bit of a freakout fit when it sees dependencies it does not know about
-  await shellExec('rm -rf node_modules/@usecannon node_modules/ethers');
-
-  await shellExec(`npm uninstall ${name}`);
-
-  // link our own @usecannon directory and ethers, needed for proper plugin hooking and etc.
-  await shellExec(`ln -sf ${__dirname}/../../node_modules/@usecannon node_modules`);
-  await shellExec(`ln -sf ${__dirname}/../../node_modules/ethers node_modules`);
+  await _exec(`npm uninstall ${name}`);
 }
 
 export async function listInstalledPlugins() {
-  if (!existsSync(getPluginDir())) {
+  if (!existsSync(_getPluginDir())) {
     return [];
   }
 
-  return Object.keys(
-    _.pickBy(JSON.parse(await shellExec('npm ls --json')).dependencies, (d: any) => !d.extraneous)
-  ) as string[];
+  return Object.keys(_.pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous)) as string[];
 }
 
 export async function loadPlugin(name: string) {
+  const pluginFolder = path.join(_getPluginDir(), 'node_modules', name);
+
   // read pkg to get the actual plugin load dir
-  /* eslint-disable @typescript-eslint/no-var-requires */
-  const pkg = require(path.join(getPluginDir(), 'node_modules', name, 'package.json'));
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pkg = require(path.join(pluginFolder, 'package.json'));
 
-  const loadFile = pkg.cannon || pkg.main;
+  const pluginFile = pkg.cannon || pkg.main || '';
 
-  return require(path.join(getPluginDir(), 'node_modules', name, loadFile));
+  return require(path.join(pluginFolder, pluginFile));
 }
 
 export async function loadPlugins() {
@@ -55,14 +39,14 @@ export async function loadPlugins() {
   }
 }
 
-function getPluginDir() {
+function _getPluginDir() {
   const cliSettings = resolveCliSettings();
   return path.join(cliSettings.cannonDirectory, 'plugins');
 }
 
-function shellExec(cmd: string): Promise<string> {
+function _exec(cmd: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(cmd, { cwd: getPluginDir() }, (error, stdout) => {
+    exec(cmd, { cwd: _getPluginDir() }, (error, stdout) => {
       if (error) {
         reject(new Error(`command ${cmd} failed with error: ${error}`));
         return;
