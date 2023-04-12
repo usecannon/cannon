@@ -6,7 +6,7 @@ import prompts from 'prompts';
 import {
   DEFAULT_CANNON_DIRECTORY,
   CLI_SETTINGS_STORE,
-  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_PROVIDER_URL,
   DEFAULT_REGISTRY_ADDRESS,
 } from '../constants';
 import _ from 'lodash';
@@ -61,10 +61,10 @@ export async function setup() {
     name: 'registryProviderUrl',
     message:
       'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
-    initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_ENDPOINT || '',
+    initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_PROVIDER_URL || '',
   });
   // Only write this to the file if it's different than the default, so this can be upgraded in the future.
-  if (response3.registryProviderUrl && response3.registryProviderUrl != DEFAULT_REGISTRY_ENDPOINT) {
+  if (response3.registryProviderUrl && response3.registryProviderUrl != DEFAULT_REGISTRY_PROVIDER_URL) {
     fileSettings.registryProviderUrl = response3.registryProviderUrl;
   }
 

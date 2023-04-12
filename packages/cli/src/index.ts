@@ -34,7 +34,7 @@ import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
 import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
-import { resolveProviderAndSigners } from './util/provider';
+import { resolveWriteProvider } from './util/provider';
 
 const debug = Debug('cannon:cli');
 
@@ -100,7 +100,9 @@ function configureRun(program: Command) {
 
       let node: CannonRpcNode;
       if (options.chainId) {
-        const { provider } = await resolveProviderAndSigners(resolveCliSettings(options), options.chainId);
+        const settings = resolveCliSettings(options);
+
+        const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
         node = await runRpc({
           port,
@@ -148,7 +150,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     provider = getProvider(node);
   } else {
-    const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
+    const p = await resolveWriteProvider(cliSettings, opts.chainId);
 
     if (opts.dryRun) {
       const chainId = (await p.provider.getNetwork()).chainId;
@@ -296,7 +298,7 @@ program
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
-    const p = await resolveProviderAndSigners(cliSettings, parseInt(cliSettings.registryChainId));
+    const p = await resolveWriteProvider(cliSettings, cliSettings.registryChainId);
 
     const overrides: ethers.Overrides = {};
 
@@ -391,7 +393,7 @@ program
   .action(async function (packageDefinition, opts) {
     const cliSettings = resolveCliSettings(opts);
 
-    const p = await resolveProviderAndSigners(cliSettings, opts.chainId);
+    const p = await resolveWriteProvider(cliSettings, opts.chainId);
 
     const networkInfo = await p.provider.getNetwork();
 

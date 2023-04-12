@@ -5,7 +5,7 @@ import untildify from 'untildify';
 import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_ENDPOINT,
+  DEFAULT_REGISTRY_PROVIDER_URL,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
   CLI_SETTINGS_STORE,
 } from './constants';
@@ -63,17 +63,20 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     console.warn(
       `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/docs for more information.`
     );
-    console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_ENDPOINT})`);
+    console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
   }
 
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
-      providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl,
-      privateKey: process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey,
+      providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
+      privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl: process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl,
+      registryProviderUrl:
+        process.env.CANNON_REGISTRY_PROVIDER_URL ||
+        fileSettings.registryProviderUrl ||
+        `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`,
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',

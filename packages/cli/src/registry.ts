@@ -6,7 +6,8 @@ import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
-import { resolveProviderAndSigners } from './util/provider';
+import { resolveRegistryProvider } from './util/provider';
+import { DEFAULT_REGISTRY_PROVIDER_URL } from './constants';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -66,7 +67,7 @@ export class LocalRegistry extends CannonRegistry {
 }
 
 export async function createDefaultReadRegistry(settings: CliSettings, quiet = true): Promise<FallbackRegistry> {
-  const { provider } = await resolveProviderAndSigners(settings, parseInt(settings.registryChainId));
+  const { provider } = await resolveRegistryProvider(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
