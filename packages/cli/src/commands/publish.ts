@@ -98,12 +98,18 @@ export async function publish(
   }
 
   console.log(
-    JSON.stringify({
-      packageRef,
-      tags: splitTags,
-      registrationReceipts,
-    })
+    JSON.stringify(
+      {
+        packageRef,
+        tags: splitTags,
+        registrationReceipts,
+      },
+      null,
+      2
+    )
   );
+
+  process.exit();
 }
 
 async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: DeploymentInfo) {
