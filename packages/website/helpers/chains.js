@@ -1190,8 +1190,8 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   },
   84531: {
     name: 'base goerli',
-    color: 'blue'
-  }
+    color: 'blue',
+  },
 });
 
 export default CHAIN_DATA;
