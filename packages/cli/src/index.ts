@@ -41,6 +41,7 @@ const debug = Debug('cannon:cli');
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { alter } from './commands/alter';
 export { build } from './commands/build';
+export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
@@ -448,10 +449,20 @@ program
 
 program
   .command('setup')
-  .description('')
+  .description('Initialize cannon settings file')
   .action(async function () {
     const { setup } = await import('./commands/setup');
     await setup();
+  });
+
+program
+  .command('clean')
+  .description('Delete packages cache directories')
+  .option('--no-confirm', 'Do not ask for confirmation before deleting')
+  .action(async function ({ noConfirm }) {
+    const { clean } = await import('./commands/clean');
+    const executed = await clean(!noConfirm);
+    if (executed) console.log('Complete!');
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');
