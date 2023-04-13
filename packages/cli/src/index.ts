@@ -344,6 +344,7 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+    process.exit();
   });
 
 program
