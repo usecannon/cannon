@@ -449,7 +449,7 @@ program
 
 program
   .command('setup')
-  .description('Initialize a cannon settings')
+  .description('Initialize cannon settings file')
   .action(async function () {
     const { setup } = await import('./commands/setup');
     await setup();
