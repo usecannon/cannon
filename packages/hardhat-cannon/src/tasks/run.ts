@@ -64,7 +64,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       preset,
       upgradeFrom,
       getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),
-      meta: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
+      pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       privateKey,
       impersonate: toImpersonate.join(','),
       fundAddresses: fundAddresses

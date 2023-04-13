@@ -89,6 +89,10 @@ export default {
       });
     }
 
+    if (config.tags) {
+      config.tags = config.tags.map(t => _.template(t)(ctx));
+    }
+
     return config;
   },
 
@@ -177,7 +181,7 @@ export default {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.loader.resolver.publish(
-        [config.source, ...(config.tags || []).map((t) => config.source.split(':')[1] + ':' + t)],
+        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[1] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl
       );
@@ -185,7 +189,7 @@ export default {
 
     return {
       imports: {
-        [importLabel]: { url: newSubDeployUrl || '', ...(await getOutputs(importRuntime, def, builtState))! },
+        [importLabel]: { url: newSubDeployUrl || '', tags: config.tags || ['latest'], ...(await getOutputs(importRuntime, def, builtState))! },
       },
     };
   },
