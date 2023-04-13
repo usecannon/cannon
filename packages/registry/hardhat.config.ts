@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+import { HardhatUserConfig } from 'hardhat/config';
+
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'solidity-coverage';
@@ -6,9 +9,7 @@ import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-ethers';
 
 import '../hardhat-cannon/src/index';
-
-import * as dotenv from 'dotenv';
-import { HardhatUserConfig } from 'hardhat/config';
+import './tasks/verify';
 
 dotenv.config();
 

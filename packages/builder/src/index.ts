@@ -1,10 +1,11 @@
 export { createInitialContext, build, getOutputs } from './builder';
-export { registerAction } from './actions';
+export { registerAction, CannonAction } from './actions';
 export type { RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, Events } from './runtime';
 export { CannonLoader, IPFSLoader } from './loader';
 
+export * from './util';
 export * from './types';
 
 export { CannonWrapperGenericProvider } from './error/provider';
