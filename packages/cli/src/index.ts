@@ -458,10 +458,11 @@ program
 program
   .command('clean')
   .description('Delete packages cache directories')
-  .action(async function () {
+  .option('--no-confirm', 'Do not ask for confirmation before deleting')
+  .action(async function ({ noConfirm }) {
     const { clean } = await import('./commands/clean');
-    await clean();
-    console.log('Complete!');
+    const executed = await clean(!noConfirm);
+    if (executed) console.log('Complete!');
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');
