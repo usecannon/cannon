@@ -1,9 +1,7 @@
+.env
 artifacts/
 cache/
 cannon/
-deployments/hardhat
-deployments/localhost
-deployments/local
 coverage.json
-.env
+deployments/
 typechain-types/
