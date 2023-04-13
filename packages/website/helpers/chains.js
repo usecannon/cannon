@@ -1107,6 +1107,24 @@ const chains = [
     faucets: [],
     infoURL: 'https://community.optimism.io/docs/',
   },
+  {
+    name: 'Base Goerli Testnet',
+    chainId: 84531,
+    shortName: 'basegor',
+    chain: 'ETH',
+    network: 'mainnet',
+    networkId: 84531,
+    nativeCurrency: {
+      name: 'Goerli Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+    rpc: ['https://goerli.base.org'],
+    etherscanApi: 'https://api-goerli.basescan.org/api',
+    etherscanUrl: 'https://goerli.basescan.org/',
+    faucets: ['https://www.coinbase.com/faucets/base-ethereum-goerli-faucet'],
+    infoURL: 'https://base.org/',
+  },
 ];
 
 let CHAIN_DATA = [];
@@ -1170,6 +1188,10 @@ CHAIN_DATA = merge(CHAIN_DATA, {
     name: 'fuji',
     color: 'pink',
   },
+  84531: {
+    name: 'base goerli',
+    color: 'blue'
+  }
 });
 
 export default CHAIN_DATA;
