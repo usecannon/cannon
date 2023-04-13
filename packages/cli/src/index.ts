@@ -210,7 +210,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     preset: opts.preset,
     wipe: opts.wipe,
     persist: !opts.dryRun,
-    overrideResolver: opts.dryRun ? createDryRunRegistry(cliSettings) : undefined,
+    overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
     publicSourceCode: true,
   });
