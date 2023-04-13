@@ -1,6 +1,6 @@
 {
 	"name": "cannon",
-	"version": "2.4.0-alpha.1",
+	"version": "2.4.0",
 	"private": true,
 	"scripts": {
 		"dev": "nuxt",
@@ -17,7 +17,7 @@
 		"@nuxtclub/feathericons": "^1.0.0",
 		"@nuxtjs/apollo": "^4.0.1-rc.5",
 		"@nuxtjs/emotion": "^0.1.0",
-		"@usecannon/builder": "^2.4.0-alpha.1",
+		"@usecannon/builder": "^2.4.0",
 		"@walletconnect/web3-provider": "^1.8.0",
 		"axios": "^1.2.6",
 		"core-js": "^3.19.3",
