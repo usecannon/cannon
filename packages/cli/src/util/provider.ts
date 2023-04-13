@@ -48,10 +48,12 @@ export async function resolveProviderAndSigners({
 
   const signers = [];
 
+  // Use private key if provided
   if (privateKey) {
     signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(ethersProvider)));
   } else {
     try {
+      // Attempt to load from eth-provider
       await rawProvider.enable();
       for (const account of rawProvider.accounts) {
         signers.push(ethersProvider.getSigner(account));
