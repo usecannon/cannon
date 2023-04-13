@@ -22,6 +22,10 @@ export class LocalRegistry extends CannonRegistry {
     this.packagesDir = packagesDir;
   }
 
+  getLabel() {
+    return 'local';
+  }
+
   getTagReferenceStorage(packageRef: string, variant: string): string {
     return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
   }
@@ -36,12 +40,18 @@ export class LocalRegistry extends CannonRegistry {
     return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
   }
 
-  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
+  async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
+    debug('load local meta package link', packageName, variant, 'at file', this.getTagReferenceStorage(packageName, variant) + '.meta');
+    return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+  }
+
+  async publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]> {
     for (const packageName of packagesNames) {
       debug('package local link', packageName);
       const file = this.getTagReferenceStorage(packageName, variant);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
+      await fs.writeFile(file + '.meta', metaUrl);
     }
 
     return [];

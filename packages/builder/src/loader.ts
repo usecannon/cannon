@@ -8,6 +8,7 @@ const debug = Debug('cannon:builder:loader');
 
 export interface CannonLoader {
   resolver: CannonRegistry;
+  getLabel(): string;
   readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null>;
   putDeploy(deployInfo: DeploymentInfo): Promise<string | null>;
   readMisc(url: string): Promise<any | null>;
@@ -25,6 +26,10 @@ export class IPFSLoader implements CannonLoader {
     this.ipfsUrl = ipfsUrl;
     this.resolver = resolver;
     this.customHeaders = customHeaders;
+  }
+
+  getLabel() {
+    return `ipfs ${this.ipfsUrl} + ${this.resolver.getLabel()}`;
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {

@@ -200,7 +200,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       version,
       settings: parsedSettings,
     },
-    meta: {},
+    pkgInfo: {},
     getArtifact: getFoundryArtifact,
     getSigner,
     getDefaultSigner,
@@ -269,7 +269,7 @@ program
   .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
   .action(async function (packageName, command, options, flags) {
     const { alter } = await import('./commands/alter');
-    // note: for command below, "meta" is empty because forge currently supplies no package meta
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
       getArtifact: getFoundryArtifact,
     });

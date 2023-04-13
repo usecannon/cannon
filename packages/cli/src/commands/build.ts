@@ -14,7 +14,7 @@ import {
   DeploymentInfo,
   CannonWrapperGenericProvider,
 } from '@usecannon/builder';
-import { loadCannonfile, saveToMetadataCache } from '../helpers';
+import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
@@ -29,7 +29,7 @@ interface Params {
   cannonfilePath?: string;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
-  meta: any;
+  pkgInfo: any;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   getSigner?: (addr: string) => Promise<ethers.Signer>;
@@ -49,7 +49,7 @@ export async function build({
   cannonfilePath,
   packageDefinition,
   upgradeFrom,
-  meta,
+  pkgInfo,
   getArtifact,
   getSigner,
   getDefaultSigner,
@@ -124,13 +124,14 @@ export async function build({
     if (oldDeployData) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
 
-      if (!meta) {
-        meta = oldDeployData.meta;
+      if (!pkgInfo) {
+        pkgInfo = oldDeployData.meta;
       }
     }
   }
   console.log(oldDeployData ? 'loaded previous deployment' : 'did not find previous deployment');
 
+  let pkgName, pkgVersion;
   let def: ChainDefinition;
   if (cannonfilePath) {
     const { def: overrideDef, name, version, cannonfile } = await loadCannonfile(cannonfilePath);
@@ -149,6 +150,9 @@ export async function build({
 
     await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile);
 
+    pkgName = name;
+    pkgVersion = version;
+
     def = overrideDef;
   } else if (oldDeployData) {
     def = new ChainDefinition(oldDeployData.def);
@@ -160,7 +164,7 @@ export async function build({
     );
   }
 
-  const defSettings = def.getSettings({ package: meta, chainId, timestamp: Math.floor(Date.now() / 1000).toString() });
+  const defSettings = def.getSettings({ package: pkgInfo, chainId, timestamp: Math.floor(Date.now() / 1000).toString() });
   if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
     const displaySettings = Object.entries(defSettings).map((setting) => [
       setting[0],
@@ -186,7 +190,7 @@ export async function build({
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
-  const initialCtx = await createInitialContext(def, meta, chainId, resolvedSettings);
+  const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 
@@ -201,9 +205,11 @@ export async function build({
       state: newState,
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
-      meta,
+      meta: pkgInfo,
       miscUrl: miscUrl,
     });
+
+    const metaUrl = await runtime.loader.putMisc(readMetadataCache(`${pkgName}:${pkgVersion}`))
 
     if (persist) {
       await resolver.publish(
