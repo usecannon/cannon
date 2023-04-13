@@ -1,13 +1,11 @@
 import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
 import path from 'path';
 import fs from 'fs-extra';
-import { ethers } from 'ethers';
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from './constants';
 
 const debug = Debug('cannon:cli:registry');
 
