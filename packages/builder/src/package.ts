@@ -30,12 +30,14 @@ export async function copyPackage({ packageRef, tags, variant, fromLoader, toLoa
   if (recursive) {
     for (const stepState of Object.entries(deployData.state || {})) {
       for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
-        if (importArtifact[1].url) {
+        // if there are any tags defined (even an empty array), then we assume that a publish should be done.
+        // otherwise, its a non-provisioned import and we shouldn't do anything
+        if (importArtifact[1].tags) {
           // copy package nested
-          console.log(importArtifact[1]);
           const nestedDeployInfo: DeploymentInfo = await fromLoader.readMisc(importArtifact[1].url);
           const nestedDef = new ChainDefinition(nestedDeployInfo.def);
           const preCtx = await createInitialContext(nestedDef, nestedDeployInfo.meta, 0, nestedDeployInfo.options);
+          console.log('TARGET PRESET', stepState[0], def.getConfig(stepState[0], preCtx));
           registrationReceipts.push(...await copyPackage({
             packageRef: `${nestedDef.getName(preCtx)}:${nestedDef.getVersion(preCtx)}`,
             variant: `${variant.split('-')[0]}-${def.getConfig(stepState[0], preCtx).targetPreset}`,

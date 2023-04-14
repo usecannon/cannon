@@ -216,13 +216,14 @@ export async function build({
       miscUrl: miscUrl,
     });
 
-    const metaUrl = await runtime.loader.putMisc(readMetadataCache(`${pkgName}:${pkgVersion}`))
+    const metaUrl = await runtime.loader.putMisc(await readMetadataCache(`${pkgName}:${pkgVersion}`));
 
     if (persist) {
       await resolver.publish(
         [`${packageDefinition.name}:latest`, `${packageDefinition.name}:${packageDefinition.version}`],
         `${runtime.chainId}-${preset}`,
-        deployUrl!
+        deployUrl!,
+        metaUrl!
       );
     }
 

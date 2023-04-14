@@ -314,19 +314,6 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    if (!options.quiet) {
-      const response = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: `This will deploy your package to IPFS and use ${await p.signers[0].getAddress()} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
-        initial: true,
-      });
-
-      if (!response.confirmation) {
-        process.exit();
-      }
-    }
-
     await publish(packageName, options.tags, options.preset, p.signers[0], overrides, options.quiet, options.force);
   });
 

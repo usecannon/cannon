@@ -59,7 +59,7 @@ export default {
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url;
+      const prevUrl = ctx.imports[importLabel].url!;
 
       if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
@@ -126,8 +126,8 @@ export default {
     // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
-    if (ctx.imports[importLabel]) {
-      const prevUrl = ctx.imports[importLabel].url;
+    if (ctx.imports[importLabel]?.url) {
+      const prevUrl = ctx.imports[importLabel].url!;
       debug(`using state from previous deploy: ${prevUrl}`);
       prevState = (await runtime.loader.readMisc(prevUrl))!.state;
     } else {
@@ -183,7 +183,8 @@ export default {
       await runtime.loader.resolver.publish(
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[1] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
-        newSubDeployUrl
+        newSubDeployUrl,
+        await runtime.loader.resolver.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`) || ''
       );
     }
 

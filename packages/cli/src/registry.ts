@@ -41,8 +41,13 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
-    debug('load local meta package link', packageName, variant, 'at file', this.getTagReferenceStorage(packageName, variant) + '.meta');
-    return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+    try {
+      debug('load local meta package link', packageName, variant, 'at file', this.getTagReferenceStorage(packageName, variant) + '.meta');
+      return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+    } catch (err) {
+      debug('could not load:', err);
+      return null;
+    }
   }
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]> {
@@ -65,9 +70,10 @@ export class LocalRegistry extends CannonRegistry {
 
     return allTags
       .filter((t) => {
+
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
-        return `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+        return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
