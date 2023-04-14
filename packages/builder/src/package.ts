@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import { StepState } from './types';
+import { DeploymentInfo, StepState } from './types';
 import { CannonLoader } from './loader';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
@@ -24,15 +24,21 @@ export async function copyPackage({ packageRef, tags, variant, fromLoader, toLoa
       'ipfs could not find deployment artifact. please double check your settings, and rebuild your package.'
     );
   }
+  
+  const def = new ChainDefinition(deployData.def);
 
   if (recursive) {
     for (const stepState of Object.entries(deployData.state || {})) {
       for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
         if (importArtifact[1].url) {
           // copy package nested
+          console.log(importArtifact[1]);
+          const nestedDeployInfo: DeploymentInfo = await fromLoader.readMisc(importArtifact[1].url);
+          const nestedDef = new ChainDefinition(nestedDeployInfo.def);
+          const preCtx = await createInitialContext(nestedDef, nestedDeployInfo.meta, 0, nestedDeployInfo.options);
           registrationReceipts.push(...await copyPackage({
-            packageRef,
-            variant,
+            packageRef: `${nestedDef.getName(preCtx)}:${nestedDef.getVersion(preCtx)}`,
+            variant: `${variant.split('-')[0]}-${def.getConfig(stepState[0], preCtx).targetPreset}`,
             tags: importArtifact[1].tags || [],
             fromLoader,
             toLoader,
@@ -57,7 +63,6 @@ export async function copyPackage({ packageRef, tags, variant, fromLoader, toLoa
     throw new Error('re-deployed urls do not match up');
   }
 
-  const def = new ChainDefinition(deployData.def);
   const preCtx = await createInitialContext(def, deployData.meta, 0, deployData.options);
 
   registrationReceipts.push(

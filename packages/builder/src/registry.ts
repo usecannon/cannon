@@ -50,6 +50,9 @@ export class InMemoryRegistry extends CannonRegistry {
       if (!this.pkgs[name]) {
         this.pkgs[name] = {};
       }
+      if (!this.metas[name]) {
+        this.metas[name] = {};
+      }
 
       this.pkgs[name][variant] = url;
       this.metas[name][variant] = meta;
@@ -65,11 +68,11 @@ export class InMemoryRegistry extends CannonRegistry {
       return baseResolved;
     }
 
-    return this.pkgs[packageRef][variant];
+    return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
   }
 
   async getMetaUrl(packageRef: string, variant: string): Promise<string | null> {
-    return this.metas[packageRef][variant];
+    return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 }
 
