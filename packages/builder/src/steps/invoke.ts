@@ -203,6 +203,8 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
 export default {
+  label: 'invoke',
+
   validate: config,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {

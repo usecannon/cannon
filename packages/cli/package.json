@@ -1,10 +1,11 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.3.1",
+  "version": "2.4.0-alpha.1",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "start": "node dist/bin/cannon.js"
@@ -35,7 +36,7 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
-    "@usecannon/builder": "^2.3.0",
+    "@usecannon/builder": "^2.4.0-alpha.1",
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",

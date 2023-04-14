@@ -13,6 +13,7 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
+  registerAction,
 } from '@usecannon/builder';
 import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -73,7 +74,13 @@ export async function build({
     if (pluginList.length) {
       console.log('loading installed plugins:', pluginList.join(', '));
       for (const plugin of pluginList) {
-        await loadPlugin(plugin);
+        const pluginAction = await loadPlugin(plugin);
+
+        if (Array.isArray(pluginAction)) {
+          for (const action of pluginAction) registerAction(action);
+        } else {
+          registerAction(pluginAction);
+        }
       }
     }
   }
