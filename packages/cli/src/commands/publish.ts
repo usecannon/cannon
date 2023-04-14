@@ -1,13 +1,8 @@
-import { DeploymentInfo, IPFSLoader, OnChainRegistry, StepState, copyPackage } from '@usecannon/builder';
-import { blueBright, yellowBright } from 'chalk';
-import Debug from 'debug';
+import { IPFSLoader, OnChainRegistry, copyPackage } from '@usecannon/builder';
+import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
-import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getIpfsLoader } from '../util/loader';
-
-const debug = Debug('cannon:cli:publish');
 
 export async function publish(
   packageRef: string,
@@ -16,7 +11,7 @@ export async function publish(
   signer: ethers.Signer,
   overrides?: ethers.Overrides,
   quiet = false,
-  recursive = true,
+  recursive = true
 ) {
   const cliSettings = resolveCliSettings();
 
@@ -50,8 +45,8 @@ export async function publish(
       fromLoader,
       toLoader,
       recursive,
-      tags: tags.split(',')
-    })
+      tags: tags.split(','),
+    });
 
     registrationReceipts.push(newReceipts);
   }

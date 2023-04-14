@@ -23,7 +23,7 @@ export abstract class CannonRegistry {
     return null;
   }
 
-  async getMetaUrl(_packageName: string, _variant: string): Promise<string | null> {
+  async getMetaUrl(/* _packageName: string, _variant: string */): Promise<string | null> {
     return null;
   }
 
@@ -85,7 +85,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   getLabel() {
-    return `fallback (${this.registries.map(r => r.getLabel()).join(', ')})`;
+    return `fallback (${this.registries.map((r) => r.getLabel()).join(', ')})`;
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {

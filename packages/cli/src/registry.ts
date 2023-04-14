@@ -7,7 +7,6 @@ import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from './constants';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -42,7 +41,13 @@ export class LocalRegistry extends CannonRegistry {
 
   async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
     try {
-      debug('load local meta package link', packageName, variant, 'at file', this.getTagReferenceStorage(packageName, variant) + '.meta');
+      debug(
+        'load local meta package link',
+        packageName,
+        variant,
+        'at file',
+        this.getTagReferenceStorage(packageName, variant) + '.meta'
+      );
       return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
     } catch (err) {
       debug('could not load:', err);
@@ -70,7 +75,6 @@ export class LocalRegistry extends CannonRegistry {
 
     return allTags
       .filter((t) => {
-
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
         return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);

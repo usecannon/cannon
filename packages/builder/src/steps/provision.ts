@@ -90,7 +90,7 @@ export default {
     }
 
     if (config.tags) {
-      config.tags = config.tags.map(t => _.template(t)(ctx));
+      config.tags = config.tags.map((t) => _.template(t)(ctx));
     }
 
     return config;
@@ -184,13 +184,17 @@ export default {
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[1] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
-        await runtime.loader.resolver.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`) || ''
+        (await runtime.loader.resolver.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
       );
     }
 
     return {
       imports: {
-        [importLabel]: { url: newSubDeployUrl || '', tags: config.tags || ['latest'], ...(await getOutputs(importRuntime, def, builtState))! },
+        [importLabel]: {
+          url: newSubDeployUrl || '',
+          tags: config.tags || ['latest'],
+          ...(await getOutputs(importRuntime, def, builtState))!,
+        },
       },
     };
   },

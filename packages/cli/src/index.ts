@@ -23,7 +23,6 @@ export * from './types';
 export * from './constants';
 export * from './util/params';
 
-import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
