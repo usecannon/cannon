@@ -120,7 +120,7 @@ export interface PackageState {
 }
 
 export interface BundledChainBuilderOutputs {
-  [module: string]: { url: string } & ChainArtifacts;
+  [module: string]: { url: string; tags?: string[] } & ChainArtifacts;
 }
 
 export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'extras'>>;

@@ -9,7 +9,7 @@ import _ from 'lodash';
 const debug = Debug('cannon:builder:registry');
 
 export abstract class CannonRegistry {
-  abstract publish(packagesNames: string[], variant: string, url: string): Promise<string[]>;
+  abstract publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]>;
 
   // in general a "catchall" is that if the packageName is in format "@service:path", then
   // that is a direct service resolve
@@ -22,6 +22,12 @@ export abstract class CannonRegistry {
 
     return null;
   }
+
+  async getMetaUrl(/* _packageName: string, _variant: string */): Promise<string | null> {
+    return null;
+  }
+
+  abstract getLabel(): string;
 }
 
 /**
@@ -30,17 +36,26 @@ export abstract class CannonRegistry {
  */
 export class InMemoryRegistry extends CannonRegistry {
   readonly pkgs: { [name: string]: { [variant: string]: string } } = {};
+  readonly metas: { [name: string]: { [variant: string]: string } } = {};
 
   count = 0;
 
-  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
+  getLabel() {
+    return 'in memory';
+  }
+
+  async publish(packagesNames: string[], variant: string, url: string, meta: string): Promise<string[]> {
     const receipts: string[] = [];
     for (const name of packagesNames) {
       if (!this.pkgs[name]) {
         this.pkgs[name] = {};
       }
+      if (!this.metas[name]) {
+        this.metas[name] = {};
+      }
 
       this.pkgs[name][variant] = url;
+      this.metas[name][variant] = meta;
       receipts.push((++this.count).toString());
     }
 
@@ -53,7 +68,11 @@ export class InMemoryRegistry extends CannonRegistry {
       return baseResolved;
     }
 
-    return this.pkgs[packageRef][variant];
+    return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
+  }
+
+  async getMetaUrl(packageRef: string, variant: string): Promise<string | null> {
+    return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 }
 
@@ -63,6 +82,10 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   constructor(registries: any[]) {
     super();
     this.registries = registries;
+  }
+
+  getLabel() {
+    return `fallback (${this.registries.map((r) => r.getLabel()).join(', ')})`;
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
@@ -82,10 +105,27 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return null;
   }
 
-  async publish(packagesNames: string[], variant: string, url: string): Promise<string[]> {
+  async getMetaUrl(packageRef: string, variant: string): Promise<string | null> {
+    for (const registry of this.registries) {
+      try {
+        const result = await registry.getMetaUrl(packageRef, variant);
+
+        if (result) {
+          await this.emit('getMetaUrl', { packageRef, variant, result, registry });
+          return result;
+        }
+      } catch (err) {
+        debug('WARNING: error caught in registry:', err);
+      }
+    }
+
+    return null;
+  }
+
+  async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
     // the fallback registry is usually something easy to write to or get to later
-    return _.first(this.registries).publish(packagesNames, variant, url);
+    return _.first(this.registries).publish(packagesNames, variant, url, metaUrl);
   }
 }
 
@@ -119,6 +159,10 @@ export class OnChainRegistry extends CannonRegistry {
     this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
+  }
+
+  getLabel() {
+    return `on chain ${this.contract.address}`;
   }
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
@@ -162,6 +206,22 @@ export class OnChainRegistry extends CannonRegistry {
     const [name, version] = packageName.split(':');
 
     const url = await this.contract.getPackageUrl(
+      ethers.utils.formatBytes32String(name),
+      ethers.utils.formatBytes32String(version),
+      ethers.utils.formatBytes32String(variant)
+    );
+
+    return url === '' ? null : url;
+  }
+
+  async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageName, variant);
+
+    if (baseResolved) return baseResolved;
+
+    const [name, version] = packageName.split(':');
+
+    const url = await this.contract.getPackageMeta(
       ethers.utils.formatBytes32String(name),
       ethers.utils.formatBytes32String(version),
       ethers.utils.formatBytes32String(variant)

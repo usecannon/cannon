@@ -1,13 +1,8 @@
-import { DeploymentInfo, IPFSLoader, OnChainRegistry, StepState } from '@usecannon/builder';
-import { blueBright, yellowBright } from 'chalk';
-import Debug from 'debug';
+import { IPFSLoader, OnChainRegistry, copyPackage } from '@usecannon/builder';
+import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
-import { readMetadataCache } from '../helpers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getIpfsLoader } from '../util/loader';
-
-const debug = Debug('cannon:cli:publish');
 
 export async function publish(
   packageRef: string,
@@ -16,7 +11,7 @@ export async function publish(
   signer: ethers.Signer,
   overrides?: ethers.Overrides,
   quiet = false,
-  force = false
+  recursive = true
 ) {
   const cliSettings = resolveCliSettings();
 
@@ -32,69 +27,28 @@ export async function publish(
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
 
-  const registry = new OnChainRegistry({
+  const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
     overrides,
   });
 
+  const fromLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
+  const toLoader = new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl, onChainRegistry);
+
   const registrationReceipts = [];
 
   for (const deploy of deploys) {
-    const toPublishUrl = await localRegistry.getUrl(deploy.name, deploy.variant);
+    const newReceipts = await copyPackage({
+      packageRef: deploy.name,
+      variant: deploy.variant,
+      fromLoader,
+      toLoader,
+      recursive,
+      tags: tags.split(','),
+    });
 
-    const [name, version] = deploy.name.split(':');
-
-    if (force || toPublishUrl !== (await registry.getUrl(`${name}:${version}`, deploy.variant))) {
-      let metaUrl;
-      // ensure the deployment is on the remote registry
-      if (cliSettings.publishIpfsUrl && cliSettings.publishIpfsUrl !== cliSettings.ipfsUrl) {
-        const localLoader = getIpfsLoader(cliSettings.ipfsUrl, localRegistry);
-        const remoteLoader = getIpfsLoader(cliSettings.publishIpfsUrl, localRegistry);
-
-        const deployData = await localLoader.readDeploy(deploy.name, preset, parseInt(deploy.variant.split('-')[0]));
-
-        if (!deployData) {
-          throw new Error(
-            'ipfs could not find deployment artifact. please double check your settings, and rebuild your package.'
-          );
-        }
-
-        const [url, miscUrl] = await reuploadIpfs(localLoader, remoteLoader, deployData);
-
-        if (url !== toPublishUrl || miscUrl !== deployData!.miscUrl) {
-          throw new Error('re-deployed urls do not match up');
-        }
-
-        metaUrl = await remoteLoader.putMisc(await readMetadataCache(`${name}:${version}`));
-
-        if (!deployData) {
-          throw new Error(`deployment data not found for tagged deployment:, ${deploy.name}, (${deploy.variant})`);
-        }
-      } else {
-        console.log(
-          yellowBright(
-            'Your package has not been pushed to a remote IPFS endpoint. Run `npx @usecannon/cli setup` to update your settings and run this command again to make sure the package is available remotely.'
-          )
-        );
-      }
-
-      registrationReceipts.push(
-        await registry.publish(
-          [version, ...splitTags].map((t) => `${name}:${t}`),
-          deploy.variant,
-          toPublishUrl!,
-          metaUrl || undefined
-        )
-      );
-      if (!quiet) {
-        console.log(`Published: ${name}:${version} (${deploy.variant})`);
-      }
-    } else {
-      if (!quiet) {
-        console.log(`Skipping publish of ${deploy.variant} because it is already published.`);
-      }
-    }
+    registrationReceipts.push(newReceipts);
   }
 
   console.log(
@@ -110,28 +64,4 @@ export async function publish(
   );
 
   process.exit();
-}
-
-async function reuploadIpfs(src: IPFSLoader, dst: IPFSLoader, deployData: DeploymentInfo) {
-  // check imports for any urls. If any exist, we need to reupload those also
-  for (const stepState of Object.entries(deployData.state || {})) {
-    for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
-      if (importArtifact[1].url) {
-        // we need to upload nested ipfs deploys as well
-        const info = await src.readMisc(importArtifact[1].url);
-        const [url, miscUrl] = await reuploadIpfs(src, dst, info);
-        if (url !== importArtifact[1].url || miscUrl !== info!.miscUrl) {
-          throw new Error('re-deployed urls do not match up');
-        }
-      }
-    }
-  }
-
-  const miscUrl = await dst.putMisc(await src.readMisc(deployData!.miscUrl));
-  debug(`ipfs re-uploaded: ${miscUrl}`);
-
-  const url = await dst.putDeploy(deployData!);
-  debug(`ipfs re-uploaded: ${url}`);
-
-  return [url, miscUrl];
 }

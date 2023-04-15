@@ -23,7 +23,6 @@ export * from './types';
 export * from './constants';
 export * from './util/params';
 
-import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
@@ -201,7 +200,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       version,
       settings: parsedSettings,
     },
-    meta: {},
+    pkgInfo: {},
     getArtifact: getFoundryArtifact,
     getSigner,
     getDefaultSigner,
@@ -270,7 +269,7 @@ program
   .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
   .action(async function (packageName, command, options, flags) {
     const { alter } = await import('./commands/alter');
-    // note: for command below, "meta" is empty because forge currently supplies no package meta
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
       getArtifact: getFoundryArtifact,
     });
@@ -313,19 +312,6 @@ program
 
     if (options.gasLimit) {
       overrides.gasLimit = options.gasLimit;
-    }
-
-    if (!options.quiet) {
-      const response = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: `This will deploy your package to IPFS and use ${await p.signers[0].getAddress()} to add the package to the registry. (This will cost a small amount of gas.) Continue?`,
-        initial: true,
-      });
-
-      if (!response.confirmation) {
-        process.exit();
-      }
     }
 
     await publish(packageName, options.tags, options.preset, p.signers[0], overrides, options.quiet, options.force);

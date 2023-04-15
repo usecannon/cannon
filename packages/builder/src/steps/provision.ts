@@ -59,7 +59,7 @@ export default {
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url;
+      const prevUrl = ctx.imports[importLabel].url!;
 
       if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
@@ -87,6 +87,10 @@ export default {
       config.options = _.mapValues(config.options, (v) => {
         return _.template(v)(ctx);
       });
+    }
+
+    if (config.tags) {
+      config.tags = config.tags.map((t) => _.template(t)(ctx));
     }
 
     return config;
@@ -122,8 +126,8 @@ export default {
     // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
-    if (ctx.imports[importLabel]) {
-      const prevUrl = ctx.imports[importLabel].url;
+    if (ctx.imports[importLabel]?.url) {
+      const prevUrl = ctx.imports[importLabel].url!;
       debug(`using state from previous deploy: ${prevUrl}`);
       prevState = (await runtime.loader.readMisc(prevUrl))!.state;
     } else {
@@ -177,15 +181,20 @@ export default {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.loader.resolver.publish(
-        [config.source, ...(config.tags || []).map((t) => config.source.split(':')[1] + ':' + t)],
+        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[1] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
-        newSubDeployUrl
+        newSubDeployUrl,
+        (await runtime.loader.resolver.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
       );
     }
 
     return {
       imports: {
-        [importLabel]: { url: newSubDeployUrl || '', ...(await getOutputs(importRuntime, def, builtState))! },
+        [importLabel]: {
+          url: newSubDeployUrl || '',
+          tags: config.tags || ['latest'],
+          ...(await getOutputs(importRuntime, def, builtState))!,
+        },
       },
     };
   },

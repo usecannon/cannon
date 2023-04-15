@@ -14,7 +14,7 @@ import { setupAnvil } from '../helpers';
 export interface RunOptions {
   node: CannonRpcNode;
   logs?: boolean;
-  meta: any;
+  pkgInfo: any;
   preset: string;
   impersonate: string;
   mnemonic?: string;

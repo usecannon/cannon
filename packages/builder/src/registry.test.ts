@@ -8,6 +8,10 @@ jest.mock('./error/provider');
 describe('registry.ts', () => {
   describe('CannonRegistry', () => {
     class FakeCannonRegistry extends CannonRegistry {
+      getLabel(): string {
+        return 'fake';
+      }
+
       async publish(/* packagesNames: string[], variant: string, url: string */): Promise<string[]> {
         return [];
       }

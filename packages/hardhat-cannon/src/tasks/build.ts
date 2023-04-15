@@ -127,7 +127,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           }
         },
         getDefaultSigner: defaultSigner ? async () => defaultSigner! : undefined,
-        meta: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
+        pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
         projectDirectory: hre.config.paths.root,
         preset,
         upgradeFrom,
