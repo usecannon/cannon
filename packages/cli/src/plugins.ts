@@ -4,13 +4,17 @@ import _ from 'lodash';
 import { existsSync, mkdirp } from 'fs-extra';
 import { resolveCliSettings } from './settings';
 
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:plugins');
+
 export async function installPlugin(name: string) {
   await mkdirp(_getPluginDir());
-  await _exec(`npm install ${name}`);
+  debug('plugin install:', await _exec(`npm install ${name}`));
 }
 
 export async function removePlugin(name: string) {
-  await _exec(`npm uninstall ${name}`);
+  debug('plugin uninstall:', await _exec(`npm uninstall ${name}`));
 }
 
 export async function listInstalledPlugins() {

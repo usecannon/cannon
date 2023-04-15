@@ -154,9 +154,10 @@ ${printChainDefinitionProblems(problems)}`);
           } else {
             // make sure its possible to debug the original error
             debug('error', err);
+            debugVerbose('context', JSON.stringify(ctx, null, 2));
 
-            console.log(`\nCannonfile Context:\n${JSON.stringify(ctx, null, 2)}\n`);
-            throw new Error(`failure on step ${n}: ${JSON.stringify(err)}`);
+            console.log(`failure on step ${n}`);
+            throw err;
           }
         }
       }
@@ -165,7 +166,7 @@ ${printChainDefinitionProblems(problems)}`);
     // make sure its possible to debug the original error
     debug('error', err);
 
-    console.log(`\nContext:\n${JSON.stringify(ctx, null, 2)}\n`);
+    debugVerbose('context', JSON.stringify(ctx, null, 2));
     throw err;
   }
 

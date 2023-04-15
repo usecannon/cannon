@@ -40,6 +40,7 @@ const debug = Debug('cannon:cli');
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { alter } from './commands/alter';
 export { build } from './commands/build';
+export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
@@ -164,7 +165,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
       // need to set default signer to make sure it is accurate to the actual signer
       getDefaultSigner = async () => {
-        const addr = await p.signers[0].getAddress();
+        const addr = p.signers.length > 0 ? await p.signers[0].getAddress() : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
         await provider.send('hardhat_impersonateAccount', [addr]);
         await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
         return provider.getSigner(addr);
@@ -208,7 +209,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     preset: opts.preset,
     wipe: opts.wipe,
     persist: !opts.dryRun,
-    overrideResolver: opts.dryRun ? createDryRunRegistry(cliSettings) : undefined,
+    overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
     publicSourceCode: true,
   });
@@ -330,6 +331,7 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+    process.exit();
   });
 
 program
@@ -433,10 +435,20 @@ program
 
 program
   .command('setup')
-  .description('')
+  .description('Initialize cannon settings file')
   .action(async function () {
     const { setup } = await import('./commands/setup');
     await setup();
+  });
+
+program
+  .command('clean')
+  .description('Delete packages cache directories')
+  .option('--no-confirm', 'Do not ask for confirmation before deleting')
+  .action(async function ({ noConfirm }) {
+    const { clean } = await import('./commands/clean');
+    const executed = await clean(!noConfirm);
+    if (executed) console.log('Complete!');
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');

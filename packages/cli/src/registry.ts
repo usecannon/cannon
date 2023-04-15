@@ -1,7 +1,6 @@
 import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
 import path from 'path';
 import fs from 'fs-extra';
-import { ethers } from 'ethers';
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
@@ -128,8 +127,8 @@ export async function createDefaultReadRegistry(settings: CliSettings, quiet = t
   return fallbackRegistry;
 }
 
-export function createDryRunRegistry(settings: CliSettings): FallbackRegistry {
-  const provider = new ethers.providers.JsonRpcProvider(settings.registryProviderUrl);
+export async function createDryRunRegistry(settings: CliSettings): Promise<FallbackRegistry> {
+  const { provider } = await resolveRegistryProvider(settings);
 
   return new FallbackRegistry([
     new InMemoryRegistry(),

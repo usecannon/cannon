@@ -76,7 +76,7 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 
   // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
   // But, for node we still wanna keep using Buffer
-  const content = typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
 
   formData.append('data', content);
   try {
