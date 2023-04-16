@@ -3,13 +3,14 @@ import { exec, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import _ from 'lodash';
 import fs from 'fs-extra';
-import prompts from 'prompts';
+import prompts, { PromptObject } from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';
 import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
 import { chains } from './chains';
 import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
+import { Params as BuildParams } from './commands/build';
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -222,4 +223,101 @@ export async function readMetadataCache(packageName: string): Promise<{ [key: st
   } catch {
     return {};
   }
+}
+
+export async function interactiveBuild(
+  cannonfile: string,
+  settings: JSON,
+  opts: BuildParams
+): Promise<{ settings: JSON; opts: BuildParams }> {
+  console.log(
+    `The build command will take CANNONFILE.TOML and create a package NAME:VERSION based on the resulting deployment.`
+  );
+
+  const questions: PromptObject[] = [
+    {
+      type: 'toggle',
+      name: 'remoteNetwork',
+      message: 'Are you planning to run the build on a remote network?',
+      initial: false,
+      active: 'Yes',
+      inactive: 'No',
+    },
+    {
+      type: (prev) => (prev ? 'text' : null),
+      name: 'providerUrl',
+      message: 'Enter the RPC endpoint for the network you’d like to deploy to:',
+      //initial: opts.provider?.connection.url,
+    },
+    {
+      type: (prev) => (prev ? 'number' : null),
+      name: 'chainId',
+      message: 'Enter the chain ID for the network you’d like to deploy to:',
+      initial: opts.chainId,
+    },
+    {
+      type: (prev) => (prev ? 'toggle' : null),
+      name: 'dryRun',
+      message: 'Would you like to run a simulation instead of executing the deplyoment for real?',
+      initial: false,
+      active: 'Yes',
+      inactive: 'No',
+    },
+    {
+      type: (prev, values) => (values.remoteNetwork ? 'toggle' : null),
+      name: 'privateKey',
+      message: 'Enter the private key for the account you’d like to use for deployment (This key will not be stored):',
+    },
+    {
+      type: 'confirm',
+      name: 'overrideSettings',
+      message: 'Would you like to override any default settings in your cannonfile?',
+      initial: false,
+    },
+    {
+      type: (prev) => (prev ? 'text' : null),
+      name: 'packageDefinitionSettings',
+      message: 'Enter the new settings as a JSON object:',
+      //initial: opts.packageDefinition.settings?.toString(),
+    },
+    {
+      type: 'text',
+      name: 'preset',
+      message: 'Enter the preset name (use "main" for default deployments):',
+      initial: opts.preset,
+    },
+    {
+      type: 'text',
+      name: 'upgradeFrom',
+      message: 'Enter the package name and version this is an upgrade from, or leave blank if not an upgrade:',
+      initial: opts.upgradeFrom,
+    },
+    {
+      type: 'toggle',
+      name: 'publicSourceCode',
+      message:
+        'Would you like to include your source code in the Cannon package? This will allow people to interact with the deployment on usecannon.com and later verify the package on etherscan',
+      initial: opts.publicSourceCode,
+      active: 'Yes',
+      inactive: 'No',
+    },
+  ];
+  const answers = await prompts(questions);
+
+  return {
+    settings,
+    opts: {
+      ...opts,
+      // provider: new ethers.providers.JsonRpcProvider(answers.providerUrl),
+      cannonfilePath: answers.cannonfilePath,
+      packageDefinition: {
+        ...opts.packageDefinition,
+        settings: answers.overrideSettings ? JSON.parse(answers.packageDefinitionSettings) : opts.packageDefinition.settings,
+      },
+      upgradeFrom: answers.upgradeFrom,
+      preset: answers.preset,
+      chainId: answers.chainId,
+      publicSourceCode: answers.publicSourceCode,
+    },
+  };
 }

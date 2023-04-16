@@ -10,7 +10,7 @@ import {
   ChainArtifacts,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile } from './helpers';
+import { checkCannonVersion, interactiveBuild, loadCannonfile } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -236,9 +236,16 @@ program
     './src'
   )
   .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
+  .option('--interactive', 'Run the command in interactive mode')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
     await spawn('forge', ['build']);
+
+    if (opts.interactive) {
+      const updatedValues = await interactiveBuild(cannonfile, settings, opts);
+      settings = updatedValues.settings;
+      opts = updatedValues.opts;
+    }
 
     const [node] = await doBuild(cannonfile, settings, opts);
 

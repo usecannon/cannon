@@ -25,7 +25,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { listInstalledPlugins, loadPlugin } from '../plugins';
 import { getIpfsLoader } from '../util/loader';
 
-interface Params {
+export interface Params {
   provider: CannonWrapperGenericProvider;
   cannonfilePath?: string;
   packageDefinition: PackageSpecification;
