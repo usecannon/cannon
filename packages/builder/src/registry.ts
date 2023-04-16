@@ -23,7 +23,7 @@ export abstract class CannonRegistry {
     return null;
   }
 
-  async getMetaUrl(/* _packageName: string, _variant: string */): Promise<string | null> {
+  async getMetaUrl(_packageName: string, _variant: string): Promise<string | null> {
     return null;
   }
 
