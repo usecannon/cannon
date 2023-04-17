@@ -177,17 +177,17 @@ export async function build({
   const wiping = oldDeployData && wipe;
   const upgradingMsg = upgradeFrom ? ` (extending ${upgradeFrom})` : '';
   if (wiping) {
-    console.log(bold(`Regenerating package...`) + upgradingMsg);
+    console.log(bold('Regenerating package...') + upgradingMsg);
   } else if (oldDeployData) {
-    console.log(bold(`Continuing with package...`) + upgradingMsg);
+    console.log(bold('Continuing with package...') + upgradingMsg);
   } else {
-    console.log(bold(`Generating new package...`) + upgradingMsg);
+    console.log(bold('Generating new package...') + upgradingMsg);
   }
-  console.log(`Name: ` + cyan(`${pkgName}`));
-  console.log(`Version: ` + cyan(`${pkgVersion}`));
-  console.log(`Preset: ` + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
+  console.log('Name: ' + cyan(`${pkgName}`));
+  console.log('Version: ' + cyan(`${pkgVersion}`));
+  console.log('Preset: ' + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   if (publicSourceCode) {
-    console.log(gray(`Source code will be included in the package`));
+    console.log(gray('Source code will be included in the package'));
   }
   console.log('');
 
@@ -200,7 +200,7 @@ export async function build({
     )
   );
   if (!_.isEmpty(packageDefinition.settings)) {
-    console.log(`Overriding the default values for the cannonfile's settings with the following:`);
+    console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
       console.log(`  - ${key} = ${value}`);
     }
