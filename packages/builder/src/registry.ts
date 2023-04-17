@@ -23,7 +23,8 @@ export abstract class CannonRegistry {
     return null;
   }
 
-  async getMetaUrl(/* _packageName: string, _variant: string */): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getMetaUrl(_packageName: string, _variant: string): Promise<string | null> {
     return null;
   }
 
