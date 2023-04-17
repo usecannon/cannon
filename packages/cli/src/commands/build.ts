@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import ethers from 'ethers';
-import { table } from 'table';
-import { bold, greenBright, green, dim, red, yellow, blueBright, gray, cyanBright } from 'chalk';
+import { bold, greenBright, red, yellow, gray, cyan } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -43,6 +42,7 @@ interface Params {
   persist?: boolean;
   plugins?: boolean;
   publicSourceCode?: boolean;
+  providerUrl?: string;
 }
 
 export async function build({
@@ -61,6 +61,7 @@ export async function build({
   persist = true,
   plugins = true,
   publicSourceCode = false,
+  providerUrl,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -182,19 +183,20 @@ export async function build({
   } else {
     console.log(bold(`Generating new package...`) + upgradingMsg);
   }
-  console.log(`Package Name: ` + cyanBright(`${pkgName}`));
-  console.log(`Version: ` + cyanBright(`${pkgVersion}`));
-  console.log(`Preset: ` + cyanBright(`${preset}`) + (preset == 'main' ? ' (default)' : ''));
+  console.log(`Name: ` + cyan(`${pkgName}`));
+  console.log(`Version: ` + cyan(`${pkgVersion}`));
+  console.log(`Preset: ` + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   if (publicSourceCode) {
-    console.log(gray(`Source code will be included in the package.`));
+    console.log(gray(`Source code will be included in the package`));
   }
   console.log('');
 
+  const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(
     bold(
       `${
         overrideResolver == undefined ? 'Building' : 'Running a simulated build of'
-      } the chain (ID ${chainId}) into the state defined in ${cannonfilePath?.split('/').pop()}...`
+      } the chain (ID ${chainId} via ${providerUrlMsg}) into the state defined in ${cannonfilePath?.split('/').pop()}...`
     )
   );
   if (!_.isEmpty(packageDefinition.settings)) {

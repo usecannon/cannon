@@ -214,6 +214,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     publicSourceCode,
+    providerUrl: cliSettings.providerUrl,
   });
 
   return [node, outputs];
