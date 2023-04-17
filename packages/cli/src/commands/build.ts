@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import ethers from 'ethers';
 import { table } from 'table';
-import { bold, greenBright, green, dim, red, yellow, blueBright } from 'chalk';
+import { bold, greenBright, green, dim, red, yellow, blueBright, gray, cyanBright } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -72,7 +72,6 @@ export async function build({
     const pluginList = await listInstalledPlugins();
 
     if (pluginList.length) {
-      console.log('loading installed plugins:', pluginList.join(', '));
       for (const plugin of pluginList) {
         const pluginAction = await loadPlugin(plugin);
 
@@ -121,22 +120,25 @@ export async function build({
     console.log(`${'  '.repeat(d)}  -> skip ${n} (${err.toString()})`);
   });
 
+  // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  if (!wipe) {
-    const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
+  const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
 
-    console.log(blueBright(`downloading IPFS deploy for ${prevPkg} (this can take some time...)`));
-    oldDeployData = await runtime.loader.readDeploy(prevPkg, preset || 'main', runtime.chainId);
+  console.log(bold(`Checking IPFS for package ${prevPkg}...`));
+  oldDeployData = await runtime.loader.readDeploy(prevPkg, preset || 'main', runtime.chainId);
 
-    if (oldDeployData) {
-      await runtime.restoreMisc(oldDeployData.miscUrl);
+  // Update pkgInfo (package.json) with information from existing package, if present
+  if (oldDeployData) {
+    console.log('Existing package found.');
+    await runtime.restoreMisc(oldDeployData.miscUrl);
 
-      if (!pkgInfo) {
-        pkgInfo = oldDeployData.meta;
-      }
+    if (!pkgInfo) {
+      pkgInfo = oldDeployData.meta;
     }
+  } else {
+    console.log('No existing package found.');
   }
-  console.log(oldDeployData ? 'loaded previous deployment' : 'did not find previous deployment');
+  console.log('');
 
   let pkgName, pkgVersion;
   let def: ChainDefinition;
@@ -171,28 +173,44 @@ export async function build({
     );
   }
 
-  const defSettings = def.getSettings({ package: pkgInfo, chainId, timestamp: Math.floor(Date.now() / 1000).toString() });
-  if (!packageDefinition.settings && defSettings && !_.isEmpty(defSettings)) {
-    const displaySettings = Object.entries(defSettings).map((setting) => [
-      setting[0],
-      setting[1].defaultValue || dim('No default value'),
-      setting[1].description || dim('No description'),
-    ]);
-    console.log('This package can be built with custom settings.');
-    console.log(dim(`Example: npx hardhat cannon:build ${displaySettings[0][0]}="my ${displaySettings[0][0]}"`));
-    console.log('\nSETTINGS:');
-    console.log(table([[bold('Name'), bold('Default Value'), bold('Description')], ...displaySettings]));
+  const wiping = oldDeployData && wipe;
+  const upgradingMsg = upgradeFrom ? ` (extending ${upgradeFrom})` : '';
+  if (wiping) {
+    console.log(bold(`Regenerating package...`) + upgradingMsg);
+  } else if (oldDeployData) {
+    console.log(bold(`Continuing with package...`) + upgradingMsg);
+  } else {
+    console.log(bold(`Generating new package...`) + upgradingMsg);
+  }
+  console.log(`Package Name: ` + cyanBright(`${pkgName}`));
+  console.log(`Version: ` + cyanBright(`${pkgVersion}`));
+  console.log(`Preset: ` + cyanBright(`${preset}${preset == 'main' ? ' (default)' : ''}`));
+  if (publicSourceCode) {
+    console.log(`Source code will be included in the package.`);
+  }
+  console.log('');
+
+  console.log(
+    bold(
+      `${
+        overrideResolver == undefined ? 'Building' : 'Running a simulated build of'
+      } the chain (ID ${chainId}) into the state defined in ${cannonfilePath?.split('/').pop()}...`
+    )
+  );
+  if (!_.isEmpty(packageDefinition.settings)) {
+    console.log(`Overriding the default values for the cannonfile's settings with the following:`);
+    for (const [key, value] of Object.entries(packageDefinition.settings)) {
+      console.log(`  - ${key} = ${value}`);
+    }
+    console.log('');
   }
 
-  if (!_.isEmpty(packageDefinition.settings)) {
-    console.log(
-      green(
-        `Creating preset ${bold(preset)} with the following settings: ` +
-          Object.entries(packageDefinition.settings)
-            .map((setting) => `${setting[0]}=${setting[1]}`)
-            .join(' ')
-      )
-    );
+  if (plugins) {
+    const pluginList = await listInstalledPlugins();
+
+    if (pluginList.length) {
+      console.log('plugins:', pluginList.join(', '), ' detected');
+    }
   }
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);

@@ -129,6 +129,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     cannonfile = 'cannonfile.toml';
   }
 
+  const publicSourceCode = true; // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
@@ -142,6 +143,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
   let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
 
+  let chainId: number | undefined = undefined;
+
   if (!opts.chainId) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
@@ -149,12 +152,12 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     });
 
     provider = getProvider(node);
+    chainId = (await provider.getNetwork()).chainId;
   } else {
     const p = await resolveWriteProvider(cliSettings, opts.chainId);
+    chainId = (await p.provider.getNetwork()).chainId;
 
     if (opts.dryRun) {
-      const chainId = (await p.provider.getNetwork()).chainId;
-
       node = await runRpc({
         port: 8545,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
@@ -210,8 +213,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
-    // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
-    publicSourceCode: true,
+    publicSourceCode,
   });
 
   return [node, outputs];
