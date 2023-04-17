@@ -184,9 +184,9 @@ export async function build({
   }
   console.log(`Package Name: ` + cyanBright(`${pkgName}`));
   console.log(`Version: ` + cyanBright(`${pkgVersion}`));
-  console.log(`Preset: ` + cyanBright(`${preset}${preset == 'main' ? ' (default)' : ''}`));
+  console.log(`Preset: ` + cyanBright(`${preset}`) + (preset == 'main' ? ' (default)' : ''));
   if (publicSourceCode) {
-    console.log(`Source code will be included in the package.`);
+    console.log(gray(`Source code will be included in the package.`));
   }
   console.log('');
 
@@ -209,7 +209,7 @@ export async function build({
     const pluginList = await listInstalledPlugins();
 
     if (pluginList.length) {
-      console.log('plugins:', pluginList.join(', '), ' detected');
+      console.log('plugins:', pluginList.join(', '), 'detected');
     }
   }
 
