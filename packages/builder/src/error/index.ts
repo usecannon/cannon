@@ -24,7 +24,7 @@ export async function handleTxnError(
 
   debug('handle txn error received', err.toString());
 
-  let errorData: string | null = null;
+  let errorCodeHex: string | null = null;
   let txnData: ethers.providers.TransactionRequest | null = null;
   let txnHash: string | null = null;
 
@@ -34,13 +34,15 @@ export async function handleTxnError(
     return handleTxnError(artifacts, provider, err.error);
   } else if (err.code === 'CALL_EXCEPTION') {
     txnData = err.transaction;
-    errorData = err.data;
+    errorCodeHex = err.data;
+  } else if (err.code === -32015) {
+    errorCodeHex = err.message.split(' ')[1];
   } else if (err.code === -32603) {
-    errorData = err.data.originalError.data;
+    errorCodeHex = err.data.originalError.data;
   }
   if (err.reason === 'processing response error') {
     txnData = JSON.parse(err.requestBody).params[0];
-    errorData = err.error.data;
+    errorCodeHex = err.error.data;
   }
 
   if (txnData && (await isAnvil(provider))) {
@@ -77,8 +79,8 @@ export async function handleTxnError(
     }
   }
 
-  if (traces.length || txnHash || txnData || errorData) {
-    throw new CannonTraceError(err, artifacts, errorData, traces);
+  if (traces.length || txnHash || txnData || errorCodeHex) {
+    throw new CannonTraceError(err, artifacts, errorCodeHex, traces);
   } else {
     throw err;
   }
@@ -91,14 +93,14 @@ class CannonTraceError extends Error {
   // `NONCE_EXPIRED` is a very innocent looking error, so ethers will simply forward it.
   code: string = Logger.errors.NONCE_EXPIRED;
 
-  constructor(error: Error, ctx: ChainArtifacts, errorData: string | null, traces: TraceEntry[]) {
+  constructor(error: Error, ctx: ChainArtifacts, errorCodeHex: string | null, traces: TraceEntry[]) {
     let contractName = 'unknown';
     let decodedMsg = error.message;
-    if (errorData) {
+    if (errorCodeHex) {
       try {
         const r = findContract(ctx, ({ address, abi }) => {
           try {
-            new ethers.Contract(address, abi).interface.parseError(errorData);
+            new ethers.Contract(address, abi).interface.parseError(errorCodeHex);
             return true;
           } catch (_) {
             // intentionally empty
@@ -110,7 +112,7 @@ class CannonTraceError extends Error {
           contractName = r?.name;
         }
 
-        decodedMsg = parseErrorReason(r?.contract ?? null, errorData);
+        decodedMsg = parseErrorReason(r?.contract ?? null, errorCodeHex);
       } catch {
         // intentionally empty
       }
