@@ -1,8 +1,8 @@
-import { ChainBuilderRuntime } from "../runtime";
-import { ChainBuilderContextWithHelpers } from "../types";
+import { ChainBuilderRuntime } from '../runtime';
+import { ChainBuilderContextWithHelpers } from '../types';
 
-import { CannonWrapperGenericProvider } from "../error/provider";
-import { ethers } from "ethers";
+import { CannonWrapperGenericProvider } from '../error/provider';
+import { ethers } from 'ethers';
 
 jest.mock('../runtime');
 jest.mock('../error/provider');
@@ -12,7 +12,7 @@ export const fakeCtx = {
     a: 'a',
     b: 'b',
     c: 'c',
-    d: 'd'
+    d: 'd',
   },
   contracts: {},
   txns: {},
@@ -20,7 +20,7 @@ export const fakeCtx = {
   imports: {},
   chainId: 1234,
   package: {},
-  timestamp: '1234123412'
+  timestamp: '1234123412',
 } as unknown as ChainBuilderContextWithHelpers;
 
 export const fakeRuntime = new ChainBuilderRuntime({} as any, null as any);
@@ -35,8 +35,8 @@ export function makeFakeSigner(address: string) {
     wait: jest.fn().mockResolvedValue({
       contractAddress: '0x2345234523452345234523452345234523452345',
       transactionHash: '0x1234',
-      logs: []
-    })
+      logs: [],
+    }),
   });
   signer.signTransaction = jest.fn();
   signer.signMessage = jest.fn();
@@ -44,5 +44,7 @@ export function makeFakeSigner(address: string) {
   return signer;
 }
 
-(fakeRuntime.getDefaultSigner as any) = jest.fn().mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'));
+(fakeRuntime.getDefaultSigner as any) = jest
+  .fn()
+  .mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'));
 (fakeRuntime.getArtifact as any) = jest.fn().mockResolvedValue(null);

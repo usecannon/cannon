@@ -103,7 +103,7 @@ export default {
 
     return {
       bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
-      args: parsedConfig.args?.map((v) => typeof v === 'string' ? v : JSON.stringify(v)) || [],
+      args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
       salt: parsedConfig.salt,
       value: parsedConfig.value || [],
     };

@@ -29,33 +29,40 @@ describe('setps/provision.ts', () => {
           deployTxnHash: '0x',
           contractName: 'Woot',
           sourceName: 'Woot.sol',
-          deployedOn: 'contract.Woot'
-        }
-      }
+          deployedOn: 'contract.Woot',
+        },
+      },
     });
   });
 
   describe('configInject()', () => {
     it('injects all fields', async () => {
-
-      const result = action.configInject(fakeCtx, {
-        source: '<%= settings.a %>',
-      }, { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' });
+      const result = action.configInject(
+        fakeCtx,
+        {
+          source: '<%= settings.a %>',
+        },
+        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+      );
 
       expect(result).toStrictEqual({
         source: 'a',
         sourcePreset: 'main',
-        targetPreset: 'with-who'
+        targetPreset: 'with-who',
       });
     });
   });
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-
       await registry.publish(['hello:1.0.0'], '13370-main', 'https://something.com', '');
 
-      const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' }, { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' });
+      const result = await action.getState(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
+        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+      );
 
       expect(result).toStrictEqual({
         url: 'https://something.com',
@@ -65,10 +72,14 @@ describe('setps/provision.ts', () => {
     });
 
     it('resolves correct properties with maximal config', async () => {
-
       await registry.publish(['hello:1.0.0'], '1234-foobar', 'https://something-else.com', '');
 
-      const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0', sourcePreset: 'foobar', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } }, { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' });
+      const result = await action.getState(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0', sourcePreset: 'foobar', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } },
+        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+      );
 
       expect(result).toStrictEqual({
         url: 'https://something-else.com',
@@ -79,14 +90,15 @@ describe('setps/provision.ts', () => {
   });
 
   describe('exec()', () => {
-
     it('throws if deployment not found', async () => {
-      expect(() => action.exec(
-        fakeRuntime, 
-        fakeCtx, 
-        { source: 'undefinedDeployment:1.0.0' }, 
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
-      )).rejects.toThrowError('deployment not found');
+      expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'undefinedDeployment:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        )
+      ).rejects.toThrowError('deployment not found');
     });
 
     it('works properly', async () => {
@@ -105,30 +117,30 @@ describe('setps/provision.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot'
-                }
-              }
-            }
-          }
+                  deployedOn: 'contract.Woot',
+                },
+              },
+            },
+          },
         },
         options: {},
-        def: { 
-          name: 'hello', 
-          version: '1.0.0', 
-          contract: { 
-            Woot: { artifact: 'Woot' }
-          } 
+        def: {
+          name: 'hello',
+          version: '1.0.0',
+          contract: {
+            Woot: { artifact: 'Woot' },
+          },
         } as any,
         meta: {},
-        miscUrl: 'https://something.com'
+        miscUrl: 'https://something.com',
       });
 
       jest.mocked(fakeRuntime.loader.putDeploy).mockResolvedValue('ipfs://Qmsomething');
 
       const result = await action.exec(
-        fakeRuntime, 
-        fakeCtx, 
-        { source: 'hello:1.0.0' }, 
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
         { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
       );
 
@@ -144,11 +156,11 @@ describe('setps/provision.ts', () => {
                 deployTxnHash: '0x',
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
-                deployedOn: 'contract.Woot'
-              }
-            }
-          }
-        }
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
       });
     });
   });

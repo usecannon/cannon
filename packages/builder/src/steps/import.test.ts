@@ -1,4 +1,3 @@
-
 import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { IPFSLoader } from '../loader';
@@ -19,45 +18,44 @@ describe('steps/import.ts', () => {
 
   describe('configInject()', () => {
     it('injects all fields', async () => {
-
       const result = action.configInject(fakeCtx, {
         source: '<%= settings.a %>',
         chainId: 1234,
         preset: '<%= settings.c %>',
-        depends: []
+        depends: [],
       });
 
       expect(result).toStrictEqual({
         source: 'a',
         chainId: 1234,
         preset: 'c',
-        depends: []
+        depends: [],
       });
     });
   });
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
 
       const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' });
 
       expect(result).toStrictEqual({
-        url: 'https://something.com'
-      })
+        url: 'https://something.com',
+      });
     });
   });
 
   describe('exec()', () => {
-
     it('throws if deployment not found', async () => {
-      expect(() => action.exec(
-        fakeRuntime, 
-        fakeCtx, 
-        { source: 'undefinedDeployment:1.0.0' }, 
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
-      )).rejects.toThrowError('deployment not found');
+      expect(() =>
+        action.exec(
+          fakeRuntime,
+          fakeCtx,
+          { source: 'undefinedDeployment:1.0.0' },
+          { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        )
+      ).rejects.toThrowError('deployment not found');
     });
 
     it('works properly', async () => {
@@ -76,28 +74,28 @@ describe('steps/import.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot'
-                }
-              }
-            }
-          }
+                  deployedOn: 'contract.Woot',
+                },
+              },
+            },
+          },
         },
         options: {},
-        def: { 
-          name: 'hello', 
-          version: '1.0.0', 
-          contract: { 
-            Woot: { artifact: 'Woot' }
-          } 
+        def: {
+          name: 'hello',
+          version: '1.0.0',
+          contract: {
+            Woot: { artifact: 'Woot' },
+          },
         } as any,
         meta: {},
-        miscUrl: 'https://something.com'
-      })
+        miscUrl: 'https://something.com',
+      });
 
       const result = await action.exec(
-        fakeRuntime, 
-        fakeCtx, 
-        { source: 'hello:1.0.0' }, 
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
         { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
       );
 
@@ -112,11 +110,11 @@ describe('steps/import.ts', () => {
                 deployTxnHash: '0x',
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
-                deployedOn: 'contract.Woot'
-              }
-            }
-          }
-        }
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
       });
     });
   });
