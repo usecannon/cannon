@@ -103,7 +103,7 @@ export default {
 
     return {
       bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
-      args: parsedConfig.args || [],
+      args: parsedConfig.args?.map((v) => typeof v === 'string' ? v : JSON.stringify(v)) || [],
       salt: parsedConfig.salt,
       value: parsedConfig.value || [],
     };
@@ -117,6 +117,8 @@ export default {
     config.nonce = _.template(config.nonce)(ctx);
 
     config.artifact = _.template(config.artifact)(ctx);
+
+    config.value = _.template(config.value)(ctx);
 
     config.abi = _.template(config.abi)(ctx);
 

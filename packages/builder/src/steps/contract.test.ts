@@ -3,10 +3,41 @@ import '../actions';
 import { ChainBuilderContextWithHelpers, ContractArtifact } from '../types';
 import action from './contract';
 
-import { fakeRuntime, fakeCtx } from './testUtils';
+import { fakeRuntime, fakeCtx, makeFakeSigner } from './testUtils';
 import { makeArachnidCreate2Txn } from '../create2';
+import { ARACHNID_CREATE2_PROXY } from '../constants';
 
 describe('setps/contract.ts', () => {
+
+  const fakeAbi = [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "data",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "data",
+          "type": "bytes32"
+        },
+        {
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    }
+  ];
+
+  beforeAll(async () => {
+    jest.mocked(fakeRuntime.getArtifact).mockResolvedValue({
+      bytecode: '0xabcd',
+      abi: fakeAbi,
+    } as unknown as ContractArtifact)
+  });
 
   describe('configInject()', () => {
     it('injects all fields', async () => {
@@ -18,7 +49,7 @@ describe('setps/contract.ts', () => {
         nonce: '<%= settings.d %>',
         abi: '<%= settings.c %><%= settings.d %>',
         args: ['<%= settings.d %><%= settings.a %>', { abc: '<%= settings.a %><%= settings.b %><%= settings.c %>' }],
-        libraries: { dcba: '<%= a %>' },
+        libraries: { dcba: '<%= settings.a %>' },
 
         // used to force new copy of a contract (not actually used)
         salt: '<%= settings.a %><%= settings.c %>',
@@ -54,11 +85,8 @@ describe('setps/contract.ts', () => {
   });
 
   describe('getState()', () => {
-    it('resolves correct properties with minimal config', async () => {
 
-      jest.mocked(fakeRuntime.getArtifact).mockResolvedValue({
-        bytecode: '0xabcd'
-      } as ContractArtifact)
+    it('resolves correct properties with minimal config', async () => {
 
       const result = await action.getState(fakeRuntime, fakeCtx, { artifact: 'hello' });
 
@@ -66,7 +94,7 @@ describe('setps/contract.ts', () => {
         bytecode: '0xabcd',
         args: [],
         salt: undefined,
-        value: '1234',
+        value: [], // for cannon spec, undefined or 0 value contract create resolves to empty array (dont ask)
       })
     });
 
@@ -85,7 +113,7 @@ describe('setps/contract.ts', () => {
       expect(result).toStrictEqual({
         bytecode: '0xabcd',
         args: ['one', 'two', '{"three":"four"}'],
-        salt: undefined,
+        salt: 'wohoo',
         value: '1234',
       })
     });
@@ -100,7 +128,7 @@ describe('setps/contract.ts', () => {
         const result = await action.exec(fakeRuntime, fakeCtx, {
           artifact: 'hello',
           create2: true,
-          args: ['one', 'two', { three: 'four' }],
+          args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
           salt: 'wohoo',
           value: '1234'
         }, { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' });
@@ -108,7 +136,14 @@ describe('setps/contract.ts', () => {
         expect(result).toStrictEqual({
           contracts: {
             Woot: {
-              deployTxnHash: ''
+              abi: fakeAbi,
+              address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
+              constructorArgs: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+              contractName: undefined,
+              deployTxnHash: '',
+              deployedOn: 'contract.Woot',
+              linkedLibraries: {},
+              sourceName: undefined
             }
           }
         });
@@ -118,31 +153,42 @@ describe('setps/contract.ts', () => {
 
       it('works if contract needs to be deployed', async () => {
 
-        jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x');
+        jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async (addr) => {
+          if (addr === ARACHNID_CREATE2_PROXY) {
+            return '0xabcd';
+          }
 
-        const sendTxnFn = jest.fn();
-
-        jest.mocked(fakeRuntime.getDefaultSigner).mockResolvedValue({
-          sendTransaction: sendTxnFn
-        } as unknown as ethers.Signer);
+          return '0x';
+        });
 
         const result = await action.exec(fakeRuntime, fakeCtx, {
           artifact: 'hello',
           create2: true,
-          args: ['one', 'two', { three: 'four' }],
+          args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
           salt: 'wohoo',
           value: '1234'
         }, { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' });
 
         expect(result).toStrictEqual({
-
+          contracts: {
+            Woot: {
+              abi: fakeAbi,
+              address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
+              constructorArgs: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+              contractName: undefined,
+              deployTxnHash: '0x1234',
+              deployedOn: 'contract.Woot',
+              linkedLibraries: {},
+              sourceName: undefined
+            }
+          }
         });
 
-        expect(sendTxnFn).toBeCalledWith(makeArachnidCreate2Txn(
+        expect((await fakeRuntime.getDefaultSigner({}, '')).sendTransaction).toBeCalledWith(makeArachnidCreate2Txn(
           'wohoo',
-          '0xabcd'
-        ));
-
+          new ethers.ContractFactory(fakeAbi, '0xabcd')
+            .getDeployTransaction(ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }).data!
+        )[0]);
       });
     });
 
@@ -150,40 +196,82 @@ describe('setps/contract.ts', () => {
       it('deploys with specified nonce', async () => {
         const result = await action.exec(fakeRuntime, fakeCtx, {
           artifact: 'hello',
-          args: ['one', 'two', { three: 'four' }],
+          args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
           salt: 'wohoo',
           value: '1234'
         }, { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' });
 
         expect(result).toStrictEqual({
-
+          contracts: {
+            Woot: {
+              abi: fakeAbi,
+              address: '0x2345234523452345234523452345234523452345',
+              constructorArgs: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+              contractName: undefined,
+              deployTxnHash: '0x1234',
+              deployedOn: 'contract.Woot',
+              linkedLibraries: {},
+              sourceName: undefined
+            }
+          }
         });
       });
 
       it('deploys with specified signer fromCall', async () => {
+
+        (fakeRuntime.getSigner as any) = async (addr: string) => {
+          if (addr == '0x1234123412341234123412341234123412341234') {
+            return makeFakeSigner('0x1234123412341234123412341234123412341234');
+          }
+
+          return null;
+        }
+
         const result = await action.exec(fakeRuntime, fakeCtx, {
           artifact: 'hello',
           from: '0x1234123412341234123412341234123412341234',
-          args: ['one', 'two', { three: 'four' }],
+          args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
           salt: 'wohoo',
           value: '1234'
         }, { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' });
 
         expect(result).toStrictEqual({
-
+          contracts: {
+            Woot: {
+              abi: fakeAbi,
+              address: '0x2345234523452345234523452345234523452345',
+              constructorArgs: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+              contractName: undefined,
+              deployTxnHash: '0x1234',
+              deployedOn: 'contract.Woot',
+              linkedLibraries: {},
+              sourceName: undefined
+            }
+          }
         });
       });
 
       it('deploys with default signer', async () => {
         const result = await action.exec(fakeRuntime, fakeCtx, {
           artifact: 'hello',
-          args: ['one', 'two', { three: 'four' }],
+          args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
           salt: 'wohoo',
           value: '1234'
         }, { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' });
 
         expect(result).toStrictEqual({
-
+          contracts: {
+            Woot: {
+              abi: fakeAbi,
+              address: '0x2345234523452345234523452345234523452345',
+              constructorArgs: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+              contractName: undefined,
+              deployTxnHash: '0x1234',
+              deployedOn: 'contract.Woot',
+              linkedLibraries: {},
+              sourceName: undefined
+            }
+          }
         });
       });
     });

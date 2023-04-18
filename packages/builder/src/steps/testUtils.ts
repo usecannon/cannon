@@ -31,8 +31,11 @@ export function makeFakeSigner(address: string) {
   const signer = new ethers.VoidSigner(address, fakeRuntime.provider);
 
   signer.sendTransaction = jest.fn().mockResolvedValue({
+    hash: '0x1234',
     wait: jest.fn().mockResolvedValue({
-      transactionHash: '0x1234'
+      contractAddress: '0x2345234523452345234523452345234523452345',
+      transactionHash: '0x1234',
+      logs: []
     })
   });
   signer.signTransaction = jest.fn();
@@ -41,4 +44,5 @@ export function makeFakeSigner(address: string) {
   return signer;
 }
 
-(fakeRuntime.getDefaultSigner as any) = jest.fn().mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'))
+(fakeRuntime.getDefaultSigner as any) = jest.fn().mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'));
+(fakeRuntime.getArtifact as any) = jest.fn().mockResolvedValue(null);
