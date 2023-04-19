@@ -24,7 +24,10 @@ export async function copyPackage({
 
   const registrationReceipts: string[] = [];
 
-  const deployData = await fromLoader.readDeploy(packageRef, variant.split('-')[1], parseInt(variant.split('-')[0]));
+  const chainId = parseInt(variant.split('-')[0]);
+  const preset = variant.substring(variant.indexOf('-') + 1);
+
+  const deployData = await fromLoader.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
@@ -42,11 +45,10 @@ export async function copyPackage({
           const nestedDeployInfo: DeploymentInfo = await fromLoader.readMisc(importArtifact[1].url);
           const nestedDef = new ChainDefinition(nestedDeployInfo.def);
           const preCtx = await createInitialContext(nestedDef, nestedDeployInfo.meta, 0, nestedDeployInfo.options);
-          console.log('TARGET PRESET', stepState[0], def.getConfig(stepState[0], preCtx));
           registrationReceipts.push(
             ...(await copyPackage({
               packageRef: `${nestedDef.getName(preCtx)}:${nestedDef.getVersion(preCtx)}`,
-              variant: `${variant.split('-')[0]}-${def.getConfig(stepState[0], preCtx).targetPreset}`,
+              variant: `${chainId}-${def.getConfig(stepState[0], preCtx).targetPreset}`,
               tags: importArtifact[1].tags || [],
               fromLoader,
               toLoader,
