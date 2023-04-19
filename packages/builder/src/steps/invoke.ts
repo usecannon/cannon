@@ -101,7 +101,7 @@ async function runTxn(
         config.func
       }". List of recognized functions is:\n${Object.keys(contract.functions).join(
         '\n'
-      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
+      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
     );
   }
 
