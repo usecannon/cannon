@@ -174,12 +174,24 @@ export async function build({
     );
   }
 
+  const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
+
+  const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
+
+  if (!pkgName) {
+    pkgName = def.getName(initialCtx);
+  }
+
+  if (!pkgVersion) {
+    pkgVersion = def.getVersion(initialCtx);
+  }
+
   const wiping = oldDeployData && wipe;
   const upgradingMsg = upgradeFrom ? ` (extending ${upgradeFrom})` : '';
   if (wiping) {
     console.log(bold('Regenerating package...') + upgradingMsg);
   } else if (oldDeployData) {
-    console.log(bold('Continuing with package...') + upgradingMsg);
+    console.log(bold('Using package...') + upgradingMsg);
   } else {
     console.log(bold('Generating new package...') + upgradingMsg);
   }
@@ -194,9 +206,9 @@ export async function build({
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(
     bold(
-      `${
-        overrideResolver == undefined ? 'Building' : 'Running a simulated build of'
-      } the chain (ID ${chainId} via ${providerUrlMsg}) into the state defined in ${cannonfilePath?.split('/').pop()}...`
+      `Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''}) into the state defined in ${
+        cannonfilePath ? cannonfilePath?.split('/').pop() : pkgName
+      }...`
     )
   );
   if (!_.isEmpty(packageDefinition.settings)) {
@@ -214,10 +226,6 @@ export async function build({
       console.log('plugins:', pluginList.join(', '), 'detected');
     }
   }
-
-  const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
-
-  const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
   const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
 

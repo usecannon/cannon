@@ -34,7 +34,7 @@ const INSTRUCTIONS = green(
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
-  console.log(magentaBright('Starting local node...'));
+  console.log(bold('Starting local node...\n'));
 
   // Start the rpc server
   const node = options.node;
@@ -62,8 +62,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   for (const pkg of packages) {
     const { name, version } = pkg;
-
-    console.log(magentaBright(`Loading ${name}:${version}...`));
 
     const { outputs } = await build({
       ...options,
