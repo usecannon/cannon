@@ -81,7 +81,7 @@ export async function copyPackage({
       [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
       variant,
       url,
-      metaUrl || undefined
+      metaUrl || ''
     ))
   );
 

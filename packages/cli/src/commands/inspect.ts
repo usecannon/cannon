@@ -1,5 +1,5 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-import { bold, cyan, green } from 'chalk';
+import { bold, cyan, green, yellow } from 'chalk';
 import { parsePackageRef } from '../util/params';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
@@ -38,10 +38,27 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   }
 
   if (json) {
-    console.log(JSON.stringify(deployData, null, 2));
+    // use process.stdout.write and write in chunks because bash piping seems to have some sort of 
+    // a problem with outputting huge amounts of data all at once while using pipes
+    const toOutput = JSON.stringify(deployData, null, 2);
+
+    const chunkSize = 16;
+    for (let i = 0;i < toOutput.length;i += chunkSize) {
+      process.stdout.write(toOutput.slice(i, i + chunkSize));
+    }
   } else {
+    const mainUrl = await loader.resolver.getUrl(`${name}:${version}`, `${chainId}-${preset}`);
+    const metaUrl = await loader.resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
+
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
-    console.log(cyan(bold('\nCannonfile Topology')));
+    console.log()
+    console.log('   Deploy Status:', deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete'));
+    console.log('         Options:', Object.entries(deployData.options).map(o => `${o[0]}=${o[1]}`).join(' ') || '(none)');
+    console.log('     Package URL:', mainUrl);
+    console.log('        Misc URL:', deployData.miscUrl);
+    console.log('Package Info URL:', metaUrl);
+    console.log();
+    console.log(cyan(bold('Cannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));
   }
 

@@ -149,6 +149,8 @@ async function runTxn(
 
   const receipt = await txn.wait();
 
+  debug('got receipt', receipt);
+
   // get events
   const txnEvents = _.groupBy(
     _.filter(

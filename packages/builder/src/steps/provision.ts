@@ -63,6 +63,7 @@ export default {
 
       if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
+        debug('forcing rebuild because deployment is partial');
         return 'REBUILD PARTIAL DEPLOYMENT ' + Math.random();
       }
     }

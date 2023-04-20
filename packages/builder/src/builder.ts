@@ -136,9 +136,12 @@ ${printChainDefinitionProblems(problems)}`);
           if (!state[n] || (curHash && state[n].hash !== curHash)) {
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
+
+            // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
+            addOutputsToContext(ctx, newArtifacts);
             state[n] = {
               artifacts: newArtifacts,
-              hash: curHash,
+              hash: await def.getState(n, runtime, ctx, depsTainted),
               version: BUILD_VERSION,
             };
             tainted.add(n);
@@ -283,6 +286,8 @@ export async function buildLayer(
         def.getConfig(action, ctx),
         _.clone(ctx)
       );
+
+      addOutputsToContext(ctx, newArtifacts);
 
       state[action] = {
         artifacts: newArtifacts,
