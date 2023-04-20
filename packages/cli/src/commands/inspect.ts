@@ -38,12 +38,12 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   }
 
   if (json) {
-    // use process.stdout.write and write in chunks because bash piping seems to have some sort of 
+    // use process.stdout.write and write in chunks because bash piping seems to have some sort of
     // a problem with outputting huge amounts of data all at once while using pipes
     const toOutput = JSON.stringify(deployData, null, 2);
 
     const chunkSize = 16;
-    for (let i = 0;i < toOutput.length;i += chunkSize) {
+    for (let i = 0; i < toOutput.length; i += chunkSize) {
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
@@ -51,9 +51,17 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
     const metaUrl = await loader.resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
 
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
-    console.log()
-    console.log('   Deploy Status:', deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete'));
-    console.log('         Options:', Object.entries(deployData.options).map(o => `${o[0]}=${o[1]}`).join(' ') || '(none)');
+    console.log();
+    console.log(
+      '   Deploy Status:',
+      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
+    );
+    console.log(
+      '         Options:',
+      Object.entries(deployData.options)
+        .map((o) => `${o[0]}=${o[1]}`)
+        .join(' ') || '(none)'
+    );
     console.log('     Package URL:', mainUrl);
     console.log('        Misc URL:', deployData.miscUrl);
     console.log('Package Info URL:', metaUrl);

@@ -55,7 +55,7 @@ export async function alter(
   );
 
   let startDeployInfo = await loader.readDeploy(packageRef, preset, chainId);
-  let metaUrl = await loader.resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
+  const metaUrl = await loader.resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
@@ -105,7 +105,11 @@ export async function alter(
           // TODO: we should store preset info in the destination output, not config
           const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
-          const newNetworkDeployment = await loader.readDeploy(`${name}:${version}`, thisStepConfig.preset || thisStepConfig.targetPreset || 'main', chainId);
+          const newNetworkDeployment = await loader.readDeploy(
+            `${name}:${version}`,
+            thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
+            chainId
+          );
 
           if (!newNetworkDeployment) {
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
