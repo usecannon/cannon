@@ -63,6 +63,7 @@ export default {
 
       if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
+        debug('forcing rebuild because deployment is partial');
         return 'REBUILD PARTIAL DEPLOYMENT ' + Math.random();
       }
     }
@@ -126,10 +127,13 @@ export default {
     // always treat upstream state as what is used if its available. otherwise, we might have a state from a previous upgrade.
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
+    let prevMiscUrl = null;
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
       debug(`using state from previous deploy: ${prevUrl}`);
-      prevState = (await runtime.loader.readMisc(prevUrl))!.state;
+      const prevDeployInfo = await runtime.loader.readMisc(prevUrl);
+      prevState = prevDeployInfo!.state;
+      prevMiscUrl = prevDeployInfo!.miscUrl;
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
@@ -146,8 +150,13 @@ export default {
     const initialCtx = await createInitialContext(def, deployInfo.meta, runtime.chainId, importPkgOptions);
 
     // use separate runtime to ensure everything is clear
+    // we override `getArtifact` to use a simple loader from the upstream misc data to ensure that any contract upgrades are captured as expected
+    // but if any other misc changes are generated they will still be preserved through the new separate context misc
+    const upstreamMisc = await runtime.loader.readMisc(deployInfo.miscUrl);
     const importRuntime = runtime.derive({
-      getArtifact: undefined,
+      getArtifact: (n) => {
+        return upstreamMisc.artifacts[n];
+      },
     });
 
     let partialDeploy = false;
@@ -156,8 +165,10 @@ export default {
     });
 
     // need to import the misc data for the imported package
-    debug('load misc');
-    await importRuntime.restoreMisc(deployInfo?.miscUrl ?? deployInfo!.miscUrl);
+    if (prevMiscUrl) {
+      debug('load misc');
+      await importRuntime.restoreMisc(prevMiscUrl);
+    }
 
     debug('start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);

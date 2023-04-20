@@ -55,6 +55,7 @@ export async function alter(
   );
 
   let startDeployInfo = await loader.readDeploy(packageRef, preset, chainId);
+  const metaUrl = await loader.resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
@@ -101,7 +102,14 @@ export async function alter(
           const name = thisNetworkDefinition.getName(ctx);
           const version = thisNetworkDefinition.getVersion(ctx);
 
-          const newNetworkDeployment = await loader.readDeploy(`${name}:${version}`, 'main', chainId);
+          // TODO: we should store preset info in the destination output, not config
+          const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
+
+          const newNetworkDeployment = await loader.readDeploy(
+            `${name}:${version}`,
+            thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
+            chainId
+          );
 
           if (!newNetworkDeployment) {
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
@@ -144,5 +152,5 @@ export async function alter(
     throw new Error('loader is not writable');
   }
 
-  await resolver.publish([packageRef], variant, newUrl);
+  await resolver.publish([packageRef], variant, newUrl, metaUrl || '');
 }

@@ -1,4 +1,4 @@
-import { greenBright, green, magentaBright, bold, gray, yellow } from 'chalk';
+import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import { ChainArtifacts, ContractArtifact } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
