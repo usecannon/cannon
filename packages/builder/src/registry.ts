@@ -11,6 +11,15 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]>;
 
+  async publishMany(toPublish: {packagesNames: string[], variant: string, url: string, metaUrl: string }[]): Promise<string[]> {
+    const receipts: string[] = [];
+    for (const pub of toPublish) {
+      await this.publish(pub.packagesNames, pub.variant, pub.url, pub.metaUrl);
+    }
+
+    return receipts;
+  }
+
   // in general a "catchall" is that if the packageName is in format "@service:path", then
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
@@ -128,6 +137,15 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     // the fallback registry is usually something easy to write to or get to later
     return _.first(this.registries).publish(packagesNames, variant, url, metaUrl);
   }
+
+  async publishMany(toPublish: {packagesNames: string[], variant: string, url: string, metaUrl: string }[]): Promise<string[]> {
+    const receipts: string[] = [];
+    for (const pub of toPublish) {
+      await this.publish(pub.packagesNames, pub.variant, pub.url, pub.metaUrl);
+    }
+
+    return receipts;
+  }
 }
 
 export class OnChainRegistry extends CannonRegistry {
@@ -166,7 +184,7 @@ export class OnChainRegistry extends CannonRegistry {
     return `on chain ${this.contract.address}`;
   }
 
-  async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
+  private async checkSigner() {
     if (!this.signer) {
       throw new Error('Missing signer needed for publishing');
     }
@@ -176,27 +194,73 @@ export class OnChainRegistry extends CannonRegistry {
         `Signer at address ${await this.signer.getAddress()} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
       );
     }
+  }
 
-    const txns: ethers.providers.TransactionReceipt[] = [];
+  private generatePublishTransactionData(packagesName: string, packageTags: string[], variant: string, url: string, metaUrl?: string) {
+    return this.contract.interface.encodeFunctionData('publish', [
+      ethers.utils.formatBytes32String(packagesName),
+      ethers.utils.formatBytes32String(variant),
+      packageTags,
+      url,
+      metaUrl || '',
+    ]);
+  }
+  
+  private async doMulticall(datas: string[]): Promise<string> {
+    const tx = await this.contract.connect(this.signer!).multicall(datas, this.overrides);
+    const receipt = await tx.wait();
+    
+    return receipt.transactionHash;
+  }
+
+  async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
+    await this.checkSigner();
+
+    const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
         packagesNames.map((n) => n.split(':')),
         (p: string[]) => p[0]
       )
     )) {
-      const tx = await this.contract.connect(this.signer).publish(
-        ethers.utils.formatBytes32String(registerPackages[0][0]),
-        ethers.utils.formatBytes32String(variant),
+      const tx = this.generatePublishTransactionData(
+        registerPackages[0][0],
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
+        variant,
         url,
-        metaUrl || '',
-        this.overrides
+        metaUrl,
       );
 
-      txns.push(await tx.wait());
+      datas.push(tx);
     }
 
-    return txns.map((t) => t.transactionHash);
+    return [await this.doMulticall(datas)];
+  }
+
+  async publishMany(toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string; }[]): Promise<string[]> {
+    await this.checkSigner();
+
+    const datas: string[] = [];
+    for (const pub of toPublish) {
+      for (const registerPackages of _.values(
+        _.groupBy(
+          pub.packagesNames.map((n) => n.split(':')),
+          (p: string[]) => p[0]
+        )
+      )) {
+        const tx = this.generatePublishTransactionData(
+          registerPackages[0][0],
+          registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
+          pub.variant,
+          pub.url,
+          pub.metaUrl,
+        );
+  
+        datas.push(tx);
+      }
+    }
+
+    return [await this.doMulticall(datas)];
   }
 
   async getUrl(packageName: string, variant: string): Promise<string | null> {
