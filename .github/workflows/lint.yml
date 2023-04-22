@@ -18,4 +18,5 @@ jobs:
       - run: |
           npm ci
           npx lerna bootstrap
-          npm run lint
+      - run: npm run lint:js
+      - run: npm run lint:sol
