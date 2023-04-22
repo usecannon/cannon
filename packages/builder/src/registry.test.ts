@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import { CannonRegistry, OnChainRegistry } from './registry';
-import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { CannonWrapperGenericProvider } from './error/provider';
 
 jest.mock('./error/provider');
@@ -110,12 +109,8 @@ describe('registry.ts', () => {
 
         const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], '1-main', 'ipfs://Qmsomething');
 
-        jest
-          .mocked(provider.waitForTransaction)
-          .mockResolvedValueOnce({ transactionHash: '0x1234' } as TransactionReceipt)
-          .mockResolvedValueOnce({ transactionHash: '0x5678' } as TransactionReceipt);
-
-        expect(retValue).toStrictEqual(['0x1234', '0x5678']);
+        // should only return the first receipt because its a multicall
+        expect(retValue).toStrictEqual(['0x1234']);
 
         // TODO: check the transaction which was sent (its hard to do here because it comes in as the signed txn)
       });

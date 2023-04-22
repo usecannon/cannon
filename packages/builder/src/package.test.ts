@@ -89,7 +89,7 @@ describe('package.ts', () => {
       });
 
       await fromLoader.resolver.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
-      await fromLoader.resolver.publish([nestedPkg], '1-main', 'https://usecannon.com/nested');
+      await fromLoader.resolver.publish([nestedPkg], '1-main', 'https://usecannon.com/nested', '');
     });
 
     it('fails when deployment info is not found', async () => {

@@ -284,7 +284,8 @@ program
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
-  .option('--preset <preset>', 'The preset of the packages that are deployed', 'main')
+  .option('--chain-id <number>', 'The chain ID of the package to publish')
+  .option('--preset <preset>', 'The preset of the packages to publish')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(
@@ -317,7 +318,16 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    await publish(packageName, options.tags, options.preset, p.signers[0], overrides, options.quiet, options.force);
+    await publish(
+      packageName,
+      options.tags,
+      p.signers[0],
+      options.chainId,
+      options.preset,
+      overrides,
+      options.quiet,
+      options.force
+    );
   });
 
 program

@@ -9,7 +9,9 @@ import Debug from 'debug';
 
 const debug = Debug('cannon:builder:create2');
 
-const ARACHNID_DEPLOY_TXN =
+export const ARACHNID_DEPLOY_ADDR = '0x3fab184622dc19b6109349b94811493bf2a45362';
+
+export const ARACHNID_DEPLOY_TXN =
   '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222';
 
 /**
@@ -26,7 +28,7 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
     // first "get" the signer (which will populate it for use and with enough eth for gas)
     // if signer doesn't exist then this isnt local testing network, and this txn will fail
     try {
-      await runtime.getSigner('0x3fab184622dc19b6109349b94811493bf2a45362');
+      await runtime.getSigner(ARACHNID_DEPLOY_ADDR);
     } catch (err) {
       debug('got arachnid signer error', err);
       throw new Error(
