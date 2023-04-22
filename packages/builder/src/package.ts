@@ -27,10 +27,10 @@ export async function copyIpfs({
   fromLoader,
   toLoader,
   recursive,
-}: CopyPackageOpts): Promise<{packagesNames: string[], variant: string, url: string, metaUrl: string }[]> {
+}: CopyPackageOpts): Promise<{ packagesNames: string[]; variant: string; url: string; metaUrl: string }[]> {
   debug(`copy package ${packageRef} (${fromLoader.getLabel()} -> ${toLoader.getLabel()})`);
 
-  const registrationCalls: {packagesNames: string[], variant: string, url: string, metaUrl: string }[] = [];
+  const registrationCalls: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[] = [];
 
   const chainId = parseInt(variant.split('-')[0]);
   const preset = variant.substring(variant.indexOf('-') + 1);
@@ -88,7 +88,7 @@ export async function copyIpfs({
     packagesNames: [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
     variant,
     url,
-    metaUrl: metaUrl || ''
+    metaUrl: metaUrl || '',
   });
 
   return registrationCalls;

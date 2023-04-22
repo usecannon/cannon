@@ -11,7 +11,9 @@ const debug = Debug('cannon:builder:registry');
 export abstract class CannonRegistry {
   abstract publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]>;
 
-  async publishMany(toPublish: {packagesNames: string[], variant: string, url: string, metaUrl: string }[]): Promise<string[]> {
+  async publishMany(
+    toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
+  ): Promise<string[]> {
     const receipts: string[] = [];
     for (const pub of toPublish) {
       await this.publish(pub.packagesNames, pub.variant, pub.url, pub.metaUrl);
@@ -138,7 +140,9 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return _.first(this.registries).publish(packagesNames, variant, url, metaUrl);
   }
 
-  async publishMany(toPublish: {packagesNames: string[], variant: string, url: string, metaUrl: string }[]): Promise<string[]> {
+  async publishMany(
+    toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
+  ): Promise<string[]> {
     const receipts: string[] = [];
     for (const pub of toPublish) {
       await this.publish(pub.packagesNames, pub.variant, pub.url, pub.metaUrl);
@@ -196,7 +200,13 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private generatePublishTransactionData(packagesName: string, packageTags: string[], variant: string, url: string, metaUrl?: string) {
+  private generatePublishTransactionData(
+    packagesName: string,
+    packageTags: string[],
+    variant: string,
+    url: string,
+    metaUrl?: string
+  ) {
     return this.contract.interface.encodeFunctionData('publish', [
       ethers.utils.formatBytes32String(packagesName),
       ethers.utils.formatBytes32String(variant),
@@ -205,11 +215,11 @@ export class OnChainRegistry extends CannonRegistry {
       metaUrl || '',
     ]);
   }
-  
+
   private async doMulticall(datas: string[]): Promise<string> {
     const tx = await this.contract.connect(this.signer!).multicall(datas, this.overrides);
     const receipt = await tx.wait();
-    
+
     return receipt.transactionHash;
   }
 
@@ -228,7 +238,7 @@ export class OnChainRegistry extends CannonRegistry {
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
         variant,
         url,
-        metaUrl,
+        metaUrl
       );
 
       datas.push(tx);
@@ -237,7 +247,9 @@ export class OnChainRegistry extends CannonRegistry {
     return [await this.doMulticall(datas)];
   }
 
-  async publishMany(toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string; }[]): Promise<string[]> {
+  async publishMany(
+    toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
+  ): Promise<string[]> {
     await this.checkSigner();
 
     const datas: string[] = [];
@@ -253,9 +265,9 @@ export class OnChainRegistry extends CannonRegistry {
           registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
           pub.variant,
           pub.url,
-          pub.metaUrl,
+          pub.metaUrl
         );
-  
+
         datas.push(tx);
       }
     }
