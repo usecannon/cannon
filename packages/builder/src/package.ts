@@ -5,24 +5,32 @@ import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 const debug = Debug('cannon:cli:publish');
 
-export async function copyPackage({
-  packageRef,
-  tags,
-  variant,
-  fromLoader,
-  toLoader,
-  recursive,
-}: {
+export type CopyPackageOpts = {
   packageRef: string;
   variant: string;
   tags: string[];
   fromLoader: CannonLoader;
   toLoader: CannonLoader;
   recursive?: boolean;
-}): Promise<string[]> {
+};
+
+export async function copyPackage(opts: CopyPackageOpts) {
+  const calls = await copyIpfs(opts);
+
+  return opts.toLoader.resolver.publishMany(calls);
+}
+
+export async function copyIpfs({
+  packageRef,
+  tags,
+  variant,
+  fromLoader,
+  toLoader,
+  recursive,
+}: CopyPackageOpts): Promise<{ packagesNames: string[]; variant: string; url: string; metaUrl: string }[]> {
   debug(`copy package ${packageRef} (${fromLoader.getLabel()} -> ${toLoader.getLabel()})`);
 
-  const registrationReceipts: string[] = [];
+  const registrationCalls: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[] = [];
 
   const chainId = parseInt(variant.split('-')[0]);
   const preset = variant.substring(variant.indexOf('-') + 1);
@@ -45,8 +53,8 @@ export async function copyPackage({
           const nestedDeployInfo: DeploymentInfo = await fromLoader.readMisc(importArtifact[1].url);
           const nestedDef = new ChainDefinition(nestedDeployInfo.def);
           const preCtx = await createInitialContext(nestedDef, nestedDeployInfo.meta, 0, nestedDeployInfo.options);
-          registrationReceipts.push(
-            ...(await copyPackage({
+          registrationCalls.push(
+            ...(await copyIpfs({
               packageRef: `${nestedDef.getName(preCtx)}:${nestedDef.getVersion(preCtx)}`,
               variant: `${chainId}-${def.getConfig(stepState[0], preCtx).targetPreset}`,
               tags: importArtifact[1].tags || [],
@@ -76,14 +84,12 @@ export async function copyPackage({
 
   const preCtx = await createInitialContext(def, deployData.meta, 0, deployData.options);
 
-  registrationReceipts.push(
-    ...(await toLoader.resolver.publish(
-      [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
-      variant,
-      url,
-      metaUrl || ''
-    ))
-  );
+  registrationCalls.push({
+    packagesNames: [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
+    variant,
+    url,
+    metaUrl: metaUrl || '',
+  });
 
-  return registrationReceipts;
+  return registrationCalls;
 }

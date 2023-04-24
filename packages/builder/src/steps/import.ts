@@ -40,7 +40,7 @@ export default {
     const preset = config.preset ?? 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
-    console.log(cfg.source, `${chainId}-${preset}`);
+    debug('resolved pkg', cfg.source, `${chainId}-${preset}`);
     const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`);
 
     return {

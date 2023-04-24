@@ -7,8 +7,9 @@ import { resolveCliSettings } from '../settings';
 export async function publish(
   packageRef: string,
   tags: string,
-  preset: string,
   signer: ethers.Signer,
+  chainId?: number,
+  preset?: string,
   overrides?: ethers.Overrides,
   quiet = false,
   recursive = true
@@ -20,7 +21,17 @@ export async function publish(
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   // get a list of all deployments the user is requesting
-  const deploys = await localRegistry.scanDeploys(packageRef, `-${preset}`);
+
+  let variantFilter = /.*/;
+  if (chainId && preset) {
+    variantFilter = new RegExp(`^${chainId}-${preset}$`);
+  } else if (chainId) {
+    variantFilter = new RegExp(`^${chainId}-.*$`);
+  } else if (preset) {
+    variantFilter = new RegExp(`^.*-${preset}$`);
+  }
+
+  const deploys = await localRegistry.scanDeploys(new RegExp(`^${packageRef}$`), variantFilter);
 
   if (!quiet) {
     console.log(blueBright('publishing signer is', await signer.getAddress()));

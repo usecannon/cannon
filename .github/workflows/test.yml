@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  registry:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,5 +19,5 @@ jobs:
           npm ci
           npx lerna bootstrap
           npm run build
-          cd ./packages/registry
-          REPORT_GAS=1 npm test
+      - run: cd ./packages/builder && npm test
+      - run: cd ./packages/registry && REPORT_GAS=1 npm test

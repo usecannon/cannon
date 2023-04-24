@@ -1,12 +1,44 @@
 import { ARACHNID_CREATE2_PROXY } from './constants';
-import { makeArachnidCreate2Txn } from './create2';
+import { ARACHNID_DEPLOY_ADDR, ARACHNID_DEPLOY_TXN, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
+
+import { fakeRuntime, makeFakeSigner } from './steps/testUtils';
 
 describe('util.ts', () => {
-  describe('deployArachnidCreate2()', () => {
-    // todo when we have mock/dummy runtime
+  describe('ensureArachnidCreate2Exists()', () => {
+    it('does nothing if create2 exists', async () => {
+      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x1234');
+
+      // if it tries to do get a signer that function isnt defined so it will fail
+      await ensureArachnidCreate2Exists(fakeRuntime);
+    });
+
+    it('fails if deploy signer is not defined', async () => {
+      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x');
+      (fakeRuntime.getSigner as any) = async () => {
+        throw new Error('no signer');
+      };
+
+      expect(() => ensureArachnidCreate2Exists(fakeRuntime)).rejects.toThrowError(
+        'could not populate arachnid signer address'
+      );
+    });
+
+    it('calls sendTransaction to create aracnid contract if not deployed', async () => {
+      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x');
+
+      const fakeSigner = makeFakeSigner(ARACHNID_DEPLOY_ADDR);
+
+      (fakeRuntime.getSigner as any) = async () => fakeSigner;
+
+      jest.mocked(fakeRuntime.provider.sendTransaction).mockResolvedValue({ wait: jest.fn() } as any);
+
+      await ensureArachnidCreate2Exists(fakeRuntime);
+
+      expect(fakeRuntime.provider.sendTransaction).toBeCalledWith(ARACHNID_DEPLOY_TXN);
+    });
   });
 
-  describe('makeArachnidCreate2Txn', () => {
+  describe('makeArachnidCreate2Txn()', () => {
     it('returns the correct address', async () => {
       const [, addr] = makeArachnidCreate2Txn(
         '0x0000000000000000000000000000000000000000000000000000000000000000',

@@ -22,6 +22,11 @@ export default [
     type: 'error',
   },
   {
+    inputs: [],
+    name: 'InvalidTags',
+    type: 'error',
+  },
+  {
     inputs: [
       {
         internalType: 'string',
@@ -41,7 +46,7 @@ export default [
     inputs: [
       {
         internalType: 'address',
-        name: '',
+        name: 'contr',
         type: 'address',
       },
     ],
@@ -61,34 +66,14 @@ export default [
   },
   {
     inputs: [],
-    name: 'OwnerNoChange',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'OwnerZeroAddress',
-    type: 'error',
-  },
-  {
-    inputs: [],
     name: 'PackageNotFound',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'TooManyTags',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'Unauthorized',
     type: 'error',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: '',
+        name: 'addr',
         type: 'address',
       },
     ],
@@ -97,12 +82,12 @@ export default [
   },
   {
     inputs: [],
-    name: 'UpgradeSimulationFailed',
+    name: 'Unauthorized',
     type: 'error',
   },
   {
     inputs: [],
-    name: 'ValueAlreadyInSet',
+    name: 'UpgradeSimulationFailed',
     type: 'error',
   },
   {
@@ -153,12 +138,12 @@ export default [
       },
       {
         indexed: true,
-        internalType: 'bytes32[]',
-        name: 'tags',
-        type: 'bytes32[]',
+        internalType: 'bytes32',
+        name: 'tag',
+        type: 'bytes32',
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: 'bytes32',
         name: 'variant',
         type: 'bytes32',
@@ -387,20 +372,20 @@ export default [
   {
     inputs: [
       {
-        internalType: 'bytes32',
-        name: '_packageName',
-        type: 'bytes32',
+        internalType: 'bytes[]',
+        name: 'data',
+        type: 'bytes[]',
       },
     ],
-    name: 'getPackageVersions',
+    name: 'multicall',
     outputs: [
       {
-        internalType: 'bytes32[]',
-        name: '',
-        type: 'bytes32[]',
+        internalType: 'bytes[]',
+        name: 'results',
+        type: 'bytes[]',
       },
     ],
-    stateMutability: 'view',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -479,7 +464,7 @@ export default [
       },
       {
         internalType: 'string',
-        name: '_packageVersionUrl',
+        name: '_packageDeployUrl',
         type: 'string',
       },
       {
