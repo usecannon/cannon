@@ -33,7 +33,7 @@ import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
 import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
-import { resolveWriteProvider } from './util/provider';
+import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 
 const debug = Debug('cannon:cli');
 
@@ -284,6 +284,7 @@ program
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
+  .option('--private-key <key>', 'Private key to use for publishing the registry package')
   .option('--chain-id <number>', 'The chain ID of the package to publish')
   .option('--preset <preset>', 'The preset of the packages to publish')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
@@ -302,7 +303,7 @@ program
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
-    const p = await resolveWriteProvider(cliSettings, cliSettings.registryChainId);
+    const p = await resolveRegistryProvider(cliSettings);
 
     const overrides: ethers.Overrides = {};
 

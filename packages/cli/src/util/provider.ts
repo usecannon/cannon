@@ -11,7 +11,7 @@ const debug = Debug('cannon:cli:provider');
 export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
   return resolveProviderAndSigners({
     chainId,
-    checkProviders: settings.providerUrl!.split(','),
+    checkProviders: settings.providerUrl?.split(',') || [],
     privateKey: settings.privateKey,
   });
 }
