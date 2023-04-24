@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import ethers from 'ethers';
-import { bold, greenBright, red, yellow, gray, cyan } from 'chalk';
+import { bold, greenBright, red, yellow, gray, cyan, yellowBright } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -65,6 +65,12 @@ export async function build({
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
+  }
+
+  if (!persist) {
+    console.log(
+      yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+    );
   }
 
   const cliSettings = resolveCliSettings();
@@ -186,18 +192,19 @@ export async function build({
     pkgVersion = def.getVersion(initialCtx);
   }
 
-  const wiping = oldDeployData && wipe;
-  const upgradingMsg = upgradeFrom ? ` (extending ${upgradeFrom})` : '';
-  if (wiping) {
-    console.log(bold('Regenerating package...') + upgradingMsg);
-  } else if (oldDeployData) {
-    console.log(bold('Using package...') + upgradingMsg);
+  if (oldDeployData && wipe) {
+    console.log(bold('Regenerating package...'));
+  } else if (oldDeployData && !upgradeFrom) {
+    console.log(bold('Using package...'));
   } else {
-    console.log(bold('Generating new package...') + upgradingMsg);
+    console.log(bold('Generating new package...'));
   }
   console.log('Name: ' + cyan(`${pkgName}`));
   console.log('Version: ' + cyan(`${pkgVersion}`));
   console.log('Preset: ' + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
+  if (upgradeFrom) {
+    console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
+  }
   if (publicSourceCode) {
     console.log(gray('Source code will be included in the package'));
   }
@@ -279,6 +286,7 @@ export async function build({
       bold(yellow('Chain state could not be saved. Run `npx @usecannon/cli setup` to set up your IPFS connection.'))
     );
   }
+  console.log('');
 
   printChainBuilderOutput(outputs);
 
