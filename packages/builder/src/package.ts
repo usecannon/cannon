@@ -1,9 +1,7 @@
-import Debug from 'debug';
 import { DeploymentInfo, StepState } from './types';
 import { CannonLoader } from './loader';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
-const debug = Debug('cannon:cli:publish');
 
 export type CopyPackageOpts = {
   packageRef: string;
@@ -22,14 +20,18 @@ export type CopyPackageOpts = {
  * @param action The action to execute
  * @param onlyProvisioned Skip over sub-packages which are not provisioned within the parent
  */
-export async function forPackageTree<T>(loader: CannonLoader, deployInfo: DeploymentInfo, action: (deployInfo: DeploymentInfo) => Promise<T>, onlyProvisioned = true): Promise<T[]> {
+export async function forPackageTree<T>(
+  loader: CannonLoader,
+  deployInfo: DeploymentInfo,
+  action: (deployInfo: DeploymentInfo) => Promise<T>,
+  onlyProvisioned = true
+): Promise<T[]> {
   const results: T[] = [];
 
   for (const stepState of Object.entries(deployInfo.state || {})) {
     for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
       const nestedDeployInfo = await loader.readMisc(importArtifact[1].url);
       await forPackageTree(loader, nestedDeployInfo, action, onlyProvisioned);
-
     }
   }
 
@@ -38,15 +40,7 @@ export async function forPackageTree<T>(loader: CannonLoader, deployInfo: Deploy
   return results;
 }
 
-export async function copyPackage({
-  packageRef,
-  tags,
-  variant,
-  fromLoader,
-  toLoader,
-  recursive,
-}: CopyPackageOpts) {
-
+export async function copyPackage({ packageRef, tags, variant, fromLoader, toLoader, recursive }: CopyPackageOpts) {
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo) => {
     const miscUrl = await toLoader.putMisc(await fromLoader.readMisc(deployData!.miscUrl));
@@ -73,7 +67,7 @@ export async function copyPackage({
       url,
       metaUrl: metaUrl || '',
     };
-  }
+  };
 
   const chainId = parseInt(variant.split('-')[0]);
   const preset = variant.substring(variant.indexOf('-') + 1);
