@@ -37,6 +37,6 @@ export function handlePublish(event: PackagePublish): void {
   if (variant_name.includes('-')) {
     variant.chain_id = <i32>parseInt(variant_name.split('-')[0]);
     variant.preset = variant_name.split('-').slice(1).join('-');
+    variant.save();
   }
-  variant.save();
 }
