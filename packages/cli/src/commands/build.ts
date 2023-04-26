@@ -234,7 +234,7 @@ export async function build({
     }
   }
 
-  const newState = await cannonBuild(runtime, def, oldDeployData ? oldDeployData.state : {}, initialCtx);
+  const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
