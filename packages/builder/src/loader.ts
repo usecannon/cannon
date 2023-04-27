@@ -32,23 +32,14 @@ export class IPFSLoader implements CannonLoader {
     return `ipfs ${this.ipfsUrl} + ${this.resolver.getLabel()}`;
   }
 
-  async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
+  async readDeploy(packageName: string, preset: string, chainId: number) {
     const uri = await this.resolver.getUrl(packageName, `${chainId}-${preset}`);
-
-    if (!uri) return null;
-
-    const deployInfo: DeploymentInfo = await readIpfs(this.ipfsUrl, uri.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
-
-    return deployInfo;
+    return uri ? ((await this.readMisc(uri)) as DeploymentInfo) : null;
   }
 
   async putDeploy(deployInfo: DeploymentInfo): Promise<string | null> {
     const deployHash = await writeIpfs(this.ipfsUrl, deployInfo, this.customHeaders);
     return deployHash ? IPFSLoader.PREFIX + deployHash : deployHash;
-  }
-
-  protected async readMiscInternal(url: string) {
-    return await readIpfs(this.ipfsUrl, url.split(IPFSLoader.PREFIX)[1], this.customHeaders);
   }
 
   async putMisc(misc: any): Promise<string | null> {
@@ -61,7 +52,6 @@ export class IPFSLoader implements CannonLoader {
 
   async readMisc(url: string) {
     debug('restore misc');
-
     return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
   }
 }

@@ -1,4 +1,4 @@
-import { DeploymentInfo, StepState } from './types';
+import { DeploymentInfo } from './types';
 import { CannonLoader } from './loader';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
@@ -28,16 +28,50 @@ export async function forPackageTree<T>(
 ): Promise<T[]> {
   const results: T[] = [];
 
-  for (const stepState of Object.entries(deployInfo.state || {})) {
-    for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
-      const nestedDeployInfo = await loader.readMisc(importArtifact[1].url);
-      await forPackageTree(loader, nestedDeployInfo, action, onlyProvisioned);
-    }
+  const deployments = await _readPackageTree(loader, deployInfo);
+
+  for (const nestedDeployInfo of deployments) {
+    const result = await action(nestedDeployInfo);
+    results.push(result);
   }
 
   results.push(await action(deployInfo));
 
   return results;
+}
+
+// Recursive dependency safe deployment downloader
+async function _readPackageTree(loader: CannonLoader, deployInfo: DeploymentInfo) {
+  const result = new Map<string, DeploymentInfo>();
+
+  const _readImports = async (deployInfo: DeploymentInfo) => {
+    const importsUrls = _getImportsUrls(deployInfo);
+
+    // Check that the dependency is not already loaded to avoid download loops.
+    if (importsUrls.some((url) => result.has(url))) return;
+
+    // Recursively get the imports of the loaded deployments, in Depth-First-Search order
+    // TODO: parallelize the requests for the entire tree using a tree traversal lib,
+    //       we are doing it like this to be able to keep the tree order.
+    for (const url of importsUrls) {
+      const misc = await loader.readMisc(url);
+      if (!misc) throw new Error(`deployment not found: ${url}`);
+      await _readImports(misc);
+      result.set(url, misc);
+    }
+  };
+
+  await _readImports(deployInfo);
+
+  return Array.from(result.values());
+}
+
+// Get the urls of the imported packages
+function _getImportsUrls(deployInfo: DeploymentInfo) {
+  if (!deployInfo.state) return [];
+  return Object.values(deployInfo.state)
+    .flatMap((state) => Object.values(state.artifacts.imports || {}))
+    .map((importArtifact) => importArtifact.url);
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromLoader, toLoader, recursive }: CopyPackageOpts) {
