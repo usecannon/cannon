@@ -15,9 +15,9 @@
       <CommandPreview
         :command="`npx @usecannon/cli interact ${packageName}${
           variant.tag !== 'latest' ? ':' + variant.tag : ''
-        } --network RPC_ENDPOINT ${
+        } --provider-url RPC_ENDPOINT ${
           variant.preset !== 'main' ? '--preset ' + variant.preset : ''
-        } --private-key OPTIONAL_SIGNER_KEY`"
+        } --chain-id ${variant.chain_id} --private-key OPTIONAL_SIGNER_KEY`"
       />
     </CBox>
   </CBox>
