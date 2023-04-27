@@ -67,7 +67,7 @@ export async function build({
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
 
-  if (!persist) {
+  if (!persist && providerUrl) {
     console.log(
       yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
