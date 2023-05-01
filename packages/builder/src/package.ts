@@ -3,93 +3,101 @@ import { DeploymentInfo, StepState } from './types';
 import { CannonLoader } from './loader';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
+import { CannonRegistry } from './registry';
+import { CannonStorage } from './runtime';
 const debug = Debug('cannon:cli:publish');
 
 export type CopyPackageOpts = {
   packageRef: string;
   variant: string;
   tags: string[];
-  fromLoader: CannonLoader;
-  toLoader: CannonLoader;
+  fromStorage: CannonStorage;
+  toStorage: CannonStorage;
   recursive?: boolean;
 };
 
-export async function copyPackage(opts: CopyPackageOpts) {
-  const calls = await copyIpfs(opts);
+/**
+ * Iterate Depth-First-Search over the given DeploymentInfo and its dependencies, and execute the given `action` function. Postfix execution (aka, `action` is only executed after dependants are completed).
+ * Each package executes one at a time. No paralellization.
+ * @param loader The loader to use for downloading sub-packages
+ * @param deployInfo The head node of the tree, which will be executed on `action` last
+ * @param action The action to execute
+ * @param onlyProvisioned Skip over sub-packages which are not provisioned within the parent
+ */
+export async function forPackageTree<T>(
+  store: CannonStorage,
+  deployInfo: DeploymentInfo,
+  action: (deployInfo: DeploymentInfo) => Promise<T>,
+  onlyProvisioned = true
+): Promise<T[]> {
+  const results: T[] = [];
 
-  return opts.toLoader.resolver.publishMany(calls);
+  for (const stepState of Object.entries(deployInfo.state || {})) {
+    for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
+      if (!onlyProvisioned || importArtifact[1].tags) {
+        const nestedDeployInfo = await store.readBlob(importArtifact[1].url);
+        results.push(...await forPackageTree(store, nestedDeployInfo, action, onlyProvisioned));
+      }
+    }
+  }
+
+  results.push(await action(deployInfo));
+
+  return results;
 }
 
-export async function copyIpfs({
-  packageRef,
-  tags,
-  variant,
-  fromLoader,
-  toLoader,
-  recursive,
-}: CopyPackageOpts): Promise<{ packagesNames: string[]; variant: string; url: string; metaUrl: string }[]> {
-  debug(`copy package ${packageRef} (${fromLoader.getLabel()} -> ${toLoader.getLabel()})`);
+export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
+  debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
+  // this internal function will copy one package's ipfs records and return a publish call, without recursing
+  const copyIpfs = async (deployInfo: DeploymentInfo) => {
+    const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
-  const registrationCalls: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[] = [];
+    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
+    let newMetaUrl = metaUrl;
+
+    if (metaUrl) {
+      newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
+
+      if (!newMetaUrl) {
+        throw new Error('error while writing new misc blob');
+      }
+    }
+
+    deployInfo.miscUrl = newMiscUrl || '';
+
+    const url = await toStorage.putBlob(deployInfo!);
+
+    if (!url) {
+      throw new Error('uploaded url is invalid');
+    }
+
+    const def = new ChainDefinition(deployInfo.def);
+
+    const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
+
+    return {
+      packagesNames: [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
+      variant,
+      url,
+      metaUrl: newMetaUrl || '',
+    };
+  };
 
   const chainId = parseInt(variant.split('-')[0]);
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromLoader.readDeploy(packageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
   }
 
-  const def = new ChainDefinition(deployData.def);
-
   if (recursive) {
-    for (const stepState of Object.entries(deployData.state || {})) {
-      for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
-        // if there are any tags defined (even an empty array), then we assume that a publish should be done.
-        // otherwise, its a non-provisioned import and we shouldn't do anything
-        if (importArtifact[1].tags) {
-          // copy package nested
-          const nestedDeployInfo: DeploymentInfo = await fromLoader.readMisc(importArtifact[1].url);
-          const nestedDef = new ChainDefinition(nestedDeployInfo.def);
-          const preCtx = await createInitialContext(nestedDef, nestedDeployInfo.meta, 0, nestedDeployInfo.options);
-          registrationCalls.push(
-            ...(await copyIpfs({
-              packageRef: `${nestedDef.getName(preCtx)}:${nestedDef.getVersion(preCtx)}`,
-              variant: `${chainId}-${def.getConfig(stepState[0], preCtx).targetPreset}`,
-              tags: importArtifact[1].tags || [],
-              fromLoader,
-              toLoader,
-              recursive,
-            }))
-          );
-        }
-      }
-    }
+    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+    return toStorage.registry.publishMany(calls);
+  } else {
+    const call = await copyIpfs(deployData);
+
+    return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }
-
-  const miscUrl = await toLoader.putMisc(await fromLoader.readMisc(deployData!.miscUrl));
-
-  const metaUrl = await fromLoader.resolver.getMetaUrl(packageRef, variant);
-  let newMetaUrl = metaUrl;
-
-  if (metaUrl) {
-    newMetaUrl = await toLoader.putMisc(await fromLoader.readMisc(metaUrl));
-  }
-  const url = await toLoader.putDeploy(deployData!);
-
-  if (!url || /*url !== toPublishUrl || */ newMetaUrl !== metaUrl || miscUrl !== deployData.miscUrl) {
-    throw new Error('re-deployed urls do not match up');
-  }
-
-  const preCtx = await createInitialContext(def, deployData.meta, 0, deployData.options);
-
-  registrationCalls.push({
-    packagesNames: [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
-    variant,
-    url,
-    metaUrl: metaUrl || '',
-  });
-
-  return registrationCalls;
 }

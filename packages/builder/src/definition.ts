@@ -9,6 +9,7 @@ import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './
 import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
+const debugVerbose = Debug('cannon:verbose:builder:definition');
 
 export type ChainDefinitionProblems = {
   invalidSchema: any;
@@ -149,7 +150,9 @@ export class ChainDefinition {
     if (!obj) {
       return null;
     } else {
-      return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
+      const rawState = JSON.stringify(obj);
+      debugVerbose('creating hash of', rawState);
+      return crypto.createHash('md5').update(rawState).digest('hex');
     }
   }
 

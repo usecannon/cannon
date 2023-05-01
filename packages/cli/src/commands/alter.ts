@@ -11,7 +11,7 @@ import {
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
-import { getIpfsLoader } from '../util/loader';
+import { getMainLoader } from '../loader';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -36,7 +36,7 @@ export async function alter(
   const provider = getProvider(node);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
-  const loader = getIpfsLoader(cliSettings.ipfsUrl, resolver);
+  const loader = getMainLoader(cliSettings);
   const runtime = new ChainBuilderRuntime(
     {
       provider,
@@ -51,15 +51,16 @@ export async function alter(
       allowPartialDeploy: false,
       ...runtimeOverrides,
     },
+    resolver,
     loader
   );
 
-  let startDeployInfo = await loader.readDeploy(packageRef, preset, chainId);
-  const metaUrl = await loader.resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
+  let startDeployInfo = await runtime.readDeploy(packageRef, preset, chainId);
+  const metaUrl = await resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await loader.readDeploy(packageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(packageRef, 'main', CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
       throw new Error(`deployment not found: ${packageRef} (${variant})`);
@@ -78,7 +79,7 @@ export async function alter(
   // get a list of all deployments the user is requesting
   switch (command) {
     case 'set-url':
-      deployInfo = (await loader.readMisc(targets[0])) as DeploymentInfo;
+      deployInfo = (await runtime.readBlob(targets[0])) as DeploymentInfo;
       for (const actionStep in deployInfo.state) {
         delete deployInfo.state[actionStep].chainDump;
         for (const contract in deployInfo.state[actionStep].artifacts.contracts) {
@@ -91,7 +92,7 @@ export async function alter(
 
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
           // try to find the equivalent deployment for this network
-          const thisNetworkState: DeploymentInfo = await loader.readMisc(
+          const thisNetworkState: DeploymentInfo = await runtime.readBlob(
             deployInfo.state[actionStep].artifacts.imports![imp].url
           );
 
@@ -105,7 +106,7 @@ export async function alter(
           // TODO: we should store preset info in the destination output, not config
           const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
-          const newNetworkDeployment = await loader.readDeploy(
+          const newNetworkDeployment = await runtime.readDeploy(
             `${name}:${version}`,
             thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
             chainId
@@ -146,7 +147,7 @@ export async function alter(
       break;
   }
 
-  const newUrl = await loader.putDeploy(deployInfo);
+  const newUrl = await runtime.putDeploy(deployInfo);
 
   if (!newUrl) {
     throw new Error('loader is not writable');

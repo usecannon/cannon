@@ -6,7 +6,7 @@ import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { setupAnvil } from '../helpers';
-import { getIpfsLoader } from '../util/loader';
+import { getMainLoader } from '../loader';
 
 export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
   await setupAnvil();
@@ -14,13 +14,21 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
-  const loader = getIpfsLoader(resolveCliSettings().ipfsUrl, resolver);
+  const loader = getMainLoader(resolveCliSettings());
 
-  const deployData = await loader.readDeploy(`${name}:${version}`, preset, chainId);
+  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${preset}-${chainId}`);
+
+  if (!deployUrl) {
+    throw new Error(
+      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${preset}-${chainId}.`
+    );
+  }
+
+  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'|'file'].read(deployUrl);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the given preset and current network.`
+      `deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`
     );
   }
 
@@ -47,8 +55,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const mainUrl = await loader.resolver.getUrl(`${name}:${version}`, `${chainId}-${preset}`);
-    const metaUrl = await loader.resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
+    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
 
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
     console.log();
@@ -62,7 +69,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
         .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
-    console.log('     Package URL:', mainUrl);
+    console.log('     Package URL:', deployUrl);
     console.log('        Misc URL:', deployData.miscUrl);
     console.log('Package Info URL:', metaUrl);
     console.log();

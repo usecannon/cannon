@@ -22,7 +22,7 @@ export type CliSettings = {
   privateKey?: string;
 
   /// the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
-  ipfsUrl: string;
+  ipfsUrl?: string;
 
   /// the IPFS url to use when publishing. If you have an IPFS cluster, or a pinning service, this is a good place to put its IPFS Proxy publish endpoint. If not specified, your packages wont be uploaded to remote ipfs.
   publishIpfsUrl?: string;
@@ -71,7 +71,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
       providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
       privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
-      ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT,
+      ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
       registryProviderUrl:
         process.env.CANNON_REGISTRY_PROVIDER_URL ||

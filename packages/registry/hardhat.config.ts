@@ -44,6 +44,9 @@ const config: HardhatUserConfig = {
     coinmarketcap: process.env.REPORT_GAS_API_KEY || '',
     gasPriceApi: process.env.ETHERSCAN_API_KEY || '',
   },
+  cannon: {
+    publicSourceCode: true,
+  },
 } as any;
 
 export default config;

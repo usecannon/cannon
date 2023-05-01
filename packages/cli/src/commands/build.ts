@@ -22,7 +22,7 @@ import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
 import { listInstalledPlugins, loadPlugin } from '../plugins';
-import { getIpfsLoader } from '../util/loader';
+import { getMainLoader } from '../loader';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -118,7 +118,7 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(runtimeOptions, getIpfsLoader(cliSettings.ipfsUrl, resolver));
+  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), cliSettings.ipfsUrl ? 'ipfs' : 'file');
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
@@ -132,7 +132,7 @@ export async function build({
   const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
 
   console.log(bold(`Checking IPFS for package ${prevPkg}...`));
-  oldDeployData = await runtime.loader.readDeploy(prevPkg, preset || 'main', runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
@@ -242,7 +242,7 @@ export async function build({
   const miscUrl = await runtime.recordMisc();
 
   if (miscUrl) {
-    const deployUrl = await runtime.loader.putDeploy({
+    const deployUrl = await runtime.putDeploy({
       def: def.toJson(),
       state: newState,
       options: resolvedSettings,
@@ -251,7 +251,7 @@ export async function build({
       miscUrl: miscUrl,
     });
 
-    const metaUrl = await runtime.loader.putMisc(await readMetadataCache(`${pkgName}:${pkgVersion}`));
+    const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));
 
     if (persist) {
       await resolver.publish(
