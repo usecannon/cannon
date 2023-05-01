@@ -90,38 +90,42 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
         continue;
       }
 
-      // supply any linked libraries within the inputs since those are calculated at runtime
-      const inputData = JSON.parse(contractArtifact.source.input);
-      inputData.settings.libraries = contractInfo.linkedLibraries;
+      try {
+        // supply any linked libraries within the inputs since those are calculated at runtime
+        const inputData = JSON.parse(contractArtifact.source.input);
+        inputData.settings.libraries = contractInfo.linkedLibraries;
 
-      const reqData: { [k: string]: string } = {
-        apikey: apiKey,
-        module: 'contract',
-        action: 'verifysourcecode',
-        contractaddress: contractInfo.address,
-        // need to parse to get the inner structure, then stringify again
-        sourceCode: JSON.stringify(inputData),
-        codeformat: 'solidity-standard-json-input',
-        contractname: `${contractInfo.sourceName}:${contractInfo.contractName}`,
-        compilerversion: 'v' + contractArtifact.source.solcVersion,
+        const reqData: { [k: string]: string } = {
+          apikey: apiKey,
+          module: 'contract',
+          action: 'verifysourcecode',
+          contractaddress: contractInfo.address,
+          // need to parse to get the inner structure, then stringify again
+          sourceCode: JSON.stringify(inputData),
+          codeformat: 'solidity-standard-json-input',
+          contractname: `${contractInfo.sourceName}:${contractInfo.contractName}`,
+          compilerversion: 'v' + contractArtifact.source.solcVersion,
 
-        // NOTE: below: yes, the etherscan api is misspelling
-        constructorArguements: new ethers.utils.Interface(contractArtifact.abi)
-          .encodeDeploy(contractInfo.constructorArgs)
-          .slice(2),
-      };
+          // NOTE: below: yes, the etherscan api is misspelling
+          constructorArguements: new ethers.utils.Interface(contractArtifact.abi)
+            .encodeDeploy(contractInfo.constructorArgs)
+            .slice(2),
+        };
 
-      debug('verification request', reqData);
+        debug('verification request', reqData);
 
-      const res = await axios.post(etherscanApi, reqData, {
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      });
+        const res = await axios.post(etherscanApi, reqData, {
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        });
 
-      if (res.data.status === '0') {
-        console.log(`${c}:\tcannot verify:`, res.data.result);
-      } else {
-        console.log(`${c}:\tsubmitted verification (${contractInfo.address})`);
-        guids[c] = res.data.result;
+        if (res.data.status === '0') {
+          console.log(`${c}:\tcannot verify:`, res.data.result);
+        } else {
+          console.log(`${c}:\tsubmitted verification (${contractInfo.address})`);
+          guids[c] = res.data.result;
+        }
+      } catch (err) {
+        console.log(`verification for ${c} (${contractInfo.address}) failed:`, err);
       }
     }
   };

@@ -33,6 +33,11 @@ export class CannonStorage extends EventEmitter {
   }
 
   readBlob(url: string) {
+
+    if (!url) {
+      throw new Error('url not defined');
+    }
+
     return this.loaders[url.split(':')[0]].read(url);
   }
 

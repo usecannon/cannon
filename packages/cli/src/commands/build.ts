@@ -135,7 +135,7 @@ export async function build({
   oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
-  if (oldDeployData) {
+  if (oldDeployData && !wipe) {
     console.log('Existing package found.');
     await runtime.restoreMisc(oldDeployData.miscUrl);
 

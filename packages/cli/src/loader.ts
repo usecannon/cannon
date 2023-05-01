@@ -24,13 +24,14 @@ export class LocalLoader implements CannonLoader {
       throw new Error('incorrect url type');
     }
 
-    return fs.readFile(path.join(this.dir, `${url.slice(7)}`))
+    return fs.readJson(path.join(this.dir, `${url.slice(7)}`))
   }
 
   async put(misc: any): Promise<string | null> {
     const dataToSave = JSON.stringify(misc);
     const hash = crypto.createHash('md5').update(dataToSave).digest('hex');
 
+    await fs.mkdirp(this.dir);
     await fs.writeFile(path.join(this.dir, `${hash}.json`), dataToSave);
 
     return `file://${hash}.json`;
