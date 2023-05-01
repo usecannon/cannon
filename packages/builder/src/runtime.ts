@@ -23,9 +23,9 @@ export enum Events {
 export class CannonStorage extends EventEmitter {
   readonly registry: CannonRegistry;
   readonly defaultLoaderScheme: string;
-  readonly loaders: {[scheme: string]: CannonLoader};
+  readonly loaders: { [scheme: string]: CannonLoader };
 
-  constructor(registry: CannonRegistry, loaders: {[scheme: string]: CannonLoader}, defaultLoaderScheme = 'ipfs') {
+  constructor(registry: CannonRegistry, loaders: { [scheme: string]: CannonLoader }, defaultLoaderScheme = 'ipfs') {
     super();
     this.registry = registry;
     this.defaultLoaderScheme = defaultLoaderScheme;
@@ -33,7 +33,6 @@ export class CannonStorage extends EventEmitter {
   }
 
   readBlob(url: string) {
-
     if (!url) {
       throw new Error('url not defined');
     }
@@ -42,7 +41,7 @@ export class CannonStorage extends EventEmitter {
   }
 
   putBlob(data: any) {
-    return this.loaders[this.defaultLoaderScheme].put(data)
+    return this.loaders[this.defaultLoaderScheme].put(data);
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
@@ -77,7 +76,12 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     artifacts: { [label: string]: any };
   };
 
-  constructor(info: ChainBuilderRuntimeInfo, registry: CannonRegistry, loaders: {[scheme: string]: CannonLoader}, defaultLoaderScheme = 'ipfs') {
+  constructor(
+    info: ChainBuilderRuntimeInfo,
+    registry: CannonRegistry,
+    loaders: { [scheme: string]: CannonLoader },
+    defaultLoaderScheme = 'ipfs'
+  ) {
     super(registry, loaders, defaultLoaderScheme);
 
     if (!loaders[defaultLoaderScheme]) {
@@ -174,7 +178,12 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
-    const newRuntime = new ChainBuilderRuntime({ ...this, ...overrides }, this.registry, this.loaders, this.defaultLoaderScheme);
+    const newRuntime = new ChainBuilderRuntime(
+      { ...this, ...overrides },
+      this.registry,
+      this.loaders,
+      this.defaultLoaderScheme
+    );
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));

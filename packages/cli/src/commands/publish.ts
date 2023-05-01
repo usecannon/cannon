@@ -40,7 +40,9 @@ export async function publish(
   }
 
   if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
-    throw new Error(`in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`)
+    throw new Error(
+      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
+    );
   }
 
   const onChainRegistry = new OnChainRegistry({
@@ -50,7 +52,9 @@ export async function publish(
   });
 
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
-  const toStorage = new CannonStorage(onChainRegistry, { ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!) });
+  const toStorage = new CannonStorage(onChainRegistry, {
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+  });
 
   const registrationReceipts = [];
 

@@ -1,6 +1,4 @@
 import { Headers, readIpfs, writeIpfs } from './ipfs';
-import { CannonRegistry } from './registry';
-import { DeploymentInfo } from './types';
 
 import Debug from 'debug';
 

@@ -24,12 +24,10 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
     );
   }
 
-  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'|'file'].read(deployUrl);
+  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
 
   if (!deployData) {
-    throw new Error(
-      `deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`
-    );
+    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`);
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);

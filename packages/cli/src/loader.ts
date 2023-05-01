@@ -1,10 +1,10 @@
-import { CannonLoader, IPFSLoader } from "@usecannon/builder";
+import { CannonLoader, IPFSLoader } from '@usecannon/builder';
 
 import path from 'path';
 import fs from 'fs-extra';
 import crypto from 'crypto';
-import { CliSettings } from "./settings";
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from "./constants";
+import { CliSettings } from './settings';
+import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 
 export class LocalLoader implements CannonLoader {
   dir: string;
@@ -17,14 +17,12 @@ export class LocalLoader implements CannonLoader {
     return `local (${this.dir})`;
   }
 
-
   read(url: string): Promise<any> {
-
     if (!url.startsWith('file://')) {
       throw new Error('incorrect url type');
     }
 
-    return fs.readJson(path.join(this.dir, `${url.slice(7)}`))
+    return fs.readJson(path.join(this.dir, `${url.slice(7)}`));
   }
 
   async put(misc: any): Promise<string | null> {
@@ -35,9 +33,12 @@ export class LocalLoader implements CannonLoader {
     await fs.writeFile(path.join(this.dir, `${hash}.json`), dataToSave);
 
     return `file://${hash}.json`;
-  }  
+  }
 }
 
 export function getMainLoader(cliSettings: CliSettings) {
-  return { ipfs: new IPFSLoader(cliSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT), file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')) };
+  return {
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT),
+    file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
+  };
 }

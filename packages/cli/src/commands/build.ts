@@ -118,7 +118,12 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), cliSettings.ipfsUrl ? 'ipfs' : 'file');
+  const runtime = new ChainBuilderRuntime(
+    runtimeOptions,
+    resolver,
+    getMainLoader(cliSettings),
+    cliSettings.ipfsUrl ? 'ipfs' : 'file'
+  );
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
