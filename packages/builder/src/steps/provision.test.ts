@@ -1,6 +1,5 @@
 import '../actions';
 import { BUILD_VERSION } from '../constants';
-import { IPFSLoader } from '../loader';
 import { InMemoryRegistry } from '../registry';
 import action from './provision';
 import { fakeCtx, fakeRuntime } from './testUtils';
@@ -15,8 +14,7 @@ describe('setps/provision.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
-    (fakeRuntime.loader as any) = new IPFSLoader('', registry);
-    fakeRuntime.loader.resolver = registry;
+    (fakeRuntime.registry as any) = registry;
     (fakeRuntime.chainId as any) = 1234;
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
@@ -104,7 +102,7 @@ describe('setps/provision.ts', () => {
     it('works properly', async () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
 
-      jest.mocked(fakeRuntime.loader.readDeploy).mockResolvedValue({
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         state: {
           'contract.Woot': {
             version: BUILD_VERSION,
@@ -135,7 +133,7 @@ describe('setps/provision.ts', () => {
         miscUrl: 'https://something.com',
       });
 
-      jest.mocked(fakeRuntime.loader.putDeploy).mockResolvedValue('ipfs://Qmsomething');
+      jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
 
       const result = await action.exec(
         fakeRuntime,
@@ -148,6 +146,7 @@ describe('setps/provision.ts', () => {
         imports: {
           something: {
             url: 'ipfs://Qmsomething',
+            preset: 'main',
             tags: ['latest'],
             contracts: {
               Woot: {

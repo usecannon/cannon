@@ -13,13 +13,14 @@ import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types'
 
 import contractStep from './steps/contract';
 import invokeStep from './steps/invoke';
+import { InMemoryRegistry } from './registry';
 
 jest.mock('./error/provider');
 jest.mock('./steps/contract');
 jest.mock('./steps/invoke');
 
 describe('builder.ts', () => {
-  const loader = new IPFSLoader('', null as any, {});
+  const loader = new IPFSLoader('', null as any);
 
   const getSigner = jest.fn(async () => {
     return ethers.Wallet.createRandom();
@@ -60,7 +61,8 @@ describe('builder.ts', () => {
       getDefaultSigner,
       getArtifact,
     },
-    loader
+    new InMemoryRegistry(),
+    { ipfs: loader }
   );
 
   const fakeDefinition: RawChainDefinition = {

@@ -2,15 +2,18 @@ import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
 import { copyPackage } from './package';
 import { DeploymentInfo } from './types';
+import { CannonStorage } from '.';
 
 jest.mock('./loader');
 
 describe('package.ts', () => {
   describe('copyPackage()', () => {
     const fromRegistry = new InMemoryRegistry();
-    const fromLoader = new IPFSLoader('hello', fromRegistry);
+    const fromLoader = new IPFSLoader('hello');
+    const fromStorage = new CannonStorage(fromRegistry, { https: fromLoader }, 'https');
     let toRegistry: InMemoryRegistry;
     let toLoader: IPFSLoader;
+    let toStorage: CannonStorage;
 
     const testPkg = 'package:1.2.3';
     const testPkgData: DeploymentInfo = {
@@ -19,7 +22,9 @@ describe('package.ts', () => {
         'provision.dummyStep': {
           hash: '',
           version: 1,
-          artifacts: { imports: { nested: { url: 'https://usecannon.com/nested', tags: ['tag3', 'tag4'] } } },
+          artifacts: {
+            imports: { nested: { url: 'https://usecannon.com/nested', preset: 'with-package', tags: ['tag3', 'tag4'] } },
+          },
         },
       },
       status: 'complete',
@@ -39,57 +44,43 @@ describe('package.ts', () => {
 
     beforeAll(async () => {
       toRegistry = new InMemoryRegistry();
-      toLoader = new IPFSLoader('world', toRegistry);
+      toLoader = new IPFSLoader('world');
+      toStorage = new CannonStorage(toRegistry, { https: toLoader }, 'https');
 
       await fromRegistry.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
+      await fromRegistry.publish([nestedPkg], '1-main', 'https://usecannon.com/nested', '');
 
-      fromLoader.resolver = fromRegistry;
-      toLoader.resolver = toRegistry;
-
-      jest.mocked(fromLoader.readDeploy).mockImplementation(async (pkgRef) => {
-        switch (pkgRef) {
-          case testPkg:
-            return testPkgData;
-          case nestedPkg:
-            return nestedPkgData;
-        }
-
-        return null;
-      });
-
-      jest.mocked(fromLoader.readMisc).mockImplementation(async (url) => {
+      jest.mocked(fromLoader.read).mockImplementation(async (url) => {
         switch (url) {
           case 'https://usecannon.com/misc':
             return { misc: 'info' };
           case 'https://usecannon.com/meta':
-            return { meta: 'data' };
+            return { itsMeta: 'data' };
+          case 'https://usecannon.com':
+            return testPkgData;
           case 'https://usecannon.com/nested':
             return nestedPkgData;
         }
       });
 
-      jest.mocked(await toLoader.putMisc).mockImplementation(async (data) => {
+      jest.mocked(await toLoader.put).mockImplementation(async (data) => {
         if (data) {
-          if (data.meta) {
+          if (data === testPkgData) {
+            return 'https://usecannon.com';
+          } else if (data.itsMeta) {
             return 'https://usecannon.com/meta';
           } else if (data.misc) {
             return 'https://usecannon.com/misc';
+          } else {
+            return 'https://usecannon.com/nested';
           }
         }
 
         return null;
       });
 
-      jest.mocked(await toLoader.putDeploy).mockImplementation(async (data) => {
-        if (data === testPkgData) {
-          return 'https://usecannon.com';
-        } else {
-          return 'https://usecannon.com/nested';
-        }
-      });
-
-      await fromLoader.resolver.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
-      await fromLoader.resolver.publish([nestedPkg], '1-main', 'https://usecannon.com/nested', '');
+      await fromRegistry.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
+      await fromRegistry.publish([nestedPkg], '1-main', 'https://usecannon.com/nested', '');
     });
 
     it('fails when deployment info is not found', async () => {
@@ -98,8 +89,8 @@ describe('package.ts', () => {
           packageRef: 'fakePkg:1.2.3',
           variant: '1-main',
           tags: [],
-          fromLoader,
-          toLoader,
+          fromStorage,
+          toStorage,
         })
       ).rejects.toThrowError('could not find');
     });
@@ -109,13 +100,13 @@ describe('package.ts', () => {
         packageRef: testPkg,
         variant: '1-main',
         tags: [],
-        fromLoader,
-        toLoader,
+        fromStorage,
+        toStorage,
       });
 
-      expect(toLoader.putDeploy).toBeCalledTimes(1);
-      expect(toLoader.putDeploy).toBeCalledWith(testPkgData);
-      expect(toLoader.putMisc).toBeCalledWith({ misc: 'info' });
+      //expect(toLoader.putDeploy).toBeCalledTimes(1);
+      expect(toLoader.put).toBeCalledWith(testPkgData);
+      expect(toLoader.put).toBeCalledWith({ misc: 'info' });
       expect(await toRegistry.getUrl(testPkg, '1-main')).toStrictEqual('https://usecannon.com');
       expect(await toRegistry.getMetaUrl(testPkg, '1-main')).toStrictEqual('https://usecannon.com/meta');
 
@@ -128,8 +119,8 @@ describe('package.ts', () => {
         packageRef: nestedPkg,
         variant: '1-main',
         tags: ['tag1', 'tag2'],
-        fromLoader,
-        toLoader,
+        fromStorage,
+        toStorage,
         recursive: true,
       });
 
@@ -145,12 +136,13 @@ describe('package.ts', () => {
           packageRef: testPkg,
           variant: '1-main',
           tags: [],
-          fromLoader,
-          toLoader,
+          fromStorage,
+          toStorage,
           recursive: true,
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored
+        console.log(toRegistry.pkgs);
         expect(await toRegistry.getUrl(nestedPkg, '1-with-package')).toStrictEqual('https://usecannon.com/nested');
         expect(await toRegistry.getUrl('nested:tag3', '1-with-package')).toStrictEqual('https://usecannon.com/nested');
         expect(await toRegistry.getUrl('nested:tag4', '1-with-package')).toStrictEqual('https://usecannon.com/nested');

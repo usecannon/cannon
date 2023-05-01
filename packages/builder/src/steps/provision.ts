@@ -204,6 +204,7 @@ export default {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
+          preset: targetPreset,
           ...(await getOutputs(importRuntime, def, builtState))!,
         },
       },

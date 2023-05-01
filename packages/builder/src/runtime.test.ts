@@ -3,6 +3,7 @@ import { CannonWrapperGenericProvider } from './error/provider';
 import { IPFSLoader } from './loader';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { ContractArtifact } from './types';
+import { InMemoryRegistry } from './registry';
 
 jest.mock('./error/provider');
 jest.mock('./loader');
@@ -38,7 +39,7 @@ describe('runtime.ts', () => {
     beforeAll(async () => {
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
-      loader = new IPFSLoader('', null as any, {});
+      loader = new IPFSLoader('', null as any);
 
       runtime = new ChainBuilderRuntime(
         {
@@ -51,7 +52,8 @@ describe('runtime.ts', () => {
           getDefaultSigner,
           getArtifact,
         },
-        loader
+        new InMemoryRegistry(),
+        { ipfs: loader }
       );
     });
 
@@ -62,7 +64,7 @@ describe('runtime.ts', () => {
         //expect(runtime.getArtifact).toBe(); // this is wrapped
         expect(runtime.getDefaultSigner).toBe(getDefaultSigner);
         expect(runtime.getSigner).toBe(getSigner);
-        expect(runtime.loader).toBe(loader);
+        expect(runtime.loaders.ipfs).toBe(loader);
         expect(runtime.provider).toBe(provider);
         expect(runtime.publicSourceCode).toBe(true);
         expect(runtime.snapshots).toBe(true);
@@ -126,12 +128,12 @@ describe('runtime.ts', () => {
 
     describe('recordMisc()', () => {
       it('calls loader putMisc', async () => {
-        jest.mocked(loader.putMisc).mockResolvedValue('ipfs://Qmsaved');
+        jest.mocked(loader.put).mockResolvedValue('ipfs://Qmsaved');
         const url = await runtime.recordMisc();
 
         expect(url).toBe('ipfs://Qmsaved');
 
-        expect(loader.putMisc).toBeCalledWith({ artifacts: {} });
+        expect(loader.put).toBeCalledWith({ artifacts: {} });
       });
     });
 
@@ -141,14 +143,14 @@ describe('runtime.ts', () => {
 
         await runtime.restoreMisc('ipfs://Qmdone');
 
-        expect(loader.readMisc).toBeCalledTimes(0);
+        expect(loader.read).toBeCalledTimes(0);
       });
 
       it('calls readMisc if loadedMisc url is different, and sets to misc storage', async () => {
-        jest.mocked(loader.readMisc).mockResolvedValue({ some: 'stuff' });
+        jest.mocked(loader.read).mockResolvedValue({ some: 'stuff' });
         await runtime.restoreMisc('ipfs://Qmsaved');
 
-        expect(loader.readMisc).toBeCalledWith('ipfs://Qmsaved');
+        expect(loader.read).toBeCalledWith('ipfs://Qmsaved');
 
         expect(runtime.misc).toStrictEqual({ some: 'stuff' });
       });

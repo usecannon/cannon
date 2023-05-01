@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import { DeploymentInfo, StepState } from './types';
+import { BundledOutput, DeploymentInfo, StepState } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
@@ -25,7 +25,8 @@ export type CopyPackageOpts = {
 export async function forPackageTree<T>(
   store: CannonStorage,
   deployInfo: DeploymentInfo,
-  action: (deployInfo: DeploymentInfo) => Promise<T>,
+  action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
+  context?: BundledOutput | null,
   onlyProvisioned = true
 ): Promise<T[]> {
   const results: T[] = [];
@@ -34,20 +35,24 @@ export async function forPackageTree<T>(
     for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
       if (!onlyProvisioned || importArtifact[1].tags) {
         const nestedDeployInfo = await store.readBlob(importArtifact[1].url);
-        results.push(...(await forPackageTree(store, nestedDeployInfo, action, onlyProvisioned)));
+        results.push(...(await forPackageTree(store, nestedDeployInfo, action, importArtifact[1], onlyProvisioned)));
       }
     }
   }
 
-  results.push(await action(deployInfo));
+  results.push(await action(deployInfo, context || null));
 
   return results;
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
+
+  const chainId = parseInt(variant.split('-')[0]);
+
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
-  const copyIpfs = async (deployInfo: DeploymentInfo) => {
+  const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    console.log('COPY IPFS', deployInfo.def.name);
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
@@ -74,14 +79,15 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
 
     return {
-      packagesNames: [def.getVersion(preCtx), ...tags].map((t) => `${def.getName(preCtx)}:${t}`),
-      variant,
+      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
+        (t) => `${def.getName(preCtx)}:${t}`
+      ),
+      variant: context ? `${chainId}-${context.preset}` : variant,
       url,
       metaUrl: newMetaUrl || '',
     };
   };
 
-  const chainId = parseInt(variant.split('-')[0]);
   const preset = variant.substring(variant.indexOf('-') + 1);
 
   const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
@@ -94,7 +100,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);
   } else {
-    const call = await copyIpfs(deployData);
+    const call = await copyIpfs(deployData, null);
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }

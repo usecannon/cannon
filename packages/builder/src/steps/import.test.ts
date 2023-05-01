@@ -1,6 +1,5 @@
 import '../actions';
 import { BUILD_VERSION } from '../constants';
-import { IPFSLoader } from '../loader';
 import { InMemoryRegistry } from '../registry';
 import action from './import';
 import { fakeCtx, fakeRuntime } from './testUtils';
@@ -11,8 +10,7 @@ describe('steps/import.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
-    (fakeRuntime.loader as any) = new IPFSLoader('', registry);
-    fakeRuntime.loader.resolver = registry;
+    (fakeRuntime.registry as any) = registry;
     (fakeRuntime.chainId as any) = 1234;
   });
 
@@ -61,7 +59,7 @@ describe('steps/import.ts', () => {
     it('works properly', async () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
 
-      jest.mocked(fakeRuntime.loader.readDeploy).mockResolvedValue({
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         state: {
           'contract.Woot': {
             version: BUILD_VERSION,
