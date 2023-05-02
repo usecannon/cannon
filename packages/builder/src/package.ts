@@ -31,19 +31,21 @@ export async function forPackageTree<T>(
 ): Promise<T[]> {
   const results: T[] = [];
 
-  for (const stepState of Object.entries(deployInfo.state || {})) {
-    for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
-      if (!onlyProvisioned || importArtifact[1].tags) {
-        const nestedDeployInfo = await store.readBlob(importArtifact[1].url);
-        const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact[1], onlyProvisioned);
-        results.push(...result);
-      }
-    }
+  for (const importArtifact of _deployImports(deployInfo)) {
+    if (onlyProvisioned && !importArtifact.tags) continue;
+    const nestedDeployInfo = await store.readBlob(importArtifact.url);
+    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyProvisioned);
+    results.push(...result);
   }
 
   results.push(await action(deployInfo, context || null));
 
   return results;
+}
+
+function _deployImports(deployInfo: DeploymentInfo) {
+  if (!deployInfo.state) return [];
+  return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
