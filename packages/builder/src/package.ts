@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import { BundledOutput, DeploymentInfo, StepState } from './types';
+import { BundledOutput, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
