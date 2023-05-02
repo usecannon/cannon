@@ -2,11 +2,12 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
-import { ChainBuilderRuntimeInfo, ContractArtifact } from './types';
+import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 
 import Debug from 'debug';
 import { getExecutionSigner } from './util';
 import { CannonLoader } from './loader';
+import { CannonRegistry } from './registry';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -19,7 +20,46 @@ export enum Events {
   SkipDeploy = 'skip-deploy', // step name, error causing skip
 }
 
-export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRuntimeInfo {
+export class CannonStorage extends EventEmitter {
+  readonly registry: CannonRegistry;
+  readonly defaultLoaderScheme: string;
+  readonly loaders: { [scheme: string]: CannonLoader };
+
+  constructor(registry: CannonRegistry, loaders: { [scheme: string]: CannonLoader }, defaultLoaderScheme = 'ipfs') {
+    super();
+    this.registry = registry;
+    this.defaultLoaderScheme = defaultLoaderScheme;
+    this.loaders = loaders;
+  }
+
+  readBlob(url: string) {
+    if (!url) {
+      throw new Error('url not defined');
+    }
+
+    return this.loaders[url.split(':')[0]].read(url);
+  }
+
+  putBlob(data: any) {
+    return this.loaders[this.defaultLoaderScheme].put(data);
+  }
+
+  async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
+    const uri = await this.registry.getUrl(packageName, `${chainId}-${preset}`);
+
+    if (!uri) return null;
+
+    const deployInfo: DeploymentInfo = await this.readBlob(uri);
+
+    return deployInfo;
+  }
+
+  async putDeploy(deployInfo: DeploymentInfo): Promise<string | null> {
+    return this.putBlob(deployInfo);
+  }
+}
+
+export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   readonly provider: CannonWrapperGenericProvider;
   readonly chainId: number;
   readonly getSigner: (addr: string) => Promise<ethers.Signer>;
@@ -31,17 +71,22 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
 
   private cleanSnapshot: any;
 
-  readonly loader: CannonLoader;
-
   private loadedMisc: string | null = null;
   misc: {
     artifacts: { [label: string]: any };
   };
 
-  constructor(info: ChainBuilderRuntimeInfo, loader: CannonLoader) {
-    super();
+  constructor(
+    info: ChainBuilderRuntimeInfo,
+    registry: CannonRegistry,
+    loaders: { [scheme: string]: CannonLoader },
+    defaultLoaderScheme = 'ipfs'
+  ) {
+    super(registry, loaders, defaultLoaderScheme);
 
-    this.loader = loader;
+    if (!loaders[defaultLoaderScheme]) {
+      throw new Error('default loader scheme not provided as a loader');
+    }
 
     this.provider = info.provider;
     this.chainId = info.chainId;
@@ -109,7 +154,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   async recordMisc() {
-    return await this.loader.putMisc(this.misc);
+    return await this.loaders[this.defaultLoaderScheme].put(this.misc);
   }
 
   async restoreMisc(url: string) {
@@ -117,7 +162,7 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
       return;
     }
 
-    this.misc = await this.loader.readMisc(url);
+    this.misc = await this.readBlob(url);
 
     this.loadedMisc = url;
   }
@@ -133,7 +178,12 @@ export class ChainBuilderRuntime extends EventEmitter implements ChainBuilderRun
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
-    const newRuntime = new ChainBuilderRuntime({ ...this, ...overrides }, this.loader);
+    const newRuntime = new ChainBuilderRuntime(
+      { ...this, ...overrides },
+      this.registry,
+      this.loaders,
+      this.defaultLoaderScheme
+    );
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));

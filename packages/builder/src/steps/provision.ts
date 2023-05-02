@@ -61,14 +61,14 @@ export default {
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
 
-      if ((await runtime.loader.readMisc(prevUrl))!.status === 'partial') {
+      if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
         debug('forcing rebuild because deployment is partial');
         return 'REBUILD PARTIAL DEPLOYMENT ' + Math.random();
       }
     }
 
-    const srcUrl = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
+    const srcUrl = await runtime.registry.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
 
     return {
       url: srcUrl,
@@ -111,7 +111,7 @@ export default {
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.loader.readDeploy(config.source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(config.source, sourcePreset, chainId);
     if (!deployInfo) {
       throw new Error(
         `deployment not found: ${config.source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
@@ -131,13 +131,13 @@ export default {
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
       debug(`using state from previous deploy: ${prevUrl}`);
-      const prevDeployInfo = await runtime.loader.readMisc(prevUrl);
+      const prevDeployInfo = await runtime.readBlob(prevUrl);
       prevState = prevDeployInfo!.state;
       prevMiscUrl = prevDeployInfo!.miscUrl;
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.loader.readDeploy(config.source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(config.source, targetPreset, runtime.chainId)) {
         console.warn(
           'warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?'
         );
@@ -152,7 +152,7 @@ export default {
     // use separate runtime to ensure everything is clear
     // we override `getArtifact` to use a simple loader from the upstream misc data to ensure that any contract upgrades are captured as expected
     // but if any other misc changes are generated they will still be preserved through the new separate context misc
-    const upstreamMisc = await runtime.loader.readMisc(deployInfo.miscUrl);
+    const upstreamMisc = await runtime.readBlob(deployInfo.miscUrl);
     const importRuntime = runtime.derive({
       getArtifact: (n) => {
         return upstreamMisc.artifacts[n];
@@ -179,7 +179,7 @@ export default {
     debug('new misc:', newMiscUrl);
 
     // need to save state to IPFS now so we can access it in future builds
-    const newSubDeployUrl = await runtime.loader.putDeploy({
+    const newSubDeployUrl = await runtime.putDeploy({
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
       options: importPkgOptions,
@@ -191,11 +191,11 @@ export default {
     if (!newSubDeployUrl) {
       console.warn('warn: cannot record built state for import nested state');
     } else {
-      await runtime.loader.resolver.publish(
-        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[1] + ':' + t)],
+      await runtime.registry.publish(
+        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
-        (await runtime.loader.resolver.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
       );
     }
 
@@ -204,6 +204,7 @@ export default {
         [importLabel]: {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
+          preset: targetPreset,
           ...(await getOutputs(importRuntime, def, builtState))!,
         },
       },

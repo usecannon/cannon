@@ -1,8 +1,9 @@
-import { IPFSLoader, OnChainRegistry, copyPackage } from '@usecannon/builder';
+import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
 import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+import { getMainLoader } from '../loader';
 
 export async function publish(
   packageRef: string,
@@ -38,14 +39,22 @@ export async function publish(
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
 
+  if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
+    throw new Error(
+      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
+    );
+  }
+
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
     overrides,
   });
 
-  const fromLoader = new IPFSLoader(cliSettings.ipfsUrl, localRegistry);
-  const toLoader = new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl, onChainRegistry);
+  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+  const toStorage = new CannonStorage(onChainRegistry, {
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+  });
 
   const registrationReceipts = [];
 
@@ -53,8 +62,8 @@ export async function publish(
     const newReceipts = await copyPackage({
       packageRef: deploy.name,
       variant: deploy.variant,
-      fromLoader,
-      toLoader,
+      fromStorage,
+      toStorage,
       recursive,
       tags: tags.split(','),
     });

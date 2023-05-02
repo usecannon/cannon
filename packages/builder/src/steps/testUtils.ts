@@ -23,7 +23,7 @@ export const fakeCtx = {
   timestamp: '1234123412',
 } as unknown as ChainBuilderContextWithHelpers;
 
-export const fakeRuntime = new ChainBuilderRuntime({} as any, null as any);
+export const fakeRuntime = new ChainBuilderRuntime({} as any, null as any, {});
 
 (fakeRuntime as any).provider = new CannonWrapperGenericProvider({}, null as any);
 

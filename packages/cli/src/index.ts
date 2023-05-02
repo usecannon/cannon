@@ -31,9 +31,9 @@ import { resolveCliSettings } from './settings';
 import { installPlugin, removePlugin } from './plugins';
 import Debug from 'debug';
 import { writeModuleDeployments } from './util/write-deployments';
-import { getIpfsLoader } from './util/loader';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
+import { getMainLoader } from './loader';
 
 const debug = Debug('cannon:cli');
 
@@ -414,10 +414,11 @@ program
         snapshots: false,
         allowPartialDeploy: false,
       },
-      getIpfsLoader(cliSettings.ipfsUrl, resolver)
+      resolver,
+      getMainLoader(cliSettings)
     );
 
-    const deployData = await runtime.loader.readDeploy(
+    const deployData = await runtime.readDeploy(
       `${packageDefinition.name}:${packageDefinition.version}`,
       opts.preset || 'main',
       runtime.chainId

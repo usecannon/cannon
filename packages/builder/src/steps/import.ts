@@ -41,7 +41,7 @@ export default {
     const chainId = config.chainId ?? runtime.chainId;
 
     debug('resolved pkg', cfg.source, `${chainId}-${preset}`);
-    const url = await runtime.loader.resolver.getUrl(cfg.source, `${chainId}-${preset}`);
+    const url = await runtime.registry.getUrl(cfg.source, `${chainId}-${preset}`);
 
     return {
       url,
@@ -72,7 +72,7 @@ export default {
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.loader.readDeploy(packageRef, preset, chainId);
+    const deployInfo = await runtime.readDeploy(packageRef, preset, chainId);
 
     if (!deployInfo) {
       throw new Error(
@@ -89,7 +89,7 @@ export default {
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.loader.resolver.getUrl(packageRef, `${chainId}-${preset}`))!, // todo: duplication
+          url: (await runtime.registry.getUrl(packageRef, `${chainId}-${preset}`))!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },
