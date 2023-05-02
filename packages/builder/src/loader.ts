@@ -25,10 +25,6 @@ export class IPFSLoader implements CannonLoader {
     return `ipfs ${this.ipfsUrl}`;
   }
 
-  protected async readMiscInternal(url: string) {
-    return await readIpfs(this.ipfsUrl, url.split(IPFSLoader.PREFIX)[1], this.customHeaders);
-  }
-
   async put(misc: any): Promise<string | null> {
     debug('ipfs put');
 

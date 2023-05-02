@@ -35,7 +35,8 @@ export async function forPackageTree<T>(
     for (const importArtifact of Object.entries((stepState[1] as StepState).artifacts.imports || {})) {
       if (!onlyProvisioned || importArtifact[1].tags) {
         const nestedDeployInfo = await store.readBlob(importArtifact[1].url);
-        results.push(...(await forPackageTree(store, nestedDeployInfo, action, importArtifact[1], onlyProvisioned)));
+        const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact[1], onlyProvisioned);
+        results.push(...result);
       }
     }
   }
