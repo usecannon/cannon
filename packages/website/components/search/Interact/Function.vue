@@ -30,11 +30,11 @@
         v-for="(output, ind) of f.outputs"
         :key="JSON.stringify(output)"
       >
-        <CText display="inline" v-if="output.name">{{ output.name }}</CText>
-        <CText fontSize="xs" color="whiteAlpha.700" display="inline">
-          {{ output.type }}</CText
-        >
-        <FunctionOutput v-if="result != null" :output="result" />
+        <FunctionOutput
+          v-if="result[ind] != null"
+          :result="result[ind]"
+          :output="output"
+        />
       </CBox>
     </CBox>
 

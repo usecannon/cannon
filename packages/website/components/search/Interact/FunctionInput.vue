@@ -19,6 +19,7 @@
           v-on:update:value="handleUpdate(null, $event)" />
         <DefaultInput
           v-else
+          :inputType="input.type"
           :input="getValue(input)"
           v-on:update:value="handleUpdate(null, $event)"
       /></CFlex>
@@ -48,6 +49,7 @@
           v-on:update:value="handleUpdate(index, $event)" />
         <DefaultInput
           v-else
+          :inputType="input.type"
           :input="getValue(inp)"
           v-on:update:value="handleUpdate(index, $event)" />
         <CLink @click="remove(index, $event)" ml="4" v-if="array.length > 1">

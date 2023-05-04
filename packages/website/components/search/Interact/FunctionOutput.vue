@@ -1,19 +1,30 @@
 <template>
   <CBox>
-    <CBox
-      borderBottom="1px solid rgba(255,255,255,0.15)"
-      pb="2"
-      mb="2"
-      pl="2"
-      v-if="Array.isArray(output)"
-    >
-      <CBox v-for="a in output" :key="a.toString()">
-        <FunctionOutput :output="a" />
+    <CBox v-if="Array.isArray(result)">
+      <CBox mb="2">
+        <CText display="inline" v-if="output.name">{{ output.name }}</CText>
+        <CText fontSize="xs" color="whiteAlpha.700" display="inline">
+          {{ output.type }}</CText
+        >
+      </CBox>
+      <CBox borderBottom="1px solid rgba(255,255,255,0.15)" pb="2" pl="2">
+        <CBox v-for="(a, ind) in result" :key="a.toString()">
+          <FunctionOutput
+            :result="result[ind]"
+            :output="output.components[ind]"
+          />
+        </CBox>
       </CBox>
     </CBox>
-    <CText v-else
-      ><CCode variant-color="black" background="black">{{
-        outputDisplay
+    <CText mb="2" v-else>
+      <CBox>
+        <CText display="inline" v-if="output.name">{{ output.name }}</CText>
+        <CText fontSize="xs" color="whiteAlpha.700" display="inline">
+          {{ output.type }}</CText
+        >
+      </CBox>
+      <CCode variant-color="black" background="black">{{
+        resultDisplay
       }}</CCode>
       <CText
         v-if="bigNumberDisplay"
@@ -33,21 +44,21 @@ const { ethers } = require('ethers');
 export default {
   name: 'FunctionOutput',
   props: [
-    'output',
-    'outputType'
+    'result',
+    'output'
   ],
   computed: {
     bigNumberDisplay(){
-      if(ethers.BigNumber.isBigNumber(this.output)){
-        return ethers.utils.formatEther(this.output)
+      if(ethers.BigNumber.isBigNumber(this.result)){
+        return ethers.utils.formatEther(this.result)
       }
     },
-    outputDisplay(){
-      const isString = typeof this.output == "string";
+    resultDisplay(){
+      const isString = typeof this.result == "string";
       if(isString){
-        return '"' + this.output + '"'
+        return '"' + this.result + '"'
       }else{
-        return this.output.toString()
+        return this.result.toString()
       }
     }
   }
