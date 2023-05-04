@@ -16,11 +16,11 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
 
   const loader = getMainLoader(resolveCliSettings());
 
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${preset}-${chainId}`);
+  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${preset}`);
 
   if (!deployUrl) {
     throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${preset}-${chainId}.`
+      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${preset}.`
     );
   }
 
