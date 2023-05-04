@@ -37,8 +37,10 @@ export async function handleTxnError(
     errorCodeHex = err.data;
   } else if (err.code === -32015) {
     errorCodeHex = err.message.split(' ')[1];
-  } else if (err.code === -32603) {
+  } else if (err.code === -32603 && err.data.originalError) {
     errorCodeHex = err.data.originalError.data;
+  } else if (err.code === -32603 && err.data.data) {
+    errorCodeHex = err.data.data;
   }
   if (err.reason === 'processing response error') {
     txnData = JSON.parse(err.requestBody).params[0];

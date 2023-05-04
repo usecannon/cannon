@@ -23,13 +23,22 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value ? this.value : '');
+        const bytes32Regex = /^0x[0-9a-fA-F]{64}$/;
+        if(this.inputType == 'bytes32' && !bytes32Regex.test(this.value)){
+          this.$emit("update:value", ethers.utils.formatBytes32String(this.value));
+        }else{
+          this.$emit("update:value", this.value ? this.value : '');
+        }
+        
       }
     },
     props: {
         input: {
             type: Object
-        }
+        },
+        inputType: {
+            type: String
+        },
     }
   }
   </script>

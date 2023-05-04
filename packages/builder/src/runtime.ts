@@ -6,7 +6,7 @@ import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './typ
 
 import Debug from 'debug';
 import { getExecutionSigner } from './util';
-import { CannonLoader } from './loader';
+import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
 
 const debug = Debug('cannon:builder:runtime');
@@ -79,7 +79,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   constructor(
     info: ChainBuilderRuntimeInfo,
     registry: CannonRegistry,
-    loaders: { [scheme: string]: CannonLoader },
+    loaders: { [scheme: string]: CannonLoader } = { ipfs: new IPFSLoader('') },
     defaultLoaderScheme = 'ipfs'
   ) {
     super(registry, loaders, defaultLoaderScheme);
