@@ -128,7 +128,6 @@ export default {
     async submit(supressError){
       this.error = null
       this.loading = true;
-
       const provider = getProvider(this.$store.getters.getChainId, this.$store.state.INFURA_ID)
       try {
         if(this.readOnly){
