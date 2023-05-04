@@ -1,6 +1,6 @@
 {
   "name": "sample-hardhat-project",
-  "version": "2.4.9",
+  "version": "2.4.10",
   "private": true,
   "scripts": {
     "test": "hardhat test"
@@ -17,7 +17,7 @@
     "dotenv": "^10.0.0",
     "ethers": "^5.7.1",
     "hardhat": "^2.13.1",
-    "hardhat-cannon": "^2.4.9",
+    "hardhat-cannon": "^2.4.10",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-interact": "^0.2.3",
     "solidity-coverage": "^0.7.20",
