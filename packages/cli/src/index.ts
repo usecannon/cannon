@@ -233,7 +233,7 @@ program
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
   .option(
-    '-c --contracts-directory [contracts]',
+    '--contracts-directory [contracts]',
     'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
     './src'
   )
@@ -345,6 +345,28 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+    process.exit();
+  });
+
+program
+  .command('decode')
+  .description('decode transaction data using the ABIs of the given Cannon package')
+  .argument('<packageName>', 'Name and version of the cannon package to use')
+  .argument('<bytes32Data...>', 'bytes32 encoded transaction data to decode')
+  .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, data, options) {
+    const { decode } = await import('./commands/decode');
+
+    await decode({
+      packageName,
+      data,
+      chainId: options.chainId,
+      preset: options.preset,
+      json: options.json,
+    });
+
     process.exit();
   });
 
