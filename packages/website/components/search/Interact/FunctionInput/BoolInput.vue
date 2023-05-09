@@ -3,7 +3,7 @@
     borderColor="whiteAlpha.400"
     bg="black"
     v-model="value"
-    @input="updateValue"
+    @change="updateValue"
   >
     <option value="false">False</option>
     <option value="true">True</option>
@@ -25,7 +25,7 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value);
+        this.$emit("update:value", this.value == 'true' ? true : false);
       }
     },
     props: {
