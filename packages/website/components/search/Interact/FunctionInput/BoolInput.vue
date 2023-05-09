@@ -25,7 +25,7 @@ const ethers = require("ethers");
     },
     methods: {
       updateValue() {
-        this.$emit("update:value", this.value ? this.value : 'false');
+        this.$emit("update:value", this.value);
       }
     },
     props: {
