@@ -49,7 +49,7 @@ export async function setup() {
     type: 'text',
     name: 'ipfsUrl',
     message:
-      'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote, like Infura.\n',
+      'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote.\n',
     initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
   });
   if (response2.ipfsUrl) {
