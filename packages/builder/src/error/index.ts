@@ -383,7 +383,7 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
       break;
 
     default:
-      str = `UNKOWN ${trace.type}`;
+      str = `UNKNOWN ${trace.type}`;
   }
 
   return ' '.repeat(2 * (trace.traceAddress.length + 1)) + str;
