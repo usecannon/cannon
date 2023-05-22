@@ -47,6 +47,7 @@ export async function loadPlugins() {
     if (!installedPlugins.includes(plugin)) {
       debug('installing default plugin:', plugin);
       await installPlugin(plugin);
+      installedPlugins.push(plugin);
     }
   }
 
