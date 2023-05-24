@@ -127,6 +127,8 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
       } catch (err) {
         console.log(`verification for ${c} (${contractInfo.address}) failed:`, err);
       }
+
+      await sleep(500);
     }
   };
 
@@ -165,6 +167,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
         }
       } else {
         console.log(`✅ ${c}`);
+        await sleep(500);
         break;
       }
     }
