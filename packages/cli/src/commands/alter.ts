@@ -147,9 +147,7 @@ export async function alter(
       break;
     case 'mark-incomplete':
       // invalidate the state hash
-      for (const target of targets) {
-        deployInfo.state[targets[0]].hash = 'INCOMPLETE';
-      }
+      deployInfo.state[targets[0]].hash = 'INCOMPLETE';
       break;
   }
 
