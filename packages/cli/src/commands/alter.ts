@@ -20,7 +20,7 @@ export async function alter(
   chainId: number,
   preset: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'mark-complete',
+  command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -144,6 +144,12 @@ export async function alter(
         deployInfo.state[targets[0]].hash = h;
       }
       // clear txn hash if we have it
+      break;
+    case 'mark-incomplete':
+      // invalidate the state hash
+      for (const target of targets) {
+        deployInfo.state[targets[0]].hash = 'INCOMPLETE';
+      }
       break;
   }
 
