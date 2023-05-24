@@ -280,7 +280,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (baseResolved) return baseResolved;
 
-    const [name, version] = packageName.split(':');
+    const [name, version = 'latest'] = packageName.split(':');
 
     const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),
@@ -296,7 +296,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (baseResolved) return baseResolved;
 
-    const [name, version] = packageName.split(':');
+    const [name, version = 'latest'] = packageName.split(':');
 
     const url = await this.contract.getPackageMeta(
       ethers.utils.formatBytes32String(name),
