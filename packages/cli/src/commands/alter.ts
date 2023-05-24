@@ -157,5 +157,7 @@ export async function alter(
     throw new Error('loader is not writable');
   }
 
+  console.log(newUrl);
+
   await resolver.publish([packageRef], variant, newUrl, metaUrl || '');
 }
