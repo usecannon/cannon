@@ -66,6 +66,8 @@ export async function publish({
     for (const tag of [res.version, ...res.tags]) {
       console.log(green(bold('published:'), `${res.name}:${tag} (${res.variant})`));
     }
+
+    return;
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
