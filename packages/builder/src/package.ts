@@ -142,5 +142,5 @@ export async function publishPackage({
 
   debug('txs', txs);
 
-  return txs;
+  return { name, version, tags, variant, url, miscUrl, txs };
 }

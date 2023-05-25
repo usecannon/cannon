@@ -1,5 +1,5 @@
 import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage } from '@usecannon/builder';
-import { blueBright } from 'chalk';
+import { blueBright, bold, green } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
@@ -52,8 +52,9 @@ export async function publish({
     const deployInfo = await readDeploy(packageRef, chainId, preset);
 
     console.log(blueBright('publishing remote ipfs package', packageRef));
+    console.log();
 
-    return await publishPackage({
+    const res = await publishPackage({
       url: packageRef.replace('@ipfs:', 'ipfs://'),
       deployInfo,
       registry: onChainRegistry,
@@ -61,6 +62,10 @@ export async function publish({
       chainId,
       preset,
     });
+
+    for (const tag of [res.version, ...res.tags]) {
+      console.log(green(bold('published:'), `${res.name}:${tag} (${res.variant})`));
+    }
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
