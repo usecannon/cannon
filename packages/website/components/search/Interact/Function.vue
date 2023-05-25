@@ -25,22 +25,7 @@
       {{ error }}
     </CAlert>
     <CBox v-else-if="result != null">
-      <CBox
-        mb="4"
-        v-for="(output, ind) of f.outputs"
-        :key="JSON.stringify(output)"
-      >
-        <FunctionOutput
-          v-if="result[ind] != null && f.outputs.length == 1"
-          :result="result"
-          :output="output"
-        />
-        <FunctionOutput
-          v-else-if="result[ind] != null"
-          :result="result[ind]"
-          :output="output"
-        />
-      </CBox>
+      <FunctionOutput :result="result" :output="f.outputs" />
     </CBox>
 
     <CBox display="inline" v-if="readOnly && (result != null || error)">
