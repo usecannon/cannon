@@ -117,7 +117,6 @@ export async function publishPackage({
   deployInfo,
   registry,
   tags,
-  // recursive = true, // TODO: implement publish recursion in this case?
   chainId,
   preset,
 }: {
@@ -125,7 +124,6 @@ export async function publishPackage({
   deployInfo: DeploymentInfo;
   registry: CannonRegistry;
   tags: string[];
-  // recursive?: boolean;
   chainId: number;
   preset: string;
 }) {

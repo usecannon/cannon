@@ -51,7 +51,7 @@ export async function publish({
 
     const deployInfo = await readDeploy(packageRef, chainId, preset);
 
-    console.log(blueBright('publishing remote package', packageRef));
+    console.log(blueBright('publishing remote ipfs package', packageRef));
 
     return await publishPackage({
       url: packageRef.replace('@ipfs:', 'ipfs://'),
