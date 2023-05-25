@@ -298,8 +298,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .option('-f --force', 'Push even if the artifact appaers to be pushed to the registry with that url')
-  .action(async function (packageName, options) {
+  .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
@@ -319,16 +318,15 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    await publish(
-      packageName,
-      options.tags,
-      p.signers[0],
-      options.chainId ? Number.parseInt(options.chainId) : undefined,
-      options.preset ? (options.preset as string) : undefined,
+    await publish({
+      packageRef,
+      signer: p.signers[0],
+      tags: options.tags.split(','),
+      chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+      preset: options.preset ? (options.preset as string) : undefined,
+      quiet: options.quiet,
       overrides,
-      options.quiet,
-      options.force
-    );
+    });
 
     process.exit();
   });

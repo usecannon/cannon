@@ -6,19 +6,28 @@ import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { readDeploy } from '../package';
 
-export async function publish(
-  packageRef: string,
-  tags: string,
-  signer: ethers.Signer,
-  chainId?: number,
-  preset = 'main',
-  overrides?: ethers.Overrides,
-  quiet = false,
-  recursive = true
-) {
-  const cliSettings = resolveCliSettings();
+interface Params {
+  packageRef: string;
+  signer: ethers.Signer;
+  tags: string[];
+  chainId?: number;
+  preset?: string;
+  quiet?: boolean;
+  recursive?: boolean;
+  overrides?: ethers.Overrides;
+}
 
-  const splitTags = tags.split(',');
+export async function publish({
+  packageRef,
+  signer,
+  tags = ['latest'],
+  chainId = 13370,
+  preset = 'main',
+  quiet = false,
+  recursive = true,
+  overrides,
+}: Params) {
+  const cliSettings = resolveCliSettings();
 
   if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
     throw new Error(
@@ -44,18 +53,14 @@ export async function publish(
 
     console.log(blueBright('publishing remote package', packageRef));
 
-    const result = await publishPackage({
+    return await publishPackage({
       url: packageRef.replace('@ipfs:', 'ipfs://'),
       deployInfo,
       registry: onChainRegistry,
-      tags: splitTags,
+      tags,
       chainId,
       preset,
     });
-
-    console.log('result: ', result);
-
-    return;
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
@@ -91,7 +96,7 @@ export async function publish(
       fromStorage,
       toStorage,
       recursive,
-      tags: tags.split(','),
+      tags,
     });
 
     registrationReceipts.push(newReceipts);
@@ -101,7 +106,7 @@ export async function publish(
     JSON.stringify(
       {
         packageRef,
-        tags: splitTags,
+        tags,
         registrationReceipts,
       },
       null,
