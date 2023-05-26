@@ -2,11 +2,14 @@ import path from 'path';
 import { exec } from 'child_process';
 import _ from 'lodash';
 import { existsSync, mkdirp } from 'fs-extra';
+import { registerAction } from '@usecannon/builder';
 import { resolveCliSettings } from './settings';
 
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:plugins');
+
+const DEFAULT_PLUGINS = ['cannon-plugin-router'];
 
 export async function installPlugin(name: string) {
   await mkdirp(_getPluginDir());
@@ -38,8 +41,24 @@ export async function loadPlugin(name: string) {
 }
 
 export async function loadPlugins() {
-  for (const plugin of await listInstalledPlugins()) {
-    await loadPlugin(plugin);
+  const installedPlugins = await listInstalledPlugins();
+
+  for (const plugin of DEFAULT_PLUGINS) {
+    if (!installedPlugins.includes(plugin)) {
+      debug('installing default plugin:', plugin);
+      await installPlugin(plugin);
+      installedPlugins.push(plugin);
+    }
+  }
+
+  for (const plugin of installedPlugins) {
+    const pluginAction = await loadPlugin(plugin);
+
+    if (Array.isArray(pluginAction)) {
+      for (const action of pluginAction) registerAction(action);
+    } else {
+      registerAction(pluginAction);
+    }
   }
 }
 
