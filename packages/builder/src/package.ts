@@ -138,7 +138,7 @@ export async function publishPackage({
 
   debug('publishing package', { name, version, tags, variant, url, miscUrl });
 
-  const txs = registry.publish(packagesNames, variant, url, miscUrl);
+  const txs = await registry.publish(packagesNames, variant, url, miscUrl);
 
   debug('txs', txs);
 
