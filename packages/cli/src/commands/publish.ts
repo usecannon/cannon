@@ -1,23 +1,74 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
-import { blueBright } from 'chalk';
+import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage } from '@usecannon/builder';
+import { blueBright, bold, green } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
+import { readDeploy } from '../package';
 
-export async function publish(
-  packageRef: string,
-  tags: string,
-  signer: ethers.Signer,
-  chainId?: number,
-  preset?: string,
-  overrides?: ethers.Overrides,
+interface Params {
+  packageRef: string;
+  signer: ethers.Signer;
+  tags: string[];
+  chainId?: number;
+  preset?: string;
+  quiet?: boolean;
+  recursive?: boolean;
+  overrides?: ethers.Overrides;
+}
+
+export async function publish({
+  packageRef,
+  signer,
+  tags = ['latest'],
+  chainId = 13370,
+  preset = 'main',
   quiet = false,
-  recursive = true
-) {
+  recursive = true,
+  overrides,
+}: Params) {
   const cliSettings = resolveCliSettings();
 
-  const splitTags = tags.split(',');
+  if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
+    throw new Error(
+      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
+    );
+  }
+
+  const onChainRegistry = new OnChainRegistry({
+    signerOrProvider: signer,
+    address: cliSettings.registryAddress,
+    overrides,
+  });
+
+  if (!quiet) {
+    console.log(blueBright('publishing signer is', await signer.getAddress()));
+  }
+
+  if (packageRef.startsWith('@ipfs:')) {
+    if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
+    if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
+
+    const deployInfo = await readDeploy(packageRef, chainId, preset);
+
+    console.log(blueBright('publishing remote ipfs package', packageRef));
+    console.log();
+
+    const res = await publishPackage({
+      url: packageRef.replace('@ipfs:', 'ipfs://'),
+      deployInfo,
+      registry: onChainRegistry,
+      tags,
+      chainId,
+      preset,
+    });
+
+    for (const tag of [res.version, ...res.tags]) {
+      console.log(green(bold('published:'), `${res.name}:${tag} (${res.variant})`));
+    }
+
+    return;
+  }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
@@ -35,21 +86,8 @@ export async function publish(
   const deploys = await localRegistry.scanDeploys(new RegExp(`^${packageRef}$`), variantFilter);
 
   if (!quiet) {
-    console.log(blueBright('publishing signer is', await signer.getAddress()));
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
-
-  if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
-    throw new Error(
-      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
-    );
-  }
-
-  const onChainRegistry = new OnChainRegistry({
-    signerOrProvider: signer,
-    address: cliSettings.registryAddress,
-    overrides,
-  });
 
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
@@ -65,7 +103,7 @@ export async function publish(
       fromStorage,
       toStorage,
       recursive,
-      tags: tags.split(','),
+      tags,
     });
 
     registrationReceipts.push(newReceipts);
@@ -75,13 +113,11 @@ export async function publish(
     JSON.stringify(
       {
         packageRef,
-        tags: splitTags,
+        tags,
         registrationReceipts,
       },
       null,
       2
     )
   );
-
-  process.exit();
 }

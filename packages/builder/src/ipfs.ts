@@ -44,7 +44,7 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
       );
     }
   } catch (err: any) {
-    let errMsg = `could not download cannon package data from ${hash}: ${err.toString()}`;
+    let errMsg = `could not download cannon package data from "${hash}": ${err.toString()}`;
 
     if (ipfsUrl.includes('infura')) {
       errMsg +=
