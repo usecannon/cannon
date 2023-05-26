@@ -461,7 +461,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
     const contractsByAddress = _.mapKeys(
-      _.groupBy(_.flatten(ctx.contracts.map((contract) => Object.values(contract))), 'address'),
+      _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
       (v, k) => k.toLowerCase()
     );
 
@@ -469,22 +469,24 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
       const log = receipt.logs[i];
 
       let foundLog = false;
-      try {
-        // find contract matching address of the log
-        const logContract = contractsByAddress[log.address.toLowerCase()][0];
+      for (const [n, logContract] of contractsByAddress[log.address.toLowerCase()] || []) {
+        try {
+          // find contract matching address of the log
+          const parsedLog = logContract.interface.parseLog(log);
+          foundLog = true;
+          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name), gray(`\t${n}`));
 
-        const parsedLog = logContract.interface.parseLog(log);
-        foundLog = true;
-        console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name));
+          for (let i = 0; i < (parsedLog.args.length || 0); i++) {
+            const output = parsedLog.args[i];
+            const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
 
-        for (let i = 0; i < (parsedLog.args.length || 0); i++) {
-          const output = parsedLog.args[i];
-          const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+            console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
+          }
 
-          console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
+          break;
+        } catch (err) {
+          // nothing
         }
-      } catch (err) {
-        // nothing
       }
 
       if (!foundLog) {
