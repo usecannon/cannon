@@ -53,7 +53,6 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  projectDirectory,
   preset = 'main',
   overrideResolver,
   wipe = false,
@@ -97,7 +96,6 @@ export async function build({
 
     getDefaultSigner,
 
-    baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
     publicSourceCode,
