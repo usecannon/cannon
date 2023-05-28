@@ -10,6 +10,7 @@ import {
   DEFAULT_REGISTRY_ADDRESS,
 } from '../constants';
 import _ from 'lodash';
+import { bold, italic, yellow } from 'chalk';
 
 export async function setup() {
   // Setup Anvil
@@ -30,55 +31,72 @@ export async function setup() {
   const cliSettingsStore = untildify(
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
   );
-  let fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
 
-  console.log(`\nThis will ${_.isEmpty(fileSettings) ? 'store' : 'update'} your configuration at ${cliSettingsStore}\n`);
+  const configExists = fs.existsSync(cliSettingsStore);
+  let fileSettings = configExists ? fs.readJsonSync(cliSettingsStore) : {};
 
-  const response1 = await prompts({
-    type: 'text',
-    name: 'publishIpfsUrl',
-    message:
-      'What IPFS endpoint would you like to use when publishing packages? (This may look like https://<project-id>:<api-key-secret>@ipfs.infura.io:5001) You can leave this blank and set it later.\n',
-    initial: fileSettings.publishIpfsUrl,
-  });
-  if (response1.publishIpfsUrl) {
-    fileSettings.publishIpfsUrl = response1.publishIpfsUrl;
+  if (configExists) {
+    console.log(`\nThis will update your configuration at ${cliSettingsStore} with current value:`);
+    console.dir(fileSettings);
+  } else {
+    console.log(`\nThis will store your configuration at ${cliSettingsStore} which will be created\n`);
   }
 
-  const response2 = await prompts({
-    type: 'text',
-    name: 'ipfsUrl',
-    message:
-      'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote, like Infura.\n',
-    initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
+  const questions: prompts.PromptObject[] = [
+    {
+      type: 'text',
+      name: 'publishIpfsUrl',
+      message:
+        'What IPFS endpoint would you like to use when publishing packages? (This may look like https://<project-id>:<api-key-secret>@ipfs.infura.io:5001) You can leave this blank and set it later.\n',
+      initial: fileSettings.publishIpfsUrl,
+    },
+    {
+      type: 'text',
+      name: 'ipfsUrl',
+      message:
+        'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote, like Infura.\n',
+      initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
+    },
+    {
+      type: 'text',
+      name: 'registryProviderUrl',
+      message:
+        'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
+      initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_PROVIDER_URL || '',
+    },
+    {
+      type: 'text',
+      name: 'registryAddress',
+      message: 'Optionally, you can set a custom registry address. It is strongly recommended that you use the default.\n',
+      initial: fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS || '',
+    },
+  ];
+
+  const response = await prompts(questions, {
+    onCancel: () => {
+      console.log(bold('Aborting...'));
+      console.log(yellow(italic('No changes were made to your configuration.')));
+      process.exit(0);
+    },
   });
-  if (response2.ipfsUrl) {
-    fileSettings.ipfsUrl = response2.ipfsUrl;
+
+  if (response.publishIpfsUrl) {
+    fileSettings.publishIpfsUrl = response.publishIpfsUrl;
   }
 
-  const response3 = await prompts({
-    type: 'text',
-    name: 'registryProviderUrl',
-    message:
-      'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
-    initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_PROVIDER_URL || '',
-  });
-  // Only write this to the file if it's different than the default, so this can be upgraded in the future.
-  if (response3.registryProviderUrl && response3.registryProviderUrl != DEFAULT_REGISTRY_PROVIDER_URL) {
-    fileSettings.registryProviderUrl = response3.registryProviderUrl;
+  if (response.ipfsUrl) {
+    fileSettings.ipfsUrl = response.ipfsUrl;
   }
 
-  const response4 = await prompts({
-    type: 'text',
-    name: 'registryAddress',
-    message: 'Optionally, you can set a custom registry address. It is strongly recommended that you use the default.\n',
-    initial: fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS || '',
-  });
-  // Only write this to the file if it's different than the default, so this can be upgraded in the future.
-  if (response4.registryAddress && response4.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
-    fileSettings.registryAddress = response4.registryAddress;
+  // Only write this to the file if it's different from the default, so this can be upgraded in the future.
+  if (response.registryProviderUrl && response.registryProviderUrl != DEFAULT_REGISTRY_PROVIDER_URL) {
+    fileSettings.registryProviderUrl = response.registryProviderUrl;
   }
-  fileSettings.registryAddress = response4.registryAddress;
+
+  // Only write this to the file if it's different from the default, so this can be upgraded in the future.
+  if (response.registryAddress && response.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
+    fileSettings.registryAddress = response.registryAddress;
+  }
 
   console.log(`Writing configuration to ${cliSettingsStore}...`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
