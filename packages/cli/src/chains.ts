@@ -1135,22 +1135,17 @@ export const chains: IChainData[] = [
     infoURL: 'https://base.org/',
   },
   {
-    "name": "Sepolia Network",
-    "chainId": 11155111,
-    "shortName": "sepolia",
-    "chain": "Sepolia",
-    "network": "testnet",
-    "networkId": 11155111,
-    "nativeCurrency": { "name": "Sepolia Ether", "symbol": "sETH", "decimals": 18 },
-    "rpc": [
-      "https://rpc.sepolia.org",
-      "https://rpc2.sepolia.org",
-      "https://rpc.sepolia.online",
-    ],
-    "etherscanApi": "https://api-sepolia.basescan.org/api",
-    "etherscanUrl": "https://sepolia.etherscan.io",
-    "faucets": ["https://coinbase.com/faucets/ethereum-sepolia-faucet"],
-    "infoURL": "https://sepolia.dev"
-  }
-
+    name: 'Sepolia Network',
+    chainId: 11155111,
+    shortName: 'sepolia',
+    chain: 'Sepolia',
+    network: 'testnet',
+    networkId: 11155111,
+    nativeCurrency: { name: 'Sepolia Ether', symbol: 'sETH', decimals: 18 },
+    rpc: ['https://rpc.sepolia.org', 'https://rpc2.sepolia.org', 'https://rpc.sepolia.online'],
+    etherscanApi: 'https://api-sepolia.basescan.org/api',
+    etherscanUrl: 'https://sepolia.etherscan.io',
+    faucets: ['https://coinbase.com/faucets/ethereum-sepolia-faucet'],
+    infoURL: 'https://sepolia.dev',
+  },
 ];
