@@ -186,6 +186,7 @@ export default {
       state: builtState,
       meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
+      chainId
     });
 
     if (!newSubDeployUrl) {
