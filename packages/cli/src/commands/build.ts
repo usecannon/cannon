@@ -239,7 +239,7 @@ export async function build({
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
-      chainId: runtime.chainId
+      chainId: runtime.chainId,
     });
 
     const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));
