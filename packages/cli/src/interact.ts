@@ -225,7 +225,7 @@ async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment 
   if (func.payable) {
     const { txnValue } = await prompts.prompt([
       {
-        type: 'number',
+        type: 'text',
         name: 'txnValue',
         message: 'Function is payable. ETH AMOUNT (in eth units):',
       },
@@ -260,8 +260,14 @@ async function query({
 }) {
   const functionInfo = contract.interface.getFunction(functionSignature);
 
+  const callData = contract.interface.encodeFunctionData(functionSignature, args);
+  console.log(gray(`  > calldata: ${callData}`));
+
   let result = [];
   try {
+    console.log(
+      gray(`  > estimated gas required: ${await contract.estimateGas[functionSignature!](...args, { blockTag })}`)
+    );
     result = await contract.callStatic[functionSignature!](...args, {
       blockTag,
     });
@@ -303,9 +309,11 @@ async function execTxn({
   try {
     txn = await contract.populateTransaction[functionSignature](...args, {
       from: await signer.getAddress(),
+      value: Ethers.BigNumber.from(value),
     });
     const estimatedGas = await contract.estimateGas[functionSignature](...args, {
       from: await signer.getAddress(),
+      value: Ethers.BigNumber.from(value),
     });
 
     console.log(gray(`  > calldata: ${txn.data}`));
@@ -380,11 +388,12 @@ async function promptInputValue(input: Ethers.utils.ParamType): Promise<any> {
 }
 
 function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
+  const isTuple = input.type.includes('tuple');
   const isBytes32 = input.type.includes('bytes32');
   const isArray = input.type.includes('[]');
   const isNumber = input.type.includes('int');
 
-  let processed = isArray ? JSON.parse(rawValue) : rawValue;
+  let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
   if (isBytes32 && !ethers.utils.isBytesLike(processed)) {
     if (isArray) {
       processed = processed.map((item: string) => Ethers.utils.formatBytes32String(item));
