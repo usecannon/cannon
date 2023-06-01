@@ -16,6 +16,9 @@ import { ChainBuilderRuntime, Events } from './runtime';
 import { BUILD_VERSION } from './constants';
 import { ActionKinds } from './actions';
 
+// a step is considered failed if it takes longer than 5 minutes always
+const DEFAULT_STEP_TIMEOUT = 300000;
+
 export async function createInitialContext(
   def: ChainDefinition,
   pkg: any,
@@ -35,7 +38,7 @@ export async function createInitialContext(
   for (const s in pkgSettings) {
     if (opts[s]) {
       settings[s] = opts[s];
-    } else if (pkgSettings[s].defaultValue) {
+    } else if (pkgSettings[s].defaultValue !== undefined) {
       settings[s] = pkgSettings[s].defaultValue!;
     } else {
       throw new Error(`required setting not supplied: ${s}`);
@@ -319,11 +322,18 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.provider.artifacts = ctx;
 
-  const output = await ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState);
+  const result = await Promise.race([
+    ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
+    new Promise<false>((resolve) => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT)),
+  ]);
 
-  runtime.emit(Events.PostStepExecute, type, label, output, 0);
+  if (result === false) {
+    throw new Error('timed out without error');
+  }
 
-  return output;
+  runtime.emit(Events.PostStepExecute, type, label, result, 0);
+
+  return result;
 }
 
 export async function getOutputs(
