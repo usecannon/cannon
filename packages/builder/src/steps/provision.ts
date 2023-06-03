@@ -211,4 +211,6 @@ export default {
       },
     };
   },
+
+  timeout: 3600000,
 };
