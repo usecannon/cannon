@@ -115,7 +115,7 @@ export async function build({
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     console.log(
-      `${'  '.repeat(d)}  -> skip ${n} (${err.toString() === '[object Object]' ? JSON.stringify(err) : err.toString()})`
+      `${'  '.repeat(d)}  -> skip ${n} (${(typeof err === 'object' && err.toString === Object.prototype.toString) ? JSON.stringify(err) : err.toString()})`
     );
   });
 
