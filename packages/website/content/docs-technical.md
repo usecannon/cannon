@@ -43,8 +43,6 @@ The `build` command will attempt to build a specified blockchain into the state 
 - `--private-key` - Specify a private key which may be needed to sign a transaction.
 - `--wipe` - Clear the existing deployment state and start this deploy from scratch.
 - `--upgrade-from` - Specify a package to use as a new base for the deployment.
-- `--contracts-directory` - Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts (_Default: "./src"_)
-- `--artifacts-directory` - Path to a directory with your artifact data (_Default: "./out"_)
 
 ### verify
 

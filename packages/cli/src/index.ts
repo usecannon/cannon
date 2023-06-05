@@ -34,6 +34,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
+import { bold, green, red } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -204,10 +205,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       settings: parsedSettings,
     },
     pkgInfo: {},
-    getArtifact: getFoundryArtifact,
+    getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
     getSigner,
     getDefaultSigner,
-    projectDirectory,
     upgradeFrom: opts.upgradeFrom,
     preset: opts.preset,
     wipe: opts.wipe,
@@ -232,15 +232,24 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
-  .option(
-    '--contracts-directory [contracts]',
-    'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
-    './src'
-  )
-  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
-    await spawn('forge', ['build']);
+    const cannonfilePath = path.resolve(cannonfile);
+    const projectDirectory = path.dirname(cannonfilePath);
+
+    console.log(bold('Building the foundry project using forge build...'));
+    const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
+    await new Promise((resolve) => {
+      forgeBuildProcess.on('exit', (code) => {
+        if (code === 0) {
+          console.log(green('forge build succeeded'));
+        } else {
+          console.log(red('forge build failed'));
+          console.log('Continuing with cannon build...');
+        }
+        resolve(null);
+      });
+    });
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
