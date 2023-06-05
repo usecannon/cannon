@@ -37,7 +37,8 @@ const config: any = {
     },
     local: {
       url: 'http://127.0.0.1:8545/',
-      chainId: 31337,
+      accounts: process.env.PRIVATE_KEY?.split(','),
+      chainId: 1337,
     },
     mainnet: {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
