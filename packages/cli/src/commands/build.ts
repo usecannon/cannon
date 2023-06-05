@@ -114,7 +114,9 @@ export async function build({
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
-    console.log(`${'  '.repeat(d)}  -> skip ${n} (${err.toString()})`);
+    console.log(
+      `${'  '.repeat(d)}  -> skip ${n} (${err.toString() === '[object Object]' ? JSON.stringify(err) : err.toString()})`
+    );
   });
 
   // Check for existing package
