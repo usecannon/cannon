@@ -47,14 +47,14 @@ export async function setup() {
       type: 'text',
       name: 'publishIpfsUrl',
       message:
-        'What IPFS endpoint would you like to use when publishing packages? (This may look like https://<project-id>:<api-key-secret>@ipfs.infura.io:5001) You can leave this blank and set it later.\n',
+        'What IPFS endpoint would you like to use when publishing packages? (This may start with https+ipfs://) Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
       initial: fileSettings.publishIpfsUrl,
     },
     {
       type: 'text',
       name: 'ipfsUrl',
       message:
-        'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote, like Infura.\n',
+        'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote.\n',
       initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
     },
     {
