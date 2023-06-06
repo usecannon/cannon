@@ -80,6 +80,7 @@ function configureRun(program: Command) {
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
     .option('-c --chain-id <number>', 'The chain id to run against')
+    .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
