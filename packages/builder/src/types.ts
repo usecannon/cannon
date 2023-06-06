@@ -150,6 +150,8 @@ export type DeploymentInfo = {
 
   // ipfs hash additional required files for possible build
   miscUrl: string;
+
+  chainId?: number;
 };
 
 export type DeploymentManifest = {

@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.4.10",
+  "version": "2.4.15",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -36,12 +36,13 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
-    "@usecannon/builder": "^2.4.10",
+    "@usecannon/builder": "^2.4.15",
     "chalk": "^4.1.2",
     "commander": "^9.3.0",
     "debug": "^4.3.4",
     "eth-provider": "^0.13.6",
     "ethers": "^5.7.1",
+    "fastq": "^1.15.0",
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
     "prompts": "^2.4.2",

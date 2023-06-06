@@ -34,6 +34,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
+import { bold, green, red } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -204,10 +205,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       settings: parsedSettings,
     },
     pkgInfo: {},
-    getArtifact: getFoundryArtifact,
+    getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
     getSigner,
     getDefaultSigner,
-    projectDirectory,
     upgradeFrom: opts.upgradeFrom,
     preset: opts.preset,
     wipe: opts.wipe,
@@ -232,15 +232,24 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
-  .option(
-    '-c --contracts-directory [contracts]',
-    'Contracts source directory which will be built using Foundry and saved to the path specified with --artifacts',
-    './src'
-  )
-  .option('-a --artifacts-directory [artifacts]', 'Path to a directory with your artifact data', './out')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
-    await spawn('forge', ['build']);
+    const cannonfilePath = path.resolve(cannonfile);
+    const projectDirectory = path.dirname(cannonfilePath);
+
+    console.log(bold('Building the foundry project using forge build...'));
+    const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
+    await new Promise((resolve) => {
+      forgeBuildProcess.on('exit', (code) => {
+        if (code === 0) {
+          console.log(green('forge build succeeded'));
+        } else {
+          console.log(red('forge build failed'));
+          console.log('Continuing with cannon build...');
+        }
+        resolve(null);
+      });
+    });
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
@@ -285,8 +294,8 @@ program
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
   .option('--private-key <key>', 'Private key to use for publishing the registry package')
-  .option('--chain-id <number>', 'The chain ID of the package to publish')
-  .option('--preset <preset>', 'The preset of the packages to publish')
+  .option('--chain-id <number>', 'The chain ID of the package to publish', '13370')
+  .option('--preset <preset>', 'The preset of the packages to publish', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(
@@ -298,8 +307,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .option('-f --force', 'Push even if the artifact appaers to be pushed to the registry with that url')
-  .action(async function (packageName, options) {
+  .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
@@ -319,16 +327,17 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    await publish(
-      packageName,
-      options.tags,
-      p.signers[0],
-      options.chainId,
-      options.preset,
+    await publish({
+      packageRef,
+      signer: p.signers[0],
+      tags: options.tags.split(','),
+      chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+      preset: options.preset ? (options.preset as string) : undefined,
+      quiet: options.quiet,
       overrides,
-      options.quiet,
-      options.force
-    );
+    });
+
+    process.exit();
   });
 
 program
@@ -345,6 +354,28 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+    process.exit();
+  });
+
+program
+  .command('decode')
+  .description('decode transaction data using the ABIs of the given Cannon package')
+  .argument('<packageName>', 'Name and version of the cannon package to use')
+  .argument('<bytes32Data...>', 'bytes32 encoded transaction data to decode')
+  .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, data, options) {
+    const { decode } = await import('./commands/decode');
+
+    await decode({
+      packageName,
+      data,
+      chainId: options.chainId,
+      preset: options.preset,
+      json: options.json,
+    });
+
     process.exit();
   });
 
@@ -436,7 +467,7 @@ program
       throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${opts.preset}. Did you mean to run instead?`);
     }
 
-    const contracts = [getContractsRecursive(outputs, p.signers.length ? p.signers[0] : p.provider)];
+    const contracts = [getContractsRecursive(outputs, p.provider)];
 
     p.provider.artifacts = outputs;
 

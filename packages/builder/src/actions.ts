@@ -34,6 +34,8 @@ export interface CannonAction {
     optionalProperties?: Record<string, SomeJTDSchemaType>;
     additionalProperties?: boolean;
   };
+
+  timeout?: number;
 }
 
 /**

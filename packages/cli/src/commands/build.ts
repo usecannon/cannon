@@ -12,7 +12,6 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
-  registerAction,
 } from '@usecannon/builder';
 import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -21,7 +20,7 @@ import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
 
-import { listInstalledPlugins, loadPlugin } from '../plugins';
+import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
 interface Params {
@@ -54,7 +53,6 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  projectDirectory,
   preset = 'main',
   overrideResolver,
   wipe = false,
@@ -76,19 +74,7 @@ export async function build({
   const cliSettings = resolveCliSettings();
 
   if (plugins) {
-    const pluginList = await listInstalledPlugins();
-
-    if (pluginList.length) {
-      for (const plugin of pluginList) {
-        const pluginAction = await loadPlugin(plugin);
-
-        if (Array.isArray(pluginAction)) {
-          for (const action of pluginAction) registerAction(action);
-        } else {
-          registerAction(pluginAction);
-        }
-      }
-    }
+    await loadPlugins();
   }
 
   const chainId = (await provider.getNetwork()).chainId;
@@ -110,7 +96,6 @@ export async function build({
 
     getDefaultSigner,
 
-    baseDir: projectDirectory || null,
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
     publicSourceCode,
@@ -129,7 +114,11 @@ export async function build({
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
-    console.log(`${'  '.repeat(d)}  -> skip ${n} (${err.toString()})`);
+    console.log(
+      `${'  '.repeat(d)}  -> skip ${n} (${
+        typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
+      })`
+    );
   });
 
   // Check for existing package
@@ -254,6 +243,7 @@ export async function build({
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
+      chainId: runtime.chainId,
     });
 
     const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));

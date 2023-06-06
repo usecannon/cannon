@@ -32,7 +32,7 @@ export async function handleTxnError(
 
   if (err.code === 'UNPREDICTABLE_GAS_LIMIT') {
     return handleTxnError(artifacts, provider, err.error);
-  } else if (err.code === 'CALL_EXCEPTION') {
+  } else if (err.code === 'CALL_EXCEPTION' || err.code === 3) {
     txnData = err.transaction;
     errorCodeHex = err.data;
   } else if (err.code === -32015) {

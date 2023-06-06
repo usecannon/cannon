@@ -24,20 +24,22 @@ export async function buildContracts(): Promise<void> {
   await execPromise('forge build');
 }
 
-export async function getFoundryArtifact(name: string): Promise<ContractArtifact> {
+export async function getFoundryArtifact(name: string, baseDir = ''): Promise<ContractArtifact> {
   // TODO: Theres a bug that if the file has a different name than the contract it would not work
   const foundryOpts = await getFoundryOpts();
-  const artifactPath = path.join(foundryOpts.out, `${name}.sol`, `${name}.json`);
+  const artifactPath = path.join(path.join(baseDir, foundryOpts.out), `${name}.sol`, `${name}.json`);
   const artifactBuffer = await fs.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;
 
   // save build metadata
-  const foundryInfo = JSON.parse(await execPromise(`forge inspect ${name} metadata`));
+  const foundryInfo = JSON.parse(
+    await execPromise(`forge inspect ${name} metadata` + (baseDir ? ` --root ${baseDir}` : ''))
+  );
 
   const solcVersion = foundryInfo.compiler.version;
   const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
     return {
-      content: fs.readFileSync(sourcePath).toString(),
+      content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
     };
   });
 

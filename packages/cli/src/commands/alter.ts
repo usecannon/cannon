@@ -20,7 +20,7 @@ export async function alter(
   chainId: number,
   preset: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'mark-complete',
+  command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -145,6 +145,10 @@ export async function alter(
       }
       // clear txn hash if we have it
       break;
+    case 'mark-incomplete':
+      // invalidate the state hash
+      deployInfo.state[targets[0]].hash = 'INCOMPLETE';
+      break;
   }
 
   const newUrl = await runtime.putDeploy(deployInfo);
@@ -152,6 +156,8 @@ export async function alter(
   if (!newUrl) {
     throw new Error('loader is not writable');
   }
+
+  console.log(newUrl);
 
   await resolver.publish([packageRef], variant, newUrl, metaUrl || '');
 }

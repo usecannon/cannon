@@ -28,6 +28,8 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
         responseType: 'arraybuffer',
         responseEncoding: 'application/octet-stream',
         headers: customHeaders,
+        // 5 minutes timeout
+        timeout: 5 * 60 * 1000,
       });
     } else {
       // the +ipfs extension used to indicate a gateway is not recognized by
@@ -40,11 +42,13 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
           responseEncoding: 'application/octet-stream',
           responseType: 'arraybuffer',
           headers: customHeaders,
+          // 5 minutes timeout
+          timeout: 5 * 60 * 1000,
         }
       );
     }
   } catch (err: any) {
-    let errMsg = `could not download cannon package data from ${hash}: ${err.toString()}`;
+    let errMsg = `could not download cannon package data from "${hash}": ${err.toString()}`;
 
     if (ipfsUrl.includes('infura')) {
       errMsg +=
