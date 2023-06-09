@@ -84,7 +84,7 @@ const runAction = {
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const newConfig = this.configInject(ctx, config);
 
-    const auxHashes = newConfig.modified.map((pathToScan) => {
+    const auxHashes = newConfig.modified.map((pathToScan: string) => {
       try {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
