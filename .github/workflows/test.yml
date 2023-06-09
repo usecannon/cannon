@@ -17,7 +17,6 @@ jobs:
           node-version: '16.16.0'
       - run: |
           npm ci
-          npx lerna bootstrap
           npm run build
       - run: cd ./packages/builder && npm test
       - run: cd ./packages/registry && REPORT_GAS=1 npm test

@@ -89,7 +89,7 @@ describe('setps/provision.ts', () => {
 
   describe('exec()', () => {
     it('throws if deployment not found', async () => {
-      expect(() =>
+      await expect(() =>
         action.exec(
           fakeRuntime,
           fakeCtx,

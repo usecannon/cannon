@@ -10,11 +10,7 @@ contract MintableToken is ERC20 {
    * @param symbol Token Symbol
    * @param initialSupply Initial Supply
    */
-  constructor(
-    string memory name,
-    string memory symbol,
-    uint256 initialSupply
-  ) payable ERC20(name, symbol) {
+  constructor(string memory name, string memory symbol, uint256 initialSupply) payable ERC20(name, symbol) {
     _mint(msg.sender, initialSupply);
   }
 

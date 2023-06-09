@@ -46,7 +46,7 @@ describe('steps/import.ts', () => {
 
   describe('exec()', () => {
     it('throws if deployment not found', async () => {
-      expect(() =>
+      await expect(() =>
         action.exec(
           fakeRuntime,
           fakeCtx,
