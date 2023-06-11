@@ -254,8 +254,6 @@ program
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
-    // ensure the cli actually exits
-    process.exit();
   });
 
 program
@@ -268,7 +266,6 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
-    process.exit();
   });
 
 program
@@ -285,7 +282,6 @@ program
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
       getArtifact: getFoundryArtifact,
     });
-    process.exit();
   });
 
 program
@@ -336,8 +332,6 @@ program
       quiet: options.quiet,
       overrides,
     });
-
-    process.exit();
   });
 
 program
@@ -354,7 +348,6 @@ program
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
-    process.exit();
   });
 
 program
@@ -375,8 +368,6 @@ program
       preset: options.preset,
       json: options.json,
     });
-
-    process.exit();
   });
 
 program
