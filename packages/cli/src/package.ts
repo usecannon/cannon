@@ -54,7 +54,7 @@ function _deployImports(deployInfo: DeploymentInfo) {
 
 async function _getStore() {
   const settings = resolveCliSettings();
-  const registry = await createDefaultReadRegistry(settings, false);
+  const registry = await createDefaultReadRegistry(settings);
   const loaders = getMainLoader(settings);
   return new CannonStorage(registry, loaders);
 }

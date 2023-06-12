@@ -232,6 +232,7 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('-q --quiet', 'Suppress extra logging')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
     const cannonfilePath = path.resolve(cannonfile);
@@ -351,8 +352,10 @@ program
     '-w --write-deployments <writeDeployments>',
     'Path to write the deployments data (address and ABIs), like "./deployments"'
   )
+  .option('-q --quiet', 'Suppress extra logging')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
+    resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
     process.exit();
   });
