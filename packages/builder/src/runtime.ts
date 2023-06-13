@@ -68,6 +68,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly publicSourceCode: boolean | undefined;
+  private cancelled = false;
 
   private cleanSnapshot: any;
 
@@ -110,6 +111,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.publicSourceCode = info.publicSourceCode;
 
     this.misc = { artifacts: {} };
+  }
+
+  cancel() {
+    this.cancelled = true;
+  }
+
+  isCancelled() {
+    return this.cancelled;
   }
 
   async checkNetwork() {
