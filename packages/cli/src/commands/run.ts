@@ -56,7 +56,9 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings());
+  const cliSettings = resolveCliSettings();
+
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
