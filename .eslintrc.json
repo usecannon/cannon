@@ -32,7 +32,7 @@
       }
     ],
     "indent": "off",
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", { "avoidEscape": true }],
     "import/no-unresolved": "off", // messed up by lerna hoisting
     "no-undef": "error",
     "prefer-const": "error",
