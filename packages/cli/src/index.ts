@@ -160,11 +160,10 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     if (opts.providerUrl && !opts.chainId) {
       const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
       chainId = (await _provider.getNetwork()).chainId;
+    } else {
+      chainId = opts.chainId;
     }
-    const p = await resolveWriteProvider(cliSettings, chainId || opts.chainId);
-    if (!chainId) {
-      chainId = (await p.provider.getNetwork()).chainId;
-    }
+    const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
       node = await runRpc({
