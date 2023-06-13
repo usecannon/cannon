@@ -30,8 +30,10 @@ let anvilProvider: CannonWrapperGenericProvider | null = null;
 export const versionCheck = _.once(async () => {
   const anvilVersionInfo = await execPromise('anvil --version');
 
-  if (anvilVersionInfo.match(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/)![0] < '2023-06-04') {
-    throw new Error(`anvil version too old. please run 'foundryup' to get the latest version`);
+  if (
+    anvilVersionInfo.match(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/)![0] < '2023-06-04'
+  ) {
+    throw new Error("anvil version too old. please run 'foundryup' to get the latest version");
   }
 });
 
