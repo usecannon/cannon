@@ -241,7 +241,7 @@ async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment 
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (!rawValue) {
+    if (!rawValue && rawValue !== false) {
       return null;
     }
 
@@ -396,6 +396,7 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
   const isBytes32 = input.type.includes('bytes32');
   const isArray = input.type.includes('[]');
   const isNumber = input.type.includes('int');
+  const isBoolean = input.type.includes('bool');
 
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
   if (isBytes32 && !ethers.utils.isBytesLike(processed)) {
@@ -416,8 +417,23 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
 
   if (isArray) {
     processed = processed.map((value: string) => boolify(value));
-  } else {
-    processed = boolify(processed);
+  }
+
+  if (isBoolean) {
+    switch (processed.toLowerCase()) {
+      case 'false':
+      case '0':
+      case 'no':
+        processed = false;
+        break;
+      case 'true':
+      case '1':
+      case 'yes':
+        processed = true;
+        break;
+      default:
+        processed = null;
+    }
   }
 
   //const processed = preprocessInput(input, type, hre);
