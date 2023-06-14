@@ -11,7 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": false,
-    "rootDirs": ["./src"]
+    "rootDirs": ["./src"],
+    "skipLibCheck": true
   },
   "include": ["./src", "../cli/run.ts", "../cli/import-from.ts"],
   "exclude": ["dist", "node_modules"]

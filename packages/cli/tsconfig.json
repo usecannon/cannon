@@ -10,7 +10,8 @@
     "rootDirs": ["./src", "./test"],
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "exclude": ["dist", "node_modules"],
   "include": ["./test", "./src", "./bin"]

@@ -20,11 +20,10 @@ For more information, please see documentation in the modules listed below:
 
 Community contributions to Cannon are greatly appreciated. Please open pull requests, issues, and discussions in the GitHub repository.
 
-To load a development version of Cannon, start by bootstrapping the project from the root directory:
+To load a development version of Cannon, start by installing the dependencies from the root directory:
 
 ```
-npx lerna bootstrap
-npm i
+npm ci
 ```
 
 After making changes, rebuild the project:
@@ -53,7 +52,7 @@ cd ./packages/website && npm run dev
 
 ### Publishing
 
-With appropriate permissions on npm, publish updates using the [lerna publish](https://github.com/lerna/lerna/tree/main/commands/publish) command. For example, `npx lerna publish patch` will publish updated packages as the next patch version.
+With appropriate permissions on npm, publish updates using the [npx lerna publish](https://github.com/lerna/lerna/tree/main/commands/publish) command. For example, `npx lerna publish patch` will publish updated packages as the next patch version.
 
 ## License
 

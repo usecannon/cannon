@@ -18,7 +18,7 @@ describe('util.ts', () => {
         throw new Error('no signer');
       };
 
-      expect(() => ensureArachnidCreate2Exists(fakeRuntime)).rejects.toThrowError(
+      await expect(() => ensureArachnidCreate2Exists(fakeRuntime)).rejects.toThrowError(
         'could not populate arachnid signer address'
       );
     });

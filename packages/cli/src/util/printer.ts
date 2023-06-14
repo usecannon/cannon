@@ -8,6 +8,7 @@ export function printChainBuilderOutput(output: ChainArtifacts) {
     const formattedData = _.map(output.contracts, (v, k) => [k, v.address]);
 
     if (formattedData.length) {
+      console.log('');
       console.log('CONTRACTS:');
       console.log(table(formattedData));
     }
@@ -17,6 +18,7 @@ export function printChainBuilderOutput(output: ChainArtifacts) {
     const formattedData = _.map(output.txns, (v, k) => [k, v.hash]);
 
     if (formattedData.length) {
+      console.log('');
       console.log('TRANSACTIONS:');
       console.log(table(formattedData));
     }
@@ -26,6 +28,7 @@ export function printChainBuilderOutput(output: ChainArtifacts) {
     const formattedData = _.map(output.extras, (v, k) => [k, v]);
 
     if (formattedData.length) {
+      console.log('');
       console.log('EXTRA DATA:');
       console.log(table(formattedData));
     }

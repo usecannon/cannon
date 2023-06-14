@@ -1,8 +1,10 @@
 {
   "name": "root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
     "lint:js": "eslint 'packages/**/*.{js,ts}'",
     "lint:sol": "solhint 'packages/*/{contracts,src}/**/*.sol'",
     "lint": "npm-run-parallel lint:js lint:sol",
@@ -14,7 +16,8 @@
     "publish": "lerna publish"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.5",
+    "@babel/core": "^7.22.1",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
@@ -25,11 +28,11 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "7.0.4",
-    "lerna": "^4.0.0",
+    "lerna": "^7.0.0",
     "npm-run-parallel": "^0.6.0",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
-    "solhint": "^3.3.7",
+    "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.2"

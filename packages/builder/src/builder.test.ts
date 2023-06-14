@@ -152,7 +152,7 @@ describe('builder.ts', () => {
 
     it('checks chain definition', async () => {
       // build with an invalid dependency
-      expect(() =>
+      await expect(() =>
         build(
           runtime,
           new ChainDefinition(_.assign({}, fakeDefinition, { invoke: { smartFunc: { depends: ['contract.Fake'] } } })),

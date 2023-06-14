@@ -1,6 +1,13 @@
 import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
-import { ChainArtifacts, ContractArtifact } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainArtifacts,
+  ChainBuilderRuntime,
+  ChainDefinition,
+  ContractArtifact,
+  getOutputs,
+} from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
 import { interact } from '../interact';
@@ -10,6 +17,7 @@ import { getContractsRecursive } from '../util/contracts-recursive';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { setupAnvil } from '../helpers';
+import { getMainLoader } from '../loader';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -23,6 +31,7 @@ export interface RunOptions {
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   fundAddresses?: string[];
   helpInformation?: string;
+  build?: boolean;
 }
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
@@ -47,7 +56,9 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings(), false);
+  const cliSettings = resolveCliSettings();
+
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
@@ -60,20 +71,57 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     signers = [provider.getSigner(addr)];
   }
 
+  const chainId = (await provider.getNetwork()).chainId;
+
+  const basicRuntime = new ChainBuilderRuntime(
+    {
+      provider: provider,
+      chainId,
+      async getSigner(addr: string) {
+        // on test network any user can be conjured
+        await provider.send('hardhat_impersonateAccount', [addr]);
+        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
+        return provider.getSigner(addr);
+      },
+      snapshots: chainId === CANNON_CHAIN_ID,
+      allowPartialDeploy: false,
+    },
+    resolver,
+    getMainLoader(cliSettings)
+  );
+
   for (const pkg of packages) {
     const { name, version } = pkg;
+    if (options.build || Object.keys(pkg.settings).length) {
+      const { outputs } = await build({
+        ...options,
+        packageDefinition: pkg,
+        provider,
+        overrideResolver: resolver,
+        preset: options.preset,
+        upgradeFrom: options.upgradeFrom,
+        persist: false,
+      });
 
-    const { outputs } = await build({
-      ...options,
-      packageDefinition: pkg,
-      provider,
-      overrideResolver: resolver,
-      preset: options.preset,
-      upgradeFrom: options.upgradeFrom,
-      persist: false,
-    });
+      buildOutputs.push({ pkg, outputs });
+    } else {
+      // just get outputs
+      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, 'main', basicRuntime.chainId);
 
-    buildOutputs.push({ pkg, outputs });
+      if (!deployData) {
+        throw new Error(
+          `deployment not found: ${name}:${version}. please make sure it exists for the main preset and network ${basicRuntime.chainId}`
+        );
+      }
+
+      const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
+
+      if (!outputs) {
+        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/main. Did you mean to run instead?`);
+      }
+
+      buildOutputs.push({ pkg, outputs });
+    }
 
     console.log(
       greenBright(

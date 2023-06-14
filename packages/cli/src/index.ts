@@ -80,6 +80,7 @@ function configureRun(program: Command) {
     .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
     .option('-c --chain-id <number>', 'The chain id to run against')
+    .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--preset <name>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
@@ -236,6 +237,7 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('-q --quiet', 'Suppress extra logging')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
     const cannonfilePath = path.resolve(cannonfile);
@@ -258,8 +260,6 @@ program
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
-    // ensure the cli actually exits
-    process.exit();
   });
 
 program
@@ -272,7 +272,6 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
-    process.exit();
   });
 
 program
@@ -289,7 +288,6 @@ program
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
       getArtifact: getFoundryArtifact,
     });
-    process.exit();
   });
 
 program
@@ -340,8 +338,6 @@ program
       quiet: options.quiet,
       overrides,
     });
-
-    process.exit();
   });
 
 program
@@ -355,10 +351,11 @@ program
     '-w --write-deployments <writeDeployments>',
     'Path to write the deployments data (address and ABIs), like "./deployments"'
   )
+  .option('-q --quiet', 'Suppress extra logging')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
+    resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
-    process.exit();
   });
 
 program
@@ -379,8 +376,6 @@ program
       preset: options.preset,
       json: options.json,
     });
-
-    process.exit();
   });
 
 program
