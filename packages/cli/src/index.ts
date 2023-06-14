@@ -508,10 +508,10 @@ const pluginCmd = program.command('plugin').description('Manage Cannon plug-in m
 pluginCmd
   .command('list')
   .description('List all installed plugins')
-  .action(async function (packageName, options) {
-    console.log(green(bold(`\n=============== Installed Plugins ===============`)));
+  .action(async function () {
+    console.log(green(bold('\n=============== Installed Plugins ===============')));
     const installedPlugins = await listInstalledPlugins();
-    installedPlugins.forEach(plugin => console.log(yellow(plugin)));
+    installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
     console.log('Complete!');
   });
 
