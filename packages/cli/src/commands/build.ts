@@ -232,6 +232,8 @@ export async function build({
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
+  printChainBuilderOutput(outputs);
+
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
 
@@ -282,8 +284,6 @@ export async function build({
     );
   }
   console.log('');
-
-  printChainBuilderOutput(outputs);
 
   provider.artifacts = outputs;
 
