@@ -280,7 +280,12 @@ export async function build({
     }
   } else {
     console.log(
-      bold(yellow('Chain state could not be saved. Run `npx @usecannon/cli setup` to set up your IPFS connection.'))
+      bold(
+        yellow(
+          `Chain state could not be saved via ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}
+Try a writable endpoint by setting ipfsUrl through \`npx @usecannon/cli setup\` or CANNON_IPFS_URL env var.`
+        )
+      )
     );
   }
   console.log('');
