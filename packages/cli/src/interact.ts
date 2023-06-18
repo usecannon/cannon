@@ -9,12 +9,13 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
 import { PackageSpecification } from './types';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ChainArtifacts } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
   packages: PackageSpecification[];
+  packagesArtifacts?: ChainArtifacts[];
   contracts: { [name: string]: Ethers.Contract }[];
   provider: CannonWrapperGenericProvider;
 
@@ -82,6 +83,9 @@ export async function interact(ctx: InteractTaskArgs) {
     } else {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
       const functionInfo = contract.interface.getFunction(pickedFunction!);
+      if (ctx.packagesArtifacts) {
+        ctx.provider.artifacts = ctx.packagesArtifacts[pickedPackage];
+      }
 
       if (functionInfo.constant) {
         await query({
@@ -271,8 +275,8 @@ async function query({
     result = await contract.callStatic[functionSignature!](...args, {
       blockTag,
     });
-  } catch (err) {
-    console.error('failed query:', err);
+  } catch (err: any) {
+    console.error('failed query:', err?.message && process.env.TRACE !== 'true' ? err?.message : err);
     return null;
   }
 

@@ -2,6 +2,7 @@ import { ContractData, DeploymentInfo } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { bold, gray, green, italic } from 'chalk';
 import { readDeployRecursive } from '../package';
+import { decodeTxError } from '@usecannon/builder/src/error';
 
 export async function decode({
   packageName,
@@ -22,6 +23,11 @@ export async function decode({
   const tx = _parseData(abis, data);
 
   if (!tx) {
+    const errorMessage = decodeTxError(data[0], abis);
+    if (errorMessage) {
+      console.log(errorMessage);
+      return;
+    }
     throw new Error('Could not decode transaction data');
   }
 
