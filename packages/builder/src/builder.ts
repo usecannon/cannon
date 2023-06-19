@@ -107,6 +107,10 @@ ${printChainDefinitionProblems(problems)}`);
     } else {
       debug('building individual');
       doActions: for (const n of topologicalActions) {
+        if (runtime.isCancelled()) {
+          break;
+        }
+
         ctx = _.cloneDeep(initialCtx);
 
         const artifacts: ChainArtifacts = {};
