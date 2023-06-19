@@ -512,7 +512,6 @@ pluginCmd
     console.log(green(bold('\n=============== Installed Plugins ===============')));
     const installedPlugins = await listInstalledPlugins();
     installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
-    console.log('Complete!');
   });
 
 pluginCmd
