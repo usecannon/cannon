@@ -8,6 +8,8 @@ import { spawn, ChildProcess } from 'child_process';
 
 import Debug from 'debug';
 import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
+import { execPromise } from './helpers';
+import _ from 'lodash';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -25,7 +27,19 @@ export type CannonRpcNode = ChildProcess & RpcOptions;
 let anvilInstance: CannonRpcNode | null = null;
 let anvilProvider: CannonWrapperGenericProvider | null = null;
 
+export const versionCheck = _.once(async () => {
+  const anvilVersionInfo = await execPromise('anvil --version');
+
+  if (
+    anvilVersionInfo.match(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/)![0] < '2023-06-04'
+  ) {
+    throw new Error("anvil version too old. please run 'foundryup' to get the latest version");
+  }
+});
+
 export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
+  await versionCheck();
+
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 

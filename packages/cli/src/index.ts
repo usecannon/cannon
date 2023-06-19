@@ -149,17 +149,21 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   let chainId: number | undefined = undefined;
 
-  if (!opts.chainId) {
+  if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       port: 8545,
     });
 
     provider = getProvider(node);
-    chainId = (await provider.getNetwork()).chainId;
   } else {
-    const p = await resolveWriteProvider(cliSettings, opts.chainId);
-    chainId = (await p.provider.getNetwork()).chainId;
+    if (opts.providerUrl && !opts.chainId) {
+      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
+      chainId = (await _provider.getNetwork()).chainId;
+    } else {
+      chainId = opts.chainId;
+    }
+    const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
       node = await runRpc({
@@ -258,8 +262,6 @@ program
     const [node] = await doBuild(cannonfile, settings, opts);
 
     await node?.kill();
-    // ensure the cli actually exits
-    process.exit();
   });
 
 program
@@ -272,7 +274,6 @@ program
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
-    process.exit();
   });
 
 program
@@ -289,7 +290,6 @@ program
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
       getArtifact: getFoundryArtifact,
     });
-    process.exit();
   });
 
 program
@@ -340,8 +340,6 @@ program
       quiet: options.quiet,
       overrides,
     });
-
-    process.exit();
   });
 
 program
@@ -360,7 +358,6 @@ program
     const { inspect } = await import('./commands/inspect');
     resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
-    process.exit();
   });
 
 program
@@ -381,8 +378,6 @@ program
       preset: options.preset,
       json: options.json,
     });
-
-    process.exit();
   });
 
 program
