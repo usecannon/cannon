@@ -130,8 +130,12 @@ ${printChainDefinitionProblems(problems)}`);
 
         addOutputsToContext(ctx, artifacts);
 
-        // also add self artifacts here so that we can self-reference from inside the step
         if (state[n]) {
+          if (state[n].version > BUILD_VERSION) {
+            throw new Error('incompatible (newer) build version. please update cannon.');
+          }
+
+          // also add self artifacts here so that we can self-reference from inside the step
           debug('adding self artifacts to context', state[n].artifacts);
           addOutputsToContext(ctx, state[n].artifacts);
         }
@@ -227,8 +231,12 @@ export async function buildLayer(
 
     addOutputsToContext(ctx, depArtifacts);
 
-    // also add self artifacts here so that we can self-reference from inside the step
     if (state[action] && state[action].artifacts) {
+      if (state[action].version > BUILD_VERSION) {
+        throw new Error('incompatible (newer) build version. please update cannon.');
+      }
+
+      // also add self artifacts here so that we can self-reference from inside the step
       addOutputsToContext(ctx, state[action].artifacts);
     }
 
