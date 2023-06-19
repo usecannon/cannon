@@ -34,7 +34,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
-import { bold, green, red } from 'chalk';
+import { bold, green, red, yellow } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -53,6 +53,8 @@ export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { loadCannonfile } from './helpers';
+
+import { listInstalledPlugins } from './plugins';
 
 const program = new Command();
 
@@ -497,6 +499,15 @@ program
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');
+
+pluginCmd
+  .command('list')
+  .description('List all installed plugins')
+  .action(async function () {
+    console.log(green(bold('\n=============== Installed Plugins ===============')));
+    const installedPlugins = await listInstalledPlugins();
+    installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
+  });
 
 pluginCmd
   .command('add')
