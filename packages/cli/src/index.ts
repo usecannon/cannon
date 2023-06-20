@@ -408,10 +408,12 @@ program
       process.stderr.write(data);
     });
 
-    forgeCmd.on('close', (code: number) => {
-      console.log(`forge exited with code ${code}`);
-      node?.kill();
-      process.exit(code);
+    await new Promise((resolve) => {
+      forgeCmd.on('close', (code: number) => {
+        console.log(`forge exited with code ${code}`);
+        node?.kill();
+        resolve({});
+      });
     });
   });
 
