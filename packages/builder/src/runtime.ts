@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { yellow } from 'chalk';
 
 import Debug from 'debug';
 import { getExecutionSigner } from './util';
@@ -59,6 +60,12 @@ export class CannonStorage extends EventEmitter {
   }
 }
 
+const parseGasValue = (value: string | undefined) => {
+  if (!value) return undefined;
+
+  return ethers.utils.parseUnits(value, 'gwei').toString();
+};
+
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   readonly provider: CannonWrapperGenericProvider;
   readonly chainId: number;
@@ -68,6 +75,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly publicSourceCode: boolean | undefined;
+  readonly gasPrice: string | undefined;
+  readonly gasFee: string | undefined;
+  readonly priorityGasFee: string | undefined;
 
   private cleanSnapshot: any;
 
@@ -110,6 +120,23 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.publicSourceCode = info.publicSourceCode;
 
     this.misc = { artifacts: {} };
+
+    if (info.priorityGasFee) {
+      if (!info.gasFee) {
+        throw new Error('priorityGasFee requires gasFee');
+      }
+    }
+
+    this.gasFee = parseGasValue(info.gasFee);
+    this.priorityGasFee = parseGasValue(info.priorityGasFee);
+
+    if (info.gasPrice) {
+      if (info.gasFee) {
+        console.log(yellow('WARNING: gasPrice is ignored when gasFee is set'));
+      } else {
+        this.gasPrice = parseGasValue(info.gasPrice);
+      }
+    }
   }
 
   async checkNetwork() {

@@ -39,8 +39,8 @@ const config = {
     overrides: {
       optionalProperties: {
         gasLimit: { type: 'int32' },
-        gasPrice: { type: 'string' },
-        priorityGasPrice: { type: 'string' },
+        // gasPrice: { type: 'string' },
+        // priorityGasPrice: { type: 'string' },
       },
     },
     extra: {
@@ -121,16 +121,28 @@ async function runTxn(
     overrides.gasLimit = config.overrides.gasLimit;
   }
 
-  if (config.overrides?.gasPrice) {
-    overrides.maxFeePerGas = config.overrides.gasPrice;
-  }
-
-  if (config.overrides?.priorityGasPrice) {
-    overrides.maxPriorityFeePerGas = config.overrides.gasLimit;
-  }
+  // if (config.overrides?.gasPrice) {
+  //   overrides.maxFeePerGas = config.overrides.gasPrice;
+  // }
+  //
+  // if (config.overrides?.priorityGasPrice) {
+  //   overrides.maxPriorityFeePerGas = config.overrides.gasLimit;
+  // }
 
   if (config.value) {
     overrides.value = config.value;
+  }
+
+  if (runtime.gasPrice) {
+    overrides.gasPrice = runtime.gasPrice;
+  }
+
+  if (runtime.gasFee) {
+    overrides.maxFeePerGas = runtime.gasFee;
+  }
+
+  if (runtime.priorityGasFee) {
+    overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
   if (config.fromCall) {

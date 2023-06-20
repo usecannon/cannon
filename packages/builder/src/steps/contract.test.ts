@@ -55,8 +55,8 @@ describe('setps/contract.ts', () => {
         value: '<%= settings.b %><%= settings.d %>',
         overrides: {
           gasLimit: 1234,
-          gasPrice: '1234',
-          priorityGasPrice: '1234',
+          // gasPrice: '1234',
+          // priorityGasPrice: '1234',
         },
       });
 
@@ -75,8 +75,8 @@ describe('setps/contract.ts', () => {
         value: 'bd',
         overrides: {
           gasLimit: 1234,
-          gasPrice: '1234',
-          priorityGasPrice: '1234',
+          // gasPrice: '1234',
+          // priorityGasPrice: '1234',
         },
       });
     });

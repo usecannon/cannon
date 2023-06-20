@@ -111,6 +111,13 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should publish contract sources along with bytecode?
   publicSourceCode?: boolean;
+
+  // Gas price to use for transactions
+  gasPrice?: string;
+
+  // Base and Priority gas fee to use for transactions - EIP1559
+  gasFee?: string;
+  priorityGasFee?: string;
 }
 
 export interface PackageState {
