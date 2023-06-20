@@ -268,15 +268,15 @@ export default {
       config.value = _.template(config.value)(ctx);
     }
 
-    if (config.overrides) {
-      if (config.overrides.gasPrice) {
-        config.overrides.gasPrice = _.template(config.overrides.gasPrice)(ctx);
-      }
-
-      if (config.overrides.priorityGasPrice) {
-        config.overrides.priorityGasPrice = _.template(config.overrides.priorityGasPrice)(ctx);
-      }
-    }
+    // if (config.overrides) {
+    //   if (config.overrides.gasPrice) {
+    //     config.overrides.gasPrice = _.template(config.overrides.gasPrice)(ctx);
+    //   }
+    //
+    //   if (config.overrides.priorityGasPrice) {
+    //     config.overrides.priorityGasPrice = _.template(config.overrides.priorityGasPrice)(ctx);
+    //   }
+    // }
 
     for (const name in config.factory) {
       const f = config.factory[name];
