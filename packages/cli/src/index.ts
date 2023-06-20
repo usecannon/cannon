@@ -34,7 +34,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
-import { bold, green, red } from 'chalk';
+import { bold, green, red, yellow } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -53,6 +53,8 @@ export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { loadCannonfile } from './helpers';
+
+import { listInstalledPlugins } from './plugins';
 
 const program = new Command();
 
@@ -147,17 +149,21 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   let chainId: number | undefined = undefined;
 
-  if (!opts.chainId) {
+  if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       port: 8545,
     });
 
     provider = getProvider(node);
-    chainId = (await provider.getNetwork()).chainId;
   } else {
-    const p = await resolveWriteProvider(cliSettings, opts.chainId);
-    chainId = (await p.provider.getNetwork()).chainId;
+    if (opts.providerUrl && !opts.chainId) {
+      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
+      chainId = (await _provider.getNetwork()).chainId;
+    } else {
+      chainId = opts.chainId;
+    }
+    const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
       node = await runRpc({
@@ -409,10 +415,12 @@ program
       process.stderr.write(data);
     });
 
-    forgeCmd.on('close', (code: number) => {
-      console.log(`forge exited with code ${code}`);
-      node?.kill();
-      process.exit(code);
+    await new Promise((resolve) => {
+      forgeCmd.on('close', (code: number) => {
+        console.log(`forge exited with code ${code}`);
+        node?.kill();
+        resolve({});
+      });
     });
   });
 
@@ -506,6 +514,15 @@ program
   });
 
 const pluginCmd = program.command('plugin').description('Manage Cannon plug-in modules');
+
+pluginCmd
+  .command('list')
+  .description('List all installed plugins')
+  .action(async function () {
+    console.log(green(bold('\n=============== Installed Plugins ===============')));
+    const installedPlugins = await listInstalledPlugins();
+    installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
+  });
 
 pluginCmd
   .command('add')

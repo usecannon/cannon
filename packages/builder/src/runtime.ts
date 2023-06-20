@@ -75,6 +75,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly publicSourceCode: boolean | undefined;
+  private cancelled = false;
   readonly gasPrice: string | undefined;
   readonly gasFee: string | undefined;
   readonly priorityGasFee: string | undefined;
@@ -137,6 +138,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
         this.gasPrice = parseGasValue(info.gasPrice);
       }
     }
+  }
+
+  cancel() {
+    this.cancelled = true;
+  }
+
+  isCancelled() {
+    return this.cancelled;
   }
 
   async checkNetwork() {
