@@ -87,8 +87,8 @@ function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNu
         if (process.env.TRACE === 'true') {
           console.error(err);
         }
-        return '<ignored>';
       }
+    // fallthrough
     default:
       return `"${value}"`;
   }
