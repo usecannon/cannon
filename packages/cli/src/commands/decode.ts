@@ -40,6 +40,14 @@ export async function decode({
   console.log();
   console.log(green(`${fragment.format('full')}`), `${'sighash' in tx ? italic(gray(tx.sighash)) : ''}`);
 
+  if ('errorFragment' in tx) {
+    const errorMessage = decodeTxError(data[0], abis);
+    if (errorMessage) {
+      console.log(errorMessage);
+      return;
+    }
+  }
+
   const renderParam = (prefix: string, input: ethers.utils.ParamType) =>
     `${prefix}${gray(input.format())} ${bold(input.name)}`;
 
