@@ -88,7 +88,7 @@ function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNu
           console.error(err);
         }
       }
-    // fallthrough
+      return `"${value}"`;
     default:
       return `"${value}"`;
   }
