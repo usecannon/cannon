@@ -38,9 +38,7 @@ const config = {
     value: { type: 'string' },
     overrides: {
       optionalProperties: {
-        gasLimit: { type: 'int32' },
-        // gasPrice: { type: 'string' },
-        // priorityGasPrice: { type: 'string' },
+        gasLimit: { type: 'string' },
       },
     },
 
@@ -141,6 +139,10 @@ export default {
 
     if (config.salt) {
       config.salt = _.template(config.salt)(ctx);
+    }
+
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
     }
 
     return config;

@@ -38,7 +38,7 @@ const config = {
     value: { type: 'string' },
     overrides: {
       optionalProperties: {
-        gasLimit: { type: 'int32' },
+        gasLimit: { type: 'string' },
         // gasPrice: { type: 'string' },
         // priorityGasPrice: { type: 'string' },
       },
@@ -120,14 +120,6 @@ async function runTxn(
   if (config.overrides?.gasLimit) {
     overrides.gasLimit = config.overrides.gasLimit;
   }
-
-  // if (config.overrides?.gasPrice) {
-  //   overrides.maxFeePerGas = config.overrides.gasPrice;
-  // }
-  //
-  // if (config.overrides?.priorityGasPrice) {
-  //   overrides.maxPriorityFeePerGas = config.overrides.gasLimit;
-  // }
 
   if (config.value) {
     overrides.value = config.value;
@@ -268,15 +260,9 @@ export default {
       config.value = _.template(config.value)(ctx);
     }
 
-    // if (config.overrides) {
-    //   if (config.overrides.gasPrice) {
-    //     config.overrides.gasPrice = _.template(config.overrides.gasPrice)(ctx);
-    //   }
-    //
-    //   if (config.overrides.priorityGasPrice) {
-    //     config.overrides.priorityGasPrice = _.template(config.overrides.priorityGasPrice)(ctx);
-    //   }
-    // }
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
+    }
 
     for (const name in config.factory) {
       const f = config.factory[name];

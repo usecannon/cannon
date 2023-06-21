@@ -69,9 +69,7 @@ describe('setps/invoke.ts', () => {
 
         value: '<%= settings.b %><%= settings.d %>',
         overrides: {
-          gasLimit: 1234,
-          // gasPrice: '1234',
-          // priorityGasPrice: '1234',
+          gasLimit: '<%= settings.gasLimit %>',
         },
       });
 
@@ -84,9 +82,7 @@ describe('setps/invoke.ts', () => {
 
         value: 'bd',
         overrides: {
-          gasLimit: 1234,
-          // gasPrice: '1234',
-          // priorityGasPrice: '1234',
+          gasLimit: '20000',
         },
       });
     });

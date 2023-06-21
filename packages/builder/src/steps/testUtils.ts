@@ -13,6 +13,7 @@ export const fakeCtx = {
     b: 'b',
     c: 'c',
     d: 'd',
+    gasLimit: '20000',
   },
   contracts: {},
   txns: {},
