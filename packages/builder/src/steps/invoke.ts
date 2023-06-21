@@ -39,8 +39,6 @@ const config = {
     overrides: {
       optionalProperties: {
         gasLimit: { type: 'string' },
-        // gasPrice: { type: 'string' },
-        // priorityGasPrice: { type: 'string' },
       },
     },
     extra: {
