@@ -125,7 +125,6 @@ export async function build({
   let oldDeployData: DeploymentInfo | null = null;
   const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
 
-  console.log(bold(`Checking IPFS for package ${prevPkg}...`));
   oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
