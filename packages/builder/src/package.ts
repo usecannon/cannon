@@ -113,6 +113,9 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
   }
 }
 
+/**
+ * Recursively reads the given package from IPFS and makes sure to pin it on the publishStorage.
+ */
 export async function publishIpfs({
   packageRef,
   chainId,
