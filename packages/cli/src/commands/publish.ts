@@ -51,7 +51,17 @@ export async function publish({
 
     const deployInfo = await readDeploy(packageRef, chainId, preset);
 
-    console.log(blueBright('publishing remote ipfs package', packageRef));
+    if (cliSettings.publishIpfsUrl && cliSettings.ipfsUrl) {
+      console.log(blueBright('uploading ipfs file to configured publish node', packageRef));
+      console.log();
+
+      const readStorage = new IPFSLoader(cliSettings.ipfsUrl);
+      const publishStorage = new IPFSLoader(cliSettings.publishIpfsUrl);
+
+      publishIpfs;
+    }
+
+    console.log(blueBright('publishing remote ipfs package to registry', packageRef));
     console.log();
 
     const res = await publishPackage({

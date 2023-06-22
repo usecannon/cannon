@@ -4,6 +4,7 @@ import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
 import { CannonRegistry } from './registry';
+import { IPFSLoader } from './loader';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -111,6 +112,16 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }
 }
+
+export async function publishIpfs({
+  packageRef,
+  readStorage,
+  publishStorage,
+}: {
+  packgeRef: string;
+  readStorage: IPFSLoader;
+  publishStorage: IPFSLoader;
+}) {}
 
 export async function publishPackage({
   url,
