@@ -1,4 +1,4 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage } from '@usecannon/builder';
+import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage, publishIpfs } from '@usecannon/builder';
 import { blueBright, bold, green } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
@@ -41,7 +41,7 @@ export async function publish({
     overrides,
   });
 
-  if (!quiet) {
+  if (!quiet && signer.getAddress) {
     console.log(blueBright('publishing signer is', await signer.getAddress()));
   }
 
@@ -51,14 +51,18 @@ export async function publish({
 
     const deployInfo = await readDeploy(packageRef, chainId, preset);
 
+    // Make sure that the IPFS file is uploaded to the configured publish node
     if (cliSettings.publishIpfsUrl && cliSettings.ipfsUrl) {
       console.log(blueBright('uploading ipfs file to configured publish node', packageRef));
       console.log();
 
-      const readStorage = new IPFSLoader(cliSettings.ipfsUrl);
-      const publishStorage = new IPFSLoader(cliSettings.publishIpfsUrl);
+      const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+      const readStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+      const publishStorage = new CannonStorage(onChainRegistry, {
+        ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
+      });
 
-      publishIpfs;
+      await publishIpfs({ packageRef, chainId, preset, readStorage, publishStorage });
     }
 
     console.log(blueBright('publishing remote ipfs package to registry', packageRef));

@@ -115,13 +115,42 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
 export async function publishIpfs({
   packageRef,
+  chainId,
+  preset,
   readStorage,
   publishStorage,
 }: {
-  packgeRef: string;
-  readStorage: IPFSLoader;
-  publishStorage: IPFSLoader;
-}) {}
+  packageRef: string;
+  chainId: number;
+  preset: string;
+  readStorage: CannonStorage;
+  publishStorage: CannonStorage;
+}) {
+  const deployData = await readStorage.readDeploy(packageRef, preset, chainId);
+
+  if (!deployData) {
+    throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
+  }
+
+  const metaUrl = await readStorage.registry.getMetaUrl(packageRef, `${chainId}-${preset}`);
+
+  const copyIpfs = async (deployInfo: DeploymentInfo) => {
+    const newMiscUrl = await readStorage.putBlob(await readStorage.readBlob(deployInfo.miscUrl));
+
+    let newMetaUrl = metaUrl;
+
+    if (metaUrl) {
+      newMetaUrl = await publishStorage.putBlob(await readStorage.readBlob(metaUrl));
+      if (!newMetaUrl) throw new Error('error while writing new misc blob');
+    }
+
+    deployInfo.miscUrl = newMiscUrl || '';
+
+    return await publishStorage.putBlob(deployInfo);
+  };
+
+  return await forPackageTree(readStorage, deployData, copyIpfs);
+}
 
 export async function publishPackage({
   url,

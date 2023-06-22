@@ -333,7 +333,7 @@ program
 
     await publish({
       packageRef,
-      signer: p.signers[0],
+      signer: p.signers[0] || p.provider,
       tags: options.tags.split(','),
       chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
       preset: options.preset ? (options.preset as string) : undefined,
