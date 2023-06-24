@@ -4,7 +4,6 @@ import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
 import { CannonRegistry } from './registry';
-import { IPFSLoader } from './loader';
 
 const debug = Debug('cannon:cli:publish');
 
