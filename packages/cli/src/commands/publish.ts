@@ -1,10 +1,9 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage } from '@usecannon/builder';
-import { blueBright, bold, green } from 'chalk';
+import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
+import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
-import { readDeploy } from '../package';
 
 interface Params {
   packageRef: string;
@@ -51,8 +50,6 @@ export async function publish({
     if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
     if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
 
-    const deployInfo = await readDeploy(packageRef, chainId, preset);
-
     console.log(blueBright('publishing remote ipfs package', packageRef));
     console.log();
 
@@ -61,7 +58,7 @@ export async function publish({
       ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
     });
 
-    const res = await copyPackage({
+    await copyPackage({
       packageRef,
       variant: `${chainId}-${preset}`,
       fromStorage,
