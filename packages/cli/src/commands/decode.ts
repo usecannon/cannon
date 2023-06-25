@@ -1,8 +1,7 @@
-import { ContractData, DeploymentInfo } from '@usecannon/builder';
+import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { bold, gray, green, italic } from 'chalk';
 import { readDeployRecursive } from '../package';
-import { decodeTxError } from '@usecannon/builder/src/error';
 
 export async function decode({
   packageName,
