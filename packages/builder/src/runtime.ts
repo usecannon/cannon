@@ -194,7 +194,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.defaultLoaderScheme
     );
 
-    newRuntime.signals = this.signals
+    newRuntime.signals = this.signals;
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
