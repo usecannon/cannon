@@ -60,7 +60,6 @@ export async function publish({
         tags,
         'Variant',
         `${chainId!}-${preset!}`,
-        'QM Hash'
       )
     );
     console.log();
