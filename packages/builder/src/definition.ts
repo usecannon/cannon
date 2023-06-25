@@ -161,9 +161,11 @@ export class ChainDefinition {
    * @returns definition of settings
    */
   getSettings(ctx: PreChainBuilderContext) {
-    return _.mapValues(this.raw.setting, (s) => {
-      const newSetting = _.clone(s);
-      newSetting.defaultValue = _.template(s.defaultValue)(ctx);
+    const loadedSettings: Record<string, any> = {};
+    return _.mapValues(this.raw.setting, (sValue, sKey) => {
+      const newSetting = _.clone(sValue);
+      newSetting.defaultValue = _.template(sValue.defaultValue)({ ...ctx, settings: loadedSettings });
+      loadedSettings[sKey] = newSetting.defaultValue;
       return newSetting;
     });
   }
