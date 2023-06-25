@@ -45,6 +45,8 @@ export async function publish({
     console.log(blueBright('publishing signer is', await signer.getAddress()));
   }
 
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
   if (packageRef.startsWith('@ipfs:')) {
     if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
     if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
@@ -54,23 +56,22 @@ export async function publish({
     console.log(blueBright('publishing remote ipfs package', packageRef));
     console.log();
 
-    const res = await publishPackage({
-      url: packageRef.replace('@ipfs:', 'ipfs://'),
-      deployInfo,
-      registry: onChainRegistry,
-      tags,
-      chainId,
-      preset,
+    const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+    const toStorage = new CannonStorage(localRegistry, {
+      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
     });
 
-    for (const tag of [res.version, ...res.tags]) {
-      console.log(green(bold('published:'), `${res.name}:${tag} (${res.variant})`));
-    }
+    const res = await copyPackage({
+      packageRef,
+      variant: `${chainId}-${preset}`,
+      fromStorage,
+      toStorage,
+      recursive,
+      tags,
+    });
 
     return;
   }
-
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   // get a list of all deployments the user is requesting
 

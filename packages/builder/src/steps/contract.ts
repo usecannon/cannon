@@ -183,6 +183,7 @@ export default {
 
       debug('performing arachnid create2');
       const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
+      debug('create2 address is', addr);
 
       if ((await runtime.provider.getCode(addr)) !== '0x') {
         debug('create2 contract already completed');
