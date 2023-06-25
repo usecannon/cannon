@@ -59,7 +59,7 @@ export async function publish({
         'Tags',
         tags,
         'Variant',
-        `${chainId!}-${preset!}`,
+        `${chainId!}-${preset!}`
       )
     );
     console.log();
