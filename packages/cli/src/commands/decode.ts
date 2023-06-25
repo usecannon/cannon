@@ -75,13 +75,23 @@ function _getAbis(deployData: DeploymentInfo) {
 }
 
 function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNumber) {
-  return ethers.BigNumber.isBigNumber(value)
-    ? value.toString()
-    : type.type === 'address'
-    ? value
-    : type.type === 'bytes32'
-    ? ethers.utils.parseBytes32String(value)
-    : `"${value}"`;
+  switch (true) {
+    case ethers.BigNumber.isBigNumber(value):
+      return value.toString();
+    case type.type === 'address':
+      return value;
+    case type.type === 'bytes32':
+      try {
+        return ethers.utils.parseBytes32String(value as string);
+      } catch (err) {
+        if (process.env.TRACE === 'true') {
+          console.error(err);
+        }
+      }
+      return `"${value}"`;
+    default:
+      return `"${value}"`;
+  }
 }
 
 function _parseData(abis: ContractData['abi'][], data: string[]) {
