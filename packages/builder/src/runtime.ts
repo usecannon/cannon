@@ -68,7 +68,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly publicSourceCode: boolean | undefined;
-  private cancelled = false;
+  private signals: { cancelled: boolean } = { cancelled: false };
 
   private cleanSnapshot: any;
 
@@ -114,11 +114,11 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   cancel() {
-    this.cancelled = true;
+    this.signals.cancelled = true;
   }
 
   isCancelled() {
-    return this.cancelled;
+    return this.signals.cancelled;
   }
 
   async checkNetwork() {
@@ -193,6 +193,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.loaders,
       this.defaultLoaderScheme
     );
+
+    newRuntime.signals = this.signals
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
