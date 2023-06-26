@@ -11,8 +11,8 @@
     "lintfix": "prettier --write --list-different ."
   },
   "dependencies": {
-    "@chakra-ui/nuxt": "^0.4.2",
-    "@chakra-ui/vue": "^0.11.0",
+    "@chakra-ui/nuxt": "^0.7.1",
+    "@chakra-ui/vue": "^0.13.1",
     "@nuxt/content": "^1.15.1",
     "@nuxtclub/feathericons": "^1.0.0",
     "@nuxtjs/apollo": "^4.0.1-rc.5",
