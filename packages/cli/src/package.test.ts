@@ -1,9 +1,4 @@
-import Debug from 'debug';
 import { CannonStorage, DeploymentInfo } from '@usecannon/builder';
-import { promise as createQueue, queueAsPromised } from 'fastq';
-import { createDefaultReadRegistry } from './registry';
-import { resolveCliSettings } from './settings';
-import { getMainLoader } from './loader';
 import { readDeploy, readDeployRecursive } from './package'; // assuming the module's name is "module.ts"
 
 jest.mock('@usecannon/builder');
@@ -17,22 +12,13 @@ describe('readDeploy', () => {
     const packageName = 'packageName';
     const chainId = 1;
     const preset = 'preset';
-    const mockRegistry = {
-      publish: jest.fn(),
-      publishMany: jest.fn(),
-      getUrl: jest.fn(),
-      getMetaUrl: jest.fn(),
-      getLabel: jest.fn(),
-    }; // Replace with a valid mock registry
-    const mockLoaders = {}; // Replace with valid mock loaders
-    const store = new CannonStorage(mockRegistry, mockLoaders);
 
     const deployInfo: DeploymentInfo = {
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},
       meta: {},
-      miscUrl: "http://mock.url",
+      miscUrl: 'http://mock.url',
     };
 
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValueOnce(deployInfo);
@@ -49,22 +35,13 @@ describe('readDeployRecursive', () => {
     const packageName = 'packageName';
     const chainId = 1;
     const preset = 'preset';
-    const mockRegistry = {
-      publish: jest.fn(),
-      publishMany: jest.fn(),
-      getUrl: jest.fn(),
-      getMetaUrl: jest.fn(),
-      getLabel: jest.fn(),
-    }; // Replace with a valid mock registry
-    const mockLoaders = {}; // Replace with valid mock loaders
-    const store = new CannonStorage(mockRegistry, mockLoaders);
 
     const deployInfo: DeploymentInfo = {
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},
       meta: {},
-      miscUrl: "http://mock.url",
+      miscUrl: 'http://mock.url',
     };
 
     jest.spyOn(CannonStorage.prototype, 'readBlob').mockResolvedValueOnce(deployInfo);

@@ -2,9 +2,7 @@ import fs from 'fs-extra';
 import crypto from 'crypto';
 import path from 'path';
 import { LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
-import { IPFSLoader } from '@usecannon/builder';
 import { CliSettings } from './settings';
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 
 jest.mock('fs-extra');
 jest.mock('crypto');
@@ -19,11 +17,10 @@ jest.mock('@usecannon/builder', () => {
   };
 });
 
-
-describe('LocalLoader',LocalLoaderTestCases);
+describe('LocalLoader', LocalLoaderTestCases);
 describe('getMainLoader', getMainLoaderTestCases);
 
-function LocalLoaderTestCases(){
+function LocalLoaderTestCases() {
   const dir = 'directory';
   const loader = new LocalLoader(dir);
 
@@ -60,7 +57,7 @@ function LocalLoaderTestCases(){
   });
 }
 
-function getMainLoaderTestCases (){
+function getMainLoaderTestCases() {
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
       ipfsUrl: 'ipfs',

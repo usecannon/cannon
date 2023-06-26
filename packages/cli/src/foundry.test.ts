@@ -1,4 +1,4 @@
-import {getFoundryOpts, getFoundryArtifact, buildContracts} from './foundry';
+import { getFoundryOpts, getFoundryArtifact, buildContracts } from './foundry';
 import * as helpers from './helpers';
 import sinon from 'sinon';
 
@@ -6,10 +6,12 @@ import fs from 'fs-extra';
 
 describe('getFoundryOpts', () => {
   it('should return the correct options', async () => {
-    const execPromiseStub = sinon.stub(helpers, 'execPromise').resolves('{"src":"src","test":"test","script":"script","out":"out"}');
+    const execPromiseStub = sinon
+      .stub(helpers, 'execPromise')
+      .resolves('{"src":"src","test":"test","script":"script","out":"out"}');
 
     const opts = await getFoundryOpts();
-    expect(opts).toEqual({src: 'src', test: 'test', script: 'script', out: 'out'});
+    expect(opts).toEqual({ src: 'src', test: 'test', script: 'script', out: 'out' });
 
     execPromiseStub.restore();
   });
@@ -37,18 +39,20 @@ describe('getFoundryArtifact', () => {
       JSON.stringify({
         compiler: { version: '0.8.1' },
         sources: { 'test.sol': {} },
-        settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } }
+        settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } },
       })
     );
 
-    const readFileStub = sinon.stub(fs, 'readFile').resolves(Buffer.from(
-      JSON.stringify({
-        ast: { absolutePath: 'test.sol' },
-        abi: [],
-        bytecode: { object: '0x1234', linkReferences: {} },
-        deployedBytecode: { object: '0x1234' },
-      })
-    ));
+    const readFileStub = sinon.stub(fs, 'readFile').resolves(
+      Buffer.from(
+        JSON.stringify({
+          ast: { absolutePath: 'test.sol' },
+          abi: [],
+          bytecode: { object: '0x1234', linkReferences: {} },
+          deployedBytecode: { object: '0x1234' },
+        })
+      )
+    );
 
     const readFileSyncStub = sinon.stub(fs, 'readFileSync').returns('test contract');
 
@@ -68,4 +72,3 @@ describe('getFoundryArtifact', () => {
     readFileSyncStub.restore();
   });
 });
-

@@ -1,4 +1,4 @@
-import { getChainId, getChainDataFromId, getChainName } from './helpers'
+import { getChainId, getChainDataFromId, getChainName } from './helpers';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);
@@ -88,10 +88,7 @@ function getChainIdTestCases() {
     expect(getChainId('Base Goerli Testnet')).toBe(84531);
     expect(getChainId('Sepolia Network')).toBe(11155111);
 
-
     // write test cases for all chains items and getChainId with this pattern    expect(getChainId('chainName')).toBe(chainId);
-
-
   });
 
   it('should throw an error for an invalid chain name', () => {
@@ -100,7 +97,7 @@ function getChainIdTestCases() {
   });
 }
 
-function getChainDataFromIdTestCases(){
+function getChainDataFromIdTestCases() {
   it('should return the chain data for a valid chainId', () => {
     expect(getChainDataFromId(1)?.name).toBe('Ethereum Mainnet');
     expect(getChainDataFromId(100)?.name).toBe('xDAI Chain');
@@ -189,10 +186,9 @@ function getChainDataFromIdTestCases(){
     expect(getChainDataFromId(999999)).toBeNull();
     expect(getChainDataFromId(0)).toBeNull();
   });
-  
 }
 
-function getChainNameTestCases(){
+function getChainNameTestCases() {
   it('should return the chain name for a valid chainId', () => {
     expect(getChainName(1)).toBe('Ethereum Mainnet');
     expect(getChainName(100)).toBe('xDAI Chain');
@@ -281,5 +277,4 @@ function getChainNameTestCases(){
     expect(getChainName(999999)).toBe('unknown');
     expect(getChainName(0)).toBe('unknown');
   });
-  
 }
