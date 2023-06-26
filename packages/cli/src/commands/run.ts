@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
@@ -121,6 +122,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       }
 
       buildOutputs.push({ pkg, outputs });
+      provider.artifacts = _.merge(outputs, provider.artifacts);
     }
 
     console.log(
