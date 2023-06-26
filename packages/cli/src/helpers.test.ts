@@ -1,6 +1,10 @@
-import { getChainId, getChainDataFromId } from './helpers'
+import { getChainId, getChainDataFromId, getChainName } from './helpers'
 
-describe('getChainId', () => {
+describe('getChainId', getChainIdTestCases);
+describe('getChainName', getChainNameTestCases);
+describe('getChainDataFromId', getChainDataFromIdTestCases);
+
+function getChainIdTestCases() {
   it('should return the chainId for a valid chain name', () => {
     expect(getChainId('Ethereum Mainnet')).toBe(1);
     expect(getChainId('xDAI Chain')).toBe(100);
@@ -9,84 +13,273 @@ describe('getChainId', () => {
     expect(getChainId('Metadium Mainnet')).toBe(11);
     expect(getChainId('IPOS Network')).toBe(1122334455);
     expect(getChainId('Metadium Testnet')).toBe(12);
-    expect(getChainId('Ropsten Testnet')).toBe(3);
-    expect(getChainId('Rinkeby Testnet')).toBe(4);
-    expect(getChainId('Goerli Testnet')).toBe(5);
-    expect(getChainId('Kotti Testnet')).toBe(6);
-    expect(getChainId('BSC Mainnet')).toBe(56);
-    expect(getChainId('BSC Testnet')).toBe(97);
-    expect(getChainId('Avalanche Mainnet')).toBe(43114);
-    expect(getChainId('Avalanche Testnet')).toBe(43113);
-    expect(getChainId('Fantom Opera')).toBe(250);
-    expect(getChainId('Fantom Testnet')).toBe(4002);
+    expect(getChainId('Fuse Mainnet')).toBe(122);
+    expect(getChainId('Diode Staging')).toBe(13);
+    expect(getChainId('Ether-1')).toBe(1313114);
+    expect(getChainId('NEAR MainNet')).toBe(1313161554);
+    expect(getChainId('NEAR TestNet')).toBe(1313161555);
+    expect(getChainId('Xerom')).toBe(1313500);
+    expect(getChainId('PepChain Churchill')).toBe(13371337);
     expect(getChainId('Matic Mainnet')).toBe(137);
-    expect(getChainId('Matic Testnet')).toBe(80001);
-    expect(getChainId('xDai')).toBe(100);
+    expect(getChainId('Diode Prenet')).toBe(15);
+    expect(getChainId('Lightstreams Testnet')).toBe(162);
+    expect(getChainId('Atheios')).toBe(1620);
+    expect(getChainId('Lightstreams Mainnet')).toBe(163);
+    expect(getChainId('ThunderCore Testnet')).toBe(18);
+    expect(getChainId('IOLite')).toBe(18289463);
+    expect(getChainId('Teslafunds')).toBe(1856);
+    expect(getChainId('EtherGem')).toBe(1987);
+    expect(getChainId('Expanse Network')).toBe(2);
+    expect(getChainId('ELA-ETH-Sidechain Mainnet')).toBe(20);
+    expect(getChainId('Akaroma')).toBe(200625);
+    expect(getChainId('ELA-ETH-Sidechain Testnet')).toBe(21);
+    expect(getChainId('Freight Trust Network')).toBe(211);
+    expect(getChainId('Webchain')).toBe(24484);
     expect(getChainId('Energy Web Chain')).toBe(246);
-    expect(getChainId('Energy Web Volta')).toBe(73799);
-    expect(getChainId('OKExChain Testnet')).toBe(65);
-    expect(getChainId('OKExChain Mainnet')).toBe(66);
-    expect(getChainId('Moonbase Alpha')).toBe(1287);
-    expect(getChainId('Moonbeam Testnet')).toBe(1284);
-    
+    expect(getChainId('ARTIS sigma1')).toBe(246529);
+    expect(getChainId('ARTIS tau1')).toBe(246785);
+    expect(getChainId('Fantom Opera')).toBe(250);
+    expect(getChainId('High Performance Blockchain')).toBe(269);
+    expect(getChainId('Auxilium Network Mainnet')).toBe(28945486);
+    expect(getChainId('Ethereum Testnet Ropsten')).toBe(3);
+    expect(getChainId('RSK Mainnet')).toBe(30);
+    expect(getChainId('RSK Testnet')).toBe(31);
+    expect(getChainId('Ethersocial Network')).toBe(31102);
+    expect(getChainId('Pirl')).toBe(3125659152);
+    expect(getChainId('Valorbit')).toBe(38);
+    expect(getChainId('Lisinski')).toBe(385);
+    expect(getChainId('Energi Mainnet')).toBe(39797);
+    expect(getChainId('Ethereum Testnet Rinkeby')).toBe(4);
+    expect(getChainId('Ethereum Testnet Kovan')).toBe(42);
+    expect(getChainId('Optimistic Ethereum')).toBe(420);
+    expect(getChainId('Athereum')).toBe(43110);
+    expect(getChainId('Energi Testnet')).toBe(49797);
+    expect(getChainId('Ethereum Testnet Görli')).toBe(5);
+    expect(getChainId('Ethereum Testnet Sepolia')).toBe(11155111);
+    expect(getChainId('Binance Smart Chain Mainnet')).toBe(56);
+    expect(getChainId('Ethereum Classic Testnet Kotti')).toBe(6);
+    expect(getChainId('GoChain')).toBe(60);
+    expect(getChainId('Ethereum Classic Mainnet')).toBe(61);
+    expect(getChainId('Aquachain')).toBe(61717561);
+    expect(getChainId('Ethereum Classic Testnet Morden')).toBe(62);
+    expect(getChainId('Ethereum Classic Testnet Mordor')).toBe(63);
+    expect(getChainId('Ellaism')).toBe(64);
+    expect(getChainId('ThaiChain')).toBe(7);
+    expect(getChainId('Energy Web Volta Testnet')).toBe(73799);
+    expect(getChainId('Mix')).toBe(76);
+    expect(getChainId('POA Network Sokol')).toBe(77);
+    expect(getChainId('Musicoin')).toBe(7762959);
+    expect(getChainId('Firenze test network')).toBe(78110);
+    expect(getChainId('Ubiq Network Mainnet')).toBe(8);
+    expect(getChainId('Matic Mumbai')).toBe(80001);
+    expect(getChainId('Callisto Mainnet')).toBe(820);
+    expect(getChainId('Callisto Testnet')).toBe(821);
+    expect(getChainId('TomoChain')).toBe(88);
+    expect(getChainId('bloxberg')).toBe(8995);
+    expect(getChainId('Ubiq Network Testnet')).toBe(9);
+    expect(getChainId('Binance Smart Chain Testnet')).toBe(97);
+    expect(getChainId('Nepal Blockchain Network')).toBe(977);
+    expect(getChainId('POA Network Core')).toBe(99);
+    expect(getChainId('Celo Alfajores Testnet')).toBe(44787);
+    expect(getChainId('Celo')).toBe(42220);
+    expect(getChainId('Avalanche Mainnet C-Chain')).toBe(43114);
+    expect(getChainId('Avalanche FUJI C-Chain')).toBe(43113);
+    expect(getChainId('Optimism Mainnet')).toBe(10);
+    expect(getChainId('Base Goerli Testnet')).toBe(84531);
+    expect(getChainId('Sepolia Network')).toBe(11155111);
+
+
     // write test cases for all chains items and getChainId with this pattern    expect(getChainId('chainName')).toBe(chainId);
-    
-    
+
+
   });
 
   it('should throw an error for an invalid chain name', () => {
     expect(() => getChainId('invalid')).toThrow('Invalid chain "invalid"');
     expect(() => getChainId('unknown')).toThrow('Invalid chain "unknown"');
   });
-});
+}
 
-describe('getChainDataFromId', () => {
+function getChainDataFromIdTestCases(){
   it('should return the chain data for a valid chainId', () => {
-    expect(getChainDataFromId(1)).toEqual({
-      name: 'Ethereum Mainnet',
-      chainId: 1,
-      shortName: 'eth',
-      chain: 'ETH',
-      network: 'mainnet',
-      networkId: 1,
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: [
-        'https://mainnet.infura.io/v3/${INFURA_API_KEY}',
-        'wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}',
-        'https://api.mycryptoapi.com/eth',
-        'https://cloudflare-eth.com',
-      ],
-      etherscanApi: 'https://api.etherscan.io/api',
-      etherscanUrl: 'https://etherscan.io',
-      faucets: [],
-      infoURL: 'https://ethereum.org',
-    });
-    expect(getChainDataFromId(100)).toEqual({
-      name: 'xDAI Chain',
-      chainId: 100,
-      shortName: 'xdai',
-      chain: 'XDAI',
-      network: 'mainnet',
-      networkId: 100,
-      nativeCurrency: { name: 'xDAI', symbol: 'xDAI', decimals: 18 },
-      rpc: [
-        'https://rpc.xdaichain.com',
-        'https://xdai.poanetwork.dev',
-        'wss://rpc.xdaichain.com/wss',
-        'wss://xdai.poanetwork.dev/wss',
-        'http://xdai.poanetwork.dev',
-        'https://dai.poa.network',
-        'ws://xdai.poanetwork.dev:8546',
-      ],
-      etherscanApi: 'https://api.gnosisscan.io/api',
-      etherscanUrl: 'https://gnosisscan.io',
-      faucets: [],
-      infoURL: 'https://forum.poa.network/c/xdai-chain',
-    });
+    expect(getChainDataFromId(1)?.name).toBe('Ethereum Mainnet');
+    expect(getChainDataFromId(100)?.name).toBe('xDAI Chain');
+    expect(getChainDataFromId(101)?.name).toBe('EtherInc');
+    expect(getChainDataFromId(108)?.name).toBe('ThunderCore Mainnet');
+    expect(getChainDataFromId(11)?.name).toBe('Metadium Mainnet');
+    expect(getChainDataFromId(1122334455)?.name).toBe('IPOS Network');
+    expect(getChainDataFromId(12)?.name).toBe('Metadium Testnet');
+    expect(getChainDataFromId(122)?.name).toBe('Fuse Mainnet');
+    expect(getChainDataFromId(13)?.name).toBe('Diode Staging');
+    expect(getChainDataFromId(1313114)?.name).toBe('Ether-1');
+    expect(getChainDataFromId(1313161554)?.name).toBe('NEAR MainNet');
+    expect(getChainDataFromId(1313161555)?.name).toBe('NEAR TestNet');
+    expect(getChainDataFromId(1313500)?.name).toBe('Xerom');
+    expect(getChainDataFromId(13371337)?.name).toBe('PepChain Churchill');
+    expect(getChainDataFromId(137)?.name).toBe('Matic Mainnet');
+    expect(getChainDataFromId(15)?.name).toBe('Diode Prenet');
+    expect(getChainDataFromId(162)?.name).toBe('Lightstreams Testnet');
+    expect(getChainDataFromId(1620)?.name).toBe('Atheios');
+    expect(getChainDataFromId(163)?.name).toBe('Lightstreams Mainnet');
+    expect(getChainDataFromId(18)?.name).toBe('ThunderCore Testnet');
+    expect(getChainDataFromId(18289463)?.name).toBe('IOLite');
+    expect(getChainDataFromId(1856)?.name).toBe('Teslafunds');
+    expect(getChainDataFromId(1987)?.name).toBe('EtherGem');
+    expect(getChainDataFromId(2)?.name).toBe('Expanse Network');
+    expect(getChainDataFromId(20)?.name).toBe('ELA-ETH-Sidechain Mainnet');
+    expect(getChainDataFromId(200625)?.name).toBe('Akaroma');
+    expect(getChainDataFromId(21)?.name).toBe('ELA-ETH-Sidechain Testnet');
+    expect(getChainDataFromId(211)?.name).toBe('Freight Trust Network');
+    expect(getChainDataFromId(24484)?.name).toBe('Webchain');
+    expect(getChainDataFromId(246)?.name).toBe('Energy Web Chain');
+    expect(getChainDataFromId(246529)?.name).toBe('ARTIS sigma1');
+    expect(getChainDataFromId(246785)?.name).toBe('ARTIS tau1');
+    expect(getChainDataFromId(250)?.name).toBe('Fantom Opera');
+    expect(getChainDataFromId(269)?.name).toBe('High Performance Blockchain');
+    expect(getChainDataFromId(28945486)?.name).toBe('Auxilium Network Mainnet');
+    expect(getChainDataFromId(3)?.name).toBe('Ethereum Testnet Ropsten');
+    expect(getChainDataFromId(30)?.name).toBe('RSK Mainnet');
+    expect(getChainDataFromId(31)?.name).toBe('RSK Testnet');
+    expect(getChainDataFromId(31102)?.name).toBe('Ethersocial Network');
+    expect(getChainDataFromId(3125659152)?.name).toBe('Pirl');
+    expect(getChainDataFromId(38)?.name).toBe('Valorbit');
+    expect(getChainDataFromId(385)?.name).toBe('Lisinski');
+    expect(getChainDataFromId(39797)?.name).toBe('Energi Mainnet');
+    expect(getChainDataFromId(4)?.name).toBe('Ethereum Testnet Rinkeby');
+    expect(getChainDataFromId(42)?.name).toBe('Ethereum Testnet Kovan');
+    expect(getChainDataFromId(420)?.name).toBe('Optimistic Ethereum');
+    expect(getChainDataFromId(43110)?.name).toBe('Athereum');
+    expect(getChainDataFromId(49797)?.name).toBe('Energi Testnet');
+    expect(getChainDataFromId(5)?.name).toBe('Ethereum Testnet Görli');
+    expect(getChainDataFromId(11155111)?.name).toBe('Ethereum Testnet Sepolia');
+    expect(getChainDataFromId(56)?.name).toBe('Binance Smart Chain Mainnet');
+    expect(getChainDataFromId(6)?.name).toBe('Ethereum Classic Testnet Kotti');
+    expect(getChainDataFromId(60)?.name).toBe('GoChain');
+    expect(getChainDataFromId(61)?.name).toBe('Ethereum Classic Mainnet');
+    expect(getChainDataFromId(61717561)?.name).toBe('Aquachain');
+    expect(getChainDataFromId(62)?.name).toBe('Ethereum Classic Testnet Morden');
+    expect(getChainDataFromId(63)?.name).toBe('Ethereum Classic Testnet Mordor');
+    expect(getChainDataFromId(64)?.name).toBe('Ellaism');
+    expect(getChainDataFromId(7)?.name).toBe('ThaiChain');
+    expect(getChainDataFromId(73799)?.name).toBe('Energy Web Volta Testnet');
+    expect(getChainDataFromId(76)?.name).toBe('Mix');
+    expect(getChainDataFromId(77)?.name).toBe('POA Network Sokol');
+    expect(getChainDataFromId(7762959)?.name).toBe('Musicoin');
+    expect(getChainDataFromId(78110)?.name).toBe('Firenze test network');
+    expect(getChainDataFromId(8)?.name).toBe('Ubiq Network Mainnet');
+    expect(getChainDataFromId(80001)?.name).toBe('Matic Mumbai');
+    expect(getChainDataFromId(820)?.name).toBe('Callisto Mainnet');
+    expect(getChainDataFromId(821)?.name).toBe('Callisto Testnet');
+    expect(getChainDataFromId(88)?.name).toBe('TomoChain');
+    expect(getChainDataFromId(8995)?.name).toBe('bloxberg');
+    expect(getChainDataFromId(9)?.name).toBe('Ubiq Network Testnet');
+    expect(getChainDataFromId(97)?.name).toBe('Binance Smart Chain Testnet');
+    expect(getChainDataFromId(977)?.name).toBe('Nepal Blockchain Network');
+    expect(getChainDataFromId(99)?.name).toBe('POA Network Core');
+    expect(getChainDataFromId(44787)?.name).toBe('Celo Alfajores Testnet');
+    expect(getChainDataFromId(42220)?.name).toBe('Celo');
+    expect(getChainDataFromId(43114)?.name).toBe('Avalanche Mainnet C-Chain');
+    expect(getChainDataFromId(43113)?.name).toBe('Avalanche FUJI C-Chain');
+    expect(getChainDataFromId(10)?.name).toBe('Optimism Mainnet');
+    expect(getChainDataFromId(84531)?.name).toBe('Base Goerli Testnet');
+    expect(getChainDataFromId(11155111)?.name).toBe('Ethereum Testnet Sepolia');
   });
 
   it('should return null for an invalid chainId', () => {
-    expect(getChainDataFromId(999)).toBeNull();
+    expect(getChainDataFromId(999999)).toBeNull();
     expect(getChainDataFromId(0)).toBeNull();
   });
-});
+  
+}
+
+function getChainNameTestCases(){
+  it('should return the chain name for a valid chainId', () => {
+    expect(getChainName(1)).toBe('Ethereum Mainnet');
+    expect(getChainName(100)).toBe('xDAI Chain');
+    expect(getChainName(101)).toBe('EtherInc');
+    expect(getChainName(108)).toBe('ThunderCore Mainnet');
+    expect(getChainName(11)).toBe('Metadium Mainnet');
+    expect(getChainName(1122334455)).toBe('IPOS Network');
+    expect(getChainName(12)).toBe('Metadium Testnet');
+    expect(getChainName(122)).toBe('Fuse Mainnet');
+    expect(getChainName(13)).toBe('Diode Staging');
+    expect(getChainName(1313114)).toBe('Ether-1');
+    expect(getChainName(1313161554)).toBe('NEAR MainNet');
+    expect(getChainName(1313161555)).toBe('NEAR TestNet');
+    expect(getChainName(1313500)).toBe('Xerom');
+    expect(getChainName(13371337)).toBe('PepChain Churchill');
+    expect(getChainName(137)).toBe('Matic Mainnet');
+    expect(getChainName(15)).toBe('Diode Prenet');
+    expect(getChainName(162)).toBe('Lightstreams Testnet');
+    expect(getChainName(1620)).toBe('Atheios');
+    expect(getChainName(163)).toBe('Lightstreams Mainnet');
+    expect(getChainName(18)).toBe('ThunderCore Testnet');
+    expect(getChainName(18289463)).toBe('IOLite');
+    expect(getChainName(1856)).toBe('Teslafunds');
+    expect(getChainName(1987)).toBe('EtherGem');
+    expect(getChainName(2)).toBe('Expanse Network');
+    expect(getChainName(20)).toBe('ELA-ETH-Sidechain Mainnet');
+    expect(getChainName(200625)).toBe('Akaroma');
+    expect(getChainName(21)).toBe('ELA-ETH-Sidechain Testnet');
+    expect(getChainName(211)).toBe('Freight Trust Network');
+    expect(getChainName(24484)).toBe('Webchain');
+    expect(getChainName(246)).toBe('Energy Web Chain');
+    expect(getChainName(246529)).toBe('ARTIS sigma1');
+    expect(getChainName(246785)).toBe('ARTIS tau1');
+    expect(getChainName(250)).toBe('Fantom Opera');
+    expect(getChainName(269)).toBe('High Performance Blockchain');
+    expect(getChainName(28945486)).toBe('Auxilium Network Mainnet');
+    expect(getChainName(3)).toBe('Ethereum Testnet Ropsten');
+    expect(getChainName(30)).toBe('RSK Mainnet');
+    expect(getChainName(31)).toBe('RSK Testnet');
+    expect(getChainName(31102)).toBe('Ethersocial Network');
+    expect(getChainName(3125659152)).toBe('Pirl');
+    expect(getChainName(38)).toBe('Valorbit');
+    expect(getChainName(385)).toBe('Lisinski');
+    expect(getChainName(39797)).toBe('Energi Mainnet');
+    expect(getChainName(4)).toBe('Ethereum Testnet Rinkeby');
+    expect(getChainName(42)).toBe('Ethereum Testnet Kovan');
+    expect(getChainName(420)).toBe('Optimistic Ethereum');
+    expect(getChainName(43110)).toBe('Athereum');
+    expect(getChainName(49797)).toBe('Energi Testnet');
+    expect(getChainName(5)).toBe('Ethereum Testnet Görli');
+    expect(getChainName(11155111)).toBe('Ethereum Testnet Sepolia');
+    expect(getChainName(56)).toBe('Binance Smart Chain Mainnet');
+    expect(getChainName(6)).toBe('Ethereum Classic Testnet Kotti');
+    expect(getChainName(60)).toBe('GoChain');
+    expect(getChainName(61)).toBe('Ethereum Classic Mainnet');
+    expect(getChainName(61717561)).toBe('Aquachain');
+    expect(getChainName(62)).toBe('Ethereum Classic Testnet Morden');
+    expect(getChainName(63)).toBe('Ethereum Classic Testnet Mordor');
+    expect(getChainName(64)).toBe('Ellaism');
+    expect(getChainName(7)).toBe('ThaiChain');
+    expect(getChainName(73799)).toBe('Energy Web Volta Testnet');
+    expect(getChainName(76)).toBe('Mix');
+    expect(getChainName(77)).toBe('POA Network Sokol');
+    expect(getChainName(7762959)).toBe('Musicoin');
+    expect(getChainName(78110)).toBe('Firenze test network');
+    expect(getChainName(8)).toBe('Ubiq Network Mainnet');
+    expect(getChainName(80001)).toBe('Matic Mumbai');
+    expect(getChainName(820)).toBe('Callisto Mainnet');
+    expect(getChainName(821)).toBe('Callisto Testnet');
+    expect(getChainName(88)).toBe('TomoChain');
+    expect(getChainName(8995)).toBe('bloxberg');
+    expect(getChainName(9)).toBe('Ubiq Network Testnet');
+    expect(getChainName(97)).toBe('Binance Smart Chain Testnet');
+    expect(getChainName(977)).toBe('Nepal Blockchain Network');
+    expect(getChainName(99)).toBe('POA Network Core');
+    expect(getChainName(44787)).toBe('Celo Alfajores Testnet');
+    expect(getChainName(42220)).toBe('Celo');
+    expect(getChainName(43114)).toBe('Avalanche Mainnet C-Chain');
+    expect(getChainName(43113)).toBe('Avalanche FUJI C-Chain');
+    expect(getChainName(10)).toBe('Optimism Mainnet');
+    expect(getChainName(84531)).toBe('Base Goerli Testnet');
+    expect(getChainName(11155111)).toBe('Ethereum Testnet Sepolia');
+  });
+
+  it('should return null for an invalid chainId', () => {
+    expect(getChainName(999999)).toBe('unknown');
+    expect(getChainName(0)).toBe('unknown');
+  });
+  
+}
