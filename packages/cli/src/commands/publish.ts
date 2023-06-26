@@ -30,7 +30,7 @@ export async function publish({
 
   if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
     throw new Error(
-      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
+      `In order to publish, a IPFS URL must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
 
@@ -41,7 +41,7 @@ export async function publish({
   });
 
   if (!quiet) {
-    console.log(blueBright('publishing signer is', await signer.getAddress()));
+    console.log(blueBright('Publishing signer is', await signer.getAddress()));
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
@@ -51,6 +51,16 @@ export async function publish({
     if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
 
     console.log(blueBright('publishing remote ipfs package', packageRef));
+    console.log(
+      blueBright(
+        'Uploading the following Cannon package data to',
+        cliSettings.publishIpfsUrl,
+        'Tags',
+        tags,
+        'Variant',
+        `${chainId!}-${preset!}`
+      )
+    );
     console.log();
 
     const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
