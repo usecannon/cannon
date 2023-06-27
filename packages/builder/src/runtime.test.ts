@@ -197,6 +197,18 @@ describe('runtime.ts', () => {
         expect(newRuntime.gasFee).toBeUndefined();
         expect(newRuntime.priorityGasFee).toBeUndefined();
       });
+      it('sets the gas price and derive again', async () => {
+        const gasPrice = '123456';
+        const newRuntime = runtime.derive({
+          gasPrice,
+        });
+
+        const newNewRuntime = newRuntime.derive({});
+
+        expect(newNewRuntime.gasPrice).toBe(ethers.utils.parseUnits(gasPrice, 'gwei').toString());
+        expect(newNewRuntime.gasFee).toBeUndefined();
+        expect(newNewRuntime.priorityGasFee).toBeUndefined();
+      });
 
       it('sets gas fee price', async () => {
         const gasFee = '123456';
