@@ -182,6 +182,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
         await interact({
           packages,
+          packagesArtifacts: buildOutputs.map((info) => info.outputs),
           contracts,
           signer,
           provider,

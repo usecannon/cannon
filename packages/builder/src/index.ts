@@ -4,6 +4,7 @@ export type { RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
 export { CannonLoader, IPFSLoader } from './loader';
+export { decodeTxError } from './error';
 
 export * from './util';
 export * from './types';

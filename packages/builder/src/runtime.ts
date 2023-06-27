@@ -8,6 +8,7 @@ import Debug from 'debug';
 import { getExecutionSigner } from './util';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
+import { bold } from 'chalk';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -48,6 +49,10 @@ export class CannonStorage extends EventEmitter {
     const uri = await this.registry.getUrl(packageName, `${chainId}-${preset}`);
 
     if (!uri) return null;
+
+    const loaderScheme = uri.split(':')[0];
+
+    console.log(bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}...`));
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 
