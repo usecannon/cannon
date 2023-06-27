@@ -337,6 +337,15 @@ program
     if (options.gasLimit) {
       overrides.gasLimit = options.gasLimit;
     }
+    console.log(
+      `Settings:\nMax Fee Per Gas: ${
+        overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
+      }\nMax Priority Fee Per Gas: ${
+        overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
+      }\nGas Limit: ${
+        overrides.gasLimit ? overrides.gasLimit : 'default'
+      }\nTo alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.`
+    );
 
     await publish({
       packageRef,

@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { ConsoleLogs } from './consoleLog';
-import { ChainArtifacts } from '../types';
+import { ChainArtifacts, ContractData } from '../types';
 
 /* eslint-disable no-case-declarations */
 
@@ -114,13 +114,13 @@ class CannonTraceError extends Error {
           contractName = r?.name;
         }
 
-        decodedMsg = parseErrorReason(r?.contract ?? null, errorCodeHex);
+        decodedMsg = parseContractErrorReason(r?.contract ?? null, errorCodeHex);
       } catch {
         // intentionally empty
       }
     }
 
-    // now we can make ourself a thing
+    // now we can make ourselves a thing
     super(`transaction reverted in contract ${contractName}: ${decodedMsg}\n\n${renderTrace(ctx, traces)}\n\n`);
 
     this.error = error;
@@ -194,7 +194,15 @@ export function renderResult(result: ethers.utils.Result) {
   return '(' + result.map((v) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
 }
 
-function parseErrorReason(contract: ethers.Contract | null, data: string): string {
+/**
+ * Decode transaction error data to a human-readable error message
+ * This method decodes general tx errors (i.e. Panic and Error), and
+ * decodes against generated ABIs
+ * @param data transaction data
+ * @param abis ABIs of all involved contracts if available
+ * @return Human-readable error message if decode to error is successful, otherwise null
+ */
+export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
   if (data.startsWith(ethers.utils.id('Panic(uint256)').slice(0, 10))) {
     // this is the `Panic` builtin opcode
     const reason = ethers.utils.defaultAbiCoder.decode(['uint256'], '0x' + data.slice(10))[0];
@@ -226,7 +234,26 @@ function parseErrorReason(contract: ethers.Contract | null, data: string): strin
     // this is the `Error` builtin opcode
     const reason = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + data.slice(10));
     return `Error("${reason}")`;
-  } else if (contract) {
+  }
+  for (const abi of abis) {
+    const iface = new ethers.utils.Interface(abi as string[]);
+    try {
+      const error = iface.parseError(data);
+      return error.name + renderResult(error.args);
+    } catch (err) {
+      // intentionally empty
+    }
+  }
+  return null;
+}
+
+export function parseContractErrorReason(contract: ethers.Contract | null, data: string): string {
+  const result = decodeTxError(data);
+
+  if (result) {
+    return result;
+  }
+  if (contract) {
     try {
       const error = contract.interface.parseError(data);
       return error.name + renderResult(error.args);
@@ -299,7 +326,7 @@ function parseFunctionData(
         } catch (err) {
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
-            parsedOutput = parseErrorReason(info.contract, output);
+            parsedOutput = parseContractErrorReason(info.contract, output);
             isReverted = true;
           } catch (err) {
             parsedOutput = output;

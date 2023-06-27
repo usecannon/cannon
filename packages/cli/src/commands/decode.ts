@@ -1,4 +1,4 @@
-import { ContractData, DeploymentInfo } from '@usecannon/builder';
+import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import { bold, gray, green, italic } from 'chalk';
 import { readDeployRecursive } from '../package';
@@ -22,6 +22,11 @@ export async function decode({
   const tx = _parseData(abis, data);
 
   if (!tx) {
+    const errorMessage = decodeTxError(data[0], abis);
+    if (errorMessage) {
+      console.log(errorMessage);
+      return;
+    }
     throw new Error('Could not decode transaction data');
   }
 
@@ -33,6 +38,14 @@ export async function decode({
 
   console.log();
   console.log(green(`${fragment.format('full')}`), `${'sighash' in tx ? italic(gray(tx.sighash)) : ''}`);
+
+  if ('errorFragment' in tx) {
+    const errorMessage = decodeTxError(data[0], abis);
+    if (errorMessage) {
+      console.log(errorMessage);
+      return;
+    }
+  }
 
   const renderParam = (prefix: string, input: ethers.utils.ParamType) =>
     `${prefix}${gray(input.format())} ${bold(input.name)}`;
@@ -75,13 +88,23 @@ function _getAbis(deployData: DeploymentInfo) {
 }
 
 function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNumber) {
-  return ethers.BigNumber.isBigNumber(value)
-    ? value.toString()
-    : type.type === 'address'
-    ? value
-    : type.type === 'bytes32'
-    ? ethers.utils.parseBytes32String(value)
-    : `"${value}"`;
+  switch (true) {
+    case ethers.BigNumber.isBigNumber(value):
+      return value.toString();
+    case type.type === 'address':
+      return value;
+    case type.type === 'bytes32':
+      try {
+        return ethers.utils.parseBytes32String(value as string);
+      } catch (err) {
+        if (process.env.TRACE === 'true') {
+          console.error(err);
+        }
+      }
+      return `"${value}"`;
+    default:
+      return `"${value}"`;
+  }
 }
 
 function _parseData(abis: ContractData['abi'][], data: string[]) {
