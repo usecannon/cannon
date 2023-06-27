@@ -122,7 +122,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       }
 
       buildOutputs.push({ pkg, outputs });
-      provider.artifacts = _.merge(outputs, provider.artifacts);
     }
 
     console.log(
