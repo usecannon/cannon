@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import { CannonWrapperGenericProvider } from './error/provider';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { yellow } from 'chalk';
 
 import Debug from 'debug';
 import { getExecutionSigner } from './util';
@@ -64,6 +65,12 @@ export class CannonStorage extends EventEmitter {
   }
 }
 
+const parseGasValue = (value: string | undefined) => {
+  if (!value) return undefined;
+
+  return ethers.utils.parseUnits(value, 'gwei').toString();
+};
+
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
   readonly provider: CannonWrapperGenericProvider;
   readonly chainId: number;
@@ -74,6 +81,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly allowPartialDeploy: boolean;
   readonly publicSourceCode: boolean | undefined;
   private signals: { cancelled: boolean } = { cancelled: false };
+  private _gasPrice: string | undefined;
+  private _gasFee: string | undefined;
+  private _priorityGasFee: string | undefined;
 
   private cleanSnapshot: any;
 
@@ -116,10 +126,37 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.publicSourceCode = info.publicSourceCode;
 
     this.misc = { artifacts: {} };
+
+    if (info.priorityGasFee) {
+      if (!info.gasFee) {
+        throw new Error('priorityGasFee requires gasFee');
+      }
+    }
+
+    this._gasFee = parseGasValue(info.gasFee);
+    this._priorityGasFee = parseGasValue(info.priorityGasFee);
+
+    if (info.gasPrice) {
+      if (info.gasFee) {
+        console.log(yellow('WARNING: gasPrice is ignored when gasFee is set'));
+      } else {
+        this._gasPrice = parseGasValue(info.gasPrice);
+      }
+    }
   }
 
   cancel() {
     this.signals.cancelled = true;
+  }
+
+  get gasPrice(): string | undefined {
+    return this._gasPrice;
+  }
+  get gasFee(): string | undefined {
+    return this._gasFee;
+  }
+  get priorityGasFee(): string | undefined {
+    return this._priorityGasFee;
   }
 
   isCancelled() {
@@ -200,6 +237,10 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     );
 
     newRuntime.signals = this.signals;
+
+    if (!overrides.gasPrice) newRuntime._gasPrice = this.gasPrice;
+    if (!overrides.gasFee) newRuntime._gasFee = this.gasFee;
+    if (!overrides.priorityGasFee) newRuntime._priorityGasFee = this.priorityGasFee;
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));

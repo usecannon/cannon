@@ -47,6 +47,13 @@ export type CliSettings = {
 
   // Whether to suppress extra output
   quiet: boolean;
+
+  // Gas price to use for transactions
+  gasPrice?: string;
+
+  // Base and Priority gas fee to use for transactions - EIP1559
+  gasFee?: string;
+  priorityGasFee?: string;
 };
 
 // TODO: this function is ugly

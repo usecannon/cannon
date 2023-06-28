@@ -38,9 +38,7 @@ const config = {
     value: { type: 'string' },
     overrides: {
       optionalProperties: {
-        gasLimit: { type: 'int32' },
-        gasPrice: { type: 'string' },
-        priorityGasPrice: { type: 'string' },
+        gasLimit: { type: 'string' },
       },
     },
 
@@ -143,6 +141,10 @@ export default {
       config.salt = _.template(config.salt)(ctx);
     }
 
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
+    }
+
     return config;
   },
 
@@ -178,6 +180,25 @@ export default {
 
     let transactionHash: string;
     let contractAddress: string;
+
+    const overrides: ethers.Overrides & { value?: string } = {};
+
+    if (config.overrides?.gasLimit) {
+      overrides.gasLimit = config.overrides.gasLimit;
+    }
+
+    if (runtime.gasPrice) {
+      overrides.gasPrice = runtime.gasPrice;
+    }
+
+    if (runtime.gasFee) {
+      overrides.maxFeePerGas = runtime.gasFee;
+    }
+
+    if (runtime.priorityGasFee) {
+      overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
+    }
+
     if (config.create2) {
       await ensureArachnidCreate2Exists(runtime);
 
@@ -193,7 +214,7 @@ export default {
         const signer = config.from
           ? await runtime.getSigner(config.from)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const pendingTxn = await signer.sendTransaction(create2Txn);
+        const pendingTxn = await signer.sendTransaction(_.assign(create2Txn, overrides));
         const receipt = await pendingTxn.wait();
         transactionHash = pendingTxn.hash;
 
@@ -229,7 +250,7 @@ export default {
         const signer = config.from
           ? await runtime.getSigner(config.from)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const txnData = await signer.sendTransaction(txn);
+        const txnData = await signer.sendTransaction(_.assign(txn, overrides));
         const receipt = await txnData.wait();
         contractAddress = receipt.contractAddress;
         transactionHash = receipt.transactionHash;

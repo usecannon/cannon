@@ -222,6 +222,10 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     publicSourceCode,
     providerUrl: cliSettings.providerUrl,
+
+    gasPrice: opts.gasPrice,
+    gasFee: opts.maxGasFee,
+    priorityGasFee: opts.maxPriorityGasFee,
   });
 
   return [node, outputs];
@@ -239,6 +243,9 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
+  .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
+  .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('-q --quiet', 'Suppress extra logging')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
@@ -435,6 +442,9 @@ program
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
+  .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
+  .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
+  .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .action(async function (packageDefinition, opts) {
     const cliSettings = resolveCliSettings(opts);
 
@@ -456,6 +466,9 @@ program
         },
         snapshots: false,
         allowPartialDeploy: false,
+        gasPrice: opts.gasPrice,
+        gasFee: opts.maxGasFee,
+        priorityGasFee: opts.maxPriorityFee,
       },
       resolver,
       getMainLoader(cliSettings)
