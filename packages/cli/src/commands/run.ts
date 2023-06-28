@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
