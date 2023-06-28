@@ -3,7 +3,6 @@ import { BundledOutput, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
-import { CannonRegistry } from './registry';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -110,37 +109,4 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }
-}
-
-export async function publishPackage({
-  url,
-  deployInfo,
-  registry,
-  tags,
-  chainId,
-  preset,
-}: {
-  url: string;
-  deployInfo: DeploymentInfo;
-  registry: CannonRegistry;
-  tags: string[];
-  chainId: number;
-  preset: string;
-}) {
-  const def = new ChainDefinition(deployInfo.def);
-  const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
-
-  const name = def.getName(preCtx);
-  const version = def.getVersion(preCtx);
-  const packagesNames = [version, ...tags].map((t) => `${name}:${t}`);
-  const variant = `${chainId!}-${preset!}`;
-  const miscUrl = deployInfo.miscUrl!;
-
-  debug('publishing package', { name, version, tags, variant, url, miscUrl });
-
-  const txs = await registry.publish(packagesNames, variant, url, miscUrl);
-
-  debug('txs', txs);
-
-  return { name, version, tags, variant, url, miscUrl, txs };
 }

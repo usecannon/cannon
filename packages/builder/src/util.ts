@@ -101,8 +101,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: s
     .filter((a, index, abi) => {
       if (index === 0) return true;
       const alreadyExists = abi.slice(0, index).some((b) => {
-        //console.log(ethers.utils.Fragment.from(b).format('minimal'), ethers.utils.Fragment.from(a).format('minimal'));
-        return ethers.utils.Fragment.from(b).format('minimal') === ethers.utils.Fragment.from(a).format('minimal');
+        return ethers.utils.Fragment.from(b)?.format('minimal') === ethers.utils.Fragment.from(a)?.format('minimal');
       });
 
       return !alreadyExists;
