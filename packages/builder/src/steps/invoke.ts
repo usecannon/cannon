@@ -183,13 +183,16 @@ function parseEventOutputs(
   suppressEventWarnings: Config['suppressEventWarnings']
 ): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
-  let expectedEvent: string = '';
+  let expectedEvent = '';
 
   if (config) {
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
         // Check for events defined under factory or extra
-        if (config.hasOwnProperty(name) && config[name].hasOwnProperty('event')) {
+        if (
+          Object.prototype.hasOwnProperty.call(config, name) &&
+          Object.prototype.hasOwnProperty.call(config[name], 'event')
+        ) {
           expectedEvent = config[`${name}`].event;
         }
 
@@ -200,13 +203,13 @@ function parseEventOutputs(
           // print warning or error based on whether contract has no events or whether the cannonfile has no defined expected events.
           if (!txnEventsEmpty && !expectedEvent) {
             const eventNames: string[] = txnEvents.flatMap((obj) => Object.keys(obj));
-            const eventsString: string = eventNames.join(`\n--> `);
+            const eventsString: string = eventNames.join('\n--> ');
 
             console.warn(
               yellow(
                 `warning: The following events were emitted in the previous invoked contract function:\n\n--> ${eventsString}\n\n` +
-                  `but no event is expected in the cannonfile. ` +
-                  `If you want cannon to parse event data make sure to specify an event in the previous invoke step of your cannonfile`
+                  'but no event is expected in the cannonfile. ' +
+                  'If you want cannon to parse event data make sure to specify an event in the previous invoke step of your cannonfile'
               )
             );
           } else if (expectedEvent && txnEventsEmpty) {
