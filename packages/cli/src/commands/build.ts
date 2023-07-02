@@ -42,6 +42,10 @@ interface Params {
   plugins?: boolean;
   publicSourceCode?: boolean;
   providerUrl?: string;
+
+  gasPrice?: string;
+  gasFee?: string;
+  priorityGasFee?: string;
 }
 
 export async function build({
@@ -60,6 +64,9 @@ export async function build({
   plugins = true,
   publicSourceCode = false,
   providerUrl,
+  gasPrice,
+  gasFee,
+  priorityGasFee,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -99,6 +106,9 @@ export async function build({
     snapshots: chainId === CANNON_CHAIN_ID,
     allowPartialDeploy: chainId !== CANNON_CHAIN_ID && persist,
     publicSourceCode,
+    gasPrice,
+    gasFee,
+    priorityGasFee,
   };
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
@@ -125,7 +135,6 @@ export async function build({
   let oldDeployData: DeploymentInfo | null = null;
   const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
 
-  console.log(bold(`Checking IPFS for package ${prevPkg}...`));
   oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present

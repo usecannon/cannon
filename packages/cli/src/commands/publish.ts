@@ -1,10 +1,9 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage, publishPackage } from '@usecannon/builder';
-import { blueBright, bold, green } from 'chalk';
+import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
+import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
-import { readDeploy } from '../package';
 
 interface Params {
   packageRef: string;
@@ -31,7 +30,7 @@ export async function publish({
 
   if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
     throw new Error(
-      `in order to publish, a IPFS URL must be set in your cannon configuration. use '${process.argv[0]} setup' to configure`
+      `In order to publish, a IPFS URL must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
 
@@ -42,35 +41,44 @@ export async function publish({
   });
 
   if (!quiet) {
-    console.log(blueBright('publishing signer is', await signer.getAddress()));
+    console.log(blueBright('Publishing signer is', await signer.getAddress()));
   }
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   if (packageRef.startsWith('@ipfs:')) {
     if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
     if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
 
-    const deployInfo = await readDeploy(packageRef, chainId, preset);
-
     console.log(blueBright('publishing remote ipfs package', packageRef));
+    console.log(
+      blueBright(
+        'Uploading the following Cannon package data to',
+        cliSettings.publishIpfsUrl,
+        'Tags',
+        tags,
+        'Variant',
+        `${chainId!}-${preset!}`
+      )
+    );
     console.log();
 
-    const res = await publishPackage({
-      url: packageRef.replace('@ipfs:', 'ipfs://'),
-      deployInfo,
-      registry: onChainRegistry,
-      tags,
-      chainId,
-      preset,
+    const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
+    const toStorage = new CannonStorage(localRegistry, {
+      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
     });
 
-    for (const tag of [res.version, ...res.tags]) {
-      console.log(green(bold('published:'), `${res.name}:${tag} (${res.variant})`));
-    }
+    await copyPackage({
+      packageRef,
+      variant: `${chainId}-${preset}`,
+      fromStorage,
+      toStorage,
+      recursive,
+      tags,
+    });
 
     return;
   }
-
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   // get a list of all deployments the user is requesting
 

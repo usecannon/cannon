@@ -38,9 +38,7 @@ const config = {
     value: { type: 'string' },
     overrides: {
       optionalProperties: {
-        gasLimit: { type: 'int32' },
-        gasPrice: { type: 'string' },
-        priorityGasPrice: { type: 'string' },
+        gasLimit: { type: 'string' },
       },
     },
     extra: {
@@ -121,16 +119,20 @@ async function runTxn(
     overrides.gasLimit = config.overrides.gasLimit;
   }
 
-  if (config.overrides?.gasPrice) {
-    overrides.maxFeePerGas = config.overrides.gasPrice;
-  }
-
-  if (config.overrides?.priorityGasPrice) {
-    overrides.maxPriorityFeePerGas = config.overrides.gasLimit;
-  }
-
   if (config.value) {
     overrides.value = config.value;
+  }
+
+  if (runtime.gasPrice) {
+    overrides.gasPrice = runtime.gasPrice;
+  }
+
+  if (runtime.gasFee) {
+    overrides.maxFeePerGas = runtime.gasFee;
+  }
+
+  if (runtime.priorityGasFee) {
+    overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
   if (config.fromCall) {
@@ -256,14 +258,8 @@ export default {
       config.value = _.template(config.value)(ctx);
     }
 
-    if (config.overrides) {
-      if (config.overrides.gasPrice) {
-        config.overrides.gasPrice = _.template(config.overrides.gasPrice)(ctx);
-      }
-
-      if (config.overrides.priorityGasPrice) {
-        config.overrides.priorityGasPrice = _.template(config.overrides.priorityGasPrice)(ctx);
-      }
+    if (config?.overrides?.gasLimit) {
+      config.overrides.gasLimit = _.template(config.overrides.gasLimit)(ctx);
     }
 
     for (const name in config.factory) {
