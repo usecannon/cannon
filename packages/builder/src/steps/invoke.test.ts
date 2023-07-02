@@ -3,7 +3,7 @@ import '../actions';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './testUtils';
 
-describe('setps/invoke.ts', () => {
+describe('steps/invoke.ts', () => {
   const fakeContractInfo = {
     contracts: {
       What: {
