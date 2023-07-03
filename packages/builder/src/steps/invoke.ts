@@ -187,9 +187,7 @@ function parseEventOutputs(
   if (config) {
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
-
         const events = _.entries(txnEvents[n][extra.event]);
-        
         // Check for events defined under factory or extra
         if (
           Object.prototype.hasOwnProperty.call(config, name) &&
