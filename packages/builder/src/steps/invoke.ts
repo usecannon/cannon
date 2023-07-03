@@ -196,7 +196,7 @@ function parseEventOutputs(
           expectedEvent = config[`${name}`].event;
         }
 
-        if (ignoreErrors) {
+        if (!ignoreErrors) {
           if (events.length === 0) {
             throw new Error(
               `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoesn't exist or match an event emitted by the invoked function of the contract.`
