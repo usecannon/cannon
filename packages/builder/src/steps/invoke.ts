@@ -63,7 +63,7 @@ const config = {
       },
     },
     depends: { elements: { type: 'string' } },
-    logEventErrors: { type: 'boolean' },
+    ignoreErrors: { type: 'boolean' },
   },
 } as const;
 
@@ -178,7 +178,7 @@ async function runTxn(
 function parseEventOutputs(
   config: Config['extra'],
   txnEvents: EncodedTxnEvents[],
-  logEventErrors: Config['logEventErrors']
+  ignoreErrors: Config['ignoreErrors']
 ): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
@@ -196,7 +196,7 @@ function parseEventOutputs(
           expectedEvent = config[`${name}`].event;
         }
 
-        if (!logEventErrors) {
+        if (ignoreErrors) {
           if (events.length === 0) {
             throw new Error(
               `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoesn't exist or match an event emitted by the invoked function of the contract.`
@@ -366,7 +366,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
     if (config.factory) {
       for (const [k, contractAddress] of _.entries(
-        parseEventOutputs(config.factory, _.map(txns, 'events'), config.logEventErrors)
+        parseEventOutputs(config.factory, _.map(txns, 'events'), config.ignoreErrors)
       )) {
         const topLabel = k.split('_')[0];
         const factoryInfo = config.factory[topLabel];
@@ -407,7 +407,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'), config.logEventErrors);
+    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'), config.ignoreErrors);
 
     return {
       contracts,
