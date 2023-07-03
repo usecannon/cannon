@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { alter } from './alter';
 import { createDefaultReadRegistry } from '../registry';
-import { CannonStorage, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
+import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
 import { getMainLoader, LocalLoader } from '../loader';
 import _ from 'lodash';
 import cli from '../index';
@@ -141,8 +141,28 @@ describe('alter', () => {
     );
   });
 
-  // TODO
-  // it('should perform alteration for mark-complete', async () => {});
+  it('should perform alteration for mark-complete', async () => {
+    const command = 'mark-complete';
+    const targets = ['provision.dummyStep'];
+    const hash = '0xmark-complete-fffffffffffffffffffffffffffffffffffffffffffffffff';
+    jest.spyOn(ChainDefinition.prototype, 'getState').mockResolvedValue(hash);
+
+    // Call the 'alter' function with the necessary arguments
+    await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
+
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
+
+    // TODO: I am not sure the package status must be changed to another value
+    // expect(testPkgData.status).toEqual('complete');
+    expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash);
+    expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
+      [packageName],
+      `${chainId}-${preset}`,
+      newUrl,
+      metaUrl
+    );
+  });
 
   it('should perform alteration for mark-incomplete', async () => {
     // Set up test data and variables
