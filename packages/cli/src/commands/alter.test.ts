@@ -4,6 +4,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
 import { getMainLoader, LocalLoader } from '../loader';
 import _ from 'lodash';
+import cli from '../index';
 
 function generatePrivateKey(): string {
   const randomWallet = ethers.Wallet.createRandom();
@@ -157,6 +158,43 @@ describe('alter', () => {
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('incomplete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual('INCOMPLETE');
+    expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
+      [packageName],
+      `${chainId}-${preset}`,
+      newUrl,
+      metaUrl
+    );
+  });
+
+  test('should perform alteration for set-contract-address command - cli', async () => {
+    // Set up test data and variables
+    const command = 'set-contract-address';
+    const targets: string[] = ['TestContract', '0x2222222222222222222222222222222222222222'];
+
+    // Call the 'alter' function with the necessary arguments
+    // await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
+
+    await cli.parseAsync([
+      'node',
+      'cannon.ts',
+      'alter',
+      packageName,
+      command,
+      targets[0],
+      targets[1],
+      '-c',
+      String(chainId),
+      '-p',
+      preset,
+    ]);
+
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(
+      packageName,
+      preset,
+      String(chainId)
+    );
+    expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
+    expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
       [packageName],
       `${chainId}-${preset}`,
