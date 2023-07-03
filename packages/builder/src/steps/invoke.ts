@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
-import { yellow } from 'chalk';
 
 import {
   ChainBuilderContext,
@@ -64,7 +63,7 @@ const config = {
       },
     },
     depends: { elements: { type: 'string' } },
-    suppressEventWarnings: { type: 'boolean' },
+    logEventErrors: { type: 'boolean' },
   },
 } as const;
 
@@ -179,7 +178,7 @@ async function runTxn(
 function parseEventOutputs(
   config: Config['extra'],
   txnEvents: EncodedTxnEvents[],
-  suppressEventWarnings: Config['suppressEventWarnings']
+  logEventErrors: Config['logEventErrors']
 ): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
@@ -188,7 +187,8 @@ function parseEventOutputs(
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
         const events = _.entries(txnEvents[n][extra.event]);
-        // Check for events defined under factory or extra
+
+        // Check for an event defined in the cannonfile
         if (
           Object.prototype.hasOwnProperty.call(config, name) &&
           Object.prototype.hasOwnProperty.call(config[name], 'event')
@@ -196,25 +196,10 @@ function parseEventOutputs(
           expectedEvent = config[`${name}`].event;
         }
 
-        // Check for suppress warnings flag
-        if (!suppressEventWarnings) {
-          const txnEventsEmpty = txnEvents.length === 0 || Object.keys(txnEvents[0]).length === 0;
-
-          // print warning or error based on whether contract has no events or whether the cannonfile has no defined expected events.
-          if (!txnEventsEmpty && !expectedEvent) {
-            const eventNames: string[] = txnEvents.flatMap((obj) => Object.keys(obj));
-            const eventsString: string = eventNames.join('\n--> ');
-
-            console.warn(
-              yellow(
-                `warning: The following events were emitted in the previous invoked contract function:\n\n--> ${eventsString}\n\n` +
-                  'but no event is defined in the cannonfile. ' +
-                  'If you want cannon to parse event data make sure to specify an event in the invoke step of your cannonfile'
-              )
-            );
-          } else if (txnEventsEmpty || events.length === 0) {
+        if (!logEventErrors) {
+          if (events.length === 0) {
             throw new Error(
-              `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoes not match any event emitted by the invoked function of the contract.`
+              `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoesn't exist or match an event emitted by the invoked function of the contract.`
             );
           }
         }
@@ -381,7 +366,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
     if (config.factory) {
       for (const [k, contractAddress] of _.entries(
-        parseEventOutputs(config.factory, _.map(txns, 'events'), config.suppressEventWarnings)
+        parseEventOutputs(config.factory, _.map(txns, 'events'), config.logEventErrors)
       )) {
         const topLabel = k.split('_')[0];
         const factoryInfo = config.factory[topLabel];
@@ -422,11 +407,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(
-      config.extra,
-      _.map(txns, 'events'),
-      config.suppressEventWarnings
-    );
+    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'), config.logEventErrors);
 
     return {
       contracts,
