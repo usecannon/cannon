@@ -139,4 +139,29 @@ describe('alter', () => {
       metaUrl
     );
   });
+
+  // TODO
+  // it('should perform alteration for mark-complete', async () => {});
+
+  it('should perform alteration for mark-incomplete', async () => {
+    // Set up test data and variables
+    const command = 'mark-incomplete';
+    const targets = ['provision.dummyStep'];
+
+    // Call the 'alter' function with the necessary arguments
+    await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
+
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
+
+    // TODO: I am not sure the package status must be changed to another value
+    // expect(testPkgData.status).toEqual('incomplete');
+    expect(testPkgData.state['provision.dummyStep'].hash).toEqual('INCOMPLETE');
+    expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
+      [packageName],
+      `${chainId}-${preset}`,
+      newUrl,
+      metaUrl
+    );
+  });
 });
