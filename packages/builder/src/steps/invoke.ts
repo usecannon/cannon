@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 import { JTDDataType } from 'ajv/dist/core';
+import { yellow } from 'chalk';
 
 import {
   ChainBuilderContext,
@@ -14,8 +15,6 @@ import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromCon
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';
-
-import { yellow } from 'chalk';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -188,6 +187,9 @@ function parseEventOutputs(
   if (config) {
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
+
+        const events = _.entries(txnEvents[n][extra.event]);
+        
         // Check for events defined under factory or extra
         if (
           Object.prototype.hasOwnProperty.call(config, name) &&
@@ -208,29 +210,15 @@ function parseEventOutputs(
             console.warn(
               yellow(
                 `warning: The following events were emitted in the previous invoked contract function:\n\n--> ${eventsString}\n\n` +
-                  'but no event is expected in the cannonfile. ' +
-                  'If you want cannon to parse event data make sure to specify an event in the previous invoke step of your cannonfile'
+                  'but no event is defined in the cannonfile. ' +
+                  'If you want cannon to parse event data make sure to specify an event in the invoke step of your cannonfile'
               )
             );
-          } else if (expectedEvent && txnEventsEmpty) {
-            console.warn(
-              yellow(
-                `No events found in the contract. Expected ${yellow(
-                  expectedEvent
-                )} to be an event emitted by the invoked function in the contract.`
-              )
+          } else if (txnEventsEmpty || events.length === 0) {
+            throw new Error(
+              `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoes not match any event emitted by the invoked function of the contract.`
             );
           }
-        }
-
-        const events = _.entries(txnEvents[n][extra.event]);
-
-        // Checks if there are no matches, if no event is expected then no error is thrown.
-        // events array will be empty if no events match between the contract and cannonfile
-        if (events.length === 0 && expectedEvent) {
-          throw new Error(
-            `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoes not match any event in the invoked function of the contract.`
-          );
         }
 
         for (const [i, e] of events) {
