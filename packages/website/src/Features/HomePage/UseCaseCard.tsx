@@ -1,14 +1,23 @@
-import { FC, ReactNode } from "react";
-import { Box, Heading, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { FC, ReactNode } from 'react';
+import { Box, Heading, Link, Text } from '@chakra-ui/react';
+import NextImage from 'next/image';
 
 interface IUseCaseCardProps {
   image: string;
   title: string;
   desc: ReactNode;
+  link?: {
+    label: string;
+    href: string;
+  };
 }
 
-export const UseCaseCard: FC<IUseCaseCardProps> = ({ image, title, desc }) => {
+export const UseCaseCard: FC<IUseCaseCardProps> = ({
+  image,
+  title,
+  desc,
+  link,
+}) => {
   return (
     <Box textAlign="center">
       <Box position="relative" bottom={1} boxSize="80px" mx="auto" mb={4}>
@@ -17,7 +26,17 @@ export const UseCaseCard: FC<IUseCaseCardProps> = ({ image, title, desc }) => {
       <Heading as="h3" fontSize="md" mb={2}>
         {title}
       </Heading>
-      <Text fontSize="sm">{desc}</Text>
+      <Text fontSize="sm">
+        {desc}
+        {link && (
+          <>
+            &nbsp;
+            <Link href="" textDecoration="underline">
+              Synpress
+            </Link>
+          </>
+        )}
+      </Text>
     </Box>
   );
 };
