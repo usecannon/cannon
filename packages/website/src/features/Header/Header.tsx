@@ -115,6 +115,9 @@ export const Header = () => {
               boxShadow="0px 10px 25px rgba(0, 0, 0, 0.6)"
             >
               <PopoverBody p="0" background="blue.975">
+                <SubnavLink href="https://www.npmjs.com/package/@usecannon/cli">
+                  Cannon CLI
+                </SubnavLink>
                 <SubnavLink href="https://deploy.usecannon.com">
                   Cannon Deployer
                 </SubnavLink>
