@@ -1,0 +1,15 @@
+.wrapper {
+	position: relative;
+	&::before{
+		content: '';
+		background: radial-gradient(circle at 0,rgba(26,214,255,.1) 0,rgba(26,214,255,0) 50%);
+		bottom: 0;
+		display: block;
+		height: 50vw;
+		left: 0;
+		position: absolute;
+		transform: translateY(-25%);
+		width: 50vw;
+		z-index: 0;
+	}
+}
