@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   Button,
   Heading,
@@ -7,10 +7,49 @@ import {
   Image,
   Spacer,
   Container,
+  Text,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  PopoverBody,
+  Link as ChakraLink,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
+import { TriangleDownIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
+
+interface SubnavLinkProps {
+  href: string;
+  children: ReactNode;
+  isLast?: boolean;
+}
+
+const SubnavLink: React.FC<SubnavLinkProps> = ({
+  href,
+  children,
+  isLast = false,
+}) => {
+  return (
+    <ChakraLink
+      fontSize="sm"
+      _hover={{
+        textDecoration: 'none',
+        background: 'whiteAlpha.50',
+      }}
+      px={3}
+      fontWeight={600}
+      isExternal
+      py={2}
+      display="block"
+      href={href}
+      borderBottom={isLast ? '' : '1px solid'}
+      borderColor={isLast ? '' : 'blackAlpha.600'}
+    >
+      {children}
+    </ChakraLink>
+  );
+};
 
 export const Header = () => {
   return (
@@ -52,6 +91,39 @@ export const Header = () => {
           >
             Explore
           </Link>
+          <Popover trigger="hover">
+            <PopoverTrigger>
+              <Text
+                color="white"
+                textTransform="uppercase"
+                fontFamily="var(--font-miriam)"
+                cursor="default"
+              >
+                Tools{' '}
+                <TriangleDownIcon
+                  boxSize={2}
+                  transform="translateY(-1px)"
+                  opacity={0.8}
+                  ml={0.5}
+                />
+              </Text>
+            </PopoverTrigger>
+            <PopoverContent
+              width="150px"
+              overflow="hidden"
+              borderColor="blackAlpha.800"
+              boxShadow="0px 10px 25px rgba(0, 0, 0, 0.6)"
+            >
+              <PopoverBody p="0" background="blue.975">
+                <SubnavLink href="https://deploy.usecannon.com">
+                  Cannon Deployer
+                </SubnavLink>
+                <SubnavLink href="https://ipfs.usecannon.com" isLast>
+                  IPFS Manager
+                </SubnavLink>
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
           <Link
             href={links.DOC}
             color="white"

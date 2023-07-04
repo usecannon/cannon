@@ -14,7 +14,7 @@ const miriam = Miriam_Libre({
 });
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['400', '600', '700'],
   display: 'swap',
 });
 const mono = Roboto_Mono({
