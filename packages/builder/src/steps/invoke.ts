@@ -192,7 +192,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
           Object.prototype.hasOwnProperty.call(config, name) &&
           Object.prototype.hasOwnProperty.call(config[name], 'event')
         ) {
-          expectedEvent = config[`${name}`].event;
+          expectedEvent = config[name].event;
         }
 
         if (!config[name].allowEmptyEvents) {
