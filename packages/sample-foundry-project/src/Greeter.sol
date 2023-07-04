@@ -33,7 +33,7 @@ contract Greeter {
 
   function changeCloneGreeting(address a, string memory _greeting) public {
     emit OldGreetingRemoved(ClonedGreeter(a).greeting());
-    
+
     ClonedGreeter(a).changeGreeting(_greeting);
 
     emit NewGreetingAdded(_greeting);
