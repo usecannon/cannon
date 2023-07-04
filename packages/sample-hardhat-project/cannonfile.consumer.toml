@@ -34,6 +34,54 @@ factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
 factory.cloned.artifact = "Greeter"
 
+# test for multiple event emmission and extras functionality
+
+# Change clone greeting lets use change greetings for greeter clones 
+# At specified addresses
+[invoke.change_clone_greeting]
+target = ["greeters.Greeter"]
+func = "changeCloneGreeting"
+depends = ["invoke.clone"]
+args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greeting!') %>"]
+
+extra.NewCloneGreeting.event = "NewGreetingAdded"
+extra.NewCloneGreeting.arg = 0
+extra.NewCloneGreeting.artifact = "Greeter"
+
+extra.OldCloneGreeting.event = "OldGreetingRemoved"
+extra.OldCloneGreeting.arg = 0
+extra.OldCloneGreeting.artifact = "Greeter"
+
+# test to parse through previous emitted event values
+[invoke.set_new_greeting_for_next_clones]
+target = ["greeters.Greeter"]
+func = "setGreeting"
+depends = ["invoke.change_clone_greeting"]
+args = ["<%= extras.NewCloneGreeting %>"]
+
+# Clone 2 greeters iteratively 
+# used to test multiple emissions of the same event and 
+# reference them from the extras object
+[invoke.clone_iterative]
+target = ["greeters.Greeter"]
+func = "doCloningIteratively"
+depends = ["import.greeters"]
+args = ["2"]
+
+factory.cloned.event = "NewClonedGreeter"
+factory.cloned.arg = 0
+factory.cloned.artifact = "Greeter"
+
+extra.NewClonedGreeterEvent.event = "NewClonedGreeter"
+extra.NewClonedGreeterEvent.arg = 0
+extra.NewClonedGreeterEvent.artifact = "Greeter"
+
+[invoke.change_last_clone_greeting]
+target = ["greeters.Greeter"]
+func = "changeCloneGreeting"
+depends = ["invoke.clone_iterative"]
+args = ["<%= extras.NewClonedGreeterEvent_2 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
+
 #[run.empty]
 #exec = "scripts/deploy.js"
 #func = "empty"
