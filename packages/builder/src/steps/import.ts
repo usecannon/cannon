@@ -76,7 +76,7 @@ export default {
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${packageRef}. please make sure it exists for the cannon network and main preset.`
+        `deployment not found: ${packageRef}. please make sure it exists for the cannon network and ${preset} preset.`
       );
     }
 
