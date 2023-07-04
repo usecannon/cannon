@@ -1,6 +1,6 @@
-import { Box, Text, useClipboard } from "@chakra-ui/react";
-import { FC } from "react";
-import { Copy } from "react-feather";
+import { Box, Text, useClipboard } from '@chakra-ui/react';
+import { FC } from 'react';
+import { Copy } from 'react-feather';
 
 interface ICommandPreviewProps {
   command: string;
@@ -12,7 +12,7 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
   className,
 }) => {
   const { hasCopied, onCopy } = useClipboard(command);
-  const index = command.indexOf(" ");
+  const index = command.indexOf(' ');
   const firstPart = command.substring(0, index);
   const secondPart = command.substring(index, command.length);
   return (

@@ -1,5 +1,5 @@
-"use client";
-import React from "react";
+'use client';
+import React from 'react';
 import {
   Button,
   Heading,
@@ -7,9 +7,9 @@ import {
   Image,
   Spacer,
   Container,
-} from "@chakra-ui/react";
-import { Link } from "@chakra-ui/next-js";
-import NextLink from "next/link";
+} from '@chakra-ui/react';
+import { Link } from '@chakra-ui/next-js';
+import NextLink from 'next/link';
 
 export const Header = () => {
   return (
@@ -25,7 +25,7 @@ export const Header = () => {
           href="/"
           color="white"
           as={NextLink}
-          _hover={{ textDecoration: "none" }}
+          _hover={{ textDecoration: 'none' }}
         >
           <Flex gap={1} alignItems="center">
             <Image
@@ -45,7 +45,7 @@ export const Header = () => {
             href="/docs"
             color="white"
             as={NextLink}
-            _hover={{ textDecoration: "none" }}
+            _hover={{ textDecoration: 'none' }}
             textTransform="uppercase"
             fontFamily="var(--font-miriam)"
           >
@@ -55,7 +55,7 @@ export const Header = () => {
             href="/docs"
             color="white"
             as={NextLink}
-            _hover={{ textDecoration: "none" }}
+            _hover={{ textDecoration: 'none' }}
             textTransform="uppercase"
             fontFamily="var(--font-miriam)"
           >

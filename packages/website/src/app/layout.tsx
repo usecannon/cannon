@@ -1,20 +1,17 @@
-"use client";
+'use client';
 
-import { Providers } from "./providers";
-import { Miriam_Libre, Inter, Roboto_Mono } from "next/font/google";
-import { Box } from "@chakra-ui/react";
-import { Header } from "@/Features/Header/Header";
-import { GithubFooter } from "@/Features/Footer/GithubFooter";
+import { Providers } from './providers';
+import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
+import { Box } from '@chakra-ui/react';
+import { Header } from '@/Features/Header/Header';
+import { GithubFooter } from '@/Features/Footer/GithubFooter';
+import { ReactNode } from 'react';
 
-const miriam = Miriam_Libre({ subsets: ["latin"], weight: ["400", "700"] });
-const inter = Inter({ subsets: ["latin"], weight: ["400", "700"] });
-const mono = Roboto_Mono({ subsets: ["latin"], weight: ["400"] });
+const miriam = Miriam_Libre({ subsets: ['latin'], weight: ['400', '700'] });
+const inter = Inter({ subsets: ['latin'], weight: ['400', '700'] });
+const mono = Roboto_Mono({ subsets: ['latin'], weight: ['400'] });
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <style jsx global>

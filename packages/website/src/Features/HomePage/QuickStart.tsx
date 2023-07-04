@@ -1,7 +1,7 @@
-import { CommandPreview } from "@/components/CommandPreview";
-import { Box, Heading, Text } from "@chakra-ui/react";
-import { Link } from "@chakra-ui/next-js";
-import NextLink from "next/link";
+import { CommandPreview } from '@/components/CommandPreview';
+import { Box, Heading, Text } from '@chakra-ui/react';
+import { Link } from '@chakra-ui/next-js';
+import NextLink from 'next/link';
 
 export const QuickStart = () => {
   return (

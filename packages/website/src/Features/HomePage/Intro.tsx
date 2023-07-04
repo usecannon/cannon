@@ -1,13 +1,5 @@
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Link,
-  Wrap,
-} from "@chakra-ui/react";
-import NextLink from "next/link";
+import { Button, Container, Flex, Heading, Link } from '@chakra-ui/react';
+import NextLink from 'next/link';
 
 export const Intro = () => {
   return (
