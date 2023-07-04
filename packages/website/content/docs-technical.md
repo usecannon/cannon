@@ -209,6 +209,7 @@ The `invoke` action calls a specified function on your node.
 - `fromCall.func` - The name of a view function to call on this contract. The result will be used as the `from` input.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
+- `allowEmptyFactory` - Bypass error messages on event output parsing
 
 **Outputs**
 This action only updates the return object by adding an entry to the `txns` key.
@@ -233,6 +234,8 @@ factory.MyPoolDeployment.arg = 0
 Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` action could set `target = ["MyPoolDeployment"]`.
 
 If the invoke action emits multiple events, you can specify them by index. For example `"MyPoolDeployment.PoolFactory.NewDeployment.4"` would reference the fifth time the specified event is emitted.
+
+If an event is specified in the cannonfile but the `invoke` action does not emit any events or emits an event that doesnt match the one specified in the cannonfile, the `invoke` call will fail with an error, you can bypass the event error logging by using the `allowEmptyFactory` option.
 
 These contracts are added to the return object as they would be if deployed by a `contract` action.
 
