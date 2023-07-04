@@ -80,7 +80,7 @@ extra.NewClonedGreeterEvent.artifact = "Greeter"
 target = ["greeters.Greeter"]
 func = "changeCloneGreeting"
 depends = ["invoke.clone_iterative"]
-args = ["<%= extras.NewClonedGreeterEvent_2 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
+args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
 
 #[run.empty]
 #exec = "scripts/deploy.js"
