@@ -3,6 +3,7 @@ import { Container, Heading } from '@chakra-ui/react';
 import React from 'react';
 import { RunPackage } from './RunPackage';
 import { BuildWithCannon } from './BuildWithCannon';
+import { SetupPanel } from './SetupSection/SetupPanel';
 
 export const GetStartedPage = () => {
   return (
@@ -12,6 +13,7 @@ export const GetStartedPage = () => {
       </Heading>
       <RunPackage />
       <BuildWithCannon />
+      <SetupPanel />
     </Container>
   );
 };
