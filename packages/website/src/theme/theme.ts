@@ -7,6 +7,7 @@ export const theme = extendTheme({
   },
   colors: {
     blue: {
+      900: '#000a21',
       950: '#00050f',
       975: '#000714',
     },
