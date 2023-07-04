@@ -23,7 +23,7 @@ export const HowItWorks = () => {
         &nbsp;for&nbsp;
         <Link href={externalLinks.GITHUB_FOUNDRY}>Foundry</Link>
         &nbsp;and&nbsp;
-        <Link href={externalLinks.HARD_HAT}>Hardhat</Link>.
+        <Link href={externalLinks.HARDHAT}>Hardhat</Link>.
       </Text>
       <Text mb={4}>
         use&nbsp;
