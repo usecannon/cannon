@@ -8,4 +8,5 @@ export const externalLinks = {
   HARD_HAT: 'https://hardhat.org/',
   IPFS_INSTALL: 'https://docs.ipfs.tech/install/ipfs-desktop/',
   INFURA_IPFS: 'https://www.infura.io/product/ipfs',
+  FOUNDRY_EXAMPLE: github + 'usecannon/cannon/tree/main/packages/sample-foundry-project',
 };
