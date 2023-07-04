@@ -1,0 +1,16 @@
+.wrapper {
+	position: relative;
+	&::before {
+		content: '';
+		background: radial-gradient(ellipse at center,rgba(65,200,65,.12) 0,rgba(65,200,65,0) 66%);
+		bottom: 0;
+		display: block;
+		height: 200%;
+		left: 0;
+		max-width: 100vw;
+		position: absolute;
+		transform: translate(-16%,25%);
+		width: 150%;
+		z-index: 0;
+	}
+}
