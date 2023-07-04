@@ -30,7 +30,8 @@ factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
 factory.cloned.artifact = "Greeter"
 
-# test for multiple event emmission
+# test for multiple event emmission and extras functionality
+
 # Change clone greeting lets use change greetings for greeter clones 
 # At specified addresses
 [invoke.change_clone_greeting]
@@ -47,7 +48,7 @@ extra.OldCloneGreeting.event = "OldGreetingRemoved"
 extra.OldCloneGreeting.arg = 0
 extra.OldCloneGreeting.artifact = "Greeter"
 
-# test to parse through multiple emitted events
+# test to parse through previous emitted event values
 [invoke.set_new_greeting_for_next_clones]
 target = ["greeters.greeter"]
 func = "setGreeting"
