@@ -1,3 +1,4 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { Text, Heading, Link } from '@chakra-ui/react';
 
 export const HowItWorks = () => {
@@ -18,18 +19,15 @@ export const HowItWorks = () => {
           Cannon
         </Text>
         &nbsp;is like&nbsp;
-        <Link href="https://www.terraform.io/" textDecoration="underline">
+        <Link href={externalLinks.TERRAFORM} textDecoration="underline">
           Terraform
         </Link>
         &nbsp;for&nbsp;
-        <Link
-          href="https://github.com/foundry-rs/foundry"
-          textDecoration="underline"
-        >
+        <Link href={externalLinks.GITHUB_FOUNDRY} textDecoration="underline">
           Foundry
         </Link>
         &nbsp;and&nbsp;
-        <Link href="https://hardhat.org/" textDecoration="underline">
+        <Link href={externalLinks.HARD_HAT} textDecoration="underline">
           Hardhat
         </Link>
         .

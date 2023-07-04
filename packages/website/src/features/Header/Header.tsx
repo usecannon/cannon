@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
+import { links } from '@/constants/links';
 
 export const Header = () => {
   return (
@@ -22,7 +23,7 @@ export const Header = () => {
         flexWrap="wrap"
       >
         <Link
-          href="/"
+          href={links.HomePage}
           color="white"
           as={NextLink}
           _hover={{ textDecoration: 'none' }}
@@ -42,7 +43,7 @@ export const Header = () => {
         <Spacer />
         <Flex gap={8} alignItems="center" flexWrap="wrap">
           <Link
-            href="/docs"
+            href={links.EXPLORE}
             color="white"
             as={NextLink}
             _hover={{ textDecoration: 'none' }}
@@ -52,7 +53,7 @@ export const Header = () => {
             Explore
           </Link>
           <Link
-            href="/docs"
+            href={links.DOC}
             color="white"
             as={NextLink}
             _hover={{ textDecoration: 'none' }}
@@ -61,7 +62,7 @@ export const Header = () => {
           >
             Docs
           </Link>
-          <Link href="/get-started" color="white" as={NextLink}>
+          <Link href={links.GET_STARTED} color="white" as={NextLink}>
             <Button colorScheme="teal" size="sm">
               Get Started
             </Button>

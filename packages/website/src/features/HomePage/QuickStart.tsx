@@ -3,6 +3,7 @@ import { Box, Heading, Text } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import styles from './quickStart.module.scss';
+import { links } from '@/constants/links';
 
 export const QuickStart = () => {
   return (
@@ -18,7 +19,7 @@ export const QuickStart = () => {
       </Box>
       <Text fontSize="xs">
         <Link
-          href="/docs"
+          href={links.EXPLORE}
           color="white"
           as={NextLink}
           textDecoration="underline"

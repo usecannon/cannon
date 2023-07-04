@@ -1,3 +1,4 @@
+import { externalLinks } from '@/constants/externalLinks';
 import { Flex, Link } from '@chakra-ui/react';
 import { GitHub } from 'react-feather';
 
@@ -14,7 +15,7 @@ export const GithubFooter = () => {
     >
       <GitHub size={16} />
       <Link
-        href="https://github.com/usecannon/cannon"
+        href={externalLinks.GITHUB_CANNON}
         textDecoration="underline"
         fontSize="sm"
       >
