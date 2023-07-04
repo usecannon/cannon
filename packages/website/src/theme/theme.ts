@@ -32,6 +32,11 @@ export const theme = extendTheme({
         textTransform: 'uppercase',
       },
     },
+    Link: {
+      baseStyle: {
+        textDecoration: 'underline',
+      },
+    },
   },
   styles: {
     global: {

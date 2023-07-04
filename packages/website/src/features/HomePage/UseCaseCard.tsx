@@ -31,9 +31,7 @@ export const UseCaseCard: FC<IUseCaseCardProps> = ({
         {link && (
           <>
             &nbsp;
-            <Link href={link.href} textDecoration="underline">
-              {link.label}
-            </Link>
+            <Link href={link.href}>{link.label}</Link>
           </>
         )}
       </Text>

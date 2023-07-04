@@ -16,7 +16,7 @@ export const RunPackage = () => {
       </Box>
       <Text mb={4}>
         Now you can run any package available on&nbsp;
-        <Link href={links.EXPLORE} as={NextLink} textDecoration="underline">
+        <Link href={links.EXPLORE} as={NextLink}>
           the registry
         </Link>
         , like so:
@@ -26,11 +26,7 @@ export const RunPackage = () => {
       </Box>
       <Text mb={4}>
         This will start an&nbsp;
-        <Link
-          href={externalLinks.GITHUB_ANVIL}
-          as={NextLink}
-          textDecoration="underline"
-        >
+        <Link href={externalLinks.GITHUB_ANVIL} as={NextLink}>
           Anvil node
         </Link>
         &nbsp; on port 8545 with a deployment of Synthetix V3 for local testing
@@ -48,11 +44,7 @@ export const RunPackage = () => {
         The command-line tool has a lot of additional functionality, including
         the ability to run packages on local forks and interact with deployments
         on remote networks. See the&nbsp;
-        <Link
-          href={links.TECHNICAL_REF}
-          as={NextLink}
-          textDecoration="underline"
-        >
+        <Link href={links.TECHNICAL_REF} as={NextLink}>
           Technical Reference
         </Link>
         &nbsp;for more information.

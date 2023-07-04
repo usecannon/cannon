@@ -18,12 +18,7 @@ export const QuickStart = () => {
         <CommandPreview command="npx @usecannon/cli synthetix-sandbox" />
       </Box>
       <Text fontSize="xs">
-        <Link
-          href={links.EXPLORE}
-          color="white"
-          as={NextLink}
-          textDecoration="underline"
-        >
+        <Link href={links.EXPLORE} color="white" as={NextLink}>
           Browse packages
         </Link>
         &nbsp;for other protocols you can use with Cannon.

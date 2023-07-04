@@ -19,18 +19,11 @@ export const HowItWorks = () => {
           Cannon
         </Text>
         &nbsp;is like&nbsp;
-        <Link href={externalLinks.TERRAFORM} textDecoration="underline">
-          Terraform
-        </Link>
+        <Link href={externalLinks.TERRAFORM}>Terraform</Link>
         &nbsp;for&nbsp;
-        <Link href={externalLinks.GITHUB_FOUNDRY} textDecoration="underline">
-          Foundry
-        </Link>
+        <Link href={externalLinks.GITHUB_FOUNDRY}>Foundry</Link>
         &nbsp;and&nbsp;
-        <Link href={externalLinks.HARD_HAT} textDecoration="underline">
-          Hardhat
-        </Link>
-        .
+        <Link href={externalLinks.HARD_HAT}>Hardhat</Link>.
       </Text>
       <Text mb={4}>
         use&nbsp;

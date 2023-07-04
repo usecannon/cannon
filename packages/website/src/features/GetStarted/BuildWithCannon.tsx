@@ -16,13 +16,9 @@ export const BuildWithCannon = () => {
       </Box>
       <Text mb={4}>
         Cannon relies on IPFS for file storage. You can{' '}
-        <Link href={externalLinks.IPFS_INSTALL} textDecoration="underline">
-          run an IPFS node
-        </Link>
+        <Link href={externalLinks.IPFS_INSTALL}>run an IPFS node</Link>
         locally or rely on a remote pinning service (such as{' '}
-        <Link href={externalLinks.INFURA_IPFS} textDecoration="underline">
-          Infura
-        </Link>
+        <Link href={externalLinks.INFURA_IPFS}>Infura</Link>
         ). We recommend the former for local development and the latter when
         publishing packages. The setup command will walk you through this
         step-by-step.

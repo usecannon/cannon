@@ -33,6 +33,7 @@ const SubnavLink: React.FC<SubnavLinkProps> = ({
   return (
     <ChakraLink
       fontSize="sm"
+      textDecoration="none"
       _hover={{
         textDecoration: 'none',
         background: 'whiteAlpha.50',
@@ -65,6 +66,7 @@ export const Header = () => {
           href={links.HomePage}
           color="white"
           as={NextLink}
+          textDecoration="none"
           _hover={{ textDecoration: 'none' }}
         >
           <Flex gap={1} alignItems="center">
@@ -85,6 +87,7 @@ export const Header = () => {
             href={links.EXPLORE}
             color="white"
             as={NextLink}
+            textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             textTransform="uppercase"
             fontFamily="var(--font-miriam)"
@@ -131,6 +134,7 @@ export const Header = () => {
             href={links.DOCS}
             color="white"
             as={NextLink}
+            textDecoration="none"
             _hover={{ textDecoration: 'none' }}
             textTransform="uppercase"
             fontFamily="var(--font-miriam)"
