@@ -14,7 +14,7 @@ contract ClonedGreeter {
   function greet() public view returns (string memory) {
     return greeting;
   }
-  
+
   function changeGreeting(string memory _greeting) public {
     greeting = _greeting;
   }

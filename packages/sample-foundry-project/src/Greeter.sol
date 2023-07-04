@@ -32,7 +32,7 @@ contract Greeter {
   }
 
   function doCloningIteratively(uint256 clones) public {
-    for(uint256 i=0; i < clones; i++) {
+    for (uint256 i = 0; i < clones; i++) {
       ClonedGreeter g = new ClonedGreeter(greeting);
       emit NewClonedGreeter(address(g));
     }
