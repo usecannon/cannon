@@ -210,7 +210,7 @@ The `invoke` action calls a specified function on your node.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 - `extra` - See _Referencing Extra Event Data_ below.
-- `allowEmptyFactory` - Bypass error messages on event output parsing
+- `allowEmptyEvents` - Bypass error messages if an event is expected in your `invoke` action but none are emitted in the transaction
 
 **Outputs**
 This action only updates the return object by adding an entry to the `txns` key.
@@ -245,10 +245,10 @@ These contracts are added to the return object as they would be if deployed by a
 
 #### Referencing Extra Event Data
 
-If an invoked function emits an event, cannon can parse the event data in your cannonfile by using `extras` option,
+If an invoked function emits an event, cannon can parse the event data in your cannonfile by using the `extras` property,
 This lets you reference previously emitted event's data in subsequent `invoke` actions.
 
-For example, to track the _NewDeployment_ event data from the `PoolFactory` deployment from the example above, add the `extra` option and set an attribute
+For example, to track the _NewDeployment_ event data from the `PoolFactory` deployment from the example above, add the `extra` property and set an attribute
 for the event like so:
 
 ```toml
@@ -271,11 +271,15 @@ For example if the `PoolFactory` emitted multiple _NewDeployment_ events:
 
 _NewDeployment_ event is emitted and returns the value of that specific event.
 
-#### Event Logging Errors
+#### Event Error Logging
 
-If an event is specified in the cannonfile but the `invoke` action does not emit any events or emits an event that doesnt match the one specified in the cannonfile, the `invoke` call will fail with an error. 
+If an event is specified in the cannonfile but the `invoke` action does not emit any events or emits an event that doesn't match the one specified in the cannonfile, the `invoke` call will fail with an error. 
 
-You can bypass the event error logging by setting `allowEmptyFactory = true` under the invoke step that throws an error.
+You can bypass the event error logging by setting `allowEmptyEvents = true` under the invoke step that throws an error.
+
+**Keep in mind you wont be able to reference event or contract data through the `contracts` or `extras` properties if a matching event wasnt emitted by the contract**
+
+An useful example would for this would be when an event is only emitted under certain conditions but you still need to reference it when it is emitted or don't want to halt execution when it's not emitted.
 
 ### setting
 
