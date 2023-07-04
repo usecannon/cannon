@@ -11,5 +11,6 @@
 		transform: translateY(-25%);
 		width: 50vw;
 		z-index: 0;
+		pointer-events: none !important;
 	}
 }
