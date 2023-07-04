@@ -1153,7 +1153,7 @@ CHAIN_DATA = merge(CHAIN_DATA, {
     color: 'yellow',
   },
   10: {
-    name: 'optimism',
+    name: 'op mainnet',
     color: 'red',
   },
   420: {
