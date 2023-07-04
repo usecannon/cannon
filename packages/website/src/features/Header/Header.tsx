@@ -53,7 +53,7 @@ export const Header = () => {
             Explore
           </Link>
           <Link
-            href={links.DOC}
+            href={links.DOCS}
             color="white"
             as={NextLink}
             _hover={{ textDecoration: 'none' }}
