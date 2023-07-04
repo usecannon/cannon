@@ -1,4 +1,4 @@
-import { Container, Heading, Text, Link, SimpleGrid } from '@chakra-ui/react';
+import { Container, Heading, SimpleGrid } from '@chakra-ui/react';
 import { UseCaseCard } from './UseCaseCard';
 
 export const UseCases = () => {
@@ -13,23 +13,15 @@ export const UseCases = () => {
       title: 'Front-end Development',
       desc: 'Build interfaces that interact with protocols. Addresses and ABIs are automatically exported.',
     },
-    // {
-    //   image: "/images/spring.png",
-    //   title: "Testing",
-    //   desc: (
-    //     <Text>
-    //       Instantly spin up nodes for integration/e2e tests. Cannon pairs well
-    //       with&nbsp;
-    //       <Link
-    //         href="https://github.com/Synthetixio/synpress"
-    //         textDecoration="underline"
-    //       >
-    //         Synpress
-    //       </Link>
-    //       .
-    //     </Text>
-    //   ),
-    // },
+    {
+      image: '/images/spring.png',
+      title: 'Testing',
+      desc: 'Instantly spin up nodes for integration/e2e tests. Cannon pairs well with',
+      link: {
+        label: 'Synpress',
+        href: 'https://github.com/Synthetixio/synpress',
+      },
+    },
     {
       image: '/images/rocket.png',
       title: 'Deployment',
