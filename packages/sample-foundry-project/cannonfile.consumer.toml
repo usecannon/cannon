@@ -32,6 +32,7 @@ factory.cloned.artifact = "Greeter"
 
 # test for multiple event emmission and extras functionality
 
+
 # Change clone greeting lets use change greetings for greeter clones 
 # At specified addresses
 [invoke.change_clone_greeting]
@@ -54,6 +55,29 @@ target = ["greeters.greeter"]
 func = "setGreeting"
 depends = ["invoke.change_clone_greeting"]
 args = ["<%= extras.NewCloneGreeting %>"]
+
+# Clone 2 greeters iteratively (used to test multiple emissions of the same event)
+# Testing this using extras object instead of factory 
+[invoke.clone_iterative]
+target = ["greeters.greeter"]
+func = "doCloningIteratively"
+depends = ["import.greeters"]
+args = ["2"]
+
+factory.cloned.event = "NewClonedGreeter"
+factory.cloned.arg = 0
+factory.cloned.artifact = "Greeter"
+
+extra.NewClonedGreeterEvent.event = "NewClonedGreeter"
+extra.NewClonedGreeterEvent.arg = 0
+extra.NewClonedGreeterEvent.artifact = "Greeter"
+
+# Change clone greeting enables changing greetings for greeter clones at specified addresses
+[invoke.change_last_clone_greeting]
+target = ["greeters.greeter"]
+func = "changeCloneGreeting"
+depends = ["invoke.clone_iterative"]
+args = ["<%= extras.NewClonedGreeterEvent_2 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
 
 
 
