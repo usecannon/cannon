@@ -7,9 +7,21 @@ import { Header } from '@/Features/Header/Header';
 import { GithubFooter } from '@/Features/Footer/GithubFooter';
 import { ReactNode } from 'react';
 
-const miriam = Miriam_Libre({ subsets: ['latin'], weight: ['400', '700'] });
-const inter = Inter({ subsets: ['latin'], weight: ['400', '700'] });
-const mono = Roboto_Mono({ subsets: ['latin'], weight: ['400'] });
+const miriam = Miriam_Libre({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+});
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+});
+const mono = Roboto_Mono({
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+});
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
