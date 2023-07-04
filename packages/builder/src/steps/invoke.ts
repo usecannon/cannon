@@ -49,7 +49,7 @@ const config = {
         },
         optionalProperties: {
           allowEmptyEvents: { type: 'boolean' },
-        }
+        },
       },
     },
     factory: {
@@ -178,10 +178,7 @@ async function runTxn(
   return [receipt, txnEvents as EncodedTxnEvents];
 }
 
-function parseEventOutputs(
-  config: Config['extra'],
-  txnEvents: EncodedTxnEvents[],
-): { [label: string]: string } {
+function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
 
@@ -367,9 +364,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
     const contracts: ChainArtifacts['contracts'] = {};
 
     if (config.factory) {
-      for (const [k, contractAddress] of _.entries(
-        parseEventOutputs(config.factory, _.map(txns, 'events'))
-      )) {
+      for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
         const topLabel = k.split('_')[0];
         const factoryInfo = config.factory[topLabel];
 
