@@ -63,7 +63,7 @@ const config = {
       },
     },
     depends: { elements: { type: 'string' } },
-    allowEmptyFactory: { type: 'boolean' }, 
+    allowEmptyFactory: { type: 'boolean' },
   },
 } as const;
 
@@ -407,8 +407,12 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'), config.allowEmptyFactory);
-    
+    const extras: ChainArtifacts['extras'] = parseEventOutputs(
+      config.extra,
+      _.map(txns, 'events'),
+      config.allowEmptyFactory
+    );
+
     return {
       contracts,
       txns,
