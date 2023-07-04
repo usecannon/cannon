@@ -3,8 +3,8 @@
 import { Providers } from './providers';
 import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
 import { Box } from '@chakra-ui/react';
-import { Header } from '@/Features/Header/Header';
-import { GithubFooter } from '@/Features/Footer/GithubFooter';
+import { Header } from '@/features/Header/Header';
+import { GithubFooter } from '@/features/Footer/GithubFooter';
 import { ReactNode } from 'react';
 
 const miriam = Miriam_Libre({

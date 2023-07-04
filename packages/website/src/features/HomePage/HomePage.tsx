@@ -1,8 +1,8 @@
 'use client';
-import { HowItWorks } from '@/Features/HomePage/HowItWorks';
-import { Intro } from '@/Features/HomePage/Intro';
-import { QuickStart } from '@/Features/HomePage/QuickStart';
-import { UseCases } from '@/Features/HomePage/UseCases';
+import { HowItWorks } from '@/features/HomePage/HowItWorks';
+import { Intro } from '@/features/HomePage/Intro';
+import { QuickStart } from '@/features/HomePage/QuickStart';
+import { UseCases } from '@/features/HomePage/UseCases';
 import { Container, SimpleGrid, Box } from '@chakra-ui/react';
 import styles from './homePage.module.scss';
 

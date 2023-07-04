@@ -61,7 +61,7 @@ export const Header = () => {
           >
             Docs
           </Link>
-          <Link href="/docs" color="white" as={NextLink}>
+          <Link href="/get-started" color="white" as={NextLink}>
             <Button colorScheme="teal" size="sm">
               Get Started
             </Button>
