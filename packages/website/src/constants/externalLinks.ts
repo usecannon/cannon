@@ -10,4 +10,5 @@ export const externalLinks = {
   INFURA_IPFS: 'https://www.infura.io/product/ipfs',
   FOUNDRY_EXAMPLE: github + 'usecannon/cannon/tree/main/packages/sample-foundry-project',
   HARDHAT_EXAMPLE: github + 'usecannon/cannon/tree/main/packages/sample-hardhat-project',
+  ETHERSCAN: 'https://www.etherscan.io/',
 };
