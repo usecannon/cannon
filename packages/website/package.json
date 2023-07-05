@@ -29,6 +29,7 @@
     "typescript": "5.1.3"
   },
   "devDependencies": {
-    "sass": "^1.63.6"
+    "sass": "^1.63.6",
+    "@types/react-syntax-highlighter": "^15.5.7"
   }
 }
