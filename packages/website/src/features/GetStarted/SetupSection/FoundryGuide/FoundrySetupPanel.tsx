@@ -1,6 +1,7 @@
 import { externalLinks } from '@/constants/externalLinks';
 import { SetupCustomAlert } from '../SetupCustomAlert';
 import { CreateCannonFile } from './CreateCannonFile';
+import { DeployYourProtocol } from './DeployYourProtocol';
 
 export const FoundrySetupPanel = () => {
   return (
@@ -10,6 +11,7 @@ export const FoundrySetupPanel = () => {
         href={externalLinks.FOUNDRY_EXAMPLE}
       />
       <CreateCannonFile />
+      <DeployYourProtocol />
     </>
   );
 };
