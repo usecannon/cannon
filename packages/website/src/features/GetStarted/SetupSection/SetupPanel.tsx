@@ -1,6 +1,6 @@
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@chakra-ui/react';
 import React from 'react';
-import { FoundrySetupPanel } from './FoundrySetupPanel';
+import { FoundrySetupPanel } from './FoundryGuide/FoundrySetupPanel';
 import { HardhatSetupPanel } from './HardhatSetupPanel';
 
 export const SetupPanel = () => {
