@@ -209,6 +209,8 @@ The `invoke` action calls a specified function on your node.
 - `fromCall.func` - The name of a view function to call on this contract. The result will be used as the `from` input.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
+- `extra` - See _Referencing Extra Event Data_ below.
+    - `allowEmptyEvents` - See _Event Error Logging_ below. Bypass error messages if an event is expected in your `invoke` action but none are emitted in the transaction. Can be set under the factory or extra properties.
 
 **Outputs**
 This action only updates the return object by adding an entry to the `txns` key.
@@ -232,9 +234,51 @@ factory.MyPoolDeployment.arg = 0
 
 Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` action could set `target = ["MyPoolDeployment"]`.
 
-If the invoke action emits multiple events, you can specify them by index. For example `"MyPoolDeployment.PoolFactory.NewDeployment.4"` would reference the fifth time the specified event is emitted.
+To reference contract information for a contract deployed on a previous invoke step such as the example shown above call the `contracts` object inside your cannonfile. 
+For example `<%= contracts.MyPoolDeployment.address %>` would return the address of the `Pool` contract deployed by the `PoolFactory` contract.
+
+If the invoked function deploys multiple contracts of the same name, you can specify them by index through the `contracts` object. 
+
+- `<%= contracts.MyPoolDeployment.address %>` would return the first deployed `Pool` contract address
+- `<%= contracts.MyPoolDeployment_0.address %>` would return the second deployed `Pool` contract address
 
 These contracts are added to the return object as they would be if deployed by a `contract` action.
+
+#### Referencing Extra Event Data
+
+If an invoked function emits an event, cannon can parse the event data in your cannonfile by using the `extras` property,
+This lets you reference previously emitted event's data in subsequent `invoke` actions.
+
+For example, to track the _NewDeployment_ event data from the `PoolFactory` deployment from the example above, add the `extra` property and set an attribute
+for the event like so:
+
+```toml
+[invoke.deployment]
+target = ["PoolFactory"]
+....
+
+extra.NewDeploymentEvent.event = "NewDeployment"
+extra.NewDeploymentEvent.arg = 0
+```
+
+Now, calling `"<% = extras.NewDeploymentEvent %>"` in a subsequent `invoke` action would return the first data argument for _NewDeployment_.
+
+If an invoked function emits multiple events you can specify them by index.
+
+For example if the `PoolFactory` emitted multiple _NewDeployment_ events: 
+
+- `<%= extras.NewDeploymentEvent_0 %>` would return the first emitted event of this kind 
+- `<% = extras.NewDeploymentEvent_4 %>` would reference the fifth emitted event of this kind 
+
+#### Event Error Logging
+
+If an event is specified in the cannonfile but the `invoke` function does not emit any events or emits an event that doesn't match the one specified in the cannonfile, the `invoke` action will fail with an error. 
+
+You can bypass the event error logging by setting it like `extras.NewDeploymentEvent.allowEmptyEvents = true` or `factory.MyPoolDeployment.allowEmptyEvents = true` under the factory or extra property that throws an error.
+
+An useful example would for this would be when an event is only emitted under certain conditions but you still need to reference it when it is emitted or don't want to halt execution when it's not emitted.
+
+**Keep in mind you wont be able to reference event or contract data through the `contracts` or `extras` properties if a matching event wasnt emitted**
 
 ### setting
 
