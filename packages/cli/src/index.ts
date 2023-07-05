@@ -137,7 +137,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.dirname(cannonfilePath);
+  const projectDirectory = path.resolve(process.cwd());
 
   const cliSettings = resolveCliSettings(opts);
 
@@ -202,6 +202,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   const { build } = await import('./commands/build');
   const { name, version } = await loadCannonfile(cannonfilePath);
+
+  console.log("PROJECT DIRECTORY ====>", projectDirectory)
 
   const { outputs } = await build({
     provider,
