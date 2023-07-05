@@ -1,5 +1,3 @@
-import { externalLinks } from '@/constants/externalLinks';
-import { SetupCustomAlert } from '../SetupCustomAlert';
 import { Heading, Text } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
@@ -39,10 +37,6 @@ depends = ["contract.counter"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <SetupCustomAlert
-        label="Foundry sample project"
-        href={externalLinks.FOUNDRY_EXAMPLE}
-      />
       <Heading as="h2" size="md" mt={16} mb={4}>
         👩‍💻 Create a Cannonfile
       </Heading>
