@@ -5,5 +5,5 @@ export const links = {
   GET_STARTED: '/get-started',
   DOCS: docs,
   EXPLORE: '/search',
-  TECHNICAL_REF: docs + '/technical-reference#cannon-commands',
+  TECHNICAL_REF: docs + '/technical-reference',
 };
