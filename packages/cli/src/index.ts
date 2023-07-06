@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'fs';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
@@ -137,7 +138,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(process.cwd());
+  const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(opts);
 
