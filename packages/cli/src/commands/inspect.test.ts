@@ -41,13 +41,6 @@ describe('inspect', () => {
     localLoader = new LocalLoader('path');
     ipfsLoader = new IPFSLoader('ipfs');
 
-    // jest.mock('../loader', () => ({
-    //   getMainLoader: jest.fn().mockReturnValue({
-    //     file: localLoader,
-    //     ipfs: ipfsLoader,
-    //   }),
-    // }));
-
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
       ipfs: ipfsLoader,
@@ -82,8 +75,13 @@ describe('inspect', () => {
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
-    // expect(mockedLoader.file.read).toHaveBeenCalledWith('file:/usecannon.com/url');
-    // expect(mockedLoader.file.read).toHaveBeenCalledWith('file:/usecannon.com/misc');
-    // Add more expectations based on your requirements
+  });
+  test('should call inspect with json flag ', async () => {
+    // Call the 'inspect' function with the necessary arguments
+    const result = await inspect(packageName, chainId, preset, true, '');
+
+    expect(result).toEqual(testPkgData);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
   });
 });
