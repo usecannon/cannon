@@ -35,17 +35,17 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
 
     // append 'foundry.toml' to filepath
     const filePath = path.join(currentPath, markerFile);
-  
+
     // If filepath exists it means we're already at root of the project
     // so just return currentPath
     if (fs.existsSync(filePath)) {
       return currentPath;
     }
-  
+
     // Reached the filesystem root without finding the marker file
     const parentPath = path.dirname(currentPath);
     if (parentPath === currentPath) {
-      throw new Error(`Could not find foundry project, make sure your cannonfiles are stored within a foundry project`)
+      throw new Error('Could not find foundry project, make sure your cannonfiles are stored within a foundry project');
     }
 
     //Otherwise loop
@@ -53,7 +53,7 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
   }
 
   baseDir = findProjectRoot(baseDir);
-  
+
   const artifactPath = path.join(path.join(baseDir, foundryOpts.out), `${name}.sol`, `${name}.json`);
   const artifactBuffer = await fs.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;

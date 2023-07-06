@@ -1,5 +1,4 @@
 import path from 'node:path';
-import fs from 'fs';
 import { spawn } from 'child_process';
 import { ethers } from 'ethers';
 import { Command } from 'commander';
