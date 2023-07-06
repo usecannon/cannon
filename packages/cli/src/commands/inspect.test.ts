@@ -1,16 +1,8 @@
 import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
-import {
-  CannonStorage,
-  ChainDefinition,
-  DeploymentInfo,
-  FallbackRegistry,
-  IPFSLoader,
-} from '@usecannon/builder';
+import { IPFSLoader } from '@usecannon/builder';
 
 import { getMainLoader, LocalLoader } from '../loader';
-
 
 jest.mock('../registry');
 jest.mock('../settings');
@@ -63,7 +55,6 @@ describe('inspect', () => {
 
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
 
-
     jest.mock('../settings', () => ({
       resolveCliSettings: jest.fn().mockReturnValue({}),
     }));
@@ -72,8 +63,6 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
-
-    
     // Call the 'inspect' function with the necessary arguments
     const result = await inspect(packageName, chainId, preset, false, '');
 
