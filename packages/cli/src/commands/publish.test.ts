@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import fs from 'fs-extra';
 import path from 'path';
 import { resolveCliSettings } from '../settings';
+import * as settings from '../settings';
 import _ from 'lodash';
 
 describe('publish command', () => {
@@ -47,6 +48,19 @@ describe('publish command', () => {
   });
 
   beforeAll(async () => {
+    jest.resetAllMocks();
+
+    jest.spyOn(settings, 'resolveCliSettings').mockImplementation(
+      jest.fn().mockReturnValue({
+        ipfsUrl: 'http://127.0.0.1:5001',
+        registryProviderUrl: 'http://localhost:3000',
+        registryAddress: ethers.constants.AddressZero,
+        registryChainId: '123', // or whatever value is appropriate in your case
+        cannonDirectory: '/cannon/directory/',
+        // Add other properties as needed
+      })
+    );
+
     signer = ethers.Wallet.createRandom().connect(
       new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider())
     );
@@ -153,9 +167,6 @@ describe('publish command', () => {
 
   describe('scanDeploys', () => {
     beforeEach(() => {
-      // Reset mocks
-      jest.resetAllMocks();
-
       const nonSenseFileName = 'nonSenseFileName.txt';
       const _deployDataLocalFileNames = [
         `${packageName.replace(':', '_')}_${chainId}-${preset}.txt`,
