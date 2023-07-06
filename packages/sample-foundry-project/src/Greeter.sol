@@ -31,5 +31,22 @@ contract Greeter {
     emit NewClonedGreeter(address(g));
   }
 
+  function doCloningIteratively(uint256 clones) public {
+    for (uint256 i = 0; i < clones; i++) {
+      ClonedGreeter g = new ClonedGreeter(greeting);
+      emit NewClonedGreeter(address(g));
+    }
+  }
+
+  function changeCloneGreeting(address a, string memory _greeting) public {
+    ClonedGreeter(a).changeGreeting(_greeting);
+
+    emit OldGreetingRemoved(ClonedGreeter(a).greeting());
+
+    emit NewGreetingAdded(_greeting);
+  }
+
   event NewClonedGreeter(address cloned);
+  event OldGreetingRemoved(string oldGreeting);
+  event NewGreetingAdded(string newGreeting);
 }

@@ -106,18 +106,20 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, 'main', basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, options.preset, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the main preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${name}:${version}. please make sure it exists for the ${options.preset} preset and network ${basicRuntime.chainId}`
         );
       }
 
       const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
 
       if (!outputs) {
-        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/main. Did you mean to run instead?`);
+        throw new Error(
+          `no cannon build found for chain ${basicRuntime.chainId}/${options.preset}. Did you mean to run instead?`
+        );
       }
 
       buildOutputs.push({ pkg, outputs });

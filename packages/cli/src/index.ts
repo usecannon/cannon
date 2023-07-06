@@ -84,7 +84,7 @@ function configureRun(program: Command) {
     .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
-    .option('--preset <name>', 'Load an alternate setting preset', 'main')
+    .option('--preset <preset>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
@@ -137,7 +137,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.dirname(cannonfilePath);
+  const projectDirectory = path.resolve(process.cwd());
 
   const cliSettings = resolveCliSettings(opts);
 
