@@ -3,6 +3,7 @@ import { SetupCustomAlert } from '../SetupCustomAlert';
 import { CreateCannonFile } from './CreateCannonFile';
 import { DeployYourProtocol } from './DeployYourProtocol';
 import { ImportProvisionPackages } from './ImportProvisionPackages';
+import { TestYourProtocol } from './TestYourProtocol';
 
 export const FoundrySetupPanel = () => {
   return (
@@ -14,6 +15,7 @@ export const FoundrySetupPanel = () => {
       <CreateCannonFile />
       <DeployYourProtocol />
       <ImportProvisionPackages />
+      <TestYourProtocol />
     </>
   );
 };
