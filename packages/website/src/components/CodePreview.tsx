@@ -9,7 +9,7 @@ interface ICodePreviewProps {
 export const CodePreview: FC<ICodePreviewProps> = ({ code, language }) => {
   return (
     <div className={style.wrapper}>
-      <SyntaxHighlighter language={language} style={oneDark}>
+      <SyntaxHighlighter language={language} style={oneDark} wrapLongLines>
         {code}
       </SyntaxHighlighter>
     </div>
