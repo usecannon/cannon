@@ -1,6 +1,7 @@
 import { externalLinks } from '@/constants/externalLinks';
 import { SetupCustomAlert } from '../SetupCustomAlert';
 import { CreateCannonFile } from './CreateCannonFile';
+import { DeployYourProtocol } from './DeployYourProtocol';
 
 export const HardhatSetupPanel = () => {
   return (
@@ -10,6 +11,7 @@ export const HardhatSetupPanel = () => {
         href={externalLinks.HARDHAT_EXAMPLE}
       />
       <CreateCannonFile />
+      <DeployYourProtocol />
     </>
   );
 };
