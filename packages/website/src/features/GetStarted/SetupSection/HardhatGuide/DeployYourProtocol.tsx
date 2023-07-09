@@ -13,7 +13,7 @@ export const DeployYourProtocol = () => {
       </Heading>
       <Text mb={4}>
         Deploying is just building on a remote network! Be sure to use a network
-        name that you’ve{' '}
+        name that you’ve&nbsp;
         <ChakraLink
           isExternal
           href="https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks"

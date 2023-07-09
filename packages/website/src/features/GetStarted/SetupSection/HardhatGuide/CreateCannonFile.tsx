@@ -76,7 +76,7 @@ export const CreateCannonFile = () => {
         &nbsp;if your’re using Typescript.
       </Text>
       <Text mt={4}>
-        In the configuration file, set the default network like so:
+        In the configuration file, set the default network like so:&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
           defaultNetwork: "cannon"
         </Code>
