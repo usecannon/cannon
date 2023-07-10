@@ -15,6 +15,9 @@ describe('build', () => {
     // reset mocks
     jest.clearAllMocks();
   });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
   it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
     const errorMessage = 'Reject Error';
     jest.spyOn(paramUtils, 'parseSettings').mockImplementation(() => {
