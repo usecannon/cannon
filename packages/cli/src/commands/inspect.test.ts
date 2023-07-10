@@ -1,7 +1,7 @@
 import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
 import { IPFSLoader } from '@usecannon/builder';
-
+import fs from 'fs-extra';
 import { getMainLoader, LocalLoader } from '../loader';
 
 jest.mock('../registry');
@@ -18,14 +18,50 @@ describe('inspect', () => {
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
   let ipfsLoader: IPFSLoader;
+  let stdoutOutput: string[] = [];
+  let writeSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
     testPkgData = {
       def: { name: 'package', version: '1.2.3' },
-      state: {},
+      state: [
+        {
+          artifacts: {
+            contracts: {
+              'package:1.2.3': {
+                abi: [
+                  {
+                    constant: true,
+                    inputs: [],
+                    name: 'name',
+                    outputs: [
+                      {
+                        name: '',
+                        type: 'string',
+                      },
+                    ],
+                    payable: false,
+                    type: 'function',
+                  },
+                ],
+                contractAddress: '0x123abc...',
+                source: `pragma solidity ^0.5.0;
+
+                contract MyContract {
+                  string public name;
+                
+                  constructor() public {
+                    name = "MyContract";
+                  }
+                }`,
+                bytecode: '0x6060604052341561000f57600080fd5b60d38061001d6000396000f3fe6080...',
+              },
+            },
+          },
+        },
+      ],
       status: 'complete',
       miscUrl: 'file:/usecannon.com/misc',
       meta: {},
@@ -53,35 +89,43 @@ describe('inspect', () => {
     }));
     jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
     jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
+
+    stdoutOutput = [];
+    writeSpy = jest.spyOn(process.stdout, 'write').mockImplementation((output) => {
+      stdoutOutput.push(output as string);
+      return true;
+    });
+    jest.spyOn(fs, 'outputFile').mockImplementation(() => Promise.resolve());
+  });
+  afterEach(() => {
+    writeSpy.mockRestore();
   });
 
   test('should inspect package deployment', async () => {
-    // Call the 'inspect' function with the necessary arguments
     const result = await inspect(packageName, chainId, preset, false, '');
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
-    // expect(ipfsLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
   });
-  test('should write deployment files', async () => {
-    // Set up test data and variables
-    const writeDeployments = 'contracts';
 
-    // Call the 'inspect' function with the necessary arguments
+  test('should write deployment files', async () => {
+    const writeDeployments = 'contracts';
     const result = await inspect(packageName, chainId, preset, false, writeDeployments);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
+    expect(fs.outputFile).toHaveBeenCalled();
   });
+
   test('should call inspect with json flag ', async () => {
-    // Call the 'inspect' function with the necessary arguments
     const result = await inspect(packageName, chainId, preset, true, '');
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
+    expect(stdoutOutput.join('')).toEqual(JSON.stringify(testPkgData, null, 2));
   });
 });
