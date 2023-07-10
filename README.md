@@ -14,7 +14,6 @@ For more information, please see documentation in the modules listed below:
 - [`website`](packages/website): The website, hosted at https://usecannon.com
 - [`sample-hardhat-project`](packages/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
 - [`sample-foundry-project`](packages/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
-- [`contracts`](packages/contracts): Cannonfiles for standard contracts
 
 ## Development
 
@@ -58,6 +57,6 @@ With appropriate permissions on npm, publish updates using the [npx lerna publis
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-This project is licensed under the terms of the GNU General Public License v3.0, except for the code available in `packages/contracts` which is licensed under the terms of the MIT License.
+This project is licensed under the terms of the GNU General Public License v3.0.
 
 Copyright (C) 2023 Daniel Beal, Noah Litvin, Matías Lescano
