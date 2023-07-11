@@ -39,3 +39,27 @@ export class IPFSLoader implements CannonLoader {
     return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
   }
 }
+
+export class InMemoryLoader implements CannonLoader {
+  private datas = new Map<string, string>();
+  readonly space: number;
+  private idx = 0;
+
+  constructor(space: number) {
+    this.space = space;
+  }
+
+  getLabel(): string {
+    return 'in memory';
+  }
+
+  async read(url: string): Promise<any | null> {
+    return JSON.parse(this.datas.get(url) || 'null');
+  }
+  async put(misc: any): Promise<string | null> {
+    const k = `mem://${this.space}/${this.idx++}`;
+    this.datas.set(k, JSON.stringify(misc));
+
+    return k;
+  }
+}
