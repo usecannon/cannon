@@ -1,35 +1,31 @@
 import * as paramUtils from './util/params';
-import cli from './index';
 
-import { ethers } from 'ethers';
-import * as buildCommand from './commands/build';
-import * as helpers from './helpers';
-import * as utilProvider from './util/provider';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
 const TEST_TIMEOUT = 10000;
-
-jest.mock('lodash', () => {
-  const lodash = jest.requireActual('lodash');
-  return {
-    ...lodash,
-    once: jest.fn().mockImplementation((fn) => {
-      return fn;
-    }),
-  };
-});
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
 
 describe('build', () => {
-  beforeEach(() => {
+  let cli: typeof import('./index').default;
+  let helpers: typeof import('./helpers');
+  let ethers: typeof import('ethers').ethers;
+  let buildCommand: typeof import('./commands/build');
+  let utilProvider: typeof import('./util/provider');
+  beforeEach(async () => {
     // reset all mocks
     jest.clearAllMocks();
+    cli = (await import('./index')).default;
+    helpers = await import('./helpers');
+    ethers = (await import('ethers')).ethers;
+    buildCommand = await import('./commands/build');
+    utilProvider = await import('./util/provider');
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.resetModules();
   });
 
   it(
@@ -96,7 +92,9 @@ describe('build', () => {
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider });
 
-      await cli.parseAsync(['node', 'cannon.ts', 'build', '--chain-id', String(chainId)]);
+      const args = ['node', 'cannon.ts', 'build', '--chain-id', String(chainId)];
+
+      await cli.parseAsync(args);
       // create write provider with expected values
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl.split(',')[0]).toEqual('frame');
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(String(chainId));
