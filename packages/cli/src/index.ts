@@ -246,6 +246,7 @@ program
   .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
+  .option('--skip-compile', 'Skip the compilation step and use the existing artifacts')
   .option('-q --quiet', 'Suppress extra logging')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
@@ -253,18 +254,22 @@ program
     const projectDirectory = path.dirname(cannonfilePath);
 
     console.log(bold('Building the foundry project using forge build...'));
-    const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
-    await new Promise((resolve) => {
-      forgeBuildProcess.on('exit', (code) => {
-        if (code === 0) {
-          console.log(green('forge build succeeded'));
-        } else {
-          console.log(red('forge build failed'));
-          console.log('Continuing with cannon build...');
-        }
-        resolve(null);
+    if (!opts.skipCompile) {
+      const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
+      await new Promise((resolve) => {
+        forgeBuildProcess.on('exit', (code) => {
+          if (code === 0) {
+            console.log(green('forge build succeeded'));
+          } else {
+            console.log(red('forge build failed'));
+            console.log('Continuing with cannon build...');
+          }
+          resolve(null);
+        });
       });
-    });
+    } else {
+      console.log(yellow('Skipping forge build...'));
+    }
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
