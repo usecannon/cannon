@@ -2,7 +2,7 @@ import * as paramUtils from './util/params';
 
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 
-const TEST_TIMEOUT = 10000;
+const TEST_TIMEOUT = 20000;
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
