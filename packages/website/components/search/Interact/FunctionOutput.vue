@@ -8,16 +8,34 @@
             item.internalType
           }}</CText>
         </h4>
-        <div v-if="isArray(item.components)">
-          <div
-            v-for="(component, componentIndex) in result[index]"
-            :key="componentIndex"
-          >
-            <FunctionOutput
-              v-bind:output="item.components[componentIndex]"
-              v-bind:result="component"
-            />
+        <div v-if="item.components">
+          <div v-if="item.type==='tuple'">
+            <div
+              v-for="(component, componentIndex) in result"
+              :key="componentIndex"
+            >
+              <FunctionOutput
+                v-bind:output="item.components[componentIndex]"
+                v-bind:result="component"
+              />
+            </div>
           </div>
+          <div v-else-if="item.type==='tuple[]'">
+            <div v-for="(resultItem, resultItemIndex) in result">
+              <div
+                v-for="(component, componentIndex) in resultItem"
+                :key="resultItemIndex"
+              >
+                <FunctionOutput
+                  v-bind:output="item.components[componentIndex]"
+                  v-bind:result="component"
+                />
+              </div>
+            </div>
+          </div>
+          <div v-else>
+              {{ result }}
+            </div>
         </div>
         <div v-else>
           {{ result }}
