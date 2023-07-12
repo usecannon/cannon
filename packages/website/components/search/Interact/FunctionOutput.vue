@@ -22,15 +22,17 @@
           </div>
           <div v-else-if="item.type==='tuple[]'">
             <div v-for="(resultItem, resultItemIndex) in result">
-              <div
-                v-for="(component, componentIndex) in resultItem"
-                :key="resultItemIndex"
-              >
-                <FunctionOutput
-                  v-bind:output="item.components[componentIndex]"
-                  v-bind:result="component"
-                />
-              </div>
+              <CBox pl="1" pt="2" pb="2">
+                <div
+                  v-for="(component, componentIndex) in resultItem"
+                  :key="resultItemIndex"
+                >
+                  <FunctionOutput
+                    v-bind:output="item.components[componentIndex]"
+                    v-bind:result="component"
+                  />
+                </div>
+              </CBox>
             </div>
           </div>
           <div v-else>
