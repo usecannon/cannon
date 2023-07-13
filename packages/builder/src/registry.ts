@@ -109,8 +109,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
@@ -126,8 +132,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getMetaUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
