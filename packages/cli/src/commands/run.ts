@@ -93,7 +93,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   for (const pkg of packages) {
     const { name, version } = pkg;
     if (options.build || Object.keys(pkg.settings).length) {
-      const { outputs } = await build({
+      const x = await build({
         ...options,
         packageDefinition: pkg,
         provider,
@@ -102,6 +102,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
+      console.log('** x **', x)
+      const { outputs } = x
 
       buildOutputs.push({ pkg, outputs });
     } else {
