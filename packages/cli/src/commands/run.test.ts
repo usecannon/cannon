@@ -9,11 +9,11 @@ import * as registry from '../registry';
 import * as builderCommand from './build';
 import { FallbackRegistry } from '@usecannon/builder';
 
-const chainId = 1337 // Assuming you're using default chainId for local Ethereum network
+const chainId = 1337; // Assuming you're using default chainId for local Ethereum network
 const mockRpcNode: CannonRpcNode = Object.assign(new EventEmitter() as ChildProcess, {
   port: 8545, // Assuming you're using default port for Ethereum JSON-RPC
   forkProvider: new ethers.providers.JsonRpcProvider(),
-  chainId, 
+  chainId,
   stdout: new EventEmitter(),
 });
 
@@ -35,25 +35,24 @@ jest.mock('../registry');
 jest.mock('../settings');
 jest.mock('../loader');
 jest.mock('ethers');
-jest.mock('../rpc', () => ({
-  getProvider: () => ({
-    send: jest.fn().mockImplementation((method, params) => {
-      // Add logic here based on the method and params, if necessary
-      return Promise.resolve(true); // Modify this to return what you need
-    }),
-    getSigner: jest.fn().mockImplementation((method, params) => {
-      // Add logic here based on the method and params, if necessary
-      return Promise.resolve(true); // Modify this to return what you need
-    }),
-    getNetwork: jest.fn().mockImplementation((method, params) => {
-      // Add logic here based on the method and params, if necessary
-      return Promise.resolve(chainId); // Modify this to return what you need
-    }),
-  }),
-  // other exports...
-}));
 jest.mock('../helpers');
 jest.mock('../util/provider');
+
+jest.mock('../rpc', () => ({
+  getProvider: () => ({
+    send: jest.fn().mockImplementation(() => {
+      return Promise.resolve(true);
+    }),
+    getSigner: jest.fn(() => {
+      return {
+        getAddress: jest.fn().mockReturnValue(Promise.resolve('0xYourMockedAddress')),
+      };
+    }),
+    getNetwork: jest.fn().mockImplementation(() => {
+      return Promise.resolve(chainId);
+    }),
+  }),
+}));
 
 describe('run function', () => {
   let options: RunOptions;
@@ -63,7 +62,6 @@ describe('run function', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
     mockedFallBackRegistry = new FallbackRegistry([]);
     jest.spyOn(mockedFallBackRegistry, 'publish').mockResolvedValue([]);
     jest.spyOn(mockedFallBackRegistry, 'getMetaUrl').mockResolvedValue(metaUrl);
@@ -82,7 +80,7 @@ describe('run function', () => {
       build: true,
     };
 
-    packages= [
+    packages = [
       {
         name: 'Package1',
         version: '1.0.0',
@@ -112,41 +110,22 @@ describe('run function', () => {
   });
 
   it('should build if option is set', async () => {
-    const buildSpy = jest.spyOn(builderCommand, 'build')
-    options.build = true;
-    await run(packages, options);
+    const buildSpy = jest.spyOn(builderCommand, 'build');
+    await run(packages, { ...options, build: true });
     expect(buildSpy).toHaveBeenCalled();
-    buildSpy.mockRestore();
-  });
-
-  it('should get outputs if build option is not set', async () => {
-    // const getOutputsSpy = jest.spyOn(builderCommand, 'getOutputs');
-    await run(packages, {...options, build: false});
-    // expect(getOutputsSpy).toHaveBeenCalled();
   });
 
   it('should log when node is deployed', async () => {
     const consoleLogSpy = jest.spyOn(console, 'log');
     await run(packages, options);
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringMatching(/has been deployed to a local node/));
-    consoleLogSpy.mockRestore();
-  });
-
-  it('should log warning when no signers are resolved', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn');
-    await run(packages, options);
-    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringMatching(/WARNING: no signers resolved/));
-    consoleWarnSpy.mockRestore();
   });
 
   it('should return buildOutputs, signers, provider, and node when logs option is set', async () => {
-    options.logs = true;
-    const result = await run(packages, options);
+    const result = await run(packages, { ...options, logs: true });
     expect(result).toHaveProperty('signers');
     expect(result).toHaveProperty('outputs');
     expect(result).toHaveProperty('provider');
     expect(result).toHaveProperty('node');
   });
-
-  // ... other codes
 });

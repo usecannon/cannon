@@ -93,7 +93,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   for (const pkg of packages) {
     const { name, version } = pkg;
     if (options.build || Object.keys(pkg.settings).length) {
-      const x = await build({
+      const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
@@ -102,8 +102,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
-      console.log('** x **', x)
-      const { outputs } = x
 
       buildOutputs.push({ pkg, outputs });
     } else {
@@ -139,6 +137,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   if (!signers.length) {
+    //TODO during writing tests I knew we never reach this point, signers is never empty because of this line signers = [provider.getSigner(addr)];
     console.warn(
       yellow(
         '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
