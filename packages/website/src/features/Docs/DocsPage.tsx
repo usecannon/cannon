@@ -1,16 +1,21 @@
 'use client';
-import { IContentList } from '@/app/docs/page';
 import { CodePreview } from '@/components/CodePreview';
 import { Text, Code, Container, Heading } from '@chakra-ui/react';
 import { FC } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { IContentList } from '@/helpers/markdown';
 
 interface IDocsPageProps {
-  content: string;
-  list: IContentList;
+  contents: {
+    [key: string]: {
+      list: IContentList;
+      md: string;
+    };
+  };
 }
 
-export const DocsPage: FC<IDocsPageProps> = ({ content }) => {
+export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
+  const content = contents.overview.md;
   return (
     <Container maxW="container.lg">
       <ReactMarkdown
