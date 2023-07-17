@@ -13,7 +13,8 @@
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
     "test-all": "lerna run test",
     "build": "lerna run build",
-    "publish": "lerna publish"
+    "publish": "lerna publish",
+    "website-dev": "npm run dev --workspace=packages/website"
   },
   "devDependencies": {
     "@babel/core": "^7.22.1",
