@@ -348,14 +348,6 @@ program
     );
 
     const signer = p.signers[0];
-    let contract;
-    let recipient;
-    // TODO dont know how to fill contract and function name
-    const estimatedGas = await contract.estimateGas.publish(recipient, {
-      from: await signer.getAddress(),
-      // Other necessary transaction options go here...
-    });
-    console.log(`\nEstimated gas: ${estimatedGas.toString()}\n`);
     await publish({
       packageRef,
       signer,

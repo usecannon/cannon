@@ -306,4 +306,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     return url === '' ? null : url;
   }
+  getContract(): ethers.Contract {
+    return this.contract;
+  }
 }
