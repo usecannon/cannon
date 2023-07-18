@@ -27,3 +27,13 @@ export const GET_PACKAGES = gql`
     }
   }
 `;
+
+export const TOTAL_PACKAGES = gql`
+  query getTotalPackages($query: String!) {
+    totalPackages: packages(where: { name_contains: $query }) {
+      id
+    }
+  }
+`;
+
+export default GET_PACKAGES;
