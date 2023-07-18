@@ -33,9 +33,10 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "4.0.1",
+    "@graphql-codegen/client-preset": "4.0.1",
+    "@graphql-codegen/schema-ast": "^4.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-resolvers": "^4.0.1",
-    "@graphql-codegen/client-preset": "4.0.1",
     "@types/graphql": "^14.5.0",
     "@types/react-syntax-highlighter": "^15.5.7",
     "sass": "^1.63.6"
