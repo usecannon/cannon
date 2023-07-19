@@ -22,6 +22,8 @@ export const GET_PACKAGES = gql`
           last_publisher
           preset
           chain_id
+          deploy_url
+          meta_url
         }
       }
     }
