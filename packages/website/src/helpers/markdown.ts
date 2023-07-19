@@ -22,3 +22,7 @@ export const exportListFromMarkdown = (markdown: string) => {
   }
   return list;
 };
+
+export const headingToId = (props: any) => {
+  return (props.children[0] as string).toLowerCase().replace(' ', '-');
+};
