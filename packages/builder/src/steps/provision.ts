@@ -180,6 +180,9 @@ export default {
 
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
+      // TODO: add cannon version number?
+      generator: 'cannon provision',
+      timestamp: Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
       options: importPkgOptions,

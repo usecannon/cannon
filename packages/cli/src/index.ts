@@ -8,6 +8,7 @@ import {
   getOutputs,
   ChainBuilderRuntime,
   ChainArtifacts,
+  CannonStorage,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, loadCannonfile } from './helpers';
@@ -55,6 +56,7 @@ export { resolveCliSettings } from './settings';
 export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
+import prompts from 'prompts';
 
 const program = new Command();
 
@@ -374,6 +376,57 @@ program
     const { inspect } = await import('./commands/inspect');
     resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+  });
+
+program
+  .command('prune')
+  .description('Clean cannon storage of excessive/transient build files older than a certain age')
+  .option('--filter-package <packageName>', 'Only keep deployments in local storage which match the given package name. Default: do not filter')
+  .option('--filter-variant <variant>', 'Only keep deployments which match the specifiec variant(s). Default: do not filter')
+  .option('--keep-age <seconds>', 'Number of seconds old a package must be before it should be deleted', (86400 * 30).toString())
+  .option(
+    '--dry-run',
+    'Print out information about prune without committing'
+  )
+  .action(async function (options) {
+    const { prune } = await import('./commands/prune');
+    resolveCliSettings(options);
+
+    const registry = await createDefaultReadRegistry(resolveCliSettings());
+
+    const loader = getMainLoader(resolveCliSettings());
+  
+    const storage = new CannonStorage(registry, loader);
+
+    const pruneUrls = await prune(storage, options.filterPackage, options.filterVariant, options.keepAge);
+
+    if (pruneUrls.length) {
+      console.log(bold(`Found ${pruneUrls.length} packages to prune, saving ${0} MB. Continue?`));
+
+      if (options.dryRun) {
+        process.exit(0);
+      }
+
+      const verification = await prompts({
+        type: 'confirm',
+        name: 'confirmation',
+        message: 'Cannon requires a newer version of Foundry. Install it now?',
+        initial: true,
+      });
+
+      if (!verification.confirmation) {
+        console.log('Cancelled');
+        process.exit(1);
+      }
+
+      for (const url of pruneUrls) {
+        await storage.deleteBlob(url)
+      }
+
+      console.log ('Done!')
+    } else {
+      console.log(bold('Nothing to prune.'));
+    }
   });
 
 program

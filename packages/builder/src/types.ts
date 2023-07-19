@@ -139,6 +139,12 @@ export interface ChainBuilderOptions {
 }
 
 export type DeploymentInfo = {
+  // used to identify that cannon created an artifact on IPFS
+  generator: `cannon ${string}`,
+
+  // the time at which this deployment was generated
+  timestamp: number,
+
   // contents of cannonfile.toml used for this build in raw json form
   // if not included, defaults to the chain definition at the DeploymentManifest instead
   def: RawChainDefinition;

@@ -14,6 +14,8 @@ describe('readDeploy', () => {
     const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 0,
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},
@@ -37,6 +39,8 @@ describe('readDeployRecursive', () => {
     const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 0,
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},

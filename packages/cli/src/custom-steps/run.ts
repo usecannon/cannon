@@ -81,6 +81,8 @@ const runAction = {
 
   validate: config,
 
+  timeout: 3600000, // 1 hour, run steps can go for much longer
+
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const newConfig = this.configInject(ctx, config);
 
