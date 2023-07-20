@@ -7,11 +7,14 @@ import {
   Heading,
   Grid,
   GridItem,
+  Button,
+  Flex,
 } from '@chakra-ui/react';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IContentList } from '@/helpers/markdown';
 import { headingToId } from '@/helpers/markdown';
+import { DocsMenu } from './DocsMenu';
 
 interface IDocsPageProps {
   contents: {
@@ -22,12 +25,42 @@ interface IDocsPageProps {
   };
 }
 
+enum DocsPageType {
+  OVERVIEW,
+  TECHNICAL,
+}
+
 export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
-  const content = contents.overview.md;
+  const [tabIndex, setTabIndex] = useState(DocsPageType.OVERVIEW);
+  console.log('contents', contents.overview.list);
   return (
     <Container maxW="container.lg">
       <Grid templateColumns="repeat(12, 1fr)" gap={6}>
-        <GridItem colSpan={3}>Menu</GridItem>
+        <GridItem colSpan={3}>
+          <Flex justifyContent="space-between">
+            <Button
+              onClick={() => setTabIndex(DocsPageType.OVERVIEW)}
+              isActive={tabIndex === DocsPageType.OVERVIEW}
+              size="xs"
+              colorScheme="teal"
+            >
+              OVERVIEW
+            </Button>
+            <Button
+              onClick={() => setTabIndex(DocsPageType.TECHNICAL)}
+              isActive={tabIndex === DocsPageType.TECHNICAL}
+              size="xs"
+              colorScheme="teal"
+            >
+              TECH REFERENCE
+            </Button>
+          </Flex>
+          {tabIndex === DocsPageType.OVERVIEW ? (
+            <DocsMenu list={contents.overview.list} />
+          ) : (
+            <DocsMenu list={contents.technical.list} />
+          )}
+        </GridItem>
         <GridItem colSpan={9}>
           <ReactMarkdown
             components={{
@@ -56,7 +89,6 @@ export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
               code: ({ inline, className, ...props }) => {
                 const lang =
                   className?.replace('language-', '') || 'javascript';
-                console.log('props.children', props.children);
                 return inline ? (
                   <Code colorScheme="blackAlpha" variant="solid" {...props} />
                 ) : (
@@ -69,7 +101,7 @@ export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
               },
             }}
           >
-            {content}
+            {tabIndex === 0 ? contents.overview.md : contents.technical.md}
           </ReactMarkdown>
         </GridItem>
       </Grid>
