@@ -116,13 +116,6 @@ export async function publish({
 
     registrationReceipts.push(newReceipts);
   }
-  const contract = onChainRegistry.getContract();
-  let recipient;
-  // TODO dont know how to fill function name or do I need recipient or not
-  const estimatedGas = await contract.estimateGas.publish(recipient, {
-    from: await signer.getAddress(),
-  });
-  console.log(`\nEstimated gas: ${estimatedGas.toString()}\n`);
 
   console.log(
     JSON.stringify(

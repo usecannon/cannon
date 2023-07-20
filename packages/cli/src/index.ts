@@ -370,10 +370,9 @@ program
       }\nTo alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.`
     );
 
-    const signer = p.signers[0];
     await publish({
       packageRef,
-      signer,
+      signer: p.signers[0],
       tags: options.tags.split(','),
       chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
       preset: options.preset ? (options.preset as string) : undefined,
