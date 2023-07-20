@@ -15,7 +15,7 @@ import { FC, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { IContentList } from '@/helpers/markdown';
 import { headingToId } from '@/helpers/markdown';
-import { DocsMenu } from './DocsMenu';
+import { DocsSidebar } from './DocsSidebar';
 
 interface IDocsPageProps {
   contents: {
@@ -58,9 +58,9 @@ export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
               </Button>
             </Flex>
             {tabIndex === DocsPageType.OVERVIEW ? (
-              <DocsMenu list={contents.overview.list} />
+              <DocsSidebar list={contents.overview.list} />
             ) : (
-              <DocsMenu list={contents.technical.list} />
+              <DocsSidebar list={contents.technical.list} />
             )}
           </Box>
         </GridItem>

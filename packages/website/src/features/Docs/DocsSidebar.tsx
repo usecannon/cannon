@@ -2,11 +2,11 @@ import { FC } from 'react';
 import { IContentList } from '@/helpers/markdown';
 import { Link } from '@chakra-ui/react';
 
-interface IMenuProps {
+interface ISidebarProps {
   list: IContentList;
 }
 
-export const DocsMenu: FC<IMenuProps> = ({ list }) => {
+export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
   const item = Object.entries(list);
   console.log('item', item);
   return (
