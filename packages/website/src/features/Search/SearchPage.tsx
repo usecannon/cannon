@@ -21,8 +21,8 @@ import {
   GetTotalPackagesQuery,
   GetTotalPackagesQueryVariables,
 } from '@/types/graphql/graphql';
-import { PackagePreview } from '@/features/Search/PackageBox/PackagePreview';
 import { SearchIcon } from '@chakra-ui/icons';
+import { PackageCard } from './PackageCard/PackageCard';
 
 export const SearchPage = () => {
   const [page, setPage] = useState<number>(1);
@@ -90,7 +90,7 @@ export const SearchPage = () => {
             <Input onChange={handleSearch} mb={6} />
           </InputGroup>
           <Text>
-            Showing&nbsp;{totalLoading ? '--' : page}-{' '}
+            Showing&nbsp;{totalLoading ? '--' : page}-&nbsp;
             {totalLoading ? '--' : totalPages}
             &nbsp;of&nbsp;
             {totalLoading ? '--' : totalPackages?.totalPackages?.length}
@@ -98,7 +98,9 @@ export const SearchPage = () => {
           </Text>
         </GridItem>
         <GridItem colSpan={9}>
-          <PackagePreview packages={packages} />
+          {packages.map((pkg) => (
+            <PackageCard pkg={pkg} />
+          ))}
           <Flex justifyContent="space-between">
             <Button
               size="sm"
