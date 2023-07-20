@@ -33,6 +33,7 @@
     "react-dom": "18.2.0",
     "react-feather": "^2.0.10",
     "react-simple-code-editor": "^0.13.1",
+    "react-markdown": "^8.0.7",
     "react-syntax-highlighter": "^15.5.0",
     "typescript": "5.1.3"
   },
