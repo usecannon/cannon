@@ -39,7 +39,7 @@ export const SearchPage = () => {
       first: pageSize,
     },
   });
-  const { data: totalPackages } = useQuery<
+  const { data: totalPackages, loading: totalLoading } = useQuery<
     GetTotalPackagesQuery,
     GetTotalPackagesQueryVariables
   >(TOTAL_PACKAGES, {
@@ -90,7 +90,11 @@ export const SearchPage = () => {
             <Input onChange={handleSearch} mb={6} />
           </InputGroup>
           <Text>
-            Showing page {page} of {totalPages}
+            Showing&nbsp;{totalLoading ? '--' : page}-{' '}
+            {totalLoading ? '--' : totalPages}
+            &nbsp;of&nbsp;
+            {totalLoading ? '--' : totalPackages?.totalPackages?.length}
+            &nbsp;results
           </Text>
         </GridItem>
         <GridItem colSpan={9}>
