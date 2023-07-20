@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { GetPackagesQuery } from '@/types/graphql/graphql';
-import PublishInfo from '@/features/Search/PublishInfo';
+import PublishInfo from '@/features/Search/PackageBox/PublishInfo';
 import PackageNetworks from '@/features/Search/PackageNetworks';
 import { Box, Flex, Heading } from '@chakra-ui/react';
 import { redirect } from 'next/navigation';
@@ -12,8 +12,7 @@ export const PackagePreview: FC<{ packages: GetPackagesQuery['packages'] }> = ({
     return <div>'No packages found'</div>;
   }
   return (
-    <div>
-      {' '}
+    <>
       {packages.map((pkg) => (
         <Box
           key={pkg.name}
@@ -44,6 +43,6 @@ export const PackagePreview: FC<{ packages: GetPackagesQuery['packages'] }> = ({
           <PackageNetworks p={pkg} />
         </Box>
       ))}
-    </div>
+    </>
   );
 };

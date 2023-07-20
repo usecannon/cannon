@@ -21,7 +21,7 @@ import {
   GetTotalPackagesQuery,
   GetTotalPackagesQueryVariables,
 } from '@/types/graphql/graphql';
-import { PackagePreview } from '@/features/Search/PackagePreview';
+import { PackagePreview } from '@/features/Search/PackageBox/PackagePreview';
 import { SearchIcon } from '@chakra-ui/icons';
 
 export const SearchPage = () => {

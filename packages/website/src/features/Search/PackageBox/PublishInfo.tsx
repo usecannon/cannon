@@ -18,7 +18,7 @@ const PublishInfo: FC<{
   return (
     <Box>
       <Text color="gray.300" fontSize="xs" fontFamily="mono">
-        published by
+        published by&nbsp;
         <Link
           isExternal
           styleConfig={{ 'text-decoration': 'none' }}
