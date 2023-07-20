@@ -9,6 +9,7 @@ import {
   GridItem,
   Button,
   Flex,
+  Box,
 } from '@chakra-ui/react';
 import { FC, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -37,29 +38,31 @@ export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
     <Container maxW="container.lg">
       <Grid templateColumns="repeat(12, 1fr)" gap={6}>
         <GridItem colSpan={3}>
-          <Flex justifyContent="space-between">
-            <Button
-              onClick={() => setTabIndex(DocsPageType.OVERVIEW)}
-              isActive={tabIndex === DocsPageType.OVERVIEW}
-              size="xs"
-              colorScheme="teal"
-            >
-              OVERVIEW
-            </Button>
-            <Button
-              onClick={() => setTabIndex(DocsPageType.TECHNICAL)}
-              isActive={tabIndex === DocsPageType.TECHNICAL}
-              size="xs"
-              colorScheme="teal"
-            >
-              TECH REFERENCE
-            </Button>
-          </Flex>
-          {tabIndex === DocsPageType.OVERVIEW ? (
-            <DocsMenu list={contents.overview.list} />
-          ) : (
-            <DocsMenu list={contents.technical.list} />
-          )}
+          <Box position="sticky" top={8}>
+            <Flex justifyContent="space-between">
+              <Button
+                onClick={() => setTabIndex(DocsPageType.OVERVIEW)}
+                isActive={tabIndex === DocsPageType.OVERVIEW}
+                size="xs"
+                colorScheme="teal"
+              >
+                OVERVIEW
+              </Button>
+              <Button
+                onClick={() => setTabIndex(DocsPageType.TECHNICAL)}
+                isActive={tabIndex === DocsPageType.TECHNICAL}
+                size="xs"
+                colorScheme="teal"
+              >
+                TECH REFERENCE
+              </Button>
+            </Flex>
+            {tabIndex === DocsPageType.OVERVIEW ? (
+              <DocsMenu list={contents.overview.list} />
+            ) : (
+              <DocsMenu list={contents.technical.list} />
+            )}
+          </Box>
         </GridItem>
         <GridItem colSpan={9}>
           <ReactMarkdown
