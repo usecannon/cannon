@@ -69,7 +69,10 @@ const PackageNetworks: FC<{
   const ipfs = useRef<any>(undefined);
   const deployData = useRef('');
 
+  // TODO: Remove unused chainId param? (added console.log to fix TS build)
   const openModal = async (url: string, chainId: number) => {
+    console.log(chainId);
+
     setIsOpen(true);
     deployUrl.current = url;
 
