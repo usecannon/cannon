@@ -253,19 +253,22 @@ export class OnChainRegistry extends CannonRegistry {
         metaUrl
       );
       try {
-        const estimatedGas = await this.contract.estimateGas.publish([
-          ethers.utils.formatBytes32String(registerPackages[0][0]),
-          ethers.utils.formatBytes32String(variant),
-          variant,
-          url,
-          metaUrl || ''
-        ], {
-          from: await this.signer!.getAddress()
-        });
+        const estimatedGas = await this.contract.estimateGas.publish(
+          [
+            ethers.utils.formatBytes32String(registerPackages[0][0]),
+            ethers.utils.formatBytes32String(variant),
+            variant,
+            url,
+            metaUrl || '',
+          ],
+          {
+            from: await this.signer!.getAddress(),
+          }
+        );
         console.log(`\nEstimated gas: ${estimatedGas.toString()}\n`);
-      } catch (e : any) {
+      } catch (e: any) {
         // We dont want to throw an error if the estimate gas fails
-        console.log(`\n publish Estimated gas: `, e?.message);
+        console.log('\n publish Estimated gas: ', e?.message);
       }
 
       datas.push(tx);
