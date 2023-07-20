@@ -11,17 +11,23 @@ export const DocsMenu: FC<IMenuProps> = ({ list }) => {
   console.log('item', item);
   return (
     <div>
-      {item.map((m, idx) => (
-        <Link
-          key={idx}
-          textDecoration="none"
-          textTransform="uppercase"
-          _hover={{ textDecoration: 'none' }}
-          href=""
-        >
-          {m}
-        </Link>
-      ))}
+      {item.map((m, idx) => {
+        console.log('m', m);
+        return (
+          <Link
+            key={idx}
+            textDecoration="none"
+            textTransform="uppercase"
+            _hover={{ textDecoration: 'none' }}
+            href={`#${m[0]}`}
+            display="block"
+            fontSize={14}
+            my={6}
+          >
+            {m[0]}
+          </Link>
+        );
+      })}
     </div>
   );
 };
