@@ -1,7 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Grid, GridItem, Input } from '@chakra-ui/react';
+import {
+  Container,
+  Grid,
+  GridItem,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Text,
+} from '@chakra-ui/react';
 import { useQuery } from '@apollo/client';
 import { GET_PACKAGES, TOTAL_PACKAGES } from '@/graphql/queries';
 import {
@@ -11,6 +20,7 @@ import {
   GetTotalPackagesQueryVariables,
 } from '@/types/graphql/graphql';
 import { PackagePreview } from '@/features/Search/PackagePreview';
+import { SearchIcon } from '@chakra-ui/icons';
 
 export const SearchPage = () => {
   const [page, setPage] = useState<number>(1);
@@ -65,32 +75,39 @@ export const SearchPage = () => {
   }, [totalPackages]);
 
   return (
-    <Grid gap={6}>
-      <GridItem>
-        <div>
-          Search
-          <Input onChange={handleSearch} />
-        </div>
-        <div>
-          Showing page {page} of {totalPages}
-        </div>
-        <div>
-          <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-            Previous
-          </button>
-        </div>
-        <div>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={page >= totalPages}
-          >
-            Next
-          </button>
-        </div>
-      </GridItem>
-      <GridItem>
-        <PackagePreview packages={packages} />
-      </GridItem>
-    </Grid>
+    <Container maxW="container.lg">
+      <Grid templateColumns="repeat(12, 1fr)" gap={6}>
+        <GridItem colSpan={3}>
+          <Heading as="h3" size="sm" mb={2}>
+            Search
+          </Heading>
+          <InputGroup>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input onChange={handleSearch} mb={6} />
+          </InputGroup>
+          <Text>
+            Showing page {page} of {totalPages}
+          </Text>
+        </GridItem>
+        <GridItem colSpan={9}>
+          <PackagePreview packages={packages} />
+          <div>
+            <button onClick={() => setPage(page - 1)} disabled={page === 1}>
+              Previous
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page >= totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </GridItem>
+      </Grid>
+    </Container>
   );
 };
