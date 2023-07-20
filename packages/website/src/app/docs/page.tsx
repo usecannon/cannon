@@ -2,6 +2,12 @@ import { DocsPage } from '@/features/Docs/DocsPage';
 import { exportListFromMarkdown } from '@/helpers/markdown';
 import fs from 'fs';
 import path from 'path';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cannon | Documents',
+  description: 'read Cannon documents here.',
+};
 
 export default function Docs() {
   const overviewMarkdown = fs
