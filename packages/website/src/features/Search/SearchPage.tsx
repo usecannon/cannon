@@ -11,6 +11,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  Spinner,
   Text,
 } from '@chakra-ui/react';
 import { useQuery } from '@apollo/client';
@@ -90,36 +91,47 @@ export const SearchPage = () => {
             <Input onChange={handleSearch} mb={6} />
           </InputGroup>
           <Text>
-            Showing&nbsp;{totalLoading ? '--' : page}-&nbsp;
-            {totalLoading ? '--' : totalPages}
-            &nbsp;of&nbsp;
-            {totalLoading ? '--' : totalPackages?.totalPackages?.length}
-            &nbsp;results
+            {!totalLoading &&
+              'Showing ' +
+                page +
+                '-' +
+                totalPages +
+                ' of ' +
+                totalPackages?.totalPackages?.length +
+                ' results'}
           </Text>
         </GridItem>
-        <GridItem colSpan={9}>
-          {packages.map((pkg) => (
-            <PackageCard pkg={pkg} />
-          ))}
-          <Flex justifyContent="space-between">
-            <Button
-              size="sm"
-              colorScheme="teal"
-              onClick={() => setPage(page - 1)}
-              isDisabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              size="sm"
-              colorScheme="teal"
-              onClick={() => setPage(page + 1)}
-              isDisabled={page >= totalPages}
-            >
-              Next
-            </Button>
-          </Flex>
-        </GridItem>
+        {loading ? (
+          <GridItem colSpan={9}>
+            <Flex justifyContent="center" py={12}>
+              <Spinner />
+            </Flex>
+          </GridItem>
+        ) : (
+          <GridItem colSpan={9}>
+            {packages.map((pkg) => (
+              <PackageCard pkg={pkg} />
+            ))}
+            <Flex justifyContent="space-between">
+              <Button
+                size="sm"
+                colorScheme="teal"
+                onClick={() => setPage(page - 1)}
+                isDisabled={page === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="teal"
+                onClick={() => setPage(page + 1)}
+                isDisabled={page >= totalPages}
+              >
+                Next
+              </Button>
+            </Flex>
+          </GridItem>
+        )}
       </Grid>
     </Container>
   );
