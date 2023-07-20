@@ -9,6 +9,7 @@ export const GET_PACKAGES = gql`
       orderBy: last_updated
       where: { name_contains: $query }
     ) {
+      id
       name
       last_updated
       last_publisher

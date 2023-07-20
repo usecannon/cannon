@@ -156,7 +156,7 @@ const PackageNetworks: FC<{
             mr="2"
             mb="2"
             key={chain.id}
-            variant={chain.color || 'whiteAlpha'}
+            background={chain.color || 'whiteAlpha'}
             opacity="download ? '0.8' : '0.7 !important'"
             disabled={!download}
             className={!download ? 'disabled-button' : ''}
@@ -165,7 +165,6 @@ const PackageNetworks: FC<{
                 void openModal(chain.url, chain.id);
               }
             }}
-            // @click="download && openModal(chain.url, chain.id)"
           >
             {chain.name || chain.id}
           </Button>
