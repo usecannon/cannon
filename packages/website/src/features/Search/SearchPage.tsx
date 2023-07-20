@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import {
+  Button,
   Container,
+  Flex,
   Grid,
   GridItem,
   Heading,
@@ -93,19 +95,24 @@ export const SearchPage = () => {
         </GridItem>
         <GridItem colSpan={9}>
           <PackagePreview packages={packages} />
-          <div>
-            <button onClick={() => setPage(page - 1)} disabled={page === 1}>
+          <Flex justifyContent="space-between">
+            <Button
+              size="sm"
+              colorScheme="teal"
+              onClick={() => setPage(page - 1)}
+              isDisabled={page === 1}
+            >
               Previous
-            </button>
-          </div>
-          <div>
-            <button
+            </Button>
+            <Button
+              size="sm"
+              colorScheme="teal"
               onClick={() => setPage(page + 1)}
-              disabled={page >= totalPages}
+              isDisabled={page >= totalPages}
             >
               Next
-            </button>
-          </div>
+            </Button>
+          </Flex>
         </GridItem>
       </Grid>
     </Container>
