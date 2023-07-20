@@ -161,7 +161,7 @@ const PackageNetworks: FC<{
             key={chain.id}
             colorScheme={chain.color || 'whiteAlpha'}
             opacity="download ? '0.8' : '0.7 !important'"
-            disabled={!download}
+            isDisabled={!download}
             className={!download ? 'disabled-button' : ''}
             onClick={() => {
               if (download) {
