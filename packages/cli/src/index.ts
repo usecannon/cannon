@@ -144,7 +144,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   debug('do build called with', cannonfile, settings, opts);
   // If the first param is not a cannonfile, it should be parsed as settings
-  if (!cannonfile.endsWith('.toml')) {
+  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
     settings.unshift(cannonfile);
     cannonfile = 'cannonfile.toml';
   }
@@ -217,11 +217,11 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version } = await loadCannonfile(cannonfilePath);
+  const { name, version, def } = await loadCannonfile(cannonfilePath);
 
   const { outputs } = await build({
     provider,
-    cannonfilePath,
+    def,
     packageDefinition: {
       name,
       version,

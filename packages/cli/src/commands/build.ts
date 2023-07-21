@@ -12,6 +12,7 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
+  RawChainDefinition,
 } from '@usecannon/builder';
 import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -25,7 +26,7 @@ import { getMainLoader } from '../loader';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
-  cannonfilePath?: string;
+  def?: ChainDefinition;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
@@ -50,7 +51,7 @@ interface Params {
 
 export async function build({
   provider,
-  cannonfilePath,
+  def,
   packageDefinition,
   upgradeFrom,
   pkgInfo,
@@ -151,39 +152,14 @@ export async function build({
   console.log('');
 
   let pkgName, pkgVersion;
-  let def: ChainDefinition;
-  if (cannonfilePath) {
-    const { def: overrideDef, name, version, cannonfile } = await loadCannonfile(cannonfilePath);
-
-    if (!name) {
-      throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
-    }
-
-    if (!version) {
-      throw new Error(red('Your cannonfile is missing a version. Add one to the top of the file like: version = "1.0.0"'));
-    }
-
-    if (name !== packageDefinition.name || version !== packageDefinition.version) {
-      throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
-    }
-
-    await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile);
-
-    pkgName = name;
-    pkgVersion = version;
-
-    def = overrideDef;
-  } else if (oldDeployData) {
-    def = new ChainDefinition(oldDeployData.def);
-  } else {
-    throw new Error(
-      red(
-        'No deployment definition found. Make sure you have a recorded deployment for the requested cannon package, or supply a cannonfile to build one.'
-      )
-    );
-  }
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
+
+  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined)
+
+  if (!def) {
+    throw new Error('no deployment definition to build')
+  }
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
@@ -216,9 +192,7 @@ export async function build({
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(
     bold(
-      `Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''}) into the state defined in ${
-        cannonfilePath ? cannonfilePath?.split('/').pop() : pkgName
-      }...`
+      `Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`
     )
   );
   if (!_.isEmpty(packageDefinition.settings)) {
