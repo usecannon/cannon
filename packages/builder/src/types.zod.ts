@@ -15,7 +15,7 @@ export const ContractArtifactSchema = z.object({
   contractName: z.string(),
   sourceName: z.string(),
   abi: z.array(
-    z.custom<{ arg: JsonFragment }>((val) => {
+    z.custom<{ arg: JsonFragment }>(() => {
       true;
     })
   ),
@@ -42,7 +42,7 @@ export const ContractArtifactSchema = z.object({
 export const ContractDataSchema = z.object({
   address: z.string(),
   abi: z.array(
-    z.custom<{ arg: JsonFragment }>((val) => {
+    z.custom<{ arg: JsonFragment }>(() => {
       true;
     })
   ),
@@ -72,19 +72,19 @@ export const PreChainBuilderContextSchema = z.object({
 });
 
 export const ChainBuilderContextSchema = PreChainBuilderContextSchema.extend({
-  settings: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>((val) => {
+  settings: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>(() => {
     true;
   }),
-  contracts: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>((val) => {
+  contracts: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>(() => {
     true;
   }),
-  txns: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>((val) => {
+  txns: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>(() => {
     true;
   }),
 
   extras: z.record(z.string()),
 
-  imports: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>((val) => {
+  imports: z.custom<z.infer<typeof ChainBuilderOptionsSchema>>(() => {
     true;
   }),
 });
@@ -96,7 +96,7 @@ export const BuildOptionsSchema = z.record(OptionTypesTsSchema);
 export const StorageModeSchema = z.union([z.literal('all'), z.literal('metadata'), z.literal('none')]);
 
 export const ChainBuilderRuntimeInfoSchema = z.object({
-  provider: z.custom<{ arg: CannonWrapperGenericProvider }>((val) => {
+  provider: z.custom<{ arg: CannonWrapperGenericProvider }>(() => {
     true;
   }),
   chainId: z.number(),
@@ -105,7 +105,7 @@ export const ChainBuilderRuntimeInfoSchema = z.object({
     .args(z.string())
     .returns(
       z.promise(
-        z.custom<{ arg: ethers.Signer }>((val) => {
+        z.custom<{ arg: ethers.Signer }>(() => {
           true;
         })
       )
@@ -115,7 +115,7 @@ export const ChainBuilderRuntimeInfoSchema = z.object({
     .args(z.any(), z.string().optional())
     .returns(
       z.promise(
-        z.custom<{ arg: ethers.Signer }>((val) => {
+        z.custom<{ arg: ethers.Signer }>(() => {
           true;
         })
       )
@@ -146,7 +146,7 @@ export const ChainArtifactsSchema = ChainBuilderContextSchema.pick({
 export const ChainBuilderOptionsSchema = z.record(OptionTypesTsSchema);
 
 export const DeploymentManifestSchema = z.object({
-  def: z.custom<{ arg: RawChainDefinition }>((val) => {
+  def: z.custom<{ arg: RawChainDefinition }>(() => {
     true;
   }),
   npmPackage: z.any(),
@@ -191,7 +191,7 @@ export const BundledOutputSchema = z
 export const BundledChainBuilderOutputSchema = z.record(BundledOutputSchema);
 
 export const DeploymentInfoSchema = z.object({
-  def: z.custom<{ arg: RawChainDefinition }>((val) => {
+  def: z.custom<{ arg: RawChainDefinition }>(() => {
     true;
   }),
   options: ChainBuilderOptionsSchema,
