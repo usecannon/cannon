@@ -17,88 +17,108 @@ import { getAllContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
-const configSchema = z.object({
-    target: z.array(z.string({
-      required_error: 'target is required',
-      invalid_type_error: "targets must be strings",
-    })).nonempty(),
+const configSchema = z
+  .object({
+    target: z
+      .array(
+        z.string({
+          required_error: 'target is required',
+          invalid_type_error: 'targets must be strings',
+        })
+      )
+      .nonempty(),
     func: z.string({
       required_error: 'func is required',
-      invalid_type_error: "func must be a string",
+      invalid_type_error: 'func must be a string',
     }),
-  }).merge(
-    z.object({
-      abi: z.string({
-        invalid_type_error: 'abi must be a string',
-      }),
-  
-      args: z.array(z.any()),
-      from: z.string({
-        invalid_type_error: 'from must be a string',
-      }),
-      fromCall: z.object({
-        func: z.string({
-          invalid_type_error: 'func must be a string',
+  })
+  .merge(
+    z
+      .object({
+        abi: z.string({
+          invalid_type_error: 'abi must be a string',
         }),
-      }).merge(
-        z.object({
-          args: z.array(z.any()),
-        })
-      ),
-      value: z.string({
-        invalid_type_error: 'value must be a string',
-      }),
-      overrides: z.object({
+
+        args: z.array(z.any()),
+        from: z.string({
+          invalid_type_error: 'from must be a string',
+        }),
+        fromCall: z
+          .object({
+            func: z.string({
+              invalid_type_error: 'func must be a string',
+            }),
+          })
+          .merge(
+            z.object({
+              args: z.array(z.any()),
+            })
+          ),
+        value: z.string({
+          invalid_type_error: 'value must be a string',
+        }),
+        overrides: z.object({
           gasLimit: z.string({
             invalid_type_error: 'gasLimit must be a string',
           }),
-      }),
-      extra: z.record(
-        z.object({
-          event: z.string({
-            required_error: 'event is required',
-            invalid_type_error: 'event must be a string',
-          }),
-          arg: z.number().int().lte(32),
+        }),
+        extra: z.record(
+          z.object({
+            event: z.string({
+              required_error: 'event is required',
+              invalid_type_error: 'event must be a string',
+            }),
+            arg: z.number().int().lte(32),
 
-          allowEmptyEvents: z.boolean().optional(),
-        })
-      ),
-      factory: z.record(
-        z.object({
-          event: z.string({
-            required_error: 'event is required',
-            invalid_type_error: 'event must be a string',
+            allowEmptyEvents: z.boolean().optional(),
+          })
+        ),
+        factory: z.record(
+          z.object({
+            event: z.string({
+              required_error: 'event is required',
+              invalid_type_error: 'event must be a string',
+            }),
+            arg: z.number().int().lte(32),
+
+            artifact: z
+              .string({
+                invalid_type_error: 'artifact must be a string',
+              })
+              .optional(),
+            abiOf: z
+              .array(
+                z.string({
+                  invalid_type_error: 'artifact must be a string',
+                })
+              )
+              .optional(),
+            constructorArgs: z.array(z.any()).optional(),
+            allowEmptyEvents: z.boolean().optional(),
+          })
+        ),
+        depends: z
+          .array(
+            z.string({
+              invalid_type_error: 'depends inputs must be strings',
+            })
+          )
+          .nonempty({
+            message: 'depends cannot be empty',
           }),
-          arg: z.number().int().lte(32),
-          
-          artifact: z.string({
-            invalid_type_error: 'artifact must be a string'
-          }).optional(),
-          abiOf: z.array(z.string({
-            invalid_type_error: 'artifact must be a string'
-          })).optional(),
-          constructorArgs: z.array(z.any()).optional(),
-          allowEmptyEvents: z.boolean().optional(),
-        })
-      ),
-      depends: z.array(z.string({
-        invalid_type_error: 'depends inputs must be strings',
-      })).nonempty({
-        message: 'depends cannot be empty',
-      }),
-    }).deepPartial()
+      })
+      .deepPartial()
   );
 
 export type Config = z.infer<typeof configSchema>;
 
 const validateConfig = (config: Config) => {
-  return configSchema.parse(config)
-}
+  return configSchema.parse(config);
+};
 
 const validateConfigExtra = (config: Config['extra']) => {
-  return configSchema.parse(config)
-}
+  return configSchema.parse(config);
+};
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -113,7 +133,7 @@ async function runTxn(
   contract: ethers.Contract,
   signer: ethers.Signer,
   packageState: PackageState
-): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {  
+): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
   let txn: ethers.ContractTransaction;
 
   // sanity check the contract we are calling has code defined

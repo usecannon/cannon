@@ -7,8 +7,8 @@ import { ChainDefinitionScriptSchema } from '../util';
 export type Config = z.infer<typeof ChainDefinitionScriptSchema>;
 
 const validateConfig = (config: Config) => {
-  return ChainDefinitionScriptSchema.parse(config)
-}
+  return ChainDefinitionScriptSchema.parse(config);
+};
 
 export interface Outputs {
   [key: string]: string;
@@ -28,7 +28,7 @@ export default {
 
   configInject(ctx: ChainBuilderContext, config: Config) {
     validateConfig(config);
-    
+
     config = _.cloneDeep(config);
 
     config.exec = _.template(config.exec)(ctx);

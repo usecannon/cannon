@@ -68,11 +68,13 @@ const configSchema = z
       required_error: 'func is required',
       invalid_type_error: 'func must be a string',
     }),
-    modified: z.array(
-      z.string({
-        invalid_type_error: 'modified must be a string',
-      })
-    ).nonempty(),
+    modified: z
+      .array(
+        z.string({
+          invalid_type_error: 'modified must be a string',
+        })
+      )
+      .nonempty(),
   })
   .merge(
     z

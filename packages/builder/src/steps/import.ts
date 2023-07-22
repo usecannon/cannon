@@ -13,7 +13,7 @@ export const configSchema = z
   .object({
     source: z.string({
       required_error: 'source is required',
-      invalid_type_error: "source must be a string",
+      invalid_type_error: 'source must be a string',
     }),
   })
   .merge(
@@ -21,11 +21,13 @@ export const configSchema = z
       .object({
         chainId: z.number().int().lte(32),
         preset: z.string({
-          invalid_type_error: "preset must be a string",
+          invalid_type_error: 'preset must be a string',
         }),
-        depends: z.array(z.string({
-          invalid_type_error: "depends arguments must be strings",
-        })),
+        depends: z.array(
+          z.string({
+            invalid_type_error: 'depends arguments must be strings',
+          })
+        ),
       })
       .deepPartial()
   );

@@ -16,37 +16,47 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-const configSchema = z.object({
-  source: z.string({
-    required_error: 'source is required',
-    invalid_type_error: "source must be a string",
-  }),
-}).merge(
-  z.object({
-      chainId: z.number().int().lte(32),
-      sourcePreset: z.string({
-        invalid_type_error: "sourcePreset must be a string",
-      }),
-      targetPreset: z.string({
-        invalid_type_error: "targetPreset must be a string",
-      }),
-      options: z.record(z.string({
-        invalid_type_error: "options items must be strings",
-      })),
-      tags: z.array(z.string({
-        invalid_type_error: "tags items must be strings",
-      })),
-      depends: z.array(z.string({
-        invalid_type_error: "depends items must be strings",
-      })),
-  }).deepPartial()
-)
+const configSchema = z
+  .object({
+    source: z.string({
+      required_error: 'source is required',
+      invalid_type_error: 'source must be a string',
+    }),
+  })
+  .merge(
+    z
+      .object({
+        chainId: z.number().int().lte(32),
+        sourcePreset: z.string({
+          invalid_type_error: 'sourcePreset must be a string',
+        }),
+        targetPreset: z.string({
+          invalid_type_error: 'targetPreset must be a string',
+        }),
+        options: z.record(
+          z.string({
+            invalid_type_error: 'options items must be strings',
+          })
+        ),
+        tags: z.array(
+          z.string({
+            invalid_type_error: 'tags items must be strings',
+          })
+        ),
+        depends: z.array(
+          z.string({
+            invalid_type_error: 'depends items must be strings',
+          })
+        ),
+      })
+      .deepPartial()
+  );
 
 export type Config = z.infer<typeof configSchema>;
 
 const validateConfig = (config: Config) => {
-  return configSchema.parse(config)
-}
+  return configSchema.parse(config);
+};
 
 export interface Outputs {
   [key: string]: string;

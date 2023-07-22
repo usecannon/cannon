@@ -31,39 +31,45 @@ const configSchema = z
       .object({
         create2: z.boolean(),
         from: z.string({
-          invalid_type_error: "from must be a string",
+          invalid_type_error: 'from must be a string',
         }),
         nonce: z.string({
-          invalid_type_error: "nonce must be a string",
+          invalid_type_error: 'nonce must be a string',
         }),
         abi: z.string({
-          invalid_type_error: "abi must be a string",
+          invalid_type_error: 'abi must be a string',
         }),
-        abiOf: z.array(z.string({
-          invalid_type_error: "abiOf must be a string",
-        })),
+        abiOf: z.array(
+          z.string({
+            invalid_type_error: 'abiOf must be a string',
+          })
+        ),
         args: z.array(z.any()),
-        libraries: z.record(z.string({
-          invalid_type_error: "defaultValue must be a string",
-        })),
+        libraries: z.record(
+          z.string({
+            invalid_type_error: 'defaultValue must be a string',
+          })
+        ),
 
         // used to force new copy of a contract (not actually used)
         salt: z.string({
-          invalid_type_error: "salt must be a string",
+          invalid_type_error: 'salt must be a string',
         }),
 
         value: z.string({
-          invalid_type_error: "value must be a string",
+          invalid_type_error: 'value must be a string',
         }),
         overrides: z.object({
           gasLimit: z.string({
-            invalid_type_error: "gasLimit must be a string",
+            invalid_type_error: 'gasLimit must be a string',
           }),
         }),
 
-        depends: z.array(z.string({
-          invalid_type_error: "depends arguments must be strings",
-        })),
+        depends: z.array(
+          z.string({
+            invalid_type_error: 'depends arguments must be strings',
+          })
+        ),
       })
       .deepPartial()
   );

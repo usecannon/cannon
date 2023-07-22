@@ -5,7 +5,7 @@ import { z } from 'zod';
 import contractSpec from './steps/contract';
 
 import importSpec from './steps/import';
-import {configSchema} from './steps/import';
+import { configSchema } from './steps/import';
 
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
@@ -32,7 +32,7 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
-  validate: ValidationSchema,
+  validate: ValidationSchema;
 
   timeout?: number;
 }
@@ -61,19 +61,25 @@ const ChainDefinitionSchema = z
     z
       .object({
         description: z.string(),
-        keywords: z.array(z.string({
-          invalid_type_error: "keywords must be strings",
-        })),
-        setting: z.record(z.object({
-          description: z.string({
-            invalid_type_error: "description must be a string",
-          }),
-          type: z.enum(['number', 'string', 'boolean']),
-          defaultValue: z.string({
-            invalid_type_error: "defaultValue must be a string",
-          }),
-        }).deepPartial()),
-        import: z.object({configSchema}),
+        keywords: z.array(
+          z.string({
+            invalid_type_error: 'keywords must be strings',
+          })
+        ),
+        setting: z.record(
+          z
+            .object({
+              description: z.string({
+                invalid_type_error: 'description must be a string',
+              }),
+              type: z.enum(['number', 'string', 'boolean']),
+              defaultValue: z.string({
+                invalid_type_error: 'defaultValue must be a string',
+              }),
+            })
+            .deepPartial()
+        ),
+        import: z.object({ configSchema }),
       })
       .deepPartial()
   );

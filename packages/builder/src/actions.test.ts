@@ -2,7 +2,6 @@ import { ActionKinds, registerAction, validateChainDefinitionSchema, CannonActio
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 import { z } from 'zod';
 
-
 const FakeAction: CannonAction = {
   label: 'fake',
 
@@ -46,13 +45,13 @@ describe('actions.ts', () => {
       expect(ActionKinds).toHaveProperty('fake');
 
       // calling the chain definition validator should not throw for this
-      validateChainDefinitionSchema({ name: 'fake', version: 'latest', });
+      validateChainDefinitionSchema({ name: 'fake', version: 'latest' });
     });
   });
 
   describe('validateChainDefinitionSchema()', () => {
     it('returns zod validation', async () => {
-      expect(validateChainDefinitionSchema({ name: 'fake', version: 'latest', })).toBeTruthy();
+      expect(validateChainDefinitionSchema({ name: 'fake', version: 'latest' })).toBeTruthy();
     });
   });
 });
