@@ -12,7 +12,7 @@ contract ContractTest is Test {
   Greeter greeter;
 
   function setUp() public {
-    greeter = Greeter(vm.getAddress("Greeter"));
+    greeter = Greeter(vm.getAddress("greeter"));
   }
 
   function testExample() public {
