@@ -225,7 +225,7 @@ export type ValidationSchema = z.ZodObject<{
   target?: z.ZodArray<z.ZodString, 'atleastone'>;
   exec?: z.ZodString;
   func?: z.ZodString;
-  modified?: z.ZodArray<z.ZodString, 'many'>;
+  modified?: z.ZodArray<z.ZodString, 'atleastone'>;
   artifact?: z.ZodString;
   source?: z.ZodString;
 
