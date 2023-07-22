@@ -116,10 +116,6 @@ const validateConfig = (config: Config) => {
   return configSchema.parse(config);
 };
 
-const validateConfigExtra = (config: Config['extra']) => {
-  return configSchema.parse(config);
-};
-
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
 export interface InvokeOutputs {
@@ -227,8 +223,6 @@ async function runTxn(
 }
 
 function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
-  validateConfigExtra(config);
-
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
 

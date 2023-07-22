@@ -19,7 +19,7 @@ export const configSchema = z
   .merge(
     z
       .object({
-        chainId: z.number().int().lte(32),
+        chainId: z.number().int(),
         preset: z.string({
           invalid_type_error: 'preset must be a string',
         }),
