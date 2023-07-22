@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import {
   ChainBuilderContext,
@@ -58,20 +58,37 @@ export function hashFs(path: string): Buffer {
   return dirHasher.digest();
 }
 
-const config = {
-  properties: {
-    exec: { type: 'string' },
-    func: { type: 'string' },
-    modified: { elements: { type: 'string' } },
-  },
-  optionalProperties: {
-    args: { elements: { type: 'string' } },
-    env: { elements: { type: 'string' } },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
+const configSchema = z
+  .object({
+    exec: z.string({
+      required_error: 'exec is required',
+      invalid_type_error: 'exec must be a string',
+    }),
+    func: z.string({
+      required_error: 'func is required',
+      invalid_type_error: 'func must be a string',
+    }),
+    modified: z.array(
+      z.string({
+        invalid_type_error: 'modified must be a string',
+      })
+    ).nonempty(),
+  })
+  .merge(
+    z
+      .object({
+        args: z.array(z.string()),
+        env: z.array(z.string()),
+        depends: z.array(z.string().nullable()),
+      })
+      .deepPartial()
+  );
 
-export type Config = JTDDataType<typeof config>;
+export type Config = z.infer<typeof configSchema>;
+
+const validateConfig = (config: Config) => {
+  return configSchema.parse(config);
+};
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -79,7 +96,7 @@ export type Config = JTDDataType<typeof config>;
 const runAction = {
   label: 'run',
 
-  validate: config,
+  validate: configSchema,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const newConfig = this.configInject(ctx, config);
@@ -110,13 +127,15 @@ const runAction = {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
+    validateConfig(config);
+
     config = _.cloneDeep(config);
 
     config.exec = _.template(config.exec)(ctx);
 
     config.modified = _.map(config.modified, (v) => {
       return _.template(v)(ctx);
-    });
+    }) as [string, ...string[]];
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {
@@ -141,6 +160,8 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    validateConfig(config);
 
     const runfile = await importFrom(process.cwd(), config.exec);
 
