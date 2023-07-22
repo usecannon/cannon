@@ -1,14 +1,17 @@
-import Ajv, { JTDDataType, SomeJTDSchemaType } from 'ajv/dist/jtd';
 import { ChainBuilderRuntime } from './runtime';
 
-const ajv = new Ajv();
+import { z } from 'zod';
 
 import contractSpec from './steps/contract';
+
 import importSpec from './steps/import';
+import {configSchema} from './steps/import';
+
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
+import { ValidationSchema } from './types.zod';
 
 export interface CannonAction {
   label: string;
@@ -29,11 +32,7 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
-  validate: {
-    properties: Record<string, SomeJTDSchemaType>;
-    optionalProperties?: Record<string, SomeJTDSchemaType>;
-    additionalProperties?: boolean;
-  };
+  validate: ValidationSchema,
 
   timeout?: number;
 }
@@ -46,29 +45,44 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
 /**
  * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
  */
-const ChainDefinitionSchema = {
-  properties: {
-    name: { type: 'string' },
-    version: { type: 'string' },
-  },
-  optionalProperties: {
-    description: { type: 'string' },
-    keywords: { elements: { type: 'string' } },
-    setting: {
-      values: {
-        optionalProperties: {
-          description: { type: 'string' },
-          type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: { type: 'string' },
-        },
-      },
-    },
 
-    import: importSpec,
-  },
-} as const;
+const ChainDefinitionSchema = z
+  .object({
+    name: z.string({
+      required_error: 'name is required',
+      invalid_type_error: 'name must be a string',
+    }),
+    version: z.string({
+      required_error: 'version is required',
+      invalid_type_error: 'version must be a string',
+    }),
+  })
+  .merge(
+    z
+      .object({
+        description: z.string(),
+        keywords: z.array(z.string({
+          invalid_type_error: "keywords must be strings",
+        })),
+        setting: z.record(z.object({
+          description: z.string({
+            invalid_type_error: "description must be a string",
+          }),
+          type: z.enum(['number', 'string', 'boolean']),
+          defaultValue: z.string({
+            invalid_type_error: "defaultValue must be a string",
+          }),
+        }).deepPartial()),
+        import: z.object({configSchema}),
+      })
+      .deepPartial()
+  );
 
-export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
+export type RawChainDefinition = z.infer<typeof ChainDefinitionSchema>;
+
+export function validateChainDefinitionSchema(def: RawChainDefinition) {
+  return ChainDefinitionSchema.parse(def);
+}
 
 export function registerAction(action: CannonAction) {
   if (typeof action.label !== 'string') {
@@ -82,11 +96,15 @@ export function registerAction(action: CannonAction) {
   }
 
   ActionKinds[label] = action;
-  (ChainDefinitionSchema.optionalProperties as any)[label] = { values: action.validate };
-}
 
-export function getChainDefinitionValidator() {
-  return ajv.compile(ChainDefinitionSchema);
+  (
+    ChainDefinitionSchema.pick({
+      description: true,
+      keywords: true,
+      setting: true,
+      import: true,
+    }) as any
+  )[label] = { values: action.validate };
 }
 
 registerAction(contractSpec);

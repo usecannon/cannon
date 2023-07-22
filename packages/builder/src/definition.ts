@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import { ChainBuilderContext, PreChainBuilderContext } from './types';
 
-import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
+import { ActionKinds, validateChainDefinitionSchema, RawChainDefinition } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
@@ -163,6 +163,7 @@ export class ChainDefinition {
   getSettings(ctx: PreChainBuilderContext) {
     const loadedSettings: Record<string, any> = {};
     const _ctx = { ...ctx, ...ethers.utils, ...ethers.constants, settings: loadedSettings };
+    
     return _.mapValues(this.raw.setting, (sValue, sKey) => {
       const newSetting = _.clone(sValue);
       newSetting.defaultValue = _.template(sValue.defaultValue)(_ctx);
@@ -228,7 +229,7 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = getChainDefinitionValidator()(this.raw);
+    const invalidSchema = validateChainDefinitionSchema(this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();

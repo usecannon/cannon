@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getOutputs } from '../builder';
@@ -9,18 +9,32 @@ import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
 
-const config = {
-  properties: {
-    source: { type: 'string' },
-  },
-  optionalProperties: {
-    chainId: { type: 'int32' },
-    preset: { type: 'string' },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
+export const configSchema = z
+  .object({
+    source: z.string({
+      required_error: 'source is required',
+      invalid_type_error: "source must be a string",
+    }),
+  })
+  .merge(
+    z
+      .object({
+        chainId: z.number().int().lte(32),
+        preset: z.string({
+          invalid_type_error: "preset must be a string",
+        }),
+        depends: z.array(z.string({
+          invalid_type_error: "depends arguments must be strings",
+        })),
+      })
+      .deepPartial()
+  );
 
-export type Config = JTDDataType<typeof config>;
+export type Config = z.infer<typeof configSchema>;
+
+const validateConfig = (config: Config) => {
+  return configSchema.parse(config);
+};
 
 export interface Outputs {
   [key: string]: string;
@@ -32,7 +46,7 @@ export interface Outputs {
 export default {
   label: 'import',
 
-  validate: config,
+  validate: configSchema,
 
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -49,6 +63,8 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+    validateConfig(config);
+
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
@@ -65,6 +81,8 @@ export default {
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
+
+    validateConfig(config);
 
     const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
     const preset = config.preset ?? 'main';

@@ -1,10 +1,14 @@
 import _ from 'lodash';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 import { ChainDefinitionScriptSchema } from '../util';
 
-export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;
+export type Config = z.infer<typeof ChainDefinitionScriptSchema>;
+
+const validateConfig = (config: Config) => {
+  return ChainDefinitionScriptSchema.parse(config)
+}
 
 export interface Outputs {
   [key: string]: string;
@@ -23,6 +27,8 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
+    validateConfig(config);
+    
     config = _.cloneDeep(config);
 
     config.exec = _.template(config.exec)(ctx);

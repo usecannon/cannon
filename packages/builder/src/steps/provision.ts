@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import {
   ChainBuilderContext,
@@ -16,23 +16,37 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-const config = {
-  properties: {
-    source: { type: 'string' },
-  },
-  optionalProperties: {
-    chainId: { type: 'int32' },
-    sourcePreset: { type: 'string' },
-    targetPreset: { type: 'string' },
-    options: {
-      values: { type: 'string' },
-    },
-    tags: { elements: { type: 'string' } },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
+const configSchema = z.object({
+  source: z.string({
+    required_error: 'source is required',
+    invalid_type_error: "source must be a string",
+  }),
+}).merge(
+  z.object({
+      chainId: z.number().int().lte(32),
+      sourcePreset: z.string({
+        invalid_type_error: "sourcePreset must be a string",
+      }),
+      targetPreset: z.string({
+        invalid_type_error: "targetPreset must be a string",
+      }),
+      options: z.record(z.string({
+        invalid_type_error: "options items must be strings",
+      })),
+      tags: z.array(z.string({
+        invalid_type_error: "tags items must be strings",
+      })),
+      depends: z.array(z.string({
+        invalid_type_error: "depends items must be strings",
+      })),
+  }).deepPartial()
+)
 
-export type Config = JTDDataType<typeof config>;
+export type Config = z.infer<typeof configSchema>;
+
+const validateConfig = (config: Config) => {
+  return configSchema.parse(config)
+}
 
 export interface Outputs {
   [key: string]: string;
@@ -44,7 +58,7 @@ export interface Outputs {
 export default {
   label: 'provision',
 
-  validate: config,
+  validate: configSchema,
 
   async getState(
     runtime: ChainBuilderRuntime,
@@ -78,6 +92,8 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
+    validateConfig(config);
+
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);
@@ -105,6 +121,8 @@ export default {
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
+
+    validateConfig(config);
 
     const sourcePreset = config.sourcePreset ?? 'main';
     const targetPreset = config.targetPreset ?? 'main';

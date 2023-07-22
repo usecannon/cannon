@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import { ethers } from 'ethers';
 
@@ -19,34 +19,60 @@ import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2'
 
 const debug = Debug('cannon:builder:contract');
 
-const config = {
-  properties: {
-    artifact: { type: 'string' },
-  },
-  optionalProperties: {
-    create2: { type: 'boolean' },
-    from: { type: 'string' },
-    nonce: { type: 'string' },
-    abi: { type: 'string' },
-    abiOf: { elements: { type: 'string' } },
-    args: { elements: {} },
-    libraries: { values: { type: 'string' } },
+const configSchema = z
+  .object({
+    artifact: z.string({
+      required_error: 'artifact is required',
+      invalid_type_error: 'artifact must be a string',
+    }),
+  })
+  .merge(
+    z
+      .object({
+        create2: z.boolean(),
+        from: z.string({
+          invalid_type_error: "from must be a string",
+        }),
+        nonce: z.string({
+          invalid_type_error: "nonce must be a string",
+        }),
+        abi: z.string({
+          invalid_type_error: "abi must be a string",
+        }),
+        abiOf: z.array(z.string({
+          invalid_type_error: "abiOf must be a string",
+        })),
+        args: z.array(z.any()),
+        libraries: z.record(z.string({
+          invalid_type_error: "defaultValue must be a string",
+        })),
 
-    // used to force new copy of a contract (not actually used)
-    salt: { type: 'string' },
+        // used to force new copy of a contract (not actually used)
+        salt: z.string({
+          invalid_type_error: "salt must be a string",
+        }),
 
-    value: { type: 'string' },
-    overrides: {
-      optionalProperties: {
-        gasLimit: { type: 'string' },
-      },
-    },
+        value: z.string({
+          invalid_type_error: "value must be a string",
+        }),
+        overrides: z.object({
+          gasLimit: z.string({
+            invalid_type_error: "gasLimit must be a string",
+          }),
+        }),
 
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
+        depends: z.array(z.string({
+          invalid_type_error: "depends arguments must be strings",
+        })),
+      })
+      .deepPartial()
+  );
 
-export type Config = JTDDataType<typeof config>;
+export type Config = z.infer<typeof configSchema>;
+
+const validateConfig = (config: Config) => {
+  return configSchema.parse(config);
+};
 
 export interface ContractOutputs {
   abi: string;
@@ -94,7 +120,7 @@ function resolveBytecode(
 export default {
   label: 'contract',
 
-  validate: config,
+  validate: configSchema,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
@@ -108,6 +134,8 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+    validateConfig(config);
+
     config = _.cloneDeep(config);
 
     config.from = _.template(config.from)(ctx);
@@ -155,6 +183,8 @@ export default {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    validateConfig(config);
 
     // sanity check that any connected libraries are bytecoded
     for (const lib in config.libraries || {}) {

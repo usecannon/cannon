@@ -4,21 +4,30 @@ import { Buffer } from 'buffer';
 import _ from 'lodash';
 import { JsonFragment } from '@ethersproject/abi';
 
+import { z } from 'zod';
+
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ChainArtifacts } from './types';
 
 import { CannonWrapperGenericProvider } from './error/provider';
 
-export const ChainDefinitionScriptSchema = {
-  properties: {
-    exec: { type: 'string' },
-  },
-  optionalProperties: {
-    args: { elements: { type: 'string' } },
-    env: { elements: { type: 'string' } },
-  },
-} as const;
+// FIXME: Why not move this to keepers.ts since this isnt shared by any other file?
+export const ChainDefinitionScriptSchema = z.object({
+  exec: z.string({
+    required_error: 'exec is required',
+    invalid_type_error: "exec must be a string",
+  }),
+}).merge(
+  z.object({
+    args: z.array(z.string({
+      invalid_type_error: "args must be strings",
+    })),
+    env: z.array(z.string({
+      invalid_type_error: "env items must be strings",
+    })),
+  }).deepPartial()
+);
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new

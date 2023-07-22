@@ -1,15 +1,15 @@
-import { ActionKinds, registerAction, getChainDefinitionValidator, CannonAction } from './actions';
+import { ActionKinds, registerAction, validateChainDefinitionSchema, CannonAction } from './actions';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
+import { z } from 'zod';
+
 
 const FakeAction: CannonAction = {
   label: 'fake',
 
-  validate: {
-    properties: {
-      hello: { type: 'string' },
-      foo: { type: 'int32' },
-    },
-  },
+  validate: z.object({
+    exec: z.string(),
+    foo: z.number(),
+  }),
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
     return this.configInject(ctx, config, { name: '', version: '', currentLabel: '' });
@@ -46,13 +46,13 @@ describe('actions.ts', () => {
       expect(ActionKinds).toHaveProperty('fake');
 
       // calling the chain definition validator should not throw for this
-      getChainDefinitionValidator()({ fake: { hello: 'woot', foo: 'bar' } });
+      validateChainDefinitionSchema({ name: 'fake', version: 'latest', });
     });
   });
 
-  describe('getChainDefinitionValidator()', () => {
-    it('returns ajv validator', async () => {
-      expect(getChainDefinitionValidator().schema).toBeTruthy();
+  describe('validateChainDefinitionSchema()', () => {
+    it('returns zod validation', async () => {
+      expect(validateChainDefinitionSchema({ name: 'fake', version: 'latest', })).toBeTruthy();
     });
   });
 });

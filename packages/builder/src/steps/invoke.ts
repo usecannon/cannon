@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+import { z } from 'zod';
 
 import {
   ChainBuilderContext,
@@ -17,60 +17,88 @@ import { getAllContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
-const config = {
-  properties: {
-    target: { elements: { type: 'string' } },
-    func: { type: 'string' },
-  },
-  optionalProperties: {
-    abi: { type: 'string' },
+const configSchema = z.object({
+    target: z.array(z.string({
+      required_error: 'target is required',
+      invalid_type_error: "targets must be strings",
+    })).nonempty(),
+    func: z.string({
+      required_error: 'func is required',
+      invalid_type_error: "func must be a string",
+    }),
+  }).merge(
+    z.object({
+      abi: z.string({
+        invalid_type_error: 'abi must be a string',
+      }),
+  
+      args: z.array(z.any()),
+      from: z.string({
+        invalid_type_error: 'from must be a string',
+      }),
+      fromCall: z.object({
+        func: z.string({
+          invalid_type_error: 'func must be a string',
+        }),
+      }).merge(
+        z.object({
+          args: z.array(z.any()),
+        })
+      ),
+      value: z.string({
+        invalid_type_error: 'value must be a string',
+      }),
+      overrides: z.object({
+          gasLimit: z.string({
+            invalid_type_error: 'gasLimit must be a string',
+          }),
+      }),
+      extra: z.record(
+        z.object({
+          event: z.string({
+            required_error: 'event is required',
+            invalid_type_error: 'event must be a string',
+          }),
+          arg: z.number().int().lte(32),
 
-    args: { elements: {} },
-    from: { type: 'string' },
-    fromCall: {
-      properties: {
-        func: { type: 'string' },
-      },
-      optionalProperties: {
-        args: { elements: {} },
-      },
-    },
-    value: { type: 'string' },
-    overrides: {
-      optionalProperties: {
-        gasLimit: { type: 'string' },
-      },
-    },
-    extra: {
-      values: {
-        properties: {
-          event: { type: 'string' },
-          arg: { type: 'int32' },
-        },
-        optionalProperties: {
-          allowEmptyEvents: { type: 'boolean' },
-        },
-      },
-    },
-    factory: {
-      values: {
-        properties: {
-          event: { type: 'string' },
-          arg: { type: 'int32' },
-        },
-        optionalProperties: {
-          artifact: { type: 'string' },
-          abiOf: { elements: { type: 'string' } },
-          constructorArgs: { elements: {} },
-          allowEmptyEvents: { type: 'boolean' },
-        },
-      },
-    },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
+          allowEmptyEvents: z.boolean().optional(),
+        })
+      ),
+      factory: z.record(
+        z.object({
+          event: z.string({
+            required_error: 'event is required',
+            invalid_type_error: 'event must be a string',
+          }),
+          arg: z.number().int().lte(32),
+          
+          artifact: z.string({
+            invalid_type_error: 'artifact must be a string'
+          }).optional(),
+          abiOf: z.array(z.string({
+            invalid_type_error: 'artifact must be a string'
+          })).optional(),
+          constructorArgs: z.array(z.any()).optional(),
+          allowEmptyEvents: z.boolean().optional(),
+        })
+      ),
+      depends: z.array(z.string({
+        invalid_type_error: 'depends inputs must be strings',
+      })).nonempty({
+        message: 'depends cannot be empty',
+      }),
+    }).deepPartial()
+  );
 
-export type Config = JTDDataType<typeof config>;
+export type Config = z.infer<typeof configSchema>;
+
+const validateConfig = (config: Config) => {
+  return configSchema.parse(config)
+}
+
+const validateConfigExtra = (config: Config['extra']) => {
+  return configSchema.parse(config)
+}
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -85,7 +113,7 @@ async function runTxn(
   contract: ethers.Contract,
   signer: ethers.Signer,
   packageState: PackageState
-): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
+): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {  
   let txn: ethers.ContractTransaction;
 
   // sanity check the contract we are calling has code defined
@@ -107,7 +135,7 @@ async function runTxn(
     );
   }
 
-  if (config.fromCall && !contract.functions[config.fromCall.func]) {
+  if (config.fromCall && config.fromCall.func && !contract.functions[config.fromCall.func]) {
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
         config.func
@@ -139,7 +167,7 @@ async function runTxn(
     overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
-  if (config.fromCall) {
+  if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
     const address = await contract.connect(runtime.provider)[config.fromCall.func](...(config.fromCall?.args || []));
@@ -179,6 +207,8 @@ async function runTxn(
 }
 
 function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
+  validateConfigExtra(config);
+
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
 
@@ -231,7 +261,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 export default {
   label: 'invoke',
 
-  validate: config,
+  validate: configSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -245,10 +275,12 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
+    validateConfig(config);
+
     config = _.cloneDeep(config);
 
     if (config.target) {
-      config.target = config.target.map((v) => _.template(v)(ctx));
+      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {
@@ -313,6 +345,8 @@ export default {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    validateConfig(config);
 
     const txns: TransactionMap = {};
 
