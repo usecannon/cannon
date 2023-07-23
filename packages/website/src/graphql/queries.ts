@@ -14,6 +14,7 @@ export const GET_PACKAGES = gql`
       last_updated
       last_publisher
       tags(orderDirection: desc, orderBy: last_updated) {
+        id
         name
         last_updated
         last_publisher
@@ -47,6 +48,7 @@ export const GET_PACKAGE = gql`
       last_updated
       last_publisher
       tags(orderDirection: desc, orderBy: last_updated) {
+        id
         name
         last_updated
         last_publisher

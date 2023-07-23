@@ -1,4 +1,4 @@
-import { GetPackagesQuery, Variant } from '@/types/graphql/graphql';
+import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useMemo, useRef, useState } from 'react';
 import {
   Box,
@@ -27,20 +27,22 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import _ from 'lodash'; //Example style, you can use another
 
+type Package = GetPackagesQuery['packages'][0];
+type Tag = Package['tags'][0];
+
 const PackageNetworks: FC<{
-  p: GetPackagesQuery['packages'][0] & { variants?: Array<Variant> };
+  p: Package | Pick<Tag, 'variants'>;
   download?: boolean;
 }> = ({ p, download = false }) => {
   const toast = useToast();
   const chains = useMemo(() => {
-    let variants:
-      | GetPackagesQuery['packages']['0']['tags']['0']['variants']
-      | undefined = [];
-    if (p.tags) {
-      const latestTag = p.tags.find((t) => t.name == 'latest');
-      variants = latestTag?.variants?.filter((v) => v.preset == 'main');
-    } else if (p.variants) {
-      variants = p.variants;
+    let variants: Tag['variants'] | undefined = [];
+
+    if ('tags' in p) {
+      const latestTag = p.tags?.find((t) => t.name == 'latest');
+      variants = latestTag?.variants?.filter((v) => v.preset == 'main') || [];
+    } else if ('variants' in p) {
+      variants = p.variants || [];
     }
     return variants
       ?.map((v) => {

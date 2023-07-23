@@ -5,6 +5,7 @@ import { GET_PACKAGE } from '@/graphql/queries';
 import {
   GetPackageQuery,
   GetPackageQueryVariables,
+  GetPackagesQuery,
 } from '@/types/graphql/graphql';
 import { useQuery } from '@apollo/client';
 import {
@@ -24,6 +25,9 @@ import PackageNetworks from '@/features/Search/PackageNetworks';
 import { CommandPreview } from '@/components/CommandPreview';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
+import { Versions } from '@/features/Packages/Versions';
+
+type Package = GetPackagesQuery['packages'][0];
 
 export const PackagesPage: FC<{ name: string }> = ({ name }) => {
   const { data } = useQuery<GetPackageQuery, GetPackageQueryVariables>(
@@ -33,9 +37,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
     }
   );
 
-  const [p, setPackage] = useState<GetPackageQuery['packages']['0'] | null>(
-    null
-  );
+  const [p, setPackage] = useState<Package | null>(null);
 
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
@@ -64,7 +66,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 {p?.name}
               </Heading>
               <Box mb="2">
-                <PublishInfo p={p!} />
+                <PublishInfo p={p} />
               </Box>
               <PackageNetworks download p={p!} />
             </GridItem>
@@ -95,7 +97,9 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                   <Cannonfile p={p} />
                 </TabPanel>
                 <TabPanel>interact</TabPanel>
-                <TabPanel>versions</TabPanel>
+                <TabPanel>
+                  <Versions p={p} />
+                </TabPanel>
               </TabPanels>
             </Tabs>
             {/*<Link*/}

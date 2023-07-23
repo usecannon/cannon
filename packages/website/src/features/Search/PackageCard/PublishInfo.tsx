@@ -1,10 +1,13 @@
 import { FC, useMemo } from 'react';
-import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { formatDistanceToNow } from 'date-fns';
 import { Box, Link, Text } from '@chakra-ui/react';
 
+type PublishInfo = {
+  last_updated: number;
+  last_publisher: string;
+};
 const PublishInfo: FC<{
-  p: GetPackagesQuery['packages'][0];
+  p: PublishInfo;
   lineBreak?: boolean;
 }> = ({ p, lineBreak = false }) => {
   const timeAgo = useMemo(
