@@ -23,8 +23,7 @@ import {
 } from '@chakra-ui/react';
 import { Copy } from 'react-feather';
 import Editor from 'react-simple-code-editor';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import _ from 'lodash'; //Example style, you can use another
 

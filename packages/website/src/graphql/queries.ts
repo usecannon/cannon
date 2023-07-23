@@ -39,4 +39,29 @@ export const TOTAL_PACKAGES = gql`
   }
 `;
 
+export const GET_PACKAGE = gql`
+  query getPackage($name: String!) {
+    packages(first: 1, orderDirection: desc, orderBy: last_updated, where: { name: $name }) {
+      id
+      name
+      last_updated
+      last_publisher
+      tags(orderDirection: desc, orderBy: last_updated) {
+        name
+        last_updated
+        last_publisher
+        variants(orderDirection: desc, orderBy: last_updated) {
+          name
+          last_updated
+          last_publisher
+          preset
+          chain_id
+          deploy_url
+          meta_url
+        }
+      }
+    }
+  }
+`;
+
 export default GET_PACKAGES;
