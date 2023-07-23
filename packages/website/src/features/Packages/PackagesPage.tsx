@@ -26,6 +26,7 @@ import { CommandPreview } from '@/components/CommandPreview';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';
+import { Interact } from '@/features/Packages/Interact';
 
 type Package = GetPackagesQuery['packages'][0];
 
@@ -96,7 +97,9 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 <TabPanel>
                   <Cannonfile p={p} />
                 </TabPanel>
-                <TabPanel>interact</TabPanel>
+                <TabPanel>
+                  <Interact p={p} />
+                </TabPanel>
                 <TabPanel>
                   <Versions p={p} />
                 </TabPanel>
