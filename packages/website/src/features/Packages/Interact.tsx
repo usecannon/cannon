@@ -6,6 +6,10 @@ import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { VersionInfo, VersionSelect } from '@/features/Packages/VersionSelect';
+import { ConnectWallet } from '@/features/Packages/ConnectWallet';
+import { useAccount, useConnect, useDisconnect, useSwitchNetwork } from 'wagmi';
+import { InjectedConnector } from 'wagmi/connectors/injected';
+import { ProvisionStep } from '@/features/Packages/ProvisionStep';
 
 type Package = GetPackagesQuery['packages'][0];
 // type Tag = Package['tags'][0];
@@ -18,6 +22,17 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts | null>(
     null
   );
+
+  const output = useMemo(() => {
+    return {
+      '': {
+        title: '',
+        url: '',
+        imports: cannonOutputs?.imports,
+        contracts: cannonOutputs?.contracts,
+      },
+    };
+  }, [cannonOutputs]);
 
   useEffect(() => {
     console.log('selectedVersion', selectedVersion);
@@ -77,7 +92,7 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
         zIndex="1"
         borderBottom="1px solid rgba(255,255,255,0.25)"
       >
-        {/*<ConnectWallet /> TODO */}
+        <ConnectWallet />
         <Box ml="auto">
           <VersionSelect p={p} onChange={setSelectedVersion} />
         </Box>
@@ -122,7 +137,7 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
         </Box>
       ) : (
         <Box>
-          {/*<ProvisionStep :imports="output" :cannonOutputs="cannonOutputs" /> TODO */}
+          <ProvisionStep imports={output} cannonOutputs={cannonOutputs} />
         </Box>
       )}
     </Box>

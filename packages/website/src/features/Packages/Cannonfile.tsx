@@ -3,10 +3,8 @@ import { GetPackagesQuery } from '@/types/graphql/graphql';
 import axios from 'axios';
 import pako from 'pako';
 import { Box, Spinner } from '@chakra-ui/react';
-import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-toml';
-import 'prismjs/themes/prism.css';
+import { CodePreview } from '@/components/CodePreview';
 
 export const Cannonfile: FC<{
   p: GetPackagesQuery['packages'][0];
@@ -50,10 +48,6 @@ export const Cannonfile: FC<{
     };
   }, [latestVariant]);
 
-  const highlighter = (code: string) => {
-    return highlight(code, languages.toml, 'toml');
-  };
-
   let view;
   if (loading) {
     view = (
@@ -65,14 +59,7 @@ export const Cannonfile: FC<{
     if (metadata?.cannonfile) {
       view = (
         <Box>
-          <Editor
-            highlight={highlighter}
-            value={metadata?.cannonfile}
-            disabled={true}
-            onValueChange={() => {
-              // nothing
-            }}
-          />
+          <CodePreview code={metadata?.cannonfile} language={'toml'} />
         </Box>
       );
     } else {
