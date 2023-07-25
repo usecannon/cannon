@@ -322,7 +322,8 @@ export class OnChainRegistry extends CannonRegistry {
     try {
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
-      const gasPrice = (overrides.maxFeePerGas as BigNumber) || (await this.provider?.getGasPrice());
+      const gasPrice =
+        (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
       console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
       const transactionFeeWei = estimatedGas.mul(gasPrice);
       // Convert the transaction fee from wei to ether
