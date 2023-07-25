@@ -7,8 +7,6 @@ import { ChainArtifacts } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { VersionInfo, VersionSelect } from '@/features/Packages/VersionSelect';
 import { ConnectWallet } from '@/features/Packages/ConnectWallet';
-import { useAccount, useConnect, useDisconnect, useSwitchNetwork } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
 import { ProvisionStep } from '@/features/Packages/ProvisionStep';
 
 type Package = GetPackagesQuery['packages'][0];
