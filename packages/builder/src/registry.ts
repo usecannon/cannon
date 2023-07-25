@@ -1,4 +1,4 @@
-import { ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -318,14 +318,13 @@ export class OnChainRegistry extends CannonRegistry {
     return url === '' ? null : url;
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: any): Promise<void> {
+  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
     try {
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
-      const gasPrice = await this.provider?.getGasPrice();
-      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice || 0)} ETH`);
-
-      const transactionFeeWei = estimatedGas.mul(gasPrice || 0);
+      const gasPrice = (overrides.maxFeePerGas as BigNumber) || (await this.provider?.getGasPrice());
+      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
+      const transactionFeeWei = estimatedGas.mul(gasPrice);
       // Convert the transaction fee from wei to ether
       const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
 
