@@ -1,11 +1,12 @@
 import { FC, useEffect, useState } from 'react';
 import { Input } from '@chakra-ui/react';
 import { stringToHex } from 'viem';
+import { AbiParameter } from 'abitype';
 
 export const DefaultInput: FC<{
   handleUpdate: (value: string) => void;
   value?: string;
-  inputType: string;
+  inputType: AbiParameter['type'];
 }> = ({ handleUpdate, value = '', inputType }) => {
   const [updateValue, setUpdateValue] = useState<string>(value);
   useEffect(() => {

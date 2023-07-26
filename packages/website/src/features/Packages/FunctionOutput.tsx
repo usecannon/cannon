@@ -3,7 +3,7 @@ import { Box, Text } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 
 export const FunctionOutput: FC<{
-  output: AbiParameter | AbiParameter[];
+  output: AbiParameter | readonly AbiParameter[];
   result: any;
 }> = ({ output, result }) => {
   const isArray = (_value: any) => Array.isArray(_value);
