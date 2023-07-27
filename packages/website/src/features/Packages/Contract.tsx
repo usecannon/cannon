@@ -11,7 +11,8 @@ export const Contract: FC<{
   address: string;
   abi: AbiType;
   cannonOutputs: ChainArtifacts;
-}> = ({ title, address, abi, cannonOutputs }) => {
+  chainId?: number;
+}> = ({ title, address, abi, cannonOutputs , chainId}) => {
   const [show, setShow] = useState(false);
   const anchor = useMemo(() => {
     const currentHash = window.location.hash.replace('#', '').split('-')[0];
@@ -62,7 +63,7 @@ export const Contract: FC<{
       {/*  TODO: Implement the collapse */}
       {/*<Collapse isOpen="show">*/}
       {show && (
-        <Abi abi={abi} address={address} cannonOutputs={cannonOutputs} />
+        <Abi abi={abi} address={address} cannonOutputs={cannonOutputs} chainId={chainId}/>
       )}
       {/*</Collapse>*/}
       <Button

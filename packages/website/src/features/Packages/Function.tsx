@@ -15,16 +15,24 @@ import {
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { RefreshCw } from 'react-feather';
+import { useAccount, useNetwork } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { Address, createPublicClient, getContract, http } from 'viem';
 
 export const Function: FC<{
   f: AbiFunction;
   address: string;
   cannonOutputs: ChainArtifacts;
-}> = ({ f, address, cannonOutputs }) => {
+  chainId?: number;
+}> = ({ f, address, cannonOutputs, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[]>([]);
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
+  const network = useNetwork();
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
@@ -46,7 +54,44 @@ export const Function: FC<{
   }, []);
 
   const submit = async (suppressError = false) => {
+    setLoading(true);
     // TODO: implement
+    // console.log('isConnected:', isConnected);
+    try {
+      if (readOnly) {
+        const chain = network.chains.find((c) => c.id == chainId);
+        console.log('chain:', chain);
+        const publicClient = createPublicClient({
+          transport: http(),
+          chain: chain,
+        });
+        const _contract = getContract({
+          address: address as Address,
+          abi: [f],
+          publicClient,
+        });
+        console.log('contract.read', _contract.read);
+        const _result = await _contract.read[f.name](...params);
+        console.log('_result:', _result);
+        setResult(_result);
+      } else {
+        if (!isConnected) {
+          if (openConnectModal) openConnectModal();
+          return;
+        }
+      }
+    } catch (e) {
+      if (!suppressError) {
+        try {
+          // await handleTxnError(this.cannonOutputs, provider, e) // TODO
+          console.error(e);
+        } catch (e2) {
+          setError(e2);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <Box mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">

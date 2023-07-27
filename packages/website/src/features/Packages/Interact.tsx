@@ -134,7 +134,7 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
         </Box>
       ) : (
         <Box>
-          <ProvisionStep imports={output} cannonOutputs={cannonOutputs} />
+          <ProvisionStep imports={output} cannonOutputs={cannonOutputs} chainId={selectedVersion?.chain_id}/>
         </Box>
       )}
     </Box>

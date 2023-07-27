@@ -7,7 +7,8 @@ import { Abi } from 'viem';
 export const ContractStep: FC<{
   contracts?: ContractMap;
   cannonOutputs: ChainArtifacts;
-}> = ({ contracts = {}, cannonOutputs }) => {
+  chainId?: number;
+}> = ({ contracts = {}, cannonOutputs , chainId}) => {
   const output: ({ title: string } & Pick<ContractData, 'address' | 'abi'>)[] =
     useMemo(() => {
       return Object.entries(contracts)
@@ -23,6 +24,7 @@ export const ContractStep: FC<{
           address={o.address}
           abi={o.abi as Abi}
           cannonOutputs={cannonOutputs}
+          chainId={chainId}
         />
       ))}
     </Box>

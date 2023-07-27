@@ -8,7 +8,8 @@ export const Abi: FC<{
   abi: AbiType;
   address: string;
   cannonOutputs: ChainArtifacts;
-}> = ({ abi, address, cannonOutputs }) => {
+  chainId?: number;
+}> = ({ abi, address, cannonOutputs, chainId }) => {
   const functions = useMemo<AbiFunction[]>(
     () => abi.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
@@ -18,7 +19,12 @@ export const Abi: FC<{
     <Box mb="2">
       {functions.map((f, index) => (
         <Box key={index}>
-          <Function f={f} address={address} cannonOutputs={cannonOutputs} />
+          <Function
+            f={f}
+            address={address}
+            cannonOutputs={cannonOutputs}
+            chainId={chainId}
+          />
         </Box>
       ))}
     </Box>

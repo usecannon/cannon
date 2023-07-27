@@ -9,7 +9,8 @@ import { ContractStep } from '@/features/Packages/ContractStep';
 export const ProvisionStep: FC<{
   cannonOutputs: ChainArtifacts;
   imports: BundledChainBuilderOutputs;
-}> = ({ cannonOutputs, imports }) => {
+  chainId?: number;
+}> = ({ cannonOutputs, imports, chainId }) => {
   const output: {
     title: string;
     url: BundledOutput['url'];
@@ -56,6 +57,7 @@ export const ProvisionStep: FC<{
             <ContractStep
               contracts={o.contracts}
               cannonOutputs={cannonOutputs}
+              chainId={chainId}
             />
 
             {o.imports && (
