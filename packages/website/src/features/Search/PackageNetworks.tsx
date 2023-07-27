@@ -1,13 +1,6 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useMemo, useRef, useState } from 'react';
-import {
-  Box,
-  Text,
-  Button,
-  useToast,
-  Spinner,
-  Heading,
-} from '@chakra-ui/react';
+import { Box, Text, Button, Spinner, Heading } from '@chakra-ui/react';
 import chainData from '@/constants/chainsData';
 import { highlight, languages } from 'prismjs';
 import axios from 'axios';
@@ -25,7 +18,8 @@ import { Copy } from 'react-feather';
 import Editor from 'react-simple-code-editor';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
-import _ from 'lodash'; //Example style, you can use another
+import _ from 'lodash';
+import { useCopy } from '@/lib/copy'; //Example style, you can use another
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -34,7 +28,7 @@ const PackageNetworks: FC<{
   p: Package | Pick<Tag, 'variants'>;
   download?: boolean;
 }> = ({ p, download = false }) => {
-  const toast = useToast();
+  // const toast = useToast();
   const chains = useMemo(() => {
     let variants: Tag['variants'] | undefined = [];
 
@@ -108,36 +102,9 @@ const PackageNetworks: FC<{
     deployUrl.current = '';
   };
 
+  const copyToClipboard = useCopy();
   const copy = () => {
-    const textToCopy = deployData.current;
-
-    toast({
-      title: 'Copied to clipboard',
-      status: 'info',
-      duration: 4000,
-    });
-
-    // navigator clipboard api needs a secure context (https)
-    if (navigator.clipboard && window.isSecureContext) {
-      // navigator clipboard api method'
-      return navigator.clipboard.writeText(textToCopy);
-    } else {
-      // text area method
-      const textArea = document.createElement('textarea');
-      textArea.value = textToCopy;
-      // make the textarea out of viewport
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      return new Promise<void>((res, rej) => {
-        // here the magic happens
-        document.execCommand('copy') ? res() : rej();
-        textArea.remove();
-      });
-    }
+    void copyToClipboard(deployData.current);
   };
   return (
     <Box verticalAlign="middle">

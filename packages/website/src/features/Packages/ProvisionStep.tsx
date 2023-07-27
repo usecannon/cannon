@@ -1,11 +1,13 @@
 import { FC, useMemo } from 'react';
 import { BundledOutput, ChainArtifacts } from '@usecannon/builder';
-import { Box, Flex, Heading, Code, useToast } from '@chakra-ui/react';
+import { Box, Flex, Heading, Code } from '@chakra-ui/react';
 import { BundledChainBuilderOutputs } from '@usecannon/builder';
 import { Copy } from 'react-feather';
+import { useCopy } from '@/lib/copy';
+import { ContractStep } from '@/features/Packages/ContractStep';
 
 export const ProvisionStep: FC<{
-  cannonOutputs: ChainArtifacts | null;
+  cannonOutputs: ChainArtifacts;
   imports: BundledChainBuilderOutputs;
 }> = ({ cannonOutputs, imports }) => {
   const output: {
@@ -25,38 +27,9 @@ export const ProvisionStep: FC<{
       }) || []
     );
   }, [imports]);
-  const toast = useToast();
 
-  // TODO: It's a copy of function in PackageNetworks.tsx
-  const copy = (textToCopy: string) => {
-    toast({
-      title: 'Copied to clipboard',
-      status: 'info',
-      duration: 4000,
-    });
+  const copy = useCopy();
 
-    // navigator clipboard api needs a secure context (https)
-    if (navigator.clipboard && window.isSecureContext) {
-      // navigator clipboard api method'
-      return navigator.clipboard.writeText(textToCopy);
-    } else {
-      // text area method
-      const textArea = document.createElement('textarea');
-      textArea.value = textToCopy;
-      // make the textarea out of viewport
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      return new Promise<void>((res, rej) => {
-        // here the magic happens
-        document.execCommand('copy') ? res() : rej();
-        textArea.remove();
-      });
-    }
-  };
   return (
     <Box mb="8">
       {output.map((o) => {
@@ -80,7 +53,10 @@ export const ProvisionStep: FC<{
                 </div>
               </Box>
             </Flex>
-            {/*<contractStep :contracts="o.contracts" :cannonOutputs="cannonOutputs" />*/}
+            <ContractStep
+              contracts={o.contracts}
+              cannonOutputs={cannonOutputs}
+            />
 
             {o.imports && (
               <ProvisionStep

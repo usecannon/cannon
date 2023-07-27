@@ -17,9 +17,7 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
   const [loading, setLoading] = useState(true);
   const [ipfs, setIpfs] = useState<any>({});
   const [selectedVersion, setSelectedVersion] = useState<VersionInfo>();
-  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts | null>(
-    null
-  );
+  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
 
   const output = useMemo(() => {
     return {
@@ -33,25 +31,26 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
   }, [cannonOutputs]);
 
   useEffect(() => {
-    console.log('selectedVersion', selectedVersion);
     if (!selectedVersion) return;
     // this.$store.dispatch('changeChainId', this.selectedVariant.chain_id, this.$toast) TODO
     setLoading(true);
 
     const controller = new AbortController();
 
+    const url = `https://ipfs.io/ipfs/${selectedVersion?.ipfs.replace(
+      'ipfs://',
+      ''
+    )}`;
+    console.log('url', url);
     axios
-      .get(
-        `https://ipfs.io/ipfs/${selectedVersion?.ipfs.replace('ipfs://', '')}`,
-        { responseType: 'arraybuffer' }
-      )
+      .get(url, { responseType: 'arraybuffer' })
       .then((response) => {
         // Parse IPFS data
         const uint8Array = new Uint8Array(response.data);
         const inflated = pako.inflate(uint8Array);
         const raw = new TextDecoder().decode(inflated);
         const _ipfs = JSON.parse(raw);
-        console.log('IPFS:', raw);
+        console.log('IPFS:', _ipfs);
         setIpfs(_ipfs);
 
         // Get Builder Outputs
