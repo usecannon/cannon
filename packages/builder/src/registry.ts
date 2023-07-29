@@ -1,4 +1,4 @@
-import { ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -237,7 +237,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
-
+    console.log('publishing:', packagesNames);
     const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
@@ -252,10 +252,9 @@ export class OnChainRegistry extends CannonRegistry {
         url,
         metaUrl
       );
-
       datas.push(tx);
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -263,9 +262,9 @@ export class OnChainRegistry extends CannonRegistry {
     toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
   ): Promise<string[]> {
     await this.checkSigner();
-
     const datas: string[] = [];
     for (const pub of toPublish) {
+      console.log('publishing:', pub.packagesNames);
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
@@ -283,7 +282,7 @@ export class OnChainRegistry extends CannonRegistry {
         datas.push(tx);
       }
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -317,5 +316,23 @@ export class OnChainRegistry extends CannonRegistry {
     );
 
     return url === '' ? null : url;
+  }
+
+  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+    try {
+      const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
+      console.log(`\nEstimated gas: ${estimatedGas}`);
+      const gasPrice =
+        (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
+      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
+      const transactionFeeWei = estimatedGas.mul(gasPrice);
+      // Convert the transaction fee from wei to ether
+      const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
+
+      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+    } catch (e: any) {
+      // We dont want to throw an error if the estimate gas fails
+      console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);
+    }
   }
 }
