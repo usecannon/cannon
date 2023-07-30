@@ -3,19 +3,10 @@ import crypto from 'crypto';
 import path from 'path';
 import { LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
 import { CliSettings } from './settings';
+import { IPFSLoader } from '@usecannon/builder';
 
 jest.mock('fs-extra');
 jest.mock('crypto');
-
-jest.mock('@usecannon/builder', () => {
-  return {
-    IPFSLoader: jest.fn().mockImplementation(() => {
-      return new (jest.fn().mockImplementation(() => ({
-        // You can put methods of the IPFSLoader class here. If there's no methods, just leave it empty.
-      })))();
-    }),
-  };
-});
 
 describe('LocalLoader', LocalLoaderTestCases);
 describe('getMainLoader', getMainLoaderTestCases);
@@ -58,6 +49,9 @@ function LocalLoaderTestCases() {
 }
 
 function getMainLoaderTestCases() {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
       ipfsUrl: 'ipfs',
@@ -71,7 +65,7 @@ function getMainLoaderTestCases() {
     const loaders = getMainLoader(settings);
     expect(loaders).toHaveProperty('ipfs');
     expect(loaders).toHaveProperty('file');
-    expect(loaders.ipfs).toBeInstanceOf(Object); // Changed this line
+    expect(loaders.ipfs).toBeInstanceOf(IPFSLoader); // Changed this line
     expect(loaders.file).toBeInstanceOf(LocalLoader);
   });
 
@@ -85,6 +79,6 @@ function getMainLoaderTestCases() {
       quiet: true,
     };
     const loaders = getMainLoader(settings);
-    expect(loaders.ipfs).toBeInstanceOf(Object); // Changed this line
+    expect(loaders.ipfs).toBeInstanceOf(IPFSLoader); // Changed this line
   });
 }

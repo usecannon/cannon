@@ -1,4 +1,4 @@
-import { ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -109,8 +109,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
@@ -126,8 +132,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getMetaUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
@@ -225,7 +237,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
-
+    console.log('publishing:', packagesNames);
     const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
@@ -240,10 +252,9 @@ export class OnChainRegistry extends CannonRegistry {
         url,
         metaUrl
       );
-
       datas.push(tx);
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -251,9 +262,9 @@ export class OnChainRegistry extends CannonRegistry {
     toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
   ): Promise<string[]> {
     await this.checkSigner();
-
     const datas: string[] = [];
     for (const pub of toPublish) {
+      console.log('publishing:', pub.packagesNames);
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
@@ -271,7 +282,7 @@ export class OnChainRegistry extends CannonRegistry {
         datas.push(tx);
       }
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -305,5 +316,23 @@ export class OnChainRegistry extends CannonRegistry {
     );
 
     return url === '' ? null : url;
+  }
+
+  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+    try {
+      const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
+      console.log(`\nEstimated gas: ${estimatedGas}`);
+      const gasPrice =
+        (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
+      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
+      const transactionFeeWei = estimatedGas.mul(gasPrice);
+      // Convert the transaction fee from wei to ether
+      const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
+
+      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+    } catch (e: any) {
+      // We dont want to throw an error if the estimate gas fails
+      console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);
+    }
   }
 }
