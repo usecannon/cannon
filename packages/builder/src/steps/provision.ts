@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { z } from 'zod';
+
+import { ProvisionConfig, provisionSchema, validateStepConfig } from '../schemas.zod';
+
 
 import {
   ChainBuilderContext,
@@ -16,47 +18,7 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-const configSchema = z
-  .object({
-    source: z.string({
-      required_error: 'source is required',
-      invalid_type_error: 'source must be a string',
-    }),
-  })
-  .merge(
-    z
-      .object({
-        chainId: z.number().int(),
-        sourcePreset: z.string({
-          invalid_type_error: 'sourcePreset must be a string',
-        }),
-        targetPreset: z.string({
-          invalid_type_error: 'targetPreset must be a string',
-        }),
-        options: z.record(
-          z.string({
-            invalid_type_error: 'options items must be strings',
-          })
-        ),
-        tags: z.array(
-          z.string({
-            invalid_type_error: 'tags items must be strings',
-          })
-        ),
-        depends: z.array(
-          z.string({
-            invalid_type_error: 'depends items must be strings',
-          })
-        ),
-      })
-      .deepPartial()
-  );
-
-export type Config = z.infer<typeof configSchema>;
-
-const validateConfig = (config: Config) => {
-  return configSchema.parse(config);
-};
+export type Config = ProvisionConfig;
 
 export interface Outputs {
   [key: string]: string;
@@ -68,7 +30,7 @@ export interface Outputs {
 export default {
   label: 'provision',
 
-  validate: configSchema,
+  validate: provisionSchema,
 
   async getState(
     runtime: ChainBuilderRuntime,
@@ -102,7 +64,7 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
-    validateConfig(config);
+    validateStepConfig('provision', config);
 
     config = _.cloneDeep(config);
 
@@ -131,8 +93,6 @@ export default {
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
-
-    validateConfig(config);
 
     const sourcePreset = config.sourcePreset ?? 'main';
     const targetPreset = config.targetPreset ?? 'main';

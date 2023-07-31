@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { z } from 'zod';
+
+import { ImportConfig, importSchema, validateStepConfig } from '../schemas.zod';
 
 import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getOutputs } from '../builder';
@@ -9,34 +10,7 @@ import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
 
-export const configSchema = z
-  .object({
-    source: z.string({
-      required_error: 'source is required',
-      invalid_type_error: 'source must be a string',
-    }),
-  })
-  .merge(
-    z
-      .object({
-        chainId: z.number().int(),
-        preset: z.string({
-          invalid_type_error: 'preset must be a string',
-        }),
-        depends: z.array(
-          z.string({
-            invalid_type_error: 'depends arguments must be strings',
-          })
-        ),
-      })
-      .deepPartial()
-  );
-
-export type Config = z.infer<typeof configSchema>;
-
-const validateConfig = (config: Config) => {
-  return configSchema.parse(config);
-};
+export type Config = ImportConfig;
 
 export interface Outputs {
   [key: string]: string;
@@ -48,7 +22,7 @@ export interface Outputs {
 export default {
   label: 'import',
 
-  validate: configSchema,
+  validate: importSchema,
 
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -65,7 +39,7 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
-    validateConfig(config);
+    validateStepConfig('import', config);
 
     config = _.cloneDeep(config);
 
@@ -83,8 +57,6 @@ export default {
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
-
-    validateConfig(config);
 
     const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
     const preset = config.preset ?? 'main';

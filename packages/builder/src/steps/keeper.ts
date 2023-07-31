@@ -1,18 +1,11 @@
 import _ from 'lodash';
-import { z } from 'zod';
+
+import { ChainDefinitionScriptConfig, chainDefinitionScriptSchema, validateStepConfig } from '../schemas.zod';
+
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
-import { ChainDefinitionScriptSchema } from '../util';
 
-export type Config = z.infer<typeof ChainDefinitionScriptSchema>;
-
-const validateConfig = (config: Config) => {
-  return ChainDefinitionScriptSchema.parse(config);
-};
-
-export interface Outputs {
-  [key: string]: string;
-}
+export type Config = ChainDefinitionScriptConfig;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -20,14 +13,14 @@ export interface Outputs {
 export default {
   label: 'keeper',
 
-  validate: ChainDefinitionScriptSchema,
+  validate: chainDefinitionScriptSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateConfig(config);
+    validateStepConfig('keeper', config);
 
     config = _.cloneDeep(config);
 

@@ -1,17 +1,17 @@
 import { ChainBuilderRuntime } from './runtime';
 
-import { z } from 'zod';
+import { handleZodErrors } from './error/zod';
 
 import contractSpec from './steps/contract';
 
 import importSpec from './steps/import';
-import { configSchema } from './steps/import';
 
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
+
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
-import { ValidationSchema } from './types.zod';
+import { chainDefinitionSchema, ChainDefinitionConfig, ConfigValidationSchema } from './schemas.zod';
 
 export interface CannonAction {
   label: string;
@@ -32,7 +32,7 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
-  validate: ValidationSchema;
+  validate: ConfigValidationSchema;
 
   timeout?: number;
 }
@@ -46,48 +46,18 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
  * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
  */
 
-const ChainDefinitionSchema = z
-  .object({
-    name: z.string({
-      required_error: 'name is required',
-      invalid_type_error: 'name must be a string',
-    }),
-    version: z.string({
-      required_error: 'version is required',
-      invalid_type_error: 'version must be a string',
-    }),
-  })
-  .merge(
-    z
-      .object({
-        description: z.string(),
-        keywords: z.array(
-          z.string({
-            invalid_type_error: 'keywords must be strings',
-          })
-        ),
-        setting: z.record(
-          z
-            .object({
-              description: z.string({
-                invalid_type_error: 'description must be a string',
-              }),
-              type: z.enum(['number', 'string', 'boolean']),
-              defaultValue: z.string({
-                invalid_type_error: 'defaultValue must be a string',
-              }),
-            })
-            .deepPartial()
-        ),
-        import: z.object({ configSchema }),
-      })
-      .deepPartial()
-  );
 
-export type RawChainDefinition = z.infer<typeof ChainDefinitionSchema>;
+export type RawChainDefinition = ChainDefinitionConfig;
 
 export function validateChainDefinitionSchema(def: RawChainDefinition) {
-  return ChainDefinitionSchema.parse(def);
+  const result = chainDefinitionSchema.safeParse(def);
+
+  if (!result.success) {
+    const errors = result.error.errors;
+    handleZodErrors(errors);
+  } 
+
+  return result;
 }
 
 export function registerAction(action: CannonAction) {
@@ -104,7 +74,7 @@ export function registerAction(action: CannonAction) {
   ActionKinds[label] = action;
 
   (
-    ChainDefinitionSchema.pick({
+    chainDefinitionSchema.pick({
       description: true,
       keywords: true,
       setting: true,

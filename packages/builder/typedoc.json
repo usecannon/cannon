@@ -1,0 +1,24 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/schemas.zod.ts"],
+  "out": "./docs",
+  "plugin": ["typedoc-plugin-zod", "typedoc-plugin-markdown", "typedoc-plugin-replace-text"],
+  "excludeNotDocumented": true,
+  "sort": [
+    "kind",
+    "instance-first",
+    "required-first"
+  ],
+  "hideGenerator": true,
+  "titleLink": "https://usecannon.com/docs/technical-reference",
+  "replaceText": {
+    "inIncludedFiles": true,
+    "replacements": [
+      {
+        "pattern": "\\?`.*$",
+        "replace": " (Optional)"
+    },
+    ]
+  }
+  
+}

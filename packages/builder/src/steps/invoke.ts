@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { z } from 'zod';
+
+import { InvokeConfig, invokeSchema, validateStepConfig} from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -17,104 +18,7 @@ import { getAllContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
-const configSchema = z
-  .object({
-    target: z
-      .array(
-        z.string({
-          required_error: 'target is required',
-          invalid_type_error: 'targets must be strings',
-        })
-      )
-      .nonempty(),
-    func: z.string({
-      required_error: 'func is required',
-      invalid_type_error: 'func must be a string',
-    }),
-  })
-  .merge(
-    z
-      .object({
-        abi: z.string({
-          invalid_type_error: 'abi must be a string',
-        }),
-
-        args: z.array(z.any()),
-        from: z.string({
-          invalid_type_error: 'from must be a string',
-        }),
-        fromCall: z
-          .object({
-            func: z.string({
-              invalid_type_error: 'func must be a string',
-            }),
-          })
-          .merge(
-            z.object({
-              args: z.array(z.any()),
-            })
-          ),
-        value: z.string({
-          invalid_type_error: 'value must be a string',
-        }),
-        overrides: z.object({
-          gasLimit: z.string({
-            invalid_type_error: 'gasLimit must be a string',
-          }),
-        }),
-        extra: z.record(
-          z.object({
-            event: z.string({
-              required_error: 'event is required',
-              invalid_type_error: 'event must be a string',
-            }),
-            arg: z.number().int().lte(32),
-
-            allowEmptyEvents: z.boolean().optional(),
-          })
-        ),
-        factory: z.record(
-          z.object({
-            event: z.string({
-              required_error: 'event is required',
-              invalid_type_error: 'event must be a string',
-            }),
-            arg: z.number().int().lte(32),
-
-            artifact: z
-              .string({
-                invalid_type_error: 'artifact must be a string',
-              })
-              .optional(),
-            abiOf: z
-              .array(
-                z.string({
-                  invalid_type_error: 'artifact must be a string',
-                })
-              )
-              .optional(),
-            constructorArgs: z.array(z.any()).optional(),
-            allowEmptyEvents: z.boolean().optional(),
-          })
-        ),
-        depends: z
-          .array(
-            z.string({
-              invalid_type_error: 'depends inputs must be strings',
-            })
-          )
-          .nonempty({
-            message: 'depends cannot be empty',
-          }),
-      })
-      .deepPartial()
-  );
-
-export type Config = z.infer<typeof configSchema>;
-
-const validateConfig = (config: Config) => {
-  return configSchema.parse(config);
-};
+export type Config = InvokeConfig;
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -275,7 +179,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 export default {
   label: 'invoke',
 
-  validate: configSchema,
+  validate: invokeSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -289,7 +193,7 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
-    validateConfig(config);
+    validateStepConfig('invoke', config);
 
     config = _.cloneDeep(config);
 
@@ -359,8 +263,6 @@ export default {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
-
-    validateConfig(config);
 
     const txns: TransactionMap = {};
 
