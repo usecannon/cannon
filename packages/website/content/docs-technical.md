@@ -68,7 +68,6 @@ Publish a Cannon package to the registry for all networks where this package has
 **Options**
 
 - `--chain-id` - The network which the registry to deploy to is on. Default: 1 (mainnet)
-- `--provider-url` - RPC endpoint to use for publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--private-key` - Private key of the wallet to use when publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--preset` - Preset name to use (_Default: "main"_)
 - `--tags` - Comma separated list of labels (_Default: "latest"_)
