@@ -36,7 +36,7 @@ export async function createInitialContext(
   const pkgSettings = def.getSettings(preCtx);
 
   for (const s in pkgSettings) {
-    if (opts[s]) {
+    if (opts[s] !== undefined) {
       settings[s] = opts[s];
     } else if (pkgSettings[s].defaultValue !== undefined) {
       settings[s] = pkgSettings[s].defaultValue!;

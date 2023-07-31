@@ -84,7 +84,7 @@ function configureRun(program: Command) {
     .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
-    .option('--preset <name>', 'Load an alternate setting preset', 'main')
+    .option('--preset <preset>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
@@ -126,6 +126,22 @@ function configureRun(program: Command) {
 }
 
 async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+  // set debug verbosity
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
+
   debug('do build called with', cannonfile, settings, opts);
   // If the first param is not a cannonfile, it should be parsed as settings
   if (!cannonfile.endsWith('.toml')) {
@@ -137,7 +153,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.dirname(cannonfilePath);
+  const projectDirectory = path.resolve(process.cwd());
 
   const cliSettings = resolveCliSettings(opts);
 
@@ -247,6 +263,13 @@ program
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('-q --quiet', 'Suppress extra logging')
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
     const cannonfilePath = path.resolve(cannonfile);

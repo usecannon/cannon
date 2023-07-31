@@ -12,7 +12,11 @@ const debug = Debug('cannon:cli:plugins');
 const DEFAULT_PLUGINS = ['cannon-plugin-router'];
 
 export async function installPlugin(name: string) {
-  await mkdirp(_getPluginDir());
+  const packageJsonExists = existsSync(path.join(_getPluginDir(), 'package.json'));
+  if (!packageJsonExists) {
+    await mkdirp(_getPluginDir());
+    debug('plugin init:', await _exec('npm init -y'));
+  }
   debug('plugin install:', await _exec(`npm install ${name}`));
 }
 

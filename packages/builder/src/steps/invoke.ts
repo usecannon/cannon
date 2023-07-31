@@ -47,6 +47,9 @@ const config = {
           event: { type: 'string' },
           arg: { type: 'int32' },
         },
+        optionalProperties: {
+          allowEmptyEvents: { type: 'boolean' },
+        },
       },
     },
     factory: {
@@ -59,6 +62,7 @@ const config = {
           artifact: { type: 'string' },
           abiOf: { elements: { type: 'string' } },
           constructorArgs: { elements: {} },
+          allowEmptyEvents: { type: 'boolean' },
         },
       },
     },
@@ -176,11 +180,29 @@ async function runTxn(
 
 function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
+  let expectedEvent = '';
 
   if (config) {
     for (const n in txnEvents) {
       for (const [name, extra] of Object.entries(config)) {
         const events = _.entries(txnEvents[n][extra.event]);
+
+        // Check for an event defined in the cannonfile
+        if (
+          Object.prototype.hasOwnProperty.call(config, name) &&
+          Object.prototype.hasOwnProperty.call(config[name], 'event')
+        ) {
+          expectedEvent = config[name].event;
+        }
+
+        if (!config[name].allowEmptyEvents) {
+          if (events.length === 0) {
+            throw new Error(
+              `Event specified in cannonfile:\n\n ${expectedEvent} \n\ndoesn't exist or match an event emitted by the invoked function of the contract.`
+            );
+          }
+        }
+
         for (const [i, e] of events) {
           let label = name;
 
