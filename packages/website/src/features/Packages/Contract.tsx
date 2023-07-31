@@ -12,12 +12,12 @@ export const Contract: FC<{
   abi: AbiType;
   cannonOutputs: ChainArtifacts;
   chainId?: number;
-}> = ({ title, address, abi, cannonOutputs , chainId}) => {
+}> = ({ title, address, abi, cannonOutputs, chainId }) => {
   const [show, setShow] = useState(false);
   const anchor = useMemo(() => {
     const currentHash = window.location.hash.replace('#', '').split('-')[0];
     return currentHash + '-' + address;
-  }, []);
+  }, [address]);
 
   const copyToClipboard = useCopy();
   const copy = () => {
@@ -63,7 +63,12 @@ export const Contract: FC<{
       {/*  TODO: Implement the collapse */}
       {/*<Collapse isOpen="show">*/}
       {show && (
-        <Abi abi={abi} address={address} cannonOutputs={cannonOutputs} chainId={chainId}/>
+        <Abi
+          abi={abi}
+          address={address}
+          cannonOutputs={cannonOutputs}
+          chainId={chainId}
+        />
       )}
       {/*</Collapse>*/}
       <Button

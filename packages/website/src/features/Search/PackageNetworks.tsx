@@ -139,7 +139,8 @@ const PackageNetworks: FC<{
       })}
 
       <Modal size="5xl" isOpen={isOpen} onClose={closeModal}>
-        <ModalContent bg="black" color="white" ref="content">
+        {/*<ModalContent bg="black" color="white" ref="content"> TODO: literal as ref value is forbidden*/}
+        <ModalContent bg="black" color="white">
           <ModalHeader>
             <Heading size="lg">Contract Addresses + ABIs</Heading>
           </ModalHeader>

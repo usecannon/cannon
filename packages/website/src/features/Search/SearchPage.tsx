@@ -110,7 +110,7 @@ export const SearchPage = () => {
         ) : (
           <GridItem colSpan={9}>
             {packages.map((pkg) => (
-              <PackageCard pkg={pkg} />
+              <PackageCard pkg={pkg} key={pkg.name} />
             ))}
             <Flex justifyContent="space-between">
               <Button

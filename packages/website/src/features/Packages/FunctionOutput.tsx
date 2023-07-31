@@ -16,10 +16,6 @@ export const FunctionOutput: FC<{
   const objectOutput: AbiParameter | undefined = isObject(output)
     ? (output as AbiParameter)
     : undefined;
-  console.log('result in function output:', result);
-  console.log('output:', output);
-  console.log('objectOutput:', objectOutput);
-  console.log('arrayOutput:', arrayOutput);
 
   return (
     <div>
@@ -43,6 +39,7 @@ export const FunctionOutput: FC<{
                             <FunctionOutput
                               output={item.components[componentIndex]}
                               result={component}
+                              key={componentIndex}
                             />
                           );
                         })}

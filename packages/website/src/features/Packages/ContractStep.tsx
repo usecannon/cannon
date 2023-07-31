@@ -8,7 +8,7 @@ export const ContractStep: FC<{
   contracts?: ContractMap;
   cannonOutputs: ChainArtifacts;
   chainId?: number;
-}> = ({ contracts = {}, cannonOutputs , chainId}) => {
+}> = ({ contracts = {}, cannonOutputs, chainId }) => {
   const output: ({ title: string } & Pick<ContractData, 'address' | 'abi'>)[] =
     useMemo(() => {
       return Object.entries(contracts)

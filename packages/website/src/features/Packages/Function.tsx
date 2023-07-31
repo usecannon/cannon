@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { AbiFunction } from 'abitype/src/abi';
+import { AbiFunction, Abi } from 'abitype/src/abi';
+
 import { ChainArtifacts } from '@usecannon/builder';
 import _ from 'lodash';
 import {
@@ -15,9 +16,10 @@ import {
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { RefreshCw } from 'react-feather';
-import { useAccount, useNetwork, usePublicClient } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, getContract } from 'viem';
+import { Address } from 'viem';
+import { handleTxnError } from '@usecannon/builder';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -54,24 +56,19 @@ export const Function: FC<{
   const publicClient = usePublicClient({
     chainId: chainId as number,
   });
-  console.log('chainId:', chainId);
-  // console.log('publicClient:', publicClient);
 
   const submit = async (suppressError = false) => {
+    console.log('publicClient.chain:', publicClient.chain);
+    console.log('publicClient.chain.rpcUrls:', publicClient.chain.rpcUrls);
     setLoading(true);
-    // TODO: implement
-    // console.log('isConnected:', isConnected);
     try {
       if (readOnly) {
-        console.log('publicClient:', publicClient);
-        const _contract = getContract({
+        const _result = await publicClient.readContract<Abi, string>({
           address: address as Address,
           abi: [f],
-          publicClient,
-        });
-        console.log('contract.read', _contract.read);
-        const _result = await _contract.read[f.name](...params);
-        console.log('_result:', _result);
+          functionName: f.name,
+          args: params,
+        }); //[f.name](...params);
         setResult(_result);
       } else {
         if (!isConnected) {
@@ -82,7 +79,11 @@ export const Function: FC<{
     } catch (e) {
       if (!suppressError) {
         try {
-          // await handleTxnError(this.cannonOutputs, provider, e) // TODO
+          await handleTxnError(
+            cannonOutputs,
+            publicClient.chain.rpcUrls.public.http[0] as string,
+            e
+          ); // TODO
           console.error(e);
         } catch (e2) {
           setError(e2);

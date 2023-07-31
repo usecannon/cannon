@@ -67,18 +67,18 @@ export const CreateCannonFile = () => {
       <Text mt={8}>
         Load the plug-in at the top of your hardhat.config.js file with&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
-          require('hardhat-cannon');
+          {"require('hardhat-cannon');"}
         </Code>
         &nbsp;or&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
-          import 'hardhat-cannon';
+          {"import 'hardhat-cannon';"}
         </Code>
         &nbsp;if your’re using Typescript.
       </Text>
       <Text mt={4}>
         In the configuration file, set the default network like so:&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
-          defaultNetwork: "cannon"
+          {'defaultNetwork: "cannon"'}
         </Code>
       </Text>
       <Text mt={4}>Your project should have the following contract:</Text>
