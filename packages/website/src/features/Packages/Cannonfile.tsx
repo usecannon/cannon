@@ -3,6 +3,7 @@ import { GetPackagesQuery } from '@/types/graphql/graphql';
 import axios from 'axios';
 import pako from 'pako';
 import { Box, Spinner } from '@chakra-ui/react';
+import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 

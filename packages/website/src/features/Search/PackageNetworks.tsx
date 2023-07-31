@@ -14,6 +14,7 @@ import {
   ModalCloseButton,
 } from '@chakra-ui/react';
 import { Copy } from 'react-feather';
+import 'prismjs';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import _ from 'lodash';

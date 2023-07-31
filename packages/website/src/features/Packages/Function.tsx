@@ -15,9 +15,9 @@ import {
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { RefreshCw } from 'react-feather';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount, useNetwork, usePublicClient } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, createPublicClient, getContract, http } from 'viem';
+import { Address, getContract } from 'viem';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -31,8 +31,6 @@ export const Function: FC<{
   const [params, setParams] = useState<any[]>([]);
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-
-  const network = useNetwork();
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
@@ -53,18 +51,19 @@ export const Function: FC<{
     }
   }, []);
 
+  const publicClient = usePublicClient({
+    chainId: chainId as number,
+  });
+  console.log('chainId:', chainId);
+  // console.log('publicClient:', publicClient);
+
   const submit = async (suppressError = false) => {
     setLoading(true);
     // TODO: implement
     // console.log('isConnected:', isConnected);
     try {
       if (readOnly) {
-        const chain = network.chains.find((c) => c.id == chainId);
-        console.log('chain:', chain);
-        const publicClient = createPublicClient({
-          transport: http(),
-          chain: chain,
-        });
+        console.log('publicClient:', publicClient);
         const _contract = getContract({
           address: address as Address,
           abi: [f],

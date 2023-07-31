@@ -11,18 +11,26 @@ import {
   mainnet,
   optimism,
   polygon,
-  zora,
+  localhost,
+  hardhat,
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { ReactNode } from 'react';
 
+const cannonLocalHost = {
+  ...localhost,
+  id: 13370,
+  name: 'Cannon Localhost',
+};
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
     mainnet,
     polygon,
     optimism,
     arbitrum,
-    zora,
+    localhost,
+    cannonLocalHost,
+    hardhat,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : []),
   ],
   [publicProvider()]
