@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.build.json && rollup -c",
     "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
-    "docgen": "typedoc"
+    "docgen-html": "typedoc --out ./docs/html",
+    "docgen-md": "typedoc --plugin typedoc-plugin-markdown --plugin typedoc-plugin-zod --out ./docs/md"
   },
   "keywords": [
     "cannon"

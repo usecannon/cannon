@@ -168,7 +168,11 @@ export const runSchema = z
 
 // General validation schema.
 // Anytime an attribute is added to any of the zod schemas above it must be added to this
+
+// All properties are made optional since all schemas that
+// are validated against this are a partial object of this schema.
 export type ConfigValidationSchema = z.ZodObject<{
+  
   // Properties
   target?: z.ZodArray<z.ZodString, 'atleastone'>;
   exec?: z.ZodString;
@@ -229,43 +233,43 @@ export type ConfigValidationSchema = z.ZodObject<{
 
 /**
  *  Available properties for contract step
- *  @namespace
+ *  @namespace 
  */
 export type ContractConfig = z.infer<typeof contractSchema>;
 
 /**
  *  Available properties for import step
- *  @namespace
+ *  @namespace 
  */
 export type ImportConfig = z.infer<typeof importSchema>;
 
 /**
  *  Available properties for invoke step
- *  @namespace
+ *  @namespace 
  */
 export type InvokeConfig = z.infer<typeof invokeSchema>;
 
 /**
  *  Available properties for provision step
- *  @namespace
+ *  @namespace 
  */
 export type ProvisionConfig = z.infer<typeof provisionSchema>;
 
 /**
  *  Available properties for run step
- *  @namespace
+ *  @namespace 
  */
 export type RunConfig = z.infer<typeof runSchema>;
 
 /**
  *  Available properties for keeper step
- *  @namespace
+ *  @namespace 
  */
 export type ChainDefinitionScriptConfig = z.infer<typeof chainDefinitionScriptSchema>;
 
 /**
  *  Available properties for top level config
- *  @namespace
+ *  @namespace 
  */
 export type ChainDefinitionConfig = z.infer<typeof chainDefinitionSchema>;
 

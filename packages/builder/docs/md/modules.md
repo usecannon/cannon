@@ -21,6 +21,8 @@
 Ƭ **ContractConfig**: `Object`
 
 Available properties for contract step
+  
+ 
 
 #### Type declaration
 
@@ -41,7 +43,7 @@ Available properties for contract step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:234
+[packages/builder/src/schemas.zod.ts:235](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L235)
 
 ___
 
@@ -50,6 +52,10 @@ ___
 Ƭ **ImportConfig**: `Object`
 
 Available properties for import step
+
+**`Alias`**
+
+Import
 
 #### Type declaration
 
@@ -62,7 +68,7 @@ Available properties for import step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:240
+[packages/builder/src/schemas.zod.ts:242](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L242)
 
 ___
 
@@ -71,6 +77,10 @@ ___
 Ƭ **InvokeConfig**: `Object`
 
 Available properties for invoke step
+
+**`Alias`**
+
+Invoke
 
 #### Type declaration
 
@@ -90,7 +100,7 @@ Available properties for invoke step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:246
+[packages/builder/src/schemas.zod.ts:249](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L249)
 
 ___
 
@@ -99,6 +109,10 @@ ___
 Ƭ **ProvisionConfig**: `Object`
 
 Available properties for provision step
+
+**`Alias`**
+
+Provision
 
 #### Type declaration
 
@@ -114,7 +128,7 @@ Available properties for provision step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:252
+[packages/builder/src/schemas.zod.ts:256](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L256)
 
 ___
 
@@ -123,6 +137,10 @@ ___
 Ƭ **RunConfig**: `Object`
 
 Available properties for run step
+
+**`Alias`**
+
+Run
 
 #### Type declaration
 
@@ -137,7 +155,7 @@ Available properties for run step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:258
+[packages/builder/src/schemas.zod.ts:263](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L263)
 
 ___
 
@@ -146,6 +164,10 @@ ___
 Ƭ **ChainDefinitionScriptConfig**: `Object`
 
 Available properties for keeper step
+
+**`Alias`**
+
+Keeper
 
 #### Type declaration
 
@@ -157,7 +179,7 @@ Available properties for keeper step
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:264
+[packages/builder/src/schemas.zod.ts:270](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L270)
 
 ___
 
@@ -166,6 +188,10 @@ ___
 Ƭ **ChainDefinitionConfig**: `Object`
 
 Available properties for top level config
+
+**`Alias`**
+
+CannonfileConfig
 
 #### Type declaration
 
@@ -180,4 +206,4 @@ Available properties for top level config
 
 #### Defined in
 
-packages/builder/src/schemas.zod.ts:270
+[packages/builder/src/schemas.zod.ts:277](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L277)
