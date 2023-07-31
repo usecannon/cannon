@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { z } from 'zod';
+
+import { RunConfig, runSchema, handleZodErrors } from '@usecannon/builder';
 
 import {
   ChainBuilderContext,
@@ -58,38 +59,17 @@ export function hashFs(path: string): Buffer {
   return dirHasher.digest();
 }
 
-const configSchema = z
-  .object({
-    exec: z.string({
-      required_error: 'exec is required',
-      invalid_type_error: 'exec must be a string',
-    }),
-    func: z.string({
-      required_error: 'func is required',
-      invalid_type_error: 'func must be a string',
-    }),
-    modified: z
-      .array(
-        z.string({
-          invalid_type_error: 'modified must be a string',
-        })
-      )
-      .nonempty(),
-  })
-  .merge(
-    z
-      .object({
-        args: z.array(z.string()),
-        env: z.array(z.string()),
-        depends: z.array(z.string().nullable()),
-      })
-      .deepPartial()
-  );
+export type Config = RunConfig;
 
-export type Config = z.infer<typeof configSchema>;
+const validateStepConfig = (config: Config) => {
+  const result = runSchema.safeParse(config);
 
-const validateConfig = (config: Config) => {
-  return configSchema.parse(config);
+  if (!result.success) {
+    const errors = result.error.errors;
+    handleZodErrors(errors);
+  }
+
+  return result;
 };
 
 // ensure the specified contract is already deployed
@@ -98,7 +78,7 @@ const validateConfig = (config: Config) => {
 const runAction = {
   label: 'run',
 
-  validate: configSchema,
+  validate: runSchema,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const newConfig = this.configInject(ctx, config);
@@ -129,7 +109,7 @@ const runAction = {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateConfig(config);
+    validateStepConfig(config);
 
     config = _.cloneDeep(config);
 
@@ -162,8 +142,6 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
-
-    validateConfig(config);
 
     const runfile = await importFrom(process.cwd(), config.exec);
 
