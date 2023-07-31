@@ -12,9 +12,9 @@ module.exports = {
     inIncludedFiles: true,
     replacements: [
       {
-        pattern: "Type alias",
-        replace: "."
+        pattern: 'Type alias',
+        replace: '.',
       },
-    ]
-  }
+    ],
+  },
 };

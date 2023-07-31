@@ -39,10 +39,6 @@ export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
       return {
         message: `Enum must be one of the following options ${error.options}`,
       };
-    case z.ZodIssueCode.invalid_enum_value:
-      return {
-        message: `Enum must be one of the following options ${error.options}`,
-      };
     default:
       // fall back to default message
       return { message: ctx.defaultError };

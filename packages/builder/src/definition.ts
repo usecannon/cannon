@@ -25,10 +25,9 @@ export type StateLayers = {
   };
 };
 
-
 /**
  * Cannonfile metadata layout
-*/
+ */
 export class ChainDefinition {
   private raw: RawChainDefinition;
 

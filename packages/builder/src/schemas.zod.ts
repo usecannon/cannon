@@ -126,7 +126,7 @@ export const keeperSchema = z
 
 /**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
-*/
+ */
 export const chainDefinitionSchema = z
   .object({
     name: z.string(),
@@ -238,45 +238,45 @@ export type ConfigValidationSchema = z.ZodObject<{
 
 /**
  *  Available properties for contract step
- *  
+ *
  */
 export type Contract = z.infer<typeof contractSchema>;
 
 /**
  *  Available properties for import step
- *  
+ *
  */
 export type Import = z.infer<typeof importSchema>;
 
 /**
  *  Available properties for invoke step
- *  
+ *
  */
 export type Invoke = z.infer<typeof invokeSchema>;
 
 /**
  *  Available properties for provision step
- *  
+ *
  */
 export type Provision = z.infer<typeof provisionSchema>;
 
 /**
  *  Available properties for run step
- *  
+ *
  */
 export type Run = z.infer<typeof runSchema>;
 
 /**
  *  Available properties for keeper step
- *  
+ *
  */
 export type Keeper = z.infer<typeof keeperSchema>;
 
 /**
  *  Available properties for top level config
- *  
+ *
  */
-export type ChainDefinition= z.infer<typeof chainDefinitionSchema>;
+export type ChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
 /// ================================ SCHEMA VALIDATION ================================ \\\
 
@@ -290,7 +290,7 @@ const Schemas = {
   run: runSchema,
 };
 
-type ConfigTypes = ChainDefinition | Contract | Import | Invoke |  Provision | Run | Keeper ;
+type ConfigTypes = ChainDefinition | Contract | Import | Invoke | Provision | Run | Keeper;
 
 export function validateConfig(step: keyof typeof Schemas, config: ConfigTypes) {
   const result = Schemas[step].safeParse(config);
