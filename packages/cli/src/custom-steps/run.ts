@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { RunConfig, runSchema, handleZodErrors } from '@usecannon/builder';
+import { Run, runSchema, handleZodErrors } from '@usecannon/builder';
 
 import {
   ChainBuilderContext,
@@ -59,9 +59,9 @@ export function hashFs(path: string): Buffer {
   return dirHasher.digest();
 }
 
-export type Config = RunConfig;
+export type Config = Run;
 
-const validateStepConfig = (config: Config) => {
+const validateConfig = (config: Config) => {
   const result = runSchema.safeParse(config);
 
   if (!result.success) {
@@ -109,7 +109,7 @@ const runAction = {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateStepConfig(config);
+    validateConfig(config);
 
     config = _.cloneDeep(config);
 

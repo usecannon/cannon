@@ -47,7 +47,7 @@ export const importSchema = z
 
 export const invokeSchema = z
   .object({
-    target: z.array(z.string()).nonempty().max(1),
+    target: z.array(z.string()).nonempty(),
     func: z.string(),
   })
   .merge(
@@ -111,7 +111,7 @@ export const provisionSchema = z
       .deepPartial()
   );
 
-export const chainDefinitionScriptSchema = z
+export const keeperSchema = z
   .object({
     exec: z.string(),
   })
@@ -124,6 +124,9 @@ export const chainDefinitionScriptSchema = z
       .deepPartial()
   );
 
+/**
+ * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
+*/
 export const chainDefinitionSchema = z
   .object({
     name: z.string(),
@@ -166,11 +169,14 @@ export const runSchema = z
 
 /// ================================ TS TYPE DEFINITIONS ================================ \\\
 
-// General validation schema.
-// Anytime an attribute is added to any of the zod schemas above it must be added to this
+/** 
+* @internal
+* @title General validation schema.
+* @description Anytime an attribute is added to any of the zod schemas must be added to this
 
-// All properties are made optional since all schemas that
-// are validated against this are a partial object of this schema.
+* All properties are made optional since all schemas that
+* are validated against this are a partial object of this schema.
+*/
 export type ConfigValidationSchema = z.ZodObject<{
   // Properties
   target?: z.ZodArray<z.ZodString, 'atleastone'>;
@@ -232,60 +238,61 @@ export type ConfigValidationSchema = z.ZodObject<{
 
 /**
  *  Available properties for contract step
- *  @namespace
+ *  
  */
-export type ContractConfig = z.infer<typeof contractSchema>;
+export type Contract = z.infer<typeof contractSchema>;
 
 /**
  *  Available properties for import step
- *  @namespace
+ *  
  */
-export type ImportConfig = z.infer<typeof importSchema>;
+export type Import = z.infer<typeof importSchema>;
 
 /**
  *  Available properties for invoke step
- *  @namespace
+ *  
  */
-export type InvokeConfig = z.infer<typeof invokeSchema>;
+export type Invoke = z.infer<typeof invokeSchema>;
 
 /**
  *  Available properties for provision step
- *  @namespace
+ *  
  */
-export type ProvisionConfig = z.infer<typeof provisionSchema>;
+export type Provision = z.infer<typeof provisionSchema>;
 
 /**
  *  Available properties for run step
- *  @namespace
+ *  
  */
-export type RunConfig = z.infer<typeof runSchema>;
+export type Run = z.infer<typeof runSchema>;
 
 /**
  *  Available properties for keeper step
- *  @namespace
+ *  
  */
-export type ChainDefinitionScriptConfig = z.infer<typeof chainDefinitionScriptSchema>;
+export type Keeper = z.infer<typeof keeperSchema>;
 
 /**
  *  Available properties for top level config
- *  @namespace
+ *  
  */
-export type ChainDefinitionConfig = z.infer<typeof chainDefinitionSchema>;
+export type ChainDefinition= z.infer<typeof chainDefinitionSchema>;
 
 /// ================================ SCHEMA VALIDATION ================================ \\\
 
 const Schemas = {
+  base: chainDefinitionSchema,
   contract: contractSchema,
   import: importSchema,
   invoke: invokeSchema,
   provision: provisionSchema,
-  keeper: chainDefinitionScriptSchema,
+  keeper: keeperSchema,
   run: runSchema,
 };
 
-type StepConfigs = ContractConfig | ImportConfig | InvokeConfig | ChainDefinitionScriptConfig | ProvisionConfig | RunConfig;
+type ConfigTypes = ChainDefinition | Contract | Import | Invoke |  Provision | Run | Keeper ;
 
-export function validateStepConfig(step: keyof typeof Schemas, config: StepConfigs) {
+export function validateConfig(step: keyof typeof Schemas, config: ConfigTypes) {
   const result = Schemas[step].safeParse(config);
 
   if (!result.success) {

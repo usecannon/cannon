@@ -1,10 +1,10 @@
 import _ from 'lodash';
 
-import { ChainDefinitionScriptConfig, chainDefinitionScriptSchema, validateStepConfig } from '../schemas.zod';
+import { Keeper, keeperSchema, validateConfig } from '../schemas.zod';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 
-export type Config = ChainDefinitionScriptConfig;
+export type Config = Keeper;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -12,14 +12,14 @@ export type Config = ChainDefinitionScriptConfig;
 export default {
   label: 'keeper',
 
-  validate: chainDefinitionScriptSchema,
+  validate: keeperSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateStepConfig('keeper', config);
+    validateConfig('keeper', config);
 
     config = _.cloneDeep(config);
 

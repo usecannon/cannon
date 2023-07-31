@@ -10,7 +10,7 @@ export * from './util';
 export * from './types';
 
 // Used by the run step in cli
-export { RunConfig, runSchema } from './schemas.zod';
+export { Run, runSchema } from './schemas.zod';
 
 export { CannonWrapperGenericProvider } from './error/provider';
 

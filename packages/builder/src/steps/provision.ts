@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { ProvisionConfig, provisionSchema, validateStepConfig } from '../schemas.zod';
+import { Provision, provisionSchema, validateConfig } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -17,7 +17,7 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-export type Config = ProvisionConfig;
+export type Config = Provision;
 
 export interface Outputs {
   [key: string]: string;
@@ -63,7 +63,7 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
-    validateStepConfig('provision', config);
+    validateConfig('provision', config);
 
     config = _.cloneDeep(config);
 

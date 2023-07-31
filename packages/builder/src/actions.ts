@@ -1,7 +1,5 @@
 import { ChainBuilderRuntime } from './runtime';
 
-import { handleZodErrors } from './error/zod';
-
 import contractSpec from './steps/contract';
 
 import importSpec from './steps/import';
@@ -11,7 +9,7 @@ import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
-import { chainDefinitionSchema, ChainDefinitionConfig, ConfigValidationSchema } from './schemas.zod';
+import { chainDefinitionSchema, ChainDefinition, ConfigValidationSchema, validateConfig } from './schemas.zod';
 
 export interface CannonAction {
   label: string;
@@ -42,21 +40,10 @@ export interface CannonAction {
  */
 export const ActionKinds: { [label: string]: CannonAction } = {};
 
-/**
- * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
- */
-
-export type RawChainDefinition = ChainDefinitionConfig;
+export type RawChainDefinition = ChainDefinition;
 
 export function validateChainDefinitionSchema(def: RawChainDefinition) {
-  const result = chainDefinitionSchema.safeParse(def);
-
-  if (!result.success) {
-    const errors = result.error.errors;
-    handleZodErrors(errors);
-  }
-
-  return result;
+  return validateConfig('base', def);
 }
 
 export function registerAction(action: CannonAction) {

@@ -6,23 +6,21 @@
 
 ### Type Aliases
 
-- [ContractConfig](modules.md#contractconfig)
-- [ImportConfig](modules.md#importconfig)
-- [InvokeConfig](modules.md#invokeconfig)
-- [ProvisionConfig](modules.md#provisionconfig)
-- [RunConfig](modules.md#runconfig)
-- [ChainDefinitionScriptConfig](modules.md#chaindefinitionscriptconfig)
-- [ChainDefinitionConfig](modules.md#chaindefinitionconfig)
+- [Contract](modules.md#contract)
+- [Import](modules.md#import)
+- [Invoke](modules.md#invoke)
+- [Provision](modules.md#provision)
+- [Run](modules.md#run)
+- [Keeper](modules.md#keeper)
+- [ChainDefinition](modules.md#chaindefinition)
 
 ## Type Aliases
 
-### ContractConfig
+### Contract
 
-Ƭ **ContractConfig**: `Object`
+Ƭ **Contract**: `Object`
 
 Available properties for contract step
-  
- 
 
 #### Type declaration
 
@@ -43,19 +41,15 @@ Available properties for contract step
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:235](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L235)
+[packages/builder/src/schemas.zod.ts:243](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L243)
 
 ___
 
-### ImportConfig
+### Import
 
-Ƭ **ImportConfig**: `Object`
+Ƭ **Import**: `Object`
 
 Available properties for import step
-
-**`Alias`**
-
-Import
 
 #### Type declaration
 
@@ -68,19 +62,15 @@ Import
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:242](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L242)
+[packages/builder/src/schemas.zod.ts:249](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L249)
 
 ___
 
-### InvokeConfig
+### Invoke
 
-Ƭ **InvokeConfig**: `Object`
+Ƭ **Invoke**: `Object`
 
 Available properties for invoke step
-
-**`Alias`**
-
-Invoke
 
 #### Type declaration
 
@@ -100,19 +90,15 @@ Invoke
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:249](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L249)
+[packages/builder/src/schemas.zod.ts:255](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L255)
 
 ___
 
-### ProvisionConfig
+### Provision
 
-Ƭ **ProvisionConfig**: `Object`
+Ƭ **Provision**: `Object`
 
 Available properties for provision step
-
-**`Alias`**
-
-Provision
 
 #### Type declaration
 
@@ -128,19 +114,15 @@ Provision
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:256](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L256)
+[packages/builder/src/schemas.zod.ts:261](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L261)
 
 ___
 
-### RunConfig
+### Run
 
-Ƭ **RunConfig**: `Object`
+Ƭ **Run**: `Object`
 
 Available properties for run step
-
-**`Alias`**
-
-Run
 
 #### Type declaration
 
@@ -155,19 +137,15 @@ Run
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:263](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L263)
+[packages/builder/src/schemas.zod.ts:267](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L267)
 
 ___
 
-### ChainDefinitionScriptConfig
+### Keeper
 
-Ƭ **ChainDefinitionScriptConfig**: `Object`
+Ƭ **Keeper**: `Object`
 
 Available properties for keeper step
-
-**`Alias`**
-
-Keeper
 
 #### Type declaration
 
@@ -179,19 +157,15 @@ Keeper
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:270](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L270)
+[packages/builder/src/schemas.zod.ts:273](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L273)
 
 ___
 
-### ChainDefinitionConfig
+### ChainDefinition
 
-Ƭ **ChainDefinitionConfig**: `Object`
+Ƭ **ChainDefinition**: `Object`
 
 Available properties for top level config
-
-**`Alias`**
-
-CannonfileConfig
 
 #### Type declaration
 
@@ -206,4 +180,4 @@ CannonfileConfig
 
 #### Defined in
 
-[packages/builder/src/schemas.zod.ts:277](https://github.com/usecannon/cannon/blob/f25c70c9/packages/builder/src/schemas.zod.ts#L277)
+[packages/builder/src/schemas.zod.ts:279](https://github.com/usecannon/cannon/blob/45367c1f/packages/builder/src/schemas.zod.ts#L279)

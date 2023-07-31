@@ -25,15 +25,19 @@ export type StateLayers = {
   };
 };
 
+
+/**
+ * Cannonfile metadata layout
+*/
 export class ChainDefinition {
   private raw: RawChainDefinition;
 
   readonly allActionNames: string[];
 
-  // actions which have no dependencies
+  /** actions which have no dependencies */
   readonly roots: Set<string>;
 
-  // actions which are not depended on by anything
+  /** actions which are not depended on by anything */
   readonly leaves: Set<string>;
 
   private cachedLayers: StateLayers | null = null;
