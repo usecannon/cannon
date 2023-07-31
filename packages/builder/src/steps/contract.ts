@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { ContractConfig, contractSchema, validateStepConfig} from '../schemas.zod';
+import { ContractConfig, contractSchema, validateStepConfig } from '../schemas.zod';
 
 import { ethers } from 'ethers';
 
@@ -83,7 +83,7 @@ export default {
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     validateStepConfig('contract', config);
-    
+
     config = _.cloneDeep(config);
 
     config.from = _.template(config.from)(ctx);

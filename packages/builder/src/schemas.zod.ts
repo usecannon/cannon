@@ -140,7 +140,8 @@ export const chainDefinitionSchema = z
               description: z.string(),
               type: z.enum(['number', 'string', 'boolean']),
               defaultValue: z.string(),
-            }).partial()
+            })
+            .partial()
         ),
         import: z.object({ importSchema }),
       })
@@ -162,7 +163,6 @@ export const runSchema = z
       })
       .deepPartial()
   );
-
 
 /// ================================ TS TYPE DEFINITIONS ================================ \\\
 
@@ -272,12 +272,12 @@ export type ChainDefinitionConfig = z.infer<typeof chainDefinitionSchema>;
 /// ================================ SCHEMA VALIDATION ================================ \\\
 
 const Schemas = {
-  "contract": contractSchema,
-  "import": importSchema,
-  "invoke": invokeSchema,
-  "provision": provisionSchema,
-  "keeper": chainDefinitionScriptSchema,
-  "run": runSchema
+  contract: contractSchema,
+  import: importSchema,
+  invoke: invokeSchema,
+  provision: provisionSchema,
+  keeper: chainDefinitionScriptSchema,
+  run: runSchema,
 };
 
 type StepConfigs = ContractConfig | ImportConfig | InvokeConfig | ChainDefinitionScriptConfig | ProvisionConfig | RunConfig;

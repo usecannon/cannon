@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { InvokeConfig, invokeSchema, validateStepConfig} from '../schemas.zod';
+import { InvokeConfig, invokeSchema, validateStepConfig } from '../schemas.zod';
 
 import {
   ChainBuilderContext,

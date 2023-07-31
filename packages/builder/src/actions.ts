@@ -46,7 +46,6 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
  * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
  */
 
-
 export type RawChainDefinition = ChainDefinitionConfig;
 
 export function validateChainDefinitionSchema(def: RawChainDefinition) {
@@ -55,7 +54,7 @@ export function validateChainDefinitionSchema(def: RawChainDefinition) {
   if (!result.success) {
     const errors = result.error.errors;
     handleZodErrors(errors);
-  } 
+  }
 
   return result;
 }

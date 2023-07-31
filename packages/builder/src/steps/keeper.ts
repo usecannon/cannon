@@ -2,7 +2,6 @@ import _ from 'lodash';
 
 import { ChainDefinitionScriptConfig, chainDefinitionScriptSchema, validateStepConfig } from '../schemas.zod';
 
-
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 
 export type Config = ChainDefinitionScriptConfig;
