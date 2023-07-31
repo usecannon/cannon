@@ -2,7 +2,6 @@ import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useMemo, useRef, useState } from 'react';
 import { Box, Text, Button, Spinner, Heading } from '@chakra-ui/react';
 import chainData from '@/constants/chainsData';
-import { highlight, languages } from 'prismjs';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -15,11 +14,11 @@ import {
   ModalCloseButton,
 } from '@chakra-ui/react';
 import { Copy } from 'react-feather';
-import Editor from 'react-simple-code-editor';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import _ from 'lodash';
-import { useCopy } from '@/lib/copy'; //Example style, you can use another
+import { useCopy } from '@/lib/copy';
+import { CodePreview } from '@/components/CodePreview'; //Example style, you can use another
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -52,10 +51,6 @@ const PackageNetworks: FC<{
         }
       });
   }, [p]);
-
-  const highlighter = (code: string) => {
-    return highlight(code, languages.json, 'json');
-  };
 
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -167,14 +162,7 @@ const PackageNetworks: FC<{
                 {/*    highlight={highlighter}*/}
                 {/*    ></prism-editor>*/}
                 {/*</client-only>*/}
-                <Editor
-                  highlight={highlighter}
-                  value={deployData.current}
-                  disabled={true}
-                  onValueChange={() => {
-                    // nothing
-                  }}
-                />
+                <CodePreview code={deployData.current} language={'json'} />
               </Box>
             ) : (
               <Box textAlign="center" py="20" opacity="0.5">
