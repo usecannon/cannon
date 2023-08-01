@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import ethers from 'ethers';
-import { bold, greenBright, red, yellow, gray, cyan, yellowBright } from 'chalk';
+import { bold, greenBright, yellow, gray, cyan, yellowBright } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -12,9 +12,8 @@ import {
   getOutputs,
   DeploymentInfo,
   CannonWrapperGenericProvider,
-  RawChainDefinition,
 } from '@usecannon/builder';
-import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
+import { readMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
@@ -155,10 +154,10 @@ export async function build({
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
-  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined)
+  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
 
   if (!def) {
-    throw new Error('no deployment definition to build')
+    throw new Error('no deployment definition to build');
   }
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
@@ -190,11 +189,7 @@ export async function build({
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(
-    bold(
-      `Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`
-    )
-  );
+  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {

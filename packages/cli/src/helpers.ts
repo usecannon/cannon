@@ -93,23 +93,22 @@ function loadPackageJson(filepath: string): { name: string; version: string } {
 }
 
 export async function loadCannonfile(filepath: string) {
-
-  let buf: Buffer
-  let rawDef: RawChainDefinition
+  let buf: Buffer;
+  let rawDef: RawChainDefinition;
 
   if (filepath.endsWith('-')) {
     // credit where its due this is pretty slick
     // https://stackoverflow.com/a/56012724
-    // read all data from stdin 
+    // read all data from stdin
     buf = await fs.readFile(0);
 
-    rawDef = JSON.parse(buf.toString('utf8'))
+    rawDef = JSON.parse(buf.toString('utf8'));
   } else {
     if (!fs.existsSync(filepath)) {
       throw new Error(`Cannonfile '${filepath}' not found.`);
     }
-  
-    [rawDef, buf] = await loadChainDefinitionToml(filepath, []) as [RawChainDefinition, Buffer];
+
+    [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
   const def = new ChainDefinition(rawDef);
   const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
