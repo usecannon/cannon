@@ -10,7 +10,7 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
   .addFlag('json', 'Output as JSON')
   .setAction(async ({ packageName, json, writeDeployments, chainId, preset }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
-      packageWithSettingsParams: packageName ? [packageName] : [],
+      packageWithSettingsParams: packageName ? [packageName] : []
     });
 
     if (!chainId) {

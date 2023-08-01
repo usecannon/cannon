@@ -21,14 +21,14 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     : path.join(config.paths.root, 'deployments');
 
   config.cannon = {
-    publicSourceCode: userConfig.cannon?.publicSourceCode || false,
+    publicSourceCode: userConfig.cannon?.publicSourceCode || false
   };
 
   config.networks.cannon = {
     port: 8545,
     ...(config.networks?.hardhat || {}),
     ...(userConfig.networks?.cannon || {}),
-    chainId: CANNON_CHAIN_ID,
+    chainId: CANNON_CHAIN_ID
   } as any;
 });
 

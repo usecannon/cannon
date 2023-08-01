@@ -30,7 +30,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       packages.push({
         name,
         version,
-        settings: {},
+        settings: {}
       });
     }
 
@@ -44,18 +44,18 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
     const node = await runRpc(
       hre.network.name === 'cannon' || hre.network.name === 'hardhat'
         ? {
-            port: Number.parseInt(port) || hre.config.networks.cannon.port,
+            port: Number.parseInt(port) || hre.config.networks.cannon.port
           }
         : {
             port: Number.parseInt(port) || hre.config.networks.cannon.port,
             forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url),
-            chainId: networkConfig.chainId,
+            chainId: networkConfig.chainId
           }
     );
 
     let toImpersonate: string[] = [];
     if (impersonate) {
-      toImpersonate = (await hre.ethers.getSigners()).map((s) => s.address);
+      toImpersonate = (await hre.ethers.getSigners()).map(s => s.address);
     }
 
     return run(packages, {
@@ -71,7 +71,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
         .split(',')
         .filter(Boolean)
         .map((s: string) => s.trim())
-        .filter(Boolean),
+        .filter(Boolean)
     });
   });
 

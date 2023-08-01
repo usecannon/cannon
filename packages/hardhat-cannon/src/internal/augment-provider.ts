@@ -35,7 +35,7 @@ export function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: Chain
       hre.network.name,
       {
         ...hre.network.config,
-        url: `http://127.0.0.1:${hre.config.networks.cannon.port}`,
+        url: `http://127.0.0.1:${hre.config.networks.cannon.port}`
       },
       hre.config.paths,
       hre.artifacts

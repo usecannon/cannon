@@ -32,6 +32,6 @@ async function getDefaultPackageDefinition(hre: HardhatRuntimeEnvironment): Prom
   return {
     name,
     version,
-    settings: {},
+    settings: {}
   };
 }

@@ -5,5 +5,5 @@ async function empty() {
 }
 
 module.exports = {
-  empty,
+  empty
 };

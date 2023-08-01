@@ -107,7 +107,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         packageDefinition: {
           name,
           version,
-          settings: parsedSettings,
+          settings: parsedSettings
         },
         getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
         async getSigner(addr: string) {
@@ -135,7 +135,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         persist: !dryRun && hre.network.name !== 'hardhat',
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
-        publicSourceCode: hre.config.cannon.publicSourceCode,
+        publicSourceCode: hre.config.cannon.publicSourceCode
       } as const;
 
       const { outputs } = await build(params);
