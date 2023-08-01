@@ -64,7 +64,8 @@ export function hashFs(path: string): Buffer {
 /**
  *  Available properties for run step
  *  @public
- *  @alias Run
+ *  @group Run
+ 
  */
 export type Config = z.infer<typeof runSchema>;
 

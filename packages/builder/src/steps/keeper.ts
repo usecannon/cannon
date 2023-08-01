@@ -8,7 +8,7 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '..
 /**
  *  Available properties for keeper step
  *  @public
- *  @alias Keeper
+ *  @group Keeper
  */
 export type Config = z.infer<typeof keeperSchema>;
 

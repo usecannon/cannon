@@ -14,7 +14,7 @@ const debug = Debug('cannon:builder:import');
 /**
  *  Available properties for import step
  *  @public
- *  @alias Import
+ *  @group Import
  */
 export type Config = z.infer<typeof importSchema>;
 

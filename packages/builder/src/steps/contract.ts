@@ -24,8 +24,7 @@ const debug = Debug('cannon:builder:contract');
 /**
  *  Available properties for contract step
  *  @public
- *  @typealias Contract
- *  @alias Contract
+ *  @group Contract
  */
 export type Config = z.infer<typeof contractSchema>;
 

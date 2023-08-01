@@ -22,7 +22,7 @@ const debug = Debug('cannon:builder:invoke');
 /**
  *  Available properties for invoke step
  *  @public
- *  @alias Invoke
+ *  @group Invoke
  */
 export type Config = z.infer<typeof invokeSchema>;
 

@@ -9,8 +9,7 @@
     "prepublishOnly": "npm run build",
     "test": "jest",
     "start": "node dist/bin/cannon.js",
-    "docgen-html": "typedoc --out ../../docs/cli/html",
-    "docgen-md": "typedoc --plugin typedoc-plugin-markdown --plugin typedoc-plugin-zod --plugin typedoc-plugin-merge-modules --out ../../docs/cli --readme none --excludeInternal"
+    "docgen": "typedoc"
   },
   "keywords": [
     "cannon",

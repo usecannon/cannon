@@ -21,7 +21,7 @@ const debug = Debug('cannon:builder:provision');
 /**
  *  Available properties for provision step
  *  @public
- *  @alias Provision
+ *  @group Provision
  */
 export type Config = z.infer<typeof provisionSchema>;
 

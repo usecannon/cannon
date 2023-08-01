@@ -39,6 +39,7 @@ export interface CannonAction {
 }
 
 /**
+ * @internal
  * All the different types (and their implementations)
  */
 export const ActionKinds: { [label: string]: CannonAction } = {};
@@ -46,8 +47,8 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
 /**
  *  Available properties for top level config
  *  @public
- *  @alias BaseDefinition
- *  @
+ *  @group Base Cannonfile Config
+ 
  */
 export type RawChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
@@ -80,14 +81,14 @@ export function registerAction(action: CannonAction) {
 
   ActionKinds[label] = action;
 
-  (
-    chainDefinitionSchema.pick({
-      description: true,
-      keywords: true,
-      setting: true,
-      import: true,
-    }) as any
-  )[label] = { values: action.validate };
+  // (
+  //   chainDefinitionSchema.pick({
+  //     description: true,
+  //     keywords: true,
+  //     setting: true,
+  //     import: true,
+  //   }) as any
+  // )[label] = { values: action.validate };
 }
 
 registerAction(contractSpec);
