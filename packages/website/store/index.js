@@ -8,28 +8,28 @@ const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
-      infuraId: INFURA_ID,
-    },
-  },
+      infuraId: INFURA_ID
+    }
+  }
 };
 
 const web3Modal = new Web3Modal({
   cacheProvider: false,
   providerOptions,
-  theme: 'dark',
+  theme: 'dark'
 });
 
 export const state = () => ({
   providerOptions,
   chainId: 0,
   account: null,
-  INFURA_ID,
+  INFURA_ID
 });
 
 export const getters = {
   getChainId(state) {
     return state.chainId;
-  },
+  }
 };
 
 export const mutations = {
@@ -38,7 +38,7 @@ export const mutations = {
   },
   setAccount(state, account) {
     state.account = account;
-  },
+  }
 };
 
 export const actions = {
@@ -48,7 +48,7 @@ export const actions = {
       instance,
       'any'
     );
-    window.metamaskProvider.on('accountsChanged', function (accounts) {
+    window.metamaskProvider.on('accountsChanged', function(accounts) {
       commit('setAccount', accounts[0]);
     });
 
@@ -73,21 +73,21 @@ export const actions = {
     }
 
     commit('setChainId', chainId);
-  },
+  }
 };
 
 const switchMetamaskChain = async (chainId, toast) => {
   try {
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: '0x' + chainId.toString(16) }], // chainId must be in HEX with 0x in front
+      params: [{ chainId: '0x' + chainId.toString(16) }] // chainId must be in HEX with 0x in front
     });
   } catch (error) {
     toast({
       title: 'Error',
       description: error.message,
       status: 'error',
-      duration: 10000,
+      duration: 10000
     });
     return;
   }

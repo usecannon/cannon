@@ -7,22 +7,22 @@ export default {
   ssr: false,
 
   alias: {
-    '@usecannon/builder': '@usecannon/builder/dist/cannon.umd.js',
+    '@usecannon/builder': '@usecannon/builder/dist/cannon.umd.js'
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'Cannon',
     htmlAttrs: {
-      lang: 'en',
+      lang: 'en'
     },
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: '' },
-      { name: 'format-detection', content: 'telephone=no' },
+      { name: 'format-detection', content: 'telephone=no' }
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
@@ -45,39 +45,39 @@ export default {
     '@nuxtjs/emotion',
     '@nuxt/content',
     '@nuxtclub/feathericons',
-    '@nuxtjs/apollo',
+    '@nuxtjs/apollo'
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 
   chakra: {
-    extendTheme: customTheme,
+    extendTheme: customTheme
   },
 
   googleFonts: {
     families: {
       'Miriam+Libre': true,
-      Inter: true,
-    },
+      Inter: true
+    }
   },
 
   apollo: {
     clientConfigs: {
       default: {
         httpEndpoint:
-          'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry-mainnet',
-      },
-    },
+          'https://api.thegraph.com/subgraphs/name/noahlitvin/cannon-registry-mainnet'
+      }
+    }
   },
 
   content: {
     markdown: {
       prism: {
-        theme: 'prism-themes/themes/prism-one-dark.css',
-      },
-    },
+        theme: 'prism-themes/themes/prism-one-dark.css'
+      }
+    }
   },
 
-  telemetry: false,
+  telemetry: false
 };

@@ -12,8 +12,9 @@
         <CBox top="0" :position="[null, 'sticky']" :pt="[0, 8]">
           <CBox mb="6">
             <CButton
-              variant-color="teal"
-              bg="teal.600"
+              variant-color="gray"
+              bg="gray.600"
+              :_hover="{ bg: 'gray.700' }"
               size="xs"
               mr="2"
               as="nuxt-link"
@@ -34,21 +35,19 @@
             >
 
             <CButton
-              variant-color="gray"
-              bg="gray.600"
+              variant-color="teal"
+              bg="teal.600"
               size="xs"
               mr="2"
               as="nuxt-link"
-              to="/docs/cannonfile-types"
-              :_hover="{ bg: 'gray.700' }"
+              to="/docs/technical-reference"
               >Cannonfile spec</CButton
             >
 
             </CBox
           >
-
           <CLink
-            v-for="link of overview.toc"
+            v-for="link of configuration.toc"
             :key="link.id"
             as="nuxt-link"
             fontFamily="'Miriam Libre'"
@@ -67,7 +66,7 @@
         </CBox>
       </CGridItem>
       <CGridItem :col-span="[12, 9]" class="prose" :pt="[0, 8]">
-        <nuxt-content :document="overview" />
+        <nuxt-content :document="configuration" />
       </CGridItem>
     </CGrid>
   </CBox>
@@ -77,13 +76,14 @@
 export default {
   name: 'Docs',
   async asyncData({ $content, params, error }) {
-    const overview = await $content('docs-overview')
+    const configuration = await $content('docs-configuration')
       .fetch()
       .catch(err => {
         error({ statusCode: 404, message: "Page not found" });
       });
+
     return {
-      overview
+      configuration
     };
   }
 }
