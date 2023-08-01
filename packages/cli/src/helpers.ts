@@ -11,6 +11,8 @@ import { chains } from './chains';
 import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import Debug from 'debug';
+const debug = Debug('cannon:builder:loader');
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -78,7 +80,7 @@ export function execPromise(command: string): Promise<string> {
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   if (!(await isConnectedToInternet())) {
-    console.log('You are offline so we dont check the latest version of cannon');
+    debug('You are offline so we dont check the latest version of cannon');
     return;
   }
   const latestVersion = await execPromise('npm view @usecannon/cli version');
