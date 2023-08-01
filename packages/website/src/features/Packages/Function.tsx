@@ -16,7 +16,15 @@ import {
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { RefreshCw } from 'react-feather';
-import { useAccount, usePublicClient } from 'wagmi';
+import {
+  Chain,
+  useAccount,
+  useConnect,
+  useNetwork,
+  usePublicClient,
+  useSwitchNetwork,
+  useWalletClient,
+} from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
@@ -32,7 +40,17 @@ export const Function: FC<{
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[]>([]);
   const { isConnected } = useAccount();
+  const { connectAsync } = useConnect();
   const { openConnectModal } = useConnectModal();
+  const { chain: connectedChain } = useNetwork();
+
+  const publicClient = usePublicClient({
+    chainId: chainId as number,
+  });
+  const { switchNetworkAsync } = useSwitchNetwork();
+  const { data: walletClient } = useWalletClient({
+    chainId: chainId as number,
+  });
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
@@ -53,13 +71,7 @@ export const Function: FC<{
     }
   }, []);
 
-  const publicClient = usePublicClient({
-    chainId: chainId as number,
-  });
-
   const submit = async (suppressError = false) => {
-    console.log('publicClient.chain:', publicClient.chain);
-    console.log('publicClient.chain.rpcUrls:', publicClient.chain.rpcUrls);
     setLoading(true);
     try {
       if (readOnly) {
@@ -72,8 +84,29 @@ export const Function: FC<{
         setResult(_result);
       } else {
         if (!isConnected) {
-          if (openConnectModal) openConnectModal();
-          return;
+          try {
+            await connectAsync?.();
+          } catch (e) {
+            if (openConnectModal) openConnectModal();
+            return;
+          }
+        }
+        if (connectedChain?.id != chainId) {
+          const newChain = await switchNetworkAsync?.(chainId as number);
+          if (newChain?.id != chainId) return;
+        }
+        try {
+          const _result = await walletClient?.writeContract<Abi, string, Chain>(
+            {
+              address: address as Address,
+              abi: [f],
+              functionName: f.name,
+              args: Array.isArray(params) ? params : [params],
+            }
+          );
+          setResult(_result);
+        } catch (e) {
+          console.error(e);
         }
       }
     } catch (e) {

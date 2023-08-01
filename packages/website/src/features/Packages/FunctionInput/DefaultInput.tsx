@@ -22,7 +22,7 @@ export const DefaultInput: FC<{
       type="text"
       bg="black"
       borderColor="whiteAlpha.400"
-      value={value}
+      value={updateValue}
       onChange={(e) => setUpdateValue(e.target.value)}
     />
   );

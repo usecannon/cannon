@@ -146,3 +146,5 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
     </Box>
   );
 };
+
+export default PackagesPage;

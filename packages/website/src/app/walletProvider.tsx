@@ -21,6 +21,7 @@ const cannonLocalHost = {
   ...localhost,
   id: 13370,
   name: 'Cannon Localhost',
+  rpcUrl: 'http://127.0.0.1:8545',
 };
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -28,7 +29,6 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     polygon,
     optimism,
     arbitrum,
-    localhost,
     cannonLocalHost,
     hardhat,
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : []),
@@ -43,7 +43,7 @@ const { connectors } = getDefaultWallets({
 });
 
 const wagmiConfig = createConfig({
-  autoConnect: false,
+  autoConnect: true,
   connectors,
   publicClient,
   webSocketPublicClient,

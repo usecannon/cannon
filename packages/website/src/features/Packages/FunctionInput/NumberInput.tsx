@@ -26,7 +26,7 @@ export const NumberInput: FC<{
       v-model="value"
       borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
       is-invalid={isInvalid}
-      value={value}
+      value={updateValue.toString()}
       _focus={{ borderColor: isInvalid ? 'red.500' : 'blue.300' }}
       onChange={(e) => {
         setUpdateValue(parseValue(e.target.value));

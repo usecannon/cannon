@@ -11,6 +11,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  LinkBox,
   Spinner,
   Text,
 } from '@chakra-ui/react';
@@ -58,12 +59,6 @@ export const SearchPage = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    if (loading) {
-      console.log('loading:', loading);
-    }
-    if (data) {
-      console.log('data:', JSON.stringify(data.packages.length));
-    }
     if (error) {
       console.log('error:', error);
     }
@@ -71,7 +66,6 @@ export const SearchPage = () => {
   }, [loading, error, data]);
 
   useEffect(() => {
-    console.log('totalPackages:', totalPackages?.totalPackages?.length);
     setTotalPages(
       Math.ceil((totalPackages?.totalPackages?.length || 0) / pageSize)
     );
@@ -109,9 +103,11 @@ export const SearchPage = () => {
           </GridItem>
         ) : (
           <GridItem colSpan={9}>
-            {packages.map((pkg) => (
-              <PackageCard pkg={pkg} key={pkg.name} />
-            ))}
+            <LinkBox>
+              {packages.map((pkg) => (
+                <PackageCard pkg={pkg} key={pkg.name} />
+              ))}
+            </LinkBox>
             <Flex justifyContent="space-between">
               <Button
                 size="sm"
