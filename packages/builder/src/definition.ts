@@ -37,6 +37,7 @@ export class ChainDefinition {
   readonly leaves: Set<string>;
 
   private cachedLayers: StateLayers | null = null;
+  readonly cachedActionDepths = new Map<string, number>();
 
   constructor(def: RawChainDefinition) {
     this.raw = def;
@@ -202,29 +203,33 @@ export class ChainDefinition {
 
   /**
    * @note deps returned in topological order
-   * @returns all dependencies reachable from the specfied node
+   * @returns all dependencies reachable from the specfied node, and the depth of the iteration required
    */
-  getDependencyTree: (node: string) => string[] = _.memoize((node) => {
+  getDependencyTree: (node: string) => [string[], number] = _.memoize((node) => {
     const deps = this.getDependencies(node);
 
     const allDeps = [];
+    let maxDepth = 0;
 
     for (const dep of deps) {
-      allDeps.push(...this.getDependencyTree(dep));
+      const [subDeps, subDepth] = this.getDependencyTree(dep);
+      allDeps.push(...subDeps);
       allDeps.push(dep);
+      maxDepth = Math.max(maxDepth, subDepth + 1);
     }
 
-    return _.uniq(allDeps);
+    this.cachedActionDepths.set(node, maxDepth);
+
+    return [_.uniq(allDeps), maxDepth];
   });
 
   get topologicalActions() {
-    const actions = [];
-
     for (const leaf of this.leaves) {
-      actions.push(...this.getDependencyTree(leaf), leaf);
+      const [, maxDepth] = this.getDependencyTree(leaf);
+      this.cachedActionDepths.set(leaf, maxDepth);
     }
 
-    return _.uniq(actions);
+    return _.sortBy(this.allActionNames, (n) => this.cachedActionDepths.get(n));
   }
 
   checkAll(): ChainDefinitionProblems | null {
@@ -337,8 +342,8 @@ export class ChainDefinition {
     // dependency of this node
     outer: for (const dep of deps) {
       for (const d of deps) {
-        const childDeps = new Set(this.getDependencyTree(dep));
-        if (childDeps.has(d)) {
+        const [childDeps] = this.getDependencyTree(dep);
+        if (childDeps.includes(d)) {
           extraneous.push({ node, extraneous: d, inDep: dep });
           break outer;
         }
@@ -368,7 +373,7 @@ export class ChainDefinition {
     }
 
     const actions = this.topologicalActions;
-    const layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {};
+    const layers: { [key: string]: { actions: string[]; depends: string[] } } = {};
     const layerOfActions = new Map<string, string>();
     const layerDependingOn = new Map<string, string>();
 
@@ -391,9 +396,6 @@ export class ChainDefinition {
 
         // attached to all the layers of the dependencies
         depends: [],
-
-        // depending layers are not attached to anything
-        depending: [],
       };
 
       let attachingLayer: string = n;
@@ -403,6 +405,7 @@ export class ChainDefinition {
       // first. filter any deps which are extraneous. This is a dependency which is a subdepenendency of an assigned layer for a dependency.
       // @note this is the slowest part of cannon atm. Improvements here would be most important.
       for (const dep of deps) {
+        console.log('checking dep', dep, layers[dep], n);
         for (const depdep of layers[dep].depends) {
           const depTree = this.getLayerDependencyTree(depdep, layers);
           deps = deps.filter((d) => depTree.indexOf(d) === -1);
