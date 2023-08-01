@@ -65,13 +65,13 @@ export class ChainDefinition {
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
 
-    this.roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
+    this.roots = new Set(this.allActionNames.filter(n => !this.getDependencies(n).length));
 
     this.leaves = new Set(
       _.difference(
         this.allActionNames,
         _.chain(this.allActionNames)
-          .map((n) => this.getDependencies(n))
+          .map(n => this.getDependencies(n))
           .flatten()
           .uniq()
           .value()
@@ -100,7 +100,7 @@ export class ChainDefinition {
       );
     }
 
-    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n))
+    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
 
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
@@ -108,7 +108,7 @@ export class ChainDefinition {
       {
         name: this.getName(ctx),
         version: this.getVersion(ctx),
-        currentLabel: n,
+        currentLabel: n
       }
     )!;
   }
@@ -146,7 +146,7 @@ export class ChainDefinition {
       {
         name: this.getName(ctx),
         version: this.getVersion(ctx),
-        currentLabel: n,
+        currentLabel: n
       }
     );
 
@@ -155,7 +155,10 @@ export class ChainDefinition {
     } else {
       const rawState = JSON.stringify(obj);
       debugVerbose('creating hash of', rawState);
-      return crypto.createHash('md5').update(rawState).digest('hex');
+      return crypto
+        .createHash('md5')
+        .update(rawState)
+        .digest('hex');
     }
   }
 
@@ -187,10 +190,10 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import.validate).map((d) => ({
+      Object.values(this.raw.import.validate).map(d => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: _.template(d.preset || 'main')(ctx),
+        preset: _.template(d.preset || 'main')(ctx)
       }))
     );
   }
@@ -208,7 +211,7 @@ export class ChainDefinition {
    * @note deps returned in topological order
    * @returns all dependencies reachable from the specfied node
    */
-  getDependencyTree: (node: string) => string[] = _.memoize((node) => {
+  getDependencyTree: (node: string) => string[] = _.memoize(node => {
     const deps = this.getDependencies(node);
 
     const allDeps = [];
@@ -246,7 +249,7 @@ export class ChainDefinition {
       invalidSchema,
       missing,
       cycles: cycle ? [cycle] : [],
-      extraneous,
+      extraneous
     };
   }
 
@@ -397,7 +400,7 @@ export class ChainDefinition {
         depends: [],
 
         // depending layers are not attached to anything
-        depending: [],
+        depending: []
       };
 
       let attachingLayer: string = n;
@@ -409,7 +412,7 @@ export class ChainDefinition {
       for (const dep of deps) {
         for (const depdep of layers[dep].depends) {
           const depTree = this.getLayerDependencyTree(depdep, layers);
-          deps = deps.filter((d) => depTree.indexOf(d) === -1);
+          deps = deps.filter(d => depTree.indexOf(d) === -1);
         }
       }
 
@@ -462,7 +465,7 @@ export class ChainDefinition {
   private getPrintLinesUsed(n: string, layers = this.getStateLayers()): number {
     return Math.max(
       layers[n].actions.length + 2,
-      _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))
+      _.sumBy(layers[n].depends, d => this.getPrintLinesUsed(d, layers))
     );
   }
 
@@ -533,7 +536,7 @@ export class ChainDefinition {
 
       layerSearch: for (const layer of layerArray) {
         for (const action of layer.actions) {
-          if (layerArray.find((l) => l.depends.indexOf(action) !== -1)) {
+          if (layerArray.find(l => l.depends.indexOf(action) !== -1)) {
             // this isnt a leaf
             continue layerSearch;
           }

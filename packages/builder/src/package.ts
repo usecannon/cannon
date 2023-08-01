@@ -46,7 +46,7 @@ export async function forPackageTree<T>(
 
 function _deployImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
+  return Object.values(deployInfo.state).flatMap(state => Object.values(state.artifacts.imports || {}));
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
@@ -85,11 +85,11 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     return {
       packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
-        (t) => `${def.getName(preCtx)}:${t}`
+        t => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,
       url,
-      metaUrl: newMetaUrl || '',
+      metaUrl: newMetaUrl || ''
     };
   };
 

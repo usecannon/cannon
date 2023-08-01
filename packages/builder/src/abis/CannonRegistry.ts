@@ -4,96 +4,96 @@ export default [
       {
         internalType: 'address',
         name: 'implementation',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'ImplementationIsSterile',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: 'name',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'InvalidName',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'InvalidTags',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [
       {
         internalType: 'string',
         name: 'url',
-        type: 'string',
-      },
+        type: 'string'
+      }
     ],
     name: 'InvalidUrl',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'NoChange',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'contr',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'NotAContract',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'addr',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'NotNominated',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'PackageNotFound',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'addr',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'Unauthorized',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'Unauthorized',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'UpgradeSimulationFailed',
-    type: 'error',
+    type: 'error'
   },
   {
     inputs: [],
     name: 'ZeroAddress',
-    type: 'error',
+    type: 'error'
   },
   {
     anonymous: false,
@@ -102,17 +102,17 @@ export default [
         indexed: false,
         internalType: 'address',
         name: 'oldOwner',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: false,
         internalType: 'address',
         name: 'newOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'OwnerChanged',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -121,11 +121,11 @@ export default [
         indexed: false,
         internalType: 'address',
         name: 'newOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'OwnerNominated',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -134,41 +134,41 @@ export default [
         indexed: true,
         internalType: 'bytes32',
         name: 'name',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         indexed: true,
         internalType: 'bytes32',
         name: 'tag',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         indexed: true,
         internalType: 'bytes32',
         name: 'variant',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         indexed: false,
         internalType: 'string',
         name: 'deployUrl',
-        type: 'string',
+        type: 'string'
       },
       {
         indexed: false,
         internalType: 'string',
         name: 'metaUrl',
-        type: 'string',
+        type: 'string'
       },
       {
         indexed: false,
         internalType: 'address',
         name: 'owner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'PackagePublish',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -177,17 +177,17 @@ export default [
         indexed: true,
         internalType: 'bytes32',
         name: 'name',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'verifier',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'PackageUnverify',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -196,17 +196,17 @@ export default [
         indexed: true,
         internalType: 'bytes32',
         name: 'name',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'verifier',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'PackageVerify',
-    type: 'event',
+    type: 'event'
   },
   {
     anonymous: false,
@@ -215,17 +215,17 @@ export default [
         indexed: true,
         internalType: 'address',
         name: 'self',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: false,
         internalType: 'address',
         name: 'implementation',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'Upgraded',
-    type: 'event',
+    type: 'event'
   },
   {
     inputs: [],
@@ -234,31 +234,31 @@ export default [
       {
         internalType: 'uint256',
         name: '',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
     name: 'acceptOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'acceptPackageOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -267,157 +267,157 @@ export default [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32',
         name: '_packageVersionName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32',
         name: '_packageVariant',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'getPackageMeta',
     outputs: [
       {
         internalType: 'string',
         name: '',
-        type: 'string',
-      },
+        type: 'string'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'getPackageNominatedOwner',
     outputs: [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'getPackageOwner',
     outputs: [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32',
         name: '_packageVersionName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32',
         name: '_packageVariant',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'getPackageUrl',
     outputs: [
       {
         internalType: 'string',
         name: '',
-        type: 'string',
-      },
+        type: 'string'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes[]',
         name: 'data',
-        type: 'bytes[]',
-      },
+        type: 'bytes[]'
+      }
     ],
     name: 'multicall',
     outputs: [
       {
         internalType: 'bytes[]',
         name: 'results',
-        type: 'bytes[]',
-      },
+        type: 'bytes[]'
+      }
     ],
     stateMutability: 'payable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'newNominatedOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'nominateNewOwner',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'address',
         name: '_newPackageOwner',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'nominatePackageOwner',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -426,11 +426,11 @@ export default [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
@@ -439,121 +439,121 @@ export default [
       {
         internalType: 'address',
         name: '',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32',
         name: '_variant',
-        type: 'bytes32',
+        type: 'bytes32'
       },
       {
         internalType: 'bytes32[]',
         name: '_packageTags',
-        type: 'bytes32[]',
+        type: 'bytes32[]'
       },
       {
         internalType: 'string',
         name: '_packageDeployUrl',
-        type: 'string',
+        type: 'string'
       },
       {
         internalType: 'string',
         name: '_packageMetaUrl',
-        type: 'string',
-      },
+        type: 'string'
+      }
     ],
     name: 'publish',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [],
     name: 'renounceNomination',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: 'newImplementation',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'simulateUpgradeTo',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'unverifyPackage',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'address',
         name: '_newImplementation',
-        type: 'address',
-      },
+        type: 'address'
+      }
     ],
     name: 'upgradeTo',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_name',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'validatePackageName',
     outputs: [
       {
         internalType: 'bool',
         name: '',
-        type: 'bool',
-      },
+        type: 'bool'
+      }
     ],
     stateMutability: 'pure',
-    type: 'function',
+    type: 'function'
   },
   {
     inputs: [
       {
         internalType: 'bytes32',
         name: '_packageName',
-        type: 'bytes32',
-      },
+        type: 'bytes32'
+      }
     ],
     name: 'verifyPackage',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
+    type: 'function'
+  }
 ];

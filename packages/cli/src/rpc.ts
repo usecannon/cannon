@@ -44,14 +44,14 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
 
     return Promise.race([
-      new Promise<CannonRpcNode>((resolve) => {
+      new Promise<CannonRpcNode>(resolve => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
           resolve(await runRpc({ port, forkProvider, chainId }));
         });
         anvilInstance!.kill();
       }),
-      timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil') as Promise<CannonRpcNode>,
+      timeout(ANVIL_OP_TIMEOUT, 'could not shut down previous anvil') as Promise<CannonRpcNode>
     ]);
   }
 
@@ -85,7 +85,7 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
         state = 'running';
       });
 
-      anvilInstance?.on('error', (err) => {
+      anvilInstance?.on('error', err => {
         if (state == 'spawning') {
           reject(
             new Error(`Anvil failed to start: ${err}
@@ -103,7 +103,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         }
       });
 
-      anvilInstance?.stdout?.on('data', (rawChunk) => {
+      anvilInstance?.stdout?.on('data', rawChunk => {
         // right now check for expected output string to connect to node
         const chunk = rawChunk.toString('utf8');
         const m = chunk.match(/Listening on (.*)/);
@@ -118,12 +118,12 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         debug(chunk);
       });
 
-      anvilInstance.stderr?.on('data', (rawChunk) => {
+      anvilInstance.stderr?.on('data', rawChunk => {
         const chunk = rawChunk.toString('utf8');
         console.error(chunk.split('\n').map((m: string) => 'anvil: ' + m));
       });
     }),
-    timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start') as Promise<CannonRpcNode>,
+    timeout(ANVIL_OP_TIMEOUT, 'anvil failed to start') as Promise<CannonRpcNode>
   ]);
 }
 
@@ -140,7 +140,7 @@ export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperG
 }
 
 export function createProviderProxy(provider: ethers.providers.JsonRpcProvider): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const server = http.createServer(async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       const reqJson = JSON.parse(await streamToString(req));
@@ -153,7 +153,7 @@ export function createProviderProxy(provider: ethers.providers.JsonRpcProvider):
           JSON.stringify({
             jsonrpc: '2.0',
             result: proxiedResult,
-            id: reqJson.id,
+            id: reqJson.id
           })
         );
       } catch (err) {
@@ -163,7 +163,7 @@ export function createProviderProxy(provider: ethers.providers.JsonRpcProvider):
           JSON.stringify({
             jsonrpc: '2.0',
             error: err,
-            id: reqJson.id,
+            id: reqJson.id
           })
         );
       }
@@ -181,8 +181,8 @@ export function createProviderProxy(provider: ethers.providers.JsonRpcProvider):
 function streamToString(stream: Readable): Promise<string> {
   const chunks: Buffer[] = [];
   return new Promise<string>((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on('error', (err) => reject(err));
+    stream.on('data', chunk => chunks.push(Buffer.from(chunk)));
+    stream.on('error', err => reject(err));
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
   });
 }

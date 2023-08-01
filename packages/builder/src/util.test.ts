@@ -4,7 +4,7 @@ import {
   getExecutionSigner,
   getMergedAbiFromContractPaths,
   printChainDefinitionProblems,
-  printInternalOutputs,
+  printInternalOutputs
 } from './util';
 
 import 'jest';
@@ -22,23 +22,23 @@ describe('util.ts', () => {
       {
         internalType: 'address',
         name: 'from',
-        type: 'address',
+        type: 'address'
       },
       {
         internalType: 'address',
         name: 'to',
-        type: 'address',
+        type: 'address'
       },
       {
         internalType: 'uint256',
         name: 'tokenId',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'transferFrom',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
+    type: 'function'
   };
 
   const fakeEventFragment: JsonFragment = {
@@ -48,23 +48,23 @@ describe('util.ts', () => {
         indexed: true,
         internalType: 'address',
         name: 'from',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: true,
         internalType: 'address',
         name: 'to',
-        type: 'address',
+        type: 'address'
       },
       {
         indexed: true,
         internalType: 'uint256',
         name: 'tokenId',
-        type: 'uint256',
-      },
+        type: 'uint256'
+      }
     ],
     name: 'Transfer',
-    type: 'event',
+    type: 'event'
   };
 
   const fakeReadFragment: JsonFragment = {
@@ -74,11 +74,11 @@ describe('util.ts', () => {
       {
         internalType: 'bool',
         name: '',
-        type: 'bool',
-      },
+        type: 'bool'
+      }
     ],
     stateMutability: 'view',
-    type: 'function',
+    type: 'function'
   };
 
   const fakeCtx: ChainBuilderContext = {
@@ -89,7 +89,7 @@ describe('util.ts', () => {
         sourceName: '',
         deployTxnHash: '',
         deployedOn: '',
-        abi: [fakeEventFragment, fakeReadFragment],
+        abi: [fakeEventFragment, fakeReadFragment]
       },
 
       AnotherFake: {
@@ -98,8 +98,8 @@ describe('util.ts', () => {
         sourceName: '',
         deployTxnHash: '',
         deployedOn: '',
-        abi: [fakeTransferFragment],
-      },
+        abi: [fakeTransferFragment]
+      }
     },
     imports: {
       FakeImport: {
@@ -114,10 +114,10 @@ describe('util.ts', () => {
                 sourceName: '',
                 deployTxnHash: '',
                 deployedOn: '',
-                abi: [fakeTransferFragment, fakeReadFragment],
-              },
-            },
-          },
+                abi: [fakeTransferFragment, fakeReadFragment]
+              }
+            }
+          }
         },
         contracts: {
           AnotherFake: {
@@ -126,17 +126,17 @@ describe('util.ts', () => {
             sourceName: '',
             deployTxnHash: '',
             deployedOn: '',
-            abi: [fakeTransferFragment, fakeReadFragment],
-          },
-        },
-      },
+            abi: [fakeTransferFragment, fakeReadFragment]
+          }
+        }
+      }
     },
     settings: {},
     txns: {},
     chainId: 0,
     timestamp: '0',
     package: {},
-    extras: {},
+    extras: {}
   };
 
   describe('getContractFromPath()', () => {
@@ -182,7 +182,7 @@ describe('util.ts', () => {
   describe('getExecutionSigner()', () => {
     const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
-    jest.mocked(provider.getSigner).mockImplementation((addr) => new ethers.VoidSigner(addr, provider));
+    jest.mocked(provider.getSigner).mockImplementation(addr => new ethers.VoidSigner(addr, provider));
 
     it('returns a signer based on the hash of transaction data', async () => {
       const signer = await getExecutionSigner(provider, { data: 'woot' });
@@ -210,24 +210,24 @@ describe('util.ts', () => {
       const allContractPaths = getAllContractPaths({
         contracts: {
           Foobar: {} as any,
-          Baz: {} as any,
+          Baz: {} as any
         },
         imports: {
           fake: {
             url: '',
             contracts: {
-              SuperDuper: {} as any,
+              SuperDuper: {} as any
             },
             imports: {
               fake2: {
                 url: '',
                 contracts: {
-                  SuperFake: {} as any,
-                },
-              },
-            },
-          },
-        },
+                  SuperFake: {} as any
+                }
+              }
+            }
+          }
+        }
       });
 
       expect(allContractPaths).toHaveLength(4);
@@ -249,7 +249,7 @@ describe('util.ts', () => {
             sourceName: 'Wohoo.sol',
             contractName: 'Wohoo',
             abi: [],
-            deployedOn: 'contract.Yoop',
+            deployedOn: 'contract.Yoop'
           },
           Dupe: {
             address: '0x1234123412341234123412341234123412341234',
@@ -257,9 +257,9 @@ describe('util.ts', () => {
             sourceName: 'Dup.sol',
             contractName: 'Dupe',
             abi: [],
-            deployedOn: 'contract.Dupe',
-          },
-        },
+            deployedOn: 'contract.Dupe'
+          }
+        }
       });
 
       expect(contractsInfo).toContainEqual('deployed\tYoop at 0x0987098709870987098709870987098709870987 (0x1234)');
@@ -274,13 +274,13 @@ describe('util.ts', () => {
             events: {
               TestEvent: [
                 {
-                  args: ['one', '2', 'three'],
-                },
-              ],
+                  args: ['one', '2', 'three']
+                }
+              ]
             },
-            deployedOn: 'invoke.smartFunc',
-          },
-        },
+            deployedOn: 'invoke.smartFunc'
+          }
+        }
       });
 
       expect(txnsInfo).toStrictEqual(['execed\tsmartFunc (0x56785678)', '\t-> TestEvent(one,2,three)', '']);
@@ -293,15 +293,15 @@ describe('util.ts', () => {
         cycles: [],
         missing: [
           { action: 'contract.One', dependency: 'contract.Foo' },
-          { action: 'contract.One', dependency: 'contract.Bar' },
+          { action: 'contract.One', dependency: 'contract.Bar' }
         ],
         extraneous: [],
-        invalidSchema: {},
+        invalidSchema: {}
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: In action "contract.One", the dependency "contract.Foo" is not defined elsewhere.',
-        '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.',
+        '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.'
       ]);
     });
 
@@ -311,14 +311,14 @@ describe('util.ts', () => {
         missing: [],
         extraneous: [
           { node: 'contract.One', extraneous: 'contract.Two', inDep: 'contract.Three' },
-          { node: 'contract.Two', extraneous: 'contract.Four', inDep: 'contract.Five' },
+          { node: 'contract.Two', extraneous: 'contract.Four', inDep: 'contract.Five' }
         ],
-        invalidSchema: {},
+        invalidSchema: {}
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: The action contract.One defines an unnecessary dependency contract.Two (a sub-dependency of contract.Three). Please remove this unnecessary dependency.',
-        '2: The action contract.Two defines an unnecessary dependency contract.Four (a sub-dependency of contract.Five). Please remove this unnecessary dependency.',
+        '2: The action contract.Two defines an unnecessary dependency contract.Four (a sub-dependency of contract.Five). Please remove this unnecessary dependency.'
       ]);
     });
 
@@ -326,16 +326,16 @@ describe('util.ts', () => {
       const problemsInfo = printChainDefinitionProblems({
         cycles: [
           ['contract.One', 'contract.Two', 'contract.Three'],
-          ['contract.Three', 'contract.Five'],
+          ['contract.Three', 'contract.Five']
         ],
         missing: [],
         extraneous: [],
-        invalidSchema: {},
+        invalidSchema: {}
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: The actions contract.One, contract.Two, contract.Three form a dependency cycle and therefore cannot be deployed.',
-        '2: The actions contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.',
+        '2: The actions contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.'
       ]);
     });
   });

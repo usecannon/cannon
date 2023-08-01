@@ -7,13 +7,13 @@ import { ethers } from 'ethers';
 jest.mock('../runtime');
 jest.mock('../error/provider');
 
-export const fakeCtx = {
+export const fakeCtx = ({
   settings: {
     a: 'a',
     b: 'b',
     c: 'c',
     d: 'd',
-    gasLimit: '20000',
+    gasLimit: '20000'
   },
   contracts: {},
   txns: {},
@@ -21,8 +21,8 @@ export const fakeCtx = {
   imports: {},
   chainId: 1234,
   package: {},
-  timestamp: '1234123412',
-} as unknown as ChainBuilderContextWithHelpers;
+  timestamp: '1234123412'
+} as unknown) as ChainBuilderContextWithHelpers;
 
 export const fakeRuntime = new ChainBuilderRuntime({} as any, null as any, {});
 
@@ -36,8 +36,8 @@ export function makeFakeSigner(address: string) {
     wait: jest.fn().mockResolvedValue({
       contractAddress: '0x2345234523452345234523452345234523452345',
       transactionHash: '0x1234',
-      logs: [],
-    }),
+      logs: []
+    })
   });
   signer.signTransaction = jest.fn();
   signer.signMessage = jest.fn();

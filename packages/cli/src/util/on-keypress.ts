@@ -13,10 +13,10 @@ interface Controls {
 }
 
 export default function onKeypress(handleKeyPress: (evt: KeyboardEvent, controls: Controls) => void) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const rl = readline.createInterface({
       input: process.stdin,
-      escapeCodeTimeout: 50,
+      escapeCodeTimeout: 50
     });
 
     readline.emitKeypressEvents(process.stdin, rl);

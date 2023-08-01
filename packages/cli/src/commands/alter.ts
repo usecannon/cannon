@@ -7,7 +7,7 @@ import {
   ChainBuilderRuntime,
   getOutputs,
   CANNON_CHAIN_ID,
-  DeploymentInfo,
+  DeploymentInfo
 } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
@@ -31,7 +31,7 @@ export async function alter(
   // create temporary provider
   // todo: really shouldn't be necessary
   const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000),
+    port: 30000 + Math.floor(Math.random() * 30000)
   });
   const provider = getProvider(node);
 
@@ -49,7 +49,7 @@ export async function alter(
       },
       snapshots: false,
       allowPartialDeploy: false,
-      ...runtimeOverrides,
+      ...runtimeOverrides
     },
     resolver,
     loader

@@ -61,7 +61,7 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
     const def = {
       name,
       version,
-      settings: {},
+      settings: {}
     };
 
     return def;
@@ -85,7 +85,7 @@ export function parsePackagesArguments(val: string, result: PackageSpecification
     const def = {
       name,
       version,
-      settings: {},
+      settings: {}
     };
 
     result.push(def);

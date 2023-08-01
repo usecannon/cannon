@@ -7,7 +7,7 @@ import { RawChainDefinition } from './actions';
 function makeFakeChainDefinition(nodes: { [n: string]: any }) {
   const rawDef: RawChainDefinition = {
     name: 'test',
-    version: '1.0.0',
+    version: '1.0.0'
   };
 
   for (const n in nodes) {
@@ -29,7 +29,7 @@ describe('ChainDefinition', () => {
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
         'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] },
+        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] }
       });
       expect(def.checkCycles()).toBeNull();
     });
@@ -42,7 +42,7 @@ describe('ChainDefinition', () => {
     it('returns cycle when there are two nodes depending on each other', async () => {
       const def = makeFakeChainDefinition({
         'contract.a': { depends: ['contract.b'] },
-        'contract.b': { depends: ['contract.a'] },
+        'contract.b': { depends: ['contract.a'] }
       });
       expect(def.checkCycles()).toEqual(['contract.b', 'contract.a']);
     });
@@ -57,7 +57,7 @@ describe('ChainDefinition', () => {
         // cycle
         'contract.x': { depends: ['contract.y'] },
         'contract.y': { depends: ['contract.z'] },
-        'contract.z': { depends: ['contract.x'] },
+        'contract.z': { depends: ['contract.x'] }
       });
 
       // based on the order of searching nodes, should enter the cycle on `contract.y`
@@ -71,7 +71,7 @@ describe('ChainDefinition', () => {
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
         'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c'] },
+        'contract.d': { depends: ['contract.b', 'contract.c'] }
       });
 
       expect(def.checkExtraneousDependencies()).toEqual([]);
@@ -82,11 +82,11 @@ describe('ChainDefinition', () => {
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
         'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] },
+        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] }
       });
 
       expect(def.checkExtraneousDependencies()).toEqual([
-        { node: 'contract.d', extraneous: 'contract.a', inDep: 'contract.b' },
+        { node: 'contract.d', extraneous: 'contract.a', inDep: 'contract.b' }
       ]);
     });
   });
@@ -94,15 +94,15 @@ describe('ChainDefinition', () => {
   describe('getStateLayers()', () => {
     it('works when there is just one node', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
+        'contract.a': { depends: [] }
       });
 
       expect(def.getStateLayers()).toEqual({
         'contract.a': {
           actions: ['contract.a'],
           depending: [],
-          depends: [],
-        },
+          depends: []
+        }
       });
     });
 
@@ -110,25 +110,25 @@ describe('ChainDefinition', () => {
       const def = makeFakeChainDefinition({
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.b'] },
+        'contract.c': { depends: ['contract.b'] }
       });
 
       expect(def.getStateLayers()).toEqual({
         'contract.a': {
           actions: ['contract.a'],
           depending: [],
-          depends: [],
+          depends: []
         },
         'contract.b': {
           actions: ['contract.b'],
           depending: [],
-          depends: ['contract.a'],
+          depends: ['contract.a']
         },
         'contract.c': {
           actions: ['contract.c'],
           depending: [],
-          depends: ['contract.b'],
-        },
+          depends: ['contract.b']
+        }
       });
     });
 
@@ -136,7 +136,7 @@ describe('ChainDefinition', () => {
       const def = makeFakeChainDefinition({
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
+        'contract.c': { depends: ['contract.a'] }
       });
 
       const layers = def.getStateLayers();
@@ -144,7 +144,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.b']).toEqual(layers['contract.c']);
@@ -159,7 +159,7 @@ describe('ChainDefinition', () => {
         'contract.a': { depends: [] },
         'contract.b': { depends: ['contract.a'] },
         'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c'] },
+        'contract.d': { depends: ['contract.b', 'contract.c'] }
       });
 
       const layers = def.getStateLayers();
@@ -167,7 +167,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.b']).toEqual(layers['contract.c']);
@@ -179,7 +179,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.d']).toEqual({
         actions: ['contract.d'],
         depending: [],
-        depends: ['contract.b'],
+        depends: ['contract.b']
       });
     });
 
@@ -189,7 +189,7 @@ describe('ChainDefinition', () => {
         'contract.b': { depends: ['contract.a'] },
         'contract.c': { depends: ['contract.a', 'contract.e'] },
         'contract.d': { depends: ['contract.b', 'contract.c'] },
-        'contract.e': { depends: [] },
+        'contract.e': { depends: [] }
       });
 
       const layers = def.getStateLayers();
@@ -197,13 +197,13 @@ describe('ChainDefinition', () => {
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.e']).toEqual({
         actions: ['contract.e'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.b']).toEqual(layers['contract.c']);
@@ -215,7 +215,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.d']).toEqual({
         actions: ['contract.d'],
         depending: [],
-        depends: ['contract.b'],
+        depends: ['contract.b']
       });
     });
 
@@ -226,7 +226,7 @@ describe('ChainDefinition', () => {
         'contract.c': { depends: ['contract.f', 'contract.e'] },
         'contract.d': { depends: ['contract.f'] },
         'contract.e': { depends: [] },
-        'contract.f': { depends: [] },
+        'contract.f': { depends: [] }
       });
 
       const layers = def.getStateLayers();
@@ -234,7 +234,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.f']).toEqual({
         actions: ['contract.f'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.c']).toEqual(layers['contract.d']);
@@ -249,7 +249,7 @@ describe('ChainDefinition', () => {
         'contract.a': { depends: [] },
         'contract.b': { depends: [] },
         'contract.c': { depends: ['contract.a', 'contract.b'] },
-        'contract.d': { depends: ['contract.a', 'contract.b'] },
+        'contract.d': { depends: ['contract.a', 'contract.b'] }
       });
 
       const layers = def.getStateLayers();
@@ -257,7 +257,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.c']).toEqual(layers['contract.d']);
@@ -279,7 +279,7 @@ describe('ChainDefinition', () => {
         'contract.c': { depends: ['contract.d'] },
         'contract.e': { depends: ['contract.c'] },
         'contract.f': { depends: ['contract.e'] },
-        'contract.a': { depends: ['contract.b', 'contract.f'] },
+        'contract.a': { depends: ['contract.b', 'contract.f'] }
       });
 
       const layers = def.getStateLayers();
@@ -297,7 +297,7 @@ describe('ChainDefinition', () => {
         'contract.b': { depends: [] },
         'contract.c': { depends: ['contract.a'] },
         'contract.d': { depends: ['contract.b'] },
-        'contract.e': { depends: ['contract.a', 'contract.b'] },
+        'contract.e': { depends: ['contract.a', 'contract.b'] }
       });
 
       const layers = def.getStateLayers();
@@ -305,7 +305,7 @@ describe('ChainDefinition', () => {
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
         depending: [],
-        depends: [],
+        depends: []
       });
 
       expect(layers['contract.e']).toEqual(layers['contract.d']);
@@ -326,7 +326,7 @@ describe('ChainDefinition', () => {
         'contract.e': { depends: [] },
         'contract.f': { depends: [] },
         'contract.g': { depends: ['contract.h'] },
-        'contract.h': { depends: [] },
+        'contract.h': { depends: [] }
       });
 
       const lines = def.printTopology();
@@ -340,7 +340,7 @@ describe('ChainDefinition', () => {
         '                                      └────────────┘',
         '┌────────────┐     ┌────────────┐',
         '│ contract.g │─────│ contract.h │',
-        '└────────────┘     └────────────┘',
+        '└────────────┘     └────────────┘'
       ]);
     });
   });

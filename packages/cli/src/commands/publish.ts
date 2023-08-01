@@ -24,7 +24,7 @@ export async function publish({
   preset = 'main',
   quiet = false,
   recursive = true,
-  overrides,
+  overrides
 }: Params) {
   const cliSettings = resolveCliSettings();
 
@@ -37,7 +37,7 @@ export async function publish({
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
-    overrides,
+    overrides
   });
 
   if (!quiet) {
@@ -65,7 +65,7 @@ export async function publish({
 
     const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
     const toStorage = new CannonStorage(localRegistry, {
-      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!)
     });
 
     await copyPackage({
@@ -74,7 +74,7 @@ export async function publish({
       fromStorage,
       toStorage,
       recursive,
-      tags,
+      tags
     });
 
     return;
@@ -94,12 +94,12 @@ export async function publish({
   const deploys = await localRegistry.scanDeploys(new RegExp(`^${packageRef}$`), variantFilter);
 
   if (!quiet) {
-    console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
+    console.log('Found deployment networks:', deploys.map(d => d.variant).join(', '));
   }
 
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!)
   });
 
   const registrationReceipts = [];
@@ -111,7 +111,7 @@ export async function publish({
       fromStorage,
       toStorage,
       recursive,
-      tags,
+      tags
     });
 
     registrationReceipts.push(newReceipts);
@@ -122,7 +122,7 @@ export async function publish({
       {
         packageRef,
         tags,
-        registrationReceipts,
+        registrationReceipts
       },
       null,
       2

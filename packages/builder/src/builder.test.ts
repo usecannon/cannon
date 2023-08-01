@@ -30,16 +30,18 @@ describe('builder.ts', () => {
     return ethers.Wallet.createRandom();
   });
 
-  const getArtifact = jest.fn(async (n: string): Promise<ContractArtifact> => {
-    return {
-      contractName: n,
-      sourceName: `${n}.sol`,
-      abi: [],
-      bytecode: '0x',
-      deployedBytecode: '0x',
-      linkReferences: {},
-    };
-  });
+  const getArtifact = jest.fn(
+    async (n: string): Promise<ContractArtifact> => {
+      return {
+        contractName: n,
+        sourceName: `${n}.sol`,
+        abi: [],
+        bytecode: '0x',
+        deployedBytecode: '0x',
+        linkReferences: {}
+      };
+    }
+  );
 
   const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
 
@@ -59,7 +61,7 @@ describe('builder.ts', () => {
       snapshots: false,
       getSigner,
       getDefaultSigner,
-      getArtifact,
+      getArtifact
     },
     new InMemoryRegistry(),
     { ipfs: loader }
@@ -70,21 +72,21 @@ describe('builder.ts', () => {
     version: '0.1.0',
     setting: {
       foo: { defaultValue: 'bar' },
-      baz: {},
+      baz: {}
     },
     contract: {
       Yoop: {
-        artifact: 'Wohoo',
-      },
+        artifact: 'Wohoo'
+      }
     },
     invoke: {
       smartFunc: {
         func: 'smartFunc',
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
-        depends: ['contract.Yoop'],
-      },
-    },
+        depends: ['contract.Yoop']
+      }
+    }
   } as RawChainDefinition;
 
   const expectedStateOut: DeploymentState = {
@@ -97,13 +99,13 @@ describe('builder.ts', () => {
             sourceName: 'Wohoo.sol',
             contractName: 'Wohoo',
             abi: [],
-            deployedOn: 'contract.Yoop',
-          },
-        },
+            deployedOn: 'contract.Yoop'
+          }
+        }
       },
       version: BUILD_VERSION,
       hash: '12341234',
-      chainDump: '0x1234',
+      chainDump: '0x1234'
     },
     'invoke.smartFunc': {
       artifacts: {
@@ -111,14 +113,14 @@ describe('builder.ts', () => {
           smartFunc: {
             hash: '',
             events: {},
-            deployedOn: 'invoke.smartFunc',
-          },
-        },
+            deployedOn: 'invoke.smartFunc'
+          }
+        }
       },
       version: BUILD_VERSION,
       hash: '56786789',
-      chainDump: '0x5678',
-    },
+      chainDump: '0x5678'
+    }
   };
 
   let initialCtx: ChainBuilderContext;
@@ -133,20 +135,20 @@ describe('builder.ts', () => {
         sourceName: 'Wohoo.sol',
         contractName: 'Wohoo',
         abi: [],
-        deployedOn: 'contract.Yoop',
-      },
-    },
+        deployedOn: 'contract.Yoop'
+      }
+    }
   });
 
   jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
-    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } },
+    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } }
   });
 
   describe('build()', () => {
     beforeAll(async () => {
       initialCtx = await createInitialContext(new ChainDefinition(fakeDefinition), {}, 1234, {
-        baz: 'arst',
+        baz: 'arst'
       });
     });
 
@@ -200,9 +202,9 @@ describe('builder.ts', () => {
               sourceName: 'Wohoo.sol',
               contractName: 'Wohoo',
               abi: [],
-              deployedOn: 'contract.Yoop',
-            },
-          },
+              deployedOn: 'contract.Yoop'
+            }
+          }
         });
       });
 

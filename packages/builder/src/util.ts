@@ -75,7 +75,7 @@ export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: st
 
 export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: string[]) {
   return paths
-    .flatMap((contractPath) => {
+    .flatMap(contractPath => {
       const c = getContractDefinitionFromPath(ctx, contractPath);
 
       if (!c) {
@@ -90,7 +90,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: s
     })
     .filter((a, index, abi) => {
       if (index === 0) return true;
-      const alreadyExists = abi.slice(0, index).some((b) => {
+      const alreadyExists = abi.slice(0, index).some(b => {
         return ethers.utils.Fragment.from(b)?.format('minimal') === ethers.utils.Fragment.from(a)?.format('minimal');
       });
 
@@ -111,7 +111,7 @@ export function getContractFromPath(ctx: ChainBuilderContext, path: string, cust
 export function getAllContractPaths(ctx: ChainArtifacts): string[] {
   return [
     ...Object.keys(ctx.contracts || {}),
-    ..._.sortBy(_.flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
+    ..._.sortBy(_.flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map(c => `${k}.${c}`)))
   ];
 }
 
@@ -129,7 +129,7 @@ export function printInternalOutputs(outputs: ChainArtifacts): string[] {
     // decode events
     for (const n in txn.events) {
       for (const e of txn.events[n]) {
-        str.push(`\t-> ${n}(${e.args.map((s) => s.toString()).join(',')})`);
+        str.push(`\t-> ${n}(${e.args.map(s => s.toString()).join(',')})`);
       }
     }
 

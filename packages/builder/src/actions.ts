@@ -48,15 +48,14 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
  *  Available properties for top level config
  *  @public
  *  @group Base Cannonfile Config
- 
  */
 export type RawChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
-
-/** 
+/**
  *  @internal
  *  parses the schema and performs zod validations safely with a custom error handler
-*/ 
+ */
+
 export function validateConfig(schema: z.ZodSchema, config: any) {
   const result = schema.safeParse(config);
 

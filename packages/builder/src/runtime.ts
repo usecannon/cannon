@@ -19,7 +19,7 @@ export enum Events {
   DeployContract = 'deploy-contract',
   DeployTxn = 'deploy-txn',
   DeployExtra = 'deploy-extra',
-  SkipDeploy = 'skip-deploy', // step name, error causing skip
+  SkipDeploy = 'skip-deploy' // step name, error causing skip
 }
 
 export class CannonStorage extends EventEmitter {

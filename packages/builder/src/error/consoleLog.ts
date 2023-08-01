@@ -642,5 +642,5 @@ export const ConsoleLogs = {
   3982404743: [AddressTy, AddressTy, AddressTy, Uint256Ty],
   4161329696: [AddressTy, AddressTy, AddressTy, StringTy],
   238520724: [AddressTy, AddressTy, AddressTy, BoolTy],
-  1717301556: [AddressTy, AddressTy, AddressTy, AddressTy],
+  1717301556: [AddressTy, AddressTy, AddressTy, AddressTy]
 };

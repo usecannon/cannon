@@ -50,7 +50,7 @@ export async function interact(ctx: InteractTaskArgs) {
       }
     } else if (!pickedContract) {
       pickedContract = await pickContract({
-        contractNames: Object.keys(ctx.contracts[pickedPackage]),
+        contractNames: Object.keys(ctx.contracts[pickedPackage])
       });
 
       if (!pickedContract) {
@@ -63,7 +63,7 @@ export async function interact(ctx: InteractTaskArgs) {
     } else if (!pickedFunction) {
       await printHelpfulInfo(ctx, pickedPackage, pickedContract);
       pickedFunction = await pickFunction({
-        contract: ctx.contracts[pickedPackage][pickedContract],
+        contract: ctx.contracts[pickedPackage][pickedContract]
       });
 
       if (!pickedFunction) {
@@ -71,7 +71,7 @@ export async function interact(ctx: InteractTaskArgs) {
       }
     } else if (!currentArgs) {
       const argData = await pickFunctionArgs({
-        func: ctx.contracts[pickedPackage][pickedContract].interface.getFunction(pickedFunction),
+        func: ctx.contracts[pickedPackage][pickedContract].interface.getFunction(pickedFunction)
       });
 
       if (!argData) {
@@ -92,7 +92,7 @@ export async function interact(ctx: InteractTaskArgs) {
           contract,
           functionSignature: pickedFunction,
           args: currentArgs,
-          blockTag: ctx.blockTag,
+          blockTag: ctx.blockTag
         });
       } else if (!ctx.signer) {
         console.log();
@@ -104,7 +104,7 @@ export async function interact(ctx: InteractTaskArgs) {
           contract,
           functionSignature: pickedFunction,
           args: currentArgs,
-          value: txnValue.toBN(),
+          value: txnValue.toBN()
         });
 
         if (receipt?.status === 1) {
@@ -169,7 +169,7 @@ async function pickPackage(packages: PackageSpecification[]) {
     value: i,
     description: Object.entries(p.settings)
       .map(([k, v]) => `${k}=${v}`)
-      .join(' | '),
+      .join(' | ')
   }));
 
   choices.unshift({ ...PROMPT_BACK_OPTION, value: -1 });
@@ -179,15 +179,15 @@ async function pickPackage(packages: PackageSpecification[]) {
       type: 'select',
       name: 'pickedPackage',
       message: 'Pick a PACKAGE:',
-      choices,
-    },
+      choices
+    }
   ]);
 
   return typeof pickedPackage === 'number' ? pickedPackage : -1;
 }
 
 async function pickContract({ contractNames }: { contractNames: string[] }) {
-  const choices = contractNames.sort().map((s) => ({ title: s }));
+  const choices = contractNames.sort().map(s => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
 
   const { pickedContract } = await prompts.prompt([
@@ -196,17 +196,17 @@ async function pickContract({ contractNames }: { contractNames: string[] }) {
       name: 'pickedContract',
       message: 'Pick a CONTRACT:',
       choices,
-      suggest: suggestBySubtring,
-    },
+      suggest: suggestBySubtring
+    }
   ]);
 
   return pickedContract === PROMPT_BACK_OPTION.title ? null : pickedContract;
 }
 
 async function pickFunction({ contract }: { contract: ethers.Contract }) {
-  const functionSignatures = Object.keys(contract.functions).filter((f) => f.indexOf('(') != -1);
+  const functionSignatures = Object.keys(contract.functions).filter(f => f.indexOf('(') != -1);
 
-  const choices = functionSignatures.sort().map((s) => ({ title: s }));
+  const choices = functionSignatures.sort().map(s => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
 
   const { pickedFunction } = await prompts.prompt([
@@ -215,8 +215,8 @@ async function pickFunction({ contract }: { contract: ethers.Contract }) {
       name: 'pickedFunction',
       message: 'Pick a FUNCTION:',
       choices,
-      suggest: suggestBySubtring,
-    },
+      suggest: suggestBySubtring
+    }
   ]);
 
   return pickedFunction == PROMPT_BACK_OPTION.title ? null : pickedFunction;
@@ -231,8 +231,8 @@ async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment 
       {
         type: 'text',
         name: 'txnValue',
-        message: 'Function is payable. ETH AMOUNT (in eth units):',
-      },
+        message: 'Function is payable. ETH AMOUNT (in eth units):'
+      }
     ]);
 
     value = wei(txnValue).toBN();
@@ -255,7 +255,7 @@ async function query({
   contract,
   functionSignature,
   args,
-  blockTag,
+  blockTag
 }: {
   contract: ethers.Contract;
   functionSignature: string;
@@ -273,9 +273,9 @@ async function query({
       gray(`  > estimated gas required: ${await contract.estimateGas[functionSignature!](...args, { blockTag })}`)
     );
     result = await contract.callStatic[functionSignature!](...args, {
-      blockTag,
+      blockTag
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('failed query:', err?.message && process.env.TRACE !== 'true' ? err?.message : err);
     return null;
   }
@@ -297,7 +297,7 @@ async function execTxn({
   functionSignature,
   args,
   value,
-  signer,
+  signer
 }: {
   contract: ethers.Contract;
   functionSignature: string;
@@ -313,11 +313,11 @@ async function execTxn({
   try {
     txn = await contract.populateTransaction[functionSignature](...args, {
       from: await signer.getAddress(),
-      value: Ethers.BigNumber.from(value),
+      value: Ethers.BigNumber.from(value)
     });
     const estimatedGas = await contract.estimateGas[functionSignature](...args, {
       from: await signer.getAddress(),
-      value: Ethers.BigNumber.from(value),
+      value: Ethers.BigNumber.from(value)
     });
 
     console.log(gray(`  > calldata: ${txn.data}`));
@@ -333,8 +333,8 @@ async function execTxn({
       {
         type: 'confirm',
         name: 'confirmation',
-        message: 'Send transaction?',
-      },
+        message: 'Send transaction?'
+      }
     ]);
 
     if (!confirmation) {
@@ -346,7 +346,7 @@ async function execTxn({
       txInfo = await signer.sendTransaction({
         to: contract.address,
         data: callData,
-        value: Ethers.BigNumber.from(value),
+        value: Ethers.BigNumber.from(value)
       });
 
       console.log('> hash: ', txInfo.hash);
@@ -375,8 +375,8 @@ async function promptInputValue(input: Ethers.utils.ParamType): Promise<any> {
         {
           type: 'text',
           message,
-          name,
-        },
+          name
+        }
       ]);
 
       if (!answer[name]) {
@@ -461,7 +461,7 @@ function printReturnedValue(output: Ethers.utils.ParamType, value: any): string 
     return '\n' + output?.components.map((comp, ind) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`).join('\n');
   } else if (output?.baseType === 'array' && Array.isArray(value)) {
     // handle arrays
-    return value.map((item) => printReturnedValue(output.arrayChildren, item)).join(', ');
+    return value.map(item => printReturnedValue(output.arrayChildren, item)).join(', ');
   } else if (output?.type.startsWith('uint') || output?.type.startsWith('int')) {
     return `${value.toString()} (${wei(value).toString(5)})`;
   } else if (output?.type.startsWith('bytes')) {
@@ -490,7 +490,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
     const contractsByAddress = _.mapKeys(
-      _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
+      _.groupBy(_.flatten(ctx.contracts.map(contract => _.toPairs(contract))), '1.address'),
       (v, k) => k.toLowerCase()
     );
 
@@ -551,7 +551,7 @@ function logTxFail(error: any) {
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'
 const suggestBySubtring = (input: string, choices: [{ title: string }]) =>
   Promise.resolve(
-    choices.filter((choice) => {
+    choices.filter(choice => {
       const titleStr = choice.title.toLowerCase();
       let index = 0;
       for (const c of input.toLowerCase()) {

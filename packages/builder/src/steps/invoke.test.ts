@@ -8,7 +8,7 @@ describe('steps/invoke.ts', () => {
     contracts: {
       What: {
         address: '0x0987098709870987098709870987098709870978',
-        abi: [],
+        abi: []
       },
       Woot: {
         address: '0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd',
@@ -18,44 +18,44 @@ describe('steps/invoke.ts', () => {
               {
                 internalType: 'address',
                 name: 'firstArg',
-                type: 'address',
+                type: 'address'
               },
               {
                 internalType: 'address',
                 name: 'secondArg',
-                type: 'address',
-              },
+                type: 'address'
+              }
             ],
             name: 'SomethingHappened',
-            type: 'event',
+            type: 'event'
           },
           {
             inputs: [
               {
                 internalType: 'address',
                 name: 'firstArg',
-                type: 'string',
+                type: 'string'
               },
               {
                 internalType: 'address',
                 name: 'secondArg',
-                type: 'string',
+                type: 'string'
               },
               {
                 internalType: 'address',
                 name: 'thirdArg',
-                type: 'string',
-              },
+                type: 'string'
+              }
             ],
             name: 'something',
             outputs: [],
             stateMutability: 'nonpayable',
-            type: 'function',
-          },
+            type: 'function'
+          }
         ],
-        deployTxn: '0x',
-      },
-    },
+        deployTxn: '0x'
+      }
+    }
   };
 
   describe('configInject()', () => {
@@ -69,8 +69,8 @@ describe('steps/invoke.ts', () => {
 
         value: '<%= settings.b %><%= settings.d %>',
         overrides: {
-          gasLimit: '<%= settings.gasLimit %>',
-        },
+          gasLimit: '<%= settings.gasLimit %>'
+        }
       });
 
       expect(result).toStrictEqual({
@@ -82,8 +82,8 @@ describe('steps/invoke.ts', () => {
 
         value: 'bd',
         overrides: {
-          gasLimit: '20000',
-        },
+          gasLimit: '20000'
+        }
       });
     });
   });
@@ -92,14 +92,14 @@ describe('steps/invoke.ts', () => {
     it('resolves correct properties with minimal config', async () => {
       const result = await action.getState(fakeRuntime, _.merge({}, fakeContractInfo, fakeCtx), {
         target: ['Woot'],
-        func: 'something',
+        func: 'something'
       });
 
       expect(result).toStrictEqual({
         to: [fakeContractInfo.contracts.Woot.address],
         func: 'something',
         args: undefined,
-        value: '0',
+        value: '0'
       });
     });
 
@@ -108,14 +108,14 @@ describe('steps/invoke.ts', () => {
         target: ['Woot'],
         func: 'something',
         args: ['split', { wave: 'form' }],
-        value: '1234',
+        value: '1234'
       });
 
       expect(result).toStrictEqual({
         to: [fakeContractInfo.contracts.Woot.address],
         func: 'something',
         args: ['"split"', '{"wave":"form"}'],
-        value: '1234',
+        value: '1234'
       });
     });
   });
@@ -131,14 +131,15 @@ describe('steps/invoke.ts', () => {
             transactionIndex: 0,
             removed: false,
             address: fakeContractInfo.contracts.Woot.address,
-            data: '0x00000000000000000000000012341234123412341234123412341234123412340000000000000000000000005678567856785678567856785678567856785678',
+            data:
+              '0x00000000000000000000000012341234123412341234123412341234123412340000000000000000000000005678567856785678567856785678567856785678',
 
             topics: ['0x9b147922a677a436de7b494824cce084dbfaea7af985f77b90efbb838054176a'],
 
             transactionHash: '0x1234',
-            logIndex: 0,
-          },
-        ],
+            logIndex: 0
+          }
+        ]
         /*events: [
           {
             event: 'SomethingHappend',
@@ -160,9 +161,9 @@ describe('steps/invoke.ts', () => {
               event: 'SomethingHappened',
               arg: 1,
               abiOf: ['Woot', 'What'],
-              constructorArgs: ['whoot'],
-            },
-          },
+              constructorArgs: ['whoot']
+            }
+          }
         },
         { name: 'fun', version: '1.0.0', currentLabel: 'invoke.something' }
       );
@@ -175,8 +176,8 @@ describe('steps/invoke.ts', () => {
           contractName: '',
           deployTxnHash: '',
           deployedOn: 'invoke.something',
-          sourceName: '',
-        },
+          sourceName: ''
+        }
       });
 
       expect(result.txns!.something.events.SomethingHappened).toHaveLength(1);

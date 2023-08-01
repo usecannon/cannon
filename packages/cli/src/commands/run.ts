@@ -6,7 +6,7 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
-  getOutputs,
+  getOutputs
 } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -84,7 +84,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         return provider.getSigner(addr);
       },
       snapshots: chainId === CANNON_CHAIN_ID,
-      allowPartialDeploy: false,
+      allowPartialDeploy: false
     },
     resolver,
     getMainLoader(cliSettings)
@@ -100,7 +100,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         overrideResolver: resolver,
         preset: options.preset,
         upgradeFrom: options.upgradeFrom,
-        persist: false,
+        persist: false
       });
 
       buildOutputs.push({ pkg, outputs });
@@ -149,7 +149,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       signers,
       outputs: buildOutputs,
       provider,
-      node,
+      node
     };
   }
 
@@ -178,14 +178,14 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       await pause(async () => {
         const [signer] = signers;
 
-        const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
+        const contracts = buildOutputs.map(info => getContractsRecursive(info.outputs, signer));
 
         await interact({
           packages,
-          packagesArtifacts: buildOutputs.map((info) => info.outputs),
+          packagesArtifacts: buildOutputs.map(info => info.outputs),
           contracts,
           signer,
-          provider,
+          provider
         });
       });
 
@@ -204,7 +204,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 async function createLoggingInterface(node: CannonRpcNode) {
   let enabled = false;
   let outputBuffer = '';
-  node.stdout!.on('data', (rawChunk) => {
+  node.stdout!.on('data', rawChunk => {
     const chunk = rawChunk.toString('utf8');
     const newData = chunk
       .split('\n')
@@ -234,7 +234,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
 
     disable: () => {
       enabled = false;
-    },
+    }
   };
 
   return logging;

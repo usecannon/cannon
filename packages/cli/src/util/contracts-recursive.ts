@@ -9,7 +9,7 @@ export function getContractsRecursive(
 ): {
   [x: string]: ethers.Contract;
 } {
-  let contracts = mapValues(outputs.contracts, (ci) => {
+  let contracts = mapValues(outputs.contracts, ci => {
     return new ethers.Contract(ci.address, ci.abi, signerOrProvider);
   });
   if (prefix) {

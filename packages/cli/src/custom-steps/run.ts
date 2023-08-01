@@ -9,7 +9,7 @@ import {
   ChainBuilderRuntimeInfo,
   ChainArtifacts,
   registerAction,
-  PackageState,
+  PackageState
 } from '@usecannon/builder';
 
 import crypto from 'crypto';
@@ -101,7 +101,7 @@ const runAction = {
 
     return {
       auxHashes,
-      config: newConfig,
+      config: newConfig
     };
   },
 
@@ -110,19 +110,19 @@ const runAction = {
 
     config.exec = _.template(config.exec)(ctx);
 
-    config.modified = _.map(config.modified, (v) => {
+    config.modified = _.map(config.modified, v => {
       return _.template(v)(ctx);
     }) as [string, ...string[]];
 
     if (config.args) {
-      config.args = _.map(config.args, (v) => {
+      config.args = _.map(config.args, v => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(JSON.stringify(_.template(v)(ctx)));
       });
     }
 
     if (config.env) {
-      config.env = _.map(config.env, (v) => {
+      config.env = _.map(config.env, v => {
         return _.template(v)(ctx);
       });
     }
@@ -148,18 +148,18 @@ const runAction = {
       );
     }
 
-    outputs.contracts = _.mapValues(outputs.contracts, (c) => ({
+    outputs.contracts = _.mapValues(outputs.contracts, c => ({
       ...c,
-      deployedOn: packageState.currentLabel,
+      deployedOn: packageState.currentLabel
     }));
 
-    outputs.txns = _.mapValues(outputs.txns, (t) => ({
+    outputs.txns = _.mapValues(outputs.txns, t => ({
       ...t,
-      deployedOn: packageState.currentLabel,
+      deployedOn: packageState.currentLabel
     }));
 
     return outputs;
-  },
+  }
 };
 
 registerAction(runAction);

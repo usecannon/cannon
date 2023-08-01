@@ -7,7 +7,7 @@ import {
   ChainDefinition,
   getOutputs,
   ChainBuilderRuntime,
-  ChainArtifacts,
+  ChainArtifacts
 } from '@usecannon/builder';
 
 import { checkCannonVersion, loadCannonfile } from './helpers';
@@ -63,7 +63,7 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .hook('preAction', async function () {
+  .hook('preAction', async function() {
     await checkCannonVersion(pkg.version);
   });
 
@@ -97,7 +97,7 @@ function configureRun(program: Command) {
       '--private-key [key]',
       'Specify a comma separated list of private keys which may be needed to sign a transaction'
     )
-    .action(async function (packages: PackageSpecification[], options, program) {
+    .action(async function(packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 
       const port = Number.parseInt(options.port) || 8545;
@@ -111,7 +111,7 @@ function configureRun(program: Command) {
         node = await runRpc({
           port,
           forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-          chainId: options.chainId,
+          chainId: options.chainId
         });
       } else {
         node = await runRpc({ port });
@@ -120,7 +120,7 @@ function configureRun(program: Command) {
       await run(packages, {
         ...options,
         node,
-        helpInformation: program.helpInformation(),
+        helpInformation: program.helpInformation()
       });
     });
 }
@@ -168,7 +168,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
-      port: 8545,
+      port: 8545
     });
 
     provider = getProvider(node);
@@ -185,7 +185,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       node = await runRpc({
         port: 8545,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-        chainId,
+        chainId
       });
 
       provider = getProvider(node);
@@ -200,7 +200,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       provider = p.provider;
 
-      getSigner = async (s) => {
+      getSigner = async s => {
         for (const signer of p.signers) {
           if ((await signer.getAddress()) === s) {
             return signer;
@@ -225,10 +225,10 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     packageDefinition: {
       name,
       version,
-      settings: parsedSettings,
+      settings: parsedSettings
     },
     pkgInfo: {},
-    getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
+    getArtifact: name => getFoundryArtifact(name, projectDirectory),
     getSigner,
     getDefaultSigner,
     upgradeFrom: opts.upgradeFrom,
@@ -241,7 +241,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
-    priorityGasFee: opts.maxPriorityGasFee,
+    priorityGasFee: opts.maxPriorityGasFee
   });
 
   return [node, outputs];
@@ -277,8 +277,8 @@ program
 
     console.log(bold('Building the foundry project using forge build...'));
     const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
-    await new Promise((resolve) => {
-      forgeBuildProcess.on('exit', (code) => {
+    await new Promise(resolve => {
+      forgeBuildProcess.on('exit', code => {
         if (code === 0) {
           console.log(green('forge build succeeded'));
         } else {
@@ -301,7 +301,7 @@ program
   .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to verify', '1')
   .option('-p --preset <preset>', 'Preset of the deployment to verify', 'main')
-  .action(async function (packageName, options) {
+  .action(async function(packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
   });
@@ -314,11 +314,11 @@ program
   .argument('[options...]', 'Additional options for your alteration command')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
   .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
-  .action(async function (packageName, command, options, flags) {
+  .action(async function(packageName, command, options, flags) {
     const { alter } = await import('./commands/alter');
     // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
     await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
-      getArtifact: getFoundryArtifact,
+      getArtifact: getFoundryArtifact
     });
   });
 
@@ -341,7 +341,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .action(async function (packageRef, options) {
+  .action(async function(packageRef, options) {
     const { publish } = await import('./commands/publish');
 
     const cliSettings = resolveCliSettings(options);
@@ -377,7 +377,7 @@ program
       chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
       preset: options.preset ? (options.preset as string) : undefined,
       quiet: options.quiet,
-      overrides,
+      overrides
     });
   });
 
@@ -393,7 +393,7 @@ program
     'Path to write the deployments data (address and ABIs), like "./deployments"'
   )
   .option('-q --quiet', 'Suppress extra logging')
-  .action(async function (packageName, options) {
+  .action(async function(packageName, options) {
     const { inspect } = await import('./commands/inspect');
     resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
@@ -407,7 +407,7 @@ program
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
   .option('-j --json', 'Output as JSON')
-  .action(async function (packageName, data, options) {
+  .action(async function(packageName, data, options) {
     const { decode } = await import('./commands/decode');
 
     await decode({
@@ -415,7 +415,7 @@ program
       data,
       chainId: options.chainId,
       preset: options.preset,
-      json: options.json,
+      json: options.json
     });
   });
 
@@ -430,7 +430,7 @@ program
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
-  .action(async function (cannonfile, forgeOpts, opts) {
+  .action(async function(cannonfile, forgeOpts, opts) {
     const [node, outputs] = await doBuild(cannonfile, [], opts);
 
     // basically we need to write deployments here
@@ -447,7 +447,7 @@ program
       process.stderr.write(data);
     });
 
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       forgeCmd.on('close', (code: number) => {
         console.log(`forge exited with code ${code}`);
         node?.kill();
@@ -468,7 +468,7 @@ program
   .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
-  .action(async function (packageDefinition, opts) {
+  .action(async function(packageDefinition, opts) {
     const cliSettings = resolveCliSettings(opts);
 
     const p = await resolveWriteProvider(cliSettings, opts.chainId);
@@ -491,7 +491,7 @@ program
         allowPartialDeploy: false,
         gasPrice: opts.gasPrice,
         gasFee: opts.maxGasFee,
-        priorityGasFee: opts.maxPriorityFee,
+        priorityGasFee: opts.maxPriorityFee
       },
       resolver,
       getMainLoader(cliSettings)
@@ -523,14 +523,14 @@ program
       packages: [packageDefinition],
       contracts,
       signer: p.signers[0],
-      provider: p.provider,
+      provider: p.provider
     });
   });
 
 program
   .command('setup')
   .description('Initialize cannon settings file')
-  .action(async function () {
+  .action(async function() {
     const { setup } = await import('./commands/setup');
     await setup();
   });
@@ -539,7 +539,7 @@ program
   .command('clean')
   .description('Delete packages cache directories')
   .option('--no-confirm', 'Do not ask for confirmation before deleting')
-  .action(async function ({ noConfirm }) {
+  .action(async function({ noConfirm }) {
     const { clean } = await import('./commands/clean');
     const executed = await clean(!noConfirm);
     if (executed) console.log('Complete!');
@@ -550,16 +550,16 @@ const pluginCmd = program.command('plugin').description('Manage Cannon plug-in m
 pluginCmd
   .command('list')
   .description('List all installed plugins')
-  .action(async function () {
+  .action(async function() {
     console.log(green(bold('\n=============== Installed Plugins ===============')));
     const installedPlugins = await listInstalledPlugins();
-    installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
+    installedPlugins.forEach(plugin => console.log(yellow(plugin)));
   });
 
 pluginCmd
   .command('add')
   .argument('<name>', 'Name of an NPM package to add as a Cannon plug-in')
-  .action(async function (name) {
+  .action(async function(name) {
     console.log(`Installing plugin ${name}...`);
     await installPlugin(name);
     console.log('Complete!');
@@ -568,7 +568,7 @@ pluginCmd
 pluginCmd
   .command('remove')
   .argument('<name>', 'Name of an NPM package to remove as a Cannon plug-in')
-  .action(async function (name) {
+  .action(async function(name) {
     console.log(`Removing plugin ${name}...`);
     await removePlugin(name);
     console.log('Complete!');

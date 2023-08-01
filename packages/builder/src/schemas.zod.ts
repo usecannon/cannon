@@ -14,7 +14,7 @@ export const contractSchema = z
             ...
       *  ```
      */
-    artifact: z.string(),
+    artifact: z.string()
   })
   .merge(
     /**
@@ -58,13 +58,13 @@ export const contractSchema = z
          *   Override settings for deployment
          */
         overrides: z.object({
-          gasLimit: z.string(),
+          gasLimit: z.string()
         }),
 
         /**
          *  List of steps that this action depends on
          */
-        depends: z.array(z.string()),
+        depends: z.array(z.string())
       })
       .deepPartial()
   );
@@ -80,14 +80,14 @@ export const importSchema = z
          ...
      *  ```
      */
-    source: z.string(),
+    source: z.string()
   })
   .merge(
     z
       .object({
         chainId: z.number().int(),
         preset: z.string(),
-        depends: z.array(z.string()),
+        depends: z.array(z.string())
       })
       .deepPartial()
   );
@@ -95,7 +95,7 @@ export const importSchema = z
 export const invokeSchema = z
   .object({
     target: z.array(z.string()).nonempty(),
-    func: z.string(),
+    func: z.string()
   })
   .merge(
     z
@@ -106,23 +106,23 @@ export const invokeSchema = z
         from: z.string(),
         fromCall: z
           .object({
-            func: z.string(),
+            func: z.string()
           })
           .merge(
             z.object({
-              args: z.array(z.any()),
+              args: z.array(z.any())
             })
           ),
         value: z.string(),
         overrides: z.object({
-          gasLimit: z.string(),
+          gasLimit: z.string()
         }),
         extra: z.record(
           z.object({
             event: z.string(),
             arg: z.number().int(),
 
-            allowEmptyEvents: z.boolean().optional(),
+            allowEmptyEvents: z.boolean().optional()
           })
         ),
         factory: z.record(
@@ -133,17 +133,17 @@ export const invokeSchema = z
             artifact: z.string().optional(),
             abiOf: z.array(z.string()).optional(),
             constructorArgs: z.array(z.any()).optional(),
-            allowEmptyEvents: z.boolean().optional(),
+            allowEmptyEvents: z.boolean().optional()
           })
         ),
-        depends: z.array(z.string()),
+        depends: z.array(z.string())
       })
       .deepPartial()
   );
 
 export const provisionSchema = z
   .object({
-    source: z.string(),
+    source: z.string()
   })
   .merge(
     z
@@ -153,20 +153,20 @@ export const provisionSchema = z
         targetPreset: z.string(),
         options: z.record(z.string()),
         tags: z.array(z.string()),
-        depends: z.array(z.string()),
+        depends: z.array(z.string())
       })
       .deepPartial()
   );
 
 export const keeperSchema = z
   .object({
-    exec: z.string(),
+    exec: z.string()
   })
   .merge(
     z
       .object({
         args: z.array(z.string()),
-        env: z.array(z.string()),
+        env: z.array(z.string())
       })
       .deepPartial()
   );
@@ -177,7 +177,7 @@ export const keeperSchema = z
 export const chainDefinitionSchema = z
   .object({
     name: z.string(),
-    version: z.string(),
+    version: z.string()
   })
   .merge(
     z
@@ -189,11 +189,11 @@ export const chainDefinitionSchema = z
             .object({
               description: z.string(),
               type: z.enum(['number', 'string', 'boolean']),
-              defaultValue: z.string(),
+              defaultValue: z.string()
             })
             .partial()
         ),
-        import: z.custom<typeof importSpec>(),
+        import: z.custom<typeof importSpec>()
       })
       .deepPartial()
   );

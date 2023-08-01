@@ -50,7 +50,7 @@ describe('registry.ts', () => {
       registry = new OnChainRegistry({
         address: fakeRegistryAddress,
         signerOrProvider: signer,
-        overrides: { gasLimit: 1234000 },
+        overrides: { gasLimit: 1234000 }
       });
 
       providerOnlyRegistry = new OnChainRegistry({ signerOrProvider: provider, address: fakeRegistryAddress });
@@ -91,7 +91,7 @@ describe('registry.ts', () => {
           lastBaseFeePerGas: null,
           maxFeePerGas: null,
           maxPriorityFeePerGas: null,
-          gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+          gasPrice: ethers.utils.parseUnits('10', 'gwei')
         });
 
         jest.mocked(provider.resolveName).mockResolvedValue(fakeRegistryAddress);
@@ -101,10 +101,10 @@ describe('registry.ts', () => {
         jest
           .mocked(provider.sendTransaction)
           .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x1234' } as unknown as ethers.providers.TransactionReceipt),
+            wait: async () => (({ logs: [], transactionHash: '0x1234' } as unknown) as ethers.providers.TransactionReceipt)
           } as any)
           .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
+            wait: async () => (({ logs: [], transactionHash: '0x5678' } as unknown) as ethers.providers.TransactionReceipt)
           } as any);
 
         const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], '1-main', 'ipfs://Qmsomething');
@@ -134,7 +134,7 @@ describe('registry.ts', () => {
           registry.contract.interface.encodeFunctionData('getPackageUrl', [
             ethers.utils.formatBytes32String('dummyPackage'),
             ethers.utils.formatBytes32String('0.0.1'),
-            ethers.utils.formatBytes32String('13370-main'),
+            ethers.utils.formatBytes32String('13370-main')
           ])
         );
       });
