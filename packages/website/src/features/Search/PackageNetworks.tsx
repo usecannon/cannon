@@ -1,5 +1,5 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
-import { FC, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Box, Text, Button, Spinner, Heading } from '@chakra-ui/react';
 import chainData from '@/constants/chainsData';
 import axios from 'axios';
@@ -17,9 +17,9 @@ import { Copy } from 'react-feather';
 import 'prismjs';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
-import _ from 'lodash';
 import { useCopy } from '@/lib/copy';
-import { CodePreview } from '@/components/CodePreview'; //Example style, you can use another
+import { CodePreview } from '@/components/CodePreview';
+import { getOutput } from '@/lib/builder'; //Example style, you can use another
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -28,7 +28,6 @@ const PackageNetworks: FC<{
   p: Package | Pick<Tag, 'variants'>;
   download?: boolean;
 }> = ({ p, download = false }) => {
-  // const toast = useToast();
   const chains = useMemo(() => {
     let variants: Tag['variants'] | undefined = [];
 
@@ -56,16 +55,25 @@ const PackageNetworks: FC<{
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const deployUrl = useRef('');
-  const ipfs = useRef<any>(undefined);
-  const deployData = useRef('');
+  const [ipfs, setIpfs] = useState<{ state: any; def: any }>({
+    state: {},
+    def: {},
+  });
+
+  const [deployData, setDeployData] = useState('');
+  const [deployUrl, setDeployUrl] = useState('');
+
+  useEffect(() => {
+    const artifacts: ChainArtifacts = getOutput(ipfs);
+
+    const _deployData = JSON.stringify(artifacts?.contracts, null, 2);
+    setDeployData(_deployData);
+  }, [ipfs]);
 
   // TODO: Remove unused chainId param? (added console.log to fix TS build)
-  const openModal = async (url: string, chainId: number) => {
-    console.log(chainId);
-
+  const openModal = async (url: string) => {
     setIsOpen(true);
-    deployUrl.current = url;
+    setDeployUrl(url);
 
     setLoading(true);
     const response = await axios.get(
@@ -77,30 +85,20 @@ const PackageNetworks: FC<{
     const uint8Array = new Uint8Array(response.data);
     const inflated = pako.inflate(uint8Array);
     const raw = new TextDecoder().decode(inflated);
-    ipfs.current = JSON.parse(raw);
-
-    const { def, state } = ipfs.current;
-
-    const artifacts: ChainArtifacts = {};
-    for (const step of def.topologicalActions) {
-      if (state[step] && state[step].artifacts) {
-        _.merge(artifacts, state[step].artifacts);
-      }
-    }
-
-    deployData.current = JSON.stringify(artifacts?.contracts, null, 2);
-
+    setIpfs(JSON.parse(raw));
     setLoading(false);
   };
 
   const closeModal = () => {
     setIsOpen(false);
-    deployUrl.current = '';
+    setDeployUrl('');
+    setDeployData('');
+    setIpfs({ state: {}, def: {} });
   };
 
   const copyToClipboard = useCopy();
   const copy = () => {
-    void copyToClipboard(deployData.current);
+    void copyToClipboard(deployData);
   };
   return (
     <Box verticalAlign="middle">
@@ -129,7 +127,7 @@ const PackageNetworks: FC<{
             className={!download ? 'disabled-button' : ''}
             onClick={() => {
               if (download) {
-                void openModal(chain.url, chain.id);
+                void openModal(chain.url);
               }
             }}
           >
@@ -140,6 +138,8 @@ const PackageNetworks: FC<{
 
       <Modal size="5xl" isOpen={isOpen} onClose={closeModal}>
         {/*<ModalContent bg="black" color="white" ref="content"> TODO: literal as ref value is forbidden*/}
+
+        <ModalOverlay bg="blue.900" opacity="0.66" />
         <ModalContent bg="black" color="white">
           <ModalHeader>
             <Heading size="lg">Contract Addresses + ABIs</Heading>
@@ -151,20 +151,19 @@ const PackageNetworks: FC<{
                 <Spinner />
               </Box>
             )}
-            {deployUrl.current ? (
+            {deployUrl ? (
               <Box>
-                <Button color="teal" mb="3" bg="teal.600" onClick={copy}>
+                <Button
+                  bgColor="teal"
+                  color="white"
+                  mb="3"
+                  bg="teal.600"
+                  onClick={copy}
+                >
                   <Copy className="copy-button" />
                   &nbsp;Copy to clipboard
                 </Button>
-                {/*    <client-only placeholder={deployData}>*/}
-                {/*    <prism-editor*/}
-                {/*      class="code-editor"*/}
-                {/*      v-model="deployData"*/}
-                {/*    highlight={highlighter}*/}
-                {/*    ></prism-editor>*/}
-                {/*</client-only>*/}
-                <CodePreview code={deployData.current} language={'json'} />
+                <CodePreview code={deployData} language={'json'} />
               </Box>
             ) : (
               <Box textAlign="center" py="20" opacity="0.5">
@@ -173,7 +172,6 @@ const PackageNetworks: FC<{
             )}
           </ModalBody>
         </ModalContent>
-        <ModalOverlay bg="blue.900" opacity="0.66" />
       </Modal>
     </Box>
   );
