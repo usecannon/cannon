@@ -168,7 +168,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
-      port: 8545,
+      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+      port: 0,
     });
 
     provider = getProvider(node);
@@ -183,7 +184,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     if (opts.dryRun) {
       node = await runRpc({
-        port: 8545,
+        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+        port: 0,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         chainId,
       });
