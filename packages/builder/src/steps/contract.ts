@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { Contract, contractSchema, validateConfig } from '../schemas.zod';
+import { z } from 'zod';
+import { contractSchema } from '../schemas.zod';
 
 import { ethers } from 'ethers';
 
@@ -20,7 +21,13 @@ import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2'
 
 const debug = Debug('cannon:builder:contract');
 
-export type Config = Contract;
+/**
+ *  Available properties for contract step
+ *  @public
+ *  @typealias Contract
+ *  @alias Contract
+ */
+export type Config = z.infer<typeof contractSchema>;
 
 export interface ContractOutputs {
   abi: string;
@@ -82,8 +89,6 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
-    validateConfig('contract', config);
-
     config = _.cloneDeep(config);
 
     config.from = _.template(config.from)(ctx);

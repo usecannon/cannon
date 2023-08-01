@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { Import, importSchema, validateConfig } from '../schemas.zod';
+import { z } from 'zod';
+import { importSchema } from '../schemas.zod';
 
 import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getOutputs } from '../builder';
@@ -10,7 +11,12 @@ import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
 
-export type Config = Import;
+/**
+ *  Available properties for import step
+ *  @public
+ *  @alias Import
+ */
+export type Config = z.infer<typeof importSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -39,8 +45,6 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
-    validateConfig('import', config);
-
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);

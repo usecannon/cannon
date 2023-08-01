@@ -9,7 +9,9 @@ import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
-import { chainDefinitionSchema, ChainDefinition, ConfigValidationSchema, validateConfig } from './schemas.zod';
+import { chainDefinitionSchema } from './schemas.zod';
+import { handleZodErrors } from './error/zod';
+import { z } from 'zod';
 
 export interface CannonAction {
   label: string;
@@ -30,7 +32,8 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
-  validate: ConfigValidationSchema;
+  // Takes in any schema as long as the base type is ZodSchema
+  validate: z.ZodSchema;
 
   timeout?: number;
 }
@@ -40,10 +43,28 @@ export interface CannonAction {
  */
 export const ActionKinds: { [label: string]: CannonAction } = {};
 
-export type RawChainDefinition = ChainDefinition;
+/**
+ *  Available properties for top level config
+ *  @public
+ *  @alias BaseDefinition
+ *  @
+ */
+export type RawChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
-export function validateChainDefinitionSchema(def: RawChainDefinition) {
-  return validateConfig('base', def);
+
+/** 
+ *  @internal
+ *  parses the schema and performs zod validations safely with a custom error handler
+*/ 
+export function validateConfig(schema: z.ZodSchema, config: any) {
+  const result = schema.safeParse(config);
+
+  if (!result.success) {
+    const errors = result.error.errors;
+    handleZodErrors(errors);
+  }
+
+  return result;
 }
 
 export function registerAction(action: CannonAction) {

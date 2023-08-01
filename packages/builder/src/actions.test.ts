@@ -1,4 +1,4 @@
-import { ActionKinds, registerAction, validateChainDefinitionSchema, CannonAction } from './actions';
+import { ActionKinds, registerAction, validateConfig, CannonAction } from './actions';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from './types';
 import { z } from 'zod';
 
@@ -45,13 +45,13 @@ describe('actions.ts', () => {
       expect(ActionKinds).toHaveProperty('fake');
 
       // calling the chain definition validator should not throw for this
-      validateChainDefinitionSchema({ name: 'fake', version: 'latest' });
+      validateConfig(FakeAction.validate, { name: 'fake', version: 'latest' });
     });
   });
 
-  describe('validateChainDefinitionSchema()', () => {
+  describe('validateConfig()', () => {
     it('returns zod validation', async () => {
-      expect(validateChainDefinitionSchema({ name: 'fake', version: 'latest' })).toBeTruthy();
+      expect(validateConfig(FakeAction.validate, { name: 'fake', version: 'latest' })).toBeTruthy();
     });
   });
 });

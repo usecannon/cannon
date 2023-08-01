@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { Provision, provisionSchema, validateConfig } from '../schemas.zod';
+import { z } from 'zod';
+import { provisionSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -17,7 +18,12 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-export type Config = Provision;
+/**
+ *  Available properties for provision step
+ *  @public
+ *  @alias Provision
+ */
+export type Config = z.infer<typeof provisionSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -63,8 +69,6 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
-    validateConfig('provision', config);
-
     config = _.cloneDeep(config);
 
     config.source = _.template(config.source)(ctx);

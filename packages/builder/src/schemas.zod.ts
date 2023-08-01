@@ -1,31 +1,69 @@
 import { z } from 'zod';
-import { handleZodErrors } from './error/zod';
+import importSpec from './steps/import';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
 export const contractSchema = z
   .object({
+    /**
+     *    Artifact name of the target contract
+     *  @example 
+      *  ```toml
+      *  [contract.synthetix]
+            artifact = "Synthetix"
+            ...
+      *  ```
+     */
     artifact: z.string(),
   })
   .merge(
+    /**
+     *    Optional Properties
+     */
     z
       .object({
+        /**
+         *    Determines whether to deploy the contract using create2
+         */
         create2: z.boolean(),
+        /**
+         *    Contract deployer address
+         */
         from: z.string(),
         nonce: z.string(),
+        /**
+         *    Abi of the contract being deployed
+         */
         abi: z.string(),
         abiOf: z.array(z.string()),
+        /**
+         *    Constructor args
+         */
         args: z.array(z.any()),
+        /**
+         *    Object containing list of libraries
+         */
         libraries: z.record(z.string()),
 
-        // used to force new copy of a contract (not actually used)
+        /**
+         *   Used to force new copy of a contract (not actually used)
+         */
         salt: z.string(),
 
+        /**
+         *   Native currency value to into the deploy transaction
+         */
         value: z.string(),
+        /**
+         *   Override settings for deployment
+         */
         overrides: z.object({
           gasLimit: z.string(),
         }),
 
+        /**
+         *  List of steps that this action depends on
+         */
         depends: z.array(z.string()),
       })
       .deepPartial()
@@ -33,6 +71,15 @@ export const contractSchema = z
 
 export const importSchema = z
   .object({
+    /**
+     *  Source of the cannonfile package to import from
+     *  @example
+     *  ```toml
+        [import.synthetix-sandbox]
+         source = "synthetix-sandbox"
+         ...
+     *  ```
+     */
     source: z.string(),
   })
   .merge(
@@ -146,159 +193,7 @@ export const chainDefinitionSchema = z
             })
             .partial()
         ),
-        import: z.object({ importSchema }),
+        import: z.custom<typeof importSpec>(),
       })
       .deepPartial()
   );
-
-export const runSchema = z
-  .object({
-    exec: z.string(),
-    func: z.string(),
-    modified: z.array(z.string()).nonempty(),
-  })
-  .merge(
-    z
-      .object({
-        args: z.array(z.string()),
-        env: z.array(z.string()),
-        depends: z.array(z.string()),
-      })
-      .deepPartial()
-  );
-
-/// ================================ TS TYPE DEFINITIONS ================================ \\\
-
-/** 
-* @internal
-* @title General validation schema.
-* @description Anytime an attribute is added to any of the zod schemas must be added to this
-
-* All properties are made optional since all schemas that
-* are validated against this are a partial object of this schema.
-*/
-export type ConfigValidationSchema = z.ZodObject<{
-  // Properties
-  target?: z.ZodArray<z.ZodString, 'atleastone'>;
-  exec?: z.ZodString;
-  func?: z.ZodString;
-  modified?: z.ZodArray<z.ZodString, 'atleastone'>;
-  artifact?: z.ZodString;
-  source?: z.ZodString;
-
-  // Optional Properties
-  chainId?: z.ZodOptional<z.ZodNumber>;
-  preset?: z.ZodOptional<z.ZodString>;
-  args?: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>> | z.ZodOptional<z.ZodArray<z.ZodAny, 'many'>>;
-  env?: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
-  depends?: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
-  create2?: z.ZodOptional<z.ZodBoolean>;
-  from?: z.ZodOptional<z.ZodString>;
-  fromCall?: z.ZodOptional<
-    z.ZodObject<{
-      func: z.ZodOptional<z.ZodString>;
-      args: z.ZodOptional<z.ZodArray<z.ZodAny, 'many'>>;
-    }>
-  >;
-  nonce?: z.ZodOptional<z.ZodString>;
-  abi?: z.ZodOptional<z.ZodString>;
-  abiOf?: z.ZodOptional<z.ZodArray<z.ZodString>>;
-  libraries?: z.ZodOptional<z.ZodRecord<z.ZodString>>;
-  salt?: z.ZodOptional<z.ZodString>;
-  value?: z.ZodOptional<z.ZodString>;
-  overrides?: z.ZodOptional<
-    z.ZodObject<{
-      gasLimit?: z.ZodOptional<z.ZodString>;
-    }>
-  >;
-  extra?: z.ZodOptional<
-    z.ZodRecord<
-      z.ZodString,
-      z.ZodObject<{
-        event: z.ZodString;
-        arg: z.ZodNumber;
-        allowEmptyEvents: z.ZodOptional<z.ZodBoolean>;
-      }>
-    >
-  >;
-  factory?: z.ZodOptional<
-    z.ZodRecord<
-      z.ZodString,
-      z.ZodObject<{
-        event: z.ZodString;
-        arg: z.ZodNumber;
-        artifact: z.ZodOptional<z.ZodString>;
-        abiOf: z.ZodOptional<z.ZodArray<z.ZodString, 'many'>>;
-        constructorArgs: z.ZodOptional<z.ZodArray<z.ZodAny, 'many'>>;
-        allowEmptyEvents: z.ZodOptional<z.ZodBoolean>;
-      }>
-    >
-  >;
-}>;
-
-/**
- *  Available properties for contract step
- *
- */
-export type Contract = z.infer<typeof contractSchema>;
-
-/**
- *  Available properties for import step
- *
- */
-export type Import = z.infer<typeof importSchema>;
-
-/**
- *  Available properties for invoke step
- *
- */
-export type Invoke = z.infer<typeof invokeSchema>;
-
-/**
- *  Available properties for provision step
- *
- */
-export type Provision = z.infer<typeof provisionSchema>;
-
-/**
- *  Available properties for run step
- *
- */
-export type Run = z.infer<typeof runSchema>;
-
-/**
- *  Available properties for keeper step
- *
- */
-export type Keeper = z.infer<typeof keeperSchema>;
-
-/**
- *  Available properties for top level config
- *
- */
-export type ChainDefinition = z.infer<typeof chainDefinitionSchema>;
-
-/// ================================ SCHEMA VALIDATION ================================ \\\
-
-const Schemas = {
-  base: chainDefinitionSchema,
-  contract: contractSchema,
-  import: importSchema,
-  invoke: invokeSchema,
-  provision: provisionSchema,
-  keeper: keeperSchema,
-  run: runSchema,
-};
-
-type ConfigTypes = ChainDefinition | Contract | Import | Invoke | Provision | Run | Keeper;
-
-export function validateConfig(step: keyof typeof Schemas, config: ConfigTypes) {
-  const result = Schemas[step].safeParse(config);
-
-  if (!result.success) {
-    const errors = result.error.errors;
-    handleZodErrors(errors);
-  }
-
-  return result;
-}

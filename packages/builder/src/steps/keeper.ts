@@ -1,10 +1,16 @@
 import _ from 'lodash';
 
-import { Keeper, keeperSchema, validateConfig } from '../schemas.zod';
+import { z } from 'zod';
+import { keeperSchema } from '../schemas.zod';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 
-export type Config = Keeper;
+/**
+ *  Available properties for keeper step
+ *  @public
+ *  @alias Keeper
+ */
+export type Config = z.infer<typeof keeperSchema>;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -19,8 +25,6 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateConfig('keeper', config);
-
     config = _.cloneDeep(config);
 
     config.exec = _.template(config.exec)(ctx);

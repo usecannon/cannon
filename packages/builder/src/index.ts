@@ -9,14 +9,9 @@ export { decodeTxError } from './error';
 export * from './util';
 export * from './types';
 
-// Used by the run step in cli
-export { Run, runSchema } from './schemas.zod';
-
 export { CannonWrapperGenericProvider } from './error/provider';
 
 export { handleTxnError } from './error';
-
-export { customErrorMap, handleZodErrors } from './error/zod';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 

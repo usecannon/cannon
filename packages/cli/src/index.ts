@@ -36,8 +36,6 @@ import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
 import { bold, green, red, yellow } from 'chalk';
 
-export { customErrorMap } from '@usecannon/builder';
-
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?

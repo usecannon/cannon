@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { Run, runSchema, handleZodErrors } from '@usecannon/builder';
+import { z } from 'zod';
+import { runSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -26,6 +27,7 @@ interface ErrorWithCode extends Error {
 /**
  * Try to import a file relative to the given baseDir, if not present, try to
  * get the relative NPM Module.
+ * @internal
  */
 export async function importFrom(baseDir: string, fileOrModule: string) {
   try {
@@ -59,18 +61,12 @@ export function hashFs(path: string): Buffer {
   return dirHasher.digest();
 }
 
-export type Config = Run;
-
-const validateConfig = (config: Config) => {
-  const result = runSchema.safeParse(config);
-
-  if (!result.success) {
-    const errors = result.error.errors;
-    handleZodErrors(errors);
-  }
-
-  return result;
-};
+/**
+ *  Available properties for run step
+ *  @public
+ *  @alias Run
+ */
+export type Config = z.infer<typeof runSchema>;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -109,8 +105,6 @@ const runAction = {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    validateConfig(config);
-
     config = _.cloneDeep(config);
 
     config.exec = _.template(config.exec)(ctx);

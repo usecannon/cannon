@@ -1,8 +1,8 @@
 /** @type { import('typedoc').TypeDocOptionMap */
 module.exports = {
   plugin: ['typedoc-plugin-zod', 'typedoc-plugin-merge-modules'],
-  entryPoints: ['src/steps/*.ts'],
-  exclude: ['src/steps/*.test.ts'],
+  entryPoints: ['src/custom-steps/*.ts'],
+  exclude: ['src/custom-steps/*.test.ts'],
   githubPages: false,
   cleanOutputDir: false,
   excludeInternal: true,

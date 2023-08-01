@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
 
-import { Invoke, invokeSchema, validateConfig } from '../schemas.zod';
+import { z } from 'zod';
+import { invokeSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -18,7 +19,13 @@ import { getAllContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
-export type Config = Invoke;
+/**
+ *  Available properties for invoke step
+ *  @public
+ *  @alias Invoke
+ */
+export type Config = z.infer<typeof invokeSchema>;
+
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -193,8 +200,6 @@ export default {
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
-    validateConfig('invoke', config);
-
     config = _.cloneDeep(config);
 
     if (config.target) {

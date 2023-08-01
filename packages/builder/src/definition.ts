@@ -5,7 +5,8 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import { ChainBuilderContext, PreChainBuilderContext } from './types';
 
-import { ActionKinds, validateChainDefinitionSchema, RawChainDefinition } from './actions';
+import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
+import { chainDefinitionSchema } from './schemas.zod';
 import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
@@ -25,18 +26,15 @@ export type StateLayers = {
   };
 };
 
-/**
- * Cannonfile metadata layout
- */
 export class ChainDefinition {
   private raw: RawChainDefinition;
 
   readonly allActionNames: string[];
 
-  /** actions which have no dependencies */
+  // actions which have no dependencies
   readonly roots: Set<string>;
 
-  /** actions which are not depended on by anything */
+  // actions which are not depended on by anything
   readonly leaves: Set<string>;
 
   private cachedLayers: StateLayers | null = null;
@@ -101,6 +99,8 @@ export class ChainDefinition {
         `action kind plugin not installed: "${kind}" (for action: "${n}"). please install the plugin necessary to build this package.`
       );
     }
+
+    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n))
 
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
@@ -187,7 +187,7 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import).map((d) => ({
+      Object.values(this.raw.import.validate).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || 'main')(ctx),
@@ -232,7 +232,7 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = validateChainDefinitionSchema(this.raw);
+    const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
