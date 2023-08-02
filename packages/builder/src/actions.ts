@@ -80,14 +80,12 @@ export function registerAction(action: CannonAction) {
 
   ActionKinds[label] = action;
 
-  // (
-  //   chainDefinitionSchema.pick({
-  //     description: true,
-  //     keywords: true,
-  //     setting: true,
-  //     import: true,
-  //   }) as any
-  // )[label] = { values: action.validate };
+  (chainDefinitionSchema.pick({
+    description: true,
+    keywords: true,
+    setting: true,
+    import: true
+  }) as any)[label] = { values: action.validate };
 }
 
 registerAction(contractSpec);

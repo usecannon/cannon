@@ -97,7 +97,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   getLabel() {
-    return `fallback (${this.registries.map(r => r.getLabel()).join(', ')})`;
+    return `fallback (${this.registries.map((r) => r.getLabel()).join(', ')})`;
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
@@ -109,7 +109,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
         if (err.error && err.error.data === '0x') {
           throw new Error(
@@ -132,7 +132,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getMetaUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
         if (err.error && err.error.data === '0x') {
           throw new Error(
@@ -173,7 +173,7 @@ export class OnChainRegistry extends CannonRegistry {
   constructor({
     signerOrProvider,
     address,
-    overrides = {}
+    overrides = {},
   }: {
     address: string;
     signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
@@ -224,7 +224,7 @@ export class OnChainRegistry extends CannonRegistry {
       ethers.utils.formatBytes32String(variant),
       packageTags,
       url,
-      metaUrl || ''
+      metaUrl || '',
     ]);
   }
 
@@ -241,13 +241,13 @@ export class OnChainRegistry extends CannonRegistry {
     const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
-        packagesNames.map(n => n.split(':')),
+        packagesNames.map((n) => n.split(':')),
         (p: string[]) => p[0]
       )
     )) {
       const tx = this.generatePublishTransactionData(
         registerPackages[0][0],
-        registerPackages.map(p => ethers.utils.formatBytes32String(p[1])),
+        registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
         variant,
         url,
         metaUrl
@@ -268,13 +268,13 @@ export class OnChainRegistry extends CannonRegistry {
     for (const pub of toPublish) {
       for (const registerPackages of _.values(
         _.groupBy(
-          pub.packagesNames.map(n => n.split(':')),
+          pub.packagesNames.map((n) => n.split(':')),
           (p: string[]) => p[0]
         )
       )) {
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],
-          registerPackages.map(p => ethers.utils.formatBytes32String(p[1])),
+          registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
           pub.variant,
           pub.url,
           pub.metaUrl

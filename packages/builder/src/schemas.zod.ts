@@ -7,6 +7,7 @@ export const contractSchema = z
   .object({
     /**
      *    Artifact name of the target contract
+     *  @description
      *  @example 
       *  ```toml
       *  [contract.synthetix]
@@ -17,9 +18,6 @@ export const contractSchema = z
     artifact: z.string()
   })
   .merge(
-    /**
-     *    Optional Properties
-     */
     z
       .object({
         /**
@@ -85,8 +83,18 @@ export const importSchema = z
   .merge(
     z
       .object({
+        /**
+         *  ID of the chain to import the package from
+         */
         chainId: z.number().int(),
+        /**
+         *  Present label of the package being imported
+         */
         preset: z.string(),
+        /**
+         *  Previous steps this step is dependent on
+         *  @example
+         */
         depends: z.array(z.string())
       })
       .deepPartial()

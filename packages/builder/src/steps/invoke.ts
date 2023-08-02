@@ -202,6 +202,7 @@ export default {
     config = _.cloneDeep(config);
 
     if (config.target) {
+      // [string, ...string[]] refers to a nonempty array
       config.target = config.target.map(v => _.template(v)(ctx)) as [string, ...string[]];
     }
 
