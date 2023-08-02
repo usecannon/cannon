@@ -73,12 +73,12 @@ export class LocalRegistry extends CannonRegistry {
     debug(`looking for ${packageName}, ${variant}`);
 
     return allTags
-      .filter(t => {
+      .filter((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
         return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
       })
-      .map(t => {
+      .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
         return { name: `${name}:${version}`, variant: tagVariant };
       });
@@ -99,7 +99,7 @@ export async function createDefaultReadRegistry(settings: CliSettings): Promise<
         packageRef,
         variant,
         result,
-        registry
+        registry,
       }: {
         packageRef: string;
         variant: string;
@@ -133,6 +133,6 @@ export async function createDryRunRegistry(settings: CliSettings): Promise<Fallb
   return new FallbackRegistry([
     new InMemoryRegistry(),
     new LocalRegistry(settings.cannonDirectory),
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress })
+    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
   ]);
 }

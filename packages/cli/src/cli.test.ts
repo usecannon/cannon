@@ -10,7 +10,7 @@ describe('cli test', () => {
   });
 
   it('throws error missing required argument', async () => {
-    cli.exitOverride(err => {
+    cli.exitOverride((err) => {
       throw err;
     });
     expect(() => cli.parse([])).toThrow("error: missing required argument 'packageNames'");

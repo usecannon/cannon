@@ -60,7 +60,7 @@ export function makeArachnidCreate2Txn(
 
   const txn = {
     to: arachnidAddress,
-    data: saltHash + initcode.toString().slice(2)
+    data: saltHash + initcode.toString().slice(2),
   };
 
   const contractAddress =

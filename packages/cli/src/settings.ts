@@ -7,7 +7,7 @@ import {
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_PROVIDER_URL,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
-  CLI_SETTINGS_STORE
+  CLI_SETTINGS_STORE,
 } from './constants';
 
 import Debug from 'debug';
@@ -91,7 +91,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
       etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
-      quiet: process.env.CANNON_QUIET === 'true' || fileSettings.quiet || false
+      quiet: process.env.CANNON_QUIET === 'true' || fileSettings.quiet || false,
     },
     overrides
   );

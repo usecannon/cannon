@@ -28,7 +28,7 @@ export async function createInitialContext(
   const preCtx: PreChainBuilderContext = {
     package: pkg,
     timestamp: Math.floor(Date.now() / 1000).toString(),
-    chainId
+    chainId,
   };
 
   const settings: ChainBuilderContext['settings'] = {};
@@ -56,7 +56,7 @@ export async function createInitialContext(
 
     imports: {},
 
-    extras: {}
+    extras: {},
   };
 }
 
@@ -153,7 +153,7 @@ ${printChainDefinitionProblems(problems)}`);
             state[n] = {
               artifacts: newArtifacts,
               hash: await def.getState(n, runtime, ctx, depsTainted),
-              version: BUILD_VERSION
+              version: BUILD_VERSION,
             };
             tainted.add(n);
           } else {
@@ -161,7 +161,7 @@ ${printChainDefinitionProblems(problems)}`);
           }
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
-        } catch (err) {
+        } catch (err: any) {
           if (runtime.allowPartialDeploy) {
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
@@ -176,7 +176,7 @@ ${printChainDefinitionProblems(problems)}`);
         }
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     // make sure its possible to debug the original error
     debug('error', err);
 
@@ -296,7 +296,7 @@ export async function buildLayer(
         {
           name,
           version,
-          currentLabel: action
+          currentLabel: action,
         },
         def.getConfig(action, ctx),
         _.clone(ctx)
@@ -307,7 +307,7 @@ export async function buildLayer(
       state[action] = {
         artifacts: newArtifacts,
         hash: await def.getState(action, runtime, ctx, false),
-        version: BUILD_VERSION
+        version: BUILD_VERSION,
         // add the chain dump later once all steps have been executed
       };
 
@@ -336,7 +336,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
 
   const result = await Promise.race([
     ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
-    new Promise<false>(resolve => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT))
+    new Promise<false>((resolve) => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT)),
   ]);
 
   if (result === false) {
@@ -367,7 +367,7 @@ export async function getOutputs(
 
     layerSearch: for (const layer of layers) {
       for (const action of layer.actions) {
-        if (layers.find(l => l.depends.indexOf(action) !== -1)) {
+        if (layers.find((l) => l.depends.indexOf(action) !== -1)) {
           // this isnt a leaf
           continue layerSearch;
         }

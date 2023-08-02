@@ -10,7 +10,7 @@ import {
   ChainArtifacts,
   TransactionMap,
   ChainBuilderContextWithHelpers,
-  PackageState
+  PackageState,
 } from '../types';
 import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
@@ -25,6 +25,7 @@ const debug = Debug('cannon:builder:invoke');
  *  @group Invoke
  */
 export type Config = z.infer<typeof invokeSchema>;
+
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -114,14 +115,14 @@ async function runTxn(
   // get events
   const txnEvents = _.groupBy(
     _.filter(
-      receipt.events?.map(e => {
+      receipt.events?.map((e) => {
         if (!e.event || !e.args) {
           return null;
         }
 
         return {
           name: e.event,
-          args: e.args as any[]
+          args: e.args as any[],
         };
       }),
       _.isObject
@@ -191,10 +192,10 @@ export default {
     const cfg = this.configInject(ctx, config);
 
     return {
-      to: cfg.target?.map(t => getContractFromPath(ctx, t)?.address),
+      to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
       func: cfg.func,
-      args: cfg.args?.map(v => JSON.stringify(v)),
-      value: cfg.value || '0'
+      args: cfg.args?.map((v) => JSON.stringify(v)),
+      value: cfg.value || '0',
     };
   },
 
@@ -202,8 +203,12 @@ export default {
     config = _.cloneDeep(config);
 
     if (config.target) {
+<<<<<<< HEAD
       // [string, ...string[]] refers to a nonempty array
       config.target = config.target.map(v => _.template(v)(ctx)) as [string, ...string[]];
+=======
+      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
+>>>>>>> parent of 827e29cb... Fixing lint issue
     }
 
     if (config.abi) {
@@ -213,7 +218,7 @@ export default {
     config.func = _.template(config.func)(ctx);
 
     if (config.args) {
-      config.args = _.map(config.args, a => {
+      config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
@@ -225,7 +230,7 @@ export default {
 
     if (config.fromCall) {
       config.fromCall.func = _.template(config.fromCall.func)(ctx);
-      config.fromCall.args = _.map(config.fromCall.args, a => {
+      config.fromCall.args = _.map(config.fromCall.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
@@ -249,7 +254,7 @@ export default {
       }
 
       if (f.abiOf) {
-        f.abiOf = _.map(f.abiOf, v => _.template(v)(ctx));
+        f.abiOf = _.map(f.abiOf, (v) => _.template(v)(ctx));
       }
     }
 
@@ -312,7 +317,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
       txns[label] = {
         hash: receipt.transactionHash,
         events: txnEvents,
-        deployedOn: packageState.currentLabel
+        deployedOn: packageState.currentLabel,
       };
     }
 
@@ -354,7 +359,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           constructorArgs: factoryInfo.constructorArgs,
           sourceName: sourceName,
           contractName: contractName,
-          deployedOn: packageState.currentLabel
+          deployedOn: packageState.currentLabel,
         };
       }
     }
@@ -364,7 +369,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
     return {
       contracts,
       txns,
-      extras
+      extras,
     };
-  }
+  },
 };

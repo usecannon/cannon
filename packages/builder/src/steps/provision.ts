@@ -9,7 +9,7 @@ import {
   ChainArtifacts,
   ChainBuilderContextWithHelpers,
   DeploymentState,
-  PackageState
+  PackageState,
 } from '../types';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
@@ -64,7 +64,7 @@ export default {
     return {
       url: srcUrl,
       options: cfg.options,
-      targetPreset: cfg.targetPreset
+      targetPreset: cfg.targetPreset,
     };
   },
 
@@ -76,13 +76,13 @@ export default {
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
-      config.options = _.mapValues(config.options, v => {
+      config.options = _.mapValues(config.options, (v) => {
         return _.template(v)(ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map(t => _.template(t)(ctx));
+      config.tags = config.tags.map((t) => _.template(t)(ctx));
     }
 
     return config;
@@ -145,9 +145,9 @@ export default {
     // but if any other misc changes are generated they will still be preserved through the new separate context misc
     const upstreamMisc = await runtime.readBlob(deployInfo.miscUrl);
     const importRuntime = runtime.derive({
-      getArtifact: n => {
+      getArtifact: (n) => {
         return upstreamMisc.artifacts[n];
-      }
+      },
     });
 
     let partialDeploy = false;
@@ -177,14 +177,14 @@ export default {
       state: builtState,
       meta: deployInfo.meta,
       status: partialDeploy ? 'partial' : 'complete',
-      chainId
+      chainId,
     });
 
     if (!newSubDeployUrl) {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
-        [config.source, ...(config.tags || ['latest']).map(t => config.source.split(':')[0] + ':' + t)],
+        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
         (await runtime.registry.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
@@ -197,11 +197,11 @@ export default {
           url: newSubDeployUrl || '',
           tags: config.tags || ['latest'],
           preset: targetPreset,
-          ...(await getOutputs(importRuntime, def, builtState))!
-        }
-      }
+          ...(await getOutputs(importRuntime, def, builtState))!,
+        },
+      },
     };
   },
 
-  timeout: 3600000
+  timeout: 3600000,
 };

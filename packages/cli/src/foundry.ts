@@ -39,7 +39,7 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
   const solcVersion = foundryInfo.compiler.version;
   const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
     return {
-      content: fs.readFileSync(path.join(baseDir, sourcePath)).toString()
+      content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
     };
   });
 
@@ -53,11 +53,11 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
         remappings: foundryInfo.settings.remappings,
         outputSelection: {
           '*': {
-            '*': ['*']
-          }
-        }
-      }
-    })
+            '*': ['*'],
+          },
+        },
+      },
+    }),
   };
 
   return {
@@ -67,6 +67,6 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
     bytecode: artifact.bytecode.object,
     deployedBytecode: artifact.deployedBytecode.object,
     linkReferences: artifact.bytecode.linkReferences,
-    source
+    source,
   };
 }

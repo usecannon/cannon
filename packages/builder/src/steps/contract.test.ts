@@ -14,28 +14,28 @@ describe('setps/contract.ts', () => {
         {
           internalType: 'bytes32',
           name: 'data',
-          type: 'bytes32'
+          type: 'bytes32',
         },
         {
           internalType: 'bytes32',
           name: 'data',
-          type: 'bytes32'
+          type: 'bytes32',
         },
         {
           name: 'data',
-          type: 'tuple'
-        }
+          type: 'tuple',
+        },
       ],
       stateMutability: 'nonpayable',
-      type: 'constructor'
-    }
+      type: 'constructor',
+    },
   ];
 
   beforeAll(async () => {
-    jest.mocked(fakeRuntime.getArtifact).mockResolvedValue(({
+    jest.mocked(fakeRuntime.getArtifact).mockResolvedValue({
       bytecode: '0xabcd',
-      abi: fakeAbi
-    } as unknown) as ContractArtifact);
+      abi: fakeAbi,
+    } as unknown as ContractArtifact);
   });
 
   describe('configInject()', () => {
@@ -54,8 +54,8 @@ describe('setps/contract.ts', () => {
 
         value: '<%= settings.b %><%= settings.d %>',
         overrides: {
-          gasLimit: '<%= settings.gasLimit %>'
-        }
+          gasLimit: '<%= settings.gasLimit %>',
+        },
       });
 
       expect(result).toStrictEqual({
@@ -72,8 +72,8 @@ describe('setps/contract.ts', () => {
 
         value: 'bd',
         overrides: {
-          gasLimit: '20000'
-        }
+          gasLimit: '20000',
+        },
       });
     });
   });
@@ -86,7 +86,7 @@ describe('setps/contract.ts', () => {
         bytecode: '0xabcd',
         args: [],
         salt: undefined,
-        value: [] // for cannon spec, undefined or 0 value contract create resolves to empty array (dont ask)
+        value: [], // for cannon spec, undefined or 0 value contract create resolves to empty array (dont ask)
       });
     });
 
@@ -99,14 +99,14 @@ describe('setps/contract.ts', () => {
         artifact: 'hello',
         args: ['one', 'two', { three: 'four' }],
         salt: 'wohoo',
-        value: '1234'
+        value: '1234',
       });
 
       expect(result).toStrictEqual({
         bytecode: '0xabcd',
         args: ['one', 'two', '{"three":"four"}'],
         salt: 'wohoo',
-        value: '1234'
+        value: '1234',
       });
     });
   });
@@ -124,7 +124,7 @@ describe('setps/contract.ts', () => {
             create2: true,
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
-            value: '1234'
+            value: '1234',
           },
           { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
         );
@@ -137,20 +137,20 @@ describe('setps/contract.ts', () => {
               constructorArgs: [
                 ethers.utils.formatBytes32String('one'),
                 ethers.utils.formatBytes32String('two'),
-                { three: 'four' }
+                { three: 'four' },
               ],
               contractName: undefined,
               deployTxnHash: '',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
-              sourceName: undefined
-            }
-          }
+              sourceName: undefined,
+            },
+          },
         });
       });
 
       it('works if contract needs to be deployed', async () => {
-        jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async addr => {
+        jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async (addr) => {
           if (addr === ARACHNID_CREATE2_PROXY) {
             return '0xabcd';
           }
@@ -166,7 +166,7 @@ describe('setps/contract.ts', () => {
             create2: true,
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
-            value: '1234'
+            value: '1234',
           },
           { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
         );
@@ -179,15 +179,15 @@ describe('setps/contract.ts', () => {
               constructorArgs: [
                 ethers.utils.formatBytes32String('one'),
                 ethers.utils.formatBytes32String('two'),
-                { three: 'four' }
+                { three: 'four' },
               ],
               contractName: undefined,
               deployTxnHash: '0x1234',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
-              sourceName: undefined
-            }
-          }
+              sourceName: undefined,
+            },
+          },
         });
 
         expect((await fakeRuntime.getDefaultSigner({}, '')).sendTransaction).toBeCalledWith(
@@ -212,7 +212,7 @@ describe('setps/contract.ts', () => {
             artifact: 'hello',
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
-            value: '1234'
+            value: '1234',
           },
           { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
         );
@@ -225,15 +225,15 @@ describe('setps/contract.ts', () => {
               constructorArgs: [
                 ethers.utils.formatBytes32String('one'),
                 ethers.utils.formatBytes32String('two'),
-                { three: 'four' }
+                { three: 'four' },
               ],
               contractName: undefined,
               deployTxnHash: '0x1234',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
-              sourceName: undefined
-            }
-          }
+              sourceName: undefined,
+            },
+          },
         });
       });
 
@@ -254,7 +254,7 @@ describe('setps/contract.ts', () => {
             from: '0x1234123412341234123412341234123412341234',
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
-            value: '1234'
+            value: '1234',
           },
           { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
         );
@@ -267,15 +267,15 @@ describe('setps/contract.ts', () => {
               constructorArgs: [
                 ethers.utils.formatBytes32String('one'),
                 ethers.utils.formatBytes32String('two'),
-                { three: 'four' }
+                { three: 'four' },
               ],
               contractName: undefined,
               deployTxnHash: '0x1234',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
-              sourceName: undefined
-            }
-          }
+              sourceName: undefined,
+            },
+          },
         });
       });
 
@@ -287,7 +287,7 @@ describe('setps/contract.ts', () => {
             artifact: 'hello',
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
-            value: '1234'
+            value: '1234',
           },
           { name: 'hello', version: '1.0.0', currentLabel: 'contract.Woot' }
         );
@@ -300,15 +300,15 @@ describe('setps/contract.ts', () => {
               constructorArgs: [
                 ethers.utils.formatBytes32String('one'),
                 ethers.utils.formatBytes32String('two'),
-                { three: 'four' }
+                { three: 'four' },
               ],
               contractName: undefined,
               deployTxnHash: '0x1234',
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
-              sourceName: undefined
-            }
-          }
+              sourceName: undefined,
+            },
+          },
         });
       });
     });

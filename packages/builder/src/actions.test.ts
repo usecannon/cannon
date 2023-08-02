@@ -7,7 +7,7 @@ const FakeAction: CannonAction = {
 
   validate: z.object({
     exec: z.string(),
-    foo: z.number()
+    foo: z.number(),
   }),
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
@@ -24,7 +24,7 @@ const FakeAction: CannonAction = {
     _config: Record<string, unknown>*/
   Promise<ChainArtifacts> {
     return {};
-  }
+  },
 };
 
 describe('actions.ts', () => {
@@ -34,7 +34,7 @@ describe('actions.ts', () => {
     });
 
     it('throws an error on missing "label"', () => {
-      expect(() => registerAction({ ...FakeAction, label: (undefined as unknown) as string })).toThrowError(
+      expect(() => registerAction({ ...FakeAction, label: undefined as unknown as string })).toThrowError(
         'missing "label" property on plugin definition'
       );
     });

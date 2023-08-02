@@ -39,12 +39,12 @@ describe('inspect', () => {
                     outputs: [
                       {
                         name: '',
-                        type: 'string'
-                      }
+                        type: 'string',
+                      },
                     ],
                     payable: false,
-                    type: 'function'
-                  }
+                    type: 'function',
+                  },
                 ],
                 contractAddress: '0x123abc...',
                 source: `pragma solidity ^0.5.0;
@@ -56,22 +56,22 @@ describe('inspect', () => {
                     name = "MyContract";
                   }
                 }`,
-                bytecode: '0x6060604052341561000f57600080fd5b60d38061001d6000396000f3fe6080...'
-              }
-            }
-          }
-        }
+                bytecode: '0x6060604052341561000f57600080fd5b60d38061001d6000396000f3fe6080...',
+              },
+            },
+          },
+        },
       ],
       status: 'complete',
       miscUrl: 'file:/usecannon.com/misc',
       meta: {},
-      options: {}
+      options: {},
     };
 
     mockedFallBackRegistry = {
       getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
       getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
-      getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta')
+      getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
     };
 
     localLoader = new LocalLoader('path');
@@ -79,19 +79,19 @@ describe('inspect', () => {
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
-      ipfs: ipfsLoader
+      ipfs: ipfsLoader,
     });
 
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
 
     jest.mock('../settings', () => ({
-      resolveCliSettings: jest.fn().mockReturnValue({})
+      resolveCliSettings: jest.fn().mockReturnValue({}),
     }));
     jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
     jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
 
     stdoutOutput = [];
-    writeSpy = jest.spyOn(process.stdout, 'write').mockImplementation(output => {
+    writeSpy = jest.spyOn(process.stdout, 'write').mockImplementation((output) => {
       stdoutOutput.push(output as string);
       return true;
     });

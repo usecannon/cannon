@@ -16,9 +16,9 @@ jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({
     registryProviderUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
-    privateKey: generatePrivateKey() // or whatever value is appropriate in your case
+    privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
     // Add other properties as needed
-  })
+  }),
 }));
 
 jest.mock('../registry');
@@ -61,16 +61,16 @@ describe('alter', () => {
                 deployTxnHash: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
                 contractName: 'TestContract',
                 sourceName: 'TestContract.sol',
-                deployedOn: ''
-              }
-            }
-          }
-        }
+                deployedOn: '',
+              },
+            },
+          },
+        },
       },
       status: 'complete',
       miscUrl: 'file:/usecannon.com/misc',
       meta: {},
-      options: {}
+      options: {},
     };
     jest.spyOn(mockedFallBackRegistry, 'publish').mockResolvedValue([]);
     jest.spyOn(mockedFallBackRegistry, 'getMetaUrl').mockResolvedValue(metaUrl);
@@ -79,7 +79,7 @@ describe('alter', () => {
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
-      ipfs: ipfsLoader
+      ipfs: ipfsLoader,
     });
   });
 
@@ -89,10 +89,10 @@ describe('alter', () => {
     const targets = [url];
 
     const newTestPkgData: DeploymentInfo = _.assign(testPkgData, {
-      miscUrl: 'file:/usecannon.com/new-misc'
+      miscUrl: 'file:/usecannon.com/new-misc',
     });
 
-    const mockReadDeploy = jest.fn(async url => {
+    const mockReadDeploy = jest.fn(async (url) => {
       switch (url) {
         case 'file:/usecannon.com/misc':
           return { misc: 'info' };
@@ -204,7 +204,7 @@ describe('alter', () => {
       '-c',
       String(chainId),
       '-p',
-      preset
+      preset,
     ]);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(

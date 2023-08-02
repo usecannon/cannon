@@ -64,7 +64,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
     console.log(
       '         Options:',
       Object.entries(deployData.options)
-        .map(o => `${o[0]}=${o[1]}`)
+        .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
     console.log('     Package URL:', deployUrl);

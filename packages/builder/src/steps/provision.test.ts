@@ -27,9 +27,9 @@ describe('setps/provision.ts', () => {
           deployTxnHash: '0x',
           contractName: 'Woot',
           sourceName: 'Woot.sol',
-          deployedOn: 'contract.Woot'
-        }
-      }
+          deployedOn: 'contract.Woot',
+        },
+      },
     });
   });
 
@@ -38,7 +38,7 @@ describe('setps/provision.ts', () => {
       const result = action.configInject(
         fakeCtx,
         {
-          source: '<%= settings.a %>'
+          source: '<%= settings.a %>',
         },
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
@@ -46,7 +46,7 @@ describe('setps/provision.ts', () => {
       expect(result).toStrictEqual({
         source: 'a',
         sourcePreset: 'main',
-        targetPreset: 'with-who'
+        targetPreset: 'with-who',
       });
     });
   });
@@ -65,7 +65,7 @@ describe('setps/provision.ts', () => {
       expect(result).toStrictEqual({
         url: 'https://something.com',
         options: undefined,
-        targetPreset: 'with-who'
+        targetPreset: 'with-who',
       });
     });
 
@@ -82,7 +82,7 @@ describe('setps/provision.ts', () => {
       expect(result).toStrictEqual({
         url: 'https://something-else.com',
         options: { bar: 'baz' },
-        targetPreset: 'voop'
+        targetPreset: 'voop',
       });
     });
   });
@@ -115,22 +115,22 @@ describe('setps/provision.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot'
-                }
-              }
-            }
-          }
+                  deployedOn: 'contract.Woot',
+                },
+              },
+            },
+          },
         },
         options: {},
         def: {
           name: 'hello',
           version: '1.0.0',
           contract: {
-            Woot: { artifact: 'Woot' }
-          }
+            Woot: { artifact: 'Woot' },
+          },
         } as any,
         meta: {},
-        miscUrl: 'https://something.com'
+        miscUrl: 'https://something.com',
       });
 
       jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
@@ -155,11 +155,11 @@ describe('setps/provision.ts', () => {
                 deployTxnHash: '0x',
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
-                deployedOn: 'contract.Woot'
-              }
-            }
-          }
-        }
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
       });
     });
   });

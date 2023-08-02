@@ -34,7 +34,7 @@ describe('getFoundryArtifact', () => {
         JSON.stringify({
           compiler: { version: '0.8.1' },
           sources: { 'test.sol': {} },
-          settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } }
+          settings: { optimizer: {}, remappings: {}, outputSelection: { '*': { '*': ['*'] } } },
         })
       );
 
@@ -45,7 +45,7 @@ describe('getFoundryArtifact', () => {
             ast: { absolutePath: 'test.sol' },
             abi: [],
             bytecode: { object: '0x1234', linkReferences: {} },
-            deployedBytecode: { object: '0x1234' }
+            deployedBytecode: { object: '0x1234' },
           })
         )
       )

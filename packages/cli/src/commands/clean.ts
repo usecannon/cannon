@@ -10,15 +10,15 @@ const debug = Debug('cannon:cli:clean');
 export async function clean(confirm = true) {
   const settings = resolveCliSettings();
 
-  const folders = ['tags', 'metadata_cache'].map(dir => path.join(settings.cannonDirectory, dir));
+  const folders = ['tags', 'metadata_cache'].map((dir) => path.join(settings.cannonDirectory, dir));
 
   const files = await Promise.all(
-    folders.map(async dir => {
+    folders.map(async (dir) => {
       if (!existsSync(dir)) return [];
       const files = await fs.readdir(dir);
-      return files.filter(file => path.extname(file) === '.txt').map(file => path.join(dir, file));
+      return files.filter((file) => path.extname(file) === '.txt').map((file) => path.join(dir, file));
     })
-  ).then(files => files.flat());
+  ).then((files) => files.flat());
 
   if (!files.length) {
     console.log('No files found that could be deleted.');
@@ -34,14 +34,14 @@ export async function clean(confirm = true) {
       type: 'confirm',
       name: 'confirmation',
       message: 'Are you sure you want to delete them?',
-      initial: false
+      initial: false,
     });
 
     if (!confirm.confirmation) return false;
   }
 
   await Promise.all(
-    files.map(async file => {
+    files.map(async (file) => {
       debug(`removing file: ${file}`);
       await fs.rm(file);
     })

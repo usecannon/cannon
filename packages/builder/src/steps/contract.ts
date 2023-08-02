@@ -14,7 +14,7 @@ import {
   ChainArtifacts,
   ChainBuilderContextWithHelpers,
   ContractArtifact,
-  PackageState
+  PackageState,
 } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
@@ -81,9 +81,9 @@ export default {
 
     return {
       bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
-      args: parsedConfig.args?.map(v => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
+      args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
       salt: parsedConfig.salt,
-      value: parsedConfig.value || []
+      value: parsedConfig.value || [],
     };
   },
 
@@ -101,18 +101,18 @@ export default {
     config.abi = _.template(config.abi)(ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, v => _.template(v)(ctx));
+      config.abiOf = _.map(config.abiOf, (v) => _.template(v)(ctx));
     }
 
     if (config.args) {
-      config.args = _.map(config.args, a => {
+      config.args = _.map(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(_.template(JSON.stringify(a))(ctx));
       });
     }
 
     if (config.libraries) {
-      config.libraries = _.mapValues(config.libraries, a => {
+      config.libraries = _.mapValues(config.libraries, (a) => {
         return _.template(a)(ctx);
       });
     }
@@ -264,9 +264,9 @@ export default {
           deployTxnHash: transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
-          deployedOn: packageState.currentLabel!
-        }
-      }
+          deployedOn: packageState.currentLabel!,
+        },
+      },
     };
-  }
+  },
 };

@@ -8,7 +8,7 @@ export async function decode({
   data,
   chainId,
   preset,
-  json = false
+  json = false,
 }: {
   packageName: string;
   data: string[];
@@ -18,7 +18,7 @@ export async function decode({
 }) {
   const deployInfos = await readDeployRecursive(packageName, chainId, preset);
 
-  const abis = deployInfos.flatMap(deployData => _getAbis(deployData));
+  const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);
 
   if (!tx) {
@@ -83,8 +83,8 @@ export async function decode({
 
 function _getAbis(deployData: DeploymentInfo) {
   return Object.values(deployData.state)
-    .flatMap(step => Object.values(step.artifacts?.contracts || {}))
-    .map(artifact => artifact.abi);
+    .flatMap((step) => Object.values(step.artifacts?.contracts || {}))
+    .map((artifact) => artifact.abi);
 }
 
 function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNumber) {

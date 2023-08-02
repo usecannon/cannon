@@ -17,7 +17,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
   // create temporary provider
   // todo: really shouldn't be necessary
   const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000)
+    port: 30000 + Math.floor(Math.random() * 30000),
   });
   const provider = getProvider(node);
 
@@ -36,7 +36,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
         return provider.getSigner(addr);
       },
       snapshots: false,
-      allowPartialDeploy: false
+      allowPartialDeploy: false,
     },
     resolver,
     getMainLoader(settings)
@@ -109,13 +109,13 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
           // NOTE: below: yes, the etherscan api is misspelling
           constructorArguements: new ethers.utils.Interface(contractArtifact.abi)
             .encodeDeploy(contractInfo.constructorArgs)
-            .slice(2)
+            .slice(2),
         };
 
         debug('verification request', reqData);
 
         const res = await axios.post(etherscanApi, reqData, {
-          headers: { 'content-type': 'application/x-www-form-urlencoded' }
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
         });
 
         if (res.data.status === '0') {
@@ -152,7 +152,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
           apiKey,
           module: 'contract',
           action: 'checkverifystatus',
-          guid: guids[c]
+          guid: guids[c],
         },
         { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
       );
@@ -177,5 +177,5 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

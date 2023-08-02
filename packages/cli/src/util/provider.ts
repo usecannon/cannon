@@ -12,7 +12,7 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
   return resolveProviderAndSigners({
     chainId,
     checkProviders: settings.providerUrl?.split(',') || [],
-    privateKey: settings.privateKey
+    privateKey: settings.privateKey,
   });
 }
 
@@ -20,14 +20,14 @@ export async function resolveRegistryProvider(settings: CliSettings) {
   return resolveProviderAndSigners({
     chainId: settings.registryChainId,
     checkProviders: settings.registryProviderUrl!.split(','),
-    privateKey: settings.privateKey
+    privateKey: settings.privateKey,
   });
 }
 
 export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
-  privateKey
+  privateKey,
 }: {
   chainId: number | string;
   checkProviders?: string[];
@@ -58,13 +58,13 @@ export async function resolveProviderAndSigners({
       for (const account of rawProvider.accounts) {
         signers.push(ethersProvider.getSigner(account));
       }
-    } catch (err) {
+    } catch (err: any) {
       debug('Failed to connect signers: ', err);
     }
   }
 
   return {
     provider: ethersProvider,
-    signers
+    signers,
   };
 }

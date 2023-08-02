@@ -50,7 +50,7 @@ export async function handleTxnError(
   if (txnData && (await isAnvil(provider))) {
     const fullTxn = {
       gasLimit: 20000000, // should ensure we get an actual failed receipt
-      ...txnData
+      ...txnData,
     };
 
     // then, run it for real so we can get a trace
@@ -175,7 +175,7 @@ export function findContract(
     if (condition(ctx.contracts[name])) {
       return {
         name: prefix + name,
-        contract: new ethers.Contract(ctx.contracts[name].address, ctx.contracts[name].abi)
+        contract: new ethers.Contract(ctx.contracts[name].address, ctx.contracts[name].abi),
       };
     }
   }
@@ -191,7 +191,7 @@ export function findContract(
 }
 
 export function renderResult(result: ethers.utils.Result) {
-  return '(' + result.map(v => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
+  return '(' + result.map((v) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
 }
 
 /**
@@ -347,7 +347,7 @@ function parseFunctionData(
     contractName,
     parsedInput,
     parsedOutput,
-    isReverted
+    isReverted,
   };
 }
 
@@ -390,5 +390,5 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
 }
 
 export function renderTrace(ctx: ChainArtifacts, traces: TraceEntry[]): string {
-  return traces.map(t => renderTraceEntry(ctx, t)).join('\n');
+  return traces.map((t) => renderTraceEntry(ctx, t)).join('\n');
 }

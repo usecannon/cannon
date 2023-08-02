@@ -6,8 +6,8 @@ describe('error/index.ts', () => {
     '0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000096974206661696c65640000000000000000000000000000000000000000000000';
 
   describe('handleTxnError()', () => {
-    const FakeProvider = ({
-      send: jest.fn().mockImplementation(f => {
+    const FakeProvider = {
+      send: jest.fn().mockImplementation((f) => {
         switch (f) {
           case 'web3_clientVersion':
             return 'dummy';
@@ -15,8 +15,8 @@ describe('error/index.ts', () => {
             return 'unknown send';
         }
       }),
-      getSigner: jest.fn()
-    } as unknown) as ethers.providers.JsonRpcProvider;
+      getSigner: jest.fn(),
+    } as unknown as ethers.providers.JsonRpcProvider;
 
     it('throws the original error when its unknown', async () => {
       const fakeError = new Error('this is an error that nobody knows about');
@@ -33,7 +33,7 @@ describe('error/index.ts', () => {
     it('captures and unwraps UNPREDICTABLE_GAS_LIMIT', async () => {
       const fakeError = {
         code: 'UNPREDICTABLE_GAS_LIMIT',
-        error: { code: 'CALL_EXCEPTION', transaction: {}, data: FAKE_REVERT_REASON }
+        error: { code: 'CALL_EXCEPTION', transaction: {}, data: FAKE_REVERT_REASON },
       };
       await expect(() => handleTxnError({}, FakeProvider, fakeError)).rejects.toThrowError('Error("it failed")');
     });
@@ -47,7 +47,7 @@ describe('error/index.ts', () => {
       const fakeError = {
         reason: 'processing response error',
         requestBody: '{ "params": [{}]}',
-        error: { data: FAKE_REVERT_REASON }
+        error: { data: FAKE_REVERT_REASON },
       };
       await expect(() => handleTxnError({}, FakeProvider, fakeError)).rejects.toThrowError('Error("it failed")');
     });
@@ -61,7 +61,7 @@ describe('error/index.ts', () => {
             } else if (call === 'trace_transaction') {
               return [];
             }
-          }
+          },
         };
       });
 
@@ -85,7 +85,7 @@ describe('error/index.ts', () => {
             } else if (call === 'trace_transaction') {
               return [];
             }
-          }
+          },
         };
       });
 

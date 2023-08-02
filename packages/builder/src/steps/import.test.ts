@@ -20,14 +20,14 @@ describe('steps/import.ts', () => {
         source: '<%= settings.a %>',
         chainId: 1234,
         preset: '<%= settings.c %>',
-        depends: []
+        depends: [],
       });
 
       expect(result).toStrictEqual({
         source: 'a',
         chainId: 1234,
         preset: 'c',
-        depends: []
+        depends: [],
       });
     });
   });
@@ -39,7 +39,7 @@ describe('steps/import.ts', () => {
       const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' });
 
       expect(result).toStrictEqual({
-        url: 'https://something.com'
+        url: 'https://something.com',
       });
     });
   });
@@ -72,22 +72,22 @@ describe('steps/import.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot'
-                }
-              }
-            }
-          }
+                  deployedOn: 'contract.Woot',
+                },
+              },
+            },
+          },
         },
         options: {},
         def: {
           name: 'hello',
           version: '1.0.0',
           contract: {
-            Woot: { artifact: 'Woot' }
-          }
+            Woot: { artifact: 'Woot' },
+          },
         } as any,
         meta: {},
-        miscUrl: 'https://something.com'
+        miscUrl: 'https://something.com',
       });
 
       const result = await action.exec(
@@ -108,11 +108,11 @@ describe('steps/import.ts', () => {
                 deployTxnHash: '0x',
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
-                deployedOn: 'contract.Woot'
-              }
-            }
-          }
-        }
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
       });
     });
   });

@@ -32,7 +32,7 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
 
     const transformedOutput = {
       ...contractOutputs,
-      abi: contractOutputs.abi
+      abi: contractOutputs.abi,
     };
 
     // JSON format is already correct, so we can just output what we have

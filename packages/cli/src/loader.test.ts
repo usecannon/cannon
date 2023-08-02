@@ -39,7 +39,7 @@ function LocalLoaderTestCases() {
     const hash = '9ece086e9bac491fac5c1d104635c3c9';
     (crypto.createHash as jest.Mock).mockReturnValueOnce({
       update: jest.fn().mockReturnThis(),
-      digest: jest.fn().mockReturnValueOnce(hash)
+      digest: jest.fn().mockReturnValueOnce(hash),
     });
     const result = await loader.put(misc);
     expect(fs.mkdirp).toHaveBeenCalledWith(dir);
@@ -60,7 +60,7 @@ function getMainLoaderTestCases() {
       registryAddress: 'address',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
-      quiet: true
+      quiet: true,
     };
     const loaders = getMainLoader(settings);
     expect(loaders).toHaveProperty('ipfs');
@@ -76,7 +76,7 @@ function getMainLoaderTestCases() {
       registryAddress: 'address',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
-      quiet: true
+      quiet: true,
     };
     const loaders = getMainLoader(settings);
     expect(loaders.ipfs).toBeInstanceOf(IPFSLoader); // Changed this line

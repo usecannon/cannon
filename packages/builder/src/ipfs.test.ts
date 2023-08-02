@@ -23,13 +23,13 @@ describe('ipfs.ts', () => {
     const knownIpfsResource = 'ipfs://';
 
     if (IPFS_GATEWAY_URL) {
-      it('can download and decompress cannon info on gateway', async function() {
+      it('can download and decompress cannon info on gateway', async function () {
         expect(await readIpfs(IPFS_GATEWAY_URL, knownIpfsResource)).toEqual({ hello: 'world' });
       });
     }
 
     if (IPFS_API_URL) {
-      it('can download and decompress cannon info on ipfs api', async function() {
+      it('can download and decompress cannon info on ipfs api', async function () {
         expect(await readIpfs(IPFS_API_URL, knownIpfsResource)).toEqual({ hello: 'world' });
       });
     }

@@ -27,10 +27,10 @@ export async function readDeployRecursive(packageName: string, chainId: number, 
 
   const __readImports = async (info: DeploymentInfo) => {
     const importUrls = _deployImports(info).map(({ url }) => url);
-    await Promise.all(importUrls.map(url => queue.push(url)));
+    await Promise.all(importUrls.map((url) => queue.push(url)));
   };
 
-  const queue: queueAsPromised<string> = createQueue(async url => {
+  const queue: queueAsPromised<string> = createQueue(async (url) => {
     if (result.has(url)) return;
     debug('readDeployTree child', url);
 
@@ -49,7 +49,7 @@ export async function readDeployRecursive(packageName: string, chainId: number, 
 
 function _deployImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return Object.values(deployInfo.state).flatMap(state => Object.values(state.artifacts.imports || {}));
+  return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
 }
 
 async function _getStore() {

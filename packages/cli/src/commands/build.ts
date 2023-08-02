@@ -11,7 +11,7 @@ import {
   createInitialContext,
   getOutputs,
   DeploymentInfo,
-  CannonWrapperGenericProvider
+  CannonWrapperGenericProvider,
 } from '@usecannon/builder';
 import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
@@ -66,7 +66,7 @@ export async function build({
   providerUrl,
   gasPrice,
   gasFee,
-  priorityGasFee
+  priorityGasFee,
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -94,7 +94,7 @@ export async function build({
 
     getSigner:
       getSigner ||
-      async function(addr: string) {
+      async function (addr: string) {
         // on test network any user can be conjured
         await provider.send('hardhat_impersonateAccount', [addr]);
         await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
@@ -108,7 +108,7 @@ export async function build({
     publicSourceCode,
     gasPrice,
     gasFee,
-    priorityGasFee
+    priorityGasFee,
   };
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
@@ -269,7 +269,7 @@ export async function build({
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
-      chainId: runtime.chainId
+      chainId: runtime.chainId,
     });
 
     const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));

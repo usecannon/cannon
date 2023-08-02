@@ -1,10 +1,6 @@
 /** @type { import('typedoc').TypeDocOptionMap */
 module.exports = {
-  plugin: [
-    'typedoc-plugin-zod',
-    'typedoc-plugin-merge-modules',
-    'typedoc-plugin-markdown'
-  ],
+  plugin: ['typedoc-plugin-zod', 'typedoc-plugin-merge-modules', 'typedoc-plugin-markdown'],
   entryPoints: ['src/custom-steps/*.ts'],
   exclude: ['src/custom-steps/*.test.ts'],
   out: ['../../docs/actions'],
@@ -20,5 +16,5 @@ module.exports = {
   hideInPageTOC: true,
   hideBreadcrumbs: true,
   entryDocument: 'custom-actions.md',
-  titleLink: 'https://usecannon.com/docs/cannonfile-reference'
+  titleLink: 'https://usecannon.com/docs/cannonfile-reference',
 };

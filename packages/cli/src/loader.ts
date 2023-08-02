@@ -27,10 +27,7 @@ export class LocalLoader implements CannonLoader {
 
   async put(misc: any): Promise<string | null> {
     const dataToSave = JSON.stringify(misc);
-    const hash = crypto
-      .createHash('md5')
-      .update(dataToSave)
-      .digest('hex');
+    const hash = crypto.createHash('md5').update(dataToSave).digest('hex');
 
     await fs.mkdirp(this.dir);
     await fs.writeFile(path.join(this.dir, `${hash}.json`), dataToSave);
@@ -42,6 +39,6 @@ export class LocalLoader implements CannonLoader {
 export function getMainLoader(cliSettings: CliSettings) {
   return {
     ipfs: new IPFSLoader(cliSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT),
-    file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs'))
+    file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }

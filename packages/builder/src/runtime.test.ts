@@ -25,18 +25,16 @@ describe('runtime.ts', () => {
       return ethers.Wallet.createRandom();
     });
 
-    const getArtifact = jest.fn(
-      async (n: string): Promise<ContractArtifact> => {
-        return {
-          contractName: n,
-          sourceName: `${n}.sol`,
-          abi: [],
-          bytecode: '0x',
-          deployedBytecode: '0x',
-          linkReferences: {}
-        };
-      }
-    );
+    const getArtifact = jest.fn(async (n: string): Promise<ContractArtifact> => {
+      return {
+        contractName: n,
+        sourceName: `${n}.sol`,
+        abi: [],
+        bytecode: '0x',
+        deployedBytecode: '0x',
+        linkReferences: {},
+      };
+    });
 
     beforeAll(async () => {
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
@@ -52,7 +50,7 @@ describe('runtime.ts', () => {
           snapshots: true,
           getSigner,
           getDefaultSigner,
-          getArtifact
+          getArtifact,
         },
         new InMemoryRegistry(),
         { ipfs: loader }
@@ -164,7 +162,7 @@ describe('runtime.ts', () => {
       beforeAll(async () => {
         newRuntime = runtime.derive({
           chainId: 5,
-          allowPartialDeploy: false
+          allowPartialDeploy: false,
         });
       });
 
@@ -192,7 +190,7 @@ describe('runtime.ts', () => {
       it('sets the gas price', async () => {
         const gasPrice = '123456';
         const newRuntime = runtime.derive({
-          gasPrice
+          gasPrice,
         });
 
         expect(newRuntime.gasPrice).toBe(ethers.utils.parseUnits(gasPrice, 'gwei').toString());
@@ -202,7 +200,7 @@ describe('runtime.ts', () => {
       it('sets the gas price and derive again', async () => {
         const gasPrice = '123456';
         const newRuntime = runtime.derive({
-          gasPrice
+          gasPrice,
         });
 
         const newNewRuntime = newRuntime.derive({});
@@ -215,7 +213,7 @@ describe('runtime.ts', () => {
       it('sets gas fee price', async () => {
         const gasFee = '123456';
         const newRuntime = runtime.derive({
-          gasFee
+          gasFee,
         });
 
         expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
@@ -228,7 +226,7 @@ describe('runtime.ts', () => {
         const priorityGasFee = '012345';
         const newRuntime = runtime.derive({
           gasFee,
-          priorityGasFee
+          priorityGasFee,
         });
 
         expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
@@ -241,7 +239,7 @@ describe('runtime.ts', () => {
         const gasPrice = '012345';
         const newRuntime = runtime.derive({
           gasFee,
-          gasPrice
+          gasPrice,
         });
 
         expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
@@ -253,7 +251,7 @@ describe('runtime.ts', () => {
         const priorityGasFee = '012345';
         expect(() =>
           runtime.derive({
-            priorityGasFee
+            priorityGasFee,
           })
         ).toThrow();
       });

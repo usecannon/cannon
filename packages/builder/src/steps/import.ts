@@ -40,7 +40,7 @@ export default {
     const url = await runtime.registry.getUrl(cfg.source, `${chainId}-${preset}`);
 
     return {
-      url
+      url,
     };
   },
 
@@ -86,9 +86,9 @@ export default {
       imports: {
         [importLabel]: {
           url: (await runtime.registry.getUrl(packageRef, `${chainId}-${preset}`))!, // todo: duplication
-          ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!
-        }
-      }
+          ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
+        },
+      },
     };
-  }
+  },
 };

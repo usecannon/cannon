@@ -23,7 +23,7 @@ export async function setupAnvil(): Promise<void> {
         type: 'confirm',
         name: 'confirmation',
         message: 'Cannon requires a newer version of Foundry. Install it now?',
-        initial: true
+        initial: true,
       });
 
       if (anvilResponse.confirmation) {
@@ -38,7 +38,7 @@ export async function setupAnvil(): Promise<void> {
       type: 'confirm',
       name: 'confirmation',
       message: 'Cannon requires Foundry. Install it now?',
-      initial: true
+      initial: true,
     });
 
     if (response.confirmation) {
@@ -63,7 +63,7 @@ async function getAnvilVersionDate(): Promise<Date | false> {
 }
 
 export function execPromise(command: string): Promise<string> {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     exec(command, (error, stdout) => {
       if (error) {
         reject(error);
@@ -110,7 +110,7 @@ export async function loadCannonfile(filepath: string) {
     contracts: {},
     txns: {},
     imports: {},
-    extras: {}
+    extras: {},
   };
 
   const name = def.getName(ctx);
@@ -122,7 +122,7 @@ export async function loadCannonfile(filepath: string) {
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
   if (!fs.existsSync(filepath)) {
     throw new Error(
-      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map(p => ' => ' + p).join('\n')}`
+      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`
     );
   }
 
@@ -131,7 +131,7 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   let rawDef: Partial<RawChainDefinition> & { include?: string[] };
   try {
     rawDef = toml.parse(buf.toString('utf8'));
-  } catch (err) {
+  } catch (err: any) {
     throw new Error(`error encountered while parsing toml file ${filepath}: ${err.toString()}`);
   }
 
@@ -184,7 +184,7 @@ export function getChainDataFromId(chainId: number): IChainData | null {
       nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
       rpc: ['http://127.0.0.1'],
       faucets: [],
-      infoURL: 'https://usecannon.com'
+      infoURL: 'https://usecannon.com',
     };
   }
   if (chainId == 31337) {
@@ -198,7 +198,7 @@ export function getChainDataFromId(chainId: number): IChainData | null {
       nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
       rpc: ['http://127.0.0.1'],
       faucets: [],
-      infoURL: 'https://hardhat.org'
+      infoURL: 'https://hardhat.org',
     };
   }
   return chains.find((c: IChainData) => c.chainId == chainId) || null;

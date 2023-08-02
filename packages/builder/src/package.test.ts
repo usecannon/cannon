@@ -23,14 +23,14 @@ describe('package.ts', () => {
           hash: '',
           version: 1,
           artifacts: {
-            imports: { nested: { url: 'https://usecannon.com/nested', preset: 'with-package', tags: ['tag3', 'tag4'] } }
-          }
-        }
+            imports: { nested: { url: 'https://usecannon.com/nested', preset: 'with-package', tags: ['tag3', 'tag4'] } },
+          },
+        },
       },
       status: 'complete',
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
-      options: {}
+      options: {},
     };
     const nestedPkg = 'nested:2.34.5';
     const nestedPkgData: DeploymentInfo = {
@@ -39,7 +39,7 @@ describe('package.ts', () => {
       status: 'complete',
       miscUrl: 'https://usecannon.com/misc',
       meta: {},
-      options: {}
+      options: {},
     };
 
     beforeAll(async () => {
@@ -50,7 +50,7 @@ describe('package.ts', () => {
       await fromRegistry.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
       await fromRegistry.publish([nestedPkg], '1-main', 'https://usecannon.com/nested', '');
 
-      jest.mocked(fromLoader.read).mockImplementation(async url => {
+      jest.mocked(fromLoader.read).mockImplementation(async (url) => {
         switch (url) {
           case 'https://usecannon.com/misc':
             return { misc: 'info' };
@@ -63,7 +63,7 @@ describe('package.ts', () => {
         }
       });
 
-      jest.mocked(await toLoader.put).mockImplementation(async data => {
+      jest.mocked(await toLoader.put).mockImplementation(async (data) => {
         if (data) {
           if (data === testPkgData) {
             return 'https://usecannon.com';
@@ -90,7 +90,7 @@ describe('package.ts', () => {
           variant: '1-main',
           tags: [],
           fromStorage,
-          toStorage
+          toStorage,
         })
       ).rejects.toThrowError('could not find');
     });
@@ -101,7 +101,7 @@ describe('package.ts', () => {
         variant: '1-main',
         tags: [],
         fromStorage,
-        toStorage
+        toStorage,
       });
 
       //expect(toLoader.putDeploy).toBeCalledTimes(1);
@@ -121,7 +121,7 @@ describe('package.ts', () => {
         tags: ['tag1', 'tag2'],
         fromStorage,
         toStorage,
-        recursive: true
+        recursive: true,
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
@@ -138,7 +138,7 @@ describe('package.ts', () => {
           tags: [],
           fromStorage,
           toStorage,
-          recursive: true
+          recursive: true,
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored
