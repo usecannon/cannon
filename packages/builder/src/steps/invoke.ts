@@ -203,12 +203,8 @@ export default {
     config = _.cloneDeep(config);
 
     if (config.target) {
-<<<<<<< HEAD
       // [string, ...string[]] refers to a nonempty array
       config.target = config.target.map(v => _.template(v)(ctx)) as [string, ...string[]];
-=======
-      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
->>>>>>> parent of 827e29cb... Fixing lint issue
     }
 
     if (config.abi) {
