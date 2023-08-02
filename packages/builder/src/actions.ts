@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { ChainBuilderRuntime } from './runtime';
 
 import contractSpec from './steps/contract';
@@ -11,7 +13,6 @@ import provisionSpec from './steps/provision';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 import { chainDefinitionSchema } from './schemas.zod';
 import { handleZodErrors } from './error/zod';
-import { z } from 'zod';
 
 export interface CannonAction {
   label: string;

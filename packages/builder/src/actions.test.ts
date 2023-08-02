@@ -7,7 +7,7 @@ const FakeAction: CannonAction = {
 
   validate: z.object({
     exec: z.string(),
-    foo: z.number(),
+    version: z.string(),
   }),
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Record<string, unknown>) {
@@ -45,13 +45,13 @@ describe('actions.ts', () => {
       expect(ActionKinds).toHaveProperty('fake');
 
       // calling the chain definition validator should not throw for this
-      validateConfig(FakeAction.validate, { name: 'fake', version: 'latest' });
+      validateConfig(FakeAction.validate, { exec: 'fake', version: 'latest' });
     });
   });
 
   describe('validateConfig()', () => {
     it('returns zod validation', async () => {
-      expect(validateConfig(FakeAction.validate, { name: 'fake', version: 'latest' })).toBeTruthy();
+      expect(validateConfig(FakeAction.validate, { exec: 'fake', version: 'latest' })).toBeTruthy();
     });
   });
 });

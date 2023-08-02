@@ -1,21 +1,24 @@
 import { z } from 'zod';
 import importSpec from './steps/import';
+import ethers from 'ethers';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
+
+
+// Different types that can be passed into the args schema property
+// Basically just a union as follows: 
+// string | number | (string | number)[] | Record<string, string | number>
+let argtype = z.union([z.string(), z.number()]);
+let argtype2 = z.array(argtype);
+let argtype3 = z.record(z.string(), argtype);
+let argsUnion = z.union([argtype, argtype2, argtype3])
 
 export const contractSchema = z
   .object({
     /**
      *    Artifact name of the target contract
-     *  @description
-     *  @example 
-      *  ```toml
-      *  [contract.synthetix]
-            artifact = "Synthetix"
-            ...
-      *  ```
      */
-    artifact: z.string()
+    artifact: z.string(),
   })
   .merge(
     z
@@ -25,21 +28,42 @@ export const contractSchema = z
          */
         create2: z.boolean(),
         /**
-         *    Contract deployer address
+         *    Contract deployer address.
+         *    Must match the ethereum address format
          */
-        from: z.string(),
-        nonce: z.string(),
+        from: z.string().refine(
+          (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
+          {message: 'From address must be a valid ethereum address'}
+        ),
+        nonce: z.string().refine(
+          (val) => ethers.utils.isHexString(val) || parseFloat(val),
+          {message: 'Field value must be of numeric or hexadecimal value'}
+        ),
         /**
-         *    Abi of the contract being deployed
+         *  Abi of the contract being deployed
          */
-        abi: z.string(),
+        abi: z.string().refine(
+          (val) => {
+            try {
+              JSON.parse(val)
+              return true;
+            } catch {
+              return false;
+            }
+          },
+          {message: "ABI must be a JSON string" }
+        ),
+        /**
+         * An array of contract artifacts that you've already deployed with Cannon.
+         * This is useful when deploying proxy contracts.
+         */
         abiOf: z.array(z.string()),
         /**
          *    Constructor args
          */
-        args: z.array(z.any()),
+        args: z.array(argsUnion),
         /**
-         *    Object containing list of libraries
+         *  An array of contract action names that deploy libraries this contract depends on.
          */
         libraries: z.record(z.string()),
 
@@ -51,18 +75,21 @@ export const contractSchema = z
         /**
          *   Native currency value to into the deploy transaction
          */
-        value: z.string(),
+        value: z.string().refine(
+          (val) => Boolean(ethers.utils.parseEther(val)),
+          {message: 'Field value must be of numeric value'}
+        ),
         /**
-         *   Override settings for deployment
+         *   Override transaction settings
          */
         overrides: z.object({
-          gasLimit: z.string()
+          gasLimit: z.string(),
         }),
 
         /**
          *  List of steps that this action depends on
          */
-        depends: z.array(z.string())
+        depends: z.array(z.string()),
       })
       .deepPartial()
   );
@@ -71,14 +98,8 @@ export const importSchema = z
   .object({
     /**
      *  Source of the cannonfile package to import from
-     *  @example
-     *  ```toml
-        [import.synthetix-sandbox]
-         source = "synthetix-sandbox"
-         ...
-     *  ```
      */
-    source: z.string()
+    source: z.string(),
   })
   .merge(
     z
@@ -88,93 +109,180 @@ export const importSchema = z
          */
         chainId: z.number().int(),
         /**
-         *  Present label of the package being imported
+         *  Preset label of the package being imported
          */
         preset: z.string(),
         /**
          *  Previous steps this step is dependent on
-         *  @example
          */
-        depends: z.array(z.string())
+        depends: z.array(z.string()),
       })
       .deepPartial()
   );
 
 export const invokeSchema = z
   .object({
-    target: z.array(z.string()).nonempty(),
-    func: z.string()
+    /**
+     *  Name of the contract action that deployed the contract to call
+     */
+    target: z.array(z.string().refine(
+      (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
+      {message: 'Must be a valid ethereum address or interpolated value'}
+    )).nonempty().max(1),
+    /**
+     *  Name of the function to call on the contract
+     */
+    func: z.string(),
   })
   .merge(
     z
       .object({
-        abi: z.string(),
+        /**
+         *  JSON file of the contract ABI
+         *  Required if the target contains an address rather than a contract action name.
+         */
+        abi: z.string().refine(
+          (val) => {
+            try {
+              JSON.parse(val)
+              return true;
+            } catch {
+              return false;
+            }
+          },
+          {message: "ABI must be a JSON string" }
+        ),
 
-        args: z.array(z.any()),
-        from: z.string(),
-        fromCall: z
-          .object({
-            func: z.string()
-          })
-          .merge(
-            z.object({
-              args: z.array(z.any())
-            })
-          ),
-        value: z.string(),
-        overrides: z.object({
-          gasLimit: z.string()
+        /**
+         *  Arguments to use when invoking this call.
+         */
+        args: z.array(argsUnion),
+        /**
+         *  The calling address to use when invoking this call.
+         */
+        from: z.string().refine(
+          (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
+          {message: 'From address must be a valid ethereum address'}
+        ),
+
+        fromCall: z.object({
+          /**
+           *  The name of a view function to call on this contract. The result will be used as the from input.
+           */
+          func: z.string(),
+          /**
+           *  The arguments to pass into the function above.
+           */
+          args: z.array(z.string() || z.number()).optional(),
         }),
+        /**
+         *  The amount of ether/wei to send in the transaction.
+         */
+        value: z.string().refine(
+          (val) => Boolean(ethers.utils.parseEther(val)),
+          {message: 'Field value must be of numeric value'}
+        ),
+        /**
+         *   Override transaction settings
+         */
+        overrides: z.object({
+          gasLimit: z.string(),
+        }),
+        /**
+         *   Object defined to hold extra transaction result data.
+         *   For now its limited to getting event data so it can be reused in other steps
+         */
         extra: z.record(
           z.object({
+            /**
+             *   Name of the event to get data for
+             */
             event: z.string(),
+            /**
+             *   data argument of the event output
+             */
             arg: z.number().int(),
-
-            allowEmptyEvents: z.boolean().optional()
+            /**
+             *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+             */
+            allowEmptyEvents: z.boolean().optional(),
           })
         ),
+        /**
+         *   Object defined to hold deployment transaction result data.
+         *   For now its limited to getting event data so it can be reused in other steps
+         */
         factory: z.record(
           z.object({
+            /**
+             *   Name of the event to get data for
+             */
             event: z.string(),
+            /**
+             *   data argument of the event output
+             */
             arg: z.number().int(),
 
+            /**
+             *   data argument of the event output
+             */
             artifact: z.string().optional(),
             abiOf: z.array(z.string()).optional(),
             constructorArgs: z.array(z.any()).optional(),
-            allowEmptyEvents: z.boolean().optional()
+            /**
+             *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+             */
+            allowEmptyEvents: z.boolean().optional(),
           })
-        ),
-        depends: z.array(z.string())
-      })
-      .deepPartial()
+        ).optional(),
+        /**
+         *  Previous steps this step is dependent on
+         */
+        depends: z.array(z.string()),
+      }).partial()
   );
 
 export const provisionSchema = z
   .object({
-    source: z.string()
+    /**
+     *  Name of the package to provision
+     */
+    source: z.string().refine(
+      (val) => val.match('([a-zA-Z]+:[0-9.a-zA-Z]+)') || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
+      {message: 'Source match package format package:version or be an interpolated value'}
+    ),
   })
   .merge(
     z
       .object({
+        /**
+         *  ID of the chain to import the package from
+         *  @default - 13370
+         */
         chainId: z.number().int(),
+        /**
+         *  Override the preset to use when provisioning this package.
+         *  @default - "main"
+         */
         sourcePreset: z.string(),
+        /**
+         *  Set the new preset to use for this package.
+         *  @default - "main"
+         */
         targetPreset: z.string(),
+        /**
+         *  The settings to be used when initializing this Cannonfile.
+         *  Overrides any defaults preset in the source package.
+         */
         options: z.record(z.string()),
+        /**
+         * Additional tags to set on the registry for when this provisioned package is published.
+         */
         tags: z.array(z.string()),
-        depends: z.array(z.string())
-      })
-      .deepPartial()
-  );
-
-export const keeperSchema = z
-  .object({
-    exec: z.string()
-  })
-  .merge(
-    z
-      .object({
-        args: z.array(z.string()),
-        env: z.array(z.string())
+        /**
+         *  Previous steps this step is dependent on
+         */
+        depends: z.array(z.string()),
       })
       .deepPartial()
   );
@@ -184,24 +292,62 @@ export const keeperSchema = z
  */
 export const chainDefinitionSchema = z
   .object({
-    name: z.string(),
-    version: z.string()
+    /**
+     * Name of the package
+     */
+    name: z.string().max(31).refine(
+      val => val.match('[a-zA-Z0-9]'),
+      {message: 'Name cannot contain any special characters'}
+    ),
+    /**
+     * Current version of the package
+     */
+    version: z.string().max(31).refine(
+      val => val.match('[a-zA-Z0-9.]+'),
+      {message: 'Version cannot contain any special characters'}
+    ),
   })
   .merge(
     z
       .object({
+        /**
+         * Description for the package
+         */
         description: z.string(),
+        /**
+         * keywords for search indexing
+         */
         keywords: z.array(z.string()),
+        /**
+         * Object that allows the definition of values for use in next steps
+         * @example
+         * ```toml
+         *  [settings.owner]
+         *  defaultValue: "some-eth-address"
+         * ```
+         */
         setting: z.record(
           z
             .object({
+              /**
+               * Description for the setting
+               */
               description: z.string(),
+              /**
+               * Data type of the value being stored
+               */
               type: z.enum(['number', 'string', 'boolean']),
-              defaultValue: z.string()
+              /**
+               * Stored value of the setting
+               */
+              defaultValue: z.string(),
             })
             .partial()
         ),
+        /**
+         * @internal
+         */
         import: z.custom<typeof importSpec>()
       })
       .deepPartial()
-  );
+  ).catchall(z.any());

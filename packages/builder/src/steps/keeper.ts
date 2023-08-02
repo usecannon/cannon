@@ -1,15 +1,27 @@
 import _ from 'lodash';
 
 import { z } from 'zod';
-import { keeperSchema } from '../schemas.zod';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
 
 /**
- *  Available properties for keeper step
- *  @public
+ *  Available properties for keeper step (Not yet implemented)
+ *  @internal
  *  @group Keeper
  */
+export const keeperSchema = z
+  .object({
+    exec: z.string(),
+  })
+  .merge(
+    z
+      .object({
+        args: z.array(z.string()),
+        env: z.array(z.string()),
+      })
+      .deepPartial()
+  );
+
 export type Config = z.infer<typeof keeperSchema>;
 
 // ensure the specified contract is already deployed

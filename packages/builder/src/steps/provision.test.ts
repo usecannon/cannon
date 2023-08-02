@@ -10,7 +10,7 @@ jest.mock('../loader');
 
 jest.mock('./contract');
 
-describe('setps/provision.ts', () => {
+describe('steps/provision.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
@@ -94,7 +94,7 @@ describe('setps/provision.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefinedDeployment:1.0.0' },
-          { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+          { name: 'package', version: '1.0.0', currentLabel: 'provision.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
     });
