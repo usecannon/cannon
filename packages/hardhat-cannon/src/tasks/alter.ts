@@ -15,7 +15,7 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
   .addOptionalParam('preset', 'Preset of the variant to inspect', 'main')
   .setAction(async ({ packageName, chainId, preset, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
-      packageWithSettingsParams: packageName ? [packageName] : []
+      packageWithSettingsParams: packageName ? [packageName] : [],
     });
 
     if (!chainId) {
@@ -30,7 +30,7 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
       command,
       options,
       {
-        getArtifact: async (n: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: n })
+        getArtifact: async (n: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: n }),
       }
     );
   });

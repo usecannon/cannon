@@ -19,7 +19,7 @@ task('verify')
       packageName: `${cannonfile.name}:${packageVersion}`,
       chainId,
       preset,
-      writeDeployments
+      writeDeployments,
     });
 
     for (const filename of await fs.readdir(writeDeployments)) {
@@ -33,9 +33,9 @@ task('verify')
         await hre.run('verify:verify', {
           contract: `${data.sourceName}:${data.contractName}`,
           address: data.address,
-          constructorArguments: data.constructorArgs || []
+          constructorArguments: data.constructorArgs || [],
         });
-      } catch (err) {
+      } catch (err: unknown) {
         if (err instanceof Error && err.message?.includes('Contract source code already verified')) {
           return console.error(err);
         }

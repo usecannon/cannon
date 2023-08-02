@@ -17,7 +17,7 @@ task('get-build-info', 'Gets build info from hardhat')
 
     const compileJob = await hre.run('compile:solidity:get-compilation-job-for-file', {
       file: resolvedFile,
-      dependencyGraph
+      dependencyGraph,
     });
 
     const res = await hre.run('compile:solidity:get-compiler-input', { compilationJob: compileJob });

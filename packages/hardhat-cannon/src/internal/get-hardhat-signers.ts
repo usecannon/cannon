@@ -5,7 +5,7 @@ export function getHardhatSigners(hre: HardhatRuntimeEnvironment, provider: ethe
   const accounts = hre.network.config.accounts;
 
   if (Array.isArray(accounts)) {
-    return accounts.map(account => new hre.ethers.Wallet(typeof account === 'string' ? account : account.privateKey));
+    return accounts.map((account) => new hre.ethers.Wallet(typeof account === 'string' ? account : account.privateKey));
   } else if (accounts === 'remote') {
     throw new Error('Remote accounts configuration not implemented with cannon');
   } else {

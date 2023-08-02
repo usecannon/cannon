@@ -7,17 +7,17 @@ import assertRevert from '../helpers/assert-revert';
 
 const toBytes32 = ethers.utils.formatBytes32String;
 
-describe('CannonRegistry', function() {
+describe('CannonRegistry', function () {
   let CannonRegistry: TCannonRegistry;
   let owner: Signer, user2: Signer, user3: Signer;
   let ownerAddress: string;
 
-  before('identify signers', async function() {
+  before('identify signers', async function () {
     [owner, user2, user3] = await ethers.getSigners();
     ownerAddress = await owner.getAddress();
   });
 
-  before('deploy contract', async function() {
+  before('deploy contract', async function () {
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
     const Implementation = await CannonRegistryFactory.deploy();
     await Implementation.deployed();
@@ -29,25 +29,25 @@ describe('CannonRegistry', function() {
     CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
   });
 
-  describe('Upgradedability', function() {
+  describe('Upgradedability', function () {
     let newImplementation: TCannonRegistry;
 
-    before('deploy new implementation', async function() {
+    before('deploy new implementation', async function () {
       const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
       newImplementation = (await CannonRegistry.deploy()) as TCannonRegistry;
       await newImplementation.deployed();
     });
 
-    it('upgrades to a new implementation', async function() {
+    it('upgrades to a new implementation', async function () {
       const { address } = newImplementation;
-      await CannonRegistry.upgradeTo(address).then(tx => tx.wait());
+      await CannonRegistry.upgradeTo(address).then((tx) => tx.wait());
 
       equal(await CannonRegistry.getImplementation(), newImplementation.address);
     });
   });
 
-  describe('validatePackageName()', function() {
-    it('only allows lowercase letters, numbers, and dashes', async function() {
+  describe('validatePackageName()', function () {
+    it('only allows lowercase letters, numbers, and dashes', async function () {
       equal(await CannonRegistry.validatePackageName(toBytes32('some--mo-du9le')), true);
       equal(await CannonRegistry.validatePackageName(toBytes32('some_-mo-du9le')), false);
 
@@ -55,12 +55,12 @@ describe('CannonRegistry', function() {
       equal(await CannonRegistry.validatePackageName(toBytes32('some$module')), false);
     });
 
-    it('does not allow dash at beginning or end', async function() {
+    it('does not allow dash at beginning or end', async function () {
       equal(await CannonRegistry.validatePackageName(toBytes32('some--module-')), false);
       equal(await CannonRegistry.validatePackageName(toBytes32('-some--module')), false);
     });
 
-    it('enforces minimum length', async function() {
+    it('enforces minimum length', async function () {
       const testName = 'abcdefghijk';
       const minLength = Number(await CannonRegistry.MIN_PACKAGE_NAME_LENGTH());
 
@@ -69,8 +69,8 @@ describe('CannonRegistry', function() {
     });
   });
 
-  describe('publish()', function() {
-    it('should not allow to publish empty url', async function() {
+  describe('publish()', function () {
+    it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module-'),
@@ -82,7 +82,7 @@ describe('CannonRegistry', function() {
       }, 'InvalidUrl("")');
     });
 
-    it('should not allow invalid name', async function() {
+    it('should not allow invalid name', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module-'),
@@ -94,7 +94,7 @@ describe('CannonRegistry', function() {
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 
-    it('should validate missing tags', async function() {
+    it('should validate missing tags', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module'),
@@ -106,7 +106,7 @@ describe('CannonRegistry', function() {
       }, 'InvalidTags()');
     });
 
-    it('should not allow more than 5 tags', async function() {
+    it('should not allow more than 5 tags', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module'),
@@ -118,7 +118,7 @@ describe('CannonRegistry', function() {
       }, 'InvalidTags()');
     });
 
-    it('should create the first package and assign the owner', async function() {
+    it('should create the first package and assign the owner', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
         toBytes32('1337-main'),
@@ -147,7 +147,7 @@ describe('CannonRegistry', function() {
       equal(metaUrl, 'ipfs://some-module-meta@0.0.1');
     });
 
-    it('should be able to publish new version', async function() {
+    it('should be able to publish new version', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
         toBytes32('1337-main'),
@@ -162,7 +162,7 @@ describe('CannonRegistry', function() {
       equal(events![0].event, 'PackagePublish');
     });
 
-    it('should be able to update an older version', async function() {
+    it('should be able to update an older version', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
         toBytes32('1337-main'),
@@ -177,7 +177,7 @@ describe('CannonRegistry', function() {
       equal(events![0].event, 'PackagePublish');
     });
 
-    it('pushes tags', async function() {
+    it('pushes tags', async function () {
       const tags = ['0.0.3', 'latest', 'stable'];
 
       const tx = await CannonRegistry.connect(owner).publish(
@@ -188,24 +188,24 @@ describe('CannonRegistry', function() {
         'ipfs://updated-module-meta@0.0.3'
       );
 
-      const expectedEvents = tags.map(tagName => [
+      const expectedEvents = tags.map((tagName) => [
         toBytes32('some-module'),
         toBytes32(tagName),
         toBytes32('1337-main'),
         'ipfs://updated-module-hash@0.0.3',
         'ipfs://updated-module-meta@0.0.3',
-        ownerAddress
+        ownerAddress,
       ]);
 
       const { events } = await tx.wait();
       ok(Array.isArray(events));
       deepEqual(
-        events.map(evt => [...evt.args!]),
+        events.map((evt) => [...evt.args!]),
         expectedEvents
       );
     });
 
-    it('should not allow to modify package from another owner', async function() {
+    it('should not allow to modify package from another owner', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).publish(
           toBytes32('some-module'),
@@ -218,23 +218,23 @@ describe('CannonRegistry', function() {
     });
   });
 
-  describe('setAdditionalDeployers()', function() {
-    it('only works for owner', async function() {
+  describe('setAdditionalDeployers()', function () {
+    it('only works for owner', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).setAdditionalDeployers(toBytes32('some-module'), []);
       }, 'Unauthorized()');
     });
 
-    describe('successful invoke', function() {
-      before('invoke', async function() {
+    describe('successful invoke', function () {
+      before('invoke', async function () {
         await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), [await user2.getAddress()]);
       });
 
-      it('returns the current list of deployers', async function() {
+      it('returns the current list of deployers', async function () {
         deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), [await user2.getAddress()]);
       });
 
-      it('grants permission to publish to the user', async function() {
+      it('grants permission to publish to the user', async function () {
         await CannonRegistry.connect(user2).publish(
           toBytes32('some-module'),
           toBytes32('1337-main'),
@@ -244,73 +244,73 @@ describe('CannonRegistry', function() {
         );
       });
 
-      describe('remove', function() {
-        before('invoke', async function() {
+      describe('remove', function () {
+        before('invoke', async function () {
           await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), []);
         });
 
-        it('returns the current list of deployers', async function() {
+        it('returns the current list of deployers', async function () {
           deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), []);
         });
       });
     });
 
-    it('nominates', async function() {
+    it('nominates', async function () {
       await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
 
       equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
     });
   });
 
-  describe('nominatePackageOwner()', function() {
-    it('should not allow nomination from non-owner', async function() {
+  describe('nominatePackageOwner()', function () {
+    it('should not allow nomination from non-owner', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user2).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
       }, 'Unauthorized()');
     });
 
-    it('nominates', async function() {
+    it('nominates', async function () {
       await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
 
       equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
     });
   });
 
-  describe('acceptPackageOwnership()', function() {
-    before('nominate new owner', async function() {
+  describe('acceptPackageOwnership()', function () {
+    before('nominate new owner', async function () {
       await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
     });
 
-    it('only nominated owner can accept ownership', async function() {
+    it('only nominated owner can accept ownership', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user3).acceptPackageOwnership(toBytes32('some-module'));
       }, 'Unauthorized()');
     });
 
-    it('accepts ownership', async function() {
+    it('accepts ownership', async function () {
       await CannonRegistry.connect(user2).acceptPackageOwnership(toBytes32('some-module'));
     });
 
-    it('returns new package owner', async function() {
+    it('returns new package owner', async function () {
       const result = await CannonRegistry.getPackageOwner(toBytes32('some-module'));
       deepEqual(result, await user2.getAddress());
     });
   });
 
-  describe('package verification', function() {
-    it('does not allow to verify unexistant packages', async function() {
+  describe('package verification', function () {
+    it('does not allow to verify unexistant packages', async function () {
       await assertRevert(async () => {
         await CannonRegistry.verifyPackage(toBytes32('invalid-package'));
       }, 'PackageNotFound()');
     });
 
-    it('does not allow to unverify unexistant packages', async function() {
+    it('does not allow to unverify unexistant packages', async function () {
       await assertRevert(async () => {
         await CannonRegistry.unverifyPackage(toBytes32('invalid-package'));
       }, 'PackageNotFound()');
     });
 
-    it('emits a verification event', async function() {
+    it('emits a verification event', async function () {
       const tx = await CannonRegistry.connect(user2).verifyPackage(toBytes32('some-module'));
 
       const { events } = await tx.wait();
@@ -323,7 +323,7 @@ describe('CannonRegistry', function() {
       equal(args!.verifier, await user2.getAddress());
     });
 
-    it('emits an unverification event', async function() {
+    it('emits an unverification event', async function () {
       const tx = await CannonRegistry.connect(user2).unverifyPackage(toBytes32('some-module'));
 
       const { events } = await tx.wait();
