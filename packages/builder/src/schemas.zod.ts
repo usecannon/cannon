@@ -350,4 +350,4 @@ export const chainDefinitionSchema = z
         import: z.custom<typeof importSpec>()
       })
       .deepPartial()
-  ).catchall(z.any());
+  );

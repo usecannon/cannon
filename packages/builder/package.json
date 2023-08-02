@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "jest --forceExit",
+    "test": "jest",
     "build": "tsc -p tsconfig.build.json && rollup -c",
     "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
