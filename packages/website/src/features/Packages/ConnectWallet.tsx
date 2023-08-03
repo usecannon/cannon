@@ -9,5 +9,5 @@ export const ConnectWallet: FC = () => {
   //     : 'Connect Wallet'
   //   }}</CButton>
   // </CBox>
-  return <ConnectButton />;
+  return <ConnectButton chainStatus="none" showBalance={false} />;
 };

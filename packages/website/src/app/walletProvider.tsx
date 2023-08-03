@@ -5,34 +5,20 @@ import {
   darkTheme,
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import {
-  arbitrum,
-  goerli,
-  mainnet,
-  optimism,
-  polygon,
-  localhost,
-  hardhat,
-} from 'wagmi/chains';
+import * as Chains from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { ReactNode } from 'react';
+import _ from 'lodash';
 
 const cannonLocalHost = {
-  ...localhost,
+  ...Chains.localhost,
   id: 13370,
   name: 'Cannon Localhost',
   rpcUrl: 'http://127.0.0.1:8545',
 };
+const _chains = Object.values(Chains).filter((item) => _.isObject(item));
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-    cannonLocalHost,
-    hardhat,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : []),
-  ],
+  [..._chains, cannonLocalHost],
   [publicProvider()]
 );
 
