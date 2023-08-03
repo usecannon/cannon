@@ -8,10 +8,10 @@ import ethers from 'ethers';
 // Different types that can be passed into the args schema property
 // Basically just a union as follows: 
 // string | number | (string | number)[] | Record<string, string | number>
-let argtype = z.union([z.string(), z.number()]);
-let argtype2 = z.array(argtype);
-let argtype3 = z.record(z.string(), argtype);
-let argsUnion = z.union([argtype, argtype2, argtype3])
+const argtype = z.union([z.string(), z.number()]);
+const argtype2 = z.array(argtype);
+const argtype3 = z.record(z.string(), argtype);
+const argsUnion = z.union([argtype, argtype2, argtype3])
 
 export const contractSchema = z
   .object({
