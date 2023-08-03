@@ -109,7 +109,7 @@ describe('build', () => {
 
       // Create rpc node with default options
       expect(rpcModule.runRpc).toBeCalledTimes(1);
-      expect(rpcModule.runRpc).toBeCalledWith({ port: 8545 });
+      expect(rpcModule.runRpc).toBeCalledWith({ port: 0 });
 
       // create provider with rpc node
       expect(rpcModule.getProvider).toBeCalledTimes(1);
