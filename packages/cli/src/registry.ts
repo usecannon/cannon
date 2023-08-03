@@ -6,6 +6,7 @@ import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
+import { isConnectedToInternet } from './util/is-connected-to-internet';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -106,8 +107,11 @@ export async function createDefaultReadRegistry(settings: CliSettings): Promise<
         result: string;
         registry: LocalRegistry;
       }) => {
+        if (!(await isConnectedToInternet())) {
+          // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
+          return;
+        }
         const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
-
         if (registry instanceof LocalRegistry && onChainResult && onChainResult != result && !settings.quiet) {
           console.log(
             yellowBright(
