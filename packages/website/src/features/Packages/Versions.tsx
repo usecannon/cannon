@@ -1,7 +1,7 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import { Box, Grid, GridItem, Heading } from '@chakra-ui/react';
-import PackageNetworks from '@/features/Search/PackageNetworks';
+import PackageNetworks from '@/components/PackageNetworks';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import _ from 'lodash';
 

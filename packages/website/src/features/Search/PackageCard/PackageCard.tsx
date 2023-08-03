@@ -1,4 +1,4 @@
-import PackageNetworks from '@/features/Search/PackageNetworks';
+import PackageNetworks from '@/components/PackageNetworks';
 import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { Box, Flex, Heading, LinkOverlay } from '@chakra-ui/react';
 import { FC } from 'react';

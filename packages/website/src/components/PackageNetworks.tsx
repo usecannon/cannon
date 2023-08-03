@@ -20,6 +20,7 @@ import 'prismjs/themes/prism.css';
 import { useCopy } from '@/lib/copy';
 import { CodePreview } from '@/components/CodePreview';
 import { getOutput } from '@/lib/builder'; //Example style, you can use another
+import style from './packageNetworks.module.scss';
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -139,8 +140,8 @@ const PackageNetworks: FC<{
       <Modal size="5xl" isOpen={isOpen} onClose={closeModal}>
         {/*<ModalContent bg="black" color="white" ref="content"> TODO: literal as ref value is forbidden*/}
 
-        <ModalOverlay bg="blue.900" opacity="0.66" />
-        <ModalContent bg="black" color="white">
+        <ModalOverlay id="modal-overlay" className={style.modalOverlay} />
+        <ModalContent id="modal-content" bg="black" color="white">
           <ModalHeader>
             <Heading size="lg">Contract Addresses + ABIs</Heading>
           </ModalHeader>
