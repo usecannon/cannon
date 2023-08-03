@@ -15,9 +15,15 @@ import contractStep from './steps/contract';
 import invokeStep from './steps/invoke';
 import { InMemoryRegistry } from './registry';
 
+import { contractSchema } from './schemas.zod';
+
 jest.mock('./error/provider');
 jest.mock('./steps/contract');
 jest.mock('./steps/invoke');
+
+// Mocking the contract action causes a weird bug with the zod schema
+// this mock just replaces the mock generated value with our imported value.
+jest.mocked(contractStep.validate = contractSchema);
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
