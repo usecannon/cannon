@@ -3,7 +3,7 @@ export { registerAction, CannonAction } from './actions';
 export type { RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
-export { CannonLoader, IPFSLoader } from './loader';
+export { CannonLoader, IPFSLoader, InMemoryLoader } from './loader';
 export { decodeTxError } from './error';
 
 export * from './util';

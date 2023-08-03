@@ -126,9 +126,25 @@ function configureRun(program: Command) {
 }
 
 async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+  // set debug verbosity
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
+
   debug('do build called with', cannonfile, settings, opts);
   // If the first param is not a cannonfile, it should be parsed as settings
-  if (!cannonfile.endsWith('.toml')) {
+  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
     settings.unshift(cannonfile);
     cannonfile = 'cannonfile.toml';
   }
@@ -152,7 +168,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
-      port: 8545,
+      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+      port: 0,
     });
 
     provider = getProvider(node);
@@ -167,7 +184,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     if (opts.dryRun) {
       node = await runRpc({
-        port: 8545,
+        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+        port: 0,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         chainId,
       });
@@ -201,11 +219,11 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version } = await loadCannonfile(cannonfilePath);
+  const { name, version, def } = await loadCannonfile(cannonfilePath);
 
   const { outputs } = await build({
     provider,
-    cannonfilePath,
+    def,
     packageDefinition: {
       name,
       version,
@@ -247,6 +265,13 @@ program
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('-q --quiet', 'Suppress extra logging')
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
     const cannonfilePath = path.resolve(cannonfile);

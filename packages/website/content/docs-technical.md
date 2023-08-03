@@ -204,8 +204,9 @@ The `invoke` action calls a specified function on your node.
 
 **Optional Inputs**
 
-- `args` - The arguments to use when invoking this call
-- `from` - The calling address to use when invoking this call
+- `args` - The arguments to use when invoking this call.
+- `value` - The amount of ether/wei to send in the transaction.
+- `from` - The calling address to use when invoking this call.
 - `fromCall.func` - The name of a view function to call on this contract. The result will be used as the `from` input.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
