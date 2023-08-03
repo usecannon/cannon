@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import importSpec from './steps/import';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -8,10 +8,11 @@ import ethers from 'ethers';
 // Different types that can be passed into the args schema property
 // Basically just a union as follows: 
 // string | number | (string | number)[] | Record<string, string | number>
-const argtype = z.union([z.string(), z.number()]);
+const argtype = z.union([z.string(), z.number(), z.boolean()]);
 const argtype2 = z.array(argtype);
 const argtype3 = z.record(z.string(), argtype);
-const argsUnion = z.union([argtype, argtype2, argtype3])
+const argtype4 = z.array(argtype3);
+const argsUnion = z.union([argtype, argtype2, argtype3, argtype4])
 
 export const contractSchema = z
   .object({
@@ -32,7 +33,7 @@ export const contractSchema = z
          *    Must match the ethereum address format
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(RegExp(/(^<%= [.\w\d]+ %>)/, "gm"))),
           { message: 'From address must be a valid ethereum address' }
         ),
         nonce: z.string().refine(
@@ -43,15 +44,8 @@ export const contractSchema = z
          *  Abi of the contract being deployed
          */
         abi: z.string().refine(
-          (val) => {
-            try {
-              JSON.parse(val)
-              return true;
-            } catch {
-              return false;
-            }
-          },
-          { message: "ABI must be a JSON string" }
+          (val) => Boolean(val.match(RegExp(/[\w\d.-]+|^<%=\ssettings.[\w\d-]+\s%>/, 'gm'))) || ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]), 
+          { message: "ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json" }
         ),
         /**
          * An array of contract artifacts that you've already deployed with Cannon.
@@ -59,7 +53,7 @@ export const contractSchema = z
          */
         abiOf: z.array(z.string()),
         /**
-         *    Constructor args
+         *    Constructor or initializer args
          */
         args: z.array(argsUnion),
         /**
@@ -90,8 +84,8 @@ export const contractSchema = z
          *  List of steps that this action depends on
          */
         depends: z.array(z.string().refine(
-          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
-          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+          (val) => Boolean(val.match(RegExp(/([\w\d.-]+)|(^<%=\s[\w\d.-]+\s%>)/, "gm"))),
+          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
         )),
       })
       .deepPartial()
@@ -119,8 +113,8 @@ export const importSchema = z
          *  Previous steps this step is dependent on
          */
         depends: z.array(z.string().refine(
-          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
-          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+          (val) => Boolean(val.match(RegExp(/([\w\d.-]+)/, "gm"))),
+          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
         )),
       })
       .deepPartial()
@@ -132,8 +126,8 @@ export const invokeSchema = z
      *  Name of the contract action that deployed the contract to call
      */
     target: z.array(z.string().refine(
-      (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-      { message: 'Must be a valid ethereum address or interpolated value' }
+      (val) => ethers.utils.isAddress(val) || Boolean(val.match(RegExp(/^[\w\d.-]+$|^<%=\s\w+.+[\w\d-]+\s%>$/, "gm"))),
+      (val) => ({ message: `"${val}" must be a valid ethereum address or interpolated value` })
     )).nonempty().max(1),
     /**
      *  Name of the function to call on the contract
@@ -148,15 +142,8 @@ export const invokeSchema = z
          *  Required if the target contains an address rather than a contract action name.
          */
         abi: z.string().refine(
-          (val) => {
-            try {
-              JSON.parse(val)
-              return true;
-            } catch {
-              return false;
-            }
-          },
-          { message: "ABI must be a JSON string" }
+          (val) => Boolean(val.match(RegExp(/[\w\d.-]+|^<%=\ssettings.[\w\d-]+\s%>/, 'gm'))) || ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]), 
+          { message: "ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json" }
         ),
 
         /**
@@ -167,8 +154,8 @@ export const invokeSchema = z
          *  The calling address to use when invoking this call.
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-          { message: 'From address must be a valid ethereum address' }
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(RegExp(/^[\w\d.-]+$|^<%=\s\w+.+[\w\d-]+\s%>$/, 'gm'))),
+          (val) => ({ message: `"${val}" must be a valid ethereum address or interpolated value` })
         ),
 
         fromCall: z.object({
@@ -177,9 +164,9 @@ export const invokeSchema = z
            */
           func: z.string(),
           /**
-           *  The arguments to pass into the function above.
+           *  The arguments to pass into the function being called.
            */
-          args: z.array(argsUnion).optional(),
+          args: z.array(argsUnion).optional()
         }),
         /**
          *  The amount of ether/wei to send in the transaction.
@@ -245,8 +232,8 @@ export const invokeSchema = z
          *  Previous steps this step is dependent on
          */
         depends: z.array(z.string().refine(
-          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
-          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+          (val) => Boolean(val.match(RegExp(/([\w\d.-]+)|(^<%=\s[\w\d.-]+\s%>)/, "gm"))),
+          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
         )),
       }).partial()
   );
@@ -257,8 +244,8 @@ export const provisionSchema = z
      *  Name of the package to provision
      */
     source: z.string().refine(
-      (val) => val.match('([a-zA-Z]+:[0-9.a-zA-Z]+)') || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-      { message: 'Source match package format package:version or be an interpolated value' }
+      (val) => Boolean(val.match(RegExp(/^[\w\d.-]+:[a-z.-]+$|^<%=\s[\w\d.-]+\s%>/, "gm"))),
+      (val) => ({message: `Source value: ${val} must match package format package:version or be an interpolated value`})
     ),
   })
   .merge(
@@ -292,8 +279,8 @@ export const provisionSchema = z
          *  Previous steps this step is dependent on
          */
         depends: z.array(z.string().refine(
-          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
-          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+          (val) => Boolean(val.match(RegExp(/([\w\d.-]+)|(^<%=\s[\w\d.-]+\s%>)/, "gm"))),
+          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
         )),
       })
       .deepPartial()
