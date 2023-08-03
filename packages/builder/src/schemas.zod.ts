@@ -33,11 +33,11 @@ export const contractSchema = z
          */
         from: z.string().refine(
           (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-          {message: 'From address must be a valid ethereum address'}
+          { message: 'From address must be a valid ethereum address' }
         ),
         nonce: z.string().refine(
           (val) => ethers.utils.isHexString(val) || parseFloat(val),
-          {message: 'Field value must be of numeric or hexadecimal value'}
+          { message: 'Field value must be of numeric or hexadecimal value' }
         ),
         /**
          *  Abi of the contract being deployed
@@ -51,7 +51,7 @@ export const contractSchema = z
               return false;
             }
           },
-          {message: "ABI must be a JSON string" }
+          { message: "ABI must be a JSON string" }
         ),
         /**
          * An array of contract artifacts that you've already deployed with Cannon.
@@ -77,7 +77,7 @@ export const contractSchema = z
          */
         value: z.string().refine(
           (val) => Boolean(ethers.utils.parseEther(val)),
-          {message: 'Field value must be of numeric value'}
+          { message: 'Field value must be of numeric value' }
         ),
         /**
          *   Override transaction settings
@@ -89,7 +89,10 @@ export const contractSchema = z
         /**
          *  List of steps that this action depends on
          */
-        depends: z.array(z.string()),
+        depends: z.array(z.string().refine(
+          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
+          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+        )),
       })
       .deepPartial()
   );
@@ -115,7 +118,10 @@ export const importSchema = z
         /**
          *  Previous steps this step is dependent on
          */
-        depends: z.array(z.string()),
+        depends: z.array(z.string().refine(
+          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
+          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+        )),
       })
       .deepPartial()
   );
@@ -127,7 +133,7 @@ export const invokeSchema = z
      */
     target: z.array(z.string().refine(
       (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-      {message: 'Must be a valid ethereum address or interpolated value'}
+      { message: 'Must be a valid ethereum address or interpolated value' }
     )).nonempty().max(1),
     /**
      *  Name of the function to call on the contract
@@ -150,7 +156,7 @@ export const invokeSchema = z
               return false;
             }
           },
-          {message: "ABI must be a JSON string" }
+          { message: "ABI must be a JSON string" }
         ),
 
         /**
@@ -162,7 +168,7 @@ export const invokeSchema = z
          */
         from: z.string().refine(
           (val) => ethers.utils.isAddress(val) || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-          {message: 'From address must be a valid ethereum address'}
+          { message: 'From address must be a valid ethereum address' }
         ),
 
         fromCall: z.object({
@@ -173,14 +179,14 @@ export const invokeSchema = z
           /**
            *  The arguments to pass into the function above.
            */
-          args: z.array(z.string() || z.number()).optional(),
+          args: z.array(argsUnion).optional(),
         }),
         /**
          *  The amount of ether/wei to send in the transaction.
          */
         value: z.string().refine(
           (val) => Boolean(ethers.utils.parseEther(val)),
-          {message: 'Field value must be of numeric value'}
+          { message: 'Field value must be of numeric value' }
         ),
         /**
          *   Override transaction settings
@@ -238,7 +244,10 @@ export const invokeSchema = z
         /**
          *  Previous steps this step is dependent on
          */
-        depends: z.array(z.string()),
+        depends: z.array(z.string().refine(
+          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
+          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+        )),
       }).partial()
   );
 
@@ -249,7 +258,7 @@ export const provisionSchema = z
      */
     source: z.string().refine(
       (val) => val.match('([a-zA-Z]+:[0-9.a-zA-Z]+)') || val.match('(^<%= [a-zA-Z0-9.]+ %>)'),
-      {message: 'Source match package format package:version or be an interpolated value'}
+      { message: 'Source match package format package:version or be an interpolated value' }
     ),
   })
   .merge(
@@ -282,7 +291,10 @@ export const provisionSchema = z
         /**
          *  Previous steps this step is dependent on
          */
-        depends: z.array(z.string()),
+        depends: z.array(z.string().refine(
+          (val) => val.match('^[a-zA-Z0-9]+.[a-zA-Z0-9]+$'),
+          { message: 'No special characters allowed. Must reference a previous step, example: `contract.Storage`' }
+        )),
       })
       .deepPartial()
   );
@@ -297,14 +309,14 @@ export const chainDefinitionSchema = z
      */
     name: z.string().max(31).refine(
       val => val.match('[a-zA-Z0-9]'),
-      {message: 'Name cannot contain any special characters'}
+      { message: 'Name cannot contain any special characters' }
     ),
     /**
      * Current version of the package
      */
     version: z.string().max(31).refine(
       val => val.match('[a-zA-Z0-9.]+'),
-      {message: 'Version cannot contain any special characters'}
+      { message: 'Version cannot contain any special characters' }
     ),
   })
   .merge(
