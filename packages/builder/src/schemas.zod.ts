@@ -14,12 +14,12 @@ const argtype4 = z.array(argtype3);
 const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 
 // Different regular expressions used to validate formats like
-// string interpolation, action names, contract artifacts and packages
+// general string interpolation, action names, contract artifacts and packages
 let interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
 let actionRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
-let artifactRegex = RegExp(/^[\w-]+$/, 'gm');
 let packageRegex = RegExp(/^[\w.-]+:[\w.-]+$/, 'gm');
-let settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm');
+let settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm'); // only allow for interpolated settings property
+let artifactRegex = RegExp(/^[\w\/.:-]+$/, 'gm');
 
 export const contractSchema = z
   .object({
@@ -168,9 +168,10 @@ export const invokeSchema = z
     target: z
       .array(
         z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(actionRegex) || val.match(interpolatedRegex)),
+          (val) => ethers.utils.isAddress(val) || 
+            Boolean(val.match(interpolatedRegex) || val.match(artifactRegex)),
           (val) => ({
-            message: `"${val}" must be a valid ethereum address or interpolated value`,
+            message: `"${val}" must be a valid ethereum address or artifact name`,
           })
         )
       )
@@ -209,7 +210,7 @@ export const invokeSchema = z
          */
         from: z.string().refine(
           (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex)),
-          (val) => ({ message: `"${val}" is not a valid ethereum address` })
+          (val) => ({ message: `"${val}" must be a valid ethereum address or artifact name` })
         ),
 
         fromCall: z.object({
@@ -387,7 +388,7 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match('[a-zA-Z0-9]')), {
+      .refine((val) => Boolean(val.match(RegExp(/[a-zA-Z0-9-]+/, "gm"))), {
         message: 'Name cannot contain any special characters',
       }),
     /**
@@ -396,7 +397,7 @@ export const chainDefinitionSchema = z
     version: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match('[a-zA-Z0-9.]+')), {
+      .refine((val) => Boolean(val.match(RegExp(/[\w.]+/, "gm"))), {
         message: 'Version cannot contain any special characters',
       }),
   })
