@@ -93,7 +93,7 @@ export const contractSchema = z
         salt: z.string(),
 
         /**
-         *   Native currency value to into the deploy transaction
+         *   Native currency value to send in the transaction
          */
         value: z.string().refine((val) => Boolean(ethers.utils.parseEther(val)), {
           message: 'Field value must be of numeric value',
