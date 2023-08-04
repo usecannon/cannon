@@ -144,7 +144,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   debug('do build called with', cannonfile, settings, opts);
   // If the first param is not a cannonfile, it should be parsed as settings
-  if (!cannonfile.endsWith('.toml')) {
+  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
     settings.unshift(cannonfile);
     cannonfile = 'cannonfile.toml';
   }
@@ -168,7 +168,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
-      port: 8545,
+      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+      port: 0,
     });
 
     provider = getProvider(node);
@@ -183,7 +184,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     if (opts.dryRun) {
       node = await runRpc({
-        port: 8545,
+        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+        port: 0,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         chainId,
       });
@@ -217,11 +219,11 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version } = await loadCannonfile(cannonfilePath);
+  const { name, version, def } = await loadCannonfile(cannonfilePath);
 
   const { outputs } = await build({
     provider,
-    cannonfilePath,
+    def,
     packageDefinition: {
       name,
       version,
@@ -262,6 +264,7 @@ program
   .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
+  .option('--skip-compile', 'Skip the compilation step and use the existing artifacts')
   .option('-q --quiet', 'Suppress extra logging')
   .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
   .option(
@@ -276,18 +279,22 @@ program
     const projectDirectory = path.dirname(cannonfilePath);
 
     console.log(bold('Building the foundry project using forge build...'));
-    const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
-    await new Promise((resolve) => {
-      forgeBuildProcess.on('exit', (code) => {
-        if (code === 0) {
-          console.log(green('forge build succeeded'));
-        } else {
-          console.log(red('forge build failed'));
-          console.log('Continuing with cannon build...');
-        }
-        resolve(null);
+    if (!opts.skipCompile) {
+      const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
+      await new Promise((resolve) => {
+        forgeBuildProcess.on('exit', (code) => {
+          if (code === 0) {
+            console.log(green('forge build succeeded'));
+          } else {
+            console.log(red('forge build failed'));
+            console.log('Continuing with cannon build...');
+          }
+          resolve(null);
+        });
       });
-    });
+    } else {
+      console.log(yellow('Skipping forge build...'));
+    }
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
