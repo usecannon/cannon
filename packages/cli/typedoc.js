@@ -2,7 +2,6 @@
 module.exports = {
   plugin: [
     'typedoc-plugin-zod',
-    'typedoc-plugin-merge-modules',
     'typedoc-plugin-markdown',
   ],
   entryPoints: ['src/custom-steps/*.ts'],
