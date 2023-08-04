@@ -4,7 +4,7 @@ import { InMemoryRegistry } from '../registry';
 import action from './provision';
 import { fakeCtx, fakeRuntime } from './testUtils';
 
-import { contractSchema } from '../schemas.zod'
+import { contractSchema } from '../schemas.zod';
 import contractAction from './contract';
 
 jest.mock('../loader');
@@ -12,7 +12,7 @@ jest.mock('./contract');
 
 // Mocking the contract action causes a weird bug with the zod schema
 // this mock just replaces the mock generated value with our imported value.
-jest.mocked(contractAction.validate = contractSchema);
+jest.mocked((contractAction.validate = contractSchema));
 
 describe('steps/provision.ts', () => {
   const registry = new InMemoryRegistry();
@@ -20,7 +20,6 @@ describe('steps/provision.ts', () => {
   beforeAll(async () => {
     (fakeRuntime.registry as any) = registry;
     (fakeRuntime.chainId as any) = 1234;
-
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 

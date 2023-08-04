@@ -13,10 +13,10 @@ const chains = [
       'https://mainnet.infura.io/v3/${INFURA_API_KEY}',
       'wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}',
       'https://api.mycryptoapi.com/eth',
-      'https://cloudflare-eth.com'
+      'https://cloudflare-eth.com',
     ],
     faucets: [],
-    infoURL: 'https://ethereum.org'
+    infoURL: 'https://ethereum.org',
   },
   {
     name: 'xDAI Chain',
@@ -33,10 +33,10 @@ const chains = [
       'wss://xdai.poanetwork.dev/wss',
       'http://xdai.poanetwork.dev',
       'https://dai.poa.network',
-      'ws://xdai.poanetwork.dev:8546'
+      'ws://xdai.poanetwork.dev:8546',
     ],
     faucets: [],
-    infoURL: 'https://forum.poa.network/c/xdai-chain'
+    infoURL: 'https://forum.poa.network/c/xdai-chain',
   },
   {
     name: 'EtherInc',
@@ -48,7 +48,7 @@ const chains = [
     nativeCurrency: { name: 'EtherInc Ether', symbol: 'ETI', decimals: 18 },
     rpc: ['https://api.einc.io/jsonrpc/mainnet'],
     faucets: [],
-    infoURL: 'https://einc.io'
+    infoURL: 'https://einc.io',
   },
   {
     name: 'ThunderCore Mainnet',
@@ -60,11 +60,11 @@ const chains = [
     nativeCurrency: {
       name: 'ThunderCore Mainnet Ether',
       symbol: 'TT',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://mainnet-rpc.thundercore.com'],
     faucets: ['https://faucet.thundercore.com'],
-    infoURL: 'https://thundercore.com'
+    infoURL: 'https://thundercore.com',
   },
   {
     name: 'Metadium Mainnet',
@@ -76,11 +76,11 @@ const chains = [
     nativeCurrency: {
       name: 'Metadium Mainnet Ether',
       symbol: 'META',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://api.metadium.com/prod'],
     faucets: [],
-    infoURL: 'https://metadium.com'
+    infoURL: 'https://metadium.com',
   },
   {
     name: 'IPOS Network',
@@ -92,11 +92,11 @@ const chains = [
     nativeCurrency: {
       name: 'IPOS Network Ether',
       symbol: 'IPOS',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://rpc.iposlab.com', 'https://rpc2.iposlab.com'],
     faucets: [],
-    infoURL: 'https://iposlab.com'
+    infoURL: 'https://iposlab.com',
   },
   {
     name: 'Metadium Testnet',
@@ -108,11 +108,11 @@ const chains = [
     nativeCurrency: {
       name: 'Metadium Testnet Ether',
       symbol: 'KAL',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://api.metadium.com/dev'],
     faucets: [],
-    infoURL: 'https://metadium.com'
+    infoURL: 'https://metadium.com',
   },
   {
     name: 'Fuse Mainnet',
@@ -124,7 +124,7 @@ const chains = [
     nativeCurrency: { name: 'Fuse', symbol: 'FUSE', decimals: 18 },
     rpc: ['https://rpc.fuse.io'],
     faucets: [],
-    infoURL: 'https://fuse.io/'
+    infoURL: 'https://fuse.io/',
   },
   {
     name: 'Diode Staging',
@@ -136,7 +136,7 @@ const chains = [
     nativeCurrency: { name: 'Staging Diodes', symbol: 'DIO', decimals: 18 },
     rpc: ['https://staging.diode.io:8443/', 'wss://staging.diode.io:8443/ws'],
     faucets: [],
-    infoURL: 'https://diode.io/staging'
+    infoURL: 'https://diode.io/staging',
   },
   {
     name: 'Ether-1',
@@ -148,7 +148,7 @@ const chains = [
     nativeCurrency: { name: 'Ether-1 Ether', symbol: 'ETHO', decimals: 18 },
     rpc: ['https://rpc.ether1.org'],
     faucets: [],
-    infoURL: 'https://ether1.org'
+    infoURL: 'https://ether1.org',
   },
   {
     name: 'NEAR MainNet',
@@ -160,7 +160,7 @@ const chains = [
     nativeCurrency: { name: 'NEAR', symbol: 'NEAR', decimals: 24 },
     rpc: ['https://rpc.mainnet.near.org'],
     faucets: [],
-    infoURL: 'https://near.org/'
+    infoURL: 'https://near.org/',
   },
   {
     name: 'NEAR TestNet',
@@ -172,7 +172,7 @@ const chains = [
     nativeCurrency: { name: 'NEAR', symbol: 'NEAR', decimals: 24 },
     rpc: ['https://rpc.testnet.near.org'],
     faucets: ['https://wallet.testnet.near.org'],
-    infoURL: 'https://near.org/'
+    infoURL: 'https://near.org/',
   },
   {
     name: 'Xerom',
@@ -184,7 +184,7 @@ const chains = [
     nativeCurrency: { name: 'Xerom Ether', symbol: 'XERO', decimals: 18 },
     rpc: ['https://rpc.xerom.org'],
     faucets: [],
-    infoURL: 'https://xerom.org'
+    infoURL: 'https://xerom.org',
   },
   {
     name: 'PepChain Churchill',
@@ -196,11 +196,11 @@ const chains = [
     nativeCurrency: {
       name: 'PepChain Churchill Ether',
       symbol: 'TPEP',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://churchill-rpc.pepchain.io'],
     faucets: [],
-    infoURL: 'https://pepchain.io'
+    infoURL: 'https://pepchain.io',
   },
   {
     name: 'Matic Mainnet',
@@ -212,10 +212,10 @@ const chains = [
     nativeCurrency: { name: 'Matic', symbol: 'MATIC', decimals: 18 },
     rpc: [
       'https://rpc-mainnet.matic.network',
-      'wss://ws-mainnet.matic.network'
+      'wss://ws-mainnet.matic.network',
     ],
     faucets: [],
-    infoURL: 'https://matic.network/'
+    infoURL: 'https://matic.network/',
   },
   {
     name: 'Diode Prenet',
@@ -227,7 +227,7 @@ const chains = [
     nativeCurrency: { name: 'Diodes', symbol: 'DIO', decimals: 18 },
     rpc: ['https://prenet.diode.io:8443/', 'wss://prenet.diode.io:8443/ws'],
     faucets: [],
-    infoURL: 'https://diode.io/prenet'
+    infoURL: 'https://diode.io/prenet',
   },
   {
     name: 'Lightstreams Testnet',
@@ -239,7 +239,7 @@ const chains = [
     nativeCurrency: { name: 'Lightstreams PHT', symbol: 'PHT', decimals: 18 },
     rpc: ['https://node.sirius.lightstreams.io'],
     faucets: ['https://discuss.lightstreams.network/t/request-test-tokens'],
-    infoURL: 'https://explorer.sirius.lightstreams.io'
+    infoURL: 'https://explorer.sirius.lightstreams.io',
   },
   {
     name: 'Atheios',
@@ -251,7 +251,7 @@ const chains = [
     nativeCurrency: { name: 'Atheios Ether', symbol: 'ATH', decimals: 18 },
     rpc: ['https://wallet.atheios.com:8797'],
     faucets: [],
-    infoURL: 'https://atheios.com'
+    infoURL: 'https://atheios.com',
   },
   {
     name: 'Lightstreams Mainnet',
@@ -263,7 +263,7 @@ const chains = [
     nativeCurrency: { name: 'Lightstreams PHT', symbol: 'PHT', decimals: 18 },
     rpc: ['https://node.mainnet.lightstreams.io'],
     faucets: [],
-    infoURL: 'https://explorer.lightstreams.io'
+    infoURL: 'https://explorer.lightstreams.io',
   },
   {
     name: 'ThunderCore Testnet',
@@ -275,11 +275,11 @@ const chains = [
     nativeCurrency: {
       name: 'ThunderCore Testnet Ether',
       symbol: 'TST',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://testnet-rpc.thundercore.com'],
     faucets: ['https://faucet-testnet.thundercore.com'],
-    infoURL: 'https://thundercore.com'
+    infoURL: 'https://thundercore.com',
   },
   {
     name: 'IOLite',
@@ -291,7 +291,7 @@ const chains = [
     nativeCurrency: { name: 'IOLite Ether', symbol: 'ILT', decimals: 18 },
     rpc: ['https://net.iolite.io'],
     faucets: [],
-    infoURL: 'https://iolite.io'
+    infoURL: 'https://iolite.io',
   },
   {
     name: 'Teslafunds',
@@ -303,7 +303,7 @@ const chains = [
     nativeCurrency: { name: 'Teslafunds Ether', symbol: 'TSF', decimals: 18 },
     rpc: ['https://tsfapi.europool.me'],
     faucets: [],
-    infoURL: 'https://teslafunds.io'
+    infoURL: 'https://teslafunds.io',
   },
   {
     name: 'EtherGem',
@@ -315,7 +315,7 @@ const chains = [
     nativeCurrency: { name: 'EtherGem Ether', symbol: 'EGEM', decimals: 18 },
     rpc: ['https://jsonrpc.egem.io/custom'],
     faucets: [],
-    infoURL: 'https://egem.io'
+    infoURL: 'https://egem.io',
   },
   {
     name: 'Expanse Network',
@@ -327,11 +327,11 @@ const chains = [
     nativeCurrency: {
       name: 'Expanse Network Ether',
       symbol: 'EXP',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://node.expanse.tech'],
     faucets: [],
-    infoURL: 'https://expanse.tech'
+    infoURL: 'https://expanse.tech',
   },
   {
     name: 'ELA-ETH-Sidechain Mainnet',
@@ -343,7 +343,7 @@ const chains = [
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpc: ['https://mainrpc.elaeth.io'],
     faucets: [],
-    infoURL: 'https://www.elastos.org/'
+    infoURL: 'https://www.elastos.org/',
   },
   {
     name: 'Akaroma',
@@ -355,7 +355,7 @@ const chains = [
     nativeCurrency: { name: 'Akaroma Ether', symbol: 'AKA', decimals: 18 },
     rpc: ['https://remote.akroma.io'],
     faucets: [],
-    infoURL: 'https://akroma.io'
+    infoURL: 'https://akroma.io',
   },
   {
     name: 'ELA-ETH-Sidechain Testnet',
@@ -367,7 +367,7 @@ const chains = [
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpc: ['https://rpc.elaeth.io'],
     faucets: ['https://faucet.elaeth.io/'],
-    infoURL: 'https://elaeth.io/'
+    infoURL: 'https://elaeth.io/',
   },
   {
     name: 'Freight Trust Network',
@@ -379,14 +379,14 @@ const chains = [
     nativeCurrency: {
       name: 'Freight Trust Native',
       symbol: '0xF',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [
       'http://13.57.207.168:3435',
-      'https://app.freighttrust.net/ftn/${API_KEY}'
+      'https://app.freighttrust.net/ftn/${API_KEY}',
     ],
     faucets: ['http://faucet.freight.sh'],
-    infoURL: 'https://freighttrust.com'
+    infoURL: 'https://freighttrust.com',
   },
   {
     name: 'Webchain',
@@ -398,7 +398,7 @@ const chains = [
     nativeCurrency: { name: 'Webchain Ether', symbol: 'WEB', decimals: 18 },
     rpc: ['https://node1.webchain.network'],
     faucets: [],
-    infoURL: 'https://webchain.network'
+    infoURL: 'https://webchain.network',
   },
   {
     name: 'Energy Web Chain',
@@ -410,7 +410,7 @@ const chains = [
     nativeCurrency: { name: 'Energy Web Token', symbol: 'EWT', decimals: 18 },
     rpc: ['https://rpc.energyweb.org', 'wss://rpc.energyweb.org/ws'],
     faucets: [],
-    infoURL: 'https://energyweb.org'
+    infoURL: 'https://energyweb.org',
   },
   {
     name: 'ARTIS sigma1',
@@ -422,7 +422,7 @@ const chains = [
     nativeCurrency: { name: 'ARTIS sigma1 Ether', symbol: 'ATS', decimals: 18 },
     rpc: ['https://rpc.sigma1.artis.network'],
     faucets: [],
-    infoURL: 'https://artis.eco'
+    infoURL: 'https://artis.eco',
   },
   {
     name: 'ARTIS tau1',
@@ -434,7 +434,7 @@ const chains = [
     nativeCurrency: { name: 'ARTIS tau1 Ether', symbol: 'ATS', decimals: 18 },
     rpc: ['https://rpc.tau1.artis.network'],
     faucets: [],
-    infoURL: 'https://artis.network'
+    infoURL: 'https://artis.network',
   },
   {
     name: 'Fantom Opera',
@@ -446,7 +446,7 @@ const chains = [
     nativeCurrency: { name: 'Fantom', symbol: 'FTM', decimals: 18 },
     rpc: ['https://rpc.fantom.network', 'https://fantomscan.io/rpc'],
     faucets: [],
-    infoURL: 'https://fantom.foundation'
+    infoURL: 'https://fantom.foundation',
   },
   {
     name: 'High Performance Blockchain',
@@ -458,11 +458,11 @@ const chains = [
     nativeCurrency: {
       name: 'High Performance Blockchain Ether',
       symbol: 'HPB',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://node.hpb.blue'],
     faucets: [],
-    infoURL: 'https://hpb.io'
+    infoURL: 'https://hpb.io',
   },
   {
     name: 'Auxilium Network Mainnet',
@@ -474,7 +474,7 @@ const chains = [
     nativeCurrency: { name: 'Auxilium coin', symbol: 'AUX', decimals: 18 },
     rpc: ['https://rpc.auxilium.global'],
     faucets: [],
-    infoURL: 'https://auxilium.global'
+    infoURL: 'https://auxilium.global',
   },
   {
     name: 'Ethereum Testnet Ropsten',
@@ -486,10 +486,10 @@ const chains = [
     nativeCurrency: { name: 'Ropsten Ether', symbol: 'ROP', decimals: 18 },
     rpc: [
       'https://ropsten.infura.io/v3/${INFURA_API_KEY}',
-      'wss://ropsten.infura.io/ws/v3/${INFURA_API_KEY}'
+      'wss://ropsten.infura.io/ws/v3/${INFURA_API_KEY}',
     ],
     faucets: ['https://faucet.ropsten.be?${ADDRESS}'],
-    infoURL: 'https://github.com/ethereum/ropsten'
+    infoURL: 'https://github.com/ethereum/ropsten',
   },
   {
     name: 'RSK Mainnet',
@@ -501,7 +501,7 @@ const chains = [
     nativeCurrency: { name: 'RSK Mainnet Ether', symbol: 'RSK', decimals: 18 },
     rpc: ['https://public-node.rsk.co', 'https://mycrypto.rsk.co'],
     faucets: [],
-    infoURL: 'https://rsk.co'
+    infoURL: 'https://rsk.co',
   },
   {
     name: 'RSK Testnet',
@@ -513,10 +513,10 @@ const chains = [
     nativeCurrency: { name: 'RSK Testnet Ether', symbol: 'TRSK', decimals: 18 },
     rpc: [
       'https://public-node.testnet.rsk.co',
-      'https://mycrypto.testnet.rsk.co'
+      'https://mycrypto.testnet.rsk.co',
     ],
     faucets: ['https://faucet.testnet.rsk.co'],
-    infoURL: 'https://rsk.co'
+    infoURL: 'https://rsk.co',
   },
   {
     name: 'Ethersocial Network',
@@ -528,11 +528,11 @@ const chains = [
     nativeCurrency: {
       name: 'Ethersocial Network Ether',
       symbol: 'ESN',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://api.esn.gonspool.com'],
     faucets: [],
-    infoURL: 'https://ethersocial.org'
+    infoURL: 'https://ethersocial.org',
   },
   {
     name: 'Pirl',
@@ -544,7 +544,7 @@ const chains = [
     nativeCurrency: { name: 'Pirl Ether', symbol: 'PIRL', decimals: 18 },
     rpc: ['https://wallrpc.pirl.io'],
     faucets: [],
-    infoURL: 'https://pirl.io'
+    infoURL: 'https://pirl.io',
   },
   {
     name: 'Valorbit',
@@ -556,7 +556,7 @@ const chains = [
     nativeCurrency: { name: 'Valorbit', symbol: 'VAL', decimals: 18 },
     rpc: ['https://rpc.valorbit.com/v2'],
     faucets: [],
-    infoURL: 'https://valorbit.com'
+    infoURL: 'https://valorbit.com',
   },
   {
     name: 'Lisinski',
@@ -568,11 +568,11 @@ const chains = [
     nativeCurrency: {
       name: 'Lisinski Ether',
       symbol: 'LISINSKI',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://rpc-bitfalls1.lisinski.online'],
     faucets: ['https://pipa.lisinski.online'],
-    infoURL: 'https://lisinski.online'
+    infoURL: 'https://lisinski.online',
   },
   {
     name: 'Energi Mainnet',
@@ -584,7 +584,7 @@ const chains = [
     nativeCurrency: { name: 'Energi', symbol: 'NRG', decimals: 18 },
     rpc: ['https://nodeapi.gen3.energi.network'],
     faucets: [],
-    infoURL: 'https://www.energi.world/'
+    infoURL: 'https://www.energi.world/',
   },
   {
     name: 'Ethereum Testnet Rinkeby',
@@ -596,10 +596,10 @@ const chains = [
     nativeCurrency: { name: 'Rinkeby Ether', symbol: 'RIN', decimals: 18 },
     rpc: [
       'https://rinkeby.infura.io/v3/${INFURA_API_KEY}',
-      'wss://rinkeby.infura.io/ws/v3/${INFURA_API_KEY}'
+      'wss://rinkeby.infura.io/ws/v3/${INFURA_API_KEY}',
     ],
     faucets: ['https://faucet.rinkeby.io'],
-    infoURL: 'https://www.rinkeby.io'
+    infoURL: 'https://www.rinkeby.io',
   },
   {
     name: 'Ethereum Testnet Kovan',
@@ -614,13 +614,13 @@ const chains = [
       'http://kovan.poa.network:8545',
       'https://kovan.infura.io/v3/${INFURA_API_KEY}',
       'wss://kovan.infura.io/ws/v3/${INFURA_API_KEY}',
-      'ws://kovan.poa.network:8546'
+      'ws://kovan.poa.network:8546',
     ],
     faucets: [
       'https://faucet.kovan.network',
-      'https://gitter.im/kovan-testnet/faucet'
+      'https://gitter.im/kovan-testnet/faucet',
     ],
-    infoURL: 'https://kovan-testnet.github.io/website'
+    infoURL: 'https://kovan-testnet.github.io/website',
   },
   {
     name: 'Optimistic Ethereum',
@@ -632,7 +632,7 @@ const chains = [
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpc: [],
     faucets: [],
-    infoURL: 'https://optimism.io'
+    infoURL: 'https://optimism.io',
   },
   {
     name: 'Athereum',
@@ -644,7 +644,7 @@ const chains = [
     nativeCurrency: { name: 'Athereum Ether', symbol: 'ATH', decimals: 18 },
     rpc: ['https://ava.network:21015/ext/evm/rpc'],
     faucets: ['http://athfaucet.ava.network//?address=${ADDRESS}'],
-    infoURL: 'https://athereum.ava.network'
+    infoURL: 'https://athereum.ava.network',
   },
   {
     name: 'Energi Testnet',
@@ -656,7 +656,7 @@ const chains = [
     nativeCurrency: { name: 'Energi', symbol: 'tNRG', decimals: 18 },
     rpc: ['https://nodeapi.test3.energi.network'],
     faucets: [],
-    infoURL: 'https://www.energi.world/'
+    infoURL: 'https://www.energi.world/',
   },
   {
     name: 'Ethereum Testnet Görli',
@@ -669,13 +669,13 @@ const chains = [
     rpc: [
       'https://rpc.goerli.mudit.blog/',
       'https://rpc.slock.it/goerli ',
-      'https://goerli.prylabs.net/'
+      'https://goerli.prylabs.net/',
     ],
     faucets: [
       'https://goerli-faucet.slock.it/?address=${ADDRESS}',
-      'https://faucet.goerli.mudit.blog'
+      'https://faucet.goerli.mudit.blog',
     ],
-    infoURL: 'https://goerli.net/#about'
+    infoURL: 'https://goerli.net/#about',
   },
   {
     name: 'Binance Smart Chain Mainnet',
@@ -687,7 +687,7 @@ const chains = [
     nativeCurrency: {
       name: 'Binance Chain Native Token',
       symbol: 'BNB',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [
       'https://bsc-dataseed1.binance.org',
@@ -702,10 +702,10 @@ const chains = [
       'https://bsc-dataseed2.ninicoin.io',
       'https://bsc-dataseed3.ninicoin.io',
       'https://bsc-dataseed4.ninicoin.io',
-      'wss://bsc-ws-node.nariox.org'
+      'wss://bsc-ws-node.nariox.org',
     ],
     faucets: [],
-    infoURL: 'https://www.binance.org'
+    infoURL: 'https://www.binance.org',
   },
   {
     name: 'Ethereum Classic Testnet Kotti',
@@ -717,7 +717,7 @@ const chains = [
     nativeCurrency: { name: 'Kotti Ether', symbol: 'KOT', decimals: 18 },
     rpc: [],
     faucets: [],
-    infoURL: 'https://explorer.jade.builders/?network=kotti'
+    infoURL: 'https://explorer.jade.builders/?network=kotti',
   },
   {
     name: 'GoChain',
@@ -729,7 +729,7 @@ const chains = [
     nativeCurrency: { name: 'GoChain Ether', symbol: 'GO', decimals: 18 },
     rpc: ['https://rpc.gochain.io'],
     faucets: [],
-    infoURL: 'https://gochain.io'
+    infoURL: 'https://gochain.io',
   },
   {
     name: 'Ethereum Classic Mainnet',
@@ -741,11 +741,11 @@ const chains = [
     nativeCurrency: {
       name: 'Ethereum Classic Ether',
       symbol: 'ETC',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://ethereumclassic.network'],
     faucets: [],
-    infoURL: 'https://ethereumclassic.org'
+    infoURL: 'https://ethereumclassic.org',
   },
   {
     name: 'Aquachain',
@@ -757,7 +757,7 @@ const chains = [
     nativeCurrency: { name: 'Aquachain Ether', symbol: 'AQUA', decimals: 18 },
     rpc: ['https://c.onical.org', 'https://tx.aquacha.in/api'],
     faucets: ['https://aquacha.in/faucet'],
-    infoURL: 'https://aquachain.github.io'
+    infoURL: 'https://aquachain.github.io',
   },
   {
     name: 'Ethereum Classic Testnet Morden',
@@ -769,11 +769,11 @@ const chains = [
     nativeCurrency: {
       name: 'Ethereum Classic Testnet Ether',
       symbol: 'TETC',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [],
     faucets: [],
-    infoURL: 'https://ethereumclassic.org'
+    infoURL: 'https://ethereumclassic.org',
   },
   {
     name: 'Ethereum Classic Testnet Mordor',
@@ -785,11 +785,11 @@ const chains = [
     nativeCurrency: {
       name: 'Mordor Classic Testnet Ether',
       symbol: 'METC',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [],
     faucets: [],
-    infoURL: 'https://github.com/eth-classic/mordor/'
+    infoURL: 'https://github.com/eth-classic/mordor/',
   },
   {
     name: 'Ellaism',
@@ -801,7 +801,7 @@ const chains = [
     nativeCurrency: { name: 'Ellaism Ether', symbol: 'ELLA', decimals: 18 },
     rpc: ['https://jsonrpc.ellaism.org'],
     faucets: [],
-    infoURL: 'https://ellaism.org'
+    infoURL: 'https://ellaism.org',
   },
   {
     name: 'ThaiChain',
@@ -813,7 +813,7 @@ const chains = [
     nativeCurrency: { name: 'ThaiChain Ether', symbol: 'TCH', decimals: 18 },
     rpc: ['https://rpc.dome.cloud'],
     faucets: [],
-    infoURL: 'https://thaichain.io'
+    infoURL: 'https://thaichain.io',
   },
   {
     name: 'Energy Web Volta Testnet',
@@ -825,10 +825,10 @@ const chains = [
     nativeCurrency: { name: 'Volta Token', symbol: 'VT', decimals: 18 },
     rpc: [
       'https://volta-rpc.energyweb.org',
-      'wss://volta-rpc.energyweb.org/ws'
+      'wss://volta-rpc.energyweb.org/ws',
     ],
     faucets: ['https://voltafaucet.energyweb.org'],
-    infoURL: 'https://energyweb.org'
+    infoURL: 'https://energyweb.org',
   },
   {
     name: 'Mix',
@@ -840,7 +840,7 @@ const chains = [
     nativeCurrency: { name: 'Mix Ether', symbol: 'MIX', decimals: 18 },
     rpc: ['https://rpc2.mix-blockchain.org:8647'],
     faucets: [],
-    infoURL: 'https://mix-blockchain.org'
+    infoURL: 'https://mix-blockchain.org',
   },
   {
     name: 'POA Network Sokol',
@@ -853,10 +853,10 @@ const chains = [
     rpc: [
       'https://sokol.poa.network',
       'wss://sokol.poa.network/wss',
-      'ws://sokol.poa.network:8546'
+      'ws://sokol.poa.network:8546',
     ],
     faucets: ['https://faucet-sokol.herokuapp.com'],
-    infoURL: 'https://poa.network'
+    infoURL: 'https://poa.network',
   },
   {
     name: 'Musicoin',
@@ -868,7 +868,7 @@ const chains = [
     nativeCurrency: { name: 'Musicoin', symbol: 'MUSIC', decimals: 18 },
     rpc: ['https://mewapi.musicoin.tw'],
     faucets: [],
-    infoURL: 'https://musicoin.tw'
+    infoURL: 'https://musicoin.tw',
   },
   {
     name: 'Firenze test network',
@@ -880,7 +880,7 @@ const chains = [
     nativeCurrency: { name: 'Firenze Ether', symbol: 'FIN', decimals: 18 },
     rpc: ['https://ethnode.primusmoney.com/firenze'],
     faucets: [],
-    infoURL: 'https://primusmoney.com'
+    infoURL: 'https://primusmoney.com',
   },
   {
     name: 'Ubiq Network Mainnet',
@@ -892,7 +892,7 @@ const chains = [
     nativeCurrency: { name: 'Ubiq Ether', symbol: 'UBQ', decimals: 18 },
     rpc: ['https://rpc.octano.dev', 'https://pyrus2.ubiqscan.io'],
     faucets: [],
-    infoURL: 'https://ubiqsmart.com'
+    infoURL: 'https://ubiqsmart.com',
   },
   {
     name: 'Matic Mumbai',
@@ -904,7 +904,7 @@ const chains = [
     nativeCurrency: { name: 'Matic', symbol: 'MATIC', decimals: 18 },
     rpc: ['https://rpc-mumbai.matic.today', 'wss://ws-mumbai.matic.today'],
     faucets: ['https://faucet.matic.network/'],
-    infoURL: 'https://matic.network/'
+    infoURL: 'https://matic.network/',
   },
   {
     name: 'Callisto Mainnet',
@@ -916,11 +916,11 @@ const chains = [
     nativeCurrency: {
       name: 'Callisto Mainnet Ether',
       symbol: 'CLO',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://clo-geth.0xinfra.com'],
     faucets: [],
-    infoURL: 'https://callisto.network'
+    infoURL: 'https://callisto.network',
   },
   {
     name: 'Callisto Testnet',
@@ -932,11 +932,11 @@ const chains = [
     nativeCurrency: {
       name: 'Callisto Testnet Ether',
       symbol: 'TCLO',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [],
     faucets: [],
-    infoURL: 'https://callisto.network'
+    infoURL: 'https://callisto.network',
   },
   {
     name: 'TomoChain',
@@ -948,7 +948,7 @@ const chains = [
     nativeCurrency: { name: 'TomoChain Ether', symbol: 'TOMO', decimals: 18 },
     rpc: ['https://core.tomocoin.io'],
     faucets: [],
-    infoURL: 'https://tomocoin.io'
+    infoURL: 'https://tomocoin.io',
   },
   {
     name: 'bloxberg',
@@ -960,7 +960,7 @@ const chains = [
     nativeCurrency: { name: 'BERG', symbol: 'U+25B3', decimals: 18 },
     rpc: ['https://core.bloxberg.org'],
     faucets: ['https://faucet.bloxberg.org/'],
-    infoURL: 'https://bloxberg.org'
+    infoURL: 'https://bloxberg.org',
   },
   {
     name: 'Ubiq Network Testnet',
@@ -972,11 +972,11 @@ const chains = [
     nativeCurrency: {
       name: 'Ubiq Testnet Ether',
       symbol: 'TUBQ',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [],
     faucets: [],
-    infoURL: 'https://ethersocial.org'
+    infoURL: 'https://ethersocial.org',
   },
   {
     name: 'Binance Smart Chain Testnet',
@@ -988,7 +988,7 @@ const chains = [
     nativeCurrency: {
       name: 'Binance Chain Native Token',
       symbol: 'BNB',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [
       'https://data-seed-prebsc-1-s1.binance.org:8545',
@@ -996,10 +996,10 @@ const chains = [
       'https://data-seed-prebsc-1-s2.binance.org:8545',
       'https://data-seed-prebsc-2-s2.binance.org:8545',
       'https://data-seed-prebsc-1-s3.binance.org:8545',
-      'https://data-seed-prebsc-2-s3.binance.org:8545'
+      'https://data-seed-prebsc-2-s3.binance.org:8545',
     ],
     faucets: ['https://testnet.binance.org/faucet-smart'],
-    infoURL: 'https://testnet.binance.org/'
+    infoURL: 'https://testnet.binance.org/',
   },
   {
     name: 'Nepal Blockchain Network',
@@ -1011,14 +1011,14 @@ const chains = [
     nativeCurrency: {
       name: 'Nepal Blockchain Network Ether',
       symbol: 'YETI',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [
       'https://api.nepalblockchain.dev',
-      'https://api.nepalblockchain.network'
+      'https://api.nepalblockchain.network',
     ],
     faucets: ['https://faucet.nepalblockchain.network'],
-    infoURL: 'https://nepalblockchain.network'
+    infoURL: 'https://nepalblockchain.network',
   },
   {
     name: 'POA Network Core',
@@ -1030,16 +1030,16 @@ const chains = [
     nativeCurrency: {
       name: 'POA Network Core Ether',
       symbol: 'SKL',
-      decimals: 18
+      decimals: 18,
     },
     rpc: [
       'https://core.poanetwork.dev',
       'http://core.poanetwork.dev:8545',
       'https://core.poa.network',
-      'ws://core.poanetwork.dev:8546'
+      'ws://core.poanetwork.dev:8546',
     ],
     faucets: [],
-    infoURL: 'https://poa.network'
+    infoURL: 'https://poa.network',
   },
   {
     name: 'Celo Alfajores Testnet',
@@ -1051,13 +1051,13 @@ const chains = [
     nativeCurrency: { name: 'Celo', symbol: 'CELO', decimals: 18 },
     rpc: [
       'https://alfajores-forno.celo-testnet.org',
-      'wss://alfajores-forno.celo-testnet.org/ws'
+      'wss://alfajores-forno.celo-testnet.org/ws',
     ],
     faucets: [
       'https://celo.org/developers/faucet',
-      'https://cauldron.pretoriaresearchlab.io/alfajores-faucet'
+      'https://cauldron.pretoriaresearchlab.io/alfajores-faucet',
     ],
-    infoURL: 'https://docs.celo.org/'
+    infoURL: 'https://docs.celo.org/',
   },
   {
     name: 'Celo',
@@ -1069,7 +1069,7 @@ const chains = [
     nativeCurrency: { name: 'Celo', symbol: 'CELO', decimals: 18 },
     rpc: ['https://forno.celo.org'],
     faucets: [],
-    infoURL: 'https://docs.celo.org/'
+    infoURL: 'https://docs.celo.org/',
   },
   {
     name: 'Avalanche Mainnet C-Chain',
@@ -1081,7 +1081,7 @@ const chains = [
     nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
     rpc: ['https://api.avax.network/ext/bc/C/rpc'],
     faucets: [],
-    infoURL: 'https://docs.avax.network/'
+    infoURL: 'https://docs.avax.network/',
   },
   {
     name: 'Avalanche FUJI C-Chain',
@@ -1093,7 +1093,7 @@ const chains = [
     nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
     rpc: ['https://api.avax-test.network/ext/bc/C/rpc'],
     faucets: [],
-    infoURL: 'https://docs.avax.network/'
+    infoURL: 'https://docs.avax.network/',
   },
   {
     name: 'Optimism Mainnet',
@@ -1105,7 +1105,7 @@ const chains = [
     nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
     rpc: ['https://mainnet.optimism.ioc'],
     faucets: [],
-    infoURL: 'https://community.optimism.io/docs/'
+    infoURL: 'https://community.optimism.io/docs/',
   },
   {
     name: 'Base Goerli Testnet',
@@ -1117,81 +1117,81 @@ const chains = [
     nativeCurrency: {
       name: 'Goerli Ether',
       symbol: 'ETH',
-      decimals: 18
+      decimals: 18,
     },
     rpc: ['https://goerli.base.org'],
     etherscanApi: 'https://api-goerli.basescan.org/api',
     etherscanUrl: 'https://goerli.basescan.org/',
     faucets: ['https://www.coinbase.com/faucets/base-ethereum-goerli-faucet'],
-    infoURL: 'https://base.org/'
-  }
+    infoURL: 'https://base.org/',
+  },
 ];
 
 let CHAIN_DATA = [];
 
-chains.forEach(c => {
+chains.forEach((c) => {
   CHAIN_DATA[c.chainId] = {
-    name: c.shortName
+    name: c.shortName,
   };
 });
 
 CHAIN_DATA = merge(CHAIN_DATA, {
   13370: {
     name: 'local',
-    color: 'whiteAlpha'
+    color: 'whiteAlpha',
   },
   1: {
     name: 'mainnet',
-    color: 'cyan'
+    color: 'cyan',
   },
   5: {
     name: 'goerli',
-    color: 'green'
+    color: 'green',
   },
   56: {
     name: 'bnb',
-    color: 'yellow'
+    color: 'yellow',
   },
   10: {
     name: 'op mainnet',
-    color: 'red'
+    color: 'red',
   },
   420: {
     name: 'optimism goerli',
-    color: 'red'
+    color: 'red',
   },
   42161: {
     name: 'arbitrum',
-    color: 'blue'
+    color: 'blue',
   },
   421613: {
     name: 'arbitrum goerli',
-    color: 'blue'
+    color: 'blue',
   },
   11155111: {
     name: 'sepolia',
-    color: 'orange'
+    color: 'orange',
   },
   137: {
     name: 'matic',
-    color: 'indigo'
+    color: 'indigo',
   },
   80001: {
     name: 'mumbai',
-    color: 'indigo'
+    color: 'indigo',
   },
   43114: {
     name: 'avax',
-    color: 'pink'
+    color: 'pink',
   },
   43113: {
     name: 'fuji',
-    color: 'pink'
+    color: 'pink',
   },
   84531: {
     name: 'base goerli',
-    color: 'blue'
-  }
+    color: 'blue',
+  },
 });
 
 export default CHAIN_DATA;

@@ -146,9 +146,9 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHash);
           if (!state[n] || (curHash && state[n].hash !== curHash)) {
             debug('run isolated', n);
-            console.log("HERE")
+            console.log('HERE');
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
-            console.log("HERE2")
+            console.log('HERE2');
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);

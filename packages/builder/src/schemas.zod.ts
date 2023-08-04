@@ -15,11 +15,13 @@ const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 
 // Different regular expressions used to validate formats like
 // general string interpolation, action names, contract artifacts and packages
-let interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
-let actionRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
-let packageRegex = RegExp(/^[\w.-]+:[\w.-]+$/, 'gm');
-let settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm'); // only allow for interpolated settings property
-let artifactRegex = RegExp(/^[\w\/.:-]+$/, 'gm');
+const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
+const actionRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
+const packageRegex = RegExp(/^[\w.-]+:[\w.-]+$/, 'gm');
+const settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm'); // only allow for interpolated settings property
+
+// eslint-disable-next-line
+const artifactRegex = RegExp(/^[\w\/.:-]+$/, 'gm');
 
 export const contractSchema = z
   .object({
@@ -168,8 +170,7 @@ export const invokeSchema = z
     target: z
       .array(
         z.string().refine(
-          (val) => ethers.utils.isAddress(val) || 
-            Boolean(val.match(interpolatedRegex) || val.match(artifactRegex)),
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex) || val.match(artifactRegex)),
           (val) => ({
             message: `"${val}" must be a valid ethereum address or artifact name`,
           })
@@ -388,7 +389,7 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match(RegExp(/[a-zA-Z0-9-]+/, "gm"))), {
+      .refine((val) => Boolean(val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm'))), {
         message: 'Name cannot contain any special characters',
       }),
     /**
@@ -397,7 +398,7 @@ export const chainDefinitionSchema = z
     version: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match(RegExp(/[\w.]+/, "gm"))), {
+      .refine((val) => Boolean(val.match(RegExp(/[\w.]+/, 'gm'))), {
         message: 'Version cannot contain any special characters',
       }),
   })

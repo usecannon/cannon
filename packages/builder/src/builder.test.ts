@@ -23,7 +23,7 @@ jest.mock('./steps/invoke');
 
 // Mocking the contract action causes a weird bug with the zod schema
 // this mock just replaces the mock generated value with our imported value.
-jest.mocked(contractStep.validate = contractSchema);
+jest.mocked((contractStep.validate = contractSchema));
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);

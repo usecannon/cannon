@@ -1,6 +1,10 @@
 /** @type { import('typedoc').TypeDocOptionMap */
 module.exports = {
-  plugin: ['typedoc-plugin-zod', 'typedoc-plugin-merge-modules', 'typedoc-plugin-markdown'],
+  plugin: [
+    'typedoc-plugin-zod',
+    'typedoc-plugin-merge-modules',
+    'typedoc-plugin-markdown',
+  ],
   entryPoints: ['src/custom-steps/*.ts'],
   exclude: ['src/custom-steps/*.test.ts'],
   out: ['../../docs/actions'],
@@ -9,7 +13,6 @@ module.exports = {
   excludeInternal: true,
   excludeNotDocumented: true,
   readme: 'none',
-  hideInPageTOC: true,
   sort: ['kind', 'instance-first', 'required-first'],
   searchInComments: true,
   hideGenerator: true,

@@ -101,7 +101,7 @@ export class ChainDefinition {
     }
 
     validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
-    
+
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
       _.get(this.raw, n),

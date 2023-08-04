@@ -63,7 +63,7 @@ export function validateConfig(schema: z.ZodSchema, config: any) {
   if (!result.success) {
     const errors = result.error.errors;
     handleZodErrors(errors);
-  } 
+  }
 
   return result;
 }

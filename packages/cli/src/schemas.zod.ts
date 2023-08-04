@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
 export const runSchema = z

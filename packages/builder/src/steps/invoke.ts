@@ -26,7 +26,6 @@ const debug = Debug('cannon:builder:invoke');
  */
 export type Config = z.infer<typeof invokeSchema>;
 
-
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
 export interface InvokeOutputs {
@@ -204,7 +203,7 @@ export default {
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
-      config.target = config.target.map(v => _.template(v)(ctx)) as [string, ...string[]];
+      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {

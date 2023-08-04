@@ -1,6 +1,11 @@
 /** @type { import('typedoc').TypeDocOptionMap }*/
 module.exports = {
-  plugin: ['typedoc-plugin-zod', 'typedoc-plugin-merge-modules', 'typedoc-plugin-markdown', 'typedoc-gitlab-wiki-theme'],
+  plugin: [
+    'typedoc-plugin-zod',
+    'typedoc-plugin-merge-modules',
+    'typedoc-plugin-markdown',
+    'typedoc-gitlab-wiki-theme',
+  ],
   entryPoints: ['src/actions.ts', 'src/steps/*.ts'],
   exclude: ['src/steps/*.test.ts'],
   out: ['../../docs/actions'],

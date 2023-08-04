@@ -2,15 +2,16 @@ import { z } from 'zod';
 
 /**
  *  Returns a custom error message on failure for each parameter in the failed step
- */ 
+ */
 export function handleZodErrors(errors: z.ZodIssue[]) {
-  
-
   const errorMessages = errors.map((error) => {
     if (error.path.length > 1) {
-      return `\n Field: ${error.path.toString().replace(/,/g, '.').replace(/.(\d+\d?)/g, "[$1]")} \n Error: ${error.message}`
+      return `\n Field: ${error.path
+        .toString()
+        .replace(/,/g, '.')
+        .replace(/.(\d+\d?)/g, '[$1]')} \n Error: ${error.message}`;
     } else {
-     return `\n Field: ${error.path} \n Error: ${error.message}`
+      return `\n Field: ${error.path} \n Error: ${error.message}`;
     }
   });
 
@@ -19,10 +20,9 @@ export function handleZodErrors(errors: z.ZodIssue[]) {
   throw errorMessage;
 }
 
-
-/** 
+/**
  * Overwrites Zod's default error map to add custom messages
- */ 
+ */
 export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
   // This is where we override the various error codes
   switch (error.code) {
@@ -31,7 +31,7 @@ export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
         return {
           message: 'Field is required',
         };
-      } else if (error.expected === 'array' && error.received === 'array'){
+      } else if (error.expected === 'array' && error.received === 'array') {
         return {
           message: `Expected all items in array field to be of type ${error.expected} but got ${error.received}`,
         };
