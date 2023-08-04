@@ -1,9 +1,6 @@
 /** @type { import('typedoc').TypeDocOptionMap }*/
 module.exports = {
-  plugin: [
-    'typedoc-plugin-zod',
-    'typedoc-plugin-markdown',
-  ],
+  plugin: ['typedoc-plugin-zod', 'typedoc-plugin-markdown'],
   entryPoints: ['src/actions.ts', 'src/steps/*.ts'],
   exclude: ['src/steps/*.test.ts'],
   out: ['../../docs/actions'],
