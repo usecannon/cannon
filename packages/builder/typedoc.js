@@ -4,7 +4,6 @@ module.exports = {
     'typedoc-plugin-zod',
     'typedoc-plugin-merge-modules',
     'typedoc-plugin-markdown',
-    'typedoc-gitlab-wiki-theme',
   ],
   entryPoints: ['src/actions.ts', 'src/steps/*.ts'],
   exclude: ['src/steps/*.test.ts'],
