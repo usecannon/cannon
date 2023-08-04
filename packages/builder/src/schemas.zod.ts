@@ -14,12 +14,12 @@ const argtype4 = z.array(argtype3);
 const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 
 // Different regular expressions used to validate formats like
-// general string interpolation, action names, contract artifacts and packages
-const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
-const actionRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
-const packageRegex = RegExp(/^[\w.-]+:[\w.-]+$/, 'gm');
-const settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm'); // only allow for interpolated settings property
+// general string interpolation, step names, contract artifacts and packages
+const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'gm');
+const stepRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
 
+// This regex matches the following formats:
+// package:version, step.stepName and artifact names like PoolFactory
 // eslint-disable-next-line
 const artifactRegex = RegExp(/^[\w\/.:-]+$/, 'gm');
 
@@ -61,7 +61,7 @@ export const contractSchema = z
           .string()
           .refine(
             (val) =>
-              Boolean(val.match(artifactRegex) || val.match(settingsRegex)) ||
+              Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)) ||
               ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
             {
               message:
@@ -110,7 +110,7 @@ export const contractSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(actionRegex)),
+            (val) => Boolean(val.match(stepRegex)),
             (val) => ({
               message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -124,11 +124,12 @@ export const importSchema = z
   .object({
     /**
      *  Source of the cannonfile package to import from
+     *  Can be a cannonfile step name or package name
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(packageRegex) || val.match(interpolatedRegex)),
+      (val) => Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or be an interpolated value`,
+        message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
       })
     ),
   })
@@ -152,7 +153,7 @@ export const importSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(actionRegex)),
+            (val) => Boolean(val.match(stepRegex)),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -194,7 +195,7 @@ export const invokeSchema = z
           .string()
           .refine(
             (val) =>
-              Boolean(val.match(artifactRegex) || val.match(settingsRegex)) ||
+              Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)) ||
               ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
             {
               message:
@@ -314,7 +315,7 @@ export const invokeSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(actionRegex)),
+            (val) => Boolean(val.match(stepRegex)),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -330,9 +331,9 @@ export const provisionSchema = z
      *  Name of the package to provision
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(packageRegex) || val.match(interpolatedRegex)),
+      (val) => Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)),
       (val) => ({
-        message: `Source value: ${val} must match package format package:version or be an interpolated value`,
+        message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
       })
     ),
   })
@@ -368,7 +369,7 @@ export const provisionSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(actionRegex)),
+            (val) => Boolean(val.match(stepRegex)),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
