@@ -4,28 +4,32 @@ import { ethers } from 'ethers';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
-
 // Different types that can be passed into the args schema property
-// Basically just a union as follows: 
+// Basically just a union as follows:
 // string | number | (string | number)[] | Record<string, string | number>
 const argtype = z.union([z.string(), z.number(), z.boolean()]);
 const argtype2 = z.array(argtype);
 const argtype3 = z.record(z.string(), argtype);
 const argtype4 = z.array(argtype3);
-const argsUnion = z.union([argtype, argtype2, argtype3, argtype4])
+const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 
-// Regex that matches module names step names or interpolated names
-let abiRegex =RegExp(/^[\w.-]+$|^<%=\ssettings.[\w.-]+\s%>/, 'gm');
-let fromRegex = RegExp(/^[\w.-]+$|^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
-let dependsRegex = RegExp(/^[\w-]+.[\w]+$/, "gm");
-let sourceRegex = RegExp(/^[\w.-]+:[a-z.-]+$|^<%=\s[\w.-]+\s%>/, "gm")
+// Different regular expressions used to validate formats like
+// string interpolation, action names, contract artifacts and packages
+let interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()-]+\s%>$/, 'gm');
+let actionRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
+let artifactRegex = RegExp(/^[\w-]+$/, 'gm');
+let packageRegex = RegExp(/^[\w.-]+:[\w.-]+$/, 'gm');
+let settingsRegex = RegExp(/^<%=\ssettings.[\w.-]+\s%>/, 'gm');
 
 export const contractSchema = z
   .object({
     /**
      *    Artifact name of the target contract
      */
-    artifact: z.string(),
+    artifact: z.string().refine(
+      (val) => Boolean(val.match(artifactRegex)),
+      (val) => ({ message: `Artifact name "${val}" is invalid` })
+    ),
   })
   .merge(
     z
@@ -39,25 +43,39 @@ export const contractSchema = z
          *    Must match the ethereum address format
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(fromRegex)),
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex)),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
         nonce: z.string().refine(
           (val) => ethers.utils.isHexString(val) || Boolean(parseInt(val)),
-          (val) => ({ message: `Nonce ${val} must be of numeric or hexadecimal value` })
+          (val) => ({
+            message: `Nonce ${val} must be of numeric or hexadecimal value`,
+          })
         ),
         /**
          *  Abi of the contract being deployed
          */
-        abi: z.string().refine(
-          (val) => Boolean(val.match(abiRegex)) || ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]), 
-          { message: "ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json" }
-        ),
+        abi: z
+          .string()
+          .refine(
+            (val) =>
+              Boolean(val.match(artifactRegex) || val.match(settingsRegex)) ||
+              ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
+            {
+              message:
+                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+            }
+          ),
         /**
-         * An array of contract artifacts that you've already deployed with Cannon.
+         * An array of contract artifacts that have already been deployed with Cannon.
          * This is useful when deploying proxy contracts.
          */
-        abiOf: z.array(z.string()),
+        abiOf: z.array(
+          z.string().refine(
+            (val) => Boolean(val.match(artifactRegex)),
+            (val) => ({ message: `Artifact name ${val} is invalid` })
+          )
+        ),
         /**
          *    Constructor or initializer args
          */
@@ -75,10 +93,9 @@ export const contractSchema = z
         /**
          *   Native currency value to into the deploy transaction
          */
-        value: z.string().refine(
-          (val) => Boolean(ethers.utils.parseEther(val)),
-          { message: 'Field value must be of numeric value' }
-        ),
+        value: z.string().refine((val) => Boolean(ethers.utils.parseEther(val)), {
+          message: 'Field value must be of numeric value',
+        }),
         /**
          *   Override transaction settings
          */
@@ -89,10 +106,14 @@ export const contractSchema = z
         /**
          *  List of steps that this action depends on
          */
-        depends: z.array(z.string().refine(
-          (val) => Boolean(val.match(dependsRegex)),
-          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
-        )),
+        depends: z.array(
+          z.string().refine(
+            (val) => Boolean(val.match(actionRegex)),
+            (val) => ({
+              message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'`,
+            })
+          )
+        ),
       })
       .deepPartial()
   );
@@ -103,8 +124,10 @@ export const importSchema = z
      *  Source of the cannonfile package to import from
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(sourceRegex)),
-      (val) => ({message: `Source value: ${val} must match package format package:version or be an interpolated value`})
+      (val) => Boolean(val.match(packageRegex) || val.match(interpolatedRegex)),
+      (val) => ({
+        message: `Source value: ${val} must match package format "package:version" or be an interpolated value`,
+      })
     ),
   })
   .merge(
@@ -120,11 +143,19 @@ export const importSchema = z
         preset: z.string(),
         /**
          *  Previous steps this step is dependent on
+         *  @example
+         *  ```toml
+         *  depends = ['contract.Storage', 'import.Contract']
+         * ```
          */
-        depends: z.array(z.string().refine(
-          (val) => Boolean(val.match(dependsRegex)),
-          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
-        )),
+        depends: z.array(
+          z.string().refine(
+            (val) => Boolean(val.match(actionRegex)),
+            (val) => ({
+              message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+            })
+          )
+        ),
       })
       .deepPartial()
   );
@@ -134,10 +165,17 @@ export const invokeSchema = z
     /**
      *  Name of the contract action that deployed the contract to call
      */
-    target: z.array(z.string().refine(
-      (val) => ethers.utils.isAddress(val) || Boolean(val.match(RegExp(/^[\w.-]+$|^<%=\s\w+.+[\w()-]+\s%>$/, "gm"))),
-      (val) => ({ message: `"${val}" must be a valid ethereum address or interpolated value` })
-    )).nonempty().max(1),
+    target: z
+      .array(
+        z.string().refine(
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(actionRegex) || val.match(interpolatedRegex)),
+          (val) => ({
+            message: `"${val}" must be a valid ethereum address or interpolated value`,
+          })
+        )
+      )
+      .nonempty()
+      .max(1),
     /**
      *  Name of the function to call on the contract
      */
@@ -150,10 +188,17 @@ export const invokeSchema = z
          *  JSON file of the contract ABI
          *  Required if the target contains an address rather than a contract action name.
          */
-        abi: z.string().refine(
-          (val) => Boolean(val.match(abiRegex)) || ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]), 
-          { message: "ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json" }
-        ),
+        abi: z
+          .string()
+          .refine(
+            (val) =>
+              Boolean(val.match(artifactRegex) || val.match(settingsRegex)) ||
+              ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
+            {
+              message:
+                'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
+            }
+          ),
 
         /**
          *  Arguments to use when invoking this call.
@@ -163,7 +208,7 @@ export const invokeSchema = z
          *  The calling address to use when invoking this call.
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(fromRegex)),
+          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex)),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
 
@@ -175,20 +220,21 @@ export const invokeSchema = z
           /**
            *  The arguments to pass into the function being called.
            */
-          args: z.array(argsUnion).optional()
+          args: z.array(argsUnion).optional(),
         }),
         /**
          *  The amount of ether/wei to send in the transaction.
          */
-        value: z.string().refine(
-          (val) => Boolean(ethers.utils.parseEther(val)),
-          { message: 'Field value must be of numeric value' }
-        ),
+        value: z.string().refine((val) => Boolean(ethers.utils.parseEther(val)), {
+          message: 'Field value must be of numeric value',
+        }),
         /**
          *   Override transaction settings
          */
         overrides: z.object({
-          gasLimit: z.string(),
+          gasLimit: z.string().refine((val) => Boolean(parseInt(val)), {
+            message: 'Gas limit is invalid',
+          }),
         }),
         /**
          *   Object defined to hold extra transaction result data.
@@ -212,42 +258,68 @@ export const invokeSchema = z
         ),
         /**
          *   Object defined to hold deployment transaction result data.
-         *   For now its limited to getting event data so it can be reused in other steps
+         *   For now its limited to getting deployment event data so it can be reused in other steps
          */
-        factory: z.record(
-          z.object({
-            /**
-             *   Name of the event to get data for
-             */
-            event: z.string(),
-            /**
-             *   data argument of the event output
-             */
-            arg: z.number().int(),
+        factory: z
+          .record(
+            z.object({
+              /**
+               *   Name of the event to get data for
+               */
+              event: z.string(),
+              /**
+               *   data argument of the event output
+               */
+              arg: z.number().int(),
 
-            /**
-             *   name of the contract artifact
-             */
-            artifact: z.string().refine(
-              val => Boolean(val.match(RegExp(/[\w]+/, "gm"))),
-              val => ({ message: `Artifact name "${val}" is invalid`})
-            ).optional(),
-            abiOf: z.array(z.string()).optional(),
-            constructorArgs: z.array(argsUnion).optional(),
-            /**
-             *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
-             */
-            allowEmptyEvents: z.boolean().optional(),
-          })
-        ).optional(),
+              /**
+               *   name of the contract artifact
+               */
+              artifact: z
+                .string()
+                .refine(
+                  (val) => Boolean(val.match(artifactRegex)),
+                  (val) => ({ message: `Artifact name "${val}" is invalid` })
+                )
+                .optional(),
+
+              /**
+               *  An array of contract artifacts that have already been deployed with Cannon.
+               *  Used if the code for the deployed contract is not available in the artifacts.
+               */
+              abiOf: z
+                .array(
+                  z.string().refine(
+                    (val) => Boolean(val.match(artifactRegex)),
+                    (val) => ({ message: `Artifact name "${val}" is invalid` })
+                  )
+                )
+                .optional(),
+
+              /**
+               *
+               */
+              constructorArgs: z.array(argsUnion).optional(),
+              /**
+               *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+               */
+              allowEmptyEvents: z.boolean().optional(),
+            })
+          )
+          .optional(),
         /**
          *  Previous steps this step is dependent on
          */
-        depends: z.array(z.string().refine(
-          (val) => Boolean(val.match(dependsRegex)),
-          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
-        )),
-      }).partial()
+        depends: z.array(
+          z.string().refine(
+            (val) => Boolean(val.match(actionRegex)),
+            (val) => ({
+              message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+            })
+          )
+        ),
+      })
+      .partial()
   );
 
 export const provisionSchema = z
@@ -256,8 +328,10 @@ export const provisionSchema = z
      *  Name of the package to provision
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(sourceRegex)),
-      (val) => ({message: `Source value: ${val} must match package format package:version or be an interpolated value`})
+      (val) => Boolean(val.match(packageRegex) || val.match(interpolatedRegex)),
+      (val) => ({
+        message: `Source value: ${val} must match package format package:version or be an interpolated value`,
+      })
     ),
   })
   .merge(
@@ -290,10 +364,14 @@ export const provisionSchema = z
         /**
          *  Previous steps this step is dependent on
          */
-        depends: z.array(z.string().refine(
-          (val) => Boolean(val.match(dependsRegex)),
-          (val) => ({ message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'` })
-        )),
+        depends: z.array(
+          z.string().refine(
+            (val) => Boolean(val.match(actionRegex)),
+            (val) => ({
+              message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+            })
+          )
+        ),
       })
       .deepPartial()
   );
@@ -306,17 +384,21 @@ export const chainDefinitionSchema = z
     /**
      * Name of the package
      */
-    name: z.string().max(31).refine(
-      (val) => Boolean(val.match('[a-zA-Z0-9]')),
-      { message: 'Name cannot contain any special characters' }
-    ),
+    name: z
+      .string()
+      .max(31)
+      .refine((val) => Boolean(val.match('[a-zA-Z0-9]')), {
+        message: 'Name cannot contain any special characters',
+      }),
     /**
      *  version of the package
      */
-    version: z.string().max(31).refine(
-      (val) => Boolean(val.match('[a-zA-Z0-9.]+')),
-      { message: 'Version cannot contain any special characters' }
-    ),
+    version: z
+      .string()
+      .max(31)
+      .refine((val) => Boolean(val.match('[a-zA-Z0-9.]+')), {
+        message: 'Version cannot contain any special characters',
+      }),
   })
   .merge(
     z
@@ -358,7 +440,7 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        import: z.custom<typeof importSpec>()
+        import: z.custom<typeof importSpec>(),
       })
       .deepPartial()
   );
