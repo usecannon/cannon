@@ -45,7 +45,10 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
     // Reached the filesystem root without finding the marker file
     const parentPath = path.dirname(currentPath);
     if (parentPath === currentPath) {
-      throw new Error('Could not find foundry project, make sure your cannonfiles are stored within a foundry project');
+      console.warn(
+        'Could not find foundry project, make sure your cannonfiles are stored within the root of a foundry project.'
+      );
+      return parentPath;
     }
 
     //Otherwise loop
