@@ -7,12 +7,14 @@ import {
   Image,
   Spacer,
   Container,
-  Text,
   Popover,
   PopoverContent,
   PopoverTrigger,
   PopoverBody,
   Link as ChakraLink,
+  Box,
+  LinkBox,
+  LinkOverlay,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import { TriangleDownIcon } from '@chakra-ui/icons';
@@ -62,25 +64,27 @@ export const Header = () => {
         pt={4}
         flexWrap="wrap"
       >
-        <Link
-          href={links.HomePage}
-          color="white"
-          as={NextLink}
-          textDecoration="none"
-          _hover={{ textDecoration: 'none' }}
-        >
-          <Flex gap={1} alignItems="center">
-            <Image
-              src="/images/logo.svg"
-              alt="Cannon Logo"
-              boxSize="48px"
-              objectFit="cover"
-            />
-            <Heading as="h1" fontWeight="bold" size="lg">
-              CANNON
-            </Heading>
-          </Flex>
-        </Link>
+        <LinkBox>
+          <LinkOverlay
+            href={links.HomePage}
+            color="white"
+            as={NextLink}
+            textDecoration="none"
+            _hover={{ textDecoration: 'none' }}
+          >
+            <Flex gap={1} alignItems="center">
+              <Image
+                src="/images/logo.svg"
+                alt="Cannon Logo"
+                boxSize="48px"
+                objectFit="cover"
+              />
+              <Heading as="h1" fontWeight="bold" size="lg">
+                CANNON
+              </Heading>
+            </Flex>
+          </LinkOverlay>
+        </LinkBox>
         <Spacer />
         <Flex gap={8} alignItems="center" flexWrap="wrap">
           <Link
@@ -96,7 +100,7 @@ export const Header = () => {
           </Link>
           <Popover trigger="hover">
             <PopoverTrigger>
-              <Text
+              <Box
                 color="white"
                 textTransform="uppercase"
                 fontFamily="var(--font-miriam)"
@@ -109,7 +113,7 @@ export const Header = () => {
                   opacity={0.8}
                   ml={0.5}
                 />
-              </Text>
+              </Box>
             </PopoverTrigger>
             <PopoverContent
               width="150px"

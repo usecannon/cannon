@@ -1,9 +1,11 @@
 export { createInitialContext, build, getOutputs } from './builder';
-export { registerAction, CannonAction } from './actions';
+export { registerAction } from './actions';
+export type { CannonAction } from './actions';
 export type { RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
-export { CannonLoader, IPFSLoader, InMemoryLoader } from './loader';
+export type { CannonLoader } from './loader';
+export { IPFSLoader, InMemoryLoader } from './loader';
 export { decodeTxError } from './error';
 
 export * from './util';
