@@ -1,0 +1,6 @@
+{
+  "packages": {
+    "packages/builder": "2.4.21",
+    "packages/cli": "2.4.21"
+  }
+}
