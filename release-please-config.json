@@ -1,0 +1,6 @@
+{
+  "packages": {
+    "packages/builder": "{}",
+    "packages/cli": {}
+  }
+}
