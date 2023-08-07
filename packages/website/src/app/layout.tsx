@@ -39,9 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <Box backgroundColor="blue.900" minHeight="100vh">
             <Header />
-            <Box minH="calc(100vh - 165px)" pt={24}>
-              {children}
-            </Box>
+            <Box minH="calc(100vh - 165px)">{children}</Box>
             <GithubFooter />
           </Box>
         </Providers>
