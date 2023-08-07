@@ -8,16 +8,16 @@ import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 
 export const Cannonfile: FC<{
-  p: GetPackagesQuery['packages'][0];
-}> = ({ p }) => {
+  pkg: GetPackagesQuery['packages'][0];
+}> = ({ pkg }) => {
   const [loading, setLoading] = useState(false);
   const [metadata, setMetadata] = useState<any>({});
 
   const latestVariant = useMemo(() => {
-    return p?.tags
+    return pkg?.tags
       ?.find((t) => t?.name === 'latest')
       ?.variants.find((v) => v.preset === 'main');
-  }, [p]);
+  }, [pkg]);
   useEffect(() => {
     setLoading(true);
 

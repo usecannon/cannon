@@ -15,12 +15,12 @@ export type VersionInfo = {
 };
 
 export const VersionSelect: FC<{
-  p: Package;
+  pkg: Package;
   onChange: (value: VersionInfo) => void;
-}> = ({ p, onChange }) => {
+}> = ({ pkg, onChange }) => {
   const options = useMemo(() => {
     return _.flatten(
-      p.tags.map((t) => {
+      pkg.tags.map((t) => {
         const _variants = [...(t.variants || [])];
         return (
           _variants
@@ -40,7 +40,7 @@ export const VersionSelect: FC<{
         );
       })
     );
-  }, [p]);
+  }, [pkg]);
   useEffect(() => {
     onChange(options[0]);
   }, [options]);

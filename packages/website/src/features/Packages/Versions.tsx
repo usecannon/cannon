@@ -10,8 +10,8 @@ type Tag = Package['tags'][0];
 type Variant = Tag['variants'][0];
 
 export const Versions: FC<{
-  p: Package;
-}> = ({ p }) => {
+  pkg: Package;
+}> = ({ pkg }) => {
   const variantsByTag = (tag: Tag): Record<string, Variant[]> => {
     return _.groupBy(tag.variants, 'preset');
   };
@@ -27,7 +27,7 @@ export const Versions: FC<{
 
   return (
     <Box>
-      {p.tags.map((tag) => {
+      {pkg.tags.map((tag) => {
         return (
           <Box pb="3" mb="3" key={tag.id}>
             <Heading mb="3" size="md">

@@ -39,7 +39,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
     }
   );
 
-  const [p, setPackage] = useState<Package | null>(null);
+  const [pkg, setPackage] = useState<Package | null>(null);
 
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
@@ -47,7 +47,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
 
   return (
     <Container maxW="container.lg">
-      {p ? (
+      {pkg ? (
         <>
           <Grid
             templateColumns="repeat(12, 1fr)"
@@ -57,12 +57,12 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           >
             <GridItem colSpan={[12, 12, 7]}>
               <Heading as="h4" size="md" mb="1">
-                {p?.name}
+                {pkg?.name}
               </Heading>
               <Box mb="2">
-                <PublishInfo p={p} />
+                <PublishInfo p={pkg} />
               </Box>
-              <PackageNetworks download p={p!} />
+              <PackageNetworks download p={pkg!} />
             </GridItem>
             <GridItem colSpan={[12, 12, 5]}>
               <Heading
@@ -75,7 +75,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
               >
                 Quick Start
               </Heading>
-              <CommandPreview command={`npx @usecannon/cli ${p.name}`} />
+              <CommandPreview command={`npx @usecannon/cli ${pkg.name}`} />
             </GridItem>
           </Grid>
 
@@ -87,14 +87,14 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 <Tab>Versions</Tab>
               </TabList>
               <TabPanels>
-                <TabPanel>
-                  <Cannonfile p={p} />
+                <TabPanel p={0}>
+                  <Cannonfile pkg={pkg} />
                 </TabPanel>
-                <TabPanel>
-                  <Interact p={p} />
+                <TabPanel p={0}>
+                  <Interact pkg={pkg} />
                 </TabPanel>
-                <TabPanel>
-                  <Versions p={p} />
+                <TabPanel p={0}>
+                  <Versions pkg={pkg} />
                 </TabPanel>
               </TabPanels>
             </Tabs>

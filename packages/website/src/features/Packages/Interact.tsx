@@ -13,7 +13,7 @@ type Package = GetPackagesQuery['packages'][0];
 // type Tag = Package['tags'][0];
 // type Variant = Tag['variants'][0];
 
-export const Interact: FC<{ p: Package }> = ({ p }) => {
+export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
   const [loading, setLoading] = useState(true);
   const [ipfs, setIpfs] = useState<any>({});
   const [selectedVersion, setSelectedVersion] = useState<VersionInfo>();
@@ -91,7 +91,7 @@ export const Interact: FC<{ p: Package }> = ({ p }) => {
       >
         <ConnectWallet />
         <Box ml="auto">
-          <VersionSelect p={p} onChange={setSelectedVersion} />
+          <VersionSelect pkg={pkg} onChange={setSelectedVersion} />
         </Box>
       </Flex>
       <Box mb="8">
