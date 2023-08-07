@@ -53,11 +53,14 @@ export const VersionSelect: FC<{
         onChange={(e) => {
           onChange(JSON.parse(e.target.value));
         }}
-        // v-model="currentValue"
       >
         {options.map((option) => {
           return (
-            <option value={JSON.stringify(option)} key={JSON.stringify(option)}>
+            <option
+              style={{ backgroundColor: 'black' }}
+              value={JSON.stringify(option)}
+              key={JSON.stringify(option)}
+            >
               {option.name}
             </option>
           );
