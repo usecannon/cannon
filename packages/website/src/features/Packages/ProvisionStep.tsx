@@ -30,6 +30,7 @@ export const ProvisionStep: FC<{
   }, [imports]);
 
   const copy = useCopy();
+  console.log('output', output);
 
   return (
     <Box mb="8">
@@ -40,19 +41,21 @@ export const ProvisionStep: FC<{
               <Heading v-if="o.title" mb="1" size="lg" display="inline-block">
                 {o.title}
               </Heading>
-              <Box ml="auto" v-if="o.url">
-                <Code bg="blackAlpha.800" color="whiteAlpha.800">
-                  {o.url.replace('ipfs://', '@ipfs:')}
-                </Code>
-                <div
-                  onClick={async () => {
-                    await copy(o.url.replace('ipfs://', '@ipfs:'));
-                  }}
-                  className="copy-button"
-                >
-                  <Copy />
-                </div>
-              </Box>
+              {o.url && (
+                <Box ml="auto" v-if="o.url">
+                  <Code bg="blackAlpha.800" color="whiteAlpha.800">
+                    {o.url.replace('ipfs://', '@ipfs:')}
+                  </Code>
+                  <div
+                    onClick={async () => {
+                      await copy(o.url.replace('ipfs://', '@ipfs:'));
+                    }}
+                    className="copy-button"
+                  >
+                    <Copy />
+                  </div>
+                </Box>
+              )}
             </Flex>
             <ContractStep
               contracts={o.contracts}
