@@ -2,8 +2,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: write
@@ -20,29 +18,3 @@ jobs:
         with:
           command: manifest
           default-branch: main
-
-      # The logic below handles the npm publication:
-      - name: Checkout Repository
-        if: ${{ steps.release.outputs.releases_created }}
-        uses: actions/checkout@v2
-      - name: Setup Node
-        uses: actions/setup-node@v2
-        if: ${{ steps.release.outputs.releases_created }}
-        with:
-          cache: npm
-          node-version: '16.16.0'
-          registry-url: 'https://registry.npmjs.org'
-      - name: Build Packages
-        if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          npm ci
-          npm run build
-
-      # # Release Please has already incremented versions and published tags, so we just
-      # # need to publish all unpublished versions to NPM here
-      # # See: https://github.com/lerna/lerna/tree/main/commands/publish#bump-from-package
-      # - name: Publish to NPM
-      #   if: ${{ steps.release.outputs.releases_created }}
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-      #   run: npx lerna publish from-package --no-push --no-private --yes
