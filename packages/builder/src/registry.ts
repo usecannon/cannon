@@ -106,7 +106,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         const result = await registry.getUrl(packageRef, variant);
 
         if (result) {
-          await this.emit('getUrl', { packageRef, variant, result, registry });
+          debug('fallback registry: loaded from registry', registry.getLabel());
+          await this.emit('getUrl', { packageRef, variant, result, registry, fallbackRegistry: this });
           return result;
         }
       } catch (err: any) {
@@ -148,8 +149,19 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
-    // the fallback registry is usually something easy to write to or get to later
-    return _.first(this.registries).publish(packagesNames, variant, url, metaUrl);
+    // try to publish to any of the registries
+    // first one to succeed
+    const errors = [];
+    for (const registry of this.registries) {
+      try {
+        return await registry.publish(packagesNames, variant, url, metaUrl);
+      } catch (err: any) {
+        debug('error caught in registry while publishing (may be normal):', err);
+        errors.push(err);
+      }
+    }
+
+    throw new Error('no registry succeeded in publishing:\n' + errors.map((e) => e.message).join('\n'));
   }
 
   async publishMany(
