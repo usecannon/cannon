@@ -14,23 +14,24 @@ const argtype4 = z.array(argtype3);
 const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 
 // Different regular expressions used to validate formats like
-// general string interpolation, step names, contract artifacts and packages
-const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'gm');
-const stepRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'gm');
+// <%=  string interpolation %>, step.names or property.names, packages:versions
+const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
+const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
+const packageRegex = RegExp(/^[\w-]+\.*:*[\w.-]+$/, 'i');
+const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
-// This regex matches the following formats:
-// package:version, step.stepName and artifact names like PoolFactory
-// eslint-disable-next-line
-const artifactRegex = RegExp(/^[\w\/.:-]+$/, 'gm');
+// This regex matches artifact names which are just capitalized words like solidity contract names
+const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
+const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
 export const contractSchema = z
   .object({
     /**
-     *    Artifact name of the target contract
+     *    Artifact name or path of the target contract
      */
     artifact: z.string().refine(
-      (val) => Boolean(val.match(artifactRegex)),
-      (val) => ({ message: `Artifact name "${val}" is invalid` })
+      (val) => !!val.match(artifactNameRegex) || !!val.match(artifactPathRegex),
+      (val) => ({ message: `Artifact name or path "${val}" is invalid` })
     ),
   })
   .merge(
@@ -45,11 +46,11 @@ export const contractSchema = z
          *    Must match the ethereum address format
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex)),
+          (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
         nonce: z.string().refine(
-          (val) => ethers.utils.isHexString(val) || Boolean(parseInt(val)),
+          (val) => ethers.utils.isHexString(val) || !!parseInt(val),
           (val) => ({
             message: `Nonce ${val} must be of numeric or hexadecimal value`,
           })
@@ -61,7 +62,9 @@ export const contractSchema = z
           .string()
           .refine(
             (val) =>
-              Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)) ||
+              !!val.match(artifactNameRegex) ||
+              !!val.match(jsonAbiPathRegex) ||
+              !!val.match(interpolatedRegex) ||
               ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
             {
               message:
@@ -74,7 +77,7 @@ export const contractSchema = z
          */
         abiOf: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(artifactRegex)),
+            (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
             (val) => ({ message: `Artifact name ${val} is invalid` })
           )
         ),
@@ -95,7 +98,7 @@ export const contractSchema = z
         /**
          *   Native currency value to send in the transaction
          */
-        value: z.string().refine((val) => Boolean(ethers.utils.parseEther(val)), {
+        value: z.string().refine((val) => !!ethers.utils.parseEther(val), {
           message: 'Field value must be of numeric value',
         }),
         /**
@@ -110,7 +113,7 @@ export const contractSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(stepRegex)),
+            (val) => !!val.match(stepRegex),
             (val) => ({
               message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -127,7 +130,7 @@ export const importSchema = z
      *  Can be a cannonfile step name or package name
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)),
+      (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
       (val) => ({
         message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
       })
@@ -153,7 +156,7 @@ export const importSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(stepRegex)),
+            (val) => !!val.match(stepRegex),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -166,19 +169,23 @@ export const importSchema = z
 export const invokeSchema = z
   .object({
     /**
-     *  Name of the contract action that deployed the contract to call
+     *  Names of the contract to call or contract action that deployed the contract to call
      */
     target: z
       .array(
         z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex) || val.match(artifactRegex)),
+          (val) =>
+            ethers.utils.isAddress(val) ||
+            !!val.match(interpolatedRegex) ||
+            !!val.match(stepRegex) ||
+            !!val.match(artifactNameRegex) ||
+            !!val.match(artifactPathRegex),
           (val) => ({
-            message: `"${val}" must be a valid ethereum address or artifact name`,
+            message: `"${val}" must be a valid ethereum address, previously defined contract step name or contract artifact name or path`,
           })
         )
       )
-      .nonempty()
-      .max(1),
+      .nonempty(),
     /**
      *  Name of the function to call on the contract
      */
@@ -195,7 +202,9 @@ export const invokeSchema = z
           .string()
           .refine(
             (val) =>
-              Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)) ||
+              !!val.match(artifactNameRegex) ||
+              !!val.match(jsonAbiPathRegex) ||
+              !!val.match(interpolatedRegex) ||
               ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
             {
               message:
@@ -211,8 +220,8 @@ export const invokeSchema = z
          *  The calling address to use when invoking this call.
          */
         from: z.string().refine(
-          (val) => ethers.utils.isAddress(val) || Boolean(val.match(interpolatedRegex)),
-          (val) => ({ message: `"${val}" must be a valid ethereum address or artifact name` })
+          (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
+          (val) => ({ message: `"${val}" must be a valid ethereum address` })
         ),
 
         fromCall: z.object({
@@ -228,16 +237,14 @@ export const invokeSchema = z
         /**
          *  The amount of ether/wei to send in the transaction.
          */
-        value: z.string().refine((val) => Boolean(ethers.utils.parseEther(val)), {
-          message: 'Field value must be of numeric value',
+        value: z.string().refine((val) => !!ethers.utils.parseEther(val), {
+          message: 'Field must be of numeric value',
         }),
         /**
          *   Override transaction settings
          */
         overrides: z.object({
-          gasLimit: z.string().refine((val) => Boolean(parseInt(val)), {
-            message: 'Gas limit is invalid',
-          }),
+          gasLimit: z.string().refine((val) => !!parseInt(val), { message: 'Gas limit is invalid' }),
         }),
         /**
          *   Object defined to hold extra transaction result data.
@@ -281,8 +288,8 @@ export const invokeSchema = z
               artifact: z
                 .string()
                 .refine(
-                  (val) => Boolean(val.match(artifactRegex)),
-                  (val) => ({ message: `Artifact name "${val}" is invalid` })
+                  (val) => !!val.match(artifactNameRegex) || !!val.match(artifactPathRegex),
+                  (val) => ({ message: `"${val}" must match a contract artifact name or path` })
                 )
                 .optional(),
 
@@ -293,8 +300,8 @@ export const invokeSchema = z
               abiOf: z
                 .array(
                   z.string().refine(
-                    (val) => Boolean(val.match(artifactRegex)),
-                    (val) => ({ message: `Artifact name "${val}" is invalid` })
+                    (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
+                    (val) => ({ message: `"${val}" must match a previously defined contract step name or contract artifact name or path` })
                   )
                 )
                 .optional(),
@@ -315,7 +322,7 @@ export const invokeSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(stepRegex)),
+            (val) => !!val.match(stepRegex),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -331,9 +338,9 @@ export const provisionSchema = z
      *  Name of the package to provision
      */
     source: z.string().refine(
-      (val) => Boolean(val.match(artifactRegex) || val.match(interpolatedRegex)),
+      (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
+        message: `Source value: ${val} must match package format "package:version" or be an interpolated value`,
       })
     ),
   })
@@ -344,7 +351,7 @@ export const provisionSchema = z
          *  ID of the chain to import the package from
          *  @default - 13370
          */
-        chainId: z.number().int().max(31),
+        chainId: z.number().int(),
         /**
          *  Override the preset to use when provisioning this package.
          *  @default - "main"
@@ -369,7 +376,7 @@ export const provisionSchema = z
          */
         depends: z.array(
           z.string().refine(
-            (val) => Boolean(val.match(stepRegex)),
+            (val) => !!val.match(stepRegex),
             (val) => ({
               message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
             })
@@ -390,7 +397,7 @@ export const chainDefinitionSchema = z
     name: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm'))), {
+      .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
       }),
     /**
@@ -399,7 +406,7 @@ export const chainDefinitionSchema = z
     version: z
       .string()
       .max(31)
-      .refine((val) => Boolean(val.match(RegExp(/[\w.]+/, 'gm'))), {
+      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       }),
   })
