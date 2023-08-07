@@ -87,13 +87,13 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 <Tab>Versions</Tab>
               </TabList>
               <TabPanels>
-                <TabPanel p={0}>
+                <TabPanel px={0}>
                   <Cannonfile pkg={pkg} />
                 </TabPanel>
-                <TabPanel p={0}>
+                <TabPanel px={0}>
                   <Interact pkg={pkg} />
                 </TabPanel>
-                <TabPanel p={0}>
+                <TabPanel px={0}>
                   <Versions pkg={pkg} />
                 </TabPanel>
               </TabPanels>
