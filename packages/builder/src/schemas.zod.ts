@@ -301,7 +301,9 @@ export const invokeSchema = z
                 .array(
                   z.string().refine(
                     (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
-                    (val) => ({ message: `"${val}" must match a previously defined contract step name or contract artifact name or path` })
+                    (val) => ({
+                      message: `"${val}" must match a previously defined contract step name or contract artifact name or path`,
+                    })
                   )
                 )
                 .optional(),
