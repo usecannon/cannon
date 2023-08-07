@@ -20,6 +20,7 @@ import {
   Tab,
   TabPanels,
   TabPanel,
+  Container,
 } from '@chakra-ui/react';
 import PackageNetworks from '@/components/PackageNetworks';
 import { CommandPreview } from '@/components/CommandPreview';
@@ -45,7 +46,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
   }, [data]);
 
   return (
-    <Box py="2" maxWidth="containers.lg" mx="auto" px="4">
+    <Container maxW="container.lg">
       {p ? (
         <div>
           <Grid
@@ -143,7 +144,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           </Text>
         </div>
       )}
-    </Box>
+    </Container>
   );
 };
 
