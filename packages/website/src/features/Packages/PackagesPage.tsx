@@ -48,22 +48,14 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
   return (
     <Container maxW="container.lg">
       {p ? (
-        <div>
+        <>
           <Grid
-            template-columns="repeat(12, 1fr)"
-            gap="6"
-            py="8"
-            maxWidth="containers.lg"
-            mx="auto"
-            // spacing="40px" TODO
+            templateColumns="repeat(12, 1fr)"
+            gap={6}
+            py={8}
             alignItems="center"
           >
-            <GridItem
-              colSpan={[12, 7]}
-              py="4"
-              pr={[0, 4]}
-              borderRight={[null, '1px solid rgba(255,255,255,0.25)']}
-            >
+            <GridItem colSpan={[12, 12, 7]}>
               <Heading as="h4" size="md" mb="1">
                 {p?.name}
               </Heading>
@@ -72,7 +64,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
               </Box>
               <PackageNetworks download p={p!} />
             </GridItem>
-            <GridItem colSpan={[12, 5]}>
+            <GridItem colSpan={[12, 12, 5]}>
               <Heading
                 as="h4"
                 size="sm"
@@ -136,13 +128,11 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
             {/*</Link>*/}
           </Box>
           {/*<NuxtChild :p="p" />*/}
-        </div>
+        </>
       ) : (
-        <div>
-          <Text textAlign="center">
-            <Spinner my="12" />
-          </Text>
-        </div>
+        <Text textAlign="center">
+          <Spinner my="12" />
+        </Text>
       )}
     </Container>
   );
