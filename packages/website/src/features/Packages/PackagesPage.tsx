@@ -80,7 +80,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           </Grid>
 
           <Box borderBottom="1px solid rgba(255,255,255,0.25)" pb="2">
-            <Tabs>
+            <Tabs colorScheme="cyan">
               <TabList>
                 <Tab>Cannonfile</Tab>
                 <Tab>Interact</Tab>
