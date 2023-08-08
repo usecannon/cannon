@@ -84,6 +84,7 @@ function configureRun(program: Command) {
     .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+    .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
     .option('--preset <preset>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
@@ -261,6 +262,7 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
   .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
@@ -280,7 +282,7 @@ program
 
     console.log(bold('Building the foundry project using forge build...'));
     if (!opts.skipCompile) {
-      const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
+      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
       await new Promise((resolve) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
@@ -298,7 +300,7 @@ program
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
-    await node?.kill();
+    node?.kill();
   });
 
 program
@@ -437,6 +439,7 @@ program
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
   .action(async function (cannonfile, forgeOpts, opts) {
     const [node, outputs] = await doBuild(cannonfile, [], opts);
 
