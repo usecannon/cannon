@@ -38,7 +38,7 @@ export const Contract: FC<{
       border="1px solid rgba(255,255,255,0.2)"
       bg="blackAlpha.500"
     >
-      <Flex mb="2">
+      <Flex mb="2" alignItems="center">
         <Heading id={anchor} mb="1" size="lg" display="inline-block">
           {title}
         </Heading>
@@ -51,14 +51,14 @@ export const Contract: FC<{
         >
           #
         </Link>
-        <Box ml="auto">
+        <Flex ml="auto" gap={1}>
           <Code display="inline" bg="blackAlpha.800" color="whiteAlpha.800">
             {address}
           </Code>
           <div onClick={copy} className="copy-button">
-            <Copy />
+            <Copy size={16} />
           </div>
-        </Box>
+        </Flex>
       </Flex>
       {/*  TODO: Implement the collapse */}
       {/*<Collapse isOpen="show">*/}
@@ -71,12 +71,7 @@ export const Contract: FC<{
         />
       )}
       {/*</Collapse>*/}
-      <Button
-        variant-color="blue"
-        variant="outline"
-        onClick={() => setShow(!show)}
-        size="xs"
-      >
+      <Button variant="outline" onClick={() => setShow(!show)} size="xs">
         {show ? 'Hide' : 'Show'} contract functions
       </Button>
     </Box>

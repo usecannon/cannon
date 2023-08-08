@@ -42,7 +42,7 @@ export const ProvisionStep: FC<{
                 {o.title}
               </Heading>
               {o.url && (
-                <Box ml="auto" v-if="o.url">
+                <Flex ml="auto" v-if="o.url">
                   <Code bg="blackAlpha.800" color="whiteAlpha.800">
                     {o.url.replace('ipfs://', '@ipfs:')}
                   </Code>
@@ -54,7 +54,7 @@ export const ProvisionStep: FC<{
                   >
                     <Copy />
                   </div>
-                </Box>
+                </Flex>
               )}
             </Flex>
             <ContractStep
