@@ -4,6 +4,11 @@
   "packages": {
     ".": {},
     "packages/builder": {},
-    "packages/cli": {}
+    "packages/cli": {},
+    "packages/hardhat-cannon": {},
+    "packages/registry-subgraph": {},
+    "packages/sample-foundry-project": {},
+    "packages/sample-hardhat-project": {},
+    "packages/website": {}
   }
 }
