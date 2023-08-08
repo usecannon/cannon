@@ -44,5 +44,6 @@
   "dependencies": {
     "@commitlint/cli": "^17.6.7",
     "@commitlint/config-conventional": "^17.6.7"
-  }
+  },
+  "version": "2.4.22"
 }
