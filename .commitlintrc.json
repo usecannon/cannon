@@ -1,5 +1,5 @@
 {
-  "extends": ["@commitlint/config-conventional", "@commitlint/config-lerna-scopes"],
+  "extends": ["@commitlint/config-conventional"],
   "rules": {
     "type-enum": [
       2,
@@ -16,6 +16,19 @@
         "revert",
         "style",
         "test"
+      ]
+    ],
+    "scope-enum": [
+      2,
+      "always",
+      [
+        "builder",
+        "cli",
+        "hardhat-cannon",
+        "registry",
+        "registry-subgraph",
+        "sample-foundry-project",
+        "sample-hardhat-project"
       ]
     ],
     "body-case": [
