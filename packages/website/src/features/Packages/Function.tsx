@@ -165,9 +165,16 @@ export const Function: FC<{
       )}
 
       {readOnly && (result != null || error) && (
-        <Box display="inline" v-if="readOnly && (result != null || error)">
+        <Box
+          display="inline-block"
+          py={1}
+          cursor="pointer"
+          color="gray.400"
+          _hover={{ color: 'gray.200' }}
+          transition="color 0.2s ease-in-out"
+        >
           <div onClick={() => submit(false)} className="refresh-button">
-            <RefreshCw />
+            <RefreshCw size={18} />
           </div>
         </Box>
       )}
