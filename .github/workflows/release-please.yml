@@ -2,17 +2,29 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: 
+      - labeled
 
 permissions:
   contents: write
   pull-requests: write
 
-name: Run Release Please
-jobs:
-  release-please:
+name: Create Release
+jobs:      
+  release-branch:
+    if: ${{ github.event.label.name == 'release-major' || github.event.label.name == 'release-minor' || github.event.label.name == 'release-patch'}}
     runs-on: ubuntu-latest
     steps:
-    
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          command: manifest
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release-main:
+    runs-on: ubuntu-latest
+    steps:
       - uses: google-github-actions/release-please-action@v3
         id: release
         with:
