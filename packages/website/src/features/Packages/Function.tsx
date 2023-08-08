@@ -175,8 +175,7 @@ export const Function: FC<{
       {!readOnly && (
         <Button
           isLoading={loading}
-          variant-color="teal"
-          bg="teal.600"
+          colorScheme="teal"
           size="sm"
           onClick={() => {
             void submit(false);
