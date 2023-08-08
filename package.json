@@ -13,8 +13,7 @@
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
     "test-all": "lerna run test",
     "build": "lerna run build",
-    "publish": "lerna publish",
-    "prepare": "husky install"
+    "publish": "lerna publish"
   },
   "devDependencies": {
     "@babel/core": "^7.22.1",
@@ -28,7 +27,6 @@
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.0",
     "lerna": "^7.1.0",
     "npm-run-parallel": "^0.6.0",
     "nx-cloud": "^16.0.5",
@@ -42,7 +40,6 @@
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
-    "@commitlint/cli": "^17.6.7",
     "@commitlint/config-conventional": "^17.6.7"
   }
 }

@@ -137,7 +137,7 @@ today! As a contributor, here are the guidelines we would like you to follow:
 To ensure a standardized format and help with autogenerating release notes, this repo uses commitlint, specifically the conventional config [commitlint/config-conventional](https://github.com/conventional-changelog/commitlint), please follow the conventional format for writing commit messages.
 
 We have very precise rules over how our git commit messages can be formatted.  This leads to **more
-readable messages** that are easy to follow when looking through the **project history**.  But also,
+readable messages** that are easy to follow when looking through the **project commit history**.  But also,
 we use the git commit messages to **generate the Cannon change log**.
 
 ### Commit Message Format
@@ -174,9 +174,6 @@ fix(release): need to depend on latest rxjs and zone.js
 The version in our package.json gets copied to the one we publish, and users need the latest of these.
 ```
 
-### Revert
-If the commit reverts a previous commit, it should begin with `revert: `, followed by the header of the reverted commit. In the body it should say: `This reverts commit <hash>.`, where the hash is the SHA of the commit being reverted.
-
 ### Type
 The most important prefixes you should have in mind are:
 
@@ -184,19 +181,7 @@ The most important prefixes you should have in mind are:
 **feat**: which represents a new feature, and correlates to a SemVer minor.
 **feat!**:, or **fix!**:, **refactor!**:, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.
 
-Must be one of the following:
-
-* **build**: Changes that affect the build system or external dependencies
-* **ci**: Changes to our CI configuration files and scripts 
-* **chore**: General chores or maintenance tasks
-* **docs**: Documentation only changes
-* **feat**: A new feature
-* **fix**: A bug fix
-* **perf**: A code change that improves performance
-* **refactor**: A code change that neither fixes a bug nor adds a feature
-* **revert**: A code change that reverts a previous commit
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-* **test**: Adding missing tests or correcting existing tests
+Must match one of the conventional commit types.
 
 ### Scope
 The scope should be the name of the package affected by the commit. 
@@ -219,15 +204,18 @@ The subject contains a succinct description of the change:
 * don't capitalize the first letter
 * no dot (.) at the end
 
-### Body
+### Body (Optional)
 Just as in the **subject**, use the imperative, present tense: "change" not "changed" nor "changes".
 The body should include the motivation for the change and contrast this with previous behavior.
 
-### Footer
+### Footer (Optional)
 The footer should contain any information about **Breaking Changes** and is also the place to
 reference GitHub issues that this commit **Closes**.
 
 **Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
 
 A detailed explanation can be found in this [document](#commit).
+
+### Revert
+If the commit reverts a previous commit, it should begin with `revert: `, followed by the header of the reverted commit. In the body it should say: `This reverts commit <hash>.`, where the hash is the SHA of the commit being reverted.
 
