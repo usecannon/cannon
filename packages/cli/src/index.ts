@@ -154,7 +154,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(process.cwd());
+  const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(opts);
 
