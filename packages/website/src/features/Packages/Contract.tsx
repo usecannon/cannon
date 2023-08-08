@@ -71,7 +71,12 @@ export const Contract: FC<{
         />
       )}
       {/*</Collapse>*/}
-      <Button variant="outline" onClick={() => setShow(!show)} size="xs">
+      <Button
+        colorScheme="blue"
+        variant="outline"
+        onClick={() => setShow(!show)}
+        size="xs"
+      >
         {show ? 'Hide' : 'Show'} contract functions
       </Button>
     </Box>
