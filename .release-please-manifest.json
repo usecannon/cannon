@@ -1,4 +1,5 @@
 {
   "packages/builder": "2.4.21",
-  "packages/cli": "2.4.21"
+  "packages/cli": "2.4.21",
+  "packages/hardhat-cannon": "2.4.21"
 }
