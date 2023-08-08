@@ -7,7 +7,6 @@
  - [Submission Guidelines](#submit)
  - [Coding Rules](#rules)
  - [Commit Message Guidelines](#commit)
- - [Signing the CLA](#cla)
 
 ## <a name="coc"></a> Code of Conduct
 Help us keep Cannon open and inclusive. Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md).

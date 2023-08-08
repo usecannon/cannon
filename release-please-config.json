@@ -2,6 +2,12 @@
   "bootstrap-sha": "d14e5de8679cadc87673901a1820ecaa1f6ccde6",
   "include-component-in-tag": false,
   "packages": {
-    ".": "2.4.21"
+    "packages/builder": {},
+    "packages/cli": {},
+    "packages/hardhat-cannon": {},
+    "packages/registry-subgraph": {},
+    "packages/sample-foundry-project": {},
+    "packages/sample-hardhat-project": {},
+    "packages/website": {}
   }
 }
