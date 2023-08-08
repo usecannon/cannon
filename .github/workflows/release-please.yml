@@ -12,6 +12,16 @@ permissions:
 
 name: Create Release
 jobs:      
+  release-main:
+    if: ${{ github.ref == 'refs/heads/main'}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          command: manifest
+          token: ${{ secrets.GITHUB_TOKEN }}
+          default-branch: main
   release-branch:
     if: ${{ github.event.label.name == 'release-major' || github.event.label.name == 'release-minor' || github.event.label.name == 'release-patch'}}
     runs-on: ubuntu-latest
@@ -22,12 +32,3 @@ jobs:
           command: manifest
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  release-main:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: google-github-actions/release-please-action@v3
-        id: release
-        with:
-          command: manifest
-          token: ${{ secrets.GITHUB_TOKEN }}
-          default-branch: main
