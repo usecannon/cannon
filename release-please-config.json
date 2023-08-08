@@ -1,7 +1,5 @@
 {
   "packages": {
-    "packages/builder": {},
-    "packages/cli": {},
-    "packages/hardhat-cannon": {}
+    ".": {}
   }
 }
