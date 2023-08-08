@@ -10,7 +10,7 @@
  - [Signing the CLA](#cla)
 
 ## <a name="coc"></a> Code of Conduct
-Help us keep Cannon open and inclusive. Please read and follow our [Code of Conduct][coc].
+Help us keep Cannon open and inclusive. Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## <a name="question"></a> Got a Question or Problem?
 
@@ -50,7 +50,7 @@ A minimal reproduce scenario using http://plnkr.co/ allows us to quickly confirm
 
 We will be insisting on a minimal reproduce scenario in order to save maintainers time and ultimately be able to fix more bugs. Interestingly, from our experience users often find coding problems themselves while preparing a minimal plunk. We understand that sometimes it might be hard to extract essentials bits of code from a larger code-base but we really need to isolate the problem before we can fix it.
 
-Unfortunately, we are not able to investigate / fix bugs without a minimal reproduction, so if we don't hear back from you we are going to close an issue that doesn't have enough info to be reproduced.
+Unfortunately, in many cases we are not able to investigate / fix bugs without a minimal reproduction, so if we don't hear back from you we are going to close an issue that doesn't have enough info to be reproduced.
 
 
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
@@ -62,7 +62,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 1. Make your changes in a new git branch:
 
      ```shell
-     git checkout -b my-fix-branch master
+     git checkout -b my-fix-branch main
      ```
 
 1. Create your patch, **including appropriate test cases**.
@@ -91,7 +91,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
   * Rebase your branch and force push to your GitHub repository (this will update your Pull Request):
 
     ```shell
-    git rebase master -i
+    git rebase main -i
     git push -f
     ```
 
@@ -102,16 +102,10 @@ That's it! Thank you for your contribution!
 After your pull request is merged, you can safely delete your branch and pull the changes
 from the main (upstream) repository:
 
-* Delete the remote branch on GitHub either through the GitHub web UI or your local shell as follows:
+* Check out the main branch:
 
     ```shell
-    git push origin --delete my-fix-branch
-    ```
-
-* Check out the master branch:
-
-    ```shell
-    git checkout master -f
+    git checkout main -f
     ```
 
 * Delete the local branch:
@@ -120,10 +114,10 @@ from the main (upstream) repository:
     git branch -D my-fix-branch
     ```
 
-* Update your master with the latest upstream version:
+* Update your main with the latest upstream version:
 
     ```shell
-    git pull --ff upstream master
+    git pull --ff upstream main
     ```
 
 ## <a name="rules"></a> Coding Rules
@@ -148,15 +142,19 @@ readable messages** that are easy to follow when looking through the **project h
 we use the git commit messages to **generate the Cannon change log**.
 
 ### Commit Message Format
-Each commit message consists of a **header**, a **body** and a **footer**.  The header has a special
-format that includes a **type** and a **subject**:
+
+We use the [ConventionalCommits](https://www.conventionalcommits.org/en/v1.0.0/#summary) format. Make sure to check their docs out for an in-depth look 
+at the different rules and how they affect our commit format.
+
+Each commit message consists of a **header**, an optional **body** and an optional **footer**.  The header has a special
+format that includes a **type**, an optional **scope** and a **subject**:
 
 ```
-<type>: <subject>
+<type>(scope [optional]): <subject>
 <BLANK LINE>
-<body>
+<body (optional)>
 <BLANK LINE>
-<footer>
+<footer (optional)>
 ```
 
 The **header** is mandatory and the **scope** of the header is optional.
@@ -181,18 +179,39 @@ The version in our package.json gets copied to the one we publish, and users nee
 If the commit reverts a previous commit, it should begin with `revert: `, followed by the header of the reverted commit. In the body it should say: `This reverts commit <hash>.`, where the hash is the SHA of the commit being reverted.
 
 ### Type
+The most important prefixes you should have in mind are:
+
+**fix**: which represents bug fixes, and correlates to a SemVer patch.
+**feat**: which represents a new feature, and correlates to a SemVer minor.
+**feat!**:, or **fix!**:, **refactor!**:, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.
+
 Must be one of the following:
 
 * **build**: Changes that affect the build system or external dependencies
 * **ci**: Changes to our CI configuration files and scripts 
+* **chore**: General chores or maintenance tasks
 * **docs**: Documentation only changes
 * **feat**: A new feature
 * **fix**: A bug fix
 * **perf**: A code change that improves performance
 * **refactor**: A code change that neither fixes a bug nor adds a feature
+* **revert**: A code change that reverts a previous commit
 * **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
 * **test**: Adding missing tests or correcting existing tests
 
+### Scope
+The scope should be the name of the package affected by the commit. 
+`The list of supported scopes matches the list of packages under the packages/ directory
+
+For extra reference, the following is a list of supported scopes:
+
+* **builder**
+* **cli**
+* **hardhat-cannon**
+* **registry**
+* **registry-subgraph**
+* **sample-foundry-project**
+* **sample-hardhat-project**
 
 ### Subject
 The subject contains a succinct description of the change:
@@ -211,5 +230,5 @@ reference GitHub issues that this commit **Closes**.
 
 **Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
 
-A detailed explanation can be found in this [document][commit-message-format].
+A detailed explanation can be found in this [document](#commit).
 
