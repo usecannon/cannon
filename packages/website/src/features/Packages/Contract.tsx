@@ -51,7 +51,7 @@ export const Contract: FC<{
         >
           #
         </Link>
-        <Flex ml="auto" gap={1}>
+        <Flex ml="auto" gap={1} cursor="pointer">
           <Code display="inline" bg="blackAlpha.800" color="whiteAlpha.800">
             {address}
           </Code>
