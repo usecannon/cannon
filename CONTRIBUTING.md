@@ -20,7 +20,7 @@ If you would like to chat about the question in real-time, you can reach out via
 
 ## <a name="issue"></a> Found a Bug?
 If you find a bug in the source code, you can help us by
-[submitting an issue](#submit-issue) to our [GitHub Repository][github]. Even better, you can
+[submitting an issue](#submit-issue) to our [GitHub Repository](https://github.com/usecannon/cannon/). Even better, you can
 [submit a Pull Request](#submit-pr) with a fix.
 
 ## <a name="feature"></a> Missing a Feature?
