@@ -38,11 +38,13 @@ export const ProvisionStep: FC<{
         return (
           <Box key={JSON.stringify(o)}>
             <Flex mb="2">
-              <Heading v-if="o.title" mb="1" size="lg" display="inline-block">
-                {o.title}
-              </Heading>
+              {o.title && (
+                <Heading mb="1" size="lg" display="inline-block">
+                  {o.title}
+                </Heading>
+              )}
               {o.url && (
-                <Flex ml="auto" v-if="o.url">
+                <Flex ml="auto">
                   <Code bg="blackAlpha.800" color="whiteAlpha.800">
                     {o.url.replace('ipfs://', '@ipfs:')}
                   </Code>
