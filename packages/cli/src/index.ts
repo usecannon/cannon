@@ -84,6 +84,7 @@ function configureRun(program: Command) {
     .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+    .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
     .option('--preset <preset>', 'Load an alternate setting preset', 'main')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
@@ -144,7 +145,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   debug('do build called with', cannonfile, settings, opts);
   // If the first param is not a cannonfile, it should be parsed as settings
-  if (!cannonfile.endsWith('.toml')) {
+  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
     settings.unshift(cannonfile);
     cannonfile = 'cannonfile.toml';
   }
@@ -153,7 +154,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(process.cwd());
+  const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(opts);
 
@@ -168,7 +169,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
-      port: 8545,
+      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+      port: 0,
     });
 
     provider = getProvider(node);
@@ -183,7 +185,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
     if (opts.dryRun) {
       node = await runRpc({
-        port: 8545,
+        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+        port: 0,
         forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         chainId,
       });
@@ -217,11 +220,11 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version } = await loadCannonfile(cannonfilePath);
+  const { name, version, def } = await loadCannonfile(cannonfilePath);
 
   const { outputs } = await build({
     provider,
-    cannonfilePath,
+    def,
     packageDefinition: {
       name,
       version,
@@ -259,9 +262,11 @@ program
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
   .option('--gas-price <gasPrice>', 'Specify a gas price to use for the deployment')
   .option('--max-gas-fee <maxGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
   .option('--max-priority-gas-fee <maxpriorityGasFee>', 'Specify max fee per gas (EIP-1559) for deployment')
+  .option('--skip-compile', 'Skip the compilation step and use the existing artifacts')
   .option('-q --quiet', 'Suppress extra logging')
   .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
   .option(
@@ -276,22 +281,26 @@ program
     const projectDirectory = path.dirname(cannonfilePath);
 
     console.log(bold('Building the foundry project using forge build...'));
-    const forgeBuildProcess = await spawn('forge', ['build'], { cwd: projectDirectory });
-    await new Promise((resolve) => {
-      forgeBuildProcess.on('exit', (code) => {
-        if (code === 0) {
-          console.log(green('forge build succeeded'));
-        } else {
-          console.log(red('forge build failed'));
-          console.log('Continuing with cannon build...');
-        }
-        resolve(null);
+    if (!opts.skipCompile) {
+      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
+      await new Promise((resolve) => {
+        forgeBuildProcess.on('exit', (code) => {
+          if (code === 0) {
+            console.log(green('forge build succeeded'));
+          } else {
+            console.log(red('forge build failed'));
+            console.log('Continuing with cannon build...');
+          }
+          resolve(null);
+        });
       });
-    });
+    } else {
+      console.log(yellow('Skipping forge build...'));
+    }
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
-    await node?.kill();
+    node?.kill();
   });
 
 program
@@ -430,6 +439,7 @@ program
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
   .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
+  .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
   .action(async function (cannonfile, forgeOpts, opts) {
     const [node, outputs] = await doBuild(cannonfile, [], opts);
 

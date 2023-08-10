@@ -1,4 +1,5 @@
 import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
+import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
 import Debug from 'debug';
@@ -6,6 +7,7 @@ import { yellowBright } from 'chalk';
 
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
+import { isConnectedToInternet } from './util/is-connected-to-internet';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -35,7 +37,12 @@ export class LocalRegistry extends CannonRegistry {
     }
 
     debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
-    return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
+    try {
+      return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
+    } catch (err) {
+      debug('could not load:', err);
+      return null;
+    }
   }
 
   async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
@@ -85,54 +92,60 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
-export async function createDefaultReadRegistry(settings: CliSettings): Promise<FallbackRegistry> {
+async function checkLocalRegistryOverride({
+  packageRef,
+  variant,
+  result,
+  registry,
+  fallbackRegistry,
+}: {
+  packageRef: string;
+  variant: string;
+  result: string;
+  registry: OnChainRegistry | LocalRegistry;
+  fallbackRegistry: FallbackRegistry;
+}) {
+  const localResult = await _.last(fallbackRegistry.registries).getUrl(packageRef, variant);
+  if (registry instanceof OnChainRegistry && localResult && localResult != result) {
+    console.log(
+      yellowBright(
+        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry local'`
+      )
+    );
+  }
+}
+
+export async function createDefaultReadRegistry(
+  settings: CliSettings,
+  additionalRegistries: CannonRegistry[] = []
+): Promise<FallbackRegistry> {
   const { provider } = await resolveRegistryProvider(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
-  const fallbackRegistry = new FallbackRegistry([localRegistry, onChainRegistry]);
 
-  fallbackRegistry
-    .on(
-      'getUrl',
-      async ({
-        packageRef,
-        variant,
-        result,
-        registry,
-      }: {
-        packageRef: string;
-        variant: string;
-        result: string;
-        registry: LocalRegistry;
-      }) => {
-        const onChainResult = await onChainRegistry.getUrl(packageRef, variant);
+  if (!(await isConnectedToInternet())) {
+    debug('not connected to internet, using local registry only');
+    // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
+    console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
+    return new FallbackRegistry([...additionalRegistries, localRegistry]);
+  } else if (settings.registryPriority === 'local') {
+    debug('local registry is the priority, using local registry first');
+    return new FallbackRegistry([...additionalRegistries, localRegistry, onChainRegistry]);
+  } else {
+    debug('on-chain registry is the priority, using on-chain registry first');
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, onChainRegistry, localRegistry]);
 
-        if (registry instanceof LocalRegistry && onChainResult && onChainResult != result && !settings.quiet) {
-          console.log(
-            yellowBright(
-              `⚠️  You are using a local build of ${packageRef} which is different than the version available on the registry. To remove your local build, delete ${localRegistry.getTagReferenceStorage(
-                packageRef,
-                variant
-              )}`
-            )
-          );
-        }
-      }
-    )
-    .catch((err: Error) => {
-      throw err;
-    });
+    if (!settings.quiet) {
+      fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {
+        throw err;
+      });
+    }
 
-  return fallbackRegistry;
+    return fallbackRegistry;
+  }
 }
 
 export async function createDryRunRegistry(settings: CliSettings): Promise<FallbackRegistry> {
-  const { provider } = await resolveRegistryProvider(settings);
-
-  return new FallbackRegistry([
-    new InMemoryRegistry(),
-    new LocalRegistry(settings.cannonDirectory),
-    new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress }),
-  ]);
+  return createDefaultReadRegistry(settings, [new InMemoryRegistry()]);
 }
