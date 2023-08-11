@@ -78,7 +78,7 @@
 <script lang="js">
 import gql from 'graphql-tag'
 import Preview from "../components/search/Preview"
-const PER_PAGE = 5;
+const PER_PAGE = 20;
 
 export default {
   name: 'Search',
