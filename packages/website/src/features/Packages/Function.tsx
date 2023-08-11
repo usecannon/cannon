@@ -28,7 +28,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
-import ethers from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 
 export const Function: FC<{
   f: AbiFunction;
