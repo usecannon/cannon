@@ -5,7 +5,8 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import { ChainBuilderContext, PreChainBuilderContext } from './types';
 
-import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
+import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
+import { chainDefinitionSchema } from './schemas.zod';
 import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
@@ -100,6 +101,8 @@ export class ChainDefinition {
       );
     }
 
+    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
+
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
       _.get(this.raw, n),
@@ -108,7 +111,7 @@ export class ChainDefinition {
         version: this.getVersion(ctx),
         currentLabel: n,
       }
-    )!;
+    );
   }
 
   /**
@@ -164,6 +167,7 @@ export class ChainDefinition {
   getSettings(ctx: PreChainBuilderContext) {
     const loadedSettings: Record<string, any> = {};
     const _ctx = { ...ctx, ...ethers.utils, ...ethers.constants, settings: loadedSettings };
+
     return _.mapValues(this.raw.setting, (sValue, sKey) => {
       const newSetting = _.clone(sValue);
       newSetting.defaultValue = _.template(sValue.defaultValue)(_ctx);
@@ -184,7 +188,7 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import).map((d) => ({
+      Object.values(this.raw.import.validate).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || 'main')(ctx),
@@ -233,7 +237,7 @@ export class ChainDefinition {
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = getChainDefinitionValidator()(this.raw);
+    const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();

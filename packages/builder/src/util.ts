@@ -10,16 +10,6 @@ import { ChainBuilderContext, ChainArtifacts } from './types';
 
 import { CannonWrapperGenericProvider } from './error/provider';
 
-export const ChainDefinitionScriptSchema = {
-  properties: {
-    exec: { type: 'string' },
-  },
-  optionalProperties: {
-    args: { elements: { type: 'string' } },
-    env: { elements: { type: 'string' } },
-  },
-} as const;
-
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new
  * usable signer on the fly and attempts to populate it with hardhat functions `impersonateAccount`.
@@ -63,7 +53,7 @@ export async function passThroughSigner(
   if (!signer) {
     throw new Error(`signer not provided for address ${addr}
 
-This error occurs becuase your cannonfile is requesting to sign a transaction, but the corresponding signer has not been made
+This error occurs because your cannonfile is requesting to sign a transaction, but the corresponding signer has not been made
 available in your configuration. Please double check your configuration & integrations and try again.`);
   }
 

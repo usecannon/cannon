@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
+import { importSchema } from '../schemas.zod';
 
 import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getOutputs } from '../builder';
@@ -9,18 +11,12 @@ import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:import');
 
-const config = {
-  properties: {
-    source: { type: 'string' },
-  },
-  optionalProperties: {
-    chainId: { type: 'int32' },
-    preset: { type: 'string' },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
-
-export type Config = JTDDataType<typeof config>;
+/**
+ *  Available properties for import step
+ *  @public
+ *  @group Import
+ */
+export type Config = z.infer<typeof importSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -32,7 +28,7 @@ export interface Outputs {
 export default {
   label: 'import',
 
-  validate: config,
+  validate: importSchema,
 
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
