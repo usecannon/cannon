@@ -102,7 +102,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       const params = {
-        cannonfilePath,
         provider,
         def,
         packageDefinition: {
