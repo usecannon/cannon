@@ -40,7 +40,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         cannonfile = 'cannonfile.toml';
       }
 
-      const cannonfilePath = path.resolve(hre.config.paths.root, cannonfile);
       const parsedSettings = parseSettings(settings);
 
       const { name, version, def } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
