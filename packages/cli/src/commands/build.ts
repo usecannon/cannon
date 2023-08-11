@@ -266,6 +266,10 @@ export async function build({
       );
 
       console.log(
+        yellow(`To re-run executed steps, add the --wipe flag to the build command: ` + bold(`cannon build --wipe`))
+      );
+
+      console.log(
         yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
       );
 
