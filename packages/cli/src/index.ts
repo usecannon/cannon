@@ -39,6 +39,7 @@ import { bold, green, red, yellow } from 'chalk';
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
 export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { clean } from './commands/clean';
@@ -47,11 +48,12 @@ export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
-export { runRpc } from './rpc';
+export { runRpc, getProvider } from './rpc';
 
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
+export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
