@@ -1,15 +1,13 @@
-name: "Lint PR"
+name: Commit Lint
 
 on:
+  push:
+    branches: [main]
   pull_request_target:
-    branches:
-      - 'main'
     types:
       - opened
       - edited
       - synchronize
-      - auto_merge_enabled
-      - reopened
 
 permissions:
   pull-requests: read
