@@ -9,7 +9,7 @@ permissions:
 
 name: Create Release
 jobs:      
-  release-main:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Run Release-Please
