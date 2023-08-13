@@ -40,7 +40,7 @@ export class CannonStorage extends EventEmitter {
     }
 
     const loaderScheme = url.split(':')[0];
-    if (!this.loaders[loaderScheme]) { 
+    if (!this.loaders[loaderScheme]) {
       throw new Error(`loader scheme not configured: ${loaderScheme}`);
     }
 
@@ -48,7 +48,6 @@ export class CannonStorage extends EventEmitter {
   }
 
   readBlob(url: string) {
-
     return this.lookupLoader(url).read(url);
   }
 
@@ -56,7 +55,7 @@ export class CannonStorage extends EventEmitter {
     return this.loaders[this.defaultLoaderScheme].put(data);
   }
 
-  deletBlob(url: string) {
+  deleteBlob(url: string) {
     const loader = this.lookupLoader(url);
 
     if (loader.remove) {
