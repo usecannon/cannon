@@ -1,4 +1,4 @@
-import { ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -116,11 +116,18 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         const result = await registry.getUrl(packageRef, variant);
 
         if (result) {
-          await this.emit('getUrl', { packageRef, variant, result, registry });
+          debug('fallback registry: loaded from registry', registry.getLabel());
+          await this.emit('getUrl', { packageRef, variant, result, registry, fallbackRegistry: this });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
@@ -136,8 +143,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
           await this.emit('getMetaUrl', { packageRef, variant, result, registry });
           return result;
         }
-      } catch (err) {
+      } catch (err: any) {
         debug('WARNING: error caught in registry:', err);
+        if (err.error && err.error.data === '0x') {
+          throw new Error(
+            'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+          );
+        }
       }
     }
 
@@ -145,17 +158,27 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
-
-    const r = await Promise.all(this.registries.map(r => r.getAllUrls(filterPackage, filterVariant)))
+    const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackage, filterVariant)));
 
     // apparently converting back to an array is the most efficient way to merge sets
-    return new Set(r.flatMap(s => Array.from(s)))
+    return new Set(r.flatMap((s) => Array.from(s)));
   }
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
-    // the fallback registry is usually something easy to write to or get to later
-    return _.first(this.registries).publish(packagesNames, variant, url, metaUrl);
+    // try to publish to any of the registries
+    // first one to succeed
+    const errors = [];
+    for (const registry of this.registries) {
+      try {
+        return await registry.publish(packagesNames, variant, url, metaUrl);
+      } catch (err: any) {
+        debug('error caught in registry while publishing (may be normal):', err);
+        errors.push(err);
+      }
+    }
+
+    throw new Error('no registry succeeded in publishing:\n' + errors.map((e) => e.message).join('\n'));
   }
 
   async publishMany(
@@ -243,7 +266,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
-
+    console.log('publishing:', packagesNames);
     const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
@@ -258,10 +281,9 @@ export class OnChainRegistry extends CannonRegistry {
         url,
         metaUrl
       );
-
       datas.push(tx);
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -269,9 +291,9 @@ export class OnChainRegistry extends CannonRegistry {
     toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
   ): Promise<string[]> {
     await this.checkSigner();
-
     const datas: string[] = [];
     for (const pub of toPublish) {
+      console.log('publishing:', pub.packagesNames);
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
@@ -289,7 +311,7 @@ export class OnChainRegistry extends CannonRegistry {
         datas.push(tx);
       }
     }
-
+    await this.logMultiCallEstimatedGas(datas, this.overrides);
     return [await this.doMulticall(datas)];
   }
 
@@ -326,13 +348,30 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
-
-    const [name, version] = filterPackage.split(':')
+    const [name, version] = filterPackage.split(':');
 
     const filter = this.contract.filters.PackagePublish(name || null, version || null, filterVariant || null);
 
     const events = await this.contract.queryFilter(filter, 0, 'latest');
 
-    return new Set(events.flatMap(e => [e.args!.deployUrl, e.args!.metaUrl]));
+    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
+  }
+
+  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+    try {
+      const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
+      console.log(`\nEstimated gas: ${estimatedGas}`);
+      const gasPrice =
+        (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
+      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
+      const transactionFeeWei = estimatedGas.mul(gasPrice);
+      // Convert the transaction fee from wei to ether
+      const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
+
+      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+    } catch (e: any) {
+      // We dont want to throw an error if the estimate gas fails
+      console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);
+    }
   }
 }

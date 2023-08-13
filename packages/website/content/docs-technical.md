@@ -68,7 +68,6 @@ Publish a Cannon package to the registry for all networks where this package has
 **Options**
 
 - `--chain-id` - The network which the registry to deploy to is on. Default: 1 (mainnet)
-- `--provider-url` - RPC endpoint to use for publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--private-key` - Private key of the wallet to use when publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--preset` - Preset name to use (_Default: "main"_)
 - `--tags` - Comma separated list of labels (_Default: "latest"_)
@@ -164,8 +163,8 @@ The `contract` action deploys a contract.
 - `args` - Specifies the arguments to provide the constructor function
 - `abiOf` - An array of contract artifacts that you've already deployed with Cannon. This is useful when deploying proxy contracts.
 - `abi` - Specifies the contract that should be used for the ABI.
-- `libraries` - An array of contract action names that deploy libraries this contract depends on. **Make sure you also specify these steps in a `depends` input to make sure the libraries are deployed prior to this step.**
-- `from` - Address to send the transaction from. It
+- `libraries` - An object of contract action names that deploy libraries this contract depends on. **Make sure you also specify these steps in a `depends` input to make sure the libraries are deployed prior to this step.**
+- `from` - Address to send the transaction from.
 - `salt` - The salt is a string which, when changed, will result in a new contract deployment. (_Default: ''_)
 - `create2` - Uses `CREATE2` resulting in the same contract deployment address across networks (assuming the same contract bytecode, constructor arguments, and salt are used). (_Default: false_)
 
@@ -309,7 +308,8 @@ The `provision` command attempts to deploy the specified package (unlike the imp
 
 - `options` - The settings to be used when initializing this Cannonfile which overrides any defaults preset in the source package.
 - `chainId` - Override the chain ID to use when provisioning this package. (_Default: 13370_)
-- `preset` - Override the preset to use when provisioning this package. (_Default: main_)
+- `sourcePreset` - Override the preset to use when provisioning this package. (_Default: main_)
+- `targetPreset` - Set the new preset to use when provisioning this package.
 - `tags` - Additional tags to set on the registry for when this provisioned package is published.
 
 ### run

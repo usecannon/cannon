@@ -1,14 +1,18 @@
-import Ajv, { JTDDataType, SomeJTDSchemaType } from 'ajv/dist/jtd';
+import { z } from 'zod';
+
 import { ChainBuilderRuntime } from './runtime';
 
-const ajv = new Ajv();
-
 import contractSpec from './steps/contract';
+
 import importSpec from './steps/import';
+
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
+
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
+import { chainDefinitionSchema } from './schemas.zod';
+import { handleZodErrors } from './error/zod';
 
 export interface CannonAction {
   label: string;
@@ -29,46 +33,40 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
-  validate: {
-    properties: Record<string, SomeJTDSchemaType>;
-    optionalProperties?: Record<string, SomeJTDSchemaType>;
-    additionalProperties?: boolean;
-  };
+  // Takes in any schema as long as the base type is ZodSchema
+  validate: z.ZodSchema;
 
   timeout?: number;
 }
 
 /**
+ * @internal
  * All the different types (and their implementations)
  */
 export const ActionKinds: { [label: string]: CannonAction } = {};
 
 /**
- * NOTE: if you edit this schema, please also edit the constructor of `ChainDefinition` to account for non-action components of
+ *  Available properties for top level config
+ *  @public
+ *  @group Base Cannonfile Config
+ 
  */
-const ChainDefinitionSchema = {
-  properties: {
-    name: { type: 'string' },
-    version: { type: 'string' },
-  },
-  optionalProperties: {
-    description: { type: 'string' },
-    keywords: { elements: { type: 'string' } },
-    setting: {
-      values: {
-        optionalProperties: {
-          description: { type: 'string' },
-          type: { enum: ['number', 'string', 'boolean'] },
-          defaultValue: { type: 'string' },
-        },
-      },
-    },
+export type RawChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
-    import: importSpec,
-  },
-} as const;
+/**
+ *  @internal
+ *  parses the schema and performs zod validations safely with a custom error handler
+ */
+export function validateConfig(schema: z.ZodSchema, config: any) {
+  const result = schema.safeParse(config);
 
-export type RawChainDefinition = JTDDataType<typeof ChainDefinitionSchema>;
+  if (!result.success) {
+    const errors = result.error.errors;
+    handleZodErrors(errors);
+  }
+
+  return result;
+}
 
 export function registerAction(action: CannonAction) {
   if (typeof action.label !== 'string') {
@@ -82,11 +80,15 @@ export function registerAction(action: CannonAction) {
   }
 
   ActionKinds[label] = action;
-  (ChainDefinitionSchema.optionalProperties as any)[label] = { values: action.validate };
-}
 
-export function getChainDefinitionValidator() {
-  return ajv.compile(ChainDefinitionSchema);
+  (
+    chainDefinitionSchema.pick({
+      description: true,
+      keywords: true,
+      setting: true,
+      import: true,
+    }) as any
+  )[label] = { values: action.validate };
 }
 
 registerAction(contractSpec);

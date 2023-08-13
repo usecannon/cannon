@@ -100,7 +100,6 @@ describe('ChainDefinition', () => {
       expect(def.getStateLayers()).toEqual({
         'contract.a': {
           actions: ['contract.a'],
-          depending: [],
           depends: [],
         },
       });
@@ -116,17 +115,14 @@ describe('ChainDefinition', () => {
       expect(def.getStateLayers()).toEqual({
         'contract.a': {
           actions: ['contract.a'],
-          depending: [],
           depends: [],
         },
         'contract.b': {
           actions: ['contract.b'],
-          depending: [],
           depends: ['contract.a'],
         },
         'contract.c': {
           actions: ['contract.c'],
-          depending: [],
           depends: ['contract.b'],
         },
       });
@@ -143,7 +139,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
-        depending: [],
         depends: [],
       });
 
@@ -166,7 +161,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
-        depending: [],
         depends: [],
       });
 
@@ -178,7 +172,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.d']).toEqual({
         actions: ['contract.d'],
-        depending: [],
         depends: ['contract.b'],
       });
     });
@@ -196,13 +189,11 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
-        depending: [],
         depends: [],
       });
 
       expect(layers['contract.e']).toEqual({
         actions: ['contract.e'],
-        depending: [],
         depends: [],
       });
 
@@ -214,7 +205,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.d']).toEqual({
         actions: ['contract.d'],
-        depending: [],
         depends: ['contract.b'],
       });
     });
@@ -233,7 +223,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.f']).toEqual({
         actions: ['contract.f'],
-        depending: [],
         depends: [],
       });
 
@@ -256,7 +245,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
-        depending: [],
         depends: [],
       });
 
@@ -304,7 +292,6 @@ describe('ChainDefinition', () => {
 
       expect(layers['contract.a']).toEqual({
         actions: ['contract.a'],
-        depending: [],
         depends: [],
       });
 
@@ -313,6 +300,24 @@ describe('ChainDefinition', () => {
 
       // make sure no extra structures were created in the process
       expect(_.uniq(Object.values(layers))).toHaveLength(3);
+    });
+
+    it('works when a step is independently depended upon by two layers', async () => {
+      const def = makeFakeChainDefinition({
+        'contract.L1': { depends: [] },
+        'contract.L2': { depends: ['contract.L1'] },
+        'contract.O': { depends: [] },
+        // names here have to non-chronological to trigger the bug
+        'contract.R1': { depends: ['contract.O', 'contract.L2'] },
+        'contract.R2': { depends: ['contract.O', 'contract.L1'] },
+      });
+
+      const layers = def.getStateLayers();
+
+      console.log(layers);
+      expect(layers['contract.L2'].depends).not.toContain('contract.L2');
+      expect(layers['contract.R1'].depends).not.toContain('contract.R1');
+      expect(layers['contract.R2'].depends).not.toContain('contract.R2');
     });
   });
 
@@ -332,15 +337,15 @@ describe('ChainDefinition', () => {
       const lines = def.printTopology();
 
       expect(lines).toEqual([
+        '┌────────────┐     ┌────────────┐',
+        '│ contract.g │─────│ contract.h │',
+        '└────────────┘     └────────────┘',
         '┌────────────┐     ┌────────────┐     ┌────────────┐',
         '│ contract.a │─────│ contract.c │──┬──│ contract.e │',
         '│ contract.b │     │ contract.d │  │  └────────────┘',
         '└────────────┘     └────────────┘  │  ┌────────────┐',
         '                                   └──│ contract.f │',
         '                                      └────────────┘',
-        '┌────────────┐     ┌────────────┐',
-        '│ contract.g │─────│ contract.h │',
-        '└────────────┘     └────────────┘',
       ]);
     });
   });

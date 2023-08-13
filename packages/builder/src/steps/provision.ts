@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
+import { provisionSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -16,23 +18,12 @@ import { CANNON_CHAIN_ID } from '../constants';
 
 const debug = Debug('cannon:builder:provision');
 
-const config = {
-  properties: {
-    source: { type: 'string' },
-  },
-  optionalProperties: {
-    chainId: { type: 'int32' },
-    sourcePreset: { type: 'string' },
-    targetPreset: { type: 'string' },
-    options: {
-      values: { type: 'string' },
-    },
-    tags: { elements: { type: 'string' } },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
-
-export type Config = JTDDataType<typeof config>;
+/**
+ *  Available properties for provision step
+ *  @public
+ *  @group Provision
+ */
+export type Config = z.infer<typeof provisionSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -44,7 +35,7 @@ export interface Outputs {
 export default {
   label: 'provision',
 
-  validate: config,
+  validate: provisionSchema,
 
   async getState(
     runtime: ChainBuilderRuntime,

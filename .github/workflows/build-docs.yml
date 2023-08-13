@@ -1,0 +1,23 @@
+name: Build Docs
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16.16.0"
+      - run: |
+          npm ci
+          npm run build
+      - name: Build docs
+        run: npm run docgen
+       

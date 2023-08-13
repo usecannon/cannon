@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
+import { runSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -25,6 +27,7 @@ interface ErrorWithCode extends Error {
 /**
  * Try to import a file relative to the given baseDir, if not present, try to
  * get the relative NPM Module.
+ * @internal
  */
 export async function importFrom(baseDir: string, fileOrModule: string) {
   try {
@@ -58,20 +61,13 @@ export function hashFs(path: string): Buffer {
   return dirHasher.digest();
 }
 
-const config = {
-  properties: {
-    exec: { type: 'string' },
-    func: { type: 'string' },
-    modified: { elements: { type: 'string' } },
-  },
-  optionalProperties: {
-    args: { elements: { type: 'string' } },
-    env: { elements: { type: 'string' } },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
-
-export type Config = JTDDataType<typeof config>;
+/**
+ *  Available properties for run step
+ *  @public
+ *  @group Run
+ 
+ */
+export type Config = z.infer<typeof runSchema>;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -79,7 +75,7 @@ export type Config = JTDDataType<typeof config>;
 const runAction = {
   label: 'run',
 
-  validate: config,
+  validate: runSchema,
 
   timeout: 3600000, // 1 hour, run steps can go for much longer
 
@@ -118,7 +114,7 @@ const runAction = {
 
     config.modified = _.map(config.modified, (v) => {
       return _.template(v)(ctx);
-    });
+    }) as [string, ...string[]];
 
     if (config.args) {
       config.args = _.map(config.args, (v) => {

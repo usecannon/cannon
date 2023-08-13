@@ -13,7 +13,9 @@
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
     "test-all": "lerna run test",
     "build": "lerna run build",
-    "publish": "lerna publish"
+    "publish": "lerna publish",
+    "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
+    "docgen": "npm run docgen-md && concat-md --decrease-title-levels --dir-name-as-title ./docs/ > ./packages/website/content/docs-configuration.md"
   },
   "devDependencies": {
     "@babel/core": "^7.22.1",
@@ -43,5 +45,8 @@
       "pre-commit": "npm run lint"
     }
   },
-  "license": "GNU GPL V3.0"
+  "license": "GNU GPL V3.0",
+  "dependencies": {
+    "concat-md": "^0.5.1"
+  }
 }

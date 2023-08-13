@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import ethers from 'ethers';
-import { bold, greenBright, red, yellow, gray, cyan, yellowBright } from 'chalk';
+import { bold, greenBright, yellow, gray, cyan, yellowBright } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -13,7 +13,7 @@ import {
   DeploymentInfo,
   CannonWrapperGenericProvider,
 } from '@usecannon/builder';
-import { loadCannonfile, readMetadataCache, saveToMetadataCache } from '../helpers';
+import { readMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
@@ -27,7 +27,7 @@ import pkg from '../../package.json';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
-  cannonfilePath?: string;
+  def?: ChainDefinition;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
@@ -52,7 +52,7 @@ interface Params {
 
 export async function build({
   provider,
-  cannonfilePath,
+  def,
   packageDefinition,
   upgradeFrom,
   pkgInfo,
@@ -153,39 +153,14 @@ export async function build({
   console.log('');
 
   let pkgName, pkgVersion;
-  let def: ChainDefinition;
-  if (cannonfilePath) {
-    const { def: overrideDef, name, version, cannonfile } = await loadCannonfile(cannonfilePath);
-
-    if (!name) {
-      throw new Error(red('Your cannonfile is missing a name. Add one to the top of the file like: name = "my-package"'));
-    }
-
-    if (!version) {
-      throw new Error(red('Your cannonfile is missing a version. Add one to the top of the file like: version = "1.0.0"'));
-    }
-
-    if (name !== packageDefinition.name || version !== packageDefinition.version) {
-      throw new Error(red('Your cannonfile manifest does not match requseted packageDefinitionDeployment'));
-    }
-
-    await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile);
-
-    pkgName = name;
-    pkgVersion = version;
-
-    def = overrideDef;
-  } else if (oldDeployData) {
-    def = new ChainDefinition(oldDeployData.def);
-  } else {
-    throw new Error(
-      red(
-        'No deployment definition found. Make sure you have a recorded deployment for the requested cannon package, or supply a cannonfile to build one.'
-      )
-    );
-  }
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
+
+  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
+
+  if (!def) {
+    throw new Error('no deployment definition to build');
+  }
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
@@ -216,13 +191,7 @@ export async function build({
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(
-    bold(
-      `Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''}) into the state defined in ${
-        cannonfilePath ? cannonfilePath?.split('/').pop() : pkgName
-      }...`
-    )
-  );
+  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
@@ -297,8 +266,18 @@ export async function build({
       );
 
       console.log(
+        yellow('Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.')
+      );
+
+      console.log(
+        yellow('To re-run executed steps, add the --wipe flag to the build command: ' + bold('cannon build --wipe'))
+      );
+
+      console.log(
         yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
       );
+
+      console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
       console.log(
         greenBright(

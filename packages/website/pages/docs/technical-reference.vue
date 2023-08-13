@@ -31,7 +31,19 @@
               as="nuxt-link"
               to="/docs/technical-reference"
               >Tech Reference</CButton
-            ></CBox
+            >
+
+            <CButton
+              variant-color="gray"
+              bg="gray.600"
+              size="xs"
+              mr="2"
+              as="nuxt-link"
+              to="/docs/cannonfile-types"
+              :_hover="{ bg: 'gray.700' }"
+              >Cannonfile spec</CButton
+            >
+            </CBox
           >
           <CLink
             v-for="link of technical.toc"
@@ -68,7 +80,7 @@ export default {
       .catch(err => {
         error({ statusCode: 404, message: "Page not found" });
       });
-      
+
     return {
       technical
     };

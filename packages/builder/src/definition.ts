@@ -5,7 +5,8 @@ import _ from 'lodash';
 import { ethers } from 'ethers';
 import { ChainBuilderContext, PreChainBuilderContext } from './types';
 
-import { ActionKinds, getChainDefinitionValidator, RawChainDefinition } from './actions';
+import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
+import { chainDefinitionSchema } from './schemas.zod';
 import { ChainBuilderRuntime } from './runtime';
 
 const debug = Debug('cannon:builder:definition');
@@ -37,6 +38,7 @@ export class ChainDefinition {
   readonly leaves: Set<string>;
 
   private cachedLayers: StateLayers | null = null;
+  readonly cachedActionDepths = new Map<string, number>();
 
   constructor(def: RawChainDefinition) {
     this.raw = def;
@@ -99,6 +101,8 @@ export class ChainDefinition {
       );
     }
 
+    validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
+
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
       { ...ctx, ...ethers.utils, ...ethers.constants },
       _.get(this.raw, n),
@@ -107,7 +111,7 @@ export class ChainDefinition {
         version: this.getVersion(ctx),
         currentLabel: n,
       }
-    )!;
+    );
   }
 
   /**
@@ -163,6 +167,7 @@ export class ChainDefinition {
   getSettings(ctx: PreChainBuilderContext) {
     const loadedSettings: Record<string, any> = {};
     const _ctx = { ...ctx, ...ethers.utils, ...ethers.constants, settings: loadedSettings };
+
     return _.mapValues(this.raw.setting, (sValue, sKey) => {
       const newSetting = _.clone(sValue);
       newSetting.defaultValue = _.template(sValue.defaultValue)(_ctx);
@@ -183,7 +188,7 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import).map((d) => ({
+      Object.values(this.raw.import.validate).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || 'main')(ctx),
@@ -202,33 +207,37 @@ export class ChainDefinition {
 
   /**
    * @note deps returned in topological order
-   * @returns all dependencies reachable from the specfied node
+   * @returns all dependencies reachable from the specfied node, and the depth of the iteration required
    */
-  getDependencyTree: (node: string) => string[] = _.memoize((node) => {
+  getDependencyTree: (node: string) => [string[], number] = _.memoize((node) => {
     const deps = this.getDependencies(node);
 
     const allDeps = [];
+    let maxDepth = 0;
 
     for (const dep of deps) {
-      allDeps.push(...this.getDependencyTree(dep));
+      const [subDeps, subDepth] = this.getDependencyTree(dep);
+      allDeps.push(...subDeps);
       allDeps.push(dep);
+      maxDepth = Math.max(maxDepth, subDepth + 1);
     }
 
-    return _.uniq(allDeps);
+    this.cachedActionDepths.set(node, maxDepth);
+
+    return [_.uniq(allDeps), maxDepth];
   });
 
   get topologicalActions() {
-    const actions = [];
-
     for (const leaf of this.leaves) {
-      actions.push(...this.getDependencyTree(leaf), leaf);
+      const [, maxDepth] = this.getDependencyTree(leaf);
+      this.cachedActionDepths.set(leaf, maxDepth);
     }
 
-    return _.uniq(actions);
+    return _.sortBy(this.allActionNames, (n) => this.cachedActionDepths.get(n));
   }
 
   checkAll(): ChainDefinitionProblems | null {
-    const invalidSchema = getChainDefinitionValidator()(this.raw);
+    const invalidSchema = validateConfig(chainDefinitionSchema, this.raw);
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
@@ -337,8 +346,8 @@ export class ChainDefinition {
     // dependency of this node
     outer: for (const dep of deps) {
       for (const d of deps) {
-        const childDeps = new Set(this.getDependencyTree(dep));
-        if (childDeps.has(d)) {
+        const [childDeps] = this.getDependencyTree(dep);
+        if (childDeps.includes(d)) {
           extraneous.push({ node, extraneous: d, inDep: dep });
           break outer;
         }
@@ -368,7 +377,7 @@ export class ChainDefinition {
     }
 
     const actions = this.topologicalActions;
-    const layers: { [key: string]: { actions: string[]; depends: string[]; depending: string[] } } = {};
+    const layers: { [key: string]: { actions: string[]; depends: string[] } } = {};
     const layerOfActions = new Map<string, string>();
     const layerDependingOn = new Map<string, string>();
 
@@ -391,9 +400,6 @@ export class ChainDefinition {
 
         // attached to all the layers of the dependencies
         depends: [],
-
-        // depending layers are not attached to anything
-        depending: [],
       };
 
       let attachingLayer: string = n;

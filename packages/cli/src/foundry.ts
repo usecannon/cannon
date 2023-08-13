@@ -27,6 +27,36 @@ export async function buildContracts(): Promise<void> {
 export async function getFoundryArtifact(name: string, baseDir = ''): Promise<ContractArtifact> {
   // TODO: Theres a bug that if the file has a different name than the contract it would not work
   const foundryOpts = await getFoundryOpts();
+
+  // Finds root of the foundry project based n owhere the foundry.toml file is within the relative path
+  // Linear time complexity O(n) where n is the depth of the directory structure from the initial currentPath to the project root.
+  function findProjectRoot(currentPath: string): string {
+    const markerFile = 'foundry.toml';
+
+    // append 'foundry.toml' to filepath
+    const filePath = path.join(currentPath, markerFile);
+
+    // If filepath exists it means we're already at root of the project
+    // so just return currentPath
+    if (fs.existsSync(filePath)) {
+      return currentPath;
+    }
+
+    // Reached the filesystem root without finding the marker file
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      console.warn(
+        'Could not find foundry project, make sure your cannonfiles are stored within the root of a foundry project.'
+      );
+      return parentPath;
+    }
+
+    //Otherwise loop
+    return findProjectRoot(parentPath);
+  }
+
+  baseDir = findProjectRoot(baseDir);
+
   const artifactPath = path.join(path.join(baseDir, foundryOpts.out), `${name}.sol`, `${name}.json`);
   const artifactBuffer = await fs.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;
