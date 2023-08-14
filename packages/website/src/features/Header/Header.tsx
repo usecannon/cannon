@@ -13,8 +13,6 @@ import {
   PopoverBody,
   Link as ChakraLink,
   Box,
-  LinkBox,
-  LinkOverlay,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import { TriangleDownIcon } from '@chakra-ui/icons';
