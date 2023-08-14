@@ -54,7 +54,7 @@ const SubnavLink: React.FC<SubnavLinkProps> = ({
 
 export const Header = () => {
   return (
-    <Container maxW="container.lg">
+    <Container maxW="container.lg" mb={16}>
       <Flex
         maxWidth="container.lg"
         align="center"
