@@ -1137,7 +1137,7 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   },
   80001: {
     name: 'mumbai',
-    color: 'indigo',
+    color: 'purple',
   },
   43114: {
     name: 'avax',
