@@ -7,7 +7,7 @@ import { fakeRuntime, fakeCtx, makeFakeSigner } from './testUtils';
 import { makeArachnidCreate2Txn } from '../create2';
 import { ARACHNID_CREATE2_PROXY } from '../constants';
 
-describe('setps/contract.ts', () => {
+describe('steps/contract.ts', () => {
   const fakeAbi = [
     {
       inputs: [

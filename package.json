@@ -14,6 +14,9 @@
     "test-all": "lerna run test",
     "build": "lerna run build",
     "publish": "lerna publish",
+    "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
+    "docgen": "npm run docgen-md && concat-md --decrease-title-levels --dir-name-as-title ./docs/ > ./packages/website/content/docs-configuration.md"
+    "publish": "lerna publish",
     "website-dev": "npm run dev --workspace=packages/website"
   },
   "devDependencies": {
@@ -44,5 +47,8 @@
       "pre-commit": "npm run lint"
     }
   },
-  "license": "GNU GPL V3.0"
+  "license": "GNU GPL V3.0",
+  "dependencies": {
+    "concat-md": "^0.5.1"
+  }
 }
