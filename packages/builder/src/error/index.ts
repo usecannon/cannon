@@ -13,10 +13,9 @@ const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
 export async function handleTxnError(
   artifacts: ChainArtifacts,
-  provider: ethers.providers.Provider | string,
+  provider: ethers.providers.Provider,
   err: any
 ): Promise<any> {
-  const _provider = typeof provider === 'string' ? new ethers.providers.JsonRpcProvider(provider) : provider;
   if (err instanceof CannonTraceError || (err.toString() as string).includes('CannonTraceError')) {
     // error already parsed
     debug('skipping trace of error because already processed', err.toString());
@@ -32,7 +31,7 @@ export async function handleTxnError(
   let traces: TraceEntry[] = [];
 
   if (err.code === 'UNPREDICTABLE_GAS_LIMIT') {
-    return handleTxnError(artifacts, _provider, err.error);
+    return handleTxnError(artifacts, provider, err.error);
   } else if (err.code === 'CALL_EXCEPTION' || err.code === 3) {
     txnData = err.transaction;
     errorCodeHex = err.data;
@@ -48,7 +47,7 @@ export async function handleTxnError(
     errorCodeHex = err.error.data;
   }
 
-  if (txnData && (await isAnvil(_provider))) {
+  if (txnData && (await isAnvil(provider))) {
     const fullTxn = {
       gasLimit: 20000000, // should ensure we get an actual failed receipt
       ...txnData,
@@ -56,8 +55,8 @@ export async function handleTxnError(
 
     // then, run it for real so we can get a trace
     try {
-      await (_provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [fullTxn.from]);
-      const pushedTxn = await (_provider as ethers.providers.JsonRpcProvider)
+      await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [fullTxn.from]);
+      const pushedTxn = await (provider as ethers.providers.JsonRpcProvider)
         .getSigner(fullTxn.from)
         .sendTransaction(fullTxn);
 
@@ -72,10 +71,10 @@ export async function handleTxnError(
     }
   }
 
-  if (txnHash && (_provider as ethers.providers.JsonRpcProvider).send) {
+  if (txnHash && (provider as ethers.providers.JsonRpcProvider).send) {
     // try getting trace data
     try {
-      traces = await (_provider as ethers.providers.JsonRpcProvider).send('trace_transaction', [txnHash]);
+      traces = await (provider as ethers.providers.JsonRpcProvider).send('trace_transaction', [txnHash]);
     } catch (err) {
       console.error('warning: trace api unavailable', err);
       // TODO: trace API most likely not available
