@@ -39,7 +39,13 @@ export class LocalLoader implements CannonLoader {
   async list() {
     debug('local list');
 
-    return (await fs.readdir(this.dir)).filter(f => f.match(/[0-9a-f]+\.json/)).map(f => `file://${f}`);
+    return (await fs.readdir(this.dir)).filter((f) => f.match(/[0-9a-f]+\.json/)).map((f) => `file://${f}`);
+  }
+
+  async remove(url: string) {
+    debug(`local remove ${url}`);
+
+    await fs.unlink(path.join(this.dir, `${url.slice(7)}`));
   }
 }
 

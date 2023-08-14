@@ -415,13 +415,18 @@ program
 program
   .command('prune')
   .description('Clean cannon storage of excessive/transient build files older than a certain age')
-  .option('--filter-package <packageName>', 'Only keep deployments in local storage which match the given package name. Default: do not filter')
-  .option('--filter-variant <variant>', 'Only keep deployments which match the specifiec variant(s). Default: do not filter')
-  .option('--keep-age <seconds>', 'Number of seconds old a package must be before it should be deleted', (86400 * 30).toString())
   .option(
-    '--dry-run',
-    'Print out information about prune without committing'
+    '--filter-package <packageName>',
+    'Only keep deployments in local storage which match the given package name. Default: do not filter'
   )
+  .option('--filter-variant <variant>', 'Only keep deployments which match the specifiec variant(s). Default: do not filter')
+  .option(
+    '--keep-age <seconds>',
+    'Number of seconds old a package must be before it should be deleted',
+    (86400 * 30).toString()
+  )
+  .option('--dry-run', 'Print out information about prune without committing')
+  .option('-y --yes', 'Skip confirmation prompt')
   .action(async function (options) {
     const { prune } = await import('./commands/prune');
     resolveCliSettings(options);
@@ -429,35 +434,44 @@ program
     const registry = await createDefaultReadRegistry(resolveCliSettings());
 
     const loader = getMainLoader(resolveCliSettings());
-  
+
     const storage = new CannonStorage(registry, loader);
 
-    const pruneUrls = await prune(storage, options.filterPackage, options.filterVariant, options.keepAge);
+    console.log('Scanning for storage artifacts to prune (this may take some time)...');
+
+    const [pruneUrls, pruneStats] = await prune(storage, options.filterPackage, options.filterVariant, options.keepAge);
 
     if (pruneUrls.length) {
-      console.log(bold(`Found ${pruneUrls.length} packages to prune, saving ${0} MB. Continue?`));
+      console.log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
 
       if (options.dryRun) {
         process.exit(0);
       }
 
-      const verification = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: 'Cannon requires a newer version of Foundry. Install it now?',
-        initial: true,
-      });
+      if (!options.yes) {
+        const verification = await prompts({
+          type: 'confirm',
+          name: 'confirmation',
+          message: 'Delete these artifacts?',
+          initial: true,
+        });
 
-      if (!verification.confirmation) {
-        console.log('Cancelled');
-        process.exit(1);
+        if (!verification.confirmation) {
+          console.log('Cancelled');
+          process.exit(1);
+        }
       }
 
       for (const url of pruneUrls) {
-        await storage.deleteBlob(url)
+        console.log(`delete ${url}`);
+        try {
+          await storage.deleteBlob(url);
+        } catch (err: any) {
+          console.error(`Failed to delete ${url}: ${err.message}`);
+        }
       }
 
-      console.log ('Done!')
+      console.log('Done!');
     } else {
       console.log(bold('Nothing to prune.'));
     }

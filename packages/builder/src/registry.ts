@@ -41,7 +41,7 @@ export abstract class CannonRegistry {
 
   // used to clean up unused resources on a loader
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(_filterPackage: string, _filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
     return new Set();
   }
 
@@ -93,7 +93,7 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 
-  async getAllUrls(_filterPackage: string, _filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
     return new Set();
   }
 }
@@ -157,7 +157,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return null;
   }
 
-  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
     const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackage, filterVariant)));
 
     // apparently converting back to an array is the most efficient way to merge sets
@@ -347,7 +347,13 @@ export class OnChainRegistry extends CannonRegistry {
     return url === '' ? null : url;
   }
 
-  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
+    if (!filterPackage) {
+      // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
+      // in the future we might have a way to give the urls to search for and then limit
+      return new Set();
+    }
+
     const [name, version] = filterPackage.split(':');
 
     const filter = this.contract.filters.PackagePublish(name || null, version || null, filterVariant || null);

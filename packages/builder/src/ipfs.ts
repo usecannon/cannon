@@ -97,6 +97,20 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
   }
 }
 
+export async function deleteIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<void> {
+  if (isIpfsGateway(ipfsUrl)) {
+    // cannot write to IPFS on gateway
+  }
+
+  debug('delete from ipfs:', hash);
+
+  try {
+    await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/pin/rm?arg=' + hash, {}, { headers: customHeaders });
+  } catch (err) {
+    throw new Error('Failed to delete from IPFS. ' + err);
+  }
+}
+
 export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {}): Promise<string[]> {
   if (isIpfsGateway(ipfsUrl)) {
     // cannot write to IPFS on gateway
@@ -107,11 +121,8 @@ export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {})
   try {
     const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/pin/ls', { headers: customHeaders });
 
-    return Object.keys(result.data.Keys);
+    return Object.keys(result.data.Keys).map((key) => 'ipfs://' + key);
   } catch (err) {
-    throw new Error(
-      'Failed to list ipfs artifacts' +
-        err
-    );
+    throw new Error('Failed to list ipfs artifacts' + err);
   }
 }
