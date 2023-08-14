@@ -59,19 +59,19 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-const getRegistryProviderUrl = (fileSettings:any, privateKey: string) : string=>{
-  const registryProviderUrl =  process.env.CANNON_REGISTRY_PROVIDER_URL ||
-    fileSettings.registryProviderUrl
-  
-  if (registryProviderUrl && privateKey){
-    return registryProviderUrl
-  }
-  if (registryProviderUrl && !privateKey){
-    console.warn(`\n\nIt's skipping the RPC/registryProviderUrl(${registryProviderUrl}) in settings because --private-key was not supplied\n\n`)
-  }
-  return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`
+const getRegistryProviderUrl = (fileSettings: any, privateKey: string): string => {
+  const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl;
 
-}
+  if (registryProviderUrl && privateKey) {
+    return registryProviderUrl;
+  }
+  if (registryProviderUrl && !privateKey) {
+    console.warn(
+      `\n\nIt's skipping the RPC/registryProviderUrl(${registryProviderUrl}) in settings because --private-key was not supplied\n\n`
+    );
+  }
+  return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
+};
 
 // TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
@@ -110,7 +110,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     },
     overrides
   );
-  
+
   debug('got settings', finalSettings);
 
   return finalSettings;
