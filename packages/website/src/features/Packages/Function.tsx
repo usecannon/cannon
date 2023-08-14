@@ -27,15 +27,16 @@ import {
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address } from 'viem';
-import { handleTxnError } from '@usecannon/builder';
-import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+// import { handleTxnError } from '@usecannon/builder';
+// import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 
 export const Function: FC<{
   f: AbiFunction;
+  abi: Abi;
   address: string;
   cannonOutputs: ChainArtifacts;
   chainId?: number;
-}> = ({ f, address, cannonOutputs, chainId }) => {
+}> = ({ f, abi, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
@@ -60,14 +61,14 @@ export const Function: FC<{
 
   useEffect(() => {
     _.debounce(() => {
-      if (readOnly) {
+      if (readOnly && f.inputs.length === params.length) {
         void submit();
       }
     }, 200)();
   }, [params, readOnly]);
 
   useEffect(() => {
-    if (readOnly && params.length == 0) {
+    if (readOnly && f.inputs.length === params.length) {
       void submit(true);
     }
   }, []);
@@ -78,7 +79,7 @@ export const Function: FC<{
       if (readOnly) {
         const _result = await publicClient.readContract<Abi, string>({
           address: address as Address,
-          abi: [f],
+          abi: abi,
           functionName: f.name,
           args: params,
         }); //[f.name](...params);
@@ -100,7 +101,7 @@ export const Function: FC<{
           const _result = await walletClient?.writeContract<Abi, string, Chain>(
             {
               address: address as Address,
-              abi: [f],
+              abi: abi,
               functionName: f.name,
               args: Array.isArray(params) ? params : [params],
             }
@@ -113,10 +114,10 @@ export const Function: FC<{
     } catch (e) {
       if (!suppressError) {
         try {
-          const provider = new ethers.providers.JsonRpcProvider(
-            publicClient.chain.rpcUrls.public.http[0] as string
-          );
-          await handleTxnError(cannonOutputs, provider, e);
+          // const provider = new ethers.providers.JsonRpcProvider(
+          //   publicClient?.chain?.rpcUrls?.public?.http[0] as string
+          // );
+          // await handleTxnError(cannonOutputs, provider, e);
           console.error(e);
         } catch (e2) {
           setError(e2);

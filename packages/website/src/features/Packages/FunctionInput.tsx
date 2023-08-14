@@ -11,15 +11,21 @@ export const FunctionInput: FC<{
   input: AbiParameter;
   valueUpdated: (value: any) => void;
 }> = ({ input, valueUpdated }) => {
+  const getDefaultValue = () => {
+    if (input.type.startsWith('address')) return '';
+    if (input.type.startsWith('int')) return '0';
+    if (input.type.startsWith('uint')) return '0';
+    return null;
+  };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
   const [dataArray, setDataArray] = useState<{ id: number; val: any | null }[]>(
-    [{ id: Date.now(), val: null }]
+    [{ id: Date.now(), val: getDefaultValue() }]
   );
 
   // const getValue = (index: number) => (isArray ? dataArray[index] : input);
 
   const add = () => {
-    setDataArray([...dataArray, { id: Date.now(), val: null }]);
+    setDataArray([...dataArray, { id: Date.now(), val: getDefaultValue() }]);
   };
 
   const remove = (index: number) => {

@@ -21,6 +21,7 @@ export const Abi: FC<{
         <Box key={index}>
           <Function
             f={f}
+            abi={abi}
             address={address}
             cannonOutputs={cannonOutputs}
             chainId={chainId}
