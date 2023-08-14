@@ -111,17 +111,19 @@ export const Function: FC<{
           console.error(e);
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       if (!suppressError) {
-        try {
-          // const provider = new ethers.providers.JsonRpcProvider(
-          //   publicClient?.chain?.rpcUrls?.public?.http[0] as string
-          // );
-          // await handleTxnError(cannonOutputs, provider, e);
-          console.error(e);
-        } catch (e2) {
-          setError(e2);
-        }
+        console.error(e);
+        setError(e?.message || e?.error?.message || e?.error || e);
+        // TODO: fix issue with importing handleTxError from builder
+        // try {
+        //   // const provider = new ethers.providers.JsonRpcProvider(
+        //   //   publicClient?.chain?.rpcUrls?.public?.http[0] as string
+        //   // );
+        //   // await handleTxnError(cannonOutputs, provider, e);
+        // } catch (e2) {
+        //   setError(e2);
+        // }
       }
     } finally {
       setLoading(false);
