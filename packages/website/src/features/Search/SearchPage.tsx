@@ -11,7 +11,6 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  LinkBox,
   Spinner,
   Text,
 } from '@chakra-ui/react';
@@ -103,11 +102,9 @@ export const SearchPage = () => {
           </GridItem>
         ) : (
           <GridItem colSpan={9}>
-            <LinkBox>
-              {packages.map((pkg) => (
-                <PackageCard pkg={pkg} key={pkg.name} />
-              ))}
-            </LinkBox>
+            {packages.map((pkg) => (
+              <PackageCard pkg={pkg} key={pkg.name} />
+            ))}
             <Flex justifyContent="space-between">
               <Button
                 size="sm"
