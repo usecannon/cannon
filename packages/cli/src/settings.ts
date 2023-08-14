@@ -59,6 +59,20 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
+const getRegistryProviderUrl = (fileSettings:any, privateKey: string) : string=>{
+  const registryProviderUrl =  process.env.CANNON_REGISTRY_PROVIDER_URL ||
+    fileSettings.registryProviderUrl
+  
+  if (registryProviderUrl && privateKey){
+    return registryProviderUrl
+  }
+  if (registryProviderUrl && !privateKey){
+    console.warn(`\n\nIt's skipping the RPC/registryProviderUrl(${registryProviderUrl}) in settings because --private-key was not supplied\n\n`)
+  }
+  return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`
+
+}
+
 // TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   const cliSettingsStore = untildify(
@@ -78,18 +92,15 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     );
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
   }
-
+  const privateKey = (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string;
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
       providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
-      privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
+      privateKey,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl:
-        process.env.CANNON_REGISTRY_PROVIDER_URL ||
-        fileSettings.registryProviderUrl ||
-        `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`,
+      registryProviderUrl: getRegistryProviderUrl(fileSettings, privateKey),
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       registryPriority: process.env.CANNON_REGISTRY_PRIORITY || fileSettings.registryPriority || 'onchain',
@@ -99,7 +110,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     },
     overrides
   );
-
+  
   debug('got settings', finalSettings);
 
   return finalSettings;
