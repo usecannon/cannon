@@ -33,6 +33,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             --font-inter: ${inter.style.fontFamily};
             --font-mono: ${mono.style.fontFamily};
           }
+          *:focus {
+            outline: none;
+          }
         `}
       </style>
       <body>
