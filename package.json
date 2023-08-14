@@ -15,7 +15,7 @@
     "build": "lerna run build",
     "publish": "lerna publish",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
-    "docgen": "npm run docgen-md && concat-md --decrease-title-levels --dir-name-as-title ./docs/ > ./packages/website/content/docs-configuration.md"
+    "docgen": "npm run docgen-md && concat-md --decrease-title-levels --dir-name-as-title ./docs/ > ./packages/website/content/docs-configuration.md",
     "publish": "lerna publish",
     "website-dev": "npm run dev --workspace=packages/website"
   },
