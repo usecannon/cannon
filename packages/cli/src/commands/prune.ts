@@ -6,12 +6,19 @@ const debugVerbose = Debug('cannon:cli:prune:verbose');
 
 export interface PruneStats {
   deletedSize: number;
+  matchedFromRegistry: number;
+  notExpired: number;
+  notCannonPackage: number;
+}
+
+function normalizeMiscUrl(miscUrl: string): string {
+  return miscUrl.startsWith('Qm') ? 'ipfs://' + miscUrl : miscUrl;
 }
 
 export async function prune(
   storage: CannonStorage,
-  packageFilter: string,
-  variantFilter: string,
+  packageFilters: string[],
+  variantFilters: string[],
   keepAge: number
 ): Promise<[string[], PruneStats]> {
   const loaderUrls = [];
@@ -20,11 +27,22 @@ export async function prune(
     loaderUrls.push(...(await storage.loaders[loader].list!()));
   }
 
-  debug('load urls from registry');
-  const registryUrls = await storage.registry.getAllUrls(packageFilter, variantFilter);
-  debug(`loaded ${registryUrls.size} urls from registry`);
+  const registryUrls: Set<string> = new Set();
+  for (const packageFilter of packageFilters) {
+    debug('load urls from registry', packageFilter);
+    if (!variantFilters.length) {
+      (await storage.registry.getAllUrls(packageFilter)).forEach(registryUrls.add, registryUrls);
+    } else {
+      for (const variantFilter of variantFilters) {
+        (await storage.registry.getAllUrls(packageFilter, variantFilter)).forEach(registryUrls.add, registryUrls);
+      }
+    }
+  }
 
-  if (packageFilter && !registryUrls.size) {
+  debug(`loaded ${registryUrls.size} urls from registry, filters ${JSON.stringify(packageFilters)}`);
+  console.log(Array.from(registryUrls).join('\n'));
+
+  if (packageFilters.length && !registryUrls.size) {
     throw new Error('registry does not show any package urls. this is likely an error');
   }
 
@@ -36,6 +54,9 @@ export async function prune(
   // todo: better stats in the future
   const pruneStats: PruneStats = {
     deletedSize: 0,
+    matchedFromRegistry: 0,
+    notExpired: 0,
+    notCannonPackage: 0,
   };
 
   // find any cannon package-like objects in the repo and remove them if they are older than timestmap
@@ -47,25 +68,39 @@ export async function prune(
     try {
       const deployInfo = (await storage.readBlob(url)) as DeploymentInfo;
 
-      if (
-        (!deployInfo.generator || (deployInfo.generator.startsWith('cannon ') && deployInfo.timestamp < now - keepAge)) &&
-        !registryUrls.has(url)
-      ) {
-        debug(`add to prune urls: ${url} ${deployInfo.miscUrl} (${deployInfo.timestamp})`);
-        pruneUrls.add(url);
-        if (deployInfo.miscUrl) pruneUrls.add(deployInfo.miscUrl);
+      /*if (!deployInfo.generator || !deployInfo.generator.startsWith('cannon ')) {
+        debug(`${url}: not cannon package`);
+        pruneStats.notCannonPackage++;
+      } else*/ if (deployInfo.timestamp && deployInfo.timestamp >= now - keepAge) {
+        debug(`${url}: not expired`);
+        pruneStats.notExpired++;
+        keepUrls.add(normalizeMiscUrl(deployInfo.miscUrl));
+      } else if (registryUrls.has(url)) {
+        debug(`${url}: matched from registry`);
+        pruneStats.matchedFromRegistry++;
+        keepUrls.add(normalizeMiscUrl(deployInfo.miscUrl));
       } else {
-        keepUrls.add(deployInfo.miscUrl);
+        debug(
+          `${url}: prune (${deployInfo.timestamp ? new Date(deployInfo.timestamp * 1000).toISOString() : 'no timestamp'})`
+        );
+        pruneUrls.add(url);
+        if (deployInfo.miscUrl) {
+          debug(`${normalizeMiscUrl(deployInfo.miscUrl)}: prune as miscUrl`);
+          pruneUrls.add(normalizeMiscUrl(deployInfo.miscUrl));
+        }
       }
     } catch (err: any) {
-      debug(`not cannon artifact, ${url}`);
+      debug(`${url}: not cannon artifact`);
       debugVerbose(err);
     }
   }
 
+  debug('keeping urls', keepUrls.size);
+  debug('pre delete from prune urls', pruneUrls.size);
   for (const keepUrl of keepUrls) {
     pruneUrls.delete(keepUrl);
   }
+  debug('post delete from prune urls', pruneUrls.size);
 
   return [Array.from(pruneUrls), pruneStats];
 }

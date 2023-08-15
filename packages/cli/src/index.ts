@@ -439,10 +439,18 @@ program
 
     console.log('Scanning for storage artifacts to prune (this may take some time)...');
 
-    const [pruneUrls, pruneStats] = await prune(storage, options.filterPackage, options.filterVariant, options.keepAge);
+    const [pruneUrls, pruneStats] = await prune(
+      storage,
+      options.filterPackage?.split(',') || '',
+      options.filterVariant?.split(',') || '',
+      options.keepAge
+    );
 
     if (pruneUrls.length) {
       console.log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      console.log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+      console.log(`Not Expired: ${pruneStats.notExpired}`);
+      console.log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
 
       if (options.dryRun) {
         process.exit(0);

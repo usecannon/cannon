@@ -356,7 +356,11 @@ export class OnChainRegistry extends CannonRegistry {
 
     const [name, version] = filterPackage.split(':');
 
-    const filter = this.contract.filters.PackagePublish(name || null, version || null, filterVariant || null);
+    const filter = this.contract.filters.PackagePublish(
+      name ? ethers.utils.formatBytes32String(name) : null,
+      version ? ethers.utils.formatBytes32String(version) : null,
+      filterVariant ? ethers.utils.formatBytes32String(filterVariant) : null
+    );
 
     const events = await this.contract.queryFilter(filter, 0, 'latest');
 
