@@ -1,14 +1,28 @@
 import _ from 'lodash';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntimeInfo } from '../types';
-import { ChainDefinitionScriptSchema } from '../util';
 
-export type Config = JTDDataType<typeof ChainDefinitionScriptSchema>;
+/**
+ *  Available properties for keeper step (Not yet implemented)
+ *  @internal
+ *  @group Keeper
+ */
+export const keeperSchema = z
+  .object({
+    exec: z.string(),
+  })
+  .merge(
+    z
+      .object({
+        args: z.array(z.string()),
+        env: z.array(z.string()),
+      })
+      .deepPartial()
+  );
 
-export interface Outputs {
-  [key: string]: string;
-}
+export type Config = z.infer<typeof keeperSchema>;
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
@@ -16,7 +30,7 @@ export interface Outputs {
 export default {
   label: 'keeper',
 
-  validate: ChainDefinitionScriptSchema,
+  validate: keeperSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     return this.configInject(ctx, config);

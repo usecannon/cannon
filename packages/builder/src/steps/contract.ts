@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
+import { contractSchema } from '../schemas.zod';
 
 import { ethers } from 'ethers';
 
@@ -19,34 +21,12 @@ import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2'
 
 const debug = Debug('cannon:builder:contract');
 
-const config = {
-  properties: {
-    artifact: { type: 'string' },
-  },
-  optionalProperties: {
-    create2: { type: 'boolean' },
-    from: { type: 'string' },
-    nonce: { type: 'string' },
-    abi: { type: 'string' },
-    abiOf: { elements: { type: 'string' } },
-    args: { elements: {} },
-    libraries: { values: { type: 'string' } },
-
-    // used to force new copy of a contract (not actually used)
-    salt: { type: 'string' },
-
-    value: { type: 'string' },
-    overrides: {
-      optionalProperties: {
-        gasLimit: { type: 'string' },
-      },
-    },
-
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
-
-export type Config = JTDDataType<typeof config>;
+/**
+ *  Available properties for contract step
+ *  @public
+ *  @group Contract
+ */
+export type Config = z.infer<typeof contractSchema>;
 
 export interface ContractOutputs {
   abi: string;
@@ -94,7 +74,7 @@ function resolveBytecode(
 export default {
   label: 'contract',
 
-  validate: config,
+  validate: contractSchema,
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);

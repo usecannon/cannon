@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import { JTDDataType } from 'ajv/dist/core';
+
+import { z } from 'zod';
+import { invokeSchema } from '../schemas.zod';
 
 import {
   ChainBuilderContext,
@@ -17,60 +19,12 @@ import { getAllContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
-const config = {
-  properties: {
-    target: { elements: { type: 'string' } },
-    func: { type: 'string' },
-  },
-  optionalProperties: {
-    abi: { type: 'string' },
-
-    args: { elements: {} },
-    from: { type: 'string' },
-    fromCall: {
-      properties: {
-        func: { type: 'string' },
-      },
-      optionalProperties: {
-        args: { elements: {} },
-      },
-    },
-    value: { type: 'string' },
-    overrides: {
-      optionalProperties: {
-        gasLimit: { type: 'string' },
-      },
-    },
-    extra: {
-      values: {
-        properties: {
-          event: { type: 'string' },
-          arg: { type: 'int32' },
-        },
-        optionalProperties: {
-          allowEmptyEvents: { type: 'boolean' },
-        },
-      },
-    },
-    factory: {
-      values: {
-        properties: {
-          event: { type: 'string' },
-          arg: { type: 'int32' },
-        },
-        optionalProperties: {
-          artifact: { type: 'string' },
-          abiOf: { elements: { type: 'string' } },
-          constructorArgs: { elements: {} },
-          allowEmptyEvents: { type: 'boolean' },
-        },
-      },
-    },
-    depends: { elements: { type: 'string' } },
-  },
-} as const;
-
-export type Config = JTDDataType<typeof config>;
+/**
+ *  Available properties for invoke step
+ *  @public
+ *  @group Invoke
+ */
+export type Config = z.infer<typeof invokeSchema>;
 
 export type EncodedTxnEvents = { [name: string]: { args: any[] }[] };
 
@@ -107,7 +61,7 @@ async function runTxn(
     );
   }
 
-  if (config.fromCall && !contract.functions[config.fromCall.func]) {
+  if (config.fromCall && config.fromCall.func && !contract.functions[config.fromCall.func]) {
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
         config.func
@@ -139,7 +93,7 @@ async function runTxn(
     overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
-  if (config.fromCall) {
+  if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
     const address = await contract.connect(runtime.provider)[config.fromCall.func](...(config.fromCall?.args || []));
@@ -231,7 +185,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 export default {
   label: 'invoke',
 
-  validate: config,
+  validate: invokeSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -248,7 +202,8 @@ export default {
     config = _.cloneDeep(config);
 
     if (config.target) {
-      config.target = config.target.map((v) => _.template(v)(ctx));
+      // [string, ...string[]] refers to a nonempty array
+      config.target = config.target.map((v) => _.template(v)(ctx)) as [string, ...string[]];
     }
 
     if (config.abi) {

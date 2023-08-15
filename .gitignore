@@ -2,6 +2,9 @@
 .vscode
 .DS_Store
 
+# docs directory
+docs/actions
+
 # Logs
 logs
 *.log

@@ -39,6 +39,7 @@ import { bold, green, red, yellow } from 'chalk';
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
+export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
 export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { clean } from './commands/clean';
@@ -47,11 +48,12 @@ export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
-export { runRpc } from './rpc';
+export { runRpc, getProvider } from './rpc';
 
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
+export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
@@ -154,7 +156,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const parsedSettings = parseSettings(settings);
 
   const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(process.cwd());
+  const projectDirectory = path.resolve(cannonfilePath);
 
   const cliSettings = resolveCliSettings(opts);
 
@@ -337,7 +339,7 @@ program
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
   .option('--private-key <key>', 'Private key to use for publishing the registry package')
-  .option('--chain-id <number>', 'The chain ID of the package to publish', '13370')
+  .option('--chain-id <number>', 'The chain ID of the package to publish')
   .option('--preset <preset>', 'The preset of the packages to publish', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -357,6 +359,12 @@ program
     const p = await resolveRegistryProvider(cliSettings);
 
     const overrides: ethers.Overrides = {};
+
+    if (!options.chainId) {
+      throw new Error(
+        'Please provide a chainId using the format: --chain-id <number>. For example, 13370 is the chainId for a local build.'
+      );
+    }
 
     if (options.maxFeePerGas) {
       overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');

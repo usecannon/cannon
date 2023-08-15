@@ -4,13 +4,17 @@ import { InMemoryRegistry } from '../registry';
 import action from './provision';
 import { fakeCtx, fakeRuntime } from './testUtils';
 
+import { contractSchema } from '../schemas.zod';
 import contractAction from './contract';
 
 jest.mock('../loader');
-
 jest.mock('./contract');
 
-describe('setps/provision.ts', () => {
+// Mocking the contract action causes a weird bug with the zod schema
+// this mock just replaces the mock generated value with our imported value.
+jest.mocked((contractAction.validate = contractSchema));
+
+describe('steps/provision.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
@@ -94,7 +98,7 @@ describe('setps/provision.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefinedDeployment:1.0.0' },
-          { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+          { name: 'package', version: '1.0.0', currentLabel: 'provision.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
     });

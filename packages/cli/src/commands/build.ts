@@ -150,7 +150,8 @@ export async function build({
   }
   console.log('');
 
-  let pkgName, pkgVersion;
+  let pkgName = packageDefinition?.name;
+  let pkgVersion = packageDefinition?.version;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
@@ -262,8 +263,18 @@ export async function build({
       );
 
       console.log(
+        yellow('Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.')
+      );
+
+      console.log(
+        yellow('To re-run executed steps, add the --wipe flag to the build command: ' + bold('cannon build --wipe'))
+      );
+
+      console.log(
         yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
       );
+
+      console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
       console.log(
         greenBright(
