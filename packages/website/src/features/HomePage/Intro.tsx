@@ -6,7 +6,7 @@ import { links } from '@/constants/links';
 export const Intro = () => {
   return (
     <Box className={styles.wrapper}>
-      <Container maxW="container.lg" py={16}>
+      <Container maxW="container.lg" my={32}>
         <Heading as="h1" mb={4}>
           Cannon manages protocol deployments on blockchains
         </Heading>

@@ -27,7 +27,7 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
         <Text as="span" color="#61afef">
           {firstPart}
         </Text>
-        &nbsp;{secondPart}
+        <Text as="span">{secondPart}</Text>
       </Text>
       <Box
         position="absolute"

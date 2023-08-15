@@ -123,6 +123,7 @@ const PackageNetworks: FC<{
             mb="2"
             key={chain.id}
             colorScheme={chain.color || 'whiteAlpha'}
+            color="white"
             opacity="download ? '0.8' : '0.7 !important'"
             isDisabled={!download}
             className={!download ? 'disabled-button' : ''}
