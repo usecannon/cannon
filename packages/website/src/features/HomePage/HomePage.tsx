@@ -3,7 +3,7 @@ import { HowItWorks } from '@/features/HomePage/HowItWorks';
 import { Intro } from '@/features/HomePage/Intro';
 import { QuickStart } from '@/features/HomePage/QuickStart';
 import { UseCases } from '@/features/HomePage/UseCases';
-import { Container, SimpleGrid, Box } from '@chakra-ui/react';
+import { Container, SimpleGrid, Box, Flex } from '@chakra-ui/react';
 import styles from './homePage.module.scss';
 
 export default function HomePage() {
@@ -16,9 +16,9 @@ export default function HomePage() {
             <Box>
               <HowItWorks />
             </Box>
-            <Box>
+            <Flex direction="column" justifyContent="center">
               <QuickStart />
-            </Box>
+            </Flex>
           </SimpleGrid>
           <UseCases />
         </Container>

@@ -13,8 +13,6 @@ import {
   PopoverBody,
   Link as ChakraLink,
   Box,
-  LinkBox,
-  LinkOverlay,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import { TriangleDownIcon } from '@chakra-ui/icons';
@@ -56,7 +54,7 @@ const SubnavLink: React.FC<SubnavLinkProps> = ({
 
 export const Header = () => {
   return (
-    <Container maxW="container.lg">
+    <Container maxW="container.lg" mb={16}>
       <Flex
         maxWidth="container.lg"
         align="center"
@@ -64,27 +62,25 @@ export const Header = () => {
         pt={4}
         flexWrap="wrap"
       >
-        <LinkBox>
-          <LinkOverlay
-            href={links.HomePage}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-          >
-            <Flex gap={1} alignItems="center">
-              <Image
-                src="/images/logo.svg"
-                alt="Cannon Logo"
-                boxSize="48px"
-                objectFit="cover"
-              />
-              <Heading as="h1" fontWeight="bold" size="lg">
-                CANNON
-              </Heading>
-            </Flex>
-          </LinkOverlay>
-        </LinkBox>
+        <Link
+          href={links.HomePage}
+          color="white"
+          as={NextLink}
+          textDecoration="none"
+          _hover={{ textDecoration: 'none' }}
+        >
+          <Flex gap={1} alignItems="center">
+            <Image
+              src="/images/logo.svg"
+              alt="Cannon Logo"
+              boxSize="48px"
+              objectFit="cover"
+            />
+            <Heading as="h1" fontWeight="bold" size="lg">
+              CANNON
+            </Heading>
+          </Flex>
+        </Link>
         <Spacer />
         <Flex gap={8} alignItems="center" flexWrap="wrap">
           <Link

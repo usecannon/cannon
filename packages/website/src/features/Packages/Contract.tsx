@@ -47,6 +47,8 @@ export const Contract: FC<{
           fontSize="lg"
           ml="2"
           color="gray.400"
+          textDecoration="none"
+          _hover={{ textDecoration: 'none' }}
           onClick={adjustScroll}
         >
           #
