@@ -1,5 +1,5 @@
 {
-  "bootstrap-sha": "d14e5de8679cadc87673901a1820ecaa1f6ccde6",
+  "bootstrap-sha": "ef97245a7527d4825b6e79f856e41a9bdd86092d",
   "include-component-in-tag": false,
   "plugins": [
     "node-workspace"
@@ -7,10 +7,6 @@
   "packages": {
     "packages/builder": {},
     "packages/cli": {},
-    "packages/hardhat-cannon": {},
-    "packages/registry-subgraph": {},
-    "packages/sample-foundry-project": {},
-    "packages/sample-hardhat-project": {},
-    "packages/website": {}
+    "packages/hardhat-cannon": {}
   }
 }

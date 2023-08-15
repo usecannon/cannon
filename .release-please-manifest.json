@@ -1,9 +1,5 @@
 {
   "packages/builder": "2.5.0",
   "packages/cli": "2.5.0",
-  "packages/hardhat-cannon": "2.5.0",
-  "packages/registry-subgraph": "2.5.0",
-  "packages/sample-foundry-project": "2.5.0",
-  "packages/sample-hardhat-project": "2.5.0",
-  "packages/website": "2.5.0"
+  "packages/hardhat-cannon": "2.5.0"
 }
