@@ -1,5 +1,12 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.5.1 to ^2.5.2
+    * @usecannon/cli bumped from ^2.5.1 to ^2.5.2
+
 ## [2.5.1](https://github.com/FuzzB0t/cannon/compare/v2.5.0...v2.5.1) (2023-08-15)
 
 
