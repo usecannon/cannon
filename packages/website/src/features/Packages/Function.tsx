@@ -145,6 +145,7 @@ export const Function: FC<{
                 {input.name && <Text display="inline">{input.name}</Text>}
                 {input.type && (
                   <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
                     {input.type}
                   </Text>
                 )}
