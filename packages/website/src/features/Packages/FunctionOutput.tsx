@@ -75,7 +75,7 @@ export const FunctionOutput: FC<{
                 )}
                 {(!item.components ||
                   (item.type !== 'tuple[]' && item.type !== 'tuple')) && (
-                  <div>{result}</div>
+                  <div>{String(result)}</div>
                 )}
               </div>
             );

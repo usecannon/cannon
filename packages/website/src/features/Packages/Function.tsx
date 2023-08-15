@@ -2,7 +2,6 @@ import React, { FC, useEffect, useMemo, useState } from 'react';
 import { AbiFunction, Abi } from 'abitype/src/abi';
 
 import { ChainArtifacts } from '@usecannon/builder';
-import _ from 'lodash';
 import {
   Alert,
   Box,
@@ -32,14 +31,15 @@ import { ethers } from 'ethers'; // Remove after the builder is refactored to vi
 
 export const Function: FC<{
   f: AbiFunction;
+  abi: Abi;
   address: string;
   cannonOutputs: ChainArtifacts;
   chainId?: number;
-}> = ({ f, address, cannonOutputs, chainId }) => {
+}> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
-  const [params, setParams] = useState<any[]>([]);
+  const [params, setParams] = useState<any[] | any>([]);
   const { isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const { openConnectModal } = useConnectModal();
@@ -58,29 +58,30 @@ export const Function: FC<{
     [f.stateMutability]
   );
 
+  // useEffect(() => {
+  //   _.debounce(() => {
+  //     if (readOnly && f.inputs.length === params.length) {
+  //       void submit();
+  //     }
+  //   }, 200)();
+  // }, [params, readOnly]);
+  //
   useEffect(() => {
-    _.debounce(() => {
-      if (readOnly) {
-        void submit();
-      }
-    }, 200)();
-  }, [params, readOnly]);
-
-  useEffect(() => {
-    if (readOnly && params.length == 0) {
+    if (readOnly && f.inputs.length === 0) {
       void submit(true);
     }
   }, []);
 
   const submit = async (suppressError = false) => {
     setLoading(true);
+    setError(null);
     try {
       if (readOnly) {
         const _result = await publicClient.readContract<Abi, string>({
           address: address as Address,
-          abi: [f],
+          abi: abi,
           functionName: f.name,
-          args: params,
+          args: Array.isArray(params) ? params : [params],
         }); //[f.name](...params);
         setResult(_result);
       } else {
@@ -100,7 +101,7 @@ export const Function: FC<{
           const _result = await walletClient?.writeContract<Abi, string, Chain>(
             {
               address: address as Address,
-              abi: [f],
+              abi: abi,
               functionName: f.name,
               args: Array.isArray(params) ? params : [params],
             }
@@ -110,16 +111,21 @@ export const Function: FC<{
           console.error(e);
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       if (!suppressError) {
+        console.error(e);
+        // setError(e?.message || e?.error?.message || e?.error || e);
         try {
           const provider = new ethers.providers.JsonRpcProvider(
-            publicClient.chain.rpcUrls.public.http[0] as string
+            publicClient?.chain?.rpcUrls?.public?.http[0] as string
           );
           await handleTxnError(cannonOutputs, provider, e);
-          console.error(e);
-        } catch (e2) {
-          setError(e2);
+        } catch (e2: any) {
+          setError(
+            typeof e2 === 'string'
+              ? e2
+              : e2?.message || e2?.error?.message || e2?.error || e2
+          );
         }
       }
     } finally {
@@ -139,6 +145,7 @@ export const Function: FC<{
                 {input.name && <Text display="inline">{input.name}</Text>}
                 {input.type && (
                   <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                    {' '}
                     {input.type}
                   </Text>
                 )}
@@ -164,7 +171,8 @@ export const Function: FC<{
         </Box>
       )}
 
-      {readOnly && (result != null || error) && (
+      {/*{readOnly && (result != null || error) && (*/}
+      {readOnly && (
         <Box
           display="inline-block"
           py={1}

@@ -7,10 +7,9 @@ export const AddressInput: FC<{
   value?: string;
 }> = ({ handleUpdate, value = '' }) => {
   const [updateValue, setUpdateValue] = useState<string>(value);
-  const isInvalid = useMemo(
-    () => !updateValue.length && !isAddress(updateValue),
-    [updateValue]
-  );
+  const isInvalid = useMemo(() => {
+    return updateValue?.length > 0 && !isAddress(updateValue);
+  }, [updateValue]);
   useEffect(() => handleUpdate(updateValue), [updateValue]);
 
   return (
@@ -18,11 +17,10 @@ export const AddressInput: FC<{
       type="text"
       bg="black"
       borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
-      is-invalid={isInvalid}
       placeholder="0x0000000000000000000000000000000000000000"
       value={updateValue}
       onChange={(e) => {
-        setUpdateValue(e.target.value);
+        setUpdateValue(e.target.value || '');
       }}
       _focus={{
         borderColor: isInvalid ? 'red.500' : 'blue.300',

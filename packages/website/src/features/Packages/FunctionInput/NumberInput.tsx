@@ -8,7 +8,7 @@ export const NumberInput: FC<{
   positiveOnly?: boolean;
 }> = ({ handleUpdate, value = '0', positiveOnly = false }) => {
   // TODO: Doesn't look a solid approach (parseEther if it has dot)
-  const parseValue = (_value: string): bigint =>
+  const parseValue = (_value = '0'): bigint =>
     _value.includes('.') ? parseEther(_value) : BigInt(_value);
 
   const [updateValue, setUpdateValue] = useState<bigint>(parseValue(value));
@@ -23,9 +23,7 @@ export const NumberInput: FC<{
       type="number"
       bg="black"
       step="1"
-      v-model="value"
       borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
-      is-invalid={isInvalid}
       value={updateValue.toString()}
       _focus={{ borderColor: isInvalid ? 'red.500' : 'blue.300' }}
       onChange={(e) => {

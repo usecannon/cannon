@@ -30,7 +30,6 @@ export const ProvisionStep: FC<{
   }, [imports]);
 
   const copy = useCopy();
-  console.log('output', output);
 
   return (
     <Box mb="8">
