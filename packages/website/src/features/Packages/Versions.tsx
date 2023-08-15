@@ -42,18 +42,18 @@ export const Versions: FC<{
                   key={variants[0].preset}
                   borderTop="1px solid"
                   borderColor="gray.700"
-                  template-columns="repeat(12, 1fr)"
+                  templateColumns="repeat(12, 1fr)"
                   gap="2"
                 >
-                  <GridItem col-span="2" pt="1">
+                  <GridItem colSpan={2} pt="1">
                     <Heading size="sm" my="auto">
                       {variants[0].preset}
                     </Heading>
                   </GridItem>
-                  <GridItem col-span="7">
+                  <GridItem colSpan={7}>
                     <PackageNetworks download p={{ variants }} />
                   </GridItem>
-                  <GridItem col-span="3" textAlign="right">
+                  <GridItem colSpan={3} textAlign="right">
                     <PublishInfo lineBreak={true} p={latestVariantByTag(tag)} />
                   </GridItem>
                 </Grid>

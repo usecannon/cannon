@@ -8,8 +8,8 @@ import {
   Grid,
   GridItem,
   Button,
-  Flex,
   Box,
+  Wrap,
 } from '@chakra-ui/react';
 import { FC, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -29,17 +29,17 @@ interface IDocsPageProps {
 enum DocsPageType {
   OVERVIEW,
   TECHNICAL,
+  CONFIGURATION,
 }
 
 export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
   const [tabIndex, setTabIndex] = useState(DocsPageType.OVERVIEW);
-  console.log('contents', contents.overview.list);
   return (
     <Container maxW="container.lg">
       <Grid templateColumns="repeat(12, 1fr)" gap={6}>
         <GridItem colSpan={3}>
           <Box position="sticky" top={8}>
-            <Flex justifyContent="space-between">
+            <Wrap justifyContent="space-between">
               <Button
                 onClick={() => setTabIndex(DocsPageType.OVERVIEW)}
                 isActive={tabIndex === DocsPageType.OVERVIEW}
@@ -56,12 +56,22 @@ export const DocsPage: FC<IDocsPageProps> = ({ contents }) => {
               >
                 TECH REFERENCE
               </Button>
-            </Flex>
+              <Button
+                onClick={() => setTabIndex(DocsPageType.CONFIGURATION)}
+                isActive={tabIndex === DocsPageType.CONFIGURATION}
+                size="xs"
+                colorScheme="teal"
+              >
+                Cannonfile spec
+              </Button>
+            </Wrap>
             {tabIndex === DocsPageType.OVERVIEW ? (
               <DocsSidebar list={contents.overview.list} />
-            ) : (
+            ) : tabIndex === DocsPageType.TECHNICAL ? (
               <DocsSidebar list={contents.technical.list} />
-            )}
+            ) : tabIndex === DocsPageType.CONFIGURATION ? (
+              <DocsSidebar list={contents.configuration.list} />
+            ) : null}
           </Box>
         </GridItem>
         <GridItem colSpan={9}>

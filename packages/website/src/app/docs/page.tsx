@@ -18,8 +18,13 @@ export default function Docs() {
     .readFileSync(path.join('content', 'docs-technical' + '.md'))
     .toString();
 
+  const configurationMarkdown = fs
+    .readFileSync(path.join('content', 'docs-configuration' + '.md'))
+    .toString();
+
   const overviewList = exportListFromMarkdown(overviewMarkdown);
   const technicalList = exportListFromMarkdown(technicalMarkdown);
+  const configurationList = exportListFromMarkdown(configurationMarkdown);
 
   const contents = {
     overview: {
@@ -29,6 +34,10 @@ export default function Docs() {
     technical: {
       list: technicalList,
       md: technicalMarkdown,
+    },
+    configuration: {
+      list: configurationList,
+      md: configurationMarkdown,
     },
   };
 
