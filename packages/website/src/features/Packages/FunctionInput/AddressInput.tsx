@@ -7,10 +7,9 @@ export const AddressInput: FC<{
   value?: string;
 }> = ({ handleUpdate, value = '' }) => {
   const [updateValue, setUpdateValue] = useState<string>(value);
-  const isInvalid = useMemo(
-    () => !updateValue.length && !isAddress(updateValue),
-    [updateValue]
-  );
+  const isInvalid = useMemo(() => {
+    return updateValue?.length > 0 && !isAddress(updateValue);
+  }, [updateValue]);
   useEffect(() => handleUpdate(updateValue), [updateValue]);
 
   return (
