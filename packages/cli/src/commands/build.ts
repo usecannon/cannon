@@ -150,7 +150,8 @@ export async function build({
   }
   console.log('');
 
-  let pkgName, pkgVersion;
+  let pkgName = packageDefinition?.name;
+  let pkgVersion = packageDefinition?.version;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
