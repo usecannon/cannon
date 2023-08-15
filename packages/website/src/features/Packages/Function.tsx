@@ -2,7 +2,6 @@ import React, { FC, useEffect, useMemo, useState } from 'react';
 import { AbiFunction, Abi } from 'abitype/src/abi';
 
 import { ChainArtifacts } from '@usecannon/builder';
-import _ from 'lodash';
 import {
   Alert,
   Box,
@@ -27,8 +26,8 @@ import {
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address } from 'viem';
-// import { handleTxnError } from '@usecannon/builder';
-// import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+import { handleTxnError } from '@usecannon/builder';
+import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 
 export const Function: FC<{
   f: AbiFunction;
@@ -36,11 +35,11 @@ export const Function: FC<{
   address: string;
   cannonOutputs: ChainArtifacts;
   chainId?: number;
-}> = ({ f, abi, address, chainId }) => {
+}> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
-  const [params, setParams] = useState<any[]>([]);
+  const [params, setParams] = useState<any[] | any>([]);
   const { isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const { openConnectModal } = useConnectModal();
@@ -59,29 +58,30 @@ export const Function: FC<{
     [f.stateMutability]
   );
 
+  // useEffect(() => {
+  //   _.debounce(() => {
+  //     if (readOnly && f.inputs.length === params.length) {
+  //       void submit();
+  //     }
+  //   }, 200)();
+  // }, [params, readOnly]);
+  //
   useEffect(() => {
-    _.debounce(() => {
-      if (readOnly && f.inputs.length === params.length) {
-        void submit();
-      }
-    }, 200)();
-  }, [params, readOnly]);
-
-  useEffect(() => {
-    if (readOnly && f.inputs.length === params.length) {
+    if (readOnly && f.inputs.length === 0) {
       void submit(true);
     }
   }, []);
 
   const submit = async (suppressError = false) => {
     setLoading(true);
+    setError(null);
     try {
       if (readOnly) {
         const _result = await publicClient.readContract<Abi, string>({
           address: address as Address,
           abi: abi,
           functionName: f.name,
-          args: params,
+          args: Array.isArray(params) ? params : [params],
         }); //[f.name](...params);
         setResult(_result);
       } else {
@@ -114,16 +114,19 @@ export const Function: FC<{
     } catch (e: any) {
       if (!suppressError) {
         console.error(e);
-        setError(e?.message || e?.error?.message || e?.error || e);
-        // TODO: fix issue with importing handleTxError from builder
-        // try {
-        //   // const provider = new ethers.providers.JsonRpcProvider(
-        //   //   publicClient?.chain?.rpcUrls?.public?.http[0] as string
-        //   // );
-        //   // await handleTxnError(cannonOutputs, provider, e);
-        // } catch (e2) {
-        //   setError(e2);
-        // }
+        // setError(e?.message || e?.error?.message || e?.error || e);
+        try {
+          const provider = new ethers.providers.JsonRpcProvider(
+            publicClient?.chain?.rpcUrls?.public?.http[0] as string
+          );
+          await handleTxnError(cannonOutputs, provider, e);
+        } catch (e2: any) {
+          setError(
+            typeof e2 === 'string'
+              ? e2
+              : e2?.message || e2?.error?.message || e2?.error || e2
+          );
+        }
       }
     } finally {
       setLoading(false);
@@ -167,7 +170,8 @@ export const Function: FC<{
         </Box>
       )}
 
-      {readOnly && (result != null || error) && (
+      {/*{readOnly && (result != null || error) && (*/}
+      {readOnly && (
         <Box
           display="inline-block"
           py={1}
