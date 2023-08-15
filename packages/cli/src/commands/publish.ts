@@ -20,7 +20,7 @@ export async function publish({
   packageRef,
   signer,
   tags = ['latest'],
-  chainId = 13370,
+  chainId,
   preset = 'main',
   quiet = false,
   recursive = true,
