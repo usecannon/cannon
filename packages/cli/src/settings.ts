@@ -67,7 +67,7 @@ const getRegistryProviderUrl = (fileSettings: any, privateKey: string): string =
   }
   if (registryProviderUrl && !privateKey) {
     console.warn(
-      `\n\nIt's skipping the RPC/registryProviderUrl(${registryProviderUrl}) in settings because --private-key was not supplied\n\n`
+      `\n\nUsing Frame instead of configured registryProviderUrl (${registryProviderUrl}), supply --private-key to change.\n\n`
     );
   }
   return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
