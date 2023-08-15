@@ -18,8 +18,13 @@ jobs:
           command: manifest
           token: ${{ secrets.GITHUB_TOKEN }}
           default-branch: main
+
+      - name: Dump context
+        env:
+          RELEASE: ${{ steps.release.outputs }}
+        run: echo "$RELEASE"
           
-       # The logic below handles the npm publication:
+        # The logic below handles the npm publication:
       - name: Checkout Repository
         if: ${{ steps.release.outputs.release_created }}
         uses: actions/checkout@v2
