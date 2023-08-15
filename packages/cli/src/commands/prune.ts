@@ -40,7 +40,6 @@ export async function prune(
   }
 
   debug(`loaded ${registryUrls.size} urls from registry, filters ${JSON.stringify(packageFilters)}`);
-  console.log(Array.from(registryUrls).join('\n'));
 
   if (packageFilters.length && !registryUrls.size) {
     throw new Error('registry does not show any package urls. this is likely an error');
