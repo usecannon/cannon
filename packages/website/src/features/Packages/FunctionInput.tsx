@@ -77,19 +77,13 @@ export const FunctionInput: FC<{
         <Box>
           {dataArray.map((inp, index) => {
             return (
-              <Flex align="center" mb="4" flex="1" key={inp.id}>
-                <Flex flex="1">
-                  {getInputComponent((value: any) =>
-                    handleUpdate(index, value)
-                  )}
-                  <Flex justify="center" mt="2">
-                    {dataArray.length > 1 && (
-                      <Link onClick={() => remove(index)} ml="4">
-                        <CloseIcon name="close" color="red.500" />{' '}
-                      </Link>
-                    )}
-                  </Flex>
-                </Flex>
+              <Flex flex="1" alignItems="center" mb="4" key={inp.id}>
+                {getInputComponent((value: any) => handleUpdate(index, value))}
+                {dataArray.length > 1 && (
+                  <Box onClick={() => remove(index)} ml="4">
+                    <CloseIcon name="close" color="red.500" />{' '}
+                  </Box>
+                )}
               </Flex>
             );
           })}
