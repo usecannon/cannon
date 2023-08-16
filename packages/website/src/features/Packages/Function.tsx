@@ -34,7 +34,7 @@ export const Function: FC<{
   abi: Abi;
   address: string;
   cannonOutputs: ChainArtifacts;
-  chainId?: number;
+  chainId: number;
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);

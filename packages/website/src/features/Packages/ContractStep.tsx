@@ -7,7 +7,7 @@ import { Abi } from 'viem';
 export const ContractStep: FC<{
   contracts?: ContractMap;
   cannonOutputs: ChainArtifacts;
-  chainId?: number;
+  chainId: number;
 }> = ({ contracts = {}, cannonOutputs, chainId }) => {
   const output: ({ title: string } & Pick<ContractData, 'address' | 'abi'>)[] =
     useMemo(() => {

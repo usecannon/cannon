@@ -11,7 +11,7 @@ export const Contract: FC<{
   address: string;
   abi: AbiType;
   cannonOutputs: ChainArtifacts;
-  chainId?: number;
+  chainId: number;
 }> = ({ title, address, abi, cannonOutputs, chainId }) => {
   const [show, setShow] = useState(false);
   const anchor = useMemo(() => {
