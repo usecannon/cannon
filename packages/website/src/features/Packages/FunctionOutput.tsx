@@ -34,15 +34,17 @@ export const FunctionOutput: FC<{
                   <div>
                     {item.type === 'tuple' && (
                       <div>
-                        {result.map((component: any, componentIndex: any) => {
-                          return (
-                            <FunctionOutput
-                              output={item.components[componentIndex]}
-                              result={component}
-                              key={componentIndex}
-                            />
-                          );
-                        })}
+                        {Object.values(result).map(
+                          (component: any, componentIndex: any) => {
+                            return (
+                              <FunctionOutput
+                                output={item.components[componentIndex]}
+                                result={component}
+                                key={componentIndex}
+                              />
+                            );
+                          }
+                        )}
                       </div>
                     )}
                   </div>
@@ -84,7 +86,7 @@ export const FunctionOutput: FC<{
       )}
       {objectOutput && (
         <div>
-          {objectOutput.name}: {result}
+          {objectOutput.name}: {JSON.stringify(result, null, 2)}
           <Text fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
           </Text>
