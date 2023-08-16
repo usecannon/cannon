@@ -137,7 +137,7 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
           <ProvisionStep
             imports={output}
             cannonOutputs={cannonOutputs}
-            chainId={selectedVersion?.chain_id}
+            chainId={selectedVersion?.chain_id || 1}
           />
         </Box>
       )}
