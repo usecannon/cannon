@@ -58,6 +58,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 Currently our [release workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
 It only publishes releases if any SemVer version changes have been added to the commit history merged into main.
 
+If a situation where a commit was merged without proper convention arises, we can always bump and publish manually using lerna's [version and publish](https://lerna.js.org/docs/features/version-and-publish) workflow:
+
+ `npx lerna publish --no-private` will bump package versions and find npm packages that need to be published in the repo.
+
 ## License
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
