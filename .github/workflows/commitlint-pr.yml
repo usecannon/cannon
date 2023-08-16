@@ -6,6 +6,12 @@ on:
       - opened
       - edited
       - synchronize
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+        
 
 permissions:
   contents: read
