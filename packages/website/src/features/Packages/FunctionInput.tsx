@@ -34,7 +34,7 @@ export const FunctionInput: FC<{
 
   useEffect(() => {
     valueUpdated(dataArray.map((item) => item.val));
-  }, dataArray);
+  }, [dataArray]);
 
   const handleUpdate = (index: number | null, value: any) => {
     if (isArray) {

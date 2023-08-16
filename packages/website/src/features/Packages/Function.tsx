@@ -137,7 +137,7 @@ export const Function: FC<{
       <Heading size="sm" mb="2">
         {f.name}()
       </Heading>
-      {f.inputs.map((input) => {
+      {f.inputs.map((input, index) => {
         return (
           <Box key={JSON.stringify(input)}>
             <FormControl mb="4">
@@ -150,7 +150,14 @@ export const Function: FC<{
                   </Text>
                 )}
               </FormLabel>
-              <FunctionInput input={input} valueUpdated={setParams} />
+              <FunctionInput
+                input={input}
+                valueUpdated={(value) => {
+                  const _params = [...params];
+                  _params[index] = value;
+                  setParams(_params);
+                }}
+              />
             </FormControl>
           </Box>
         );
