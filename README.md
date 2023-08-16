@@ -49,13 +49,13 @@ Preview updates to the website
 cd ./packages/website && npm run dev
 ```
 
-### Contributing Guidelines
+### Contribution Guidelines
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ### Publishing
 
-Currently our [release please workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
+Currently our [release workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
 It only publishes releases if any SemVer version changes have been added to the commit history merged into main.
 
 ## License
