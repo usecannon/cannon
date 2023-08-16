@@ -82,11 +82,13 @@ export const FunctionInput: FC<{
                   {getInputComponent((value: any) =>
                     handleUpdate(index, value)
                   )}
-                  {dataArray.length > 1 && (
-                    <Link onClick={() => remove(index)} ml="4">
-                      <CloseIcon name="close" color="red.500" />{' '}
-                    </Link>
-                  )}
+                  <Flex justify="center" mt="2">
+                    {dataArray.length > 1 && (
+                      <Link onClick={() => remove(index)} ml="4">
+                        <CloseIcon name="close" color="red.500" />{' '}
+                      </Link>
+                    )}
+                  </Flex>
                 </Flex>
               </Flex>
             );
