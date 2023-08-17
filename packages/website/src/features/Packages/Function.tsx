@@ -16,7 +16,6 @@ import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { RefreshCw } from 'react-feather';
 import {
-  Chain,
   useAccount,
   useConnect,
   useNetwork,

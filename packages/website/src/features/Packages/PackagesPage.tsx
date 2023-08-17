@@ -10,8 +10,6 @@ import {
 import { useQuery } from '@apollo/client';
 import {
   Box,
-  Grid,
-  GridItem,
   Heading,
   Spinner,
   Text,
@@ -23,7 +21,6 @@ import {
   Container,
 } from '@chakra-ui/react';
 import PackageNetworks from '@/components/PackageNetworks';
-import { CommandPreview } from '@/components/CommandPreview';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';

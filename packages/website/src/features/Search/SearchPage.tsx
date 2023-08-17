@@ -79,7 +79,7 @@ export const SearchPage = () => {
   });
 
   return (
-    <Flex flex="1" w="100%" flexDir={flexDirectionBreakpoint}>
+    <Flex flex="1" w="100%" flexDir={flexDirectionBreakpoint as any}>
       <Box
         p={8}
         borderRight={borderBreakpoint}

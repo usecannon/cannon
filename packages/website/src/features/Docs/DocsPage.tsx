@@ -33,7 +33,7 @@ export const DocsPage: FC<IDocsPageProps> = ({ list, md }) => {
   });
 
   return (
-    <Flex flex="1" w="100%" flexDir={flexDirectionBreakpoint}>
+    <Flex flex="1" w="100%" flexDirection={flexDirectionBreakpoint as any}>
       <Box
         p={8}
         borderRight={borderBreakpoint}
