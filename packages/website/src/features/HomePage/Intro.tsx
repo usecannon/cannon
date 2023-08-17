@@ -14,7 +14,7 @@ export const Intro = () => {
           &apos;Infrastructure as Code&apos; for Foundry and Hardhat
         </Heading>
         <Flex gap={8} flexWrap="wrap">
-          <Link href={links.GET_STARTED} color="white" as={NextLink}>
+          <Link href={links.LEARN} color="white" as={NextLink}>
             <Button colorScheme="teal" size="md">
               Get Started
             </Button>

@@ -44,7 +44,10 @@ export const RunPackage = () => {
         The command-line tool has a lot of additional functionality, including
         the ability to run packages on local forks and interact with deployments
         on remote networks. See the&nbsp;
-        <Link href={links.TECHNICAL_REF + '#cannon-commands'} as={NextLink}>
+        <Link
+          href={links.TECHNICALREFERENCE + '#cannon-commands'}
+          as={NextLink}
+        >
           Technical Reference
         </Link>
         &nbsp;for more information.

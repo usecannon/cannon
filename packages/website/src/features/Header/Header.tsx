@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Button, Flex, Image, Spacer, Box } from '@chakra-ui/react';
+import { Flex, Image, Spacer, Box } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
@@ -8,9 +8,9 @@ import { links } from '@/constants/links';
 export const Header = () => {
   return (
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
-      <Flex align="center" mx="auto" p={4} flexWrap="wrap">
+      <Flex align="center" mx="auto" p={4} pr={8} flexWrap="wrap">
         <Link
-          href={links.HomePage}
+          href={links.HOMEPAGE}
           color="white"
           as={NextLink}
           textDecoration="none"
@@ -55,7 +55,7 @@ export const Header = () => {
             Deploy
           </Link>
           <Link
-            href={links.DOCS}
+            href={links.LEARN}
             color="white"
             as={NextLink}
             textDecoration="none"
@@ -65,11 +65,6 @@ export const Header = () => {
             fontFamily="var(--font-miriam)"
           >
             Learn
-          </Link>
-          <Link href={links.GET_STARTED} color="white" as={NextLink}>
-            <Button colorScheme="teal" size="sm">
-              Get Started
-            </Button>
           </Link>
         </Flex>
       </Flex>

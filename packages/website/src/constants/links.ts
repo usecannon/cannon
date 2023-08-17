@@ -1,9 +1,8 @@
-const docs = '/docs';
-
 export const links = {
-  HomePage: '/',
-  GET_STARTED: '/get-started',
-  DOCS: docs,
+  HOMEPAGE: '/',
   EXPLORE: '/search',
-  TECHNICAL_REF: docs + '/technical-reference',
+  LEARN: '/learn',
+  GETSTARTED: '/learn/get-started',
+  TECHNICALREFERENCE: '/learn/technical-reference',
+  CANNONFILESPEC: '/learn/cannonfile-spec',
 };

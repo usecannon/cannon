@@ -38,11 +38,11 @@ export const ImportProvisionPackages = () => {
       </Heading>
       <Text>
         You can use packages in your Cannonfiles with the&nbsp;
-        <Link as={NextLink} href={links.TECHNICAL_REF + '#import'}>
+        <Link as={NextLink} href={links.TECHNICALREFERENCE + '#import'}>
           import
         </Link>
         &nbsp;and&nbsp;
-        <Link as={NextLink} href={links.TECHNICAL_REF + '#provision'}>
+        <Link as={NextLink} href={links.TECHNICALREFERENCE + '#provision'}>
           provision
         </Link>
         &nbsp;actions.

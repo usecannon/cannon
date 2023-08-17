@@ -2,8 +2,7 @@ import { GetStartedPage } from '@/features/GetStarted/GetStartedPage';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cannon | Get started',
-  description: "let's start with Cannon",
+  title: 'Cannon | Get Started',
 };
 
 export default function Home() {

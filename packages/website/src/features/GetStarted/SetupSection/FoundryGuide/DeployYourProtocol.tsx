@@ -35,7 +35,7 @@ export const DeployYourProtocol = () => {
           Great work!
         </Text>
         &nbsp;Check out the technical reference&nbsp;
-        <Link as={NextLink} href={links.TECHNICAL_REF}>
+        <Link as={NextLink} href={links.TECHNICALREFERENCE}>
           technical reference
         </Link>
         &nbsp;for more information about the command-line tool and the actions

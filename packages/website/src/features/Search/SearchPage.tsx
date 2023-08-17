@@ -87,7 +87,6 @@ export const SearchPage = () => {
         flexGrow={1}
         overflowY="auto"
         maxWidth="300px"
-        mb={{ base: '4', md: '0' }} // Adding margin-bottom for mobile to separate the two sections
       >
         <InputGroup borderColor="gray.600">
           <InputLeftElement pointerEvents="none">
