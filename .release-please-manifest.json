@@ -1,4 +1,5 @@
 {
-  "include-component-in-tag": false,
-  ".": "2.4.21"
+  "packages/builder": "2.5.1",
+  "packages/cli": "2.5.1",
+  "packages/hardhat-cannon": "2.5.1"
 }

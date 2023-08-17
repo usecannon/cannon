@@ -339,7 +339,7 @@ program
   .argument('<packageName>', 'Name and version of the package to publish')
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
   .option('--private-key <key>', 'Private key to use for publishing the registry package')
-  .option('--chain-id <number>', 'The chain ID of the package to publish', '13370')
+  .option('--chain-id <number>', 'The chain ID of the package to publish')
   .option('--preset <preset>', 'The preset of the packages to publish', 'main')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
@@ -359,6 +359,12 @@ program
     const p = await resolveRegistryProvider(cliSettings);
 
     const overrides: ethers.Overrides = {};
+
+    if (!options.chainId) {
+      throw new Error(
+        'Please provide a chainId using the format: --chain-id <number>. For example, 13370 is the chainId for a local build.'
+      );
+    }
 
     if (options.maxFeePerGas) {
       overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
