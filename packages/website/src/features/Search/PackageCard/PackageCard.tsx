@@ -22,8 +22,8 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
         borderColor="gray.600"
         mb="6"
         borderRadius="4px"
+        transition="all 0.12s"
         _hover={{ borderColor: 'gray.500' }}
-        transition="0.12s"
       >
         <Flex alignItems="['', 'center']" direction={['column', 'row']} mb="2">
           <Heading as="h4" size="md" mb={[1, 0]}>

@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { Box, Flex, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
+import { NavLink } from '@/components/NavLink';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -15,54 +16,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           flexWrap="wrap"
           justifyContent="center"
         >
-          <Link
-            href={links.LEARN}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Overview
-          </Link>
-          <Link
-            href={links.GETSTARTED}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Get Started
-          </Link>
-          <Link
-            href={links.TECHNICALREFERENCE}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Tech Reference
-          </Link>
-          <Link
-            href={links.CANNONFILESPEC}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Cannonfile Spec
-          </Link>
+          <NavLink href={links.LEARN}>Overview</NavLink>
+          <NavLink href={links.GETSTARTED}>Get Started</NavLink>
+          <NavLink href={links.TECHNICALREFERENCE}>Tech Reference</NavLink>
+          <NavLink href={links.CANNONFILESPEC}>Cannonfile Spec</NavLink>
         </Flex>
       </Box>
       {children}

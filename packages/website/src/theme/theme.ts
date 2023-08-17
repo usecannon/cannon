@@ -12,7 +12,7 @@ export const theme = extendTheme({
       200: '#E2E8F0',
       300: '#CBD5E0',
       400: '#A0AEC0',
-      500: '#718096',
+      500: '#4c5666',
       600: '#31363C', // used as border
       700: '#22262C', // used as border
       800: '#171B21', // used as box bg

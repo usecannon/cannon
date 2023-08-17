@@ -4,6 +4,7 @@ import { Flex, Image, Spacer, Box } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
+import { NavLink } from '@/components/NavLink';
 
 export const Header = () => {
   return (
@@ -31,41 +32,9 @@ export const Header = () => {
         <Spacer display={['none', 'none', 'block']} />
         <Box display={['block', 'block', 'none']} w="100%" />
         <Flex gap={8} alignItems="center" flexWrap="wrap">
-          <Link
-            href={links.EXPLORE}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Explore
-          </Link>
-          <Link
-            href="https://deploy.usecannon.com"
-            color="white"
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Deploy
-          </Link>
-          <Link
-            href={links.LEARN}
-            color="white"
-            as={NextLink}
-            textDecoration="none"
-            _hover={{ textDecoration: 'none' }}
-            textTransform="uppercase"
-            letterSpacing="1px"
-            fontFamily="var(--font-miriam)"
-          >
-            Learn
-          </Link>
+          <NavLink href={links.EXPLORE}>Explore</NavLink>
+          <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
+          <NavLink href={links.LEARN}>Learn</NavLink>
         </Flex>
       </Flex>
     </Box>
