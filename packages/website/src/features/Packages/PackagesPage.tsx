@@ -46,16 +46,11 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
   }, [data]);
 
   return (
-    <Container maxW="container.lg">
+    <>
       {pkg ? (
         <>
-          <Grid
-            templateColumns="repeat(12, 1fr)"
-            gap={6}
-            py={8}
-            alignItems="center"
-          >
-            <GridItem colSpan={[12, 12, 7]}>
+          <Box bg="black" pt={12} pb={6} mb={8}>
+            <Container maxW="container.lg">
               <Heading as="h4" size="md" mb="1">
                 {pkg?.name}
               </Heading>
@@ -63,23 +58,10 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 <PublishInfo p={pkg} />
               </Box>
               <PackageNetworks download p={pkg!} />
-            </GridItem>
-            <GridItem colSpan={[12, 12, 5]}>
-              <Heading
-                as="h4"
-                size="sm"
-                textTransform="uppercase"
-                fontWeight="normal"
-                letterSpacing="1px"
-                mb="2"
-              >
-                Quick Start
-              </Heading>
-              <CommandPreview command={`npx @usecannon/cli ${pkg.name}`} />
-            </GridItem>
-          </Grid>
+            </Container>
+          </Box>
 
-          <Box borderBottom="1px solid rgba(255,255,255,0.25)" pb="2">
+          <Container maxW="container.lg">
             <Tabs colorScheme="cyan">
               <TabList>
                 <Tab>Cannonfile</Tab>
@@ -98,35 +80,35 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            {/*<Link*/}
-            {/*  p="3"*/}
-            {/*  // as="nuxt-link"*/}
-            {/*  href={`/packages/${p?.name}/`}*/}
-            {/*  // exact TODO*/}
-            {/*  exact-active-class="active-link"*/}
-            {/*  // class="tab-link" TODO*/}
-            {/*>*/}
-            {/*  Cannonfile*/}
-            {/*</Link>*/}
-            {/*<Link*/}
-            {/*  p="3"*/}
-            {/*  // as="nuxt-link"*/}
-            {/*  href={`/packages/${p?.name}/interact`}*/}
-            {/*  active-class="active-link"*/}
-            {/*  // class="tab-link" TODO*/}
-            {/*>*/}
-            {/*  Interact*/}
-            {/*</Link>*/}
-            {/*<Link*/}
-            {/*  p="3"*/}
-            {/*  // as="nuxt-link"*/}
-            {/*  href={`/packages/${p?.name}/versions`}*/}
-            {/*  active-class="active-link"*/}
-            {/*  // class="tab-link" TODO*/}
-            {/*>*/}
-            {/*  Versions*/}
-            {/*</Link>*/}
-          </Box>
+          </Container>
+          {/*<Link*/}
+          {/*  p="3"*/}
+          {/*  // as="nuxt-link"*/}
+          {/*  href={`/packages/${p?.name}/`}*/}
+          {/*  // exact TODO*/}
+          {/*  exact-active-class="active-link"*/}
+          {/*  // class="tab-link" TODO*/}
+          {/*>*/}
+          {/*  Cannonfile*/}
+          {/*</Link>*/}
+          {/*<Link*/}
+          {/*  p="3"*/}
+          {/*  // as="nuxt-link"*/}
+          {/*  href={`/packages/${p?.name}/interact`}*/}
+          {/*  active-class="active-link"*/}
+          {/*  // class="tab-link" TODO*/}
+          {/*>*/}
+          {/*  Interact*/}
+          {/*</Link>*/}
+          {/*<Link*/}
+          {/*  p="3"*/}
+          {/*  // as="nuxt-link"*/}
+          {/*  href={`/packages/${p?.name}/versions`}*/}
+          {/*  active-class="active-link"*/}
+          {/*  // class="tab-link" TODO*/}
+          {/*>*/}
+          {/*  Versions*/}
+          {/*</Link>*/}
           {/*<NuxtChild :p="p" />*/}
         </>
       ) : (
@@ -134,7 +116,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           <Spinner my="12" />
         </Text>
       )}
-    </Container>
+    </>
   );
 };
 

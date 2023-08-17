@@ -9,6 +9,7 @@ import {
   useBreakpointValue,
   Alert,
   AlertTitle,
+  Container,
 } from '@chakra-ui/react';
 import { FC } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -46,52 +47,55 @@ export const DocsPage: FC<IDocsPageProps> = ({ list, md }) => {
       </Box>
 
       <Box p={8} flex={1} overflowY="auto">
-        <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
-          <AlertTitle>
-            🚧&nbsp;&nbsp;Cannon’s documentation is currently under
-            construction.
-          </AlertTitle>
-        </Alert>
-        <ReactMarkdown
-          components={{
-            p: ({ ...props }) => <Text {...props} mt={4} />,
-            h1: ({ ...props }) => <Heading as="h1" {...props} mb={4} />,
-            h2: ({ ...props }) => (
-              <Heading
-                as="h2"
-                {...props}
-                mb={4}
-                pt={8}
-                fontSize={24}
-                id={headingToId(props)}
-              />
-            ),
-            h3: ({ ...props }) => (
-              <Heading
-                as="h3"
-                {...props}
-                mb={4}
-                pt={8}
-                fontSize={20}
-                id={headingToId(props)}
-              />
-            ),
-            code: ({ inline, className, ...props }) => {
-              const lang = className?.replace('language-', '') || 'javascript';
-              return inline ? (
-                <Code colorScheme="blackAlpha" variant="solid" {...props} />
-              ) : (
-                <CodePreview
-                  code={(props.children[0] as string) || ''}
-                  language={lang}
+        <Container maxW="container.xl" ml={0}>
+          <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
+            <AlertTitle>
+              🚧&nbsp;&nbsp;Cannon’s documentation is currently under
+              construction.
+            </AlertTitle>
+          </Alert>
+          <ReactMarkdown
+            components={{
+              p: ({ ...props }) => <Text {...props} mt={4} />,
+              h1: ({ ...props }) => <Heading as="h1" {...props} mb={4} />,
+              h2: ({ ...props }) => (
+                <Heading
+                  as="h2"
                   {...props}
+                  mb={4}
+                  pt={8}
+                  fontSize={24}
+                  id={headingToId(props)}
                 />
-              );
-            },
-          }}
-        >
-          {md}
-        </ReactMarkdown>
+              ),
+              h3: ({ ...props }) => (
+                <Heading
+                  as="h3"
+                  {...props}
+                  mb={4}
+                  pt={8}
+                  fontSize={20}
+                  id={headingToId(props)}
+                />
+              ),
+              code: ({ inline, className, ...props }) => {
+                const lang =
+                  className?.replace('language-', '') || 'javascript';
+                return inline ? (
+                  <Code colorScheme="blackAlpha" variant="solid" {...props} />
+                ) : (
+                  <CodePreview
+                    code={(props.children[0] as string) || ''}
+                    language={lang}
+                    {...props}
+                  />
+                );
+              },
+            }}
+          >
+            {md}
+          </ReactMarkdown>
+        </Container>
       </Box>
     </Flex>
   );

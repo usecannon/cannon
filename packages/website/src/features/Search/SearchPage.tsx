@@ -11,6 +11,7 @@ import {
   Spinner,
   Text,
   useBreakpointValue,
+  Container,
 } from '@chakra-ui/react';
 import { useQuery } from '@apollo/client';
 import { GET_PACKAGES, TOTAL_PACKAGES } from '@/graphql/queries';
@@ -111,27 +112,29 @@ export const SearchPage = () => {
         </Flex>
       ) : (
         <Box p={8} flex={1} overflowY="auto">
-          {packages.map((pkg) => (
-            <PackageCard pkg={pkg} key={pkg.name} />
-          ))}
-          <Flex justifyContent="space-between">
-            <Button
-              size="sm"
-              colorScheme="teal"
-              onClick={() => setPage(page - 1)}
-              isDisabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              size="sm"
-              colorScheme="teal"
-              onClick={() => setPage(page + 1)}
-              isDisabled={page >= totalPages}
-            >
-              Next
-            </Button>
-          </Flex>
+          <Container ml={0} maxWidth="container.xl">
+            {packages.map((pkg) => (
+              <PackageCard pkg={pkg} key={pkg.name} />
+            ))}
+            <Flex justifyContent="space-between">
+              <Button
+                size="sm"
+                colorScheme="teal"
+                onClick={() => setPage(page - 1)}
+                isDisabled={page === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="teal"
+                onClick={() => setPage(page + 1)}
+                isDisabled={page >= totalPages}
+              >
+                Next
+              </Button>
+            </Flex>
+          </Container>
         </Box>
       )}
     </Flex>
