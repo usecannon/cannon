@@ -25,7 +25,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address } from 'viem';
+import { Address, getContract } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 
@@ -76,13 +76,17 @@ export const Function: FC<{
     setLoading(true);
     setError(null);
     try {
+      const contract = getContract({
+        address: address as Address,
+        abi,
+        publicClient,
+        walletClient: walletClient || undefined,
+      });
+
       if (readOnly) {
-        const _result = await publicClient.readContract<Abi, string>({
-          address: address as Address,
-          abi: abi,
-          functionName: f.name,
-          args: Array.isArray(params) ? params : [params],
-        }); //[f.name](...params);
+        const _result = await contract.read[f.name](
+          Array.isArray(params) ? params : [params]
+        );
         setResult(_result);
       } else {
         if (!isConnected) {
@@ -98,13 +102,8 @@ export const Function: FC<{
           if (newChain?.id != chainId) return;
         }
         try {
-          const _result = await walletClient?.writeContract<Abi, string, Chain>(
-            {
-              address: address as Address,
-              abi: abi,
-              functionName: f.name,
-              args: Array.isArray(params) ? params : [params],
-            }
+          const _result = await contract.write[f.name](
+            Array.isArray(params) ? params : [params]
           );
           setResult(_result);
         } catch (e) {
