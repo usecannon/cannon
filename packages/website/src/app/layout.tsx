@@ -2,7 +2,7 @@
 
 import { Providers } from './providers';
 import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
-import { Box } from '@chakra-ui/react';
+import { Flex, Box } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
 import { GithubFooter } from '@/features/Footer/GithubFooter';
 import { ReactNode } from 'react';
@@ -14,7 +14,7 @@ const miriam = Miriam_Libre({
 });
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['200', '400', '500', '600', '700'],
   display: 'swap',
 });
 const mono = Roboto_Mono({
@@ -40,11 +40,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </style>
       <body>
         <Providers>
-          <Box backgroundColor="gray.900" minHeight="100vh">
+          <Flex
+            flexDirection="column"
+            backgroundColor="gray.900"
+            minHeight="100vh"
+          >
             <Header />
-            <Box minH="calc(100vh - 165px)">{children}</Box>
+            <Box flex="1">{children}</Box>
             <GithubFooter />
-          </Box>
+          </Flex>
         </Providers>
       </body>
     </html>

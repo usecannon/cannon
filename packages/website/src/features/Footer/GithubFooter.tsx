@@ -16,7 +16,7 @@ export const GithubFooter = () => {
     >
       <GitHub size={16} />
       <Link href={externalLinks.GITHUB_CANNON} fontSize="sm">
-        View the Cannon Monorepo
+        Cannon on GitHub
       </Link>
     </Flex>
   );
