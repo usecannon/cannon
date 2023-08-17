@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react';
 import {
   Button,
-  Container,
   Flex,
-  Grid,
-  GridItem,
-  Heading,
+  Box,
   Input,
   InputGroup,
   InputLeftElement,
   Spinner,
   Text,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { useQuery } from '@apollo/client';
 import { GET_PACKAGES, TOTAL_PACKAGES } from '@/graphql/queries';
@@ -28,7 +26,7 @@ import { PackageCard } from './PackageCard/PackageCard';
 export const SearchPage = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const pageSize = 5;
+  const pageSize = 20;
   const [searchTerm, setSearchTerm] = useState<string>('');
   const { loading, error, data } = useQuery<
     GetPackagesQuery,
@@ -70,62 +68,73 @@ export const SearchPage = () => {
     );
   }, [totalPackages]);
 
+  const flexDirectionBreakpoint = useBreakpointValue({
+    base: 'column',
+    md: 'row',
+  });
+  const borderBreakpoint = useBreakpointValue({
+    base: 'none',
+    md: '1px solid',
+  });
+
   return (
-    <Container maxW="container.lg">
-      <Grid templateColumns="repeat(12, 1fr)" gap={6}>
-        <GridItem colSpan={3}>
-          <Heading as="h3" size="sm" mb={2}>
-            Search
-          </Heading>
-          <InputGroup>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
-            </InputLeftElement>
-            <Input onChange={handleSearch} mb={6} />
-          </InputGroup>
-          <Text>
-            {!totalLoading &&
-              'Showing ' +
-                page +
-                '-' +
-                totalPages +
-                ' of ' +
-                totalPackages?.totalPackages?.length +
-                ' results'}
-          </Text>
-        </GridItem>
-        {loading ? (
-          <GridItem colSpan={9}>
-            <Flex justifyContent="center" py={12}>
-              <Spinner />
-            </Flex>
-          </GridItem>
-        ) : (
-          <GridItem colSpan={9}>
-            {packages.map((pkg) => (
-              <PackageCard pkg={pkg} key={pkg.name} />
-            ))}
-            <Flex justifyContent="space-between">
-              <Button
-                size="sm"
-                colorScheme="teal"
-                onClick={() => setPage(page - 1)}
-                isDisabled={page === 1}
-              >
-                Previous
-              </Button>
-              <Button
-                size="sm"
-                colorScheme="teal"
-                onClick={() => setPage(page + 1)}
-                isDisabled={page >= totalPages}
-              >
-                Next
-              </Button>
-            </Flex>
-          </GridItem>
-        )}
-      </Grid>
-    </Container>
+    <Flex flex="1" w="100%" flexDir={flexDirectionBreakpoint}>
+      <Box
+        p={8}
+        borderRight={borderBreakpoint}
+        borderColor="gray.700"
+        flexShrink={0}
+        flexGrow={1}
+        overflowY="auto"
+        maxWidth="300px"
+        mb={{ base: '4', md: '0' }} // Adding margin-bottom for mobile to separate the two sections
+      >
+        <InputGroup borderColor="gray.600">
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="gray.500" />
+          </InputLeftElement>
+          <Input onChange={handleSearch} mb={6} />
+        </InputGroup>
+        <Text fontSize="sm" color="gray.500">
+          {!totalLoading &&
+            'Showing pages ' +
+              page +
+              '-' +
+              totalPages +
+              ' with ' +
+              totalPackages?.totalPackages?.length +
+              ' results'}
+        </Text>
+      </Box>
+      {loading ? (
+        <Flex justifyContent="center" alignItems="center" flex={1}>
+          <Spinner />
+        </Flex>
+      ) : (
+        <Box p={8} flex={1} overflowY="auto">
+          {packages.map((pkg) => (
+            <PackageCard pkg={pkg} key={pkg.name} />
+          ))}
+          <Flex justifyContent="space-between">
+            <Button
+              size="sm"
+              colorScheme="teal"
+              onClick={() => setPage(page - 1)}
+              isDisabled={page === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              size="sm"
+              colorScheme="teal"
+              onClick={() => setPage(page + 1)}
+              isDisabled={page >= totalPages}
+            >
+              Next
+            </Button>
+          </Flex>
+        </Box>
+      )}
+    </Flex>
   );
 };

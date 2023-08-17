@@ -6,6 +6,18 @@ export const theme = extendTheme({
     body: 'var(--font-inter)',
   },
   colors: {
+    gray: {
+      50: '#F7FAFC',
+      100: '#EDF2F7',
+      200: '#E2E8F0',
+      300: '#CBD5E0',
+      400: '#A0AEC0',
+      500: '#718096',
+      600: '#31363C', // used as border
+      700: '#22262C', // used as border
+      800: '#171B21', // used as box bg
+      900: '#0E1116', // used as bg
+    },
     blue: {
       700: '#003182',
       800: '#001d51',

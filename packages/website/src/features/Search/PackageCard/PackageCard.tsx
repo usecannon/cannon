@@ -15,14 +15,14 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
       <Box
         key={pkg.name}
         p="6"
-        bg="blue.975"
+        bg="black"
         display="block"
         borderWidth="1px"
         borderStyle="solid"
-        borderColor="rgba(255,255,255,0.15)"
+        borderColor="gray.600"
         mb="6"
         borderRadius="4px"
-        _hover={{ bg: 'blue.950', borderColor: 'rgba(255,255,255,0.25)' }}
+        _hover={{ borderColor: 'gray.500' }}
         transition="0.12s"
       >
         <Flex alignItems="['', 'center']" direction={['column', 'row']} mb="2">
