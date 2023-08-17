@@ -109,11 +109,10 @@ const PackageNetworks: FC<{
         display="inline-block"
         mr="2"
         transform="translateY(-4px)"
-        opacity="0.8"
+        color="gray.200"
+        fontWeight={500}
       >
-        <strong>
-          {download ? 'Download ' : ''}Deployment{download ? ' Data' : 's'}:
-        </strong>
+        {download ? 'Download ' : ''}Deployment{download ? ' Data' : 's'}:
       </Text>
       {chains?.map((chain) => {
         return (

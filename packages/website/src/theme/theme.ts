@@ -9,7 +9,7 @@ export const theme = extendTheme({
     gray: {
       50: '#F7FAFC',
       100: '#EDF2F7',
-      200: '#E2E8F0',
+      200: '#E7EDF2', // used in navlink
       300: '#CBD5E0',
       400: '#A0AEC0',
       500: '#4c5666',

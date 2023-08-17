@@ -85,9 +85,10 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
         align="center"
         position="sticky"
         top="0"
-        bg="blue.900"
+        bg="gray.900"
         zIndex="1"
-        borderBottom="1px solid rgba(255,255,255,0.25)"
+        borderBottom="1px solid"
+        borderColor="gray.700"
       >
         <ConnectWallet />
         <Box ml="auto">

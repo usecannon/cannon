@@ -1,15 +1,14 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Flex, Link } from '@chakra-ui/react';
-import NextLink from 'next/link';
+import { Box, Flex } from '@chakra-ui/react';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <Box bg="black" borderBottom="1px solid" borderColor="gray.700" p={4}>
+      <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
         <Flex
           gap={8}
           alignItems="center"

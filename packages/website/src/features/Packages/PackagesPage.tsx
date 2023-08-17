@@ -25,6 +25,7 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';
 import { Interact } from '@/features/Packages/Interact';
+//import { NavLink } from '@/components/NavLink';
 
 type Package = GetPackagesQuery['packages'][0];
 
@@ -46,15 +47,35 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
     <>
       {pkg ? (
         <>
-          <Box bg="black" pt={12} pb={6} mb={8}>
+          <Box
+            bg="black"
+            pt={12}
+            pb={2}
+            mb={8}
+            borderBottom="1px solid"
+            borderColor="gray.700"
+          >
             <Container maxW="container.lg">
               <Heading as="h4" size="md" mb="1">
                 {pkg?.name}
               </Heading>
-              <Box mb="2">
+              <Box mb={3}>
                 <PublishInfo p={pkg} />
               </Box>
-              <PackageNetworks download p={pkg!} />
+              <Box mb={6}>
+                <PackageNetworks download p={pkg!} />
+              </Box>
+              {/*}
+              <NavLink href="./" isSmall>
+                Cannonfile
+              </NavLink>
+              <NavLink href="./interact" isSmall>
+                Interact
+              </NavLink>
+              <NavLink href="./interact" isSmall>
+                Versions
+              </NavLink>
+      */}
             </Container>
           </Box>
 

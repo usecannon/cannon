@@ -9,7 +9,7 @@ import { NavLink } from '@/components/NavLink';
 export const Header = () => {
   return (
     <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
-      <Flex align="center" mx="auto" p={4} pr={8} flexWrap="wrap">
+      <Flex align="center" mx="auto" px={4} flexWrap="wrap">
         <Link
           href={links.HOMEPAGE}
           color="white"
@@ -31,7 +31,7 @@ export const Header = () => {
         </Link>
         <Spacer display={['none', 'none', 'block']} />
         <Box display={['block', 'block', 'none']} w="100%" />
-        <Flex gap={8} alignItems="center" flexWrap="wrap">
+        <Flex alignItems="center" flexWrap="wrap">
           <NavLink href={links.EXPLORE}>Explore</NavLink>
           <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
           <NavLink href={links.LEARN}>Learn</NavLink>
