@@ -1,4 +1,4 @@
-import { EIP1193Provider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
+import { EIP1193Provider, EthereumProvider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
 
 //import { HttpProvider } from 'hardhat/internal/core/providers/http';
 import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
@@ -21,6 +21,7 @@ class CannonWrapperProvider extends ProviderWrapper {
 
   public async request(args: RequestArguments): Promise<unknown> {
     try {
+      console.log("HERE1");
       return this._wrappedProvider.request(args);
     } catch (err) {
       const provider = new ethers.providers.Web3Provider(this._wrappedProvider);
@@ -29,15 +30,12 @@ class CannonWrapperProvider extends ProviderWrapper {
   }
 }
 
-export function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
+export async function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
   if (hre.network.name === 'cannon') {
-    const baseProvider = createProvider(
+    hre.config.networks.localhost.url =  `http://127.0.0.1:${hre.config.networks.cannon.port}`
+    const baseProvider = await createProvider(
+      hre.config,
       hre.network.name,
-      {
-        ...hre.network.config,
-        url: `http://127.0.0.1:${hre.config.networks.cannon.port}`,
-      },
-      hre.config.paths,
       hre.artifacts
     );
 
