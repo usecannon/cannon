@@ -70,7 +70,7 @@ export const Function: FC<{
     if (readOnly && f.inputs.length === 0) {
       void submit(true);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submit = async (suppressError = false) => {
     setLoading(true);
@@ -132,6 +132,7 @@ export const Function: FC<{
       setLoading(false);
     }
   };
+
   return (
     <Box mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
       <Heading size="sm" mb="2">
