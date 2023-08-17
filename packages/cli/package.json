@@ -13,9 +13,11 @@
   },
   "keywords": [
     "cannon",
-    "openzeppelin",
-    "erc20",
-    "erc721"
+    "hardhat",
+    "foundry",
+    "ethereum",
+    "solidity",
+    "devops"
   ],
   "author": "Cannon",
   "license": "MIT",

@@ -1,5 +1,3 @@
-# Cannon Documentation
-
 ## What is it?
 
 Cannon is a smart contract deployment tool and package manager. It draws inspiration from Terraform, Docker, and npm. Users define **Cannonfiles**, which specify a desired state of a blockchain (local, testnet, or mainnet). For example, you might want to _deploy_ a smart contract and _invoke_ a function on it to set some configuration. You can also _import_ packages to connect your protocol to an existing protocol.
@@ -60,7 +58,3 @@ Finally, set `cannon` as your default network in your Hardhat config file:
 ```
 
 Now you’ll be able to use the Hardhat plug-in commands specified in the [Cannon Commands](#cannon-commands) section below.
-
-## Gnosis Safe Plug-in
-
-_Coming soon._

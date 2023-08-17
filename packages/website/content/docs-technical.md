@@ -1,5 +1,3 @@
-# Technical Reference
-
 ## Cannon Commands
 
 Run the commands below with `npx @usecannon/cli <command>`. If no command is specified, the CLI will execute the "run" command.
@@ -210,7 +208,7 @@ The `invoke` action calls a specified function on your node.
 - `fromCall.args` - The arguments to pass into the function above.
 - `factory` - See _Referencing Factory-deployed Contracts_ below.
 - `extra` - See _Referencing Extra Event Data_ below.
-    - `allowEmptyEvents` - See _Event Error Logging_ below. Bypass error messages if an event is expected in your `invoke` action but none are emitted in the transaction. Can be set under the factory or extra properties.
+  - `allowEmptyEvents` - See _Event Error Logging_ below. Bypass error messages if an event is expected in your `invoke` action but none are emitted in the transaction. Can be set under the factory or extra properties.
 
 **Outputs**
 This action only updates the return object by adding an entry to the `txns` key.
@@ -234,10 +232,10 @@ factory.MyPoolDeployment.arg = 0
 
 Specifically, this would anticipate this invoke call will emit an event named _NewDeployment_ with a contract address as the first data argument (per `arg`, a zero-based index). This contract should implement the `Pool` contract. Now, a subsequent `invoke` action could set `target = ["MyPoolDeployment"]`.
 
-To reference contract information for a contract deployed on a previous invoke step such as the example shown above call the `contracts` object inside your cannonfile. 
+To reference contract information for a contract deployed on a previous invoke step such as the example shown above call the `contracts` object inside your cannonfile.
 For example `<%= contracts.MyPoolDeployment.address %>` would return the address of the `Pool` contract deployed by the `PoolFactory` contract.
 
-If the invoked function deploys multiple contracts of the same name, you can specify them by index through the `contracts` object. 
+If the invoked function deploys multiple contracts of the same name, you can specify them by index through the `contracts` object.
 
 - `<%= contracts.MyPoolDeployment.address %>` would return the first deployed `Pool` contract address
 - `<%= contracts.MyPoolDeployment_0.address %>` would return the second deployed `Pool` contract address
@@ -265,14 +263,14 @@ Now, calling `"<% = extras.NewDeploymentEvent %>"` in a subsequent `invoke` acti
 
 If an invoked function emits multiple events you can specify them by index.
 
-For example if the `PoolFactory` emitted multiple _NewDeployment_ events: 
+For example if the `PoolFactory` emitted multiple _NewDeployment_ events:
 
-- `<%= extras.NewDeploymentEvent_0 %>` would return the first emitted event of this kind 
-- `<% = extras.NewDeploymentEvent_4 %>` would reference the fifth emitted event of this kind 
+- `<%= extras.NewDeploymentEvent_0 %>` would return the first emitted event of this kind
+- `<% = extras.NewDeploymentEvent_4 %>` would reference the fifth emitted event of this kind
 
 #### Event Error Logging
 
-If an event is specified in the cannonfile but the `invoke` function does not emit any events or emits an event that doesn't match the one specified in the cannonfile, the `invoke` action will fail with an error. 
+If an event is specified in the cannonfile but the `invoke` function does not emit any events or emits an event that doesn't match the one specified in the cannonfile, the `invoke` action will fail with an error.
 
 You can bypass the event error logging by setting it like `extras.NewDeploymentEvent.allowEmptyEvents = true` or `factory.MyPoolDeployment.allowEmptyEvents = true` under the factory or extra property that throws an error.
 

@@ -6,3 +6,5 @@ packages/registry-subgraph/generated
 packages/registry-subgraph/src
 packages/contracts/lib/forge-std
 packages/contracts/lib/openzeppelin-contracts
+packages/website/next.config.js
+packages/website/src/types/graphql/*
