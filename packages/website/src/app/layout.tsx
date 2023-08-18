@@ -2,7 +2,7 @@
 
 import { Providers } from './providers';
 import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
-import { Flex, Box } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
 import { GithubFooter } from '@/features/Footer/GithubFooter';
 import { ReactNode } from 'react';

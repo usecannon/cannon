@@ -9,6 +9,7 @@ import {
 } from '@/types/graphql/graphql';
 import { useQuery } from '@apollo/client';
 import {
+  Flex,
   Box,
   Heading,
   Spinner,
@@ -44,7 +45,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
   }, [data]);
 
   return (
-    <>
+    <Flex flexDirection="column" width="100%">
       {pkg ? (
         <>
           <Box
@@ -134,7 +135,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           <Spinner my="12" />
         </Text>
       )}
-    </>
+    </Flex>
   );
 };
 

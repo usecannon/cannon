@@ -69,25 +69,22 @@ export const SearchPage = () => {
     );
   }, [totalPackages]);
 
-  const flexDirectionBreakpoint = useBreakpointValue({
-    base: 'column',
-    md: 'row',
-  });
-  const borderBreakpoint = useBreakpointValue({
-    base: 'none',
-    md: '1px solid',
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
   });
 
   return (
-    <Flex flex="1" w="100%" flexDir={flexDirectionBreakpoint as any}>
+    <Flex flex="1" w="100%" flexDir={isSmall ? 'column' : 'row'}>
       <Box
         p={8}
-        borderRight={borderBreakpoint}
+        borderRight={isSmall ? 'none' : '1px solid'}
         borderColor="gray.700"
         flexShrink={0}
-        flexGrow={1}
+        flexGrow={isSmall ? 0 : 1}
         overflowY="auto"
-        maxWidth="300px"
+        maxWidth={isSmall ? '100%' : '300px'}
       >
         <InputGroup borderColor="gray.600">
           <InputLeftElement pointerEvents="none">
@@ -99,11 +96,11 @@ export const SearchPage = () => {
           {!totalLoading &&
             'Showing pages ' +
               page +
-              '-' +
+              ' of ' +
               totalPages +
-              ' with ' +
+              ' (' +
               totalPackages?.totalPackages?.length +
-              ' results'}
+              ' results)'}
         </Text>
       </Box>
       {loading ? (
@@ -111,7 +108,7 @@ export const SearchPage = () => {
           <Spinner />
         </Flex>
       ) : (
-        <Box p={8} flex={1} overflowY="auto">
+        <Box p={isSmall ? 4 : 8} flex={1} overflowY="auto">
           <Container ml={0} maxWidth="container.xl">
             {packages.map((pkg) => (
               <PackageCard pkg={pkg} key={pkg.name} />

@@ -28,7 +28,7 @@ export const NavLink: FC<INavLinkProps> = ({ href, children, isSmall }) => {
         textShadow: '0px 0px 4px rgba(255, 255, 255, 0.44)',
       }}
       transition="all 0.12s"
-      p={4}
+      py={isSmall ? 3 : 4}
       position="relative"
       _after={
         isActive

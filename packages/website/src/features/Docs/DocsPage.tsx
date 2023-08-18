@@ -23,30 +23,27 @@ interface IDocsPageProps {
 }
 
 export const DocsPage: FC<IDocsPageProps> = ({ list, md }) => {
-  const flexDirectionBreakpoint = useBreakpointValue({
-    base: 'column',
-    md: 'row',
-  });
-  const borderBreakpoint = useBreakpointValue({
-    base: 'none',
-    md: '1px solid',
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
   });
 
   return (
-    <Flex flex="1" w="100%" flexDirection={flexDirectionBreakpoint as any}>
+    <Flex flex="1" w="100%" flexDirection={isSmall ? 'column' : 'row'}>
       <Box
-        p={8}
-        borderRight={borderBreakpoint}
+        p={isSmall ? 4 : 8}
+        borderRight={isSmall ? 'none' : '1px solid'}
         borderColor="gray.700"
         flexShrink={0}
-        flexGrow={1}
+        flexGrow={isSmall ? 0 : 1}
         overflowY="auto"
-        maxWidth="300px"
+        maxWidth="240px"
       >
         <DocsSidebar list={list} />
       </Box>
 
-      <Box p={8} flex={1} overflowY="auto">
+      <Box p={isSmall ? 0 : 8} flex={1} overflowY="auto">
         <Container maxW="container.xl" ml={0}>
           <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
             <AlertTitle>

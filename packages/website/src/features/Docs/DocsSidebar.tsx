@@ -24,6 +24,7 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
               display="block"
               fontSize={14}
               mb={6}
+              fontFamily="var(--font-miriam)"
             >
               {m[0]}
             </Link>
@@ -40,6 +41,7 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
                     fontSize={14}
                     ml={4}
                     my={2}
+                    fontFamily="var(--font-miriam)"
                   >
                     {s}
                   </Link>

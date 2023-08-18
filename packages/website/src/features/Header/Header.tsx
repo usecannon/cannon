@@ -31,7 +31,12 @@ export const Header = () => {
         <Spacer display={['none', 'none', 'block']} />
         <Box display={['block', 'block', 'none']} w="100%" />
         <Box width={['100%', '100%', 'auto']} mt={[1, 1, 0]}>
-          <Flex alignItems="center" flexWrap="wrap" justifyContent="center">
+          <Flex
+            gap={8}
+            alignItems="center"
+            flexWrap="wrap"
+            justifyContent="center"
+          >
             <NavLink href={links.EXPLORE}>Explore</NavLink>
             <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
             <NavLink href={links.LEARN}>Learn</NavLink>
