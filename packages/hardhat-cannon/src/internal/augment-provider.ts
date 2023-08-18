@@ -14,14 +14,13 @@ import { createProviderProxy } from '@nomiclabs/hardhat-ethers/internal/provider
 class CannonWrapperProvider extends ProviderWrapper {
   artifacts: ChainArtifacts;
 
-  constructor(provider: EIP1193Provider, artifacts: ChainArtifacts) {
+  constructor(provider: EthereumProvider, artifacts: ChainArtifacts) {
     super(provider);
     this.artifacts = artifacts;
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
     try {
-      console.log("HERE1");
       return this._wrappedProvider.request(args);
     } catch (err) {
       const provider = new ethers.providers.Web3Provider(this._wrappedProvider);
@@ -32,7 +31,9 @@ class CannonWrapperProvider extends ProviderWrapper {
 
 export async function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
   if (hre.network.name === 'cannon') {
-    hre.config.networks.localhost.url =  `http://127.0.0.1:${hre.config.networks.cannon.port}`
+    
+    hre.config.networks.cannon.url =  `http://127.0.0.1:${hre.config.networks.cannon.port}`
+
     const baseProvider = await createProvider(
       hre.config,
       hre.network.name,
