@@ -34,6 +34,7 @@ export function handlePublish(event: PackagePublish): void {
   variant.tag = tag.id;
   variant.deploy_url = event.params.deployUrl;
   variant.meta_url = event.params.metaUrl;
+  variant.cannon_package = cannon_package.id;
   if (variant_name.includes('-')) {
     variant.chain_id = <i32>parseInt(variant_name.split('-')[0]);
     variant.preset = variant_name.split('-').slice(1).join('-');

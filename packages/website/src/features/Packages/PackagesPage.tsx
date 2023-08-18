@@ -26,7 +26,6 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';
 import { Interact } from '@/features/Packages/Interact';
-//import { NavLink } from '@/components/NavLink';
 
 type Package = GetPackagesQuery['packages'][0];
 
@@ -57,7 +56,7 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
             borderColor="gray.700"
           >
             <Container maxW="container.lg">
-              <Heading as="h4" size="md" mb="1">
+              <Heading as="h4" size="md" mb="1" fontFamily="var(--font-miriam)">
                 {pkg?.name}
               </Heading>
               <Box mb={3}>

@@ -45,6 +45,7 @@ type Package {
   last_updated: BigInt!
   name: String!
   tags(first: Int = 100, orderBy: Tag_orderBy, orderDirection: OrderDirection, skip: Int = 0, where: Tag_filter): [Tag!]!
+  variants(first: Int = 100, orderBy: Variant_orderBy, orderDirection: OrderDirection, skip: Int = 0, where: Variant_filter): [Variant!]!
 }
 
 input Package_filter {
@@ -109,6 +110,7 @@ input Package_filter {
   name_starts_with_nocase: String
   or: [Package_filter]
   tags_: Tag_filter
+  variants_: Variant_filter
 }
 
 enum Package_orderBy {
@@ -117,6 +119,7 @@ enum Package_orderBy {
   last_updated
   name
   tags
+  variants
 }
 
 type Query {
@@ -405,6 +408,7 @@ enum Tag_orderBy {
 }
 
 type Variant {
+  cannon_package: Package!
   chain_id: Int!
   deploy_url: String!
   id: ID!
@@ -420,6 +424,27 @@ input Variant_filter {
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
   and: [Variant_filter]
+  cannon_package: String
+  cannon_package_: Package_filter
+  cannon_package_contains: String
+  cannon_package_contains_nocase: String
+  cannon_package_ends_with: String
+  cannon_package_ends_with_nocase: String
+  cannon_package_gt: String
+  cannon_package_gte: String
+  cannon_package_in: [String!]
+  cannon_package_lt: String
+  cannon_package_lte: String
+  cannon_package_not: String
+  cannon_package_not_contains: String
+  cannon_package_not_contains_nocase: String
+  cannon_package_not_ends_with: String
+  cannon_package_not_ends_with_nocase: String
+  cannon_package_not_in: [String!]
+  cannon_package_not_starts_with: String
+  cannon_package_not_starts_with_nocase: String
+  cannon_package_starts_with: String
+  cannon_package_starts_with_nocase: String
   chain_id: Int
   chain_id_gt: Int
   chain_id_gte: Int
@@ -569,6 +594,11 @@ input Variant_filter {
 }
 
 enum Variant_orderBy {
+  cannon_package
+  cannon_package__id
+  cannon_package__last_publisher
+  cannon_package__last_updated
+  cannon_package__name
   chain_id
   deploy_url
   id

@@ -66,4 +66,45 @@ export const GET_PACKAGE = gql`
   }
 `;
 
+export const FILTERED_PACKAGES_AND_VARIANTS = gql`
+  query getFilteredPackagesAndVariants($query: String!) {
+    packages: packages(where: { name_contains: $query }) {
+      id
+      name
+      variants {
+        id
+        name
+        preset
+        last_updated
+        last_publisher
+        chain_id
+        deploy_url
+        meta_url
+        tag {
+          id
+          name
+        }
+      }
+    }
+    filteredVariants: variants(where: { preset_contains: $query }) {
+      id
+      name
+      preset
+      last_updated
+      last_publisher
+      chain_id
+      deploy_url
+      meta_url
+      cannon_package {
+        id
+        name
+      }
+      tag {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export default GET_PACKAGES;
