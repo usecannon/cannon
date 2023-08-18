@@ -5,7 +5,14 @@ import { links } from '@/constants/links';
 
 export default function HomePage() {
   return (
-    <Flex flexDirection="column" flex={1} minHeight="100%" py={4} bg="black">
+    <Flex
+      flexDirection="column"
+      flex={1}
+      minHeight="100%"
+      py={4}
+      bg="black"
+      justify="center"
+    >
       <Container maxW="container.xl" py={[12, 12, 24]}>
         <Heading
           as="h1"
