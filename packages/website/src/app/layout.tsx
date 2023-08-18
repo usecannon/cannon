@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             minHeight="100vh"
           >
             <Header />
-            <Box flex="1">{children}</Box>
+            <Flex flex="1">{children}</Flex>
             <GithubFooter />
           </Flex>
         </Providers>
