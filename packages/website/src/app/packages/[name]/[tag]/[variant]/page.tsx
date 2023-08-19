@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   description: 'Package',
 };
 
-export default function Package({ params }: { params: { name: string } }) {
+export default function Package({
+  params,
+}: {
+  params: { name: string; tag: string; variant: string };
+}) {
   return <NoSSR name={params.name} />;
   // return <PackagesPage name={params.name} />;
 }

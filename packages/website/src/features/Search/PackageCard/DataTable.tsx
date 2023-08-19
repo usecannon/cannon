@@ -4,6 +4,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowUpDownIcon,
+  ArrowRightIcon,
 } from '@chakra-ui/icons';
 import {
   useReactTable,
@@ -13,15 +14,18 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
+import NextLink from 'next/link';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
   columns: ColumnDef<Data, any>[];
+  packageName: string;
 };
 
 export function DataTable<Data extends object>({
   data,
   columns,
+  packageName,
 }: DataTableProps<Data>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
@@ -36,7 +40,7 @@ export function DataTable<Data extends object>({
   });
 
   return (
-    <Table>
+    <Table size="sm">
       <Thead>
         {table.getHeaderGroups().map((headerGroup) => (
           <Tr key={headerGroup.id}>
@@ -80,7 +84,28 @@ export function DataTable<Data extends object>({
               const meta: any = cell.column.columnDef.meta;
               return (
                 <Td key={cell.id} isNumeric={meta?.isNumeric}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  {(() => {
+                    switch (cell.column.columnDef.accessorKey) {
+                      case 'arrow':
+                        const variant = `${cell.row.original.chain}-${cell.row.original.preset}`;
+                        return (
+                          <NextLink
+                            href={`./packages/${packageName}/${cell.row.original.tag}/${variant}`}
+                          >
+                            <ArrowRightIcon />
+                          </NextLink>
+                        );
+                      default:
+                        return (
+                          <>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </>
+                        );
+                    }
+                  })()}
                 </Td>
               );
             })}

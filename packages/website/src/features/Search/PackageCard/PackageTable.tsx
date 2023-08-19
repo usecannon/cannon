@@ -18,6 +18,7 @@ const PackageTable: FC<{
     tag: string;
     preset: string;
     published: number;
+    arrow: string;
   };
 
   const data: VariantRow[] = pkg.variants.map((v: Variant) => {
@@ -25,6 +26,7 @@ const PackageTable: FC<{
       tag: v.tag.name,
       chain: v.chain_id,
       preset: v.preset,
+      deploymentData: v.deploy_url,
       published: v.last_updated,
     };
   });
@@ -44,15 +46,23 @@ const PackageTable: FC<{
       cell: (info) => info.getValue(),
       header: 'Preset',
     }),
+    columnHelper.accessor('deploymentData', {
+      cell: (info) => info.getValue(),
+      header: 'Deployment Data',
+    }),
     columnHelper.accessor('published', {
       cell: (info) => info.getValue(),
       header: 'Published',
+    }),
+    columnHelper.accessor('arrow', {
+      cell: '',
+      header: '',
     }),
   ];
 
   return (
     <Box verticalAlign="middle">
-      <DataTable columns={columns} data={data} />
+      <DataTable packageName={pkg.name} columns={columns} data={data} />
     </Box>
   );
 };

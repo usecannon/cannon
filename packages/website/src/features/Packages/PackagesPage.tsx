@@ -26,6 +26,7 @@ import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';
 import { Interact } from '@/features/Packages/Interact';
+import { NavLink } from '@/components/NavLink';
 
 type Package = GetPackagesQuery['packages'][0];
 
@@ -50,32 +51,32 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
           <Box
             bg="black"
             pt={12}
-            pb={2}
             mb={8}
             borderBottom="1px solid"
             borderColor="gray.700"
           >
             <Container maxW="container.lg">
-              <Heading as="h4" size="md" mb="1" fontFamily="var(--font-miriam)">
+              <Heading as="h1" size="lg" mb="2">
                 {pkg?.name}
               </Heading>
-              <Box mb={3}>
+              <Box mb={4}>
                 <PublishInfo p={pkg} />
               </Box>
-              <Box mb={6}>
-                <PackageNetworks download p={pkg!} />
-              </Box>
-              {/*}
-              <NavLink href="./" isSmall>
-                Cannonfile
-              </NavLink>
-              <NavLink href="./interact" isSmall>
-                Interact
-              </NavLink>
-              <NavLink href="./interact" isSmall>
-                Versions
-              </NavLink>
-      */}
+
+              <Flex gap={8}>
+                <NavLink href="./" isSmall>
+                  Deployment
+                </NavLink>
+                <NavLink href="./cannonfile" isSmall>
+                  Cannonfile
+                </NavLink>
+                <NavLink href="./code" isSmall>
+                  Code
+                </NavLink>
+                <NavLink href="./interact" isSmall>
+                  Interact
+                </NavLink>
+              </Flex>
             </Container>
           </Box>
 
@@ -99,35 +100,6 @@ export const PackagesPage: FC<{ name: string }> = ({ name }) => {
               </TabPanels>
             </Tabs>
           </Container>
-          {/*<Link*/}
-          {/*  p="3"*/}
-          {/*  // as="nuxt-link"*/}
-          {/*  href={`/packages/${p?.name}/`}*/}
-          {/*  // exact TODO*/}
-          {/*  exact-active-class="active-link"*/}
-          {/*  // class="tab-link" TODO*/}
-          {/*>*/}
-          {/*  Cannonfile*/}
-          {/*</Link>*/}
-          {/*<Link*/}
-          {/*  p="3"*/}
-          {/*  // as="nuxt-link"*/}
-          {/*  href={`/packages/${p?.name}/interact`}*/}
-          {/*  active-class="active-link"*/}
-          {/*  // class="tab-link" TODO*/}
-          {/*>*/}
-          {/*  Interact*/}
-          {/*</Link>*/}
-          {/*<Link*/}
-          {/*  p="3"*/}
-          {/*  // as="nuxt-link"*/}
-          {/*  href={`/packages/${p?.name}/versions`}*/}
-          {/*  active-class="active-link"*/}
-          {/*  // class="tab-link" TODO*/}
-          {/*>*/}
-          {/*  Versions*/}
-          {/*</Link>*/}
-          {/*<NuxtChild :p="p" />*/}
         </>
       ) : (
         <Text textAlign="center">
