@@ -5,6 +5,7 @@ import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
+import { ConnectWallet } from './ConnectWallet';
 
 export const Header = () => {
   return (
@@ -40,6 +41,8 @@ export const Header = () => {
             <NavLink href={links.EXPLORE}>Explore</NavLink>
             <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
             <NavLink href={links.LEARN}>Learn</NavLink>
+
+            <ConnectWallet />
           </Flex>
         </Box>
       </Flex>

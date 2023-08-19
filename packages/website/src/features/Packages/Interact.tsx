@@ -6,7 +6,6 @@ import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { VersionInfo, VersionSelect } from '@/features/Packages/VersionSelect';
-import { ConnectWallet } from '@/features/Packages/ConnectWallet';
 import { ProvisionStep } from '@/features/Packages/ProvisionStep';
 
 type Package = GetPackagesQuery['packages'][0];
@@ -79,25 +78,7 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
 
   return (
     <Box position="relative">
-      <Flex
-        py="6"
-        mb="8"
-        align="center"
-        position="sticky"
-        top="0"
-        bg="gray.900"
-        zIndex="1"
-        borderBottom="1px solid"
-        borderColor="gray.700"
-      >
-        <ConnectWallet />
-        <Box ml="auto">
-          <VersionSelect pkg={pkg} onChange={setSelectedVersion} />
-        </Box>
-      </Flex>
-      <Box mb="8">
-        {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
-      </Box>
+      {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
 
       <Alert
         my="8"

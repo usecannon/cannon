@@ -173,7 +173,9 @@ export const SearchPage = () => {
         <Box px={4} py={isSmall ? 4 : 8} flex={1} overflowY="auto">
           <Container ml={0} maxWidth="container.xl">
             {results.map((pkg: Package) => (
-              <PackageCard pkg={pkg} key={pkg.name} />
+              <Box mb="8">
+                <PackageCard pkg={pkg} key={pkg.name} />
+              </Box>
             ))}
             {/*
             <Flex justifyContent="space-between">

@@ -16,7 +16,6 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
       borderWidth="1px"
       borderStyle="solid"
       borderColor="gray.600"
-      mb="6"
       borderRadius="4px"
       transition="all 0.12s"
       overflow="hidden"

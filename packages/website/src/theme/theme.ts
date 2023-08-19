@@ -39,13 +39,6 @@ export const theme = extendTheme({
     },
   },
   components: {
-    Button: {
-      baseStyle: {
-        fontWeight: 'bold', // Customize the font weight
-        fontFamily: 'var(--font-miriam)', // Customize the font family
-        textTransform: 'uppercase',
-      },
-    },
     Link: {
       baseStyle: {
         textDecoration: 'underline',

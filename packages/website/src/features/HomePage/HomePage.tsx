@@ -46,6 +46,9 @@ export default function HomePage() {
             colorScheme="teal"
             size={['sm', 'sm', 'lg']}
             letterSpacing="0.5px"
+            fontWeight="bold"
+            fontFamily="var(--font-miriam)"
+            textTransform="uppercase"
           >
             Learn more
           </Button>

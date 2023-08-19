@@ -17,6 +17,7 @@ const PackageTable: FC<{
     chain: number;
     tag: string;
     preset: string;
+    deploymentData: string;
     published: number;
     arrow: string;
   };

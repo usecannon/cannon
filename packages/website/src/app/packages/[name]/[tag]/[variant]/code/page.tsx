@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 
 const NoSSR = dynamic(
   async () => {
-    return import('@/features/Packages/Tabs/DeploymentTab');
+    return import('@/features/Packages/Tabs/CodeTab');
   },
   {
     ssr: false,
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   description: 'Package',
 };
 
-export default function Deployment({
+export default function Code({
   params,
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
   return <NoSSR name={params.name} />;
-  // return <DeploymentsTab name={params.name} />;
+  // return <CodeTab name={params.name} />;
 }

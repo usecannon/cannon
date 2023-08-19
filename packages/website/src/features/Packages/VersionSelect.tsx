@@ -1,71 +1,46 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useEffect, useMemo } from 'react';
-import _ from 'lodash';
 import chainsData from '@/constants/chainsData';
-import { FormControl, Select } from '@chakra-ui/react';
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { ArrowUpDownIcon } from '@chakra-ui/icons';
+import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 
 type Package = GetPackagesQuery['packages'][0];
-export type VersionInfo = {
-  name: string;
-  tag: string;
-  preset: string;
-  chain_id: number;
-  ipfs: string;
-  last_updated: any;
-};
 
 export const VersionSelect: FC<{
   pkg: Package;
-  onChange: (value: VersionInfo) => void;
-}> = ({ pkg, onChange }) => {
-  const options = useMemo(() => {
-    return _.flatten(
-      pkg.tags.map((t) => {
-        const _variants = [...(t.variants || [])];
-        return (
-          _variants
-            .sort((a, b) => (a.chain_id > b.chain_id ? 1 : -1))
-            .map((v) => {
-              return {
-                name: `${t.name} on ${chainsData[v.chain_id].name}${
-                  v.preset !== 'main' ? ' (' + v.preset + ')' : ''
-                }`,
-                tag: t.name,
-                preset: v.preset,
-                chain_id: v.chain_id,
-                ipfs: v.deploy_url,
-                last_updated: v.last_updated,
-              };
-            }) || []
-        );
-      })
-    );
-  }, [pkg]);
-  useEffect(() => {
-    onChange(options[0]);
-  }, [options]);
+}> = ({ pkg }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
-    <FormControl>
-      <Select
-        id="version-select"
-        bg="black"
-        borderColor="whiteAlpha.400"
-        onChange={(e) => {
-          onChange(JSON.parse(e.target.value));
-        }}
+    <>
+      <Button
+        onClick={onOpen}
+        rightIcon={<ArrowUpDownIcon h="3" opacity="0.8" />}
+        colorScheme="black"
+        variant="outline"
+        borderColor="gray.400"
+        _hover={{ bg: 'gray.900', borderColor: 'gray.500' }}
       >
-        {options.map((option) => {
-          return (
-            <option
-              style={{ backgroundColor: 'black' }}
-              value={JSON.stringify(option)}
-              key={JSON.stringify(option)}
-            >
-              {option.name}
-            </option>
-          );
-        })}
-      </Select>
-    </FormControl>
+        current variant
+      </Button>
+
+      <Modal isCentered isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent maxW="container.lg">
+          <PackageCard pkg={pkg} />
+        </ModalContent>
+      </Modal>
+    </>
   );
 };

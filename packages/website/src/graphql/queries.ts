@@ -53,13 +53,20 @@ export const GET_PACKAGE = gql`
         last_updated
         last_publisher
         variants(orderDirection: desc, orderBy: last_updated) {
+          id
+        }
+      }
+      variants(orderDirection: desc, orderBy: last_updated) {
+        name
+        last_updated
+        last_publisher
+        preset
+        chain_id
+        deploy_url
+        meta_url
+        tag {
+          id
           name
-          last_updated
-          last_publisher
-          preset
-          chain_id
-          deploy_url
-          meta_url
         }
       }
     }
