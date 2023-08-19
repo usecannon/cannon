@@ -1,5 +1,15 @@
 import * as React from 'react';
-import { Table, Thead, Tbody, Tr, Th, Td, chakra } from '@chakra-ui/react';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  chakra,
+  Tooltip,
+  Text,
+} from '@chakra-ui/react';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -14,7 +24,9 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
-import NextLink from 'next/link';
+import Chain from './Chain';
+import { format, formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
@@ -22,12 +34,28 @@ export type DataTableProps<Data extends object> = {
   packageName: string;
 };
 
+const formatIPFS = (input: string, partLength: number): string => {
+  const prefix = 'ipfs://';
+  const hash = input.substring(prefix.length);
+
+  if (hash.length <= partLength * 2) {
+    return input;
+  }
+
+  const startPart = hash.substring(0, partLength);
+  const endPart = hash.substring(hash.length - partLength);
+
+  return `${prefix}${startPart}...${endPart}`;
+};
+
 export function DataTable<Data extends object>({
   data,
   columns,
   packageName,
 }: DataTableProps<Data>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'tag', desc: false },
+  ]);
   const table = useReactTable({
     columns,
     data,
@@ -38,6 +66,7 @@ export function DataTable<Data extends object>({
       sorting,
     },
   });
+  const router = useRouter();
 
   return (
     <Table size="sm">
@@ -54,23 +83,41 @@ export function DataTable<Data extends object>({
                   isNumeric={meta?.isNumeric}
                   color="gray.200"
                   borderColor="gray.600"
+                  textTransform="none"
+                  letterSpacing="normal"
+                  fontSize="sm"
+                  fontWeight={500}
+                  py={2}
+                  cursor="pointer"
                 >
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext()
                   )}
-
-                  <chakra.span pl="4">
-                    {header.column.getIsSorted() ? (
-                      header.column.getIsSorted() === 'desc' ? (
-                        <ChevronDownIcon aria-label="sorted descending" />
+                  {header.column.columnDef.accessorKey !== 'arrow' && (
+                    <chakra.span display="inline-block" h="12px" w="12px">
+                      {header.column.getIsSorted() ? (
+                        header.column.getIsSorted() === 'desc' ? (
+                          <ChevronDownIcon
+                            boxSize={4}
+                            aria-label="sorted descending"
+                            transform="translateY(2.5px)"
+                          />
+                        ) : (
+                          <ChevronUpIcon
+                            boxSize={4}
+                            aria-label="sorted ascending"
+                            transform="translateY(-2.5px)"
+                          />
+                        )
                       ) : (
-                        <ChevronUpIcon aria-label="sorted ascending" />
-                      )
-                    ) : (
-                      <ArrowUpDownIcon />
-                    )}
-                  </chakra.span>
+                        <ArrowUpDownIcon
+                          boxSize={2.5}
+                          transform="translateX(2.5px)"
+                        />
+                      )}
+                    </chakra.span>
+                  )}
                 </Th>
               );
             })}
@@ -78,8 +125,18 @@ export function DataTable<Data extends object>({
         ))}
       </Thead>
       <Tbody>
-        {table.getRowModel().rows.map((row) => (
-          <Tr key={row.id}>
+        {table.getRowModel().rows.map((row, rowInd) => (
+          <Tr
+            key={row.id}
+            _hover={{ backgroundColor: 'gray.900' }} // hover state
+            cursor="pointer"
+            onClick={() => {
+              const variant = `${row.original.chain}-${row.original.preset}`;
+              router.push(
+                `/packages/${packageName}/${row.original.tag}/${variant}`
+              );
+            }}
+          >
             {row.getVisibleCells().map((cell) => {
               // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
               const meta: any = cell.column.columnDef.meta;
@@ -88,18 +145,51 @@ export function DataTable<Data extends object>({
                   key={cell.id}
                   isNumeric={meta?.isNumeric}
                   borderColor="gray.600"
+                  borderBottom={
+                    table.getRowModel().rows.length == rowInd + 1
+                      ? 'none'
+                      : undefined
+                  }
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
-                      case 'arrow': {
-                        const variant = `${cell.row.original.chain}-${cell.row.original.preset}`;
+                      case 'chain': {
+                        return <Chain id={cell.row.original.chain} />;
+                      }
+                      case 'deploymentData': {
                         return (
-                          <NextLink
-                            href={`./packages/${packageName}/${cell.row.original.tag}/${variant}`}
+                          <Text
+                            fontFamily="mono"
+                            fontSize="12px"
+                            transform="translateY(1px)"
                           >
-                            <ArrowRightIcon />
-                          </NextLink>
+                            {formatIPFS(cell.row.original.deploymentData, 10)}
+                          </Text>
                         );
+                      }
+                      case 'published': {
+                        const timeAgo = React.useMemo(
+                          () =>
+                            formatDistanceToNow(
+                              new Date(cell.row.original.published * 1000),
+                              {
+                                addSuffix: true,
+                              }
+                            ),
+                          [cell.row.original.published]
+                        );
+                        const tooltipTime = React.useMemo(
+                          () =>
+                            format(
+                              new Date(cell.row.original.published * 1000),
+                              'MMM d ’yy h:mm a'
+                            ),
+                          [cell.row.original.published]
+                        );
+                        return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
+                      }
+                      case 'arrow': {
+                        return <ArrowRightIcon boxSize={3} />;
                       }
                       default: {
                         return (

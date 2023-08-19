@@ -46,7 +46,7 @@ export default function HomePage() {
           fontSize={['30px', '30px', '64px']}
           lineHeight={['38px', '38px', '76px']}
           letterSpacing={['-2.1px', '-2.1px', '-4.2px']}
-          textShadow="0px 0px 8px rgba(63, 211, 203, 0.8);"
+          textShadow="0px 0px 8px rgba(63, 211, 203, 0.75);"
           maxWidth={['480px', '480px', '800px']}
         >
           Cannon manages protocol deployments on blockchains

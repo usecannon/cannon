@@ -9,11 +9,15 @@ import {
 } from '@/types/graphql/graphql';
 import { useQuery } from '@apollo/client';
 import { Flex, Spinner, Container } from '@chakra-ui/react';
-import { Cannonfile } from '@/features/Packages/Cannonfile';
+import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 
 type Package = GetPackagesQuery['packages'][0];
 
-export const CodeTab: FC<{ name: string }> = ({ name }) => {
+export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
+  name,
+  tag,
+  variant,
+}) => {
   const { data } = useQuery<GetPackageQuery, GetPackageQueryVariables>(
     GET_PACKAGE,
     {
@@ -21,17 +25,21 @@ export const CodeTab: FC<{ name: string }> = ({ name }) => {
     }
   );
 
-  const [pkg, setPackage] = useState<Package | null>(null);
-
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
   }, [data]);
 
+  const [pkg, setPackage] = useState<Package | null>(null);
+
+  const currentVariant = pkg?.variants.find(
+    (v) => v.name === variant && v.tag.name === tag
+  );
+
   return (
     <Flex flexDirection="column" width="100%">
-      {pkg ? (
+      {currentVariant ? (
         <Container maxW="container.xl">
-          <Cannonfile pkg={pkg} />
+          <CodeExplorer variant={currentVariant} />
         </Container>
       ) : (
         <Spinner m="auto" />

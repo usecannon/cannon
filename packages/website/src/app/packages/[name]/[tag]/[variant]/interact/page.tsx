@@ -19,6 +19,5 @@ export default function Interact({
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  return <NoSSR name={params.name} />;
-  // return <InteractTab name={params.name} />;
+  return <NoSSR name={params.name} tag={params.tag} variant={params.variant} />;
 }

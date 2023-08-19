@@ -37,6 +37,11 @@ export default function RootLayout({
     if (data?.packages[0]) setPackage(data?.packages[0]);
   }, [data]);
 
+  const currentVariant = pkg?.variants.find(
+    (variant) =>
+      variant.name === params.variant && variant.tag.name === params.tag
+  );
+
   return (
     <Flex flexDirection="column" width="100%">
       {pkg ? (
@@ -57,7 +62,7 @@ export default function RootLayout({
                   <PublishInfo p={pkg} />
                 </Box>
                 <Box ml="auto">
-                  <VersionSelect pkg={pkg} />
+                  <VersionSelect pkg={pkg} currentVariant={currentVariant} />
                 </Box>
               </Flex>
               <Flex gap={8}>

@@ -13,7 +13,11 @@ import { Interact } from '@/features/Packages/Interact';
 
 type Package = GetPackagesQuery['packages'][0];
 
-export const InteractTab: FC<{ name: string }> = ({ name }) => {
+export const InteractTab: FC<{
+  name: string;
+  tag: string;
+  variant: string;
+}> = ({ name, tag, variant }) => {
   const { data } = useQuery<GetPackageQuery, GetPackageQueryVariables>(
     GET_PACKAGE,
     {
@@ -21,17 +25,21 @@ export const InteractTab: FC<{ name: string }> = ({ name }) => {
     }
   );
 
-  const [pkg, setPackage] = useState<Package | null>(null);
-
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
   }, [data]);
 
+  const [pkg, setPackage] = useState<Package | null>(null);
+
+  const currentVariant = pkg?.variants.find(
+    (v) => v.name === variant && v.tag.name === tag
+  );
+
   return (
     <Flex flexDirection="column" width="100%">
-      {pkg ? (
+      {currentVariant ? (
         <Container maxW="container.xl">
-          <Interact pkg={pkg} />
+          <Interact variant={currentVariant} />
         </Container>
       ) : (
         <Spinner m="auto" />

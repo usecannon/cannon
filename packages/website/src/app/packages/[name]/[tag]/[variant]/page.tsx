@@ -19,6 +19,5 @@ export default function Deployment({
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  return <NoSSR name={params.name} />;
-  // return <DeploymentsTab name={params.name} />;
+  return <NoSSR name={params.name} tag={params.tag} variant={params.variant} />;
 }

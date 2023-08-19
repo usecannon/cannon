@@ -1,6 +1,6 @@
 export const links = {
   HOMEPAGE: '/',
-  EXPLORE: '/search',
+  EXPLORE: '/packages',
   LEARN: '/learn',
   GETSTARTED: '/learn/get-started',
   TECHNICALREFERENCE: '/learn/technical-reference',

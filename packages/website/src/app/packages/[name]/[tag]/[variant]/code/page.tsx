@@ -19,6 +19,5 @@ export default function Code({
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  return <NoSSR name={params.name} />;
-  // return <CodeTab name={params.name} />;
+  return <NoSSR name={params.name} tag={params.tag} variant={params.variant} />;
 }

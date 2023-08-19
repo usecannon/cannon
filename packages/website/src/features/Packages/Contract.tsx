@@ -39,12 +39,12 @@ export const Contract: FC<{
       bg="blackAlpha.500"
     >
       <Flex mb="2" alignItems="center">
-        <Heading id={anchor} mb="1" size="lg" display="inline-block">
+        <Heading id={anchor} mb="1" size="md" display="inline-block">
           {title}
         </Heading>
         <Link
           href={'#' + anchor}
-          fontSize="lg"
+          fontSize="sm"
           ml="2"
           color="gray.400"
           textDecoration="none"
@@ -53,13 +53,13 @@ export const Contract: FC<{
         >
           #
         </Link>
-        <Flex ml="auto" gap={1} cursor="pointer">
-          <Code display="inline" bg="blackAlpha.800" color="whiteAlpha.800">
+        <Flex ml="auto" gap={1} alignItems="center" cursor="pointer">
+          <Code display="inline" bg="transparent" color="gray.200">
             {address}
           </Code>
-          <div onClick={copy} className="copy-button">
+          <Box onClick={copy} className="copy-button">
             <Copy size={16} />
-          </div>
+          </Box>
         </Flex>
       </Flex>
       {/*  TODO: Implement the collapse */}
