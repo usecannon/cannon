@@ -1,17 +1,11 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
   return (
     <Flex flexDir="column" width="100%">
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">

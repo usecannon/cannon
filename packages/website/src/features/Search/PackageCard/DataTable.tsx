@@ -86,7 +86,7 @@ export function DataTable<Data extends object>({
                 <Td key={cell.id} isNumeric={meta?.isNumeric}>
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
-                      case 'arrow':
+                      case 'arrow': {
                         const variant = `${cell.row.original.chain}-${cell.row.original.preset}`;
                         return (
                           <NextLink
@@ -95,7 +95,8 @@ export function DataTable<Data extends object>({
                             <ArrowRightIcon />
                           </NextLink>
                         );
-                      default:
+                      }
+                      default: {
                         return (
                           <>
                             {flexRender(
@@ -104,6 +105,7 @@ export function DataTable<Data extends object>({
                             )}
                           </>
                         );
+                      }
                     }
                   })()}
                 </Td>

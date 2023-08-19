@@ -21,7 +21,6 @@ import {
   TabPanel,
   Container,
 } from '@chakra-ui/react';
-import PackageNetworks from '@/components/PackageNetworks';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { Cannonfile } from '@/features/Packages/Cannonfile';
 import { Versions } from '@/features/Packages/Versions';
