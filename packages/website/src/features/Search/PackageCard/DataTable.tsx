@@ -53,6 +53,7 @@ export function DataTable<Data extends object>({
                   onClick={header.column.getToggleSortingHandler()}
                   isNumeric={meta?.isNumeric}
                   color="gray.200"
+                  borderColor="gray.600"
                 >
                   {flexRender(
                     header.column.columnDef.header,
@@ -83,7 +84,11 @@ export function DataTable<Data extends object>({
               // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
               const meta: any = cell.column.columnDef.meta;
               return (
-                <Td key={cell.id} isNumeric={meta?.isNumeric}>
+                <Td
+                  key={cell.id}
+                  isNumeric={meta?.isNumeric}
+                  borderColor="gray.600"
+                >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
                       case 'arrow': {

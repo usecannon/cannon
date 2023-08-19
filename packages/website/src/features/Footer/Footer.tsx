@@ -33,7 +33,13 @@ export const Footer = () => {
         </GitHubButton>
       </Flex>
       <Box ml="auto" mr="1">
-        <Text fontWeight="700" fontSize="md" color="white" opacity={0.8}>
+        <Text
+          fontWeight="600"
+          fontSize="md"
+          color="white"
+          opacity={0.8}
+          letterSpacing="0.2px"
+        >
           Supported by
           <Link
             display="inline-block"

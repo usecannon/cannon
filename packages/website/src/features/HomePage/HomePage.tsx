@@ -2,6 +2,30 @@
 import { Flex, Button, Container, Heading, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
+import { ReactNode } from 'react';
+
+const CustomLink = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) => (
+  <Link
+    href={href}
+    as={href.startsWith('https://') ? undefined : NextLink}
+    isExternal={href.startsWith('https://')}
+    textDecoration="none"
+    borderBottom="1px solid"
+    borderBottomColor="gray.600"
+    _hover={{
+      color: 'gray.200',
+      borderBottomColor: 'teal.500',
+    }}
+  >
+    {children}
+  </Link>
+);
 
 export default function HomePage() {
   return (
@@ -22,7 +46,7 @@ export default function HomePage() {
           fontSize={['30px', '30px', '64px']}
           lineHeight={['38px', '38px', '76px']}
           letterSpacing={['-2.1px', '-2.1px', '-4.2px']}
-          textShadow="0px 0px 8px rgba(63, 211, 203, 0.75);"
+          textShadow="0px 0px 8px rgba(63, 211, 203, 0.8);"
           maxWidth={['480px', '480px', '800px']}
         >
           Cannon manages protocol deployments on blockchains
@@ -38,7 +62,9 @@ export default function HomePage() {
           color="gray.300"
           maxW={['340px', '340px', '680px']}
         >
-          Deploy protocols and publish packages to the registry, hosted on
+          <CustomLink href="https://deploy.usecannon.com">Deploy</CustomLink>{' '}
+          protocols and publish packages to the{' '}
+          <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
           Ethereum and IPFS.
         </Heading>
         <Link href={links.LEARN} color="white" as={NextLink}>
