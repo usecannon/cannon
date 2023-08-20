@@ -4,6 +4,13 @@ import { Flex, Box, Text } from '@chakra-ui/react';
 import * as chains from 'wagmi/chains';
 //import chainsData from '@/constants/chainsData';
 
+type ChainData = {
+  id: number;
+  name: string;
+  color?: string;
+  [key: string]: any; // This allows for additional properties without having to specify each one.
+};
+
 const metadata = {
   arbitrum: {
     color: '#96bedc',
@@ -48,10 +55,10 @@ const Chain: FC<{
   id: number;
 }> = ({ id }) => {
   const chain = useMemo(() => {
-    const enrichedChainData = {
+    const enrichedChainData: Record<string, ChainData> = {
       ...merge({ cannon: newChain }, chains, metadata),
     };
-    return find(enrichedChainData, (chain) => chain.id === id);
+    return find(enrichedChainData, (chain: ChainData) => chain.id === id);
   }, [id]);
 
   const name = chain?.name || 'Unknown Chain';

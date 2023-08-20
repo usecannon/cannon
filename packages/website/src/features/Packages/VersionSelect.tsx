@@ -1,4 +1,4 @@
-import { GetPackagesQuery } from '@/types/graphql/graphql';
+import { Package } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import {
   Button,
@@ -12,8 +12,6 @@ import {
 import { ArrowUpDownIcon } from '@chakra-ui/icons';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
-
-type Package = GetPackagesQuery['packages'][0];
 
 export const VersionSelect: FC<{
   pkg: Package;

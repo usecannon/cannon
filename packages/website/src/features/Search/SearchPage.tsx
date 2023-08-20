@@ -30,7 +30,6 @@ import {
 } from '@/types/graphql/graphql';
 import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCard } from './PackageCard/PackageCard';
-import { Variant } from 'framer-motion';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -105,11 +104,11 @@ export const SearchPage = () => {
     ): Package[] => {
       const packageMap: { [key: string]: Package } = {};
 
-      data?.packages?.forEach((pkg: Package) => {
+      data?.packages?.forEach((pkg: any) => {
         packageMap[pkg.id] = { ...pkg };
       });
 
-      data?.filteredVariants?.forEach((variant: Variant) => {
+      data?.filteredVariants?.forEach((variant: any) => {
         const pkg = variant.cannon_package;
         if (packageMap[pkg.id]) {
           if (!variantExistsInPackage(packageMap[pkg.id], variant.id)) {
@@ -172,7 +171,7 @@ export const SearchPage = () => {
       ) : (
         <Box px={4} py={isSmall ? 4 : 8} flex={1} overflowY="auto">
           <Container ml={0} maxWidth="container.xl">
-            {results.map((pkg: Package) => (
+            {results.map((pkg: any) => (
               <Box mb="8" key={pkg.id}>
                 <PackageCard pkg={pkg} key={pkg.name} />
               </Box>

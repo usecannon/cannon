@@ -39,11 +39,11 @@ const CustomButton = ({
     textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
     fontSize="15px"
     color="gray.200"
+    {...styleMap[variant as keyof typeof styleMap]}
     borderColor="gray.500"
     _hover={{
       bg: 'gray.900',
     }}
-    {...styleMap[variant]}
     onClick={onClick}
   >
     {children}

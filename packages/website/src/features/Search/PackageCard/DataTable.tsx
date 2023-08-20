@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as React from 'react';
 import {
   Table,
@@ -140,6 +141,19 @@ export function DataTable<Data extends object>({
             {row.getVisibleCells().map((cell) => {
               // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
               const meta: any = cell.column.columnDef.meta;
+
+              const timeAgo = formatDistanceToNow(
+                new Date(cell.row.original.published * 1000),
+                {
+                  addSuffix: true,
+                }
+              );
+
+              const tooltipTime = format(
+                new Date(cell.row.original.published * 1000),
+                'MMM d ’yy h:mm a'
+              );
+
               return (
                 <Td
                   key={cell.id}
@@ -168,24 +182,6 @@ export function DataTable<Data extends object>({
                         );
                       }
                       case 'published': {
-                        const timeAgo = React.useMemo(
-                          () =>
-                            formatDistanceToNow(
-                              new Date(cell.row.original.published * 1000),
-                              {
-                                addSuffix: true,
-                              }
-                            ),
-                          [cell.row.original.published]
-                        );
-                        const tooltipTime = React.useMemo(
-                          () =>
-                            format(
-                              new Date(cell.row.original.published * 1000),
-                              'MMM d ’yy h:mm a'
-                            ),
-                          [cell.row.original.published]
-                        );
                         return <Tooltip label={tooltipTime}>{timeAgo}</Tooltip>;
                       }
                       case 'arrow': {

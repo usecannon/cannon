@@ -1,10 +1,10 @@
 import PackageTable from './PackageTable';
-import { GetPackagesQuery } from '@/types/graphql/graphql';
+import { Package } from '@/types/graphql/graphql';
 import { Box, Flex, Heading } from '@chakra-ui/react';
 import { FC } from 'react';
 
 interface IPackageCardProps {
-  pkg: GetPackagesQuery['packages'][0];
+  pkg: Package;
 }
 
 export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {

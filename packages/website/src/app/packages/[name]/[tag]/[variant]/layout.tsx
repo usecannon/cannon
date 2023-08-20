@@ -8,14 +8,7 @@ import { VersionSelect } from '@/features/Packages/VersionSelect';
 
 import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import {
-  GetPackageQuery,
-  GetPackageQueryVariables,
-  GetPackagesQuery,
-} from '@/types/graphql/graphql';
 import { useQuery } from '@apollo/client';
-
-type Package = GetPackagesQuery['packages'][0];
 
 export default function RootLayout({
   children,
@@ -24,21 +17,18 @@ export default function RootLayout({
   children: ReactNode;
   params: { name: string; tag: string; variant: string };
 }) {
-  const { data } = useQuery<GetPackageQuery, GetPackageQueryVariables>(
-    GET_PACKAGE,
-    {
-      variables: { name: params.name },
-    }
-  );
+  const { data } = useQuery<any, any>(GET_PACKAGE, {
+    variables: { name: params.name },
+  });
 
-  const [pkg, setPackage] = useState<Package | null>(null);
+  const [pkg, setPackage] = useState<any | null>(null);
 
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
   }, [data]);
 
   const currentVariant = pkg?.variants.find(
-    (variant) =>
+    (variant: any) =>
       variant.name === params.variant && variant.tag.name === params.tag
   );
 

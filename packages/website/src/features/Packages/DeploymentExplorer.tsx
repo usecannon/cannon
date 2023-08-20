@@ -1,8 +1,7 @@
-import { FC, useEffect, useMemo, useState } from 'react';
-import { GetPackagesQuery } from '@/types/graphql/graphql';
+import { FC, useEffect, useState } from 'react';
 import axios from 'axios';
 import pako from 'pako';
-import { Box, Spinner } from '@chakra-ui/react';
+import { Text, Box, Spinner } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
@@ -49,10 +48,15 @@ export const DeploymentExplorer: FC<{
           <Spinner />
         </Box>
       ) : !isEmpty(deploymentData) ? (
-        <CodePreview
-          code={JSON.stringify(deploymentData, null, 2)}
-          language="json"
-        />
+        <>
+          <Text fontFamily="mono" mb={4}>
+            {variant.deploy_url}
+          </Text>
+          <CodePreview
+            code={JSON.stringify(deploymentData, null, 2)}
+            language="json"
+          />
+        </>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Deployment data unavailable

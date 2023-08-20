@@ -1,4 +1,3 @@
-import { GetPackageQuery } from '@/types/graphql/graphql';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertIcon, Box, Spinner, Text } from '@chakra-ui/react';
 import axios from 'axios';

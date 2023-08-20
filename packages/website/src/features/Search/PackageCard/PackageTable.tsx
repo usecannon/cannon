@@ -1,4 +1,4 @@
-import { GetFilteredPackagesAndVariantsQuery } from '@/types/graphql/graphql';
+import { Package, Variant } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import { Box } from '@chakra-ui/react';
 import 'prismjs';
@@ -6,9 +6,6 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
-
-type Package = GetFilteredPackagesAndVariantsQuery['packages'][0];
-type Variant = GetFilteredPackagesAndVariantsQuery['filteredVariants'][0];
 
 const PackageTable: FC<{
   pkg: Package;
@@ -19,7 +16,7 @@ const PackageTable: FC<{
     preset: string;
     deploymentData: string;
     published: number;
-    arrow: string;
+    arrow?: string;
   };
 
   const data: VariantRow[] = pkg.variants.map((v: Variant) => {
