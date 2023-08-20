@@ -1,17 +1,11 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
-
   return (
     <Flex flexDir="column" width="100%">
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
@@ -23,16 +17,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           overflowX="auto"
           whiteSpace="nowrap"
         >
-          <NavLink isSmall={isSmall} href={links.LEARN}>
+          <NavLink isSmall href={links.LEARN}>
             Overview
           </NavLink>
-          <NavLink isSmall={isSmall} href={links.GETSTARTED}>
+          <NavLink isSmall href={links.GETSTARTED}>
             Get Started
           </NavLink>
-          <NavLink isSmall={isSmall} href={links.TECHNICALREFERENCE}>
+          <NavLink isSmall href={links.TECHNICALREFERENCE}>
             Tech Reference
           </NavLink>
-          <NavLink isSmall={isSmall} href={links.CANNONFILESPEC}>
+          <NavLink isSmall href={links.CANNONFILESPEC}>
             Cannonfile Spec
           </NavLink>
         </Flex>

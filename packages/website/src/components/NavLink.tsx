@@ -1,6 +1,8 @@
 import { Link } from '@chakra-ui/react';
+import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
 import { FC, ReactNode } from 'react';
+import { links } from '@/constants/links';
 
 interface INavLinkProps {
   href: string;
@@ -9,7 +11,10 @@ interface INavLinkProps {
 }
 
 export const NavLink: FC<INavLinkProps> = ({ href, children, isSmall }) => {
-  const isActive = false; // TODO: Wire it up
+  const pathname = usePathname();
+  const isActive =
+    pathname === href ||
+    (pathname.startsWith('/packages') && href == links.EXPLORE);
 
   return (
     <Link

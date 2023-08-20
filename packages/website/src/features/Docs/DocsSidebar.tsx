@@ -8,11 +8,9 @@ interface ISidebarProps {
 
 export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
   const item = Object.entries(list);
-  console.log('item', item);
   return (
     <div>
       {item.map((m, idx) => {
-        console.log('m', m);
         return (
           <>
             <Link

@@ -1,22 +1,14 @@
-import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Alert, AlertIcon, Box, Flex, Spinner, Text } from '@chakra-ui/react';
+import { Alert, AlertIcon, Box, Spinner, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
-import { VersionInfo, VersionSelect } from '@/features/Packages/VersionSelect';
-import { ConnectWallet } from '@/features/Packages/ConnectWallet';
 import { ProvisionStep } from '@/features/Packages/ProvisionStep';
 
-type Package = GetPackagesQuery['packages'][0];
-// type Tag = Package['tags'][0];
-// type Variant = Tag['variants'][0];
-
-export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
+export const Interact: FC<{ variant: any }> = ({ variant }) => {
   const [loading, setLoading] = useState(true);
   const [ipfs, setIpfs] = useState<any>({});
-  const [selectedVersion, setSelectedVersion] = useState<VersionInfo>();
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
 
   const output = useMemo(() => {
@@ -31,17 +23,16 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
   }, [cannonOutputs]);
 
   useEffect(() => {
-    if (!selectedVersion) return;
-    // this.$store.dispatch('changeChainId', this.selectedVariant.chain_id, this.$toast) TODO
+    if (!variant) return;
     setLoading(true);
 
     const controller = new AbortController();
 
-    const url = `https://ipfs.io/ipfs/${selectedVersion?.ipfs.replace(
+    const url = `https://ipfs.io/ipfs/${variant?.deploy_url.replace(
       'ipfs://',
       ''
     )}`;
-    console.log('url', url);
+
     axios
       .get(url, { responseType: 'arraybuffer' })
       .then((response) => {
@@ -50,7 +41,6 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
         const inflated = pako.inflate(uint8Array);
         const raw = new TextDecoder().decode(inflated);
         const _ipfs = JSON.parse(raw);
-        console.log('IPFS:', _ipfs);
         setIpfs(_ipfs);
 
         // Get Builder Outputs
@@ -63,13 +53,10 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
         setLoading(false);
       });
 
-    // Vue.nextTick(() => { // TODO
-    //   this.scrollToAnchor();
-    // });
     return () => {
       controller.abort();
     };
-  }, [selectedVersion]);
+  }, [variant]);
 
   const hasProxy = useMemo(() => {
     return (
@@ -79,37 +66,19 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
 
   return (
     <Box position="relative">
-      <Flex
-        py="6"
-        mb="8"
-        align="center"
-        position="sticky"
-        top="0"
-        bg="gray.900"
-        zIndex="1"
-        borderBottom="1px solid"
-        borderColor="gray.700"
-      >
-        <ConnectWallet />
-        <Box ml="auto">
-          <VersionSelect pkg={pkg} onChange={setSelectedVersion} />
-        </Box>
-      </Flex>
-      <Box mb="8">
-        {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
-      </Box>
+      {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
 
       <Alert
         my="8"
         status="warning"
-        bg="blue.800"
-        borderColor="blue.700"
-        borderWidth="1px"
+        bg="gray.800"
+        border="1px solid"
+        borderColor="gray.700"
       >
         <AlertIcon />
         <Text fontWeight="bold">
           Review high-risk transactions carefully in your wallet application
-          prior to execution.
+          prior to execution
         </Text>
       </Alert>
 
@@ -117,9 +86,9 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
         <Alert
           my="8"
           status="info"
-          bg="blue.800"
-          borderColor="blue.700"
-          borderWidth="1px"
+          bg="gray.800"
+          border="1px solid"
+          borderColor="gray.700"
         >
           <AlertIcon />
           <Text>
@@ -138,7 +107,7 @@ export const Interact: FC<{ pkg: Package }> = ({ pkg }) => {
           <ProvisionStep
             imports={output}
             cannonOutputs={cannonOutputs}
-            chainId={selectedVersion?.chain_id || 1}
+            chainId={variant?.chain_id}
           />
         </Box>
       )}

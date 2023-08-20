@@ -38,23 +38,24 @@ export const ProvisionStep: FC<{
           <Box key={JSON.stringify(o)}>
             <Flex mb="2">
               {o.title && (
-                <Heading mb="1" size="lg" display="inline-block">
+                <Heading mb="1" size="md" display="inline-block">
                   {o.title}
                 </Heading>
               )}
               {o.url && (
-                <Flex ml="auto">
-                  <Code bg="blackAlpha.800" color="whiteAlpha.800">
+                <Flex ml="auto" alignItems="center">
+                  <Code bg="transparent" color="gray.200" cursor="pointer">
                     {o.url.replace('ipfs://', '@ipfs:')}
                   </Code>
-                  <div
+                  <Box
+                    ml={1}
                     onClick={async () => {
                       await copy(o.url.replace('ipfs://', '@ipfs:'));
                     }}
                     className="copy-button"
                   >
-                    <Copy />
-                  </div>
+                    <Copy size={16} />
+                  </Box>
                 </Flex>
               )}
             </Flex>

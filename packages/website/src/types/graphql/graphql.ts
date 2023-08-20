@@ -47,6 +47,7 @@ export type Package = {
   last_updated: Scalars['BigInt']['output'];
   name: Scalars['String']['output'];
   tags: Array<Tag>;
+  variants: Array<Variant>;
 };
 
 
@@ -56,6 +57,15 @@ export type PackageTagsArgs = {
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   where?: InputMaybe<Tag_Filter>;
+};
+
+
+export type PackageVariantsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Variant_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Variant_Filter>;
 };
 
 export type Package_Filter = {
@@ -120,6 +130,7 @@ export type Package_Filter = {
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   or?: InputMaybe<Array<InputMaybe<Package_Filter>>>;
   tags_?: InputMaybe<Tag_Filter>;
+  variants_?: InputMaybe<Variant_Filter>;
 };
 
 export enum Package_OrderBy {
@@ -127,7 +138,8 @@ export enum Package_OrderBy {
   LastPublisher = 'last_publisher',
   LastUpdated = 'last_updated',
   Name = 'name',
-  Tags = 'tags'
+  Tags = 'tags',
+  Variants = 'variants'
 }
 
 export type Query = {
@@ -391,6 +403,7 @@ export enum Tag_OrderBy {
 
 export type Variant = {
   __typename?: 'Variant';
+  cannon_package: Package;
   chain_id: Scalars['Int']['output'];
   deploy_url: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -406,6 +419,27 @@ export type Variant_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   and?: InputMaybe<Array<InputMaybe<Variant_Filter>>>;
+  cannon_package?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_?: InputMaybe<Package_Filter>;
+  cannon_package_contains?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_ends_with?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_gt?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_gte?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  cannon_package_lt?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_lte?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_contains?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  cannon_package_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_starts_with?: InputMaybe<Scalars['String']['input']>;
+  cannon_package_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   chain_id?: InputMaybe<Scalars['Int']['input']>;
   chain_id_gt?: InputMaybe<Scalars['Int']['input']>;
   chain_id_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -555,6 +589,11 @@ export type Variant_Filter = {
 };
 
 export enum Variant_OrderBy {
+  CannonPackage = 'cannon_package',
+  CannonPackageId = 'cannon_package__id',
+  CannonPackageLastPublisher = 'cannon_package__last_publisher',
+  CannonPackageLastUpdated = 'cannon_package__last_updated',
+  CannonPackageName = 'cannon_package__name',
   ChainId = 'chain_id',
   DeployUrl = 'deploy_url',
   Id = 'id',
@@ -625,9 +664,17 @@ export type GetPackageQueryVariables = Exact<{
 }>;
 
 
-export type GetPackageQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, last_updated: any, last_publisher: string, tags: Array<{ __typename?: 'Tag', id: string, name: string, last_updated: any, last_publisher: string, variants: Array<{ __typename?: 'Variant', name: string, last_updated: any, last_publisher: string, preset: string, chain_id: number, deploy_url: string, meta_url: string }> }> }> };
+export type GetPackageQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, last_updated: any, last_publisher: string, tags: Array<{ __typename?: 'Tag', id: string, name: string, last_updated: any, last_publisher: string, variants: Array<{ __typename?: 'Variant', id: string }> }>, variants: Array<{ __typename?: 'Variant', name: string, last_updated: any, last_publisher: string, preset: string, chain_id: number, deploy_url: string, meta_url: string, tag: { __typename?: 'Tag', id: string, name: string } }> }> };
+
+export type GetFilteredPackagesAndVariantsQueryVariables = Exact<{
+  query: Scalars['String']['input'];
+}>;
+
+
+export type GetFilteredPackagesAndVariantsQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, variants: Array<{ __typename?: 'Variant', id: string, name: string, preset: string, last_updated: any, last_publisher: string, chain_id: number, deploy_url: string, meta_url: string, tag: { __typename?: 'Tag', id: string, name: string } }> }>, filteredVariants: Array<{ __typename?: 'Variant', id: string, name: string, preset: string, last_updated: any, last_publisher: string, chain_id: number, deploy_url: string, meta_url: string, cannon_package: { __typename?: 'Package', id: string, name: string }, tag: { __typename?: 'Tag', id: string, name: string } }> };
 
 
 export const GetPackagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getPackages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"packages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetPackagesQuery, GetPackagesQueryVariables>;
 export const GetTotalPackagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getTotalPackages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"totalPackages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GetTotalPackagesQuery, GetTotalPackagesQueryVariables>;
-export const GetPackageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getPackage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetPackageQuery, GetPackageQueryVariables>;
+export const GetPackageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getPackage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetPackageQuery, GetPackageQueryVariables>;
+export const GetFilteredPackagesAndVariantsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getFilteredPackagesAndVariants"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"packages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"filteredVariants"},"name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"preset_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"cannon_package"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<GetFilteredPackagesAndVariantsQuery, GetFilteredPackagesAndVariantsQueryVariables>;

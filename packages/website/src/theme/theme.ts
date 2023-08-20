@@ -2,7 +2,7 @@ import { extendTheme } from '@chakra-ui/react';
 
 export const theme = extendTheme({
   fonts: {
-    heading: 'var(--font-miriam)',
+    heading: 'var(--font-inter)',
     body: 'var(--font-inter)',
   },
   colors: {
@@ -31,7 +31,7 @@ export const theme = extendTheme({
       200: '#7ae9ff',
       300: '#48dfff',
       400: '#1ad6ff',
-      500: '#00bce6',
+      500: '#00A7CC',
       600: '#0092b4',
       700: '#006882',
       800: '#004050',
@@ -39,13 +39,6 @@ export const theme = extendTheme({
     },
   },
   components: {
-    Button: {
-      baseStyle: {
-        fontWeight: 'bold', // Customize the font weight
-        fontFamily: 'var(--font-miriam)', // Customize the font family
-        textTransform: 'uppercase',
-      },
-    },
     Link: {
       baseStyle: {
         textDecoration: 'underline',

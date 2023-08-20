@@ -25,7 +25,8 @@ const PublishInfo: FC<{
         <Link
           isExternal
           styleConfig={{ 'text-decoration': 'none' }}
-          borderBottom="1px dotted rgba(255,255,255,0.8)"
+          borderBottom="1px dotted"
+          borderBottomColor="gray.300"
           href={`https://etherscan.io/address/${p.last_publisher}`}
         >
           {`${p.last_publisher.substring(0, 6)}...${p.last_publisher.slice(

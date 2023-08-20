@@ -53,14 +53,62 @@ export const GET_PACKAGE = gql`
         last_updated
         last_publisher
         variants(orderDirection: desc, orderBy: last_updated) {
-          name
-          last_updated
-          last_publisher
-          preset
-          chain_id
-          deploy_url
-          meta_url
+          id
         }
+      }
+      variants(orderDirection: desc, orderBy: last_updated) {
+        name
+        last_updated
+        last_publisher
+        preset
+        chain_id
+        deploy_url
+        meta_url
+        tag {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const FILTERED_PACKAGES_AND_VARIANTS = gql`
+  query getFilteredPackagesAndVariants($query: String!) {
+    packages: packages(where: { name_contains: $query }) {
+      id
+      name
+      variants {
+        id
+        name
+        preset
+        last_updated
+        last_publisher
+        chain_id
+        deploy_url
+        meta_url
+        tag {
+          id
+          name
+        }
+      }
+    }
+    filteredVariants: variants(where: { preset_contains: $query }) {
+      id
+      name
+      preset
+      last_updated
+      last_publisher
+      chain_id
+      deploy_url
+      meta_url
+      cannon_package {
+        id
+        name
+      }
+      tag {
+        id
+        name
       }
     }
   }

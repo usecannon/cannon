@@ -4,7 +4,7 @@ import { Providers } from './providers';
 import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
 import { Flex } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
-import { GithubFooter } from '@/features/Footer/GithubFooter';
+import { Footer } from '@/features/Footer/Footer';
 import { ReactNode } from 'react';
 
 const miriam = Miriam_Libre({
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           >
             <Header />
             <Flex flex="1">{children}</Flex>
-            <GithubFooter />
+            <Footer />
           </Flex>
         </Providers>
       </body>
