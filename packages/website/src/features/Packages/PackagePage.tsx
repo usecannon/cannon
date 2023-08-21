@@ -3,8 +3,9 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
-import { Flex, Spinner, Container } from '@chakra-ui/react';
+import { Flex, Container } from '@chakra-ui/react';
 import { PackageCard } from '../Search/PackageCard/PackageCard';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const PackagePage: FC<{
   name: string;
@@ -26,7 +27,7 @@ export const PackagePage: FC<{
           <PackageCard pkg={pkg} />
         </Container>
       ) : (
-        <Spinner m="auto" />
+        <CustomSpinner m="auto" />
       )}
     </Flex>
   );

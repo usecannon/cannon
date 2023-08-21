@@ -90,6 +90,7 @@ export function DataTable<Data extends object>({
                   fontWeight={500}
                   py={2}
                   cursor="pointer"
+                  whiteSpace="nowrap"
                 >
                   {flexRender(
                     header.column.columnDef.header,
@@ -164,6 +165,7 @@ export function DataTable<Data extends object>({
                       ? 'none'
                       : undefined
                   }
+                  whiteSpace="nowrap"
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {

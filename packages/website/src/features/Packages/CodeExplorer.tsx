@@ -1,12 +1,13 @@
 import { FC, useEffect, useState } from 'react';
 import axios from 'axios';
 import pako from 'pako';
-import { Box, Spinner, Container } from '@chakra-ui/react';
+import { Box, Container } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { isEmpty } from 'lodash';
 import { IpfsUrl } from './IpfsUrl';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const CodeExplorer: FC<{
   variant: any;
@@ -48,7 +49,7 @@ export const CodeExplorer: FC<{
 
       {loading ? (
         <Box py="20" textAlign="center">
-          <Spinner />
+          <CustomSpinner />
         </Box>
       ) : !isEmpty(metadata) ? (
         <Container maxW="container.lg">

@@ -1,10 +1,11 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Alert, AlertIcon, Box, Spinner, Text } from '@chakra-ui/react';
+import { Alert, AlertIcon, Box, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { ProvisionStep } from '@/features/Packages/ProvisionStep';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const Interact: FC<{ variant: any }> = ({ variant }) => {
   const [loading, setLoading] = useState(true);
@@ -100,7 +101,7 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
 
       {loading ? (
         <Box py="20" textAlign="center">
-          <Spinner />
+          <CustomSpinner />
         </Box>
       ) : (
         <Box>

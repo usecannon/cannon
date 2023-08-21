@@ -7,9 +7,10 @@ import { FC } from 'react';
 
 interface IPackageCardProps {
   pkg: Package;
+  maxHeight?: string;
 }
 
-export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
+export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
   return (
     <Box
       key={pkg.name}
@@ -36,7 +37,26 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
           <LinkIcon />
         </Link>
       </Flex>
-      <PackageTable pkg={pkg} />
+
+      <Box
+        verticalAlign="middle"
+        overflow="auto"
+        maxHeight={maxHeight}
+        position="relative"
+        _after={{
+          content: '""',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '4px', // This defines how "long" the shadow is.
+          background:
+            'linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)',
+          pointerEvents: 'none',
+        }}
+      >
+        <PackageTable pkg={pkg} />
+      </Box>
     </Box>
   );
 };

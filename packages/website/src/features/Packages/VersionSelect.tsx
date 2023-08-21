@@ -41,7 +41,7 @@ export const VersionSelect: FC<{
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent maxW="container.lg">
-          <PackageCard pkg={pkg} />
+          <PackageCard pkg={pkg} maxHeight={'75vh'} />
         </ModalContent>
       </Modal>
     </>

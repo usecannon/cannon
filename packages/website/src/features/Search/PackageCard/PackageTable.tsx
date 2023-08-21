@@ -1,6 +1,5 @@
 import { Package, Variant } from '@/types/graphql/graphql';
 import { FC } from 'react';
-import { Box } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
@@ -58,11 +57,7 @@ const PackageTable: FC<{
     }),
   ];
 
-  return (
-    <Box verticalAlign="middle" overflowX="auto">
-      <DataTable packageName={pkg.name} columns={columns} data={data} />
-    </Box>
-  );
+  return <DataTable packageName={pkg.name} columns={columns} data={data} />;
 };
 
 export default PackageTable;

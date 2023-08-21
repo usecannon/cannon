@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Container, Flex, Heading, Spinner } from '@chakra-ui/react';
+import { Box, Container, Flex, Heading } from '@chakra-ui/react';
 import { NavLink } from '@/components/NavLink';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
@@ -9,6 +9,7 @@ import { VersionSelect } from '@/features/Packages/VersionSelect';
 import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export default function RootLayout({
   children,
@@ -80,7 +81,7 @@ export default function RootLayout({
           {children}
         </>
       ) : (
-        <Spinner m="auto" />
+        <CustomSpinner m="auto" />
       )}
     </Flex>
   );

@@ -8,7 +8,6 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  Spinner,
   useBreakpointValue,
   Container,
   Image,
@@ -28,6 +27,7 @@ import {
 } from '@/types/graphql/graphql';
 import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCard } from './PackageCard/PackageCard';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -179,14 +179,14 @@ export const SearchPage = () => {
               flex={1}
               height="100%"
             >
-              <Spinner />
+              <CustomSpinner />
             </Flex>
           ) : (
             <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCard pkg={pkg} key={pkg.name} />
+                    <PackageCard maxHeight="186px" pkg={pkg} key={pkg.name} />
                   </Box>
                 ))}
               </Container>

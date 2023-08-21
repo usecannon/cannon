@@ -9,7 +9,6 @@ import {
   FormControl,
   FormLabel,
   Heading,
-  Spinner,
   Text,
 } from '@chakra-ui/react';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
@@ -27,6 +26,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address, getContract } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -163,7 +163,7 @@ export const Function: FC<{
       })}
       {loading && (
         <Box my="4">
-          <Spinner />
+          <CustomSpinner />
         </Box>
       )}
       {error && (

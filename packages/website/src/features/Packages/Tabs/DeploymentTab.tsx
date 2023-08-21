@@ -3,9 +3,10 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
-import { Flex, Spinner, Container } from '@chakra-ui/react';
+import { Flex, Container } from '@chakra-ui/react';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import UnderConstruction from './UnderConstruction';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const DeploymentTab: FC<{
   name: string;
@@ -35,7 +36,7 @@ export const DeploymentTab: FC<{
           <DeploymentExplorer variant={currentVariant} />
         </Container>
       ) : (
-        <Spinner m="auto" />
+        <CustomSpinner m="auto" />
       )}
     </Flex>
   );

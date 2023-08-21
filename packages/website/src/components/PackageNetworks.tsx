@@ -1,6 +1,6 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Box, Text, Button, Spinner, Heading } from '@chakra-ui/react';
+import { Box, Text, Button, Heading } from '@chakra-ui/react';
 import chainData from '@/constants/chainsData';
 import axios from 'axios';
 import pako from 'pako';
@@ -21,6 +21,7 @@ import { useCopy } from '@/lib/copy';
 import { CodePreview } from '@/components/CodePreview';
 import { getOutput } from '@/lib/builder'; //Example style, you can use another
 import style from './packageNetworks.module.scss';
+import { CustomSpinner } from './CustomSpinner';
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -149,7 +150,7 @@ const PackageNetworks: FC<{
           <ModalBody>
             {loading && (
               <Box py="20" textAlign="center">
-                <Spinner />
+                <CustomSpinner />
               </Box>
             )}
             {deployUrl ? (

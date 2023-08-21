@@ -3,9 +3,10 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
-import { Container, Flex, Spinner } from '@chakra-ui/react';
+import { Container, Flex } from '@chakra-ui/react';
 import { Interact } from '@/features/Packages/Interact';
 import UnderConstruction from './UnderConstruction';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const InteractTab: FC<{
   name: string;
@@ -34,7 +35,7 @@ export const InteractTab: FC<{
           <Interact variant={currentVariant} />
         </Container>
       ) : (
-        <Spinner m="auto" />
+        <CustomSpinner m="auto" />
       )}
     </Flex>
   );

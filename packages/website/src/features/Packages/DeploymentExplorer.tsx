@@ -3,10 +3,11 @@ import axios from 'axios';
 import pako from 'pako';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import { Box, Spinner, Container } from '@chakra-ui/react';
+import { Box, Container } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { useQuery } from '@tanstack/react-query';
 import { IpfsUrl } from './IpfsUrl';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const DeploymentExplorer: FC<{
   variant: any;
@@ -35,7 +36,7 @@ export const DeploymentExplorer: FC<{
 
       {deploymentData.isLoading ? (
         <Box py="20" textAlign="center">
-          <Spinner />
+          <CustomSpinner />
         </Box>
       ) : deploymentData.data ? (
         <Container maxW="container.lg">
