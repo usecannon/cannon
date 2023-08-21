@@ -126,7 +126,7 @@ export const SearchPage = () => {
           width={['100%', '100%', '300px']}
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >
-          <Box p={8} pb={[0, 0, 8]}>
+          <Box p={[4, 4, 8]} pb={[0, 0, 8]}>
             <InputGroup borderColor="gray.600">
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.500" />
@@ -136,7 +136,7 @@ export const SearchPage = () => {
           </Box>
           <Box
             px={3}
-            py={2}
+            py={[1, 1, 2]}
             mt="auto"
             borderTop={!totalLoading ? '1px solid' : 'none'}
             borderTopColor={['transparent', 'transparent', 'gray.700']}
@@ -150,7 +150,7 @@ export const SearchPage = () => {
                   objectFit="contain"
                   opacity={0.6}
                   mr={2}
-                  ml={[6, 6, 0]}
+                  ml={[2, 2, 0]}
                   transform="translateY(0.5px)"
                 />
                 <Text color="gray.400" fontSize="sm">
@@ -182,7 +182,7 @@ export const SearchPage = () => {
               <Spinner />
             </Flex>
           ) : (
-            <Box px={4} py={isSmall ? 4 : 8}>
+            <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>

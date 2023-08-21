@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { Button, Flex } from '@chakra-ui/react';
+import { Button, Flex, Image } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const styleMap = {
@@ -118,10 +118,11 @@ export const ConnectWallet: FC = () => {
                         }}
                       >
                         {chain.iconUrl && (
-                          <img
+                          <Image
                             alt={chain.name ?? 'Chain icon'}
                             src={chain.iconUrl}
-                            style={{ width: 14, height: 14 }}
+                            width="14px"
+                            height="14px"
                           />
                         )}
                       </div>

@@ -37,7 +37,7 @@ export default function HomePage() {
       bg="black"
       justify="center"
     >
-      <Container maxW="container.xl" py={[12, 12, 24]}>
+      <Container maxW="container.xl" py={4}>
         <Heading
           as="h1"
           mb={[4, 4, 7]}

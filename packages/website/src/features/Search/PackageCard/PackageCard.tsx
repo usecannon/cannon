@@ -25,10 +25,16 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg }) => {
       <Flex bg="gray.800" p={2} borderBottom="1px solid" borderColor="gray.600">
         <Heading as="h4" p={1} size="sm">
           {pkg.name}
-          <Link as={NextLink} href={'/packages/' + pkg.name} ml={1.5}>
-            <LinkIcon boxSize={3.5} />
-          </Link>
         </Heading>
+        <Link
+          as={NextLink}
+          href={'/packages/' + pkg.name}
+          display="inline-block"
+          ml="auto"
+          mr={1}
+        >
+          <LinkIcon />
+        </Link>
       </Flex>
       <PackageTable pkg={pkg} />
     </Box>
