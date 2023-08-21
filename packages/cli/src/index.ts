@@ -321,7 +321,10 @@ program
   .command('alter')
   .description('Change a cannon package outside of the regular build process.')
   .argument('<packageName>', 'Name and version of the Cannon package to alter')
-  .argument('<command>', 'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete, mark-incomplete')
+  .argument(
+    '<command>',
+    'Alteration command to execute. Current options: set-url, set-contract-address, mark-complete, mark-incomplete'
+  )
   .argument('[options...]', 'Additional options for your alteration command')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
   .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
