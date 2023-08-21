@@ -42,6 +42,54 @@ The `build` command will attempt to build a specified blockchain into the state 
 - `--wipe` - Clear the existing deployment state and start this deploy from scratch.
 - `--upgrade-from` - Specify a package to use as a new base for the deployment.
 
+### alter
+
+The `alter` command can be used to alter the state of an existing cannon package.
+
+**Arguments**
+
+- `<packageName:packageVersion>` - Name and version of the package to alter
+- `<command>` - Alteration command to execute. 
+
+Current `command` Options: 
+  - `set-url <newIpfsUrl>` - Replace the IPFS url where the package is pinned 
+  - `set-contract-address <contractName> <contractAddress>` - Replace the contract address for a specified contract
+  - `mark-complete` - Sets the new state hash for the package
+  - `mark-incomplete` - Removes the state hash for the package and marks it as incomplete
+
+**Options**
+
+- `--chain-id` - Alter a cannon package for the given chain id. 
+- `--preset` - The preset label to alter the state for (_Default: "main"_)
+
+The `alter` command can also be used to "import" deployed contracts at specified addresses and publish them to the registry for use inside of Cannon's context.
+This means that you can essentially 'fake' a deployment and utilize functionality from any contracts that have been deployed on any EVM chain from the context of your build configuration.
+
+**Note**: An instance of the contract must be built and deployed as a package on the registry before being able to alter it.
+
+For example, if you want to use Chainlink's Link Token contract on Ethereum in your Cannon build context:
+
+Cannonfile.toml:
+```toml
+name = "chainlink-token"
+version = "1.0.0"
+
+[setting.recipient]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+[contract.Token]
+artifact = "LinkToken"
+from = "<%= settings.recipient %>"
+```
+
+After building and publishing:
+
+```bash
+cannon alter token:1.0.0 --chain-id 1 set-contract-address Token '0x514910771AF9Ca656af840dff83E8264EcF986CA'
+```
+
+This will set the address of the token contract to the LINK token contract on ETH.
+
 ### verify
 
 Verify a package on Etherscan.
@@ -65,6 +113,7 @@ Publish a Cannon package to the registry for all networks where this package has
 
 **Options**
 
+- `--registry-provider-url` RPC endpoint to use when publishing.
 - `--chain-id` - The network which the registry to deploy to is on. Default: 1 (mainnet)
 - `--private-key` - Private key of the wallet to use when publishing. If not specified, uses a local wallet provider (such as Frame)
 - `--preset` - Preset name to use (_Default: "main"_)

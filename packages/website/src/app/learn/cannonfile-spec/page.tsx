@@ -1,5 +1,5 @@
-import { DocsPage } from '@/features/Docs/DocsPage';
-import { exportListFromMarkdown } from '@/helpers/markdown';
+import { DocsSpecPage } from '@/features/Docs/DocsSpecPage';
+import { exportSpecListFromMarkdown } from '@/helpers/markdown';
 import fs from 'fs';
 import path from 'path';
 import { Metadata } from 'next';
@@ -13,7 +13,7 @@ export default function Docs() {
     .readFileSync(path.join('content', 'docs-configuration' + '.md'))
     .toString();
 
-  const configurationList = exportListFromMarkdown(configurationMarkdown);
+  const configurationList = exportSpecListFromMarkdown(configurationMarkdown);
 
-  return <DocsPage list={configurationList} md={configurationMarkdown} />;
+  return <DocsSpecPage list={configurationList} md={configurationMarkdown} />;
 }
