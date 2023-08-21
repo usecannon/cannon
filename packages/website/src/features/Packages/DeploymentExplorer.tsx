@@ -6,6 +6,7 @@ import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { isEmpty } from 'lodash';
+import { IpfsUrl } from './IpfsUrl';
 
 export const DeploymentExplorer: FC<{
   variant: any;
@@ -41,8 +42,12 @@ export const DeploymentExplorer: FC<{
     };
   }, [variant]);
 
-  return (
+  return variant?.deploy_url ? (
     <Box>
+      {variant?.deploy_url && (
+        <IpfsUrl title="Deployment Data " url={variant.deploy_url} />
+      )}
+
       {loading ? (
         <Box py="20" textAlign="center">
           <Spinner />
@@ -59,14 +64,13 @@ export const DeploymentExplorer: FC<{
         </>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
-          Deployment data unavailable
-          {variant?.deploy_url && (
-            <Box mt={1} fontSize="xs">
-              {variant.deploy_url}
-            </Box>
-          )}
+          Unable to retrieve deployment data
         </Box>
       )}
+    </Box>
+  ) : (
+    <Box textAlign="center" py="20" opacity="0.5">
+      No metadata is associated with this package
     </Box>
   );
 };

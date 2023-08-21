@@ -2,28 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import {
-  //Button,
   Flex,
   Box,
+  Text,
   Input,
   InputGroup,
   InputLeftElement,
   Spinner,
-  //Text,
   useBreakpointValue,
   Container,
+  Image,
+  Link,
 } from '@chakra-ui/react';
 import { useQuery } from '@apollo/client';
 import {
-  //GET_PACKAGES,
-  //TOTAL_PACKAGES,
+  TOTAL_PACKAGES,
   FILTERED_PACKAGES_AND_VARIANTS,
 } from '@/graphql/queries';
 import {
-  //GetPackagesQuery,
-  //GetPackagesQueryVariables,
-  //GetTotalPackagesQuery,
-  //GetTotalPackagesQueryVariables,
+  GetTotalPackagesQuery,
+  GetTotalPackagesQueryVariables,
   GetFilteredPackagesAndVariantsQuery,
   GetFilteredPackagesAndVariantsQueryVariables,
   Package,
@@ -33,46 +31,13 @@ import { PackageCard } from './PackageCard/PackageCard';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  /*
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const pageSize = 20;
 
-  const { loading, error, data } = useQuery<
-    GetPackagesQuery,
-    GetPackagesQueryVariables
-  >(GET_PACKAGES, {
-    variables: {
-      query: searchTerm,
-      skip: pageSize * (page - 1),
-      first: pageSize,
-    },
-  });
   const { data: totalPackages, loading: totalLoading } = useQuery<
     GetTotalPackagesQuery,
     GetTotalPackagesQueryVariables
   >(TOTAL_PACKAGES, {
     variables: { query: searchTerm },
   });
-
-  const [packages, setPackages] = useState<GetPackagesQuery['packages']>([]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm]);
-  
-  useEffect(() => {
-    if (error) {
-      console.log('error:', error);
-    }
-    setPackages(data?.packages || []);
-  }, [loading, error, data]);
-  useEffect(() => {
-    setTotalPages(
-      Math.ceil((totalPackages?.totalPackages?.length || 0) / pageSize)
-    );
-  }, [totalPackages]);
-*/
 
   const handleSearch = (e: any) => {
     setSearchTerm(e.target.value);
@@ -135,70 +100,85 @@ export const SearchPage = () => {
   });
 
   return (
-    <Flex flex="1" w="100%" flexDir={isSmall ? 'column' : 'row'}>
-      <Box
-        p={8}
-        borderRight={isSmall ? 'none' : '1px solid'}
-        borderColor="gray.700"
-        flexShrink={0}
-        flexGrow={isSmall ? 0 : 1}
-        overflowY="auto"
-        maxWidth={isSmall ? '100%' : '300px'}
-      >
-        <InputGroup borderColor="gray.600">
-          <InputLeftElement pointerEvents="none">
-            <SearchIcon color="gray.500" />
-          </InputLeftElement>
-          <Input onChange={handleSearch} mb={6} />
-        </InputGroup>
-        {/*
-        <Text fontSize="sm" color="gray.500">
-          {!totalLoading &&
-            'Showing pages ' +
-              page +
-              ' of ' +
-              totalPages +
-              ' (' +
-              totalPackages?.totalPackages?.length +
-              ' results)'}
-        </Text>
-          */}
-      </Box>
-      {loading ? (
-        <Flex justifyContent="center" alignItems="center" flex={1}>
-          <Spinner />
+    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+      <Flex flex="1" direction={['column', 'column', 'row']}>
+        <Flex
+          flexDirection="column"
+          overflowY="auto"
+          maxWidth={['100%', '100%', '300px']}
+          borderRight={isSmall ? 'none' : '1px solid'}
+          borderColor="gray.700"
+          width={['100%', '100%', '300px']}
+          maxHeight={['none', 'none', 'calc(100vh - 100px)']}
+        >
+          <Box p={8} pb={[0, 0, 8]}>
+            <InputGroup borderColor="gray.600">
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.500" />
+              </InputLeftElement>
+              <Input onChange={handleSearch} />
+            </InputGroup>
+          </Box>
+          {!totalLoading && (
+            <Box
+              px={3}
+              py={2}
+              mt="auto"
+              borderTop="1px solid"
+              borderTopColor={['transparent', 'transparent', 'gray.700']}
+            >
+              <Flex>
+                <Image
+                  src="/images/thegraph.svg"
+                  alt="The Graph"
+                  w="12px"
+                  objectFit="contain"
+                  opacity={0.6}
+                  mr={2}
+                  ml={[6, 6, 0]}
+                  transform="translateY(0.5px)"
+                />
+                <Text color="gray.400" fontSize="sm">
+                  {totalPackages?.totalPackages?.length} packages indexed on{' '}
+                  <Link
+                    isExternal
+                    fontWeight={500}
+                    href="https://thegraph.com/hosted-service/subgraph/noahlitvin/cannon-registry-mainnet"
+                  >
+                    the subgraph
+                  </Link>
+                </Text>
+              </Flex>
+            </Box>
+          )}
         </Flex>
-      ) : (
-        <Box px={4} py={isSmall ? 4 : 8} flex={1} overflowY="auto">
-          <Container ml={0} maxWidth="container.xl">
-            {results.map((pkg: any) => (
-              <Box mb="8" key={pkg.id}>
-                <PackageCard pkg={pkg} key={pkg.name} />
-              </Box>
-            ))}
-            {/*
-            <Flex justifyContent="space-between">
-              <Button
-                size="sm"
-                colorScheme="teal"
-                onClick={() => setPage(page - 1)}
-                isDisabled={page === 1}
-              >
-                Previous
-              </Button>
-              <Button
-                size="sm"
-                colorScheme="teal"
-                onClick={() => setPage(page + 1)}
-                isDisabled={page >= totalPages}
-              >
-                Next
-              </Button>
+        <Box
+          flex="1"
+          overflowY="auto"
+          maxHeight={['none', 'none', 'calc(100vh - 100px)']}
+        >
+          {loading ? (
+            <Flex
+              justifyContent="center"
+              alignItems="center"
+              flex={1}
+              height="100%"
+            >
+              <Spinner />
             </Flex>
-            */}
-          </Container>
+          ) : (
+            <Box px={4} py={isSmall ? 4 : 8}>
+              <Container ml={0} maxWidth="container.xl">
+                {results.map((pkg: any) => (
+                  <Box mb="8" key={pkg.id}>
+                    <PackageCard pkg={pkg} key={pkg.name} />
+                  </Box>
+                ))}
+              </Container>
+            </Box>
+          )}
         </Box>
-      )}
+      </Flex>
     </Flex>
   );
 };

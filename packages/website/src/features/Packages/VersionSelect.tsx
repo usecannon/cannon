@@ -26,7 +26,7 @@ export const VersionSelect: FC<{
         rightIcon={<ArrowUpDownIcon h="3" opacity="0.8" />}
         colorScheme="black"
         variant="outline"
-        borderColor="gray.400"
+        borderColor="gray.500"
         _hover={{ bg: 'gray.900', borderColor: 'gray.500' }}
       >
         <Flex gap={1} alignItems="baseline">

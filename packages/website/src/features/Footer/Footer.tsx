@@ -6,12 +6,13 @@ export const Footer = () => {
     <Flex
       borderTop="1px solid"
       borderColor="gray.700"
-      py={2}
+      py={[5, 5, 2]}
       px={2}
       backgroundColor="black"
       alignItems="center"
+      flexDirection={['column', 'column', 'row']}
     >
-      <Flex height="28px">
+      <Flex height="28px" mb={[3, 3, 0]}>
         <Box mr={2}>
           <GitHubButton
             href="https://github.com/usecannon/cannon"
@@ -32,7 +33,7 @@ export const Footer = () => {
           Star
         </GitHubButton>
       </Flex>
-      <Box ml="auto" mr="1">
+      <Box ml={[0, 0, 'auto']} mr={[0, 0, 1]}>
         <Text
           fontWeight="600"
           fontSize="md"

@@ -17,6 +17,13 @@ const styleMap = {
       bg: 'red.800',
     },
   },
+  default: {
+    background: 'gray.900',
+    borderColor: 'gray.500',
+    _hover: {
+      background: 'gray.800',
+    },
+  },
 };
 
 const CustomButton = ({
@@ -26,7 +33,7 @@ const CustomButton = ({
 }: {
   onClick: () => void;
   children: ReactNode;
-  variant?: string;
+  variant: string;
 }) => (
   <Button
     size="sm"
@@ -40,10 +47,6 @@ const CustomButton = ({
     fontSize="15px"
     color="gray.200"
     {...styleMap[variant as keyof typeof styleMap]}
-    borderColor="gray.500"
-    _hover={{
-      bg: 'gray.900',
-    }}
     onClick={onClick}
   >
     {children}
@@ -101,7 +104,7 @@ export const ConnectWallet: FC = () => {
 
               return (
                 <Flex gap={4}>
-                  <CustomButton onClick={openChainModal}>
+                  <CustomButton onClick={openChainModal} variant="default">
                     {chain.hasIcon && (
                       <div
                         style={{
@@ -126,7 +129,7 @@ export const ConnectWallet: FC = () => {
                     {chain.name}
                   </CustomButton>
 
-                  <CustomButton onClick={openAccountModal}>
+                  <CustomButton onClick={openAccountModal} variant="default">
                     {account.displayName}
                     {/* account.displayBalance
                       ? ` (${account.displayBalance})`

@@ -5,6 +5,7 @@ import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { Container, Flex, Spinner } from '@chakra-ui/react';
 import { Interact } from '@/features/Packages/Interact';
+import UnderConstruction from './UnderConstruction';
 
 export const InteractTab: FC<{
   name: string;
@@ -27,8 +28,9 @@ export const InteractTab: FC<{
 
   return (
     <Flex flexDirection="column" width="100%">
+      <UnderConstruction />
       {currentVariant ? (
-        <Container maxW="container.xl">
+        <Container maxW="container.lg">
           <Interact variant={currentVariant} />
         </Container>
       ) : (

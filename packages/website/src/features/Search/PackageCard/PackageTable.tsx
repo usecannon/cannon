@@ -59,7 +59,7 @@ const PackageTable: FC<{
   ];
 
   return (
-    <Box verticalAlign="middle">
+    <Box verticalAlign="middle" overflowX="auto">
       <DataTable packageName={pkg.name} columns={columns} data={data} />
     </Box>
   );

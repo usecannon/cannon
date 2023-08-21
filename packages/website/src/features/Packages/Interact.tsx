@@ -69,7 +69,7 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
       {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
 
       <Alert
-        my="8"
+        mb="6"
         status="warning"
         bg="gray.800"
         border="1px solid"
@@ -84,7 +84,7 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
 
       {hasProxy && (
         <Alert
-          my="8"
+          mb="6"
           status="info"
           bg="gray.800"
           border="1px solid"
