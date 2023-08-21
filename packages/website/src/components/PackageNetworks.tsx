@@ -164,7 +164,7 @@ const PackageNetworks: FC<{
                   <Copy className="copy-button" />
                   &nbsp;Copy to clipboard
                 </Button>
-                <CodePreview code={deployData} language={'json'} />
+                <CodePreview code={deployData} language="json" />
               </Box>
             ) : (
               <Box textAlign="center" py="20" opacity="0.5">

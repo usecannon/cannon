@@ -12,7 +12,7 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
     <div>
       {item.map((m, idx) => {
         return (
-          <>
+          <div key={idx}>
             <Link
               key={idx}
               textDecoration="none"
@@ -46,7 +46,7 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
                 );
               })}
             </Box>
-          </>
+          </div>
         );
       })}
     </div>

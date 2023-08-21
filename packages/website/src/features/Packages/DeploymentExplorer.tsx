@@ -1,46 +1,31 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import axios from 'axios';
 import pako from 'pako';
-import { Box, Spinner, Container } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
+import { Box, Spinner, Container } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
-import { isEmpty } from 'lodash';
+import { useQuery } from '@tanstack/react-query';
 import { IpfsUrl } from './IpfsUrl';
 
 export const DeploymentExplorer: FC<{
   variant: any;
 }> = ({ variant }) => {
-  const [loading, setLoading] = useState(false);
-  const [deploymentData, setDeploymentData] = useState<any>({});
-
-  useEffect(() => {
-    setLoading(true);
-
-    const controller = new AbortController();
-    if (variant?.deploy_url) {
-      axios
-        .get(
-          `https://ipfs.io/ipfs/${variant?.deploy_url?.replace('ipfs://', '')}`,
-          { responseType: 'arraybuffer', signal: controller.signal }
-        )
-        .then((response) => {
-          const uint8Array = new Uint8Array(response.data);
-          const inflated = pako.inflate(uint8Array);
-          const raw = new TextDecoder().decode(inflated);
-          setDeploymentData(JSON.parse(raw));
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-    return () => {
-      controller.abort();
-    };
-  }, [variant]);
+  const deploymentData = useQuery({
+    queryKey: [variant?.deploy_url],
+    queryFn: async ({ signal }) => {
+      if (typeof variant?.deploy_url !== 'string') {
+        throw new Error(`Invalid deploy url: ${variant?.deploy_url}`);
+      }
+      const cid = variant?.deploy_url.replace('ipfs://', '');
+      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
+        responseType: 'arraybuffer',
+        signal,
+      });
+      const data = pako.inflate(res.data, { to: 'string' });
+      return JSON.stringify(JSON.parse(data), null, 2);
+    },
+  });
 
   return variant?.deploy_url ? (
     <Box>
@@ -48,16 +33,13 @@ export const DeploymentExplorer: FC<{
         <IpfsUrl title="Deployment Data " url={variant.deploy_url} />
       )}
 
-      {loading ? (
+      {deploymentData.isLoading ? (
         <Box py="20" textAlign="center">
           <Spinner />
         </Box>
-      ) : !isEmpty(deploymentData) ? (
+      ) : deploymentData.data ? (
         <Container maxW="container.lg">
-          <CodePreview
-            code={JSON.stringify(deploymentData, null, 2)}
-            language="json"
-          />
+          <CodePreview code={deploymentData.data as string} language="json" />
         </Container>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
