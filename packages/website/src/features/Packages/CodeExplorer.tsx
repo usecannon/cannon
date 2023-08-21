@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import axios from 'axios';
 import pako from 'pako';
-import { Text, Box, Spinner } from '@chakra-ui/react';
+import { Box, Spinner, Container } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
@@ -51,15 +51,12 @@ export const CodeExplorer: FC<{
           <Spinner />
         </Box>
       ) : !isEmpty(metadata) ? (
-        <>
-          <Text fontFamily="mono" mb={4}>
-            {variant.meta_url}
-          </Text>
+        <Container maxW="container.lg">
           <CodePreview
             code={JSON.stringify(metadata, null, 2)}
             language="json"
           />
-        </>
+        </Container>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve metadata
