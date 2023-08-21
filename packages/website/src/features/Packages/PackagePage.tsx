@@ -21,9 +21,13 @@ export const PackagePage: FC<{
 
   return (
     <Flex flexDirection="column" width="100%">
-      <Container maxW="container.xl" my={[4, 4, 16]}>
-        {pkg ? <PackageCard pkg={pkg} /> : <Spinner m="auto" />}
-      </Container>
+      {pkg ? (
+        <Container maxW="container.xl" my={[4, 4, 16]}>
+          <PackageCard pkg={pkg} />
+        </Container>
+      ) : (
+        <Spinner m="auto" />
+      )}
     </Flex>
   );
 };

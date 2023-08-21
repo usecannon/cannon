@@ -87,7 +87,22 @@ export const SearchPage = () => {
         }
       });
 
-      return Object.values(packageMap);
+      const sortedPackages = Object.values(packageMap).sort((a, b) => {
+        const latestUpdatedA = a.variants.reduce(
+          (maxTimestamp, variant) =>
+            Math.max(variant.last_updated, maxTimestamp),
+          0
+        );
+        const latestUpdatedB = b.variants.reduce(
+          (maxTimestamp, variant) =>
+            Math.max(variant.last_updated, maxTimestamp),
+          0
+        );
+        console.log(latestUpdatedA, latestUpdatedB);
+        return latestUpdatedB - latestUpdatedA; // Descending order
+      });
+
+      return sortedPackages;
     };
 
     setResults(data ? mergeResults(data) : []);
@@ -119,14 +134,14 @@ export const SearchPage = () => {
               <Input onChange={handleSearch} />
             </InputGroup>
           </Box>
-          {!totalLoading && (
-            <Box
-              px={3}
-              py={2}
-              mt="auto"
-              borderTop="1px solid"
-              borderTopColor={['transparent', 'transparent', 'gray.700']}
-            >
+          <Box
+            px={3}
+            py={2}
+            mt="auto"
+            borderTop={!totalLoading ? '1px solid' : 'none'}
+            borderTopColor={['transparent', 'transparent', 'gray.700']}
+          >
+            {!totalLoading && (
               <Flex>
                 <Image
                   src="/images/thegraph.svg"
@@ -149,8 +164,8 @@ export const SearchPage = () => {
                   </Link>
                 </Text>
               </Flex>
-            </Box>
-          )}
+            )}
+          </Box>
         </Flex>
         <Box
           flex="1"

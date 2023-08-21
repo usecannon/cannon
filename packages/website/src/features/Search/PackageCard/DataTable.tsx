@@ -55,7 +55,7 @@ export function DataTable<Data extends object>({
   packageName,
 }: DataTableProps<Data>) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'tag', desc: true },
+    { id: 'tag', desc: false },
   ]);
   const table = useReactTable({
     columns,
