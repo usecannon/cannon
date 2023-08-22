@@ -45,14 +45,18 @@ export default function RootLayout({
             borderColor="gray.700"
           >
             <Container maxW="container.lg">
-              <Flex alignItems="center" mb={5}>
+              <Flex
+                flexDirection={['column', 'column', 'row']}
+                alignItems={['left', 'left', 'center']}
+                mb={5}
+              >
                 <Box>
                   <Heading as="h1" size="lg" mb="2">
                     {pkg?.name}
                   </Heading>
                   <PublishInfo p={pkg} />
                 </Box>
-                <Box ml="auto">
+                <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
                   <VersionSelect pkg={pkg} currentVariant={currentVariant} />
                 </Box>
               </Flex>
