@@ -4,7 +4,6 @@ import {
   Text,
   Code,
   Table,
-  TableCaption,
   Tbody,
   Flex,
   Heading,
@@ -19,8 +18,7 @@ import ReactMarkdown from 'react-markdown';
 import { IContentList } from '@/helpers/markdown';
 import { headingToId } from '@/helpers/markdown';
 import { DocsSidebar } from './DocsSidebar';
-import remarkGfm from 'remark-gfm'
-
+import remarkGfm from 'remark-gfm';
 
 interface IDocsPageProps {
   list: IContentList;
@@ -28,7 +26,13 @@ interface IDocsPageProps {
 }
 
 export const DocsSpecPage: FC<IDocsPageProps> = ({ list, md }) => {
-  md = md.replaceAll(RegExp(/^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/, 'gm'), '')
+  md = md.replaceAll(
+    RegExp(
+      /^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/,
+      'gm'
+    ),
+    ''
+  );
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -64,21 +68,21 @@ export const DocsSpecPage: FC<IDocsPageProps> = ({ list, md }) => {
               p: ({ ...props }) => <Text {...props} mt={4} />,
               h2: ({ ...props }) => (
                 <Heading
-                as="h2"
-                {...props}
-                mb={4}
-                pt={8}
-                fontSize={24}
-                id={headingToId(props)}
+                  as="h2"
+                  {...props}
+                  mb={4}
+                  pt={8}
+                  fontSize={24}
+                  id={headingToId(props)}
                 />
               ),
-              h1: ({ ...props }) => null,
-              h3: ({ ...props }) => null,
-              h4: ({ ...props }) => null,
-              a: ({ ...props }) => null,
-              table: ({ children, ...props }) => (
-                <Table m={10} variant='unstyled'>
-                  <Tbody children={children}></Tbody>
+              h1: () => null,
+              h3: () => null,
+              h4: () => null,
+              a: () => null,
+              table: ({ children }) => (
+                <Table m={10} variant="unstyled">
+                  <Tbody>{children}</Tbody>
                 </Table>
               ),
               code: ({ inline, className, ...props }) => {
