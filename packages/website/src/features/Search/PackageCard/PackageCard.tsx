@@ -22,6 +22,17 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
       borderRadius="4px"
       transition="all 0.12s"
       overflow="hidden"
+      position="relative"
+      _after={{
+        content: '""',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '4px',
+        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)',
+        pointerEvents: 'none',
+      }}
     >
       <Flex bg="gray.800" p={2} borderBottom="1px solid" borderColor="gray.600">
         <Heading as="h4" p={1} size="sm">
@@ -38,23 +49,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
         </Link>
       </Flex>
 
-      <Box
-        verticalAlign="middle"
-        overflow="auto"
-        maxHeight={maxHeight}
-        position="relative"
-        _after={{
-          content: '""',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '4px', // This defines how "long" the shadow is.
-          background:
-            'linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent)',
-          pointerEvents: 'none',
-        }}
-      >
+      <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
         <PackageTable pkg={pkg} />
       </Box>
     </Box>

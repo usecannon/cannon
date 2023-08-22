@@ -18,43 +18,11 @@ There are many different use cases for Cannon:
 To get started, run
 
 ```bash
-npx @usecannon/cli synthetix
+npx @usecannon/cli greeter
 ```
 
-This command will download the latest [synthetix package](/packages/synthetix) from the package registry and run it on a local node. See _run_ in the Cannon Commands section below for more information.
+This command will download the latest [greeter package](/packages/greeter) from the package registry and run it on a local node. See _run_ in the Cannon Commands section below for more information.
 
 ## Package Manager
 
 Builds are created as packages which contain all the deployment results and build settings for your chain. Based on your local system configuration, these packages are uploaded as blobs to IPFS. You can share packages by either sending the IPFS Qm hash, or by registering the package on-chain with our registry contract.
-
-## Hardhat Plug-in
-
-The Hardhat plug-in wraps the command-line tool to automatically use defaults from a project's Hardhat configuration file.
-
-If you’re using Cannon with Hardhat, you can install the Hardhat plug-in `hardhat-cannon`.
-
-```bash
-npm install hardhat-cannon
-```
-
-Then, include Cannon at the top of your `hardhat.config.js`.
-
-```js
-require('hardhat-cannon');
-```
-
-If your project uses Typescript instead, include Cannon in `hardhat.config.ts`.
-
-```js
-import 'hardhat-cannon';
-```
-
-Finally, set `cannon` as your default network in your Hardhat config file:
-
-```
-{
-  defaultNetwork: "cannon"
-}
-```
-
-Now you’ll be able to use the Hardhat plug-in commands specified in the [Cannon Commands](#cannon-commands) section below.
