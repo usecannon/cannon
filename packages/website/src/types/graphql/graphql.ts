@@ -9,19 +9,19 @@ export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> =
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  BigDecimal: { input: any; output: any; }
-  BigInt: { input: any; output: any; }
-  Bytes: { input: any; output: any; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
+  BigDecimal: { input: any; output: any };
+  BigInt: { input: any; output: any };
+  Bytes: { input: any; output: any };
   /**
    * 8 bytes signed integer
    *
    */
-  Int8: { input: any; output: any; }
+  Int8: { input: any; output: any };
 };
 
 export type BlockChangedFilter = {
@@ -37,7 +37,7 @@ export type Block_Height = {
 /** Defines the order direction, either ascending or descending */
 export enum OrderDirection {
   Asc = 'asc',
-  Desc = 'desc'
+  Desc = 'desc',
 }
 
 export type Package = {
@@ -50,7 +50,6 @@ export type Package = {
   variants: Array<Variant>;
 };
 
-
 export type PackageTagsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Tag_OrderBy>;
@@ -58,7 +57,6 @@ export type PackageTagsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   where?: InputMaybe<Tag_Filter>;
 };
-
 
 export type PackageVariantsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -139,7 +137,7 @@ export enum Package_OrderBy {
   LastUpdated = 'last_updated',
   Name = 'name',
   Tags = 'tags',
-  Variants = 'variants'
+  Variants = 'variants',
 }
 
 export type Query = {
@@ -154,18 +152,15 @@ export type Query = {
   variants: Array<Variant>;
 };
 
-
 export type Query_MetaArgs = {
   block?: InputMaybe<Block_Height>;
 };
-
 
 export type QueryPackageArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type QueryPackagesArgs = {
   block?: InputMaybe<Block_Height>;
@@ -177,13 +172,11 @@ export type QueryPackagesArgs = {
   where?: InputMaybe<Package_Filter>;
 };
 
-
 export type QueryTagArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type QueryTagsArgs = {
   block?: InputMaybe<Block_Height>;
@@ -195,13 +188,11 @@ export type QueryTagsArgs = {
   where?: InputMaybe<Tag_Filter>;
 };
 
-
 export type QueryVariantArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type QueryVariantsArgs = {
   block?: InputMaybe<Block_Height>;
@@ -225,18 +216,15 @@ export type Subscription = {
   variants: Array<Variant>;
 };
 
-
 export type Subscription_MetaArgs = {
   block?: InputMaybe<Block_Height>;
 };
-
 
 export type SubscriptionPackageArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type SubscriptionPackagesArgs = {
   block?: InputMaybe<Block_Height>;
@@ -248,13 +236,11 @@ export type SubscriptionPackagesArgs = {
   where?: InputMaybe<Package_Filter>;
 };
 
-
 export type SubscriptionTagArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type SubscriptionTagsArgs = {
   block?: InputMaybe<Block_Height>;
@@ -266,13 +252,11 @@ export type SubscriptionTagsArgs = {
   where?: InputMaybe<Tag_Filter>;
 };
 
-
 export type SubscriptionVariantArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
 };
-
 
 export type SubscriptionVariantsArgs = {
   block?: InputMaybe<Block_Height>;
@@ -293,7 +277,6 @@ export type Tag = {
   name: Scalars['String']['output'];
   variants: Array<Variant>;
 };
-
 
 export type TagVariantsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -398,7 +381,7 @@ export enum Tag_OrderBy {
   LastPublisher = 'last_publisher',
   LastUpdated = 'last_updated',
   Name = 'name',
-  Variants = 'variants'
+  Variants = 'variants',
 }
 
 export type Variant = {
@@ -606,7 +589,7 @@ export enum Variant_OrderBy {
   TagId = 'tag__id',
   TagLastPublisher = 'tag__last_publisher',
   TagLastUpdated = 'tag__last_updated',
-  TagName = 'tag__name'
+  TagName = 'tag__name',
 }
 
 export type _Block_ = {
@@ -640,7 +623,7 @@ export enum _SubgraphErrorPolicy_ {
   /** Data will be returned even if the subgraph has indexing errors */
   Allow = 'allow',
   /** If the subgraph has indexing errors, data will be omitted. The default. */
-  Deny = 'deny'
+  Deny = 'deny',
 }
 
 export type GetPackagesQueryVariables = Exact<{
@@ -649,32 +632,568 @@ export type GetPackagesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
 }>;
 
-
-export type GetPackagesQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, last_updated: any, last_publisher: string, tags: Array<{ __typename?: 'Tag', id: string, name: string, last_updated: any, last_publisher: string, variants: Array<{ __typename?: 'Variant', name: string, last_updated: any, last_publisher: string, preset: string, chain_id: number, deploy_url: string, meta_url: string }> }> }> };
+export type GetPackagesQuery = {
+  __typename?: 'Query';
+  packages: Array<{
+    __typename?: 'Package';
+    id: string;
+    name: string;
+    last_updated: any;
+    last_publisher: string;
+    tags: Array<{
+      __typename?: 'Tag';
+      id: string;
+      name: string;
+      last_updated: any;
+      last_publisher: string;
+      variants: Array<{
+        __typename?: 'Variant';
+        name: string;
+        last_updated: any;
+        last_publisher: string;
+        preset: string;
+        chain_id: number;
+        deploy_url: string;
+        meta_url: string;
+      }>;
+    }>;
+  }>;
+};
 
 export type GetTotalPackagesQueryVariables = Exact<{
   query: Scalars['String']['input'];
 }>;
 
-
-export type GetTotalPackagesQuery = { __typename?: 'Query', totalPackages: Array<{ __typename?: 'Package', id: string }> };
+export type GetTotalPackagesQuery = { __typename?: 'Query'; totalPackages: Array<{ __typename?: 'Package'; id: string }> };
 
 export type GetPackageQueryVariables = Exact<{
   name: Scalars['String']['input'];
 }>;
 
-
-export type GetPackageQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, last_updated: any, last_publisher: string, tags: Array<{ __typename?: 'Tag', id: string, name: string, last_updated: any, last_publisher: string, variants: Array<{ __typename?: 'Variant', id: string }> }>, variants: Array<{ __typename?: 'Variant', name: string, last_updated: any, last_publisher: string, preset: string, chain_id: number, deploy_url: string, meta_url: string, tag: { __typename?: 'Tag', id: string, name: string } }> }> };
+export type GetPackageQuery = {
+  __typename?: 'Query';
+  packages: Array<{
+    __typename?: 'Package';
+    id: string;
+    name: string;
+    last_updated: any;
+    last_publisher: string;
+    tags: Array<{
+      __typename?: 'Tag';
+      id: string;
+      name: string;
+      last_updated: any;
+      last_publisher: string;
+      variants: Array<{ __typename?: 'Variant'; id: string }>;
+    }>;
+    variants: Array<{
+      __typename?: 'Variant';
+      name: string;
+      last_updated: any;
+      last_publisher: string;
+      preset: string;
+      chain_id: number;
+      deploy_url: string;
+      meta_url: string;
+      tag: { __typename?: 'Tag'; id: string; name: string };
+    }>;
+  }>;
+};
 
 export type GetFilteredPackagesAndVariantsQueryVariables = Exact<{
   query: Scalars['String']['input'];
 }>;
 
+export type GetFilteredPackagesAndVariantsQuery = {
+  __typename?: 'Query';
+  packages: Array<{
+    __typename?: 'Package';
+    id: string;
+    name: string;
+    variants: Array<{
+      __typename?: 'Variant';
+      id: string;
+      name: string;
+      preset: string;
+      last_updated: any;
+      last_publisher: string;
+      chain_id: number;
+      deploy_url: string;
+      meta_url: string;
+      tag: { __typename?: 'Tag'; id: string; name: string };
+    }>;
+  }>;
+  filteredVariants: Array<{
+    __typename?: 'Variant';
+    id: string;
+    name: string;
+    preset: string;
+    last_updated: any;
+    last_publisher: string;
+    chain_id: number;
+    deploy_url: string;
+    meta_url: string;
+    cannon_package: { __typename?: 'Package'; id: string; name: string };
+    tag: { __typename?: 'Tag'; id: string; name: string };
+  }>;
+};
 
-export type GetFilteredPackagesAndVariantsQuery = { __typename?: 'Query', packages: Array<{ __typename?: 'Package', id: string, name: string, variants: Array<{ __typename?: 'Variant', id: string, name: string, preset: string, last_updated: any, last_publisher: string, chain_id: number, deploy_url: string, meta_url: string, tag: { __typename?: 'Tag', id: string, name: string } }> }>, filteredVariants: Array<{ __typename?: 'Variant', id: string, name: string, preset: string, last_updated: any, last_publisher: string, chain_id: number, deploy_url: string, meta_url: string, cannon_package: { __typename?: 'Package', id: string, name: string }, tag: { __typename?: 'Tag', id: string, name: string } }> };
-
-
-export const GetPackagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getPackages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"packages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetPackagesQuery, GetPackagesQueryVariables>;
-export const GetTotalPackagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getTotalPackages"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"totalPackages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GetTotalPackagesQuery, GetTotalPackagesQueryVariables>;
-export const GetPackageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getPackage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"tags"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"last_updated"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetPackageQuery, GetPackageQueryVariables>;
-export const GetFilteredPackagesAndVariantsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getFilteredPackagesAndVariants"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"packages"},"name":{"kind":"Name","value":"packages"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"variants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"filteredVariants"},"name":{"kind":"Name","value":"variants"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"preset_contains"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"preset"}},{"kind":"Field","name":{"kind":"Name","value":"last_updated"}},{"kind":"Field","name":{"kind":"Name","value":"last_publisher"}},{"kind":"Field","name":{"kind":"Name","value":"chain_id"}},{"kind":"Field","name":{"kind":"Name","value":"deploy_url"}},{"kind":"Field","name":{"kind":"Name","value":"meta_url"}},{"kind":"Field","name":{"kind":"Name","value":"cannon_package"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tag"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<GetFilteredPackagesAndVariantsQuery, GetFilteredPackagesAndVariantsQueryVariables>;
+export const GetPackagesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'getPackages' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            alias: { kind: 'Name', value: 'packages' },
+            name: { kind: 'Name', value: 'packages' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'first' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'first' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'skip' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderDirection' },
+                value: { kind: 'EnumValue', value: 'desc' },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: { kind: 'EnumValue', value: 'last_updated' },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'name_contains' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'tags' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderDirection' },
+                      value: { kind: 'EnumValue', value: 'desc' },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderBy' },
+                      value: { kind: 'EnumValue', value: 'last_updated' },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'variants' },
+                        arguments: [
+                          {
+                            kind: 'Argument',
+                            name: { kind: 'Name', value: 'orderDirection' },
+                            value: { kind: 'EnumValue', value: 'desc' },
+                          },
+                          {
+                            kind: 'Argument',
+                            name: { kind: 'Name', value: 'orderBy' },
+                            value: { kind: 'EnumValue', value: 'last_updated' },
+                          },
+                        ],
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'preset' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'chain_id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'deploy_url' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'meta_url' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetPackagesQuery, GetPackagesQueryVariables>;
+export const GetTotalPackagesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'getTotalPackages' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            alias: { kind: 'Name', value: 'totalPackages' },
+            name: { kind: 'Name', value: 'packages' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'name_contains' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: { kind: 'SelectionSet', selections: [{ kind: 'Field', name: { kind: 'Name', value: 'id' } }] },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetTotalPackagesQuery, GetTotalPackagesQueryVariables>;
+export const GetPackageDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'getPackage' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'name' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'packages' },
+            arguments: [
+              { kind: 'Argument', name: { kind: 'Name', value: 'first' }, value: { kind: 'IntValue', value: '1' } },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderDirection' },
+                value: { kind: 'EnumValue', value: 'desc' },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: { kind: 'EnumValue', value: 'last_updated' },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'name' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'name' } },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'tags' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderDirection' },
+                      value: { kind: 'EnumValue', value: 'desc' },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderBy' },
+                      value: { kind: 'EnumValue', value: 'last_updated' },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'variants' },
+                        arguments: [
+                          {
+                            kind: 'Argument',
+                            name: { kind: 'Name', value: 'orderDirection' },
+                            value: { kind: 'EnumValue', value: 'desc' },
+                          },
+                          {
+                            kind: 'Argument',
+                            name: { kind: 'Name', value: 'orderBy' },
+                            value: { kind: 'EnumValue', value: 'last_updated' },
+                          },
+                        ],
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [{ kind: 'Field', name: { kind: 'Name', value: 'id' } }],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'variants' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderDirection' },
+                      value: { kind: 'EnumValue', value: 'desc' },
+                    },
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'orderBy' },
+                      value: { kind: 'EnumValue', value: 'last_updated' },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'preset' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'chain_id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'deploy_url' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'meta_url' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'tag' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetPackageQuery, GetPackageQueryVariables>;
+export const GetFilteredPackagesAndVariantsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'getFilteredPackagesAndVariants' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            alias: { kind: 'Name', value: 'packages' },
+            name: { kind: 'Name', value: 'packages' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'name_contains' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'variants' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'preset' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'chain_id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'deploy_url' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'meta_url' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'tag' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            alias: { kind: 'Name', value: 'filteredVariants' },
+            name: { kind: 'Name', value: 'variants' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'preset_contains' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'query' } },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'preset' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_updated' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'last_publisher' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'chain_id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'deploy_url' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'meta_url' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'cannon_package' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'tag' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetFilteredPackagesAndVariantsQuery, GetFilteredPackagesAndVariantsQueryVariables>;
