@@ -111,18 +111,10 @@ Decode a transaction hash and display trace data for the error.
 
 The `clean` command will attempt to delete any local tags and cached metadata files.
 
-**Options**
-
-- `--confirm` - Runs the command without user interaction
-
 **Example**
 
 ```bash
 cannon clean
-```
-
-```bash
-cannon clean --confirm
 ```
 
 
