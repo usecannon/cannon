@@ -20,7 +20,32 @@ Available properties for top level config
 
 #### Defined in
 
-[packages/builder/src/actions.ts:54](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/actions.ts#L54)
+[packages/builder/src/actions.ts:54](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/actions.ts#L54)
+
+# @usecannon/cli
+
+## Run
+
+### Config
+
+Ƭ **Config**: `Object`
+
+Available properties for run step
+
+#### Type declaration
+
+| Name       | Type                    | Description                                                                                                                              |
+| :--------- | :---------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| `exec`     | `string`                | The javascript (or typescript) file to load                                                                                              |
+| `func`     | `string`                | The function to call in this file                                                                                                        |
+| `modified` | [`string`, ...string[]] | An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change. |
+| `args?`    | `string`[]              | Arguments passed to the function (after the ChainBuilder object)                                                                         |
+| `env?`     | `string`[]              | Environment variables to be set on the script                                                                                            |
+| `depends?` | `string`[]              | List of steps that this action depends on                                                                                                |
+
+#### Defined in
+
+[packages/cli/src/custom-steps/run.ts:70](https://github.com/usecannon/cannon/blob/70c2852b/packages/cli/src/custom-steps/run.ts#L70)
 
 # Module: steps/contract
 
@@ -51,7 +76,7 @@ Available properties for contract step
 
 #### Defined in
 
-[packages/builder/src/steps/contract.ts:29](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/steps/contract.ts#L29)
+[packages/builder/src/steps/contract.ts:29](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/steps/contract.ts#L29)
 
 # Module: steps/import
 
@@ -74,7 +99,7 @@ Available properties for import step
 
 #### Defined in
 
-[packages/builder/src/steps/import.ts:19](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/steps/import.ts#L19)
+[packages/builder/src/steps/import.ts:19](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/steps/import.ts#L19)
 
 # Module: steps/invoke
 
@@ -107,7 +132,7 @@ Available properties for invoke step
 
 #### Defined in
 
-[packages/builder/src/steps/invoke.ts:27](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/steps/invoke.ts#L27)
+[packages/builder/src/steps/invoke.ts:27](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/steps/invoke.ts#L27)
 
 # Module: steps/provision
 
@@ -133,6 +158,7 @@ Available properties for provision step
 
 #### Defined in
 
+<<<<<<< HEAD
 [packages/builder/src/steps/provision.ts:26](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/steps/provision.ts#L26)
 
 # @usecannon/cli
@@ -158,4 +184,8 @@ Available properties for run step
 
 #### Defined in
 
-[packages/cli/src/custom-steps/run.ts:70](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/cli/src/custom-steps/run.ts#L70)
+# [packages/cli/src/custom-steps/run.ts:70](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/cli/src/custom-steps/run.ts#L70)
+
+[packages/builder/src/steps/provision.ts:26](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/steps/provision.ts#L26)
+
+> > > > > > > dd69ef74 (feat(docs): add mdx support)
