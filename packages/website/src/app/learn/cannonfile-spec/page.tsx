@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Docs() {
   const configurationMarkdown = fs
-    .readFileSync(path.join('content', 'docs-configuration' + '.md'))
+    .readFileSync(path.join('content', 'docs-configuration.md'))
     .toString()
     .replaceAll(
       RegExp(
