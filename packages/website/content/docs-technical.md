@@ -90,6 +90,40 @@ cannon alter token:1.0.0 --chain-id 1 set-contract-address Token '0x514910771AF9
 
 This will set the address of the token contract to the LINK token contract on ETH.
 
+### decode
+
+Decode a transaction hash and display trace data for the error.
+
+**Arguments**
+
+- `<packageName>` - Name and version of the package to alter
+- `<txHash>` - Failed Transaction hash signature
+
+**Options**
+
+- `--chain-id` - Build a cannon package for the given chain id. Will connect to a local RPC provider (such as Frame).
+- `--preset` - The preset label for storing the build with the given settings (_Default: "main"_)
+- `--json` - display the trace data in JSON format.
+
+### clean
+
+The `clean` command will attempt to delete any local tags and cached metadata files.
+
+**Options**
+
+- `--confirm` - Runs the command without user interaction
+
+**Example**
+
+```bash
+cannon clean
+```
+
+```bash
+cannon clean --confirm
+```
+
+
 ### verify
 
 Verify a package on Etherscan.
@@ -308,7 +342,7 @@ extra.NewDeploymentEvent.event = "NewDeployment"
 extra.NewDeploymentEvent.arg = 0
 ```
 
-Now, calling `"<% = extras.NewDeploymentEvent %>"` in a subsequent `invoke` action would return the first data argument for _NewDeployment_.
+Now, calling `<% = extras.NewDeploymentEvent %>` in a subsequent `invoke` action would return the first data argument for _NewDeployment_.
 
 If an invoked function emits multiple events you can specify them by index.
 
