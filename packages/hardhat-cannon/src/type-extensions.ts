@@ -23,6 +23,7 @@ declare module 'hardhat/types/config' {
   export interface CannonNetworkConfig extends HardhatNetworkConfig {
     // nothing for now
     port: number;
+    url: string;
   }
 
   export interface ProjectPathsConfig {
