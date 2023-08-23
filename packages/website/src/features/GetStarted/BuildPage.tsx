@@ -1,10 +1,12 @@
 'use client';
-import { Flex, Box, useTheme } from '@chakra-ui/react';
+import { useTheme, Flex, Box } from '@chakra-ui/react';
 import React from 'react';
-import { RunPackage } from './RunPackage';
+import { BuildWithCannon } from './BuildWithCannon';
+import { SetupPanel } from './SetupSection/SetupPanel';
 
-export const GetStartedPage = () => {
+export const BuildPage = () => {
   const theme = useTheme();
+
   return (
     <Flex
       background={theme.gradients.dark}
@@ -14,14 +16,15 @@ export const GetStartedPage = () => {
     >
       <Box
         p={8}
-        maxW="container.md"
+        maxW="container.lg"
         m="auto"
         background="gray.900"
         border="1px solid"
         borderColor="gray.800"
         borderRadius="md"
       >
-        <RunPackage />
+        <BuildWithCannon />
+        <SetupPanel />
       </Box>
     </Flex>
   );

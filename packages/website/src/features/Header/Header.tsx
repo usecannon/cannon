@@ -6,22 +6,30 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
+import { usePathname } from 'next/navigation';
 
-const NavLinks = () => (
-  <Flex
-    ml={['auto', 'auto', 'auto']}
-    mr={['auto', 'auto', 8]}
-    width={['100%', '100%', 'auto']}
-    gap={8}
-    alignItems="center"
-    flexWrap="wrap"
-    justifyContent="center"
-  >
-    <NavLink href={links.EXPLORE}>Explore</NavLink>
-    <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
-    <NavLink href={links.LEARN}>Learn</NavLink>
-  </Flex>
-);
+const NavLinks = () => {
+  const pathname = usePathname();
+  return (
+    <Flex
+      ml={['auto', 'auto', 'auto']}
+      mr={['auto', 'auto', 8]}
+      width={['100%', '100%', 'auto']}
+      gap={8}
+      alignItems="center"
+      flexWrap="wrap"
+      justifyContent="center"
+    >
+      <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
+        Explore
+      </NavLink>
+      <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
+      <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
+        Learn
+      </NavLink>
+    </Flex>
+  );
+};
 
 export const Header = () => {
   const isMobile = useBreakpointValue([true, true, false]);

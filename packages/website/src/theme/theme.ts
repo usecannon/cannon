@@ -52,4 +52,8 @@ export const theme = extendTheme({
       },
     },
   },
+  gradients: {
+    dark: 'linear-gradient(45deg, #000F14 0%, #140014 100%);',
+    light: 'linear-gradient(45deg, #00131A 0%, #1A0019 100%);',
+  },
 });

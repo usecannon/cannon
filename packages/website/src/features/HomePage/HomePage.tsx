@@ -67,7 +67,7 @@ export default function HomePage() {
           <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
           Ethereum and IPFS.
         </Heading>
-        <Link href={links.LEARN} color="white" as={NextLink}>
+        <Link href={links.GETSTARTED} color="white" as={NextLink}>
           <Button
             colorScheme="teal"
             size={['sm', 'sm', 'lg']}
@@ -76,7 +76,7 @@ export default function HomePage() {
             fontFamily="var(--font-miriam)"
             textTransform="uppercase"
           >
-            Learn more
+            Get Started
           </Button>
         </Link>
       </Container>
