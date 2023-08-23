@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Docs() {
   const technicalMarkdown = fs
-    .readFileSync(path.join('content', 'docs-technical' + '.md'))
+    .readFileSync(path.join('content', 'docs-cli' + '.md'))
     .toString();
 
   const technicalList = exportListFromMarkdown(technicalMarkdown);

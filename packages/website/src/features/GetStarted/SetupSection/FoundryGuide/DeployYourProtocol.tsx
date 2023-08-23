@@ -34,12 +34,6 @@ export const DeployYourProtocol = () => {
         <Text as="span" fontWeight="bold">
           Great work!
         </Text>
-        &nbsp;Check out the technical reference&nbsp;
-        <Link as={NextLink} href={links.TECHNICALREFERENCE}>
-          technical reference
-        </Link>
-        &nbsp;for more information about the command-line tool and the actions
-        you can define in a Cannonfile.
       </Text>
     </>
   );

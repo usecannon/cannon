@@ -2,7 +2,9 @@ export const links = {
   HOMEPAGE: '/',
   EXPLORE: '/packages',
   LEARN: '/learn',
-  GETSTARTED: '/learn/get-started',
-  TECHNICALREFERENCE: '/learn/technical-reference',
-  CANNONFILESPEC: '/learn/cannonfile-spec',
+  GUIDES: '/learn/guides',
+  GETSTARTED: '/learn/guides/get-started',
+  BUILD: '/learn/guides/build',
+  CLI: '/learn/cli',
+  CANNONFILE: '/learn/cannonfile',
 };

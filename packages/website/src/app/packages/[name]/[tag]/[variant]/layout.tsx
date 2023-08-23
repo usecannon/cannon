@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { usePathname } from 'next/navigation';
 
 export default function RootLayout({
   children,
@@ -32,6 +33,8 @@ export default function RootLayout({
     (variant: any) =>
       variant.name === params.variant && variant.tag.name === params.tag
   );
+
+  const pathname = usePathname();
 
   return (
     <Flex flexDirection="column" width="100%">
@@ -62,18 +65,30 @@ export default function RootLayout({
               </Flex>
               <Flex gap={8}>
                 <NavLink
+                  isActive={
+                    pathname ==
+                    `/packages/${pkg.name}/${params.tag}/${params.variant}`
+                  }
                   href={`/packages/${pkg.name}/${params.tag}/${params.variant}`}
                   isSmall
                 >
                   Deployment
                 </NavLink>
                 <NavLink
+                  isActive={
+                    pathname ==
+                    `/packages/${pkg.name}/${params.tag}/${params.variant}/code`
+                  }
                   href={`/packages/${pkg.name}/${params.tag}/${params.variant}/code`}
                   isSmall
                 >
                   Code
                 </NavLink>
                 <NavLink
+                  isActive={
+                    pathname ==
+                    `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                  }
                   href={`/packages/${pkg.name}/${params.tag}/${params.variant}/interact`}
                   isSmall
                 >

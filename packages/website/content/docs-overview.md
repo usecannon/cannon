@@ -13,7 +13,7 @@ There are many different use cases for Cannon:
 - **Continuous Integration** - Testing pipelines can rely on Cannon to create nodes for integration and E2E tests.
 - **GitOps** - Cannonfiles can be managed in git such that an organization can maintain a clear 'source of truth' for the deployment state.
 
-## Command-line Tool
+## Command-line Interface
 
 To get started, run
 
