@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <Flex flexDir="column" width="100%">
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
         <Flex
-          gap={[4, 4, 8]}
+          gap={8}
           alignItems="center"
           flexWrap="nowrap"
           justifyContent="center"
