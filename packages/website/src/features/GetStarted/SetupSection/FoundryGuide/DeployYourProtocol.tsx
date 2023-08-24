@@ -15,7 +15,7 @@ export const DeployYourProtocol = () => {
       <Text mb={4}>Deploying is just building on a remote network!</Text>
       <CommandPreview command="cannon build --network REPLACE_WITH_RPC_ENDPOINT --private-key REPLACE_WITH_KEY_THAT_HAS_GAS_TOKENS" />
       <Text mt={8} mb={4}>
-        Verify your project’s contracts on&nbsp;
+        Verify your project&apos;s contracts on&nbsp;
         <ChakraLink isExternal href={externalLinks.ETHERSCAN}>
           Etherscan
         </ChakraLink>

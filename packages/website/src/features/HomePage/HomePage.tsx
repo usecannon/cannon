@@ -1,4 +1,5 @@
 'use client';
+
 import { Flex, Button, Container, Heading, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';

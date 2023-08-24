@@ -40,7 +40,7 @@ export const TestYourProtocol = () => {
         <ChakraLink isExternal href="https://github.com/dethcrypto/TypeChain">
           TypeChain
         </ChakraLink>
-        &nbsp; support. Here’s an example from the&nbsp;
+        &nbsp; support. Here&apos;s an example from the&nbsp;
         <ChakraLink
           isExternal
           href="https://github.com/usecannon/cannon/tree/main/packages/sample-hardhat-project"
