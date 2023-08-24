@@ -66,7 +66,7 @@ export const ImportProvisionPackages = () => {
         <Code colorScheme="blackAlpha" variant="solid">
           provision
         </Code>
-        packages to deploy new instances of their protocol’s contracts.
+        packages to deploy new instances of their protocol&apos;s contracts.
       </Text>
       <Text mt={4}>
         For example, the Synthetix Sandbox contains a&nbsp;

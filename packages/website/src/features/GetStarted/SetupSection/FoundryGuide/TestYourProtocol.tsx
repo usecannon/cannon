@@ -45,7 +45,7 @@ export const TestYourProtocol = () => {
       </Text>
       <CommandPreview command='fs_permissions = [{ access = "read", path = "./"}]' />
       <Text mt={8} mb={4}>
-        Include the Cannon.sol library in your tests. Here’s an example:
+        Include the Cannon.sol library in your tests. Here&apos;s an example:
       </Text>
       <CodePreview code={code} language="toml" />
       <Text mt={8} mb={4}>

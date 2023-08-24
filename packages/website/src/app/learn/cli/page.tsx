@@ -3,7 +3,7 @@ import path from 'path';
 import { Metadata } from 'next';
 import { exportListFromMarkdown } from '@/helpers/markdown';
 import { DocsPage } from '@/features/Docs/DocsPage';
-import { DocsTechnical } from '@/features/Docs/Pages';
+import { DocsCli } from '@/features/Docs/Pages';
 
 export const metadata: Metadata = {
   title: 'Cannon | Documentation',
@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 
 export default function Docs() {
   const technicalMarkdown = fs
-    .readFileSync(path.join('content', 'docs-cli.md'))
+    .readFileSync(path.join('content', 'docs-cli.mdx'))
     .toString();
 
   const technicalList = exportListFromMarkdown(technicalMarkdown);
 
   return (
     <DocsPage list={technicalList}>
-      <DocsTechnical />
+      <DocsCli />
     </DocsPage>
   );
 }

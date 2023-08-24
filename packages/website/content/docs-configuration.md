@@ -158,7 +158,6 @@ Available properties for provision step
 
 #### Defined in
 
-<<<<<<< HEAD
 [packages/builder/src/steps/provision.ts:26](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/builder/src/steps/provision.ts#L26)
 
 # @usecannon/cli
@@ -187,5 +186,3 @@ Available properties for run step
 # [packages/cli/src/custom-steps/run.ts:70](https://github.com/usecannon/cannon/blob/6cdf04ae/packages/cli/src/custom-steps/run.ts#L70)
 
 [packages/builder/src/steps/provision.ts:26](https://github.com/usecannon/cannon/blob/70c2852b/packages/builder/src/steps/provision.ts#L26)
-
-> > > > > > > dd69ef74 (feat(docs): add mdx support)

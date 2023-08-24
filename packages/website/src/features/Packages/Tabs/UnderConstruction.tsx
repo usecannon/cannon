@@ -6,7 +6,7 @@ export const UnderConstruction: FC = () => {
     <Container maxW="container.lg" mb="6">
       <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
         <AlertTitle>
-          🚧&nbsp;&nbsp;Cannon’s package explorer is under construction
+          🚧&nbsp;&nbsp;Cannon&apos;s package explorer is under construction
         </AlertTitle>
       </Alert>
     </Container>

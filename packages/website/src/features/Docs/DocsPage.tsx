@@ -41,7 +41,7 @@ export const DocsPage: FC<IDocsPageProps> = ({ list, children }) => {
         <Container maxW="container.xl" ml={0}>
           <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
             <AlertTitle>
-              🚧&nbsp;&nbsp;Cannon’s documentation is currently under
+              🚧&nbsp;&nbsp;Cannon&apos;s documentation is currently under
               construction.
             </AlertTitle>
           </Alert>

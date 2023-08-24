@@ -152,7 +152,7 @@ export function DataTable<Data extends object>({
 
               const tooltipTime = format(
                 new Date(cell.row.original.published * 1000),
-                'MMM d ’yy h:mm a'
+                "MMM d 'yy h:mm a"
               );
 
               return (

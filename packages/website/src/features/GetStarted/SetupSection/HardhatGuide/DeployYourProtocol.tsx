@@ -13,7 +13,7 @@ export const DeployYourProtocol = () => {
       </Heading>
       <Text mb={4}>
         Deploying is just building on a remote network! Be sure to use a network
-        name that you’ve&nbsp;
+        name that you&apos;ve&nbsp;
         <ChakraLink
           isExternal
           href="https://hardhat.org/tutorial/deploying-to-a-live-network#deploying-to-remote-networks"
@@ -29,7 +29,7 @@ export const DeployYourProtocol = () => {
           isExternal
           href="https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-etherscan"
         >
-          and verify your project’s contracts:
+          and verify your project&apos;s contracts:
         </ChakraLink>
         :
       </Text>
