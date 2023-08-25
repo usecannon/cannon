@@ -190,7 +190,7 @@ export default {
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    if(typeof cfg.target === 'string') {
+    if (typeof cfg.target === 'string') {
       cfg.target = [cfg.target as string];
     }
 
@@ -205,7 +205,7 @@ export default {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    if(typeof config.target === 'string') {
+    if (typeof config.target === 'string') {
       config.target = [config.target as string];
     }
 

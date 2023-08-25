@@ -23,10 +23,12 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   }
 
   if (!chainId) {
-    console.warn(yellow(
-      "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
+    console.warn(
+      yellow(
+        "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
       Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
-    ))
+      )
+    );
   }
 
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
