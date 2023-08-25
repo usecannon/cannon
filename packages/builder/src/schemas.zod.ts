@@ -24,6 +24,21 @@ const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 
+// Invoke target string schema
+const targetString = z.string().refine(
+  (val) =>
+    ethers.utils.isAddress(val) ||
+    !!val.match(interpolatedRegex) ||
+    !!val.match(stepRegex) ||
+    !!val.match(artifactNameRegex) ||
+    !!val.match(artifactPathRegex),
+  (val) => ({
+    message: `"${val}" must be a valid ethereum address, previously defined contract step name, contract artifact name or filepath`,
+  })
+);
+
+const targetSchema = targetString.or(z.array(targetString).nonempty());
+
 export const contractSchema = z
   .object({
     /**
@@ -171,21 +186,7 @@ export const invokeSchema = z
     /**
      *  Names of the contract to call or contract action that deployed the contract to call
      */
-    target: z
-      .array(
-        z.string().refine(
-          (val) =>
-            ethers.utils.isAddress(val) ||
-            !!val.match(interpolatedRegex) ||
-            !!val.match(stepRegex) ||
-            !!val.match(artifactNameRegex) ||
-            !!val.match(artifactPathRegex),
-          (val) => ({
-            message: `"${val}" must be a valid ethereum address, previously defined contract step name or contract artifact name or path`,
-          })
-        )
-      )
-      .nonempty(),
+    target: targetSchema,
     /**
      *  Name of the function to call on the contract
      */

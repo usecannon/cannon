@@ -190,6 +190,10 @@ export default {
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
+    if(typeof cfg.target === 'string') {
+      cfg.target = [cfg.target as string];
+    }
+
     return {
       to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
       func: cfg.func,
@@ -200,6 +204,10 @@ export default {
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
+
+    if(typeof config.target === 'string') {
+      config.target = [config.target as string];
+    }
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
