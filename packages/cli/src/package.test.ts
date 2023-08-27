@@ -8,7 +8,7 @@ jest.mock('./settings');
 jest.mock('./loader');
 
 describe('readDeploy', () => {
-  it('should call the _readDeloy function', async () => {
+  it('should call the _readDeploy function', async () => {
     const packageName = 'packageName';
     const chainId = 1;
     const preset = 'preset';

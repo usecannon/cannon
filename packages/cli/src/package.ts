@@ -10,7 +10,7 @@ const debug = Debug('cannon:cli:package');
 export async function readDeploy(packageName: string, chainId: number, preset: string) {
   debug('readDeploy', packageName, chainId, preset);
   const store = await _getStore();
-  return await _readDeloy(store, packageName, chainId, preset);
+  return await _readDeploy(store, packageName, chainId, preset);
 }
 
 /**
@@ -21,7 +21,7 @@ export async function readDeployRecursive(packageName: string, chainId: number, 
   debug('readDeployTree', packageName, chainId, preset);
 
   const store = await _getStore();
-  const deployInfo = await _readDeloy(store, packageName, chainId, preset);
+  const deployInfo = await _readDeploy(store, packageName, chainId, preset);
 
   const result = new Map<string, DeploymentInfo | null>();
 
@@ -59,7 +59,7 @@ async function _getStore() {
   return new CannonStorage(registry, loaders);
 }
 
-async function _readDeloy(store: CannonStorage, packageName: string, chainId: number, preset: string) {
+async function _readDeploy(store: CannonStorage, packageName: string, chainId: number, preset: string) {
   const deployInfo = await store.readDeploy(packageName, preset, chainId);
 
   if (!deployInfo) {

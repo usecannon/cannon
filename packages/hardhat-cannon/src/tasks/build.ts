@@ -147,7 +147,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         );
       }
 
-      augmentProvider(hre, outputs);
+      await augmentProvider(hre, outputs);
       provider.artifacts = outputs;
 
       return { outputs, provider, signers };

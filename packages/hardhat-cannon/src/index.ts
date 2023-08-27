@@ -32,6 +32,6 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   } as any;
 });
 
-extendEnvironment((env: HardhatRuntimeEnvironment) => {
-  augmentProvider(env);
+extendEnvironment(async (env: HardhatRuntimeEnvironment) => {
+  await augmentProvider(env);
 });

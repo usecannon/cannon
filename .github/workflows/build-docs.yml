@@ -4,20 +4,39 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    
+
 jobs:
   build-docs:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check Schema changes
+        id: file-changes
+        uses: tj-actions/changed-files@v37
+        with:
+          since_last_remote_commit: true
+          files_yaml: |
+            schemas:
+              - 'packages/builder/src/schemas.zod.ts'
+              - 'packages/cli/src/schemas.zod.ts'
+
       - name: Set up Node
+        if: ${{ steps.file-changes.outputs.schemas_any_changed == 'true' }}
         uses: actions/setup-node@v2
         with:
-          node-version: "16.16.0"
-      - run: |
+          node-version: '20.5.1'
+      - name: Build Dependencies
+        if: ${{ steps.file-changes.outputs.schemas_any_changed == 'true' }}
+        run: |
           npm ci
           npm run build
+
       - name: Build docs
+        if: ${{ steps.file-changes.outputs.schemas_any_changed == 'true' }}
         run: npm run docgen
-       

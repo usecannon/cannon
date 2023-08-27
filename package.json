@@ -15,7 +15,9 @@
     "build": "lerna run build",
     "publish": "lerna publish",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
-    "docgen": "npm run docgen-md && concat-md --decrease-title-levels --dir-name-as-title ./docs/ > ./packages/website/content/docs-configuration.md"
+    "docgen": "npm run docgen-md && rm ./docs/actions/core-actions.md && mv ./docs/actions/modules/* ./docs/actions/ && concat-md --hide-anchor-links ./docs/actions/ > ./packages/website/content/docs-configuration.md",
+    "website-dev": "npm run dev --workspace=packages/website",
+    "website": "npm run start --workspace=packages/website"
   },
   "devDependencies": {
     "@babel/core": "^7.22.1",
@@ -29,21 +31,16 @@
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "7.0.4",
     "lerna": "^7.1.0",
     "npm-run-parallel": "^0.6.0",
     "nx-cloud": "^16.0.5",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "release-please": "^15.12.0",
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.2"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
   },
   "license": "GNU GPL V3.0",
   "dependencies": {

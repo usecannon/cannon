@@ -1,6 +1,6 @@
 # Cannon
 
-This is the monorepo for Cannon. If you’re just interested in using the project, [visit the website](https://usecannon.com).
+This is the monorepo for Cannon. If you're just interested in using the project, [visit the website](https://usecannon.com).
 
 **⚠️ Cannon is under active development. While the interface and functionality are generally stable, use the tool with caution when conducting high-risk deployments.**
 
@@ -49,9 +49,18 @@ Preview updates to the website
 cd ./packages/website && npm run dev
 ```
 
+### Contribution Guidelines
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 ### Publishing
 
-With appropriate permissions on npm, publish updates using the [npx lerna publish](https://github.com/lerna/lerna/tree/main/commands/publish) command. For example, `npx lerna publish patch` will publish updated packages as the next patch version.
+Currently our [release workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
+It only publishes releases if any SemVer version changes have been added to the commit history merged into main.
+
+If a situation where a commit was merged without proper convention arises, we can always bump and publish manually using lerna's [version and publish](https://lerna.js.org/docs/features/version-and-publish) workflow:
+
+`npx lerna publish --no-private` will bump package versions and find npm packages that need to be published in the repo.
 
 ## License
 
