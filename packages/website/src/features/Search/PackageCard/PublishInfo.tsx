@@ -4,7 +4,7 @@ import { Box, Link, Text } from '@chakra-ui/react';
 
 type PublishInfo = {
   last_updated: number;
-  last_publisher: string;
+  last_publisher?: string;
 };
 const PublishInfo: FC<{
   p: PublishInfo;
@@ -21,18 +21,24 @@ const PublishInfo: FC<{
   return (
     <Box>
       <Text color="gray.300" fontSize="xs" fontFamily="mono">
-        published by&nbsp;
-        <Link
-          isExternal
-          styleConfig={{ 'text-decoration': 'none' }}
-          borderBottom="1px dotted"
-          borderBottomColor="gray.300"
-          href={`https://etherscan.io/address/${p.last_publisher}`}
-        >
-          {`${p.last_publisher.substring(0, 6)}...${p.last_publisher.slice(
-            -4
-          )}`}
-        </Link>
+        {!p.last_publisher && 'last'} published
+        {p.last_publisher && (
+          <>
+            {' '}
+            by{' '}
+            <Link
+              isExternal
+              styleConfig={{ 'text-decoration': 'none' }}
+              borderBottom="1px dotted"
+              borderBottomColor="gray.300"
+              href={`https://etherscan.io/address/${p.last_publisher}`}
+            >
+              {`${p.last_publisher.substring(0, 6)}...${p.last_publisher.slice(
+                -4
+              )}`}
+            </Link>
+          </>
+        )}
         {lineBreak && <br />}
         {' ' + timeAgo}
       </Text>

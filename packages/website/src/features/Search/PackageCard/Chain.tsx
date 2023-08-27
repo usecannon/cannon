@@ -53,7 +53,8 @@ const newChain = {
 // Also see https://github.com/rainbow-me/rainbowkit/blob/7b31af2431cda62bf215a84b9d40fb7f66f24381/packages/rainbowkit/src/components/RainbowKitProvider/provideRainbowKitChains.ts
 const Chain: FC<{
   id: number;
-}> = ({ id }) => {
+  isSmall?: boolean;
+}> = ({ id, isSmall }) => {
   const chain = useMemo(() => {
     const enrichedChainData: Record<string, ChainData> = {
       ...merge({ cannon: newChain }, chains, metadata),
@@ -65,11 +66,15 @@ const Chain: FC<{
   const color = chain?.color || 'gray.700';
   return (
     <Flex gap={1.5} alignItems="baseline">
-      <Box h={3} w={3} borderRadius={999} bg={color} />
-      {name}
-      <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'}>
-        ID {id}
-      </Text>
+      <Box h="0.66rem" w="0.66rem" borderRadius={999} bg={color} />
+      {!isSmall && (
+        <>
+          {name}
+          <Text fontSize="xs" color="gray.500" letterSpacing={'-0.3px'}>
+            ID {id}
+          </Text>
+        </>
+      )}
     </Flex>
   );
 };

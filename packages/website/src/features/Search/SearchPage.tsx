@@ -26,8 +26,9 @@ import {
   Package,
 } from '@/types/graphql/graphql';
 import { SearchIcon } from '@chakra-ui/icons';
-import { PackageCard } from './PackageCard/PackageCard';
+import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { debounce } from 'lodash';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -36,12 +37,13 @@ export const SearchPage = () => {
     GetTotalPackagesQuery,
     GetTotalPackagesQueryVariables
   >(TOTAL_PACKAGES, {
-    variables: { query: searchTerm },
+    variables: { query: '' },
   });
 
-  const handleSearch = (e: any) => {
-    setSearchTerm(e.target.value);
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
   };
+  const debouncedHandleSearch = debounce(handleSearch, 300);
 
   const { loading, error, data } = useQuery<
     GetFilteredPackagesAndVariantsQuery,
@@ -77,7 +79,10 @@ export const SearchPage = () => {
         const pkg = variant.cannon_package;
         if (packageMap[pkg.id]) {
           if (!variantExistsInPackage(packageMap[pkg.id], variant.id)) {
-            packageMap[pkg.id].variants.push(variant);
+            packageMap[pkg.id] = {
+              ...packageMap[pkg.id],
+              variants: [...packageMap[pkg.id].variants, variant],
+            };
           }
         } else {
           packageMap[pkg.id] = {
@@ -98,7 +103,7 @@ export const SearchPage = () => {
             Math.max(variant.last_updated, maxTimestamp),
           0
         );
-        console.log(latestUpdatedA, latestUpdatedB);
+
         return latestUpdatedB - latestUpdatedA; // Descending order
       });
 
@@ -131,7 +136,7 @@ export const SearchPage = () => {
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.500" />
               </InputLeftElement>
-              <Input onChange={handleSearch} />
+              <Input onChange={(e) => debouncedHandleSearch(e.target.value)} />
             </InputGroup>
           </Box>
           <Box
@@ -148,7 +153,6 @@ export const SearchPage = () => {
                   alt="The Graph"
                   w="12px"
                   objectFit="contain"
-                  opacity={0.6}
                   mr={2}
                   ml={[2, 2, 0]}
                   transform="translateY(0.5px)"
@@ -186,7 +190,11 @@ export const SearchPage = () => {
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCard maxHeight="186px" pkg={pkg} key={pkg.name} />
+                    <PackageCardExpandable
+                      maxHeight="186px"
+                      pkg={pkg}
+                      key={pkg.name}
+                    />
                   </Box>
                 ))}
               </Container>

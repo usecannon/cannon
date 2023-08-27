@@ -16,9 +16,9 @@ export const GetStartedPage = () => {
         p={8}
         maxW="container.md"
         m="auto"
-        background="gray.900"
+        background="black"
         border="1px solid"
-        borderColor="gray.800"
+        borderColor="gray.700"
         borderRadius="md"
       >
         <RunPackage />

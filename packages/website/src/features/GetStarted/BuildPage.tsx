@@ -18,9 +18,9 @@ export const BuildPage = () => {
         p={8}
         maxW="container.lg"
         m="auto"
-        background="gray.900"
+        background="black"
         border="1px solid"
-        borderColor="gray.800"
+        borderColor="gray.700"
         borderRadius="md"
       >
         <BuildWithCannon />
