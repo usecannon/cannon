@@ -33,7 +33,7 @@ const targetString = z.string().refine(
     !!val.match(artifactNameRegex) ||
     !!val.match(artifactPathRegex),
   (val) => ({
-    message: `"${val}" must be a valid ethereum address, previously defined contract step name, contract artifact name or filepath`,
+    message: `"${val}" must be a valid ethereum address, existing contract step name, contract artifact name or filepath`,
   })
 );
 
