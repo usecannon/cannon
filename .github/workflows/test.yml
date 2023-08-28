@@ -19,7 +19,5 @@ jobs:
           node-version: '20.5.1'
       - run: |
           npm ci
-          npm run build
-      - run: cd ./packages/builder && npm test
-      - run: cd ./packages/cli && npm test
-      - run: cd ./packages/registry && REPORT_GAS=1 npm test
+          npx lerna run build
+      - run: npx lerna run test 
