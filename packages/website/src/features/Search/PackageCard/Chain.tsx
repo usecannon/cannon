@@ -47,7 +47,7 @@ const metadata = {
 const newChain = {
   id: 13370,
   name: 'Cannon',
-  color: 'gray.500',
+  color: 'gray.400',
 };
 
 // Also see https://github.com/rainbow-me/rainbowkit/blob/7b31af2431cda62bf215a84b9d40fb7f66f24381/packages/rainbowkit/src/components/RainbowKitProvider/provideRainbowKitChains.ts
@@ -63,7 +63,7 @@ const Chain: FC<{
   }, [id]);
 
   const name = chain?.name || 'Unknown Chain';
-  const color = chain?.color || 'gray.700';
+  const color = chain?.color || 'gray.600';
   return (
     <Flex gap={1.5} alignItems="baseline">
       <Box h="0.66rem" w="0.66rem" borderRadius={999} bg={color} />

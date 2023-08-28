@@ -31,12 +31,13 @@ const ChainNav: FC<{
         >
           <Button
             as={NextLink}
+            p={1}
             size="xs"
             variant="outline"
             colorScheme="black"
             border="1px solid"
             borderColor="gray.500"
-            backgroundColor="black"
+            backgroundColor="gray.900"
             _hover={{ backgroundColor: 'gray.800' }}
             href={`/packages/${packageName}/${variant.tag.name}/${variant.chain_id}-${variant.preset}`}
           >
