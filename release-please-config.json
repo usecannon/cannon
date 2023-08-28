@@ -1,5 +1,5 @@
 {
-  "bootstrap-sha": "d25a0da74760e79c3355ce08c5d303e2b16f8e48",
+  "bootstrap-sha": "0fe96bb3d7b682bfdf0d24ae7a7a4bda51337965",
   "include-component-in-tag": false,
   "plugins": [
     "node-workspace"
