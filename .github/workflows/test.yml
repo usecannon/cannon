@@ -17,6 +17,8 @@ jobs:
         with:
           cache: npm
           node-version: '20.5.1'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
       - run: |
           npm ci
           npx lerna run build
