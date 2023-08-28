@@ -53,32 +53,53 @@ export const FunctionOutput: FC<{
                   <div>
                     {(arrayOutput.length > 1 ? result[index] : result).map(
                       (resultItem: any, resultItemIndex: number) => {
-                        return (
-                          <div key={resultItemIndex}>
-                            <Box pl="1" pt="2" pb="2">
-                              {resultItem.map(
-                                (component: any, componentIndex: number) => {
-                                  return (
-                                    <div key={componentIndex}>
+                        if (isObject(resultItem)) {
+                          return (
+                            <div key={resultItemIndex}>
+                              <Box pl="1" pt="2" pb="2">
+                                {Object.values(resultItem).map(
+                                  (component: any, componentIndex: any) => {
+                                    console.log(item.components[componentIndex])
+                                    return (
                                       <FunctionOutput
                                         output={item.components[componentIndex]}
                                         result={component}
+                                        key={componentIndex}
                                       />
-                                    </div>
-                                  );
-                                }
-                              )}
-                            </Box>
-                          </div>
-                        );
+                                    );
+                                  }
+                                )}
+                              </Box>
+                            </div>
+                          )
+                        } else {
+                          return (
+                            <div key={resultItemIndex}>
+                              <Box pl="1" pt="2" pb="2">
+                                {resultItem.map(
+                                  (component: any, componentIndex: number) => {
+                                    return (
+                                      <div key={componentIndex}>
+                                        <FunctionOutput
+                                          output={item.components[componentIndex]}
+                                          result={component}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </Box>
+                            </div>
+                          );
+                        }
                       }
                     )}
                   </div>
                 )}
                 {(!item.components ||
                   (item.type !== 'tuple[]' && item.type !== 'tuple')) && (
-                  <div>{String(result)}</div>
-                )}
+                    <div>{String(result)}</div>
+                  )}
               </div>
             );
           })}
@@ -86,7 +107,11 @@ export const FunctionOutput: FC<{
       )}
       {objectOutput && (
         <div>
-          {objectOutput.name}: {JSON.stringify(result, null, 2)}
+          {objectOutput.name}: {JSON.stringify(result, (key, value) => {
+            typeof value === 'bigint'
+              ? String(value)
+              : value
+          }, 2)}
           <Text fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
           </Text>
