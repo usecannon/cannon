@@ -100,6 +100,7 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
 export async function deleteIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<void> {
   if (isIpfsGateway(ipfsUrl)) {
     // cannot write to IPFS on gateway
+    throw new Error('Cannot delete from IPFS gateway');
   }
 
   debug('delete from ipfs:', hash);

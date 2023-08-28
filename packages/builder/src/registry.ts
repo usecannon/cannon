@@ -41,7 +41,7 @@ export abstract class CannonRegistry {
 
   // used to clean up unused resources on a loader
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(/* _filterPackage?: string, _filterVariant?: string */): Promise<Set<string>> {
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
     return new Set();
   }
 
@@ -93,7 +93,8 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 
-  async getAllUrls(/*_filterPackage?: string, _filterVariant?: string*/): Promise<Set<string>> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
     return new Set();
   }
 }

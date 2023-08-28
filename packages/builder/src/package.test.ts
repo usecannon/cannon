@@ -17,6 +17,8 @@ describe('package.ts', () => {
 
     const testPkg = 'package:1.2.3';
     const testPkgData: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 1234,
       def: { name: 'package', version: '1.2.3', provision: { dummyStep: { tags: ['tag3', 'tag4'] } } } as any,
       state: {
         'provision.dummyStep': {
@@ -34,6 +36,8 @@ describe('package.ts', () => {
     };
     const nestedPkg = 'nested:2.34.5';
     const nestedPkgData: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 1234,
       def: { name: 'nested', version: '2.34.5' },
       state: {},
       status: 'complete',

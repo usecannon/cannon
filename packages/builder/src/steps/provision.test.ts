@@ -107,6 +107,8 @@ describe('steps/provision.ts', () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
         state: {
           'contract.Woot': {
             version: BUILD_VERSION,

@@ -12,7 +12,7 @@ export interface PruneStats {
 }
 
 function normalizeMiscUrl(miscUrl: string): string {
-  return miscUrl.startsWith('Qm') ? 'ipfs://' + miscUrl : miscUrl;
+  return miscUrl && miscUrl.startsWith('Qm') ? 'ipfs://' + miscUrl : miscUrl;
 }
 
 export async function prune(
@@ -66,12 +66,13 @@ export async function prune(
   for (const url of loaderUrls) {
     try {
       const deployInfo = (await storage.readBlob(url)) as DeploymentInfo;
+      console.log('delpoy info', deployInfo);
 
       /*if (!deployInfo.generator || !deployInfo.generator.startsWith('cannon ')) {
         debug(`${url}: not cannon package`);
         pruneStats.notCannonPackage++;
       } else*/ if (deployInfo.timestamp && deployInfo.timestamp >= now - keepAge) {
-        debug(`${url}: not expired`);
+        debug(`${url}: not expired (${deployInfo.timestamp}, ${now - keepAge})`);
         pruneStats.notExpired++;
         keepUrls.add(normalizeMiscUrl(deployInfo.miscUrl));
       } else if (registryUrls.has(url)) {
