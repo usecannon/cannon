@@ -1,8 +1,6 @@
 import { prune } from './prune';
-import { createDefaultReadRegistry } from '../registry';
-import { CannonStorage, IPFSLoader } from '@usecannon/builder';
-import fs from 'fs-extra';
-import { getMainLoader, LocalLoader } from '../loader';
+import { CannonStorage } from '@usecannon/builder';
+import { LocalLoader } from '../loader';
 
 jest.mock('../registry');
 jest.mock('../settings');
@@ -10,12 +8,9 @@ jest.mock('../loader');
 jest.mock('../helpers');
 
 describe('prune', () => {
-  let testPkgData: any;
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
   let mockStorage: CannonStorage;
-  let writeSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,14 +39,14 @@ describe('prune', () => {
 
   test('calling prune with dry run', async () => {
     console.log(Date.now());
-    const [toDelete, stats] = await prune(mockStorage, [], [], 1);
+    const [toDelete] = await prune(mockStorage, [], [], 1);
 
     // returned list should include all files which rae within the time
     expect(toDelete).toEqual(['file://1', 'file://2']);
   });
 
   test('calling prune with filter', async () => {
-    const [toDelete, stats] = await prune(mockStorage, ['some-pkg'], [], 1);
+    const [toDelete] = await prune(mockStorage, ['some-pkg'], [], 1);
 
     // returned list should include only files which were within the time *and* not in the urls returned by registry
     expect(toDelete).toEqual(['file://1']);
