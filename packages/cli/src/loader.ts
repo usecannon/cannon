@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import crypto from 'crypto';
 import { CliSettings } from './settings';
 import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
+import debug from 'debug';
 
 export class LocalLoader implements CannonLoader {
   dir: string;
@@ -33,6 +34,18 @@ export class LocalLoader implements CannonLoader {
     await fs.writeFile(path.join(this.dir, `${hash}.json`), dataToSave);
 
     return `file://${hash}.json`;
+  }
+
+  async list() {
+    debug('local list');
+
+    return (await fs.readdir(this.dir)).filter((f) => f.match(/[0-9a-f]+\.json/)).map((f) => `file://${f}`);
+  }
+
+  async remove(url: string) {
+    debug(`local remove ${url}`);
+
+    await fs.unlink(path.join(this.dir, `${url.slice(7)}`));
   }
 }
 

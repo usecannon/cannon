@@ -48,6 +48,8 @@ describe('alter', () => {
     ipfsLoader = new IPFSLoader('ipfs');
     mockedFallBackRegistry = new FallbackRegistry([]);
     testPkgData = {
+      generator: 'cannon test',
+      timestamp: 0,
       def: { name: 'package', version: '1.2.3', provision: { dummyStep: { tags: ['tag3', 'tag4'] } } } as any,
       state: {
         'provision.dummyStep': {

@@ -1,4 +1,4 @@
-import { readIpfs, writeIpfs, isIpfsGateway } from './ipfs';
+import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway } from './ipfs';
 
 describe('ipfs.ts', () => {
   const IPFS_GATEWAY_URL = process.env.IPFS_GATEWAY_URL;
@@ -42,11 +42,35 @@ describe('ipfs.ts', () => {
 
     if (IPFS_API_URL) {
       it('uploads compressed archive that can be read back', async () => {
+        await writeIpfs(IPFS_API_URL, { hello: 'world' });
+      });
+    }
+  });
+
+  describe('deleteIpfs()', () => {
+    it('throws on gateway', async () => {
+      await expect(() => deleteIpfs('http://arstarst.com', 'ipfs://Qmfake')).rejects.toBeTruthy();
+    });
+
+    if (IPFS_API_URL) {
+      it('deletes', async () => {
         const url = await writeIpfs(IPFS_API_URL, { hello: 'world' });
+        await deleteIpfs(IPFS_API_URL, url!);
 
-        expect(url).toMatch(/ipfs:\/\/Qm.*/);
+        expect(await readIpfs(IPFS_API_URL, url!)).toEqual(null);
+      });
+    }
+  });
 
-        expect(await readIpfs(IPFS_API_URL, url!)).toEqual({ hello: 'world' });
+  describe('listPinsIpfs()', () => {
+    it('returns empty array on gateway', async () => {
+      expect(await listPinsIpfs('http://arstarst.com')).toEqual([]);
+    });
+
+    if (IPFS_API_URL) {
+      it('returns empty array when no pins are present', async () => {
+        const url = await writeIpfs(IPFS_API_URL, { hello: 'world' });
+        expect(await listPinsIpfs(IPFS_API_URL)).toContain(url);
       });
     }
   });

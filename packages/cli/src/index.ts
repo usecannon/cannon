@@ -8,6 +8,7 @@ import {
   getOutputs,
   ChainBuilderRuntime,
   ChainArtifacts,
+  CannonStorage,
 } from '@usecannon/builder';
 
 import { checkCannonVersion, loadCannonfile } from './helpers';
@@ -57,6 +58,7 @@ export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
+import prompts from 'prompts';
 
 const program = new Command();
 
@@ -417,6 +419,79 @@ program
     const { inspect } = await import('./commands/inspect');
     resolveCliSettings(options);
     await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+  });
+
+program
+  .command('prune')
+  .description('Clean cannon storage of excessive/transient build files older than a certain age')
+  .option(
+    '--filter-package <packageName>',
+    'Only keep deployments in local storage which match the given package name. Default: do not filter'
+  )
+  .option('--filter-variant <variant>', 'Only keep deployments which match the specifiec variant(s). Default: do not filter')
+  .option(
+    '--keep-age <seconds>',
+    'Number of seconds old a package must be before it should be deleted',
+    (86400 * 30).toString()
+  )
+  .option('--dry-run', 'Print out information about prune without committing')
+  .option('-y --yes', 'Skip confirmation prompt')
+  .action(async function (options) {
+    const { prune } = await import('./commands/prune');
+    resolveCliSettings(options);
+
+    const registry = await createDefaultReadRegistry(resolveCliSettings());
+
+    const loader = getMainLoader(resolveCliSettings());
+
+    const storage = new CannonStorage(registry, loader);
+
+    console.log('Scanning for storage artifacts to prune (this may take some time)...');
+
+    const [pruneUrls, pruneStats] = await prune(
+      storage,
+      options.filterPackage?.split(',') || '',
+      options.filterVariant?.split(',') || '',
+      options.keepAge
+    );
+
+    if (pruneUrls.length) {
+      console.log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      console.log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
+      console.log(`Not Expired: ${pruneStats.notExpired}`);
+      console.log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
+
+      if (options.dryRun) {
+        process.exit(0);
+      }
+
+      if (!options.yes) {
+        const verification = await prompts({
+          type: 'confirm',
+          name: 'confirmation',
+          message: 'Delete these artifacts?',
+          initial: true,
+        });
+
+        if (!verification.confirmation) {
+          console.log('Cancelled');
+          process.exit(1);
+        }
+      }
+
+      for (const url of pruneUrls) {
+        console.log(`delete ${url}`);
+        try {
+          await storage.deleteBlob(url);
+        } catch (err: any) {
+          console.error(`Failed to delete ${url}: ${err.message}`);
+        }
+      }
+
+      console.log('Done!');
+    } else {
+      console.log(bold('Nothing to prune.'));
+    }
   });
 
 program

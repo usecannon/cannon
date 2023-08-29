@@ -22,6 +22,8 @@ describe('publish command', () => {
   const metaData = { itsMeta: 'data' };
 
   const testPkgData: DeploymentInfo = {
+    generator: 'cannon test',
+    timestamp: 1234567890,
     def: { name: 'package', version: '1.2.3', provision: { dummyStep: { tags } } } as any,
     state: {
       'provision.dummyStep': {

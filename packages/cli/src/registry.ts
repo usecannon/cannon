@@ -90,6 +90,19 @@ export class LocalRegistry extends CannonRegistry {
         return { name: `${name}:${version}`, variant: tagVariant };
       });
   }
+
+  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+    if (!filterPackage) {
+      return new Set();
+    }
+    const [name, version] = filterPackage.split(':');
+
+    const urls = (await fs.readdir(this.packagesDir))
+      .filter((f) => f.match(new RegExp(`${name || '.*'}_${version || '.*'}_${filterVariant || '.*'}`)))
+      .map((f) => fs.readFileSync(path.join(this.packagesDir, f)).toString('utf8'));
+
+    return new Set(urls);
+  }
 }
 
 async function checkLocalRegistryOverride({

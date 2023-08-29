@@ -23,6 +23,8 @@ import { createDefaultReadRegistry } from '../registry';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
+import pkg from '../../package.json';
+
 interface Params {
   provider: CannonWrapperGenericProvider;
   def?: ChainDefinition;
@@ -233,6 +235,8 @@ export async function build({
 
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
+      generator: `cannon cli ${pkg.version}`,
+      timestamp: Math.floor(Date.now() / 1000),
       def: def.toJson(),
       state: newState,
       options: resolvedSettings,

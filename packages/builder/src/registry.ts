@@ -39,6 +39,12 @@ export abstract class CannonRegistry {
     return null;
   }
 
+  // used to clean up unused resources on a loader
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
+    return new Set();
+  }
+
   abstract getLabel(): string;
 }
 
@@ -85,6 +91,11 @@ export class InMemoryRegistry extends CannonRegistry {
 
   async getMetaUrl(packageRef: string, variant: string): Promise<string | null> {
     return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
+    return new Set();
   }
 }
 
@@ -145,6 +156,13 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     }
 
     return null;
+  }
+
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
+    const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackage, filterVariant)));
+
+    // apparently converting back to an array is the most efficient way to merge sets
+    return new Set(r.flatMap((s) => Array.from(s)));
   }
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
@@ -328,6 +346,26 @@ export class OnChainRegistry extends CannonRegistry {
     );
 
     return url === '' ? null : url;
+  }
+
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
+    if (!filterPackage) {
+      // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
+      // in the future we might have a way to give the urls to search for and then limit
+      return new Set();
+    }
+
+    const [name, version] = filterPackage.split(':');
+
+    const filter = this.contract.filters.PackagePublish(
+      name ? ethers.utils.formatBytes32String(name) : null,
+      version ? ethers.utils.formatBytes32String(version) : null,
+      filterVariant ? ethers.utils.formatBytes32String(filterVariant) : null
+    );
+
+    const events = await this.contract.queryFilter(filter, 0, 'latest');
+
+    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
   }
 
   private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
