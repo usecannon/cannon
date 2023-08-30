@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Box, Text } from '@chakra-ui/react';
+import { Box, Text, Divider} from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 
 export const FunctionOutput: FC<{
@@ -25,9 +25,6 @@ export const FunctionOutput: FC<{
       {arrayOutput && (
         <div>
           {arrayOutput.map((item: any, index: number) => {
-            if (isObject(result)) {
-              let resultItem = Object.values(result).map(item => item)
-            }
             return (
               <div key={index}>
                 <h4>
@@ -75,7 +72,7 @@ export const FunctionOutput: FC<{
                                   }
                                 )}
                               </Box>
-                              <span>-------------------------------</span>
+                              <Divider size='l' />
                             </div>
                           )
                         } else {
