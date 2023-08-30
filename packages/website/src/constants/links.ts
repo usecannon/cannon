@@ -7,4 +7,5 @@ export const links = {
   BUILD: '/learn/guides/build',
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',
+  SETTINGS: '/settings',
 };
