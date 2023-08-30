@@ -13,6 +13,9 @@ export const FunctionOutput: FC<{
   const arrayOutput: AbiParameter[] | undefined = isArray(output)
     ? (output as AbiParameter[])
     : undefined;
+  const objectArrayOutput: AbiParameter[] | undefined = isArray(output)
+    ? (output as AbiParameter[])
+    : undefined;
   const objectOutput: AbiParameter | undefined = isObject(output)
     ? (output as AbiParameter)
     : undefined;
@@ -22,6 +25,9 @@ export const FunctionOutput: FC<{
       {arrayOutput && (
         <div>
           {arrayOutput.map((item: any, index: number) => {
+            if (isObject(result)) {
+              let resultItem = Object.values(result).map(item => item)
+            }
             return (
               <div key={index}>
                 <h4>
@@ -59,7 +65,6 @@ export const FunctionOutput: FC<{
                               <Box pl="1" pt="2" pb="2">
                                 {Object.values(resultItem).map(
                                   (component: any, componentIndex: any) => {
-                                    console.log(item.components[componentIndex])
                                     return (
                                       <FunctionOutput
                                         output={item.components[componentIndex]}
@@ -70,6 +75,7 @@ export const FunctionOutput: FC<{
                                   }
                                 )}
                               </Box>
+                              <span>-------------------------------</span>
                             </div>
                           )
                         } else {
@@ -114,6 +120,9 @@ export const FunctionOutput: FC<{
           }, 2)}
           <Text fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
+          </Text>
+          <Text pl="1" pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
+            {String(result)}
           </Text>
         </div>
       )}
