@@ -402,7 +402,7 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
       }
     };
 
-    getContracts();
+    void getContracts();
   }, [pkg.pkg]);
 
   return { contracts, ...pkg };
