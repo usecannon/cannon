@@ -52,7 +52,7 @@ export class InMemoryLoader implements CannonLoader {
   }
 
   async read(url: string): Promise<any | null> {
-    return JSON.parse(this.datas.get(url));
+    return JSON.parse(this.datas.get(url) ?? '');
   }
   async put(misc: any): Promise<string | null> {
     const k = `mem://${this.space}/${this.idx++}`;
@@ -189,7 +189,7 @@ async function loadChainDefinitionToml(
   let buf: string;
   try {
     buf = await git.readFile(repo, ref, filepath);
-  } catch (err) {
+  } catch (err: any) {
     throw new Error(`problem while reading artifact (trace): ${trace.join(', ')}: ${err.toString()}`);
   }
 
@@ -249,12 +249,12 @@ export function parseHintedMulticall(data: Hex) {
   let prevGitRepoHash = '';
   if (
     (decoded.functionName === 'aggregate3' || decoded.functionName === 'aggregate3Value') &&
-    decoded.args[0][0].target === zeroAddress
+    ((decoded.args![0] as any)[0] as any).target === zeroAddress
   ) {
     try {
       [type, cannonPackage, cannonUpgradeFromPackage, gitRepoUrl, gitRepoHash, prevGitRepoHash] = decodeAbiParameters(
         parseAbiParameters('string[]'),
-        decoded.args[0][0].callData
+        ((decoded.args![0] as any)[0] as any).callData
       )[0];
     } catch (err) {
       console.log('Could not parse decoded function', { decoded, err });
@@ -263,7 +263,7 @@ export function parseHintedMulticall(data: Hex) {
   }
 
   let txns: { to: Address; data: Hex; value: bigint }[] = [];
-  if (decoded.args.length) {
+  if (decoded.args?.length) {
     txns = (decoded.args[0] as any[])
       .slice(type === 'deploy' ? 3 : 1)
       .map((txn) => ({ to: txn.target, data: txn.callData, value: txn.value }));

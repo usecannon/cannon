@@ -14,7 +14,7 @@ function findChainUrl(chainId: number) {
   const providerConfig = infuraProvider({
     apiKey: '6b369abb43f44b83a7fb34f6eacb8683',
   })(chain);
-  const url = providerConfig.rpcUrls.http[0];
+  const url = providerConfig?.rpcUrls.http[0];
 
   if (!url) throw new Error(`Chaind ${chain.name} dos not have a default url`);
 

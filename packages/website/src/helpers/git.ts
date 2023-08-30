@@ -45,23 +45,23 @@ export async function readDir(repo: string, ref: string, path: string) {
   return (await fs.readdir(`${dir}/${path}`)) as string[];
 }
 
-async function _mkdirp(fs, dir: string) {
+async function _mkdirp(fs: any, dir: string) {
   try {
     await fs.mkdir(dir);
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'EEXIST') return;
     throw err;
   }
 }
 
-async function _isCloned(fs, dir: string) {
+async function _isCloned(fs: any, dir: string) {
   try {
     await findRoot({
       fs,
       filepath: `${dir}/.git`,
     });
     return true;
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'NotFoundError') return false;
     throw err;
   }

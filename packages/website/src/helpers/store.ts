@@ -80,7 +80,7 @@ const useStore = create<Store>()(
         set((state) => {
           const newState = { ...state, currentSafe };
 
-          if (!includes(state.safeAddresses, currentSafe)) {
+          if (currentSafe && !includes(state.safeAddresses, currentSafe)) {
             newState.safeAddresses = [currentSafe, ...newState.safeAddresses];
           }
 
@@ -103,7 +103,9 @@ const useStore = create<Store>()(
       prependSafeAddress: (newAddress) => {
         set((state) => ({
           ...state,
-          safeAddresses: uniqWith([newAddress, ...state.safeAddresses], deepEqual),
+          safeAddresses: uniqWith([newAddress, ...state.safeAddresses], deepEqual).filter(
+            (item) => item !== null
+          ) as SafeDefinition[],
         }));
       },
     }),

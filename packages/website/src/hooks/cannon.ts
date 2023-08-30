@@ -109,7 +109,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     console.log('cannon.ts: upgrade from: ', prevDeploy);
 
-    const provider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(fork), false);
+    const provider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(fork as any), false);
 
     // Create a regsitry that loads data first from Memory to be able to utilize
     // the locally built data
@@ -166,10 +166,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     const steps = await Promise.all(
       simulatedTxs.map(async (executedTx) => {
-        const tx = await provider.getTransaction(executedTx.hash);
-        const receipt = await provider.getTransactionReceipt(executedTx.hash);
+        const tx = await provider.getTransaction((executedTx as any).hash);
+        const receipt = await provider.getTransactionReceipt((executedTx as any).hash);
         return {
-          name: executedTx.deployedOn,
+          name: (executedTx as any).deployedOn,
           gas: receipt.gasUsed,
           tx: {
             to: tx.to,
@@ -252,7 +252,7 @@ export function useCannonWriteDeployToIpfs(
       const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
       const variant = `${runtime.chainId}-${settings.preset}`;
 
-      await runtime.registry.publish([packageRef], variant, await runtime.loaders.mem.put(deployInfo), metaUrl);
+      await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
 
       const memoryRegistry = new InMemoryRegistry();
 
@@ -319,7 +319,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       console.log('LOADING PKG URL', pkgUrl);
       const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
 
-      const deployInfo: DeploymentInfo = await loader.read(pkgUrl);
+      const deployInfo: DeploymentInfo = await loader.read(pkgUrl ?? '');
 
       const def = new ChainDefinition(deployInfo.def);
 
@@ -384,7 +384,7 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
         const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
         const readRuntime = new ChainBuilderRuntime(
           {
-            provider: null,
+            provider: null as any,
             chainId: 1,
             getSigner: () => {
               return Promise.reject(new Error('unnecessary'));
@@ -392,13 +392,15 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
             snapshots: false,
             allowPartialDeploy: false,
           },
-          null,
+          null as any,
           { ipfs: loader }
         );
 
         const outputs = await getOutputs(readRuntime, new ChainDefinition(info.def), info.state);
 
-        setContracts(getContractsRecursive(outputs, null));
+        if (outputs) {
+          setContracts(getContractsRecursive(outputs, null as any));
+        }
       }
     };
 
