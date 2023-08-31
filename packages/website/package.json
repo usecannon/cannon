@@ -68,6 +68,8 @@
     "@graphql-codegen/schema-ast": "^4.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-resolvers": "^4.0.1",
+    "@types/crypto-js": "^4.1.1",
+    "@types/diff": "^5.0.3",
     "@types/graphql": "^14.5.0",
     "@types/lodash": "^4.14.183",
     "@types/prismjs": "^1.26.0",
