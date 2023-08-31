@@ -5,11 +5,9 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
-import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
 
 export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
-  await setupAnvil();
   const { name, version } = parsePackageRef(packageRef);
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
@@ -21,6 +19,15 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
   if (!deployUrl) {
     throw new Error(
       `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${preset}.`
+    );
+  }
+
+  if (!chainId) {
+    console.warn(
+      yellow(
+        "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
+      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
+      )
     );
   }
 
