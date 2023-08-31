@@ -26,14 +26,19 @@ export const FunctionOutput: FC<{
               <div key={index}>
                 <h4>
                   {item.name}
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                  <Text
+                    pl="1"
+                    fontSize="xs"
+                    color="whiteAlpha.700"
+                    display="inline"
+                  >
                     {item.internalType}
                   </Text>
                 </h4>
                 {item.components && (
                   <div>
                     {item.type === 'tuple' && (
-                      <div>
+                      <Box pl="1" pt="2" pb="2">
                         {Object.values(result).map(
                           (component: any, componentIndex: any) => {
                             return (
@@ -45,7 +50,7 @@ export const FunctionOutput: FC<{
                             );
                           }
                         )}
-                      </div>
+                      </Box>
                     )}
                   </div>
                 )}
@@ -100,10 +105,10 @@ export const FunctionOutput: FC<{
                 )}
                 {(!item.components ||
                   (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  !isArray(result) && <div>{String(result)}</div>}
+                  !isArray(result) && <Box pl="1">{String(result)}</Box>}
                 {(!item.components ||
                   (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  isArray(result) && <div>{String(result[index])}</div>}
+                  isArray(result) && <Box pl="1">{String(result[index])}</Box>}
               </div>
             );
           })}
@@ -119,10 +124,10 @@ export const FunctionOutput: FC<{
             },
             2
           )}
-          <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+          <Text pl="1" fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
           </Text>
-          <Text pl="1" pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
+          <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
             {String(result)}
           </Text>
         </div>
