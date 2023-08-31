@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Box, Text, Divider} from '@chakra-ui/react';
+import { Box, Text, Divider } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 
 export const FunctionOutput: FC<{
@@ -11,9 +11,6 @@ export const FunctionOutput: FC<{
     _value && typeof _value === 'object' && _value.constructor === Object;
 
   const arrayOutput: AbiParameter[] | undefined = isArray(output)
-    ? (output as AbiParameter[])
-    : undefined;
-  const objectArrayOutput: AbiParameter[] | undefined = isArray(output)
     ? (output as AbiParameter[])
     : undefined;
   const objectOutput: AbiParameter | undefined = isObject(output)
@@ -72,9 +69,9 @@ export const FunctionOutput: FC<{
                                   }
                                 )}
                               </Box>
-                              <Divider size='l' />
+                              <Divider />
                             </div>
-                          )
+                          );
                         } else {
                           return (
                             <div key={resultItemIndex}>
@@ -84,7 +81,9 @@ export const FunctionOutput: FC<{
                                     return (
                                       <div key={componentIndex}>
                                         <FunctionOutput
-                                          output={item.components[componentIndex]}
+                                          output={
+                                            item.components[componentIndex]
+                                          }
                                           result={component}
                                         />
                                       </div>
@@ -100,9 +99,12 @@ export const FunctionOutput: FC<{
                   </div>
                 )}
                 {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) && (
-                    <div>{String(result)}</div>
-                  )}
+                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
+                !isArray(result) ? (
+                  <div>{String(result)}</div>
+                ) : (
+                  <div>{String(result[index])}</div>
+                )}
               </div>
             );
           })}
@@ -110,11 +112,14 @@ export const FunctionOutput: FC<{
       )}
       {objectOutput && (
         <div>
-          {objectOutput.name}: {JSON.stringify(result, (key, value) => {
-            typeof value === 'bigint'
-              ? String(value)
-              : value
-          }, 2)}
+          {objectOutput.name}:{' '}
+          {JSON.stringify(
+            result,
+            (key, value) => {
+              typeof value === 'bigint' ? String(value) : value;
+            },
+            2
+          )}
           <Text fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
           </Text>
