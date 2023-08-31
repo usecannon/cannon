@@ -100,11 +100,10 @@ export const FunctionOutput: FC<{
                 )}
                 {(!item.components ||
                   (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                !isArray(result) ? (
-                  <div>{String(result)}</div>
-                ) : (
-                  <div>{String(result[index])}</div>
-                )}
+                  !isArray(result) && <div>{String(result)}</div>}
+                {(!item.components ||
+                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
+                  isArray(result) && <div>{String(result[index])}</div>}
               </div>
             );
           })}
