@@ -101,7 +101,7 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
 
       {loading ? (
         <Box py="20" textAlign="center">
-          <CustomSpinner />
+          <CustomSpinner mx="auto" />
         </Box>
       ) : (
         <Box>

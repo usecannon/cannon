@@ -6,7 +6,7 @@ export const IpfsUrl: FC<{
   title: string;
   url: string;
 }> = ({ title, url }) => {
-  const externalUrl = `https://ipfs.io/ipfs/${url.replace('ipfs://', '')}`;
+  const externalUrl = `https://ipfs.io/ipfs/${url?.replace('ipfs://', '')}`;
 
   return (
     <Container maxW="container.lg" mb={6}>

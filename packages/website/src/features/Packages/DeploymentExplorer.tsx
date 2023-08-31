@@ -36,7 +36,7 @@ export const DeploymentExplorer: FC<{
 
       {deploymentData.isLoading ? (
         <Box py="20" textAlign="center">
-          <CustomSpinner />
+          <CustomSpinner mx="auto" />
         </Box>
       ) : deploymentData.data ? (
         <Container maxW="container.lg">
