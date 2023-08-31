@@ -128,9 +128,7 @@ export function SettingsPage() {
                 onChange={(evt) => setSettings({ [key]: evt.target.value })}
               />
               {!validationError && s.description && (
-                <FormHelperText color="rgba(255, 255, 255, 0.48)">
-                  {s.description}
-                </FormHelperText>
+                <FormHelperText>{s.description}</FormHelperText>
               )}
               {validationError && (
                 <FormErrorMessage>{validationError}</FormErrorMessage>

@@ -30,7 +30,9 @@ const NavLinks = () => {
       <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
         Explore
       </NavLink>
-      <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
+      <NavLink href={links.DEPLOY} isActive={pathname.startsWith('/deploy')}>
+        Deploy
+      </NavLink>
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
         Learn
       </NavLink>

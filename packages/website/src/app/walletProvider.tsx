@@ -17,8 +17,10 @@ const cannonLocalHost = {
   rpcUrl: 'http://127.0.0.1:8545',
 };
 const _chains = Object.values(Chains).filter((item) => _.isObject(item));
+export const supportedChains = [..._chains, cannonLocalHost];
+
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [..._chains, cannonLocalHost],
+  supportedChains,
   [publicProvider()]
 );
 
