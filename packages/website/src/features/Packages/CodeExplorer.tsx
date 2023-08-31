@@ -8,6 +8,7 @@ import { CodePreview } from '@/components/CodePreview';
 import { isEmpty } from 'lodash';
 import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { useQuery } from '@tanstack/react-query';
 
 export const CodeExplorer: FC<{
   variant: any;
@@ -43,30 +44,71 @@ export const CodeExplorer: FC<{
     };
   }, [variant]);
 
-  return variant?.meta_url ? (
-    <Box>
-      <IpfsUrl title="Metadata" url={variant.meta_url} />
+  const deploymentData = useQuery({
+    queryKey: [variant?.deploy_url],
+    queryFn: async ({ signal }) => {
+      if (typeof variant?.deploy_url !== 'string') {
+        throw new Error(`Invalid deploy url: ${variant?.deploy_url}`);
+      }
+      const cid = variant?.deploy_url.replace('ipfs://', '');
+      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
+        responseType: 'arraybuffer',
+        signal,
+      });
+      const data = pako.inflate(res.data, { to: 'string' });
+      return JSON.stringify(JSON.parse(data), null, 2);
+    },
+  });
 
-      {loading ? (
-        <Box py="20" textAlign="center">
-          <CustomSpinner />
-        </Box>
-      ) : !isEmpty(metadata) ? (
-        <Container maxW="container.lg">
-          <CodePreview
-            code={JSON.stringify(metadata, null, 2)}
-            language="json"
-          />
-        </Container>
-      ) : (
-        <Box textAlign="center" py="20" opacity="0.5">
-          Unable to retrieve metadata
+  const miscUrl =
+    deploymentData.data && JSON.parse(deploymentData.data).miscUrl;
+  const miscData = useQuery({
+    queryKey: [miscUrl],
+    queryFn: async ({ signal }) => {
+      if (typeof miscUrl !== 'string') {
+        throw new Error(`Invalid deploy url: ${miscUrl}`);
+      }
+      const cid = miscUrl.replace('ipfs://', '');
+      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
+        responseType: 'arraybuffer',
+        signal,
+      });
+      const data = pako.inflate(res.data, { to: 'string' });
+      return JSON.stringify(JSON.parse(data), null, 2);
+    },
+    enabled: !!miscUrl,
+  });
+
+  return (
+    <Box>
+      {variant.meta_url && (
+        <Box mb={8}>
+          <IpfsUrl title="Metadata" url={variant.meta_url} />
+          {loading ? (
+            <Box py="20" textAlign="center">
+              <CustomSpinner mx="auto" />
+            </Box>
+          ) : !isEmpty(metadata) ? (
+            <Container maxW="container.lg">
+              <CodePreview
+                code={JSON.stringify(metadata, null, 2)}
+                language="json"
+              />
+            </Container>
+          ) : (
+            <Box textAlign="center" py="20" opacity="0.5">
+              Unable to retrieve metadata
+            </Box>
+          )}
         </Box>
       )}
-    </Box>
-  ) : (
-    <Box textAlign="center" py="20" opacity="0.5">
-      No metadata is associated with this package
+
+      <IpfsUrl title="Miscellaneous Data" url={miscUrl} />
+      {miscData.data && (
+        <Container maxW="container.lg">
+          <CodePreview code={miscData.data} language="json" />
+        </Container>
+      )}
     </Box>
   );
 };
