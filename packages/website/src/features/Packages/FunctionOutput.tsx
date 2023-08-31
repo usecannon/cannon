@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Box, Text } from '@chakra-ui/react';
+import { Box, Text, Divider } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 
 export const FunctionOutput: FC<{
@@ -26,14 +26,19 @@ export const FunctionOutput: FC<{
               <div key={index}>
                 <h4>
                   {item.name}
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                  <Text
+                    pl="1"
+                    fontSize="xs"
+                    color="whiteAlpha.700"
+                    display="inline"
+                  >
                     {item.internalType}
                   </Text>
                 </h4>
                 {item.components && (
                   <div>
                     {item.type === 'tuple' && (
-                      <div>
+                      <Box pl="1" pt="2" pb="2">
                         {Object.values(result).map(
                           (component: any, componentIndex: any) => {
                             return (
@@ -45,7 +50,7 @@ export const FunctionOutput: FC<{
                             );
                           }
                         )}
-                      </div>
+                      </Box>
                     )}
                   </div>
                 )}
@@ -53,32 +58,57 @@ export const FunctionOutput: FC<{
                   <div>
                     {(arrayOutput.length > 1 ? result[index] : result).map(
                       (resultItem: any, resultItemIndex: number) => {
-                        return (
-                          <div key={resultItemIndex}>
-                            <Box pl="1" pt="2" pb="2">
-                              {resultItem.map(
-                                (component: any, componentIndex: number) => {
-                                  return (
-                                    <div key={componentIndex}>
+                        if (isObject(resultItem)) {
+                          return (
+                            <div key={resultItemIndex}>
+                              <Box pl="1" pt="2" pb="2">
+                                {Object.values(resultItem).map(
+                                  (component: any, componentIndex: any) => {
+                                    return (
                                       <FunctionOutput
                                         output={item.components[componentIndex]}
                                         result={component}
+                                        key={componentIndex}
                                       />
-                                    </div>
-                                  );
-                                }
-                              )}
-                            </Box>
-                          </div>
-                        );
+                                    );
+                                  }
+                                )}
+                              </Box>
+                              <Divider />
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div key={resultItemIndex}>
+                              <Box pl="1" pt="2" pb="2">
+                                {resultItem.map(
+                                  (component: any, componentIndex: number) => {
+                                    return (
+                                      <div key={componentIndex}>
+                                        <FunctionOutput
+                                          output={
+                                            item.components[componentIndex]
+                                          }
+                                          result={component}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </Box>
+                            </div>
+                          );
+                        }
                       }
                     )}
                   </div>
                 )}
                 {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) && (
-                  <div>{String(result)}</div>
-                )}
+                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
+                  !isArray(result) && <Box pl="1">{String(result)}</Box>}
+                {(!item.components ||
+                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
+                  isArray(result) && <Box pl="1">{String(result[index])}</Box>}
               </div>
             );
           })}
@@ -86,9 +116,19 @@ export const FunctionOutput: FC<{
       )}
       {objectOutput && (
         <div>
-          {objectOutput.name}: {JSON.stringify(result, null, 2)}
-          <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+          {objectOutput.name}:{' '}
+          {JSON.stringify(
+            result,
+            (key, value) => {
+              typeof value === 'bigint' ? String(value) : value;
+            },
+            2
+          )}
+          <Text pl="1" fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}
+          </Text>
+          <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
+            {String(result)}
           </Text>
         </div>
       )}
