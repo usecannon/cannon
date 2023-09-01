@@ -410,6 +410,7 @@ program
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
   .option('-j --json', 'Output as JSON')
+  .option('--registry-priority <registry>', 'Priority of the registry to use')
   .option(
     '-w --write-deployments <writeDeployments>',
     'Path to write the deployments data (address and ABIs), like "./deployments"'
