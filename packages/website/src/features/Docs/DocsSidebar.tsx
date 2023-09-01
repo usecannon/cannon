@@ -18,7 +18,10 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
               textDecoration="none"
               textTransform="uppercase"
               _hover={{ textDecoration: 'none' }}
-              href={`#${m[0].toLowerCase().replace(' ', '-')}`}
+              href={`#${m[0]
+                .toLowerCase()
+                .replaceAll('?', '')
+                .replaceAll(' ', '-')}`}
               display="block"
               fontSize={14}
               mb={6}
@@ -34,7 +37,10 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
                     textDecoration="none"
                     textTransform="uppercase"
                     _hover={{ textDecoration: 'none' }}
-                    href={`#${s.toLowerCase().replace(' ', '-')}`}
+                    href={`#${s
+                      .toLowerCase()
+                      .replaceAll('?', '')
+                      .replaceAll(' ', '-')}`}
                     display="block"
                     fontSize={14}
                     ml={4}
