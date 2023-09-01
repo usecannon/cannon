@@ -122,7 +122,7 @@ async function checkLocalRegistryOverride({
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     console.log(
       yellowBright(
-        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry local'`
+        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
     );
   }

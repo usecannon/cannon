@@ -44,7 +44,7 @@ interface Params {
   plugins?: boolean;
   publicSourceCode?: boolean;
   providerUrl?: string;
-
+  registryPriority?: 'local' | 'onchain';
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
@@ -66,6 +66,7 @@ export async function build({
   plugins = true,
   publicSourceCode = false,
   providerUrl,
+  registryPriority,
   gasPrice,
   gasFee,
   priorityGasFee,
@@ -80,7 +81,7 @@ export async function build({
     );
   }
 
-  const cliSettings = resolveCliSettings();
+  const cliSettings = resolveCliSettings({ registryPriority });
 
   if (plugins) {
     await loadPlugins();
