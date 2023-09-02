@@ -163,6 +163,10 @@ export default {
 
     debug('start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
+    if (importRuntime.isCancelled()) {
+      partialDeploy = true;
+    }
+
     debug('finish build. is partial:', partialDeploy);
 
     const newMiscUrl = await importRuntime.recordMisc();
