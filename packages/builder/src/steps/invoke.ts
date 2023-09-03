@@ -12,7 +12,12 @@ import {
   ChainBuilderContextWithHelpers,
   PackageState,
 } from '../types';
-import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
+import {
+  getContractDefinitionFromPath,
+  getContractFromPath,
+  getMergedAbiFromContractPaths,
+  computeTemplateAccesses,
+} from '../util';
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';
@@ -182,7 +187,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const invokeSpec = {
   label: 'invoke',
 
   validate: invokeSchema,
@@ -267,6 +272,64 @@ export default {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    if (typeof config.target === 'string') {
+      accesses.push(...computeTemplateAccesses(config.target));
+    } else {
+      config.target.map((v) => accesses.push(...computeTemplateAccesses(v)));
+    }
+
+    accesses.push(...computeTemplateAccesses(config.abi));
+    accesses.push(...computeTemplateAccesses(config.func));
+    accesses.push(...computeTemplateAccesses(config.from));
+    accesses.push(...computeTemplateAccesses(config.value));
+
+    if (config.args) {
+      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+    }
+
+    if (config.fromCall) {
+      accesses.push(...computeTemplateAccesses(config.fromCall.func));
+      _.forEach(config.fromCall.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+    }
+
+    if (config?.overrides) {
+      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+    }
+
+    for (const name in config.factory) {
+      const f = config.factory[name];
+
+      accesses.push(...computeTemplateAccesses(f.event));
+      accesses.push(...computeTemplateAccesses(f.artifact));
+      _.forEach(f.abiOf, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    for (const name in config.extra) {
+      const f = config.extra[name];
+      accesses.push(...computeTemplateAccesses(f.event));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(config: Config, packageState: PackageState) {
+    const outputs = [`txns.${packageState.currentLabel.split('.')[1]}`];
+
+    // factories can output contracts, and extras can output extras
+    if (config.factory) {
+      outputs.push(...Object.keys(config.factory).map((f) => `contracts.${f}`));
+    }
+
+    if (config.extra) {
+      outputs.push(...Object.keys(config.extra).map((e) => `extras.${e}`));
+    }
+
+    return outputs;
   },
 
   async exec(
@@ -376,3 +439,5 @@ ${getAllContractPaths(ctx).join('\n')}`);
     };
   },
 };
+
+export default invokeSpec;

@@ -16,7 +16,7 @@ import {
   ContractArtifact,
   PackageState,
 } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { getContractDefinitionFromPath, getMergedAbiFromContractPaths, computeTemplateAccesses } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
 const debug = Debug('cannon:builder:contract');
@@ -71,7 +71,7 @@ function resolveBytecode(
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const contractSpec = {
   label: 'contract',
 
   validate: contractSchema,
@@ -80,7 +80,7 @@ export default {
     const parsedConfig = this.configInject(ctx, config);
 
     return {
-      bytecode: (await resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig))[0],
+      bytecode: resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig)[0],
       args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
       salt: parsedConfig.salt,
       value: parsedConfig.value || [],
@@ -128,6 +128,39 @@ export default {
     return config;
   },
 
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.from));
+    accesses.push(...computeTemplateAccesses(config.nonce));
+    accesses.push(...computeTemplateAccesses(config.artifact));
+    accesses.push(...computeTemplateAccesses(config.value));
+    accesses.push(...computeTemplateAccesses(config.abi));
+    accesses.push(...computeTemplateAccesses(config.salt));
+
+    if (config.abiOf) {
+      config.abiOf.forEach((v) => accesses.push(...computeTemplateAccesses(v)));
+    }
+
+    if (config.args) {
+      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+    }
+
+    if (config.libraries) {
+      _.forEach(config.libraries, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    if (config?.overrides?.gasLimit) {
+      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`];
+  },
+
   async exec(
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
@@ -151,7 +184,7 @@ export default {
       );
     }
 
-    const [injectedBytecode, linkedLibraries] = await resolveBytecode(artifactData, config);
+    const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
 
     // finally, deploy
     const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
@@ -270,3 +303,5 @@ export default {
     };
   },
 };
+
+export default contractSpec;
