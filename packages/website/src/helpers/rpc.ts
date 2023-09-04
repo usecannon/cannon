@@ -12,7 +12,7 @@ function findChainUrl(chainId: number) {
   if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
 
   const providerConfig = infuraProvider({
-    apiKey: '6b369abb43f44b83a7fb34f6eacb8683',
+    apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
   })(chain);
   const url = providerConfig?.rpcUrls.http[0];
 

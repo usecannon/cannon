@@ -7,6 +7,7 @@ import {
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import * as Chains from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { infuraProvider } from 'wagmi/providers/infura';
 import { ReactNode } from 'react';
 import _ from 'lodash';
 
@@ -21,7 +22,12 @@ export const supportedChains = [..._chains, cannonLocalHost];
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   supportedChains,
-  [publicProvider()]
+  [
+    infuraProvider({
+      apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
+    }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({

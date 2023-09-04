@@ -97,7 +97,7 @@ function _createSafeApiKit(chainId: number) {
   const provider = new ethers.providers.Web3Provider(
     createWalletClient({
       chain: mainnet,
-      transport: http(infuraProvider({ apiKey: '6b369abb43f44b83a7fb34f6eacb8683' })(mainnet)?.rpcUrls.http[0]),
+      transport: http(infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '' })(mainnet)?.rpcUrls.http[0]),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any
   );
