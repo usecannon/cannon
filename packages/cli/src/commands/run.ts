@@ -29,6 +29,7 @@ export interface RunOptions {
   privateKey?: string;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
+  registryPriority: 'local' | 'onchain';
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
@@ -43,11 +44,12 @@ const INSTRUCTIONS = green(
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
+
   console.log(bold('Starting local node...\n'));
 
   // Start the rpc server
   const node = options.node;
-  const provider = await getProvider(node);
+  const provider = getProvider(node);
   const nodeLogging = await createLoggingInterface(node);
 
   if (options.fundAddresses && options.fundAddresses.length) {
@@ -56,8 +58,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const cliSettings = resolveCliSettings();
-
+  const cliSettings = resolveCliSettings(options);
   const resolver = await createDefaultReadRegistry(cliSettings);
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];

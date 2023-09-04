@@ -41,5 +41,8 @@ export const exportSpecListFromMarkdown = (markdown: string) => {
 };
 
 export const headingToId = (props: any) => {
-  return (props.children[0] as string).toLowerCase().replace(' ', '-');
+  return (typeof props.children === 'string' ? props.children : (props.children[0] as string))
+    .toLowerCase()
+    .replaceAll('?', '')
+    .replaceAll(' ', '-');
 };
