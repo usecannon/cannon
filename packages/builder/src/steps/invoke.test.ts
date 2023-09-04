@@ -120,6 +120,52 @@ describe('steps/invoke.ts', () => {
     });
   });
 
+  describe('getInputs()', () => {
+    it('detects all usages', async () => {
+      expect(
+        action
+          .getInputs({
+            target: ['<%= contracts.a %>'],
+            abi: '<%= contracts.b %>',
+            from: '<%= contracts.c %>',
+            func: '<%= contracts.d %>',
+            value: '<%= contracts.e %>',
+            factory: { whop: { event: '<%= contracts.f %>', arg: 0, artifact: '<%= contracts.g %>' } },
+            args: ['<%= contracts.h %>', '<%= contracts.i %>'],
+            overrides: { gasLimit: '<%= contracts.j %>' },
+          })
+          .sort()
+      ).toEqual([
+        'contracts.a',
+        'contracts.b',
+        'contracts.c',
+        'contracts.d',
+        'contracts.e',
+        'contracts.f',
+        'contracts.g',
+        'contracts.h',
+        'contracts.i',
+        'contracts.j',
+      ]);
+    });
+  });
+
+  describe('getOutputs()', () => {
+    it('returns the contract that is outputted', () => {
+      expect(
+        action.getOutputs(
+          {
+            target: 'hello',
+            func: 'wohoo',
+            factory: { something: { event: 'whoop', arg: 0 } },
+            extra: { else: { event: 'arst', arg: 1 } },
+          },
+          { name: '', version: '', currentLabel: 'invoke.Hello' }
+        )
+      ).toEqual(['txns.Hello', 'contracts.something', 'extras.else']);
+    });
+  });
+
   describe('exec()', () => {
     it('works and parses all information from transaction result', async () => {
       jest.mocked((await (await fakeRuntime.getDefaultSigner({}, '')).sendTransaction({})).wait).mockResolvedValue({

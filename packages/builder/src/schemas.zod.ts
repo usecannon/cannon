@@ -284,6 +284,11 @@ export const invokeSchema = z
               arg: z.number().int(),
 
               /**
+               *   number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+               */
+              expectCount: z.number().int().optional(),
+
+              /**
                *   name of the contract artifact
                */
               artifact: z

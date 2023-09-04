@@ -40,7 +40,7 @@ export class ChainDefinition {
   private cachedLayers: StateLayers | null = null;
   readonly cachedActionDepths = new Map<string, number>();
 
-  readonly dependencyFor = new Map<string, string[]>();
+  readonly dependencyFor = new Map<string, string>();
 
   constructor(def: RawChainDefinition) {
     debug('begin chain def init');
@@ -66,17 +66,18 @@ export class ChainDefinition {
         actions.push(fullActionName);
 
         if (ActionKinds[action].getOutputs) {
-          for (const output of ActionKinds[action].getOutputs!(data, {
+          for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
             // TODO: what to do about name and version? do they even matter?
             name: '',
             version: '',
             currentLabel: fullActionName,
           })) {
+            debug(`deps: ${fullActionName} provides ${output}`);
             if (!this.dependencyFor.has(output)) {
-              this.dependencyFor.set(output, []);
+              this.dependencyFor.set(output, fullActionName);
+            } else {
+              throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
             }
-
-            this.dependencyFor.get(output)!.push(fullActionName);
           }
         }
       }
@@ -230,11 +231,17 @@ export class ChainDefinition {
     const n = node.split('.')[0];
 
     if (ActionKinds[n].getInputs) {
-      for (const input of ActionKinds[n].getInputs!(_.get(this.raw, n), { name: '', version: '', currentLabel: node })) {
-        deps.push(...(this.dependencyFor.get(input) || []));
+      for (const input of ActionKinds[n].getInputs!(_.get(this.raw, node), { name: '', version: '', currentLabel: node })) {
+        debug(`deps: ${node} consumes ${input}`);
+        if (this.dependencyFor.has(input)) {
+          deps.push(this.dependencyFor.get(input)!);
+        } else if (!input.startsWith('settings.')) {
+          console.log(`WARNING: dependency ${input} not found for step ${node}`);
+        }
       }
     }
 
+    debug(`resolved dependencies for ${node}: ${deps}`);
     return _.uniq(deps);
   });
 

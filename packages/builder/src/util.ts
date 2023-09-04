@@ -219,10 +219,15 @@ export function computeTemplateAccesses(str?: string) {
     imports: new AccessRecorder(),
     extras: new AccessRecorder(),
     txns: new AccessRecorder(),
+    settings: new AccessRecorder(),
   };
 
   const baseTemplate = _.template(str, {
-    imports: recorders,
+    imports: {
+      ...recorders,
+      ...ethers.constants,
+      ...ethers.utils,
+    },
   });
 
   baseTemplate();

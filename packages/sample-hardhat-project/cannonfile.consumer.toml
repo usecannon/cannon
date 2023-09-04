@@ -22,13 +22,11 @@ options.msg = "a message from second greeter set"
 target = ["greeters.Greeter"]
 func = "setGreeting"
 args = ["<%= formatBytes32String(settings.change_greeting2) %>"]
-depends = ["import.greeters"]
 
 # test for factory functionality
 [invoke.clone]
 target = ["greeters.Greeter"]
 func = "doCloning"
-depends = ["import.greeters"]
 
 factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
@@ -41,7 +39,6 @@ factory.cloned.artifact = "Greeter"
 [invoke.change_clone_greeting]
 target = ["greeters.Greeter"]
 func = "changeCloneGreeting"
-depends = ["invoke.clone"]
 args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greeting!') %>"]
 
 extra.NewCloneGreeting.event = "NewGreetingAdded"
@@ -56,7 +53,6 @@ extra.OldCloneGreeting.artifact = "Greeter"
 [invoke.set_new_greeting_for_next_clones]
 target = ["greeters.Greeter"]
 func = "setGreeting"
-depends = ["invoke.change_clone_greeting"]
 args = ["<%= extras.NewCloneGreeting %>"]
 
 # Clone 2 greeters iteratively 
@@ -65,12 +61,12 @@ args = ["<%= extras.NewCloneGreeting %>"]
 [invoke.clone_iterative]
 target = ["greeters.Greeter"]
 func = "doCloningIteratively"
-depends = ["import.greeters"]
 args = ["2"]
 
 factory.cloned.event = "NewClonedGreeter"
 factory.cloned.arg = 0
 factory.cloned.artifact = "Greeter"
+factory.cloned.expectCount = 2
 
 extra.NewClonedGreeterEvent.event = "NewClonedGreeter"
 extra.NewClonedGreeterEvent.arg = 0
@@ -79,7 +75,6 @@ extra.NewClonedGreeterEvent.artifact = "Greeter"
 [invoke.change_last_clone_greeting]
 target = ["greeters.Greeter"]
 func = "changeCloneGreeting"
-depends = ["invoke.clone_iterative"]
 args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
 
 #[run.empty]

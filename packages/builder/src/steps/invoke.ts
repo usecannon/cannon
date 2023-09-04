@@ -277,10 +277,14 @@ const invokeSpec = {
   getInputs(config: Config) {
     const accesses: string[] = [];
 
-    if (typeof config.target === 'string') {
-      accesses.push(...computeTemplateAccesses(config.target));
-    } else {
-      config.target.map((v) => accesses.push(...computeTemplateAccesses(v)));
+    for (const target of config.target) {
+      if (!ethers.utils.isAddress(target)) {
+        if (target.includes('.')) {
+          accesses.push(`imports.${target.split('.')[0]}`);
+        } else {
+          accesses.push(`contracts.${target}`);
+        }
+      }
     }
 
     accesses.push(...computeTemplateAccesses(config.abi));
@@ -322,7 +326,15 @@ const invokeSpec = {
 
     // factories can output contracts, and extras can output extras
     if (config.factory) {
-      outputs.push(...Object.keys(config.factory).map((f) => `contracts.${f}`));
+      for (const k in config.factory) {
+        if ((config.factory[k].expectCount || 1) > 1) {
+          for (let i = 0; i < config.factory[k].expectCount!; i++) {
+            outputs.push(`contracts.${k}_${i}`);
+          }
+        } else {
+          outputs.push(`contracts.${k}`);
+        }
+      }
     }
 
     if (config.extra) {

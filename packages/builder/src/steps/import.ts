@@ -8,6 +8,7 @@ import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, Pa
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
+import { computeTemplateAccesses } from '../util';
 
 const debug = Debug('cannon:builder:import');
 
@@ -25,7 +26,7 @@ export interface Outputs {
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const importSpec = {
   label: 'import',
 
   validate: importSchema,
@@ -51,6 +52,19 @@ export default {
     config.preset = _.template(config.preset)(ctx) || 'main';
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.source));
+    accesses.push(...computeTemplateAccesses(config.preset));
+
+    return accesses;
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`imports.${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
@@ -92,3 +106,5 @@ export default {
     };
   },
 };
+
+export default importSpec;
