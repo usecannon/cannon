@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </Flex>
       </Box>
       {showSettingsAlert && (
-        <Alert status="error" bg="red.700" v-else-if="error">
+        <Alert status="error">
           <Flex mx="auto">
             <AlertIcon />
             You must{' '}
