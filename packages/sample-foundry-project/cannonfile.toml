@@ -1,5 +1,5 @@
 name = "greeter-foundry"
-version = "1.2.2"
+version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
