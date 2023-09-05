@@ -149,7 +149,7 @@ export async function build({
       pkgInfo = oldDeployData.meta;
     }
   } else {
-    throw new Error('No existing package found.');
+    throw new Error(`Package "${prevPkg}" not found.`);
   }
   console.log('');
 
