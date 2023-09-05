@@ -149,7 +149,11 @@ export async function build({
       pkgInfo = oldDeployData.meta;
     }
   } else {
-    throw new Error(`Package "${prevPkg}" not found.`);
+    if(upgradeFrom) {
+      throw new Error(`Package "${prevPkg}" not found.`);
+    } else {
+      console.warn(`Package "${prevPkg}" not found, creating new build...`)
+    }
   }
   console.log('');
 
