@@ -1,17 +1,18 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
+
+import {GlobalState} from "../storage/GlobalState.sol";
 
 contract Greeter {
   event NewGreeting(string newGreeting);
 
-  string public greeting;
-
   function greet() public view returns (string memory) {
-    return greeting;
+    return GlobalState.load().greeting;
   }
 
   function setGreeting(string memory _greeting) public {
-    greeting = _greeting;
+    GlobalState.Data storage store = GlobalState.load();
+    store.greeting = _greeting;
     emit NewGreeting(_greeting);
   }
 }

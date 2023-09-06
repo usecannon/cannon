@@ -1,0 +1,63 @@
+name = "examples-router-architecture"
+description = "Cannon Router step example usage"
+version = "<%= package.version %>"
+
+# Counter and Greeeter are the example modules that are going to be accessible
+# behind our Proxy + Router architecture
+[contract.Counter]
+artifact = "Counter"
+
+[contract.Greeter]
+artifact = "Greeter"
+
+# The Upgrade module implements the upgradeTo method to set the implementation of the Proxy
+[contract.Upgrade]
+artifact = "Upgrade"
+
+# On the first run, we just deploy the Proxy that can only be upgraded
+[contract.InitialProxy]
+artifact = "Proxy"
+args = ["<%= contracts.Upgrade.address %>"]
+abiOf = ["Upgrade"]
+create2 = true
+depends = ["contract.Upgrade"]
+
+# Generate a single Router contract merging all the desired implementations
+[router.Router]
+contracts = [
+  "Counter",
+  "Greeter",
+  "Upgrade"
+]
+depends = [
+  "contract.Counter",
+  "contract.Greeter",
+  "contract.Upgrade"
+]
+
+# On each cannon build, set the Router as the Proxy's implementation
+[invoke.upgradeProxy]
+target = ["InitialProxy"]
+abi = "Upgrade"
+func = "upgradeTo"
+args = ["<%= contracts.Router.address %>"]
+factory.Proxy.abiOf = ["Router"]
+factory.Proxy.event = "Upgraded"
+factory.Proxy.arg = 0
+depends = ["contract.InitialProxy", "router.Router"]
+
+# Make example contracts calls, through the Proxy
+
+# Call Counter.setCount
+[invoke.setCount]
+target = ["Proxy"]
+func = "setCount"
+args = [0]
+depends = ["invoke.upgradeProxy"]
+
+# Call Greeter.setGreeting
+[invoke.setGreeting]
+target = ["Proxy"]
+func = "setGreeting"
+args = ["hello world!"]
+depends = ["invoke.upgradeProxy"]

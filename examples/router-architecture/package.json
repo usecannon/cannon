@@ -1,0 +1,15 @@
+{
+  "name": "examples-router-architecture",
+  "version": "0.0.0",
+  "description": "Cannon Router step example usage",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "cannon",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@synthetixio/core-contracts": "^3.3.2"
+  }
+}
