@@ -9,6 +9,6 @@
     "run-synthetix": "npx @usecannon/cli synthetix"
   },
   "devDependencies": {
-    "@usecannon/cli": "file:../cli"
+    "@usecannon/cli": "file:../../packages/cli"
   }
 }

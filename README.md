@@ -12,8 +12,12 @@ For more information, please see documentation in the modules listed below:
 - [`registry`](packages/registry): The smart contract for the package registry.
 - [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
 - [`website`](packages/website): The website, hosted at https://usecannon.com
-- [`sample-hardhat-project`](packages/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
-- [`sample-foundry-project`](packages/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
+
+Usage Examples:
+
+- [`router-architecture`](examples/router-architecture): Project demonstrating how to setup an upgradable [Router Architecture](https://www.npmjs.com/package/@synthetixio/router).
+- [`sample-hardhat-project`](examples/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
+- [`sample-foundry-project`](examples/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
 
 ## Development
 

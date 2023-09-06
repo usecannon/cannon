@@ -4,11 +4,7 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import '@nomiclabs/hardhat-ethers';
 
-import 'hardhat-interact';
-
-import '../hardhat-cannon/src/index';
-
-import 'hardhat-interact';
+import '../../packages/hardhat-cannon/src/index';
 
 import * as dotenv from 'dotenv';
 import { task } from 'hardhat/config';
