@@ -21,7 +21,7 @@ export type Config = z.infer<typeof routerSchema>;
 // if not deployed, deploy the specified hardhat contract with specfied options, export
 // address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-module.exports = {
+const routerStep = {
   label: 'router',
 
   validate: routerSchema,
@@ -147,3 +147,5 @@ module.exports = {
     };
   },
 };
+
+export default routerStep;
