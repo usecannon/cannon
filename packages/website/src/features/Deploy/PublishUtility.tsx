@@ -97,7 +97,7 @@ export default function PublishUtility(props: {
       });
     },
     onSuccess() {
-      registryQuery.refetch();
+      void registryQuery.refetch();
     },
   });
 
