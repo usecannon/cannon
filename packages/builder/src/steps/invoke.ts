@@ -338,7 +338,15 @@ const invokeSpec = {
     }
 
     if (config.extra) {
-      outputs.push(...Object.keys(config.extra).map((e) => `extras.${e}`));
+      for (const k in config.extra) {
+        if ((config.extra[k].expectCount || 1) > 1) {
+          for (let i = 0; i < config.extra[k].expectCount!; i++) {
+            outputs.push(`extras.${k}_${i}`);
+          }
+        } else {
+          outputs.push(`extras.${k}`);
+        }
+      }
     }
 
     return outputs;

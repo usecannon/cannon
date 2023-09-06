@@ -71,6 +71,7 @@ factory.cloned.expectCount = 2
 extra.NewClonedGreeterEvent.event = "NewClonedGreeter"
 extra.NewClonedGreeterEvent.arg = 0
 extra.NewClonedGreeterEvent.artifact = "Greeter"
+extra.NewClonedGreeterEvent.expectCount = 2
 
 [invoke.change_last_clone_greeting]
 target = ["greeters.Greeter"]

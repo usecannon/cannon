@@ -16,7 +16,6 @@ export type ChainDefinitionProblems = {
   invalidSchema: any;
   missing: { action: string; dependency: string }[];
   cycles: string[][];
-  extraneous: { node: string; extraneous: string; inDep: string }[];
 };
 
 export type StateLayers = {
@@ -41,6 +40,7 @@ export class ChainDefinition {
   readonly cachedActionDepths = new Map<string, number>();
 
   readonly dependencyFor = new Map<string, string>();
+  readonly resolvedDependencies = new Map<string, string[]>();
 
   constructor(def: RawChainDefinition) {
     debug('begin chain def init');
@@ -86,6 +86,11 @@ export class ChainDefinition {
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
 
+    // get all dependencies, and filter out the extraneous
+    for (const action of this.allActionNames) {
+      this.resolvedDependencies.set(action, this.computeDependencies(action));
+    }
+
     this.roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
 
     this.leaves = new Set(
@@ -98,6 +103,15 @@ export class ChainDefinition {
           .value()
       )
     );
+
+    this.checkAll();
+
+    const extraneousDeps = this.checkExtraneousDependencies();
+
+    for (const extDep of extraneousDeps) {
+      const deps = this.resolvedDependencies.get(extDep.node)!;
+      deps.splice(deps.indexOf(extDep.extraneous), 1);
+    }
 
     // compute the step outputs (needed for dependency resolution)
 
@@ -225,7 +239,7 @@ export class ChainDefinition {
    * @param node action to get dependencies for
    * @returns direct dependencies for the specified node
    */
-  getDependencies: (node: string) => string[] = _.memoize((node) => {
+  computeDependencies(node: string) {
     const deps = (_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
@@ -243,7 +257,11 @@ export class ChainDefinition {
 
     debug(`resolved dependencies for ${node}: ${deps}`);
     return _.uniq(deps);
-  });
+  }
+
+  getDependencies(node: string) {
+    return this.resolvedDependencies.get(node)!;
+  }
 
   /**
    * @note deps returned in topological order
@@ -281,9 +299,8 @@ export class ChainDefinition {
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
-    const extraneous = cycle ? [] : this.checkExtraneousDependencies();
 
-    if (!missing.length && !cycle && !extraneous.length) {
+    if (!missing.length && !cycle) {
       return null;
     }
 
@@ -291,7 +308,6 @@ export class ChainDefinition {
       invalidSchema,
       missing,
       cycles: cycle ? [cycle] : [],
-      extraneous,
     };
   }
 

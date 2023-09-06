@@ -159,14 +159,6 @@ ${def.allActionNames.join('\n')}`);
     counter++;
   }
 
-  for (const extraneous of problems.extraneous) {
-    str.push(
-      `${counter}: The action ${extraneous.node} defines an unnecessary dependency ${extraneous.extraneous} (a sub-dependency of ${extraneous.inDep}). Please remove this unnecessary dependency.`
-    );
-
-    counter++;
-  }
-
   return str;
 }
 
