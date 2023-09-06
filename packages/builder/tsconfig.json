@@ -14,12 +14,6 @@
     "rootDirs": ["./src"],
     "skipLibCheck": true
   },
-  "include": [
-    "./src",
-    "../cli/run.ts",
-    "../cli/import-from.ts",
-    "test/fixtures",
-    "test/fixtures.ts"
-  ],
+  "include": ["./src", "../cli/run.ts", "../cli/import-from.ts"],
   "exclude": ["dist", "node_modules"]
 }
