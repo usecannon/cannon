@@ -55,6 +55,12 @@ export const theme = extendTheme({
         color: '#ffffffd9',
         backgroundColor: 'black',
       },
+      ':root': {
+        '--diff-gutter-insert-background-color': '#1c4532 !important',
+        '--diff-gutter-delete-background-color': '#63171b !important',
+        '--diff-code-insert-background-color': '#1c4532 !important',
+        '--diff-code-delete-background-color': '#63171b !important',
+      },
     },
   },
   gradients: {
