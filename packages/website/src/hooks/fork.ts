@@ -65,11 +65,16 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
   };
 
   useEffect(() => {
-    createFork({ chainId: safe.chainId, impersonate: [safe.address] }).then(async (n) => {
-      node = n;
-      setCleanStateSnapshot((await node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
-      console.log('finished creating fork');
-    });
+    createFork({ chainId: safe.chainId, impersonate: [safe.address] }).then(
+      async (n) => {
+        node = n;
+        setCleanStateSnapshot((await node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
+        console.log('finished creating fork');
+      },
+      () => {
+        // ignore
+      }
+    );
   }, [safe]);
 
   useEffect(() => {
