@@ -56,7 +56,7 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
         {isLink ? (
           <LinkOverlay
             as={NextLink}
-            href={`/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
+            href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
           >
             <ChevronRightIcon boxSize={6} />
           </LinkOverlay>
