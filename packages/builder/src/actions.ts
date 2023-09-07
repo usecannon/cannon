@@ -3,12 +3,11 @@ import { z } from 'zod';
 import { ChainBuilderRuntime } from './runtime';
 
 import contractSpec from './steps/contract';
-
 import importSpec from './steps/import';
-
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
+import routerSpec from './steps/router';
 
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 import { chainDefinitionSchema } from './schemas.zod';
@@ -49,7 +48,7 @@ export const ActionKinds: { [label: string]: CannonAction } = {};
  *  Available properties for top level config
  *  @public
  *  @group Base Cannonfile Config
- 
+
  */
 export type RawChainDefinition = z.infer<typeof chainDefinitionSchema>;
 
@@ -96,3 +95,6 @@ registerAction(importSpec);
 registerAction(invokeSpec);
 registerAction(keeperSpec);
 registerAction(provisionSpec);
+registerAction(routerSpec);
+
+console.log(routerSpec);
