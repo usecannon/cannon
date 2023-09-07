@@ -46,8 +46,18 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     const cfg = this.configInject(ctx, config, packageState);
 
-    const sourcePreset = config.sourcePreset ?? 'main';
-    const chainId = config.chainId ?? CANNON_CHAIN_ID;
+    /*
+     * Source preset reference
+     * Checks for preset reference in source name, anything after the '@' references a preset.
+     * If a preset reference is found in the package name by default it will take preference over a defined sourcePreset.
+     */
+    if (cfg.source.includes('@')) {
+      cfg.sourcePreset = cfg.source.slice(cfg.source.indexOf('@') + 1);
+      cfg.source = cfg.source.substring(0, cfg.source.indexOf('@'));
+    }
+
+    const sourcePreset = cfg.sourcePreset;
+    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
@@ -96,6 +106,16 @@ export default {
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
+
+    /*
+     * Source preset reference
+     * Checks for preset reference in source name, anything after the '@' references a preset.
+     * If a preset reference is found in the package name by default it will take preference over a defined sourcePreset.
+     */
+    if (config.source.includes('@')) {
+      config.sourcePreset = config.source.slice(config.source.indexOf('@') + 1);
+      config.source = config.source.substring(0, config.source.indexOf('@'));
+    }
 
     const sourcePreset = config.sourcePreset ?? 'main';
     const targetPreset = config.targetPreset ?? 'main';

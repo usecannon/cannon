@@ -17,7 +17,7 @@ const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^[\w-]+\.*:*[\w.-]+$/, 'i');
+const packageRegex = RegExp(/^[\w-]+\.*:*[\w.-@]+$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
@@ -147,7 +147,7 @@ export const importSchema = z
     source: z.string().refine(
       (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
+        message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or step format "import.Contract" or be an interpolated value`,
       })
     ),
   })
@@ -343,7 +343,7 @@ export const provisionSchema = z
     source: z.string().refine(
       (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or be an interpolated value`,
+        message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
       })
     ),
   })

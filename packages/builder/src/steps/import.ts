@@ -33,8 +33,18 @@ export default {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    const preset = config.preset ?? 'main';
-    const chainId = config.chainId ?? runtime.chainId;
+    /*
+     * Source preset reference
+     * Checks for preset reference in source name, anything after the '@' references a preset.
+     * If a preset reference is found in the package name by default it will take preference over a defined preset.
+     */
+    if (cfg.source.includes('@')) {
+      cfg.preset = cfg.source.slice(cfg.source.indexOf('@') + 1);
+      cfg.source = cfg.source.substring(0, cfg.source.indexOf('@'));
+    }
+
+    const preset = cfg.preset;
+    const chainId = cfg.chainId ?? runtime.chainId;
 
     debug('resolved pkg', cfg.source, `${chainId}-${preset}`);
     const url = await runtime.registry.getUrl(cfg.source, `${chainId}-${preset}`);
@@ -62,7 +72,21 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
+    /*
+    * Source preset reference
+    * Checks for preset reference in source name, anything after the '@' references a preset.
+    * If a preset reference is found in the package name by default it will take preference over a defined preset.
+    */
+    if (config.source.includes('@')) {
+      config.preset = config.source.slice(config.source.indexOf('@') + 1);
+      config.source = config.source.substring(0, config.source.indexOf('@'));
+    }
+
+    console.log(config.preset)
+    console.log(config.source)
+    
     const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
+    console.log(packageRef)
     const preset = config.preset ?? 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
