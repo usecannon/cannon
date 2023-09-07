@@ -96,5 +96,3 @@ registerAction(invokeSpec);
 registerAction(keeperSpec);
 registerAction(provisionSpec);
 registerAction(routerSpec);
-
-console.log(routerSpec);

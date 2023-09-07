@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {GlobalState} from "../storage/GlobalState.sol";
+import {GlobalState} from "./GlobalState.sol";
 
 contract Counter {
   event CounterUpdate(uint256 count);

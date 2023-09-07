@@ -1,6 +1,11 @@
 name = "examples-router-architecture"
 description = "Cannon Router step example usage"
-version = "<%= package.version %>"
+version = "0.0.1"
+
+# Configurable Proxy admin, this will be the account that will be able to upgrade
+# the proxy's implementation on the future
+[setting.admin]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # Test Account 0
 
 # Counter and Greeeter are the example modules that are going to be accessible
 # behind our Proxy + Router architecture
@@ -10,54 +15,37 @@ artifact = "Counter"
 [contract.Greeter]
 artifact = "Greeter"
 
-# The Upgrade module implements the upgradeTo method to set the implementation of the Proxy
-[contract.Upgrade]
-artifact = "Upgrade"
-
-# On the first run, we just deploy the Proxy that can only be upgraded
-[contract.InitialProxy]
-artifact = "Proxy"
-args = ["<%= contracts.Upgrade.address %>"]
-abiOf = ["Upgrade"]
-create2 = true
-depends = ["contract.Upgrade"]
-
 # Generate a single Router contract merging all the desired implementations
 [router.Router]
 contracts = [
   "Counter",
   "Greeter",
-  "Upgrade"
 ]
 depends = [
   "contract.Counter",
   "contract.Greeter",
-  "contract.Upgrade"
 ]
 
-# On each cannon build, set the Router as the Proxy's implementation
-[invoke.upgradeProxy]
-target = ["InitialProxy"]
-abi = "Upgrade"
-func = "upgradeTo"
-args = ["<%= contracts.Router.address %>"]
-factory.Proxy.abiOf = ["Router"]
-factory.Proxy.event = "Upgraded"
-factory.Proxy.arg = 0
-depends = ["contract.InitialProxy", "router.Router"]
+# Deploy a new Proxy using as implementation our just craeted Router
+[provision.proxy]
+source = "transparent-upgradable-proxy:4.9.3"
+options.admin = "<%= settings.admin %>"
+options.implementation = "<%= contracts.Router.address %>"
+options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"
+depends = ["router.Router"]
 
 # Make example contracts calls, through the Proxy
 
 # Call Counter.setCount
 [invoke.setCount]
-target = ["Proxy"]
+target = ["proxy.Proxy"]
 func = "setCount"
 args = [0]
-depends = ["invoke.upgradeProxy"]
+depends = ["provision.proxy"]
 
 # Call Greeter.setGreeting
 [invoke.setGreeting]
-target = ["Proxy"]
+target = ["proxy.Proxy"]
 func = "setGreeting"
 args = ["hello world!"]
-depends = ["invoke.upgradeProxy"]
+depends = ["provision.proxy"]
