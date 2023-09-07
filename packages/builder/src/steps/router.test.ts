@@ -1,5 +1,5 @@
 import action from './router';
-import { fixtureContractData, fixtureCtx, fixtureRuntime } from '../../test/fixtures';
+import { fixtureContractData, fixtureCtx, fixtureRuntime, fixtureSigner, mockDeployTransaction } from '../../test/fixtures';
 
 describe('steps/router.ts', () => {
   describe('configInject()', () => {
@@ -45,6 +45,57 @@ describe('steps/router.ts', () => {
 
       expect(result.contractAbis.GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
       expect(result.contractAddresses.GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
+    });
+  });
+
+  describe('exec()', () => {
+    it('throws an error on missing contract file', async () => {
+      const contracts = { Greeter: fixtureContractData('Greeter') };
+      const step = {
+        name: 'router-test',
+        version: '0.0.0',
+        currentLabel: 'router.Router',
+      };
+
+      const runtime = fixtureRuntime();
+      const ctx = fixtureCtx({}); // generate a ctx without the contracts
+      const config = { contracts: Object.keys(contracts) };
+
+      await expect(action.exec(runtime, ctx, config, step)).rejects.toThrow('contract not found: Greeter');
+    });
+
+    it('generates and deploys Router with a single contract', async () => {
+      const signer = fixtureSigner();
+      const contracts = { Greeter: fixtureContractData('Greeter') };
+
+      const step = {
+        name: 'router-test',
+        version: '0.0.0',
+        currentLabel: 'router.Router',
+      };
+
+      const runtime = fixtureRuntime();
+      const ctx = fixtureCtx({ contracts });
+      const config = { from: await signer.getAddress(), contracts: Object.keys(contracts) };
+
+      jest.spyOn(runtime, 'getSigner').mockResolvedValue(signer);
+
+      const { tx, rx } = await mockDeployTransaction(signer);
+      const res = await action.exec(runtime, ctx, config, step);
+
+      expect(signer.sendTransaction).toHaveBeenCalledTimes(1);
+      expect(tx.wait).toHaveBeenCalledTimes(1);
+
+      expect(res.contracts).toMatchObject({
+        Router: {
+          address: rx.contractAddress,
+          abi: contracts.Greeter.abi,
+          deployedOn: step.currentLabel,
+          deployTxnHash: tx.hash,
+          contractName: 'Router',
+          sourceName: 'Router.sol',
+        },
+      });
     });
   });
 });

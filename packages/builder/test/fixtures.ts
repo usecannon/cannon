@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import _ from 'lodash';
 import { ethers } from 'ethers';
 import { JsonFragment } from '@ethersproject/abi';
+import { TransactionResponse } from '@ethersproject/abstract-provider';
 import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';
 import { ChainBuilderRuntime } from '../src/runtime';
 import { CannonWrapperGenericProvider, InMemoryRegistry } from '../src';
@@ -70,3 +71,25 @@ export const fixtureRuntime = (
   loaders?: ConstructorParameters<typeof ChainBuilderRuntime>[2],
   defaultLoaderScheme?: ConstructorParameters<typeof ChainBuilderRuntime>[3]
 ) => new ChainBuilderRuntime(info, registry, loaders, defaultLoaderScheme);
+
+export const fixtureSigner = () => ethers.Wallet.createRandom();
+
+export async function mockDeployTransaction(signer: ethers.Signer) {
+  const hash = fixtureTxHash();
+
+  const rx = {
+    contractAddress: fixtureAddress(),
+    transactionHash: hash,
+    logs: [],
+  };
+
+  const tx = {
+    hash,
+    from: await signer.getAddress(),
+    wait: jest.fn().mockResolvedValue(rx),
+  };
+
+  jest.spyOn(signer, 'sendTransaction').mockResolvedValue(tx as unknown as TransactionResponse);
+
+  return { tx, rx };
+}
