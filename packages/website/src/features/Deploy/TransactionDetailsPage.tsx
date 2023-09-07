@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { FC } from 'react';
+import { useRouter } from 'next/navigation';
 import { CheckIcon, ExternalLinkIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Box,
@@ -31,13 +32,12 @@ import { Alert } from '@/components/Alert';
 import { links } from '@/constants/links';
 import { TransactionDisplay } from './TransactionDisplay';
 
-export function TransactionDetailsPage() {
-  const searchParams = useSearchParams();
-  let safeAddress = searchParams.get('safeAddress');
-  const chainId = searchParams.get('chainId');
-  const nonce = searchParams.get('nonce');
-  const sigHash = searchParams.get('sigHash');
-
+const TransactionDetailsPage: FC<{
+  safeAddress: string;
+  chainId: string;
+  nonce: string;
+  sigHash: string;
+}> = ({ safeAddress, chainId, nonce, sigHash }) => {
   let parsedChainId = 0;
   let parsedNonce = 0;
 
@@ -314,4 +314,6 @@ export function TransactionDetailsPage() {
       )}
     </>
   );
-}
+};
+
+export default TransactionDetailsPage;
