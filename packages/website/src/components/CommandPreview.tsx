@@ -17,11 +17,12 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
   const secondPart = command.substring(index, command.length);
   return (
     <Box
-      backgroundColor="black"
+      backgroundColor="gray.700"
       py={1}
       px={3}
       position="relative"
       className={className}
+      borderRadius="sm"
     >
       <Text fontFamily="var(--font-mono)">
         <Text as="span" color="#61afef">
