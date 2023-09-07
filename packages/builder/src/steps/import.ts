@@ -73,20 +73,16 @@ export default {
     debug('exec', config);
 
     /*
-    * Source preset reference
-    * Checks for preset reference in source name, anything after the '@' references a preset.
-    * If a preset reference is found in the package name by default it will take preference over a defined preset.
-    */
+     * Source preset reference
+     * Checks for preset reference in source name, anything after the '@' references a preset.
+     * If a preset reference is found in the package name by default it will take preference over a defined preset.
+     */
     if (config.source.includes('@')) {
       config.preset = config.source.slice(config.source.indexOf('@') + 1);
       config.source = config.source.substring(0, config.source.indexOf('@'));
     }
 
-    console.log(config.preset)
-    console.log(config.source)
-    
     const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
-    console.log(packageRef)
     const preset = config.preset ?? 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
