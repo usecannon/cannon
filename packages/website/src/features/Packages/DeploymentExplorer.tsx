@@ -3,13 +3,11 @@ import axios from 'axios';
 import pako from 'pako';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import { Box, Container, Heading, Text } from '@chakra-ui/react';
+import { Box, Container } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { useQuery } from '@tanstack/react-query';
 import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { format } from 'date-fns';
 
 export const DeploymentExplorer: FC<{
   variant: any;
@@ -26,63 +24,23 @@ export const DeploymentExplorer: FC<{
         signal,
       });
       const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.parse(data);
+      return JSON.stringify(JSON.parse(data), null, 2);
     },
   });
 
-  const deploymentInfo = deploymentData.data
-    ? (deploymentData.data as DeploymentInfo)
-    : undefined;
-
-  const settings: { [key: string]: any } = Object.keys(
-    deploymentInfo?.def?.setting || {}
-  ).reduce(
-    (acc, key) => {
-      acc[key] =
-        deploymentInfo?.options?.[key] ||
-        deploymentInfo?.def?.setting?.[key]?.defaultValue;
-      return acc;
-    },
-    { ...deploymentInfo?.options }
-  );
-
   return variant?.deploy_url ? (
     <Box>
+      {variant?.deploy_url && (
+        <IpfsUrl title="Deployment Data " url={variant.deploy_url} />
+      )}
+
       {deploymentData.isLoading ? (
         <Box py="20" textAlign="center">
           <CustomSpinner mx="auto" />
         </Box>
-      ) : deploymentInfo ? (
+      ) : deploymentData.data ? (
         <Container maxW="container.lg">
-          {deploymentInfo?.def?.description && (
-            <Text fontSize="md" mb={4}>
-              {deploymentInfo.def.description}
-            </Text>
-          )}
-          <Heading size="md" mb={2}>
-            Settings
-          </Heading>
-          {Object.entries(settings as Object).map(([key, valueObj]) => (
-            <Text fontSize="sm" key={key} mb={1}>
-              <strong>{key}:</strong> {valueObj}
-            </Text>
-          ))}
-          <Text color="gray.300" fontSize="xs" fontFamily="mono">
-            {deploymentInfo?.generator &&
-              `built with ${deploymentInfo.generator} `}
-            {deploymentInfo?.generator && deploymentInfo?.timestamp && 'on '}
-            {format(
-              new Date(deploymentInfo?.timestamp * 1000),
-              'PPPppp'
-            ).toLowerCase()}
-          </Text>
-          {variant?.deploy_url && (
-            <IpfsUrl title="Deployment Data " url={variant.deploy_url} />
-          )}
-          <CodePreview
-            code={JSON.stringify(deploymentInfo, null, 2)}
-            language="json"
-          />
+          <CodePreview code={deploymentData.data as string} language="json" />
         </Container>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
