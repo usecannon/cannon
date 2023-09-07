@@ -20,6 +20,7 @@ import {
 import _ from 'lodash';
 import { Address, isAddress, zeroAddress } from 'viem';
 import { useAccount, useChainId, useContractWrite } from 'wagmi';
+import 'react-diff-view/style/index.css';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useExecutedTransactions } from '@/hooks/safe';
