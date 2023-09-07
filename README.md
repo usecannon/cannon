@@ -44,7 +44,7 @@ cd ./packages/cli && npm start -- <package:version>
 Test changes to the Hardhat plug-in in the sample project:
 
 ```
-cd ./packages/sample-hardhat-project && npx hardhat cannon:build
+cd ./examples/sample-hardhat-project && npx hardhat cannon:build
 ```
 
 Preview updates to the website
