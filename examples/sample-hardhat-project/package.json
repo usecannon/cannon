@@ -19,7 +19,7 @@
     "hardhat": "^2.13.1",
     "hardhat-cannon": "@file:,,/packages/hardhat-cannon",
     "hardhat-gas-reporter": "^1.0.9",
-    "solidity-coverage": "^0.7.20",
+    "solidity-coverage": "^0.8.4",
     "ts-node": "^10.5.0",
     "typechain": "^5.2.0",
     "typescript": "^4.8.2"
