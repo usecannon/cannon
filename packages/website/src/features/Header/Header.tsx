@@ -1,19 +1,12 @@
 'use client';
 import React from 'react';
-import {
-  Flex,
-  Image,
-  Box,
-  useBreakpointValue,
-  IconButton,
-} from '@chakra-ui/react';
+import { Flex, Image, Box, useBreakpointValue } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
 import { usePathname } from 'next/navigation';
-import { SettingsIcon } from '@chakra-ui/icons';
 
 const NavLinks = () => {
   const pathname = usePathname();
@@ -65,12 +58,9 @@ export const Header = () => {
           </Flex>
         </Link>
         {!isMobile && <NavLinks />}
-        <Flex align="center" ml={['auto', 'auto', 0]}>
+        <Box ml={['auto', 'auto', 0]} display="block">
           <ConnectWallet />
-          <NavLink href={links.SETTINGS}>
-            <IconButton ml="6" aria-label="settings" icon={<SettingsIcon />} />
-          </NavLink>
-        </Flex>
+        </Box>
         {isMobile && <NavLinks />}
       </Flex>
     </Box>

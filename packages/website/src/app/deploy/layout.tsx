@@ -55,6 +55,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           >
             Queue From GitOps
           </NavLink>
+          <NavLink
+            isSmall
+            href={links.SETTINGS}
+            isActive={pathname.startsWith(links.SETTINGS)}
+          >
+            Settings
+          </NavLink>
         </Flex>
       </Box>
       {showSettingsAlert && (
