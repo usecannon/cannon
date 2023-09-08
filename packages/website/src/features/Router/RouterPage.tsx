@@ -17,19 +17,31 @@ const code1 = `name = "sample-router-project"
 version = "0.1"
 description = "Sample Router Project"
 
-[contract.counter]
+[contract.Counter]
 artifact = "Counter"
 
-[contract.another_counter]
+[contract.AnotherCounter]
 artifact = "AnotherCounter"
 
-[router.generate_router]
-contracts = []
-depends = ["contract.counter", "contract.another_counter"]`;
+[router.Router]
+contracts = [
+  "Counter",
+  "AnotherCounter",
+]
+depends = [
+  "contract.Counter",
+  "contract.AnotherCounter",
+]`;
 
-const code2 = `[provision.upgradeable_proxy]
-...
-depends = ["router.generate_router"]`;
+const code2 = `[setting.admin]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+[provision.proxy]
+source = "transparent-upgradable-proxy:4.9.3"
+options.admin = "<%= settings.admin %>"
+options.implementation = "<%= contracts.Router.address %>"
+options.abi = "<%= contracts.Router.abi %>"
+depends = ["router.Router"]`;
 
 export const RouterPage = () => {
   const theme = useTheme();
@@ -65,8 +77,8 @@ export const RouterPage = () => {
         <Text mb={4}>
           There is a limit to the size of smart contracts deployed on EVM
           blockchains. This can create complications during the development of
-          protocols, where an engineer may want an arbitrary amount of code to
-          be executable at a single address.
+          protocols, where engineers may want an arbitrary amount of code to be
+          executable at a single address.
         </Text>
         <Text mb={4}>
           To overcome this constraint, Cannon includes a plug-in for the{' '}
@@ -80,10 +92,21 @@ export const RouterPage = () => {
           Cannonfiles. This accepts an array of contracts and automatically
           generates a router contract which will delegate calls to them.
         </Text>
+        <Text mb={4}>
+          In this guide, we’ll walk through{' '}
+          <Link
+            isExternal
+            href="https://github.com/usecannon/cannon/tree/main/examples/router-architecture"
+          >
+            a simple example
+          </Link>{' '}
+          that uses the router and adds a transparent upgradable proxy.
+        </Text>
+
         <Heading size="md" mb={4} mt={6}>
           Create a Router
         </Heading>
-        <Text mb={4}>Start by installing Cannon, if you haven't already:</Text>
+        <Text mb={4}>Start by installing/upgrading Cannon:</Text>
         <Box mb={4}>
           <CommandPreview command="npm i -g @usecannon/cli" />
         </Box>
@@ -131,37 +154,59 @@ export const RouterPage = () => {
           <CommandPreview command="cannon sample-router-project --registry-priority local" />
         </Box>
         <Text mb={4}>
-          You'll see that the router contact has both contracts available.
-          Always remember to interact with the router contract. Warning about
-          storage layout.
+          Press <Code>i</Code> to interact with the contracts in this project.
+          You'll see that the router contract exposes the functions from both
+          contracts.{' '}
+          <strong>
+            Always remember to interact with the router contract, and not the
+            dependent contracts directly.
+          </strong>
         </Text>
-        IMAGE HERE
         <Heading size="md" mb={4} mt={6}>
           Add Upgradability
         </Heading>
         <Text mb={4}>
-          We can also deploy a standard{' '}
-          <Link as={NextLink} href="/packages/uups-proxy">
-            UUPS Proxy
+          We can also deploy a{' '}
+          <Link as={NextLink} href="/packages/transparent-upgradable-proxy">
+            transparent upgradeable proxy
           </Link>{' '}
-          pointing at the router, such that the resulting protocol can be
-          upgradeable. Add the following step to the Cannonfile:
+          pointing at the router, such that this protocol can be upgradeable. In
+          the Cannonfile, add a setting for the admin (which will be allowed to
+          upgrade the proxy) and then provision the package which includes the
+          proxy contract:
         </Text>
         <Box mb={4}>
           <CodePreview code={code2} language="toml" />
         </Box>
         <Text mb={4}>
-          Now, if you alter one of your contracts, Cannon will detect and
-          generate a new router, and upgrade the proxy to point at the new one.
+          If you alter one of your contracts, when building, Cannon will
+          automatically detect this, generate a new router, and upgrade the
+          proxy to point at it. When building an upgrade, use the{' '}
+          <Code>--upgrade-from</Code> flag to reference your existing package.{' '}
+          <strong>
+            Remember to always call functions on the proxy rather than the
+            router, and{' '}
+            <Link
+              href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
+              isExternal
+            >
+              avoid storage collisions
+            </Link>{' '}
+            when upgrading.
+          </strong>
         </Text>
-        <Text mb={4}>Either rebuild, or "upgrade from"</Text>
-        <Text mb={4}>
-          When you've built a protocol you'd like others to integrate with,
-          publish package
-        </Text>
-        <Text mb={4}>
-          If it's owned by a safe, you can use the deploy app. Ownership of the
-          proxy may be revoked, and the protocol made immutable.
+        <Text>
+          If the protocol is owned by a{' '}
+          <Link isExternal href="https://safe.global/">
+            Safe
+          </Link>
+          , you can use the{' '}
+          <Link as={NextLink} href="/deploy">
+            deployer
+          </Link>{' '}
+          to run upgrades. When your protocol no longer needs to be upgraded, it
+          can be made immutable with a call to <Code>renounceOwnership</Code> on
+          the proxy.
         </Text>
       </Box>
     </Flex>
