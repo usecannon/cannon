@@ -172,8 +172,14 @@ export const RouterPage = () => {
           </Link>{' '}
           pointing at the router, such that this protocol can be upgradeable. In
           the Cannonfile, add a setting for the admin (which will be allowed to
-          upgrade the proxy) and then provision the package which includes the
-          proxy contract:
+          upgrade the proxy) and then provision the package which includes{' '}
+          <Link
+            href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol"
+            isExternal
+          >
+            the proxy contract
+          </Link>
+          :
         </Text>
         <Box mb={4}>
           <CodePreview code={code2} language="toml" />
