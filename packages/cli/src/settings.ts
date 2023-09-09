@@ -92,12 +92,12 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     );
     console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
   }
-  const privateKey = (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string;
+
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
       providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
-      privateKey,
+      privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
       registryProviderUrl: getRegistryProviderUrl(fileSettings),
@@ -111,7 +111,10 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     overrides
   );
 
-  debug('got settings', finalSettings);
+  // Filter out private key for logging
+  const { privateKey, ...filteredSettings } = finalSettings;
+
+  debug('got settings', filteredSettings);
 
   return finalSettings;
 }
