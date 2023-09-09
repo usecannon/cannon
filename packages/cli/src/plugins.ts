@@ -9,7 +9,7 @@ import Debug from 'debug';
 
 const debug = Debug('cannon:cli:plugins');
 
-const DEFAULT_PLUGINS = ['cannon-plugin-router'];
+const DEPRECATED_PLUGINS = ['cannon-plugin-router'];
 
 export async function installPlugin(name: string) {
   const packageJsonExists = existsSync(path.join(_getPluginDir(), 'package.json'));
@@ -29,7 +29,19 @@ export async function listInstalledPlugins() {
     return [];
   }
 
-  return Object.keys(_.pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous)) as string[];
+  const installedPlugins = Object.keys(
+    _.pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous)
+  ) as string[];
+
+  for (const deprecated of DEPRECATED_PLUGINS) {
+    const index = installedPlugins.indexOf(deprecated);
+    if (index !== -1) {
+      await removePlugin(deprecated);
+      installedPlugins.splice(index, 1);
+    }
+  }
+
+  return installedPlugins;
 }
 
 export async function loadPlugin(name: string) {
@@ -46,14 +58,6 @@ export async function loadPlugin(name: string) {
 
 export async function loadPlugins() {
   const installedPlugins = await listInstalledPlugins();
-
-  for (const plugin of DEFAULT_PLUGINS) {
-    if (!installedPlugins.includes(plugin)) {
-      debug('installing default plugin:', plugin);
-      await installPlugin(plugin);
-      installedPlugins.push(plugin);
-    }
-  }
 
   for (const plugin of installedPlugins) {
     const pluginAction = await loadPlugin(plugin);

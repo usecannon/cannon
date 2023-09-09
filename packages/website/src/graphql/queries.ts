@@ -78,7 +78,7 @@ export const FILTERED_PACKAGES_AND_VARIANTS = gql`
     packages: packages(where: { name_contains: $query }) {
       id
       name
-      variants {
+      variants(orderBy: last_updated, orderDirection: desc) {
         id
         name
         preset
@@ -93,7 +93,7 @@ export const FILTERED_PACKAGES_AND_VARIANTS = gql`
         }
       }
     }
-    filteredVariants: variants(where: { preset_contains: $query }) {
+    filteredVariants: variants(where: { preset_contains: $query }, orderBy: last_updated, orderDirection: desc) {
       id
       name
       preset

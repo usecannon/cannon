@@ -467,3 +467,10 @@ export const chainDefinitionSchema = z
       })
       .deepPartial()
   );
+
+export const routerSchema = z.object({
+  contracts: z.array(z.string()),
+  from: z.string().optional(),
+  salt: z.string().optional(),
+  depends: z.array(z.string()).optional(),
+});
