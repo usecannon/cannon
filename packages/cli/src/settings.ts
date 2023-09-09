@@ -59,14 +59,15 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-const getRegistryProviderUrl = (fileSettings: any): string => {
-  const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl;
+const getRegistryProviderUrl = (registryUrl: string | undefined): string => {
+  const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || registryUrl;
 
   if (registryProviderUrl) {
     return registryProviderUrl;
   } else {
     console.warn(
-      `\n\nUsing default registry provider url (Frame or ${DEFAULT_REGISTRY_PROVIDER_URL}), supply a registry provider url in your settings or as an env variable (CANNON_REGISTRY_PROVIDER_URL).\n\n`
+      `\n\nUsing default registry provider url (Frame or ${DEFAULT_REGISTRY_PROVIDER_URL}).\n 
+        Supply a registry provider url in your settings or as an env variable (CANNON_REGISTRY_PROVIDER_URL).\n\n`
     );
   }
 
@@ -100,7 +101,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl: getRegistryProviderUrl(fileSettings),
+      registryProviderUrl: getRegistryProviderUrl(fileSettings.registryProviderUrl),
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       registryPriority: process.env.CANNON_REGISTRY_PRIORITY || fileSettings.registryPriority || 'onchain',
@@ -112,7 +113,8 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   );
 
   // Filter out private key for logging
-  const { privateKey, ...filteredSettings } = finalSettings;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const { cannonDirectory, privateKey, ...filteredSettings } = finalSettings;
 
   debug('got settings', filteredSettings);
 
