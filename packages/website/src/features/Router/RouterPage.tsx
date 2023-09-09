@@ -156,7 +156,7 @@ export const RouterPage = () => {
             package manager
           </Link>
           . Here, we add the <Code>--registry-priority local</Code> option to
-          ensure we're using the version of this package that you just built,
+          ensure we’re using the version of this package that you just built,
           regardless of what others have published.)
         </Text>
         <Box mb={4}>
@@ -164,7 +164,7 @@ export const RouterPage = () => {
         </Box>
         <Text mb={4}>
           Press <Code>i</Code> to interact with the contracts in this project.
-          You'll see that the router contract exposes the functions from both
+          You’ll see that the router contract exposes the functions from both
           contracts.
         </Text>
         <Alert status="info" mb={4} bg="gray.800">
@@ -203,7 +203,7 @@ export const RouterPage = () => {
         <Text mb={4}>
           If you alter one of your contracts, when building, Cannon will
           automatically detect this, generate a new router, and upgrade the
-          proxy to point at it. (Old versions of the contracts aren't included
+          proxy to point at it. (Old versions of the contracts aren’t included
           in the router, saving gas.) When building an upgrade, increase the
           version in your Cannonfile and use the <Code>--upgrade-from</Code>{' '}
           option to reference the package from your previous version.
