@@ -8,3 +8,6 @@
 [submodule "examples/sample-foundry-project/lib/cannon-std"]
 	path = examples/sample-foundry-project/lib/cannon-std
 	url = https://github.com/usecannon/cannon-std
+[submodule "examples/sample-foundry-project/lib/forge-std"]
+	path = examples/sample-foundry-project/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
