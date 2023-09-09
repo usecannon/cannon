@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
+import { yellow, bold } from 'chalk';
 
 import { z } from 'zod';
 import { importSchema } from '../schemas.zod';
@@ -8,6 +9,7 @@ import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, Pa
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
+import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:import');
 
@@ -33,21 +35,12 @@ export default {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    /*
-     * Source preset reference
-     * Checks for preset reference in source name, anything after the '@' references a preset.
-     * If a preset reference is found in the package name by default it will take preference over a defined preset.
-     */
-    if (cfg.source.includes('@')) {
-      cfg.preset = cfg.source.slice(cfg.source.indexOf('@') + 1);
-      cfg.source = cfg.source.substring(0, cfg.source.indexOf('@'));
-    }
-
+    const source = cfg.source;
     const preset = cfg.preset;
     const chainId = cfg.chainId ?? runtime.chainId;
 
-    debug('resolved pkg', cfg.source, `${chainId}-${preset}`);
-    const url = await runtime.registry.getUrl(cfg.source, `${chainId}-${preset}`);
+    debug('resolved pkg', source, `${chainId}-${preset}`);
+    const url = await runtime.registry.getUrl(source, `${chainId}-${preset}`);
 
     return {
       url,
@@ -57,8 +50,19 @@ export default {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    config.source = _.template(config.source)(ctx);
-    config.preset = _.template(config.preset)(ctx) || 'main';
+    
+    const packageRef = new PackageReference(_.template(config.source)(ctx));
+
+    // If both definitions of a preset exist, its a user error.
+    if (config.preset && packageRef.preset) {
+      console.warn(
+        yellow(bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`))
+      );
+      console.warn(yellow(bold(`Defaulting to preset definition "${config.preset}"...`)));
+    }
+
+    config.source = packageRef.formatted();
+    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },
@@ -72,40 +76,32 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    /*
-     * Source preset reference
-     * Checks for preset reference in source name, anything after the '@' references a preset.
-     * If a preset reference is found in the package name by default it will take preference over a defined preset.
-     */
-    if (config.source.includes('@')) {
-      config.preset = config.source.slice(config.source.indexOf('@') + 1);
-      config.source = config.source.substring(0, config.source.indexOf('@'));
-    }
+    const packageRef = new PackageReference(config.source);
+    const source = packageRef.formatted();
 
-    const packageRef = config.source.includes(':') ? config.source : `${config.source}:latest`;
-    const preset = config.preset ?? 'main';
+    const preset = config.preset || packageRef.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.readDeploy(packageRef, preset, chainId);
+    const deployInfo = await runtime.readDeploy(source, preset, chainId);
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${packageRef}. please make sure it exists for the cannon network and ${preset} preset.`
+        `deployment not found: ${source}. please make sure it exists for the cannon network and ${preset} preset.`
       );
     }
 
     if (deployInfo.status === 'partial') {
       throw new Error(
-        `deployment status is incomplete for ${packageRef}. cannot generate artifacts safely. please complete deployment to continue import.`
+        `deployment status is incomplete for ${source}. cannot generate artifacts safely. please complete deployment to continue import.`
       );
     }
 
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.registry.getUrl(packageRef, `${chainId}-${preset}`))!, // todo: duplication
+          url: (await runtime.registry.getUrl(source, `${chainId}-${preset}`))!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

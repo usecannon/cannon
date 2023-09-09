@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
+import { yellow, bold } from 'chalk';
 
 import { z } from 'zod';
 import { provisionSchema } from '../schemas.zod';
@@ -15,6 +16,7 @@ import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { CANNON_CHAIN_ID } from '../constants';
+import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
 
@@ -46,16 +48,7 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     const cfg = this.configInject(ctx, config, packageState);
 
-    /*
-     * Source preset reference
-     * Checks for preset reference in source name, anything after the '@' references a preset.
-     * If a preset reference is found in the package name by default it will take preference over a defined sourcePreset.
-     */
-    if (cfg.source.includes('@')) {
-      cfg.sourcePreset = cfg.source.slice(cfg.source.indexOf('@') + 1);
-      cfg.source = cfg.source.substring(0, cfg.source.indexOf('@'));
-    }
-
+    const source = cfg.source
     const sourcePreset = cfg.sourcePreset;
     const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
@@ -69,7 +62,7 @@ export default {
       }
     }
 
-    const srcUrl = await runtime.registry.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
+    const srcUrl = await runtime.registry.getUrl(source, `${chainId}-${sourcePreset}`);
 
     return {
       url: srcUrl,
@@ -81,8 +74,22 @@ export default {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    config.source = _.template(config.source)(ctx);
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || 'main';
+    const packageRef = new PackageReference(_.template(config.source)(ctx));
+
+    // If both definitions of a preset exist, its a user error.
+    if (config.sourcePreset && packageRef.preset) {
+      console.warn(
+        yellow(
+          bold(
+            `Duplicate preset definitions in source name "${config.source}" and in sourcePreset definition "${config.sourcePreset}"`
+          )
+        )
+      );
+      console.warn(yellow(bold(`Defaulting to sourcePreset definition "${config.sourcePreset}"...`)));
+    }
+
+    config.source = packageRef.formatted();
+    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -107,25 +114,17 @@ export default {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    /*
-     * Source preset reference
-     * Checks for preset reference in source name, anything after the '@' references a preset.
-     * If a preset reference is found in the package name by default it will take preference over a defined sourcePreset.
-     */
-    if (config.source.includes('@')) {
-      config.sourcePreset = config.source.slice(config.source.indexOf('@') + 1);
-      config.source = config.source.substring(0, config.source.indexOf('@'));
-    }
-
-    const sourcePreset = config.sourcePreset ?? 'main';
+    const packageRef = new PackageReference(config.source);
+    const source = packageRef.formatted();
+    const sourcePreset = config.sourcePreset || packageRef.preset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.readDeploy(config.source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(source, sourcePreset, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${config.source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
       );
     }
 
@@ -148,9 +147,11 @@ export default {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.readDeploy(config.source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
         console.warn(
-          'warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?'
+          yellow(
+            '\nwarn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`? \n'
+          )
         );
       }
 
@@ -210,7 +211,7 @@ export default {
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''
       );
     }
 
