@@ -7,6 +7,10 @@ import {
   Text,
   Link,
   Code,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import React from 'react';
@@ -81,7 +85,8 @@ export const RouterPage = () => {
           executable at a single address.
         </Text>
         <Text mb={4}>
-          To overcome this constraint, Cannon includes a plug-in for the{' '}
+          To avoid the need to manage complex inheritance and dependency
+          structures, Cannon includes a plug-in for the{' '}
           <Link
             isExternal
             href="https://github.com/synthetixio/synthetix-router"
@@ -90,7 +95,15 @@ export const RouterPage = () => {
           </Link>
           . This can be used by defining a <Code>router</Code> step in
           Cannonfiles. This accepts an array of contracts and automatically
-          generates a router contract which will delegate calls to them.
+          generates a router contract which will delegate calls to them. For a
+          more technical explanation of the router, review its{' '}
+          <Link
+            isExternal
+            href="https://github.com/synthetixio/synthetix-router#readme"
+          >
+            README
+          </Link>
+          .
         </Text>
         <Text mb={4}>
           In this guide, we’ll walk through{' '}
@@ -111,11 +124,7 @@ export const RouterPage = () => {
           <CommandPreview command="npm i -g @usecannon/cli" />
         </Box>
         <Text mb={4}>
-          Also make sure you have an{' '}
-          <Link isExternal href="https://docs.ipfs.tech/install/ipfs-desktop/">
-            IPFS node
-          </Link>{' '}
-          running locally. Then set up a new{' '}
+          Then set up a new{' '}
           <Link href="https://github.com/foundry-rs/foundry" isExternal>
             Foundry
           </Link>{' '}
@@ -127,8 +136,8 @@ export const RouterPage = () => {
         <Text mb={4}>
           This project will include a <Code>Counter.sol</Code> contract by
           default. Duplicate this contract, rename it, and alter the function
-          names in it. For this example, we’ll assume you’ve rename the file and
-          contract to <Code>AnotherCounter</Code>.
+          names in it. For this example, we’ll assume you’ve renamed the file
+          and contract to <Code>AnotherCounter</Code>.
         </Text>
         <Text mb={4}>
           Create <Code>cannonfile.toml</Code> that deploys the two contracts and
@@ -146,7 +155,7 @@ export const RouterPage = () => {
           <Link as={NextLink} href="/search">
             package manager
           </Link>
-          . Here, we add the <Code>--registry-priority local</Code> flag to
+          . Here, we add the <Code>--registry-priority local</Code> option to
           ensure we're using the version of this package that you just built,
           regardless of what others have published.)
         </Text>
@@ -156,22 +165,29 @@ export const RouterPage = () => {
         <Text mb={4}>
           Press <Code>i</Code> to interact with the contracts in this project.
           You'll see that the router contract exposes the functions from both
-          contracts.{' '}
-          <strong>
-            Always remember to interact with the router contract, and not the
-            dependent contracts directly.
-          </strong>
+          contracts.
         </Text>
+        <Alert status="info" mb={4} bg="gray.800">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Interact with the router contract</AlertTitle>
+            <AlertDescription>
+              When using this pattern, users should interact with the router and
+              not the dependent contracts directly.
+            </AlertDescription>
+          </Box>
+        </Alert>
+
         <Heading size="md" mb={4} mt={6}>
-          Add Upgradability
+          Add an Upgradability Proxy
         </Heading>
         <Text mb={4}>
           We can also deploy a{' '}
           <Link as={NextLink} href="/packages/transparent-upgradable-proxy">
             transparent upgradeable proxy
           </Link>{' '}
-          pointing at the router, such that this protocol can be upgradeable. In
-          the Cannonfile, add a setting for the admin (which will be allowed to
+          pointing at the router, making this protocol upgradeable. In the
+          Cannonfile, add a setting for the admin (which will be allowed to
           upgrade the proxy) and then provision the package which includes{' '}
           <Link
             href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol"
@@ -187,20 +203,38 @@ export const RouterPage = () => {
         <Text mb={4}>
           If you alter one of your contracts, when building, Cannon will
           automatically detect this, generate a new router, and upgrade the
-          proxy to point at it. When building an upgrade, use the{' '}
-          <Code>--upgrade-from</Code> flag to reference your existing package.{' '}
-          <strong>
-            Remember to always call functions on the proxy rather than the
-            router, and{' '}
-            <Link
-              href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
-              isExternal
-            >
-              avoid storage collisions
-            </Link>{' '}
-            when upgrading.
-          </strong>
+          proxy to point at it. (Old versions of the contracts aren't included
+          in the router, saving gas.) When building an upgrade, increase the
+          version in your Cannonfile and use the <Code>--upgrade-from</Code>{' '}
+          option to reference the package from your previous version.
         </Text>
+        <Alert status="info" mb={4} bg="gray.800">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Interact with the proxy contract</AlertTitle>
+            <AlertDescription>
+              When using this pattern, users should always interact with the
+              proxy contract rather than the router contract.
+            </AlertDescription>
+          </Box>
+        </Alert>
+        <Alert status="warning" mb={4} bg="gray.800">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Beware of storage collisions</AlertTitle>
+            <AlertDescription>
+              Changing the storage layout in smart contracts can irreversibly
+              corrupt protocol data. Thoroughly understand how to avoid{' '}
+              <Link
+                href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
+                isExternal
+              >
+                storage collisions
+              </Link>{' '}
+              when upgrading.
+            </AlertDescription>
+          </Box>
+        </Alert>
         <Text>
           If the protocol is owned by a{' '}
           <Link isExternal href="https://safe.global/">
@@ -210,9 +244,23 @@ export const RouterPage = () => {
           <Link as={NextLink} href="/deploy">
             deployer
           </Link>{' '}
-          to run upgrades. When your protocol no longer needs to be upgraded, it
-          can be made immutable with a call to <Code>renounceOwnership</Code> on
-          the proxy.
+          to run upgrades. (
+          <Link
+            isExternal
+            href="https://docs.safe.global/safe-smart-account/modules"
+          >
+            Safe Modules
+          </Link>{' '}
+          and{' '}
+          <Link
+            isExternal
+            href="https://docs.safe.global/safe-smart-account/guards"
+          >
+            Safe Guards
+          </Link>{' '}
+          can be developed for additional on-chain, governance-related logic.)
+          When your protocol no longer needs to be upgraded, it can be made
+          immutable with a call to <Code>renounceOwnership</Code> on the proxy.
         </Text>
       </Box>
     </Flex>
