@@ -48,7 +48,7 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     const cfg = this.configInject(ctx, config, packageState);
 
-    const source = cfg.source
+    const source = cfg.source;
     const sourcePreset = cfg.sourcePreset;
     const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 

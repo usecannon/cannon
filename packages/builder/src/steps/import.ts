@@ -50,13 +50,14 @@ export default {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
 
-    
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     // If both definitions of a preset exist, its a user error.
     if (config.preset && packageRef.includesPreset) {
       console.warn(
-        yellow(bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`))
+        yellow(
+          bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`)
+        )
       );
       console.warn(yellow(bold(`Defaulting to preset definition "${config.preset}"...`)));
     }
