@@ -77,7 +77,7 @@ export default {
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     // If both definitions of a preset exist, its a user error.
-    if (config.sourcePreset && packageRef.preset) {
+    if (config.sourcePreset && packageRef.includesPreset) {
       console.warn(
         yellow(
           bold(

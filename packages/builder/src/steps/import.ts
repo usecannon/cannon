@@ -54,7 +54,7 @@ export default {
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     // If both definitions of a preset exist, its a user error.
-    if (config.preset && packageRef.preset) {
+    if (config.preset && packageRef.includesPreset) {
       console.warn(
         yellow(bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`))
       );

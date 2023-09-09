@@ -19,6 +19,8 @@ export interface CannonPackageReference {
   name: string;
   version: string;
   preset: string;
+
+  includesPreset: boolean;
   formatted(): string;
 }
 
@@ -27,9 +29,11 @@ export interface CannonPackageReference {
  */
 export class PackageReference implements CannonPackageReference {
   private ref: string;
+  includesPreset: boolean;
 
   constructor(ref: string) {
     this.ref = ref;
+    this.includesPreset = false;
   }
 
   /**
@@ -47,7 +51,7 @@ export class PackageReference implements CannonPackageReference {
 
   /**
    *  Anything between the colon and the @ is the package version
-   *   Defaults to latest if not specified in reference
+   *  Defaults to latest if not specified in reference
    */
   get version() {
     if (this.ref.indexOf('@') !== -1 && this.ref.indexOf(':') !== -1) {
@@ -65,6 +69,7 @@ export class PackageReference implements CannonPackageReference {
    */
   get preset() {
     if (this.ref.indexOf('@') !== -1) {
+      this.includesPreset = true;
       return this.ref.substring(this.ref.indexOf('@') + 1);
     } else {
       return 'main';
