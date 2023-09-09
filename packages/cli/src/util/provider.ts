@@ -43,7 +43,7 @@ export async function resolveProviderAndSigners({
     console.error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
-
+  
   const ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(rawProvider as any), false);
 
   const signers = [];
