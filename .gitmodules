@@ -5,3 +5,6 @@
 [submodule "packages/contracts/lib/openzeppelin-contracts"]
 	path = packages/contracts/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "examples/sample-foundry-project/lib/cannon-std"]
+	path = examples/sample-foundry-project/lib/cannon-std
+	url = https://github.com/usecannon/cannon-std
