@@ -453,7 +453,11 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        import: z.custom<typeof importSpec>(),
+        import: z.record(importSchema),
+        provision: z.record(provisionSchema),
+        contract: z.record(contractSchema),
+        invoke: z.record(invokeSchema),
+        // ... there may be others that come from plugins
       })
       .deepPartial()
   );

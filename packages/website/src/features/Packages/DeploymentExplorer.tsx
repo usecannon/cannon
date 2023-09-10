@@ -32,6 +32,7 @@ import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { format } from 'date-fns';
 import { InfoIcon, ViewIcon, DownloadIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
+import { ChainBuilderContext } from '@usecannon/builder';
 
 export const DeploymentExplorer: FC<{
   variant: any;
@@ -102,7 +103,7 @@ export const DeploymentExplorer: FC<{
     return mergedContracts;
   }
 
-  const contractState = deploymentInfo?.state
+  const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
     ? mergeArtifactsContracts(deploymentInfo)
     : {};
 
@@ -122,7 +123,9 @@ export const DeploymentExplorer: FC<{
     return mergedInvokes;
   }
 
-  const invokeState = deploymentInfo?.state ? mergeInvoke(deploymentInfo) : {};
+  const invokeState: ChainBuilderContext['txns'] = deploymentInfo?.state
+    ? mergeInvoke(deploymentInfo)
+    : {};
 
   function extractAddressesAbis(obj: any, result: any = {}) {
     for (const key in obj) {
@@ -318,14 +321,6 @@ export const DeploymentExplorer: FC<{
                   Function Calls
                 </Heading>
                 <ChainDefinitionSteps modules={deploymentInfo.def.invoke} />
-              </Box>
-            )}
-            {deploymentInfo?.def?.run && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
-                  Custom Actions
-                </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.run} />
               </Box>
             )}
           </Box>

@@ -10,22 +10,13 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 
-interface Module {
-  artifact: string;
-  salt?: string;
-  create2?: boolean;
-  args?: string[];
-  abiOf?: string[];
-  depends?: string[];
-}
-
 interface Props {
-  modules: Record<string, Module>;
+  modules: Record<string, object>;
 }
 
 const ChainDefinitionSteps: React.FC<Props> = ({ modules }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [activeModule, setActiveModule] = useState<Module | null>(null);
+  const [activeModule, setActiveModule] = useState<object | null>(null);
 
   return (
     <Box>
