@@ -44,7 +44,7 @@ defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 source = "transparent-upgradable-proxy:4.9.3"
 options.admin = "<%= settings.admin %>"
 options.implementation = "<%= contracts.Router.address %>"
-options.abi = "<%= contracts.Router.abi %>"
+options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"
 depends = ["router.Router"]`;
 
 export const RouterPage = () => {
