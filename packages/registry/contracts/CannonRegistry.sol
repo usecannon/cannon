@@ -33,7 +33,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset
 
-    for (uint i = 0; i < 32; i++) {
+    for (uint256 i = 0; i < 32; i++) {
       if (_name[i] == bytes1(0)) {
         // must be long enough
         if (i < MIN_PACKAGE_NAME_LENGTH) {
@@ -86,9 +86,9 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
 
     if (owner != address(0) && owner != msg.sender) {
-      uint additionalDeployersLength = _p.additionalDeployersLength;
+      uint256 additionalDeployersLength = _p.additionalDeployersLength;
       bool foundAdditionalDeployer = false;
-      for (uint i = 0; i < additionalDeployersLength; i++) {
+      for (uint256 i = 0; i < additionalDeployersLength; i++) {
         foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
       }
 
@@ -112,7 +112,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, msg.sender);
 
     if (_packageTags.length > 1) {
-      for (uint i = 1; i < _packageTags.length; i++) {
+      for (uint256 i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
@@ -129,7 +129,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       revert Unauthorized();
     }
 
-    for (uint i = 0; i < additionalDeployers.length; i++) {
+    for (uint256 i = 0; i < additionalDeployers.length; i++) {
       _p.additionalDeployers[i] = additionalDeployers[i];
     }
 
@@ -140,7 +140,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     Package storage _p = _store().packages[_packageName];
     additionalDeployers = new address[](_p.additionalDeployersLength);
 
-    for (uint i = 0; i < additionalDeployers.length; i++) {
+    for (uint256 i = 0; i < additionalDeployers.length; i++) {
       additionalDeployers[i] = _p.additionalDeployers[i];
     }
   }
