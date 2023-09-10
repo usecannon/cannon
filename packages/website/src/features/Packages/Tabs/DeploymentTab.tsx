@@ -5,7 +5,6 @@ import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { Flex, Container } from '@chakra-ui/react';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
-import UnderConstruction from './UnderConstruction';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const DeploymentTab: FC<{
@@ -29,8 +28,6 @@ export const DeploymentTab: FC<{
 
   return (
     <Flex flexDirection="column" width="100%">
-      <UnderConstruction />
-
       {currentVariant ? (
         <Container maxW="container.xl">
           <DeploymentExplorer variant={currentVariant} />

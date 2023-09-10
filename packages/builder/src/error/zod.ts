@@ -17,7 +17,7 @@ export function handleZodErrors(errors: z.ZodIssue[]) {
 
   const errorMessage = '\n\n Validation Failed \n' + errorMessages.join('\n');
 
-  throw errorMessage;
+  throw new Error(errorMessage);
 }
 
 /**
