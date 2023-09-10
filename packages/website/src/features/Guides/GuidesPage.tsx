@@ -88,8 +88,8 @@ export const GuidesPage = () => {
         />
         <GuideCard
           href={links.ROUTER}
-          title="Use a Router"
-          subtitle="Build an upgradeable protocol of any size with the Synthetix Router"
+          title="Deploy a Router"
+          subtitle="Build a protocol of any size with Synthetix’s Router plug-in"
         />
         <GuideCard subtitle="More guides coming soon..." />
       </Grid>

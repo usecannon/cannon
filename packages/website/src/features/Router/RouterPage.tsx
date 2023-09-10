@@ -70,14 +70,22 @@ export const RouterPage = () => {
           as="h2"
           size="lg"
           fontWeight={600}
-          pb={4}
+          letterSpacing="0.2px"
+          mb={1}
+        >
+          Deploy a Router
+        </Heading>
+        <Text
+          pb={3}
           mb={4}
           borderBottom="1px solid"
           borderBottomColor="gray.800"
-          letterSpacing="0.2px"
+          fontSize="xl"
+          color="gray.400"
         >
-          Use a Synthetix Router
-        </Heading>
+          Build an upgradable protocol of any size with Synthetix’s Router
+          plug-in
+        </Text>
         <Text mb={4}>
           There is a limit to the size of smart contracts deployed on EVM
           blockchains. This can create complications during the development of
@@ -86,12 +94,12 @@ export const RouterPage = () => {
         </Text>
         <Text mb={4}>
           To avoid the need to manage complex inheritance and dependency
-          structures, Cannon includes a plug-in for the{' '}
+          structures, Cannon includes{' '}
           <Link
             isExternal
             href="https://github.com/synthetixio/synthetix-router"
           >
-            Synthetix Router
+            Synthetix’s Router plug-in
           </Link>
           . This can be used by defining a <Code>router</Code> step in
           Cannonfiles. This accepts an array of contracts and automatically

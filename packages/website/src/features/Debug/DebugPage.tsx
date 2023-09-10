@@ -1,23 +1,9 @@
 'use client';
-import {
-  useTheme,
-  Flex,
-  Box,
-  Heading,
-  Text,
-  Link,
-  Code,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from '@chakra-ui/react';
-import NextLink from 'next/link';
+import { useTheme, Flex, Box, Heading, Text, Link } from '@chakra-ui/react';
 import React from 'react';
-import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
 
-export const DebuggingPage = () => {
+export const DebugPage = () => {
   const theme = useTheme();
 
   return (
@@ -50,7 +36,7 @@ export const DebuggingPage = () => {
         </Heading>
         <Text mb={4}>
           We have all been there. Our production app is emitting a strange hex
-          error, but our wallet wasn't able to explain the actual cause. Worse,
+          error, but our wallet wasn’t able to explain the actual cause. Worse,
           the error could be the dreaded `0x` (aka an error with no revert
           reason)! Or perhaps you have a transaction on gnosis safe, but its
           getting sent cross chain or through a proxy of some sort, so the
@@ -86,7 +72,7 @@ export const DebuggingPage = () => {
         </Text>
         <Box mb={4}>
           <CommandPreview command="cannon decode synthetix 0x" />
-          <CommandOutput></CommandOutput>
+          Command Output
         </Box>
         <Text mb={4}>
           From this output, in a few moments we can see that . Cannon determined
@@ -99,13 +85,13 @@ export const DebuggingPage = () => {
         </Text>
         <Box mb={4}>
           <CommandPreview command="cannon decode synthetix 0x" />
-          <CommandOutput></CommandOutput>
+          Command Output
         </Box>
         <Heading size="md" mb={4} mt={6}>
           Getting a Stack Trace
         </Heading>
         <Text mb={4}>
-          Sometimes just knowing what the error is doesn't cut it, or perhaps
+          Sometimes just knowing what the error is doesn’t cut it, or perhaps
           the error we are looking for is being emitted by a contract not inside
           of Cannon. Luckely, Cannon includes a tool dedicted to ad-hoc
           debugging of live-network transactions, and it works for any package
@@ -118,7 +104,7 @@ export const DebuggingPage = () => {
         </Text>
         <Box mb={4}>
           <CommandPreview command="cannon synthetix --chain-id 1 --provider-url https://ethereum.publicnode.com --impersonate 0x6cd3f878852769e04A723A5f66CA7DD4d9E38A6C" />
-          <CommandOutput></CommandOutput>
+          Command Output
         </Box>
         <Text mb={4}>
           If you are running Frame, `--provider-url` is not required.
