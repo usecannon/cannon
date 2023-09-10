@@ -14,6 +14,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   error InvalidName(bytes32 name);
   error InvalidTags();
   error PackageNotFound();
+  error FeeRequired(uint256 amount);
 
   event PackagePublish(
     bytes32 indexed name,
@@ -26,7 +27,8 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
-  uint public constant MIN_PACKAGE_NAME_LENGTH = 3;
+  uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
+  uint256 public constant PUBLISH_FEE = 1 wei;
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset
@@ -66,7 +68,11 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     bytes32[] memory _packageTags,
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
-  ) external {
+  ) external payable {
+    if (msg.value != PUBLISH_FEE) {
+      revert FeeRequired(PUBLISH_FEE);
+    }
+
     if (_packageTags.length == 0 || _packageTags.length > 5) {
       revert InvalidTags();
     }
