@@ -124,7 +124,7 @@ export const DeploymentExplorer: FC<{
 
   const invokeState = deploymentInfo?.state ? mergeInvoke(deploymentInfo) : {};
 
-  function extractAddressesAbis(obj, result = {}) {
+  function extractAddressesAbis(obj: any, result: any = {}) {
     for (const key in obj) {
       if (obj[key] && typeof obj[key] === 'object') {
         // If the current object has both address and abi keys

@@ -60,7 +60,8 @@ export const CodeExplorer: FC<{
     },
   });
 
-  const miscUrl = deploymentData.data && deploymentData?.data?.miscUrl;
+  const miscUrl =
+    deploymentData?.data && JSON.parse(deploymentData?.data)?.miscUrl;
   const miscData = useQuery({
     queryKey: [miscUrl],
     queryFn: async ({ signal }) => {
