@@ -241,7 +241,7 @@ export default {
 
     // override abi?
     if (config.abi) {
-      if (config.abi.startsWith('[')) {
+      if (config.abi.trimStart().startsWith('[')) {
         // Allow to pass in a literal abi string
         abi = JSON.parse(config.abi);
       } else {
