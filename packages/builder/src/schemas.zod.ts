@@ -389,6 +389,13 @@ export const provisionSchema = z
       .deepPartial()
   );
 
+export const routerSchema = z.object({
+  contracts: z.array(z.string()),
+  from: z.string().optional(),
+  salt: z.string().optional(),
+  depends: z.array(z.string()).optional(),
+});
+
 /**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
  */
@@ -457,14 +464,8 @@ export const chainDefinitionSchema = z
         provision: z.record(provisionSchema),
         contract: z.record(contractSchema),
         invoke: z.record(invokeSchema),
+        router: z.record(routerSchema),
         // ... there may be others that come from plugins
       })
       .deepPartial()
   );
-
-export const routerSchema = z.object({
-  contracts: z.array(z.string()),
-  from: z.string().optional(),
-  salt: z.string().optional(),
-  depends: z.array(z.string()).optional(),
-});
