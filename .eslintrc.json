@@ -41,6 +41,7 @@
     "quotes": ["error", "single", { "avoidEscape": true }],
     "import/no-unresolved": "off", // messed up by lerna hoisting
     "no-undef": "error",
+    "import/no-anonymous-default-export": "off",
     "prefer-const": "error",
     "semi": ["error", "always"],
 
