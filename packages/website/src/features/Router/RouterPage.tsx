@@ -71,7 +71,7 @@ export const RouterPage = () => {
           size="lg"
           fontWeight={600}
           letterSpacing="0.2px"
-          mb={1}
+          mb={2}
         >
           Deploy a Router
         </Heading>
