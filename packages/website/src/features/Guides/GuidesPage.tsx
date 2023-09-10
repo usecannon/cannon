@@ -86,6 +86,11 @@ export const GuidesPage = () => {
           title="Build a Protocol"
           subtitle="Create and deploy a protocol that integrates with Cannon packages"
         />
+        <GuideCard
+          href={links.ROUTER}
+          title="Deploy a Router"
+          subtitle="Build a protocol of any size with Synthetix’s Router plug-in"
+        />
         <GuideCard subtitle="More guides coming soon..." />
       </Grid>
     </Container>
