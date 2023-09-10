@@ -18,6 +18,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
   .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
+  .addOptionalParam('registryPriority', 'Which registry should be used first? Default: onchain')
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
   .addFlag('usePlugins', 'Load plugins globally installed using the cannon CLI')
@@ -28,7 +29,10 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('impersonate', 'When dry running, uses forked signers rather than actual signing keys')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
-    async ({ cannonfile, settings, upgradeFrom, preset, noCompile, wipe, usePlugins, dryRun, impersonate }, hre) => {
+    async (
+      { cannonfile, settings, upgradeFrom, preset, noCompile, wipe, usePlugins, registryPriority, dryRun, impersonate },
+      hre
+    ) => {
       if (!noCompile) {
         await hre.run(TASK_COMPILE);
         console.log('');
@@ -131,6 +135,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         preset,
         upgradeFrom,
         wipe,
+        registryPriority,
         persist: !dryRun && hre.network.name !== 'hardhat',
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,

@@ -20,3 +20,5 @@ export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 export { copyPackage } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
+
+export * from './access-recorder';
