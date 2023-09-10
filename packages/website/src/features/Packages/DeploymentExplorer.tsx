@@ -3,7 +3,20 @@ import axios from 'axios';
 import pako from 'pako';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
-import { Box, Container, Heading, Text } from '@chakra-ui/react';
+import {
+  Badge,
+  Box,
+  Container,
+  Heading,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tooltip,
+  Tr,
+} from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { useQuery } from '@tanstack/react-query';
 import { IpfsUrl } from './IpfsUrl';
@@ -34,17 +47,20 @@ export const DeploymentExplorer: FC<{
     ? (deploymentData.data as DeploymentInfo)
     : undefined;
 
-  const settings: { [key: string]: any } = Object.keys(
+  interface Setting {
+    defaultValue?: any;
+    option?: any;
+  }
+
+  const settings: Record<string, Setting> = Object.keys(
     deploymentInfo?.def?.setting || {}
-  ).reduce(
-    (acc, key) => {
-      acc[key] =
-        deploymentInfo?.options?.[key] ||
-        deploymentInfo?.def?.setting?.[key]?.defaultValue;
-      return acc;
-    },
-    { ...deploymentInfo?.options }
-  );
+  ).reduce<Record<string, Setting>>((acc, key) => {
+    acc[key] = {
+      defaultValue: deploymentInfo?.def?.setting?.[key]?.defaultValue,
+      option: deploymentInfo?.options?.[key],
+    };
+    return acc;
+  }, deploymentInfo?.options || {});
 
   return variant?.deploy_url ? (
     <Box>
@@ -55,19 +71,11 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
           {deploymentInfo?.def?.description && (
-            <Text fontSize="md" mb={4}>
+            <Text fontSize="2xl" mb={1}>
               {deploymentInfo.def.description}
             </Text>
           )}
-          <Heading size="md" mb={2}>
-            Settings
-          </Heading>
-          {Object.entries(settings as Object).map(([key, valueObj]) => (
-            <Text fontSize="sm" key={key} mb={1}>
-              <strong>{key}:</strong> {valueObj}
-            </Text>
-          ))}
-          <Text color="gray.300" fontSize="xs" fontFamily="mono">
+          <Text color="gray.300" fontSize="xs" fontFamily="mono" mb={2}>
             {deploymentInfo?.generator &&
               `built with ${deploymentInfo.generator} `}
             {deploymentInfo?.generator && deploymentInfo?.timestamp && 'on '}
@@ -76,6 +84,62 @@ export const DeploymentExplorer: FC<{
               'PPPppp'
             ).toLowerCase()}
           </Text>
+          <Box mb={8}>
+            <Badge
+              opacity={deploymentInfo?.status == 'complete' ? 0.8 : 0.4}
+              colorScheme="green"
+            >
+              Complete
+            </Badge>
+            <Tooltip label="A partial deployment occurs when Cannon can't build all of the steps in the chain definition. Cannon can rebuild or the package can be built by a different signer, or a safe">
+              <Badge
+                ml={3}
+                opacity={deploymentInfo?.status == 'partial' ? 0.8 : 0.4}
+                colorScheme="yellow"
+              >
+                partial
+              </Badge>
+            </Tooltip>
+          </Box>
+          <Heading size="md" mb={2}>
+            Chain Definition
+          </Heading>
+          <Text>This describes what the chain wants to be</Text>
+          package.json here?
+          <Box overflowX="auto">
+            <Table variant="simple" size="sm">
+              <Thead>
+                <Tr>
+                  <Th color="#ffffff">Setting</Th>
+                  <Th color="#ffffff">Default Value</Th>
+                  <Th color="#ffffff">Option</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {Object.entries(settings).map(([key, value]) => (
+                  <Tr key={key}>
+                    <Td>{key?.toString()}</Td>
+                    <Td>{value.defaultValue?.toString()}</Td>
+                    <Td>{JSON.stringify(value)}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </Box>
+          X Target Steps / X Invoke Steps (List of tags that open the json in a
+          modal)
+          <Heading size="md" mb={2}>
+            Chain State
+          </Heading>
+          <Text>
+            This describes what the chain is, after building it according to the
+            cannonfiles
+          </Text>
+          <Box>Chain state</Box>
+          <Box>Download address + abi</Box>
+          <Heading size="md" mb={2}>
+            Raw Deployment Data
+          </Heading>
           {variant?.deploy_url && (
             <IpfsUrl title="Deployment Data " url={variant.deploy_url} />
           )}
