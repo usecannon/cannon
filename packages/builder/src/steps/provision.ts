@@ -15,7 +15,7 @@ import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { CANNON_CHAIN_ID } from '../constants';
-import { computeTemplateAccesses } from '../util';
+import { computeTemplateAccesses } from '../access-recorder';
 
 const debug = Debug('cannon:builder:provision');
 

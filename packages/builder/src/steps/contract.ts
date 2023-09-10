@@ -16,7 +16,8 @@ import {
   ContractArtifact,
   PackageState,
 } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths, computeTemplateAccesses } from '../util';
+import { computeTemplateAccesses } from '../access-recorder';
+import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
 const debug = Debug('cannon:builder:contract');

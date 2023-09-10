@@ -12,12 +12,8 @@ import {
   ChainBuilderContextWithHelpers,
   PackageState,
 } from '../types';
-import {
-  getContractDefinitionFromPath,
-  getContractFromPath,
-  getMergedAbiFromContractPaths,
-  computeTemplateAccesses,
-} from '../util';
+import { computeTemplateAccesses } from '../access-recorder';
+import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
 import { getAllContractPaths } from '../util';

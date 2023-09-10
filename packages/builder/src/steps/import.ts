@@ -8,7 +8,7 @@ import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, Pa
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime } from '../runtime';
-import { computeTemplateAccesses } from '../util';
+import { computeTemplateAccesses } from '../access-recorder';
 
 const debug = Debug('cannon:builder:import');
 

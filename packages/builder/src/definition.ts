@@ -65,7 +65,7 @@ export class ChainDefinition {
         actionNames.push(name);
         actions.push(fullActionName);
 
-        if (ActionKinds[action].getOutputs) {
+        if (ActionKinds[action] && ActionKinds[action].getOutputs) {
           for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
             // TODO: what to do about name and version? do they even matter?
             name: '',
@@ -88,6 +88,7 @@ export class ChainDefinition {
 
     // get all dependencies, and filter out the extraneous
     for (const action of this.allActionNames) {
+      debug(`compute dependencies for ${action}`);
       this.resolvedDependencies.set(action, this.computeDependencies(action));
     }
 
