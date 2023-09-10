@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Text, Container, Link } from '@chakra-ui/react';
+import { Text, Link } from '@chakra-ui/react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 export const IpfsUrl: FC<{

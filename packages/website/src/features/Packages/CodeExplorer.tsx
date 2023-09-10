@@ -60,8 +60,7 @@ export const CodeExplorer: FC<{
     },
   });
 
-  const miscUrl =
-    deploymentData.data && JSON.parse(deploymentData?.data).miscUrl;
+  const miscUrl = deploymentData.data && deploymentData?.data?.miscUrl;
   const miscData = useQuery({
     queryKey: [miscUrl],
     queryFn: async ({ signal }) => {
@@ -80,7 +79,7 @@ export const CodeExplorer: FC<{
   });
 
   return (
-    <Box>
+    <Container maxW="container.lg">
       {variant.meta_url && (
         <Box mb={8}>
           <IpfsUrl title="Metadata" url={variant.meta_url} />
@@ -89,12 +88,10 @@ export const CodeExplorer: FC<{
               <CustomSpinner mx="auto" />
             </Box>
           ) : !isEmpty(metadata) ? (
-            <Container maxW="container.lg">
-              <CodePreview
-                code={JSON.stringify(metadata, null, 2)}
-                language="json"
-              />
-            </Container>
+            <CodePreview
+              code={JSON.stringify(metadata, null, 2)}
+              language="json"
+            />
           ) : (
             <Box textAlign="center" py="20" opacity="0.5">
               Unable to retrieve metadata
@@ -104,11 +101,7 @@ export const CodeExplorer: FC<{
       )}
 
       <IpfsUrl title="Miscellaneous Data" url={miscUrl} />
-      {miscData.data && (
-        <Container maxW="container.lg">
-          <CodePreview code={miscData.data} language="json" />
-        </Container>
-      )}
-    </Box>
+      {miscData.data && <CodePreview code={miscData.data} language="json" />}
+    </Container>
   );
 };
