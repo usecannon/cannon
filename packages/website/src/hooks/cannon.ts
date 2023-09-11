@@ -319,7 +319,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       console.log('LOADING PKG URL', pkgUrl);
       const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
 
-      const deployInfo: DeploymentInfo = await loader.read(pkgUrl ?? '');
+      const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
       const def = new ChainDefinition(deployInfo.def);
 
