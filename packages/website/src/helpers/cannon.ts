@@ -25,12 +25,6 @@ import { Address, decodeAbiParameters, decodeFunctionData, Hex, parseAbiParamete
 import MulticallABI from '@/abi/Multicall.json';
 import * as git from '@/helpers/git';
 
-// cannon plugins supported by the web interface
-//import cannonRouterPlugin from 'cannon-plugin-router'
-
-// registration of the cannon plugins
-//registerAction(cannonRouterPlugin)
-
 export type CannonTransaction = TransactionMap[keyof TransactionMap];
 
 export interface StepExecutionError {

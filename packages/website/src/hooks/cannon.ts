@@ -15,10 +15,7 @@ import {
   getOutputs,
   InMemoryRegistry,
   OnChainRegistry,
-  registerAction,
 } from '@usecannon/builder';
-// TODO: in the future register actions that are found in a cannon definition automatically with stubs
-import cannonPluginRouter from 'cannon-plugin-router';
 import { ethers } from 'ethers';
 import { EthereumProvider } from 'ganache';
 import _ from 'lodash';
@@ -29,13 +26,6 @@ import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } 
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { createFork } from '@/helpers/rpc';
 import { useGitRepo } from '@/hooks/git';
-
-registerAction({
-  ...cannonPluginRouter,
-  exec: () => {
-    throw new Error('cannot execute step');
-  },
-});
 
 export type BuildState =
   | {
