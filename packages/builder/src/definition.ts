@@ -188,7 +188,7 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import.validate).map((d) => ({
+      Object.values(this.raw.import).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || 'main')(ctx),

@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Flex, Image, Box, useBreakpointValue } from '@chakra-ui/react';
+import { Flex, Image, Box, useBreakpointValue, Tag } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
@@ -57,6 +57,17 @@ export const Header = () => {
             />
           </Flex>
         </Link>
+        <Tag
+          size="sm"
+          variant="outline"
+          textTransform="uppercase"
+          ml={3}
+          letterSpacing="1px"
+          fontFamily="var(--font-miriam)"
+          pt={0.5}
+        >
+          Beta
+        </Tag>
         {!isMobile && <NavLinks />}
         <Box ml={['auto', 'auto', 0]} display="block">
           <ConnectWallet />

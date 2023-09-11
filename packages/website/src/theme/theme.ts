@@ -48,6 +48,12 @@ export const theme = extendTheme({
         textDecoration: 'underline',
       },
     },
+    Code: {
+      baseStyle: {
+        color: 'gray.50',
+        backgroundColor: 'gray.800',
+      },
+    },
   },
   styles: {
     global: {

@@ -8,3 +8,5 @@ packages/contracts/lib/forge-std
 packages/contracts/lib/openzeppelin-contracts
 packages/website/next.config.js
 packages/website/src/types/graphql/*
+packages/website/.next
+packages/*/dist

@@ -36,7 +36,12 @@ export const CodePreview: FC<ICodePreviewProps> = ({ code, language }) => {
     );
   } else {
     return (
-      <SyntaxHighlighter language={language} style={oneDark} wrapLongLines>
+      <SyntaxHighlighter
+        customStyle={{ margin: 0 }}
+        language={language}
+        style={oneDark}
+        wrapLongLines
+      >
         {code}
       </SyntaxHighlighter>
     );
