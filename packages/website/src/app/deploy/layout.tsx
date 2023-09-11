@@ -16,7 +16,7 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { useStore } from '@/helpers/store';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const settings = useStore((s) => s.settings);
 
