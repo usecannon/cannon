@@ -2,3 +2,4 @@
 .env.*
 !.env.*.example
 local.graphql
+/next.lock

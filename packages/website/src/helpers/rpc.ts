@@ -1,7 +1,7 @@
 import * as chains from '@wagmi/core/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { ethers } from 'ethers';
-import Ganache from 'ganache/dist/web/ganache.min.js';
+import type { EthereumProvider } from '@ganache/core';
 
 function findChainUrl(chainId: number) {
   if (typeof chainId !== 'number') {
@@ -32,6 +32,14 @@ export async function createFork({
 }) {
   const chainUrl = url || findChainUrl(chainId);
 
+  // This is a hack because we needed to remove ganache as a dependency because
+  // it wasn't working the installation on CI
+  // More info: https://stackoverflow.com/questions/49475492/npm-install-error-code-ebadplatform
+
+  // @ts-ignore-next-line Import module
+  await import('https://unpkg.com/ganache@7.9.1');
+  const Ganache = (window as any).Ganache.default;
+
   const node = Ganache.provider({
     wallet: { unlockedAccounts: impersonate },
     chain: { chainId: chainId },
@@ -59,5 +67,5 @@ export async function createFork({
 
   await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, bunchOfEth])));
 
-  return node;
+  return node as EthereumProvider;
 }

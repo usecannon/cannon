@@ -17,7 +17,6 @@ import {
   OnChainRegistry,
 } from '@usecannon/builder';
 import { ethers } from 'ethers';
-import { EthereumProvider } from 'ganache';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Address, useChainId } from 'wagmi';
@@ -79,7 +78,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
   const buildFn = async () => {
     setBuildStatus('Creating fork...');
-    const fork: EthereumProvider = await createFork({
+    const fork = await createFork({
       url: settings.forkProviderUrl,
       chainId: safe.chainId,
       impersonate: [safe.address],

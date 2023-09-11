@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Hex, TransactionRequestBase } from 'viem';
-import { EthereumProvider } from 'ganache';
+import { EthereumProvider } from '@ganache/core';
 import { createFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
 
@@ -65,16 +65,14 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
   };
 
   useEffect(() => {
-    createFork({ chainId: safe.chainId, impersonate: [safe.address] }).then(
-      async (n) => {
-        node = n;
-        setCleanStateSnapshot((await node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
-        console.log('finished creating fork');
-      },
-      () => {
-        // ignore
-      }
-    );
+    async function load() {
+      node = await createFork({ chainId: safe.chainId, impersonate: [safe.address] });
+      setCleanStateSnapshot((await node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
+      console.log('finished creating fork');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    load();
   }, [safe]);
 
   useEffect(() => {
