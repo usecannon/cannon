@@ -146,6 +146,35 @@ export const DeploymentExplorer: FC<{
 
   const addressesAbis = extractAddressesAbis(deploymentInfo);
 
+  type NestedObject = { [key: string]: any };
+  function mergeExtras(obj: NestedObject): NestedObject {
+    const result: NestedObject = {};
+
+    // Base cases
+    if (typeof obj !== 'object' || obj === null) {
+      return result;
+    }
+
+    // Check current object for "extras"
+    if (
+      Object.prototype.hasOwnProperty.call(obj, 'extras') &&
+      typeof obj['extras'] === 'object'
+    ) {
+      Object.assign(result, obj['extras']);
+    }
+
+    // Recursive case
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && key !== 'extras') {
+        Object.assign(result, mergeExtras(obj[key]));
+      }
+    }
+
+    return result;
+  }
+
+  const mergedExtras = mergeExtras(deploymentInfo?.state || {});
+
   const handleDownload = () => {
     const blob = new Blob([JSON.stringify(addressesAbis, null, 2)], {
       type: 'application/json',
@@ -406,6 +435,42 @@ export const DeploymentExplorer: FC<{
                           {key?.toString()}
                         </Td>
                         <Td borderColor="gray.500">{value.hash}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </Box>
+            <Box mb={4}>
+              <Heading size="sm" mb={2}>
+                Extra Data{' '}
+                <Tooltip
+                  label="This includes event data captured during the build to be referenced in subsequent steps."
+                  placement="right"
+                  hasArrow
+                >
+                  <InfoIcon color="gray.400" boxSize={3.5} mt={-0.5} ml={0.5} />
+                </Tooltip>
+              </Heading>
+              <Box overflowX="auto" mb={6}>
+                <Table variant="simple" size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th color="gray.300" pl={0} borderColor="gray.500">
+                        Name
+                      </Th>
+                      <Th color="gray.300" borderColor="gray.500">
+                        Value
+                      </Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {Object.entries(mergedExtras).map(([key, value]) => (
+                      <Tr key={key}>
+                        <Td pl={0} borderColor="gray.500">
+                          {key?.toString()}
+                        </Td>
+                        <Td borderColor="gray.500">{value.toString()}</Td>
                       </Tr>
                     ))}
                   </Tbody>
