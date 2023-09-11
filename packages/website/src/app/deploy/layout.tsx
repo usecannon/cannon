@@ -1,7 +1,14 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Alert, AlertIcon, Box, Flex, Link } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  Flex,
+  Link,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import { some, omit } from 'lodash';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,6 +29,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     (pathname.includes('/transactions') || pathname.includes('/gitops')) &&
     missingSettings;
 
+  const isMobile = useBreakpointValue([true, true, false]);
+
   return (
     <Flex flexDir="column" width="100%">
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
@@ -39,21 +48,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             href={links.DEPLOY}
             isActive={links.DEPLOY == pathname}
           >
-            Sign Transactions
+            {isMobile ? 'Sign Txs' : 'Sign Transactions'}
           </NavLink>
           <NavLink
             isSmall
             href={links.QUEUETXS}
             isActive={pathname.startsWith(links.QUEUETXS)}
           >
-            Queue Transactions
+            {isMobile ? 'Queue Txs' : 'Queue Transactions'}
           </NavLink>
           <NavLink
             isSmall
             href={links.QUEUEFROMGITOPS}
             isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
           >
-            Queue From GitOps
+            {isMobile ? 'GitOps' : 'Queue From GitOps'}
           </NavLink>
           <NavLink
             isSmall
@@ -66,7 +75,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </Box>
       {showSettingsAlert && (
         <Alert status="error">
-          <Flex mx="auto">
+          <Flex mx="auto" flexWrap="wrap" justifyContent="center">
             <AlertIcon />
             You must{' '}
             <Link
