@@ -1,11 +1,9 @@
-import SafeApiKit, { SafeInfoResponse } from '@safe-global/api-kit';
-import { EthersAdapter, Web3Adapter } from '@safe-global/protocol-kit';
+import SafeApiKit from '@safe-global/api-kit';
+import { EthersAdapter } from '@safe-global/protocol-kit';
 import { ethers } from 'ethers';
-import { useEffect, useMemo, useState } from 'react';
 import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
-import { mainnet, useAccount, useChainId, useContractReads, useNetwork, useQuery } from 'wagmi';
+import { mainnet, useAccount, useChainId, useContractReads, useQuery } from 'wagmi';
 import { infuraProvider } from 'wagmi/providers/infura';
-import Web3 from 'web3';
 import { chains } from '@/constants/deployChains';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
@@ -66,27 +64,6 @@ export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
   return `https://app.safe.global${pathname}?safe=${address}`;
 }
 
-export function useSafeWriteApi(): SafeApiKit | null {
-  const { address, isDisconnected } = useAccount();
-  const network = useNetwork();
-  const chain = useMemo(() => network && chains.find((chain) => chain.id === network.chain?.id), [network.chain?.id]);
-
-  return useMemo(() => {
-    if (!chain || isDisconnected) return null;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const web3 = new Web3((window as any).ethereum) as any;
-
-    return new SafeApiKit({
-      txServiceUrl: chain.serviceUrl,
-      ethAdapter: new Web3Adapter({
-        web3,
-        signerAddress: address,
-      }),
-    });
-  }, [chain, isDisconnected]);
-}
-
 function _createSafeApiKit(chainId: number) {
   if (!chainId) return null;
 
@@ -109,41 +86,6 @@ function _createSafeApiKit(chainId: number) {
       signerOrProvider: provider,
     }),
   });
-}
-
-export function useSafeReadApi(safeAddress: string): SafeApiKit | null {
-  const chainId = useMemo(() => {
-    if (!safeAddress) return null;
-    const [shortName] = safeAddress.split(':');
-    const chain = chains.find((chain) => chain.shortName === shortName);
-    return chain ? chain.id : null;
-  }, [safeAddress]);
-
-  return useMemo(() => _createSafeApiKit(chainId as any), [chainId]);
-}
-
-export function useSafeInfo(safeAddress: string) {
-  const safeApi = useSafeReadApi(safeAddress);
-  const [safeInfo, setSafeInfo] = useState<SafeInfoResponse>(null as any);
-
-  useEffect(() => {
-    if (!safeApi || !safeAddress) return setSafeInfo(null as any);
-
-    async function loadSafeInfo() {
-      const [, address] = safeAddress.split(':');
-      try {
-        const res = await safeApi?.getSafeInfo(address);
-        setSafeInfo(res as any);
-      } catch (err) {
-        console.error(err);
-        setSafeInfo(null as any);
-      }
-    }
-
-    void loadSafeInfo();
-  }, [safeApi, safeAddress]);
-
-  return safeInfo;
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition) {
