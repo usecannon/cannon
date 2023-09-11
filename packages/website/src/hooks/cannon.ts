@@ -335,7 +335,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
         throw new Error('failed to download package data');
       }
     },
-    enabled: pkgUrl !== '',
+    enabled: !!pkgUrl,
   });
 
   return {
