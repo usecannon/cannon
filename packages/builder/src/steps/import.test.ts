@@ -24,7 +24,7 @@ describe('steps/import.ts', () => {
       });
 
       expect(result).toStrictEqual({
-        source: 'a',
+        source: 'a:latest',
         chainId: 1234,
         preset: 'c',
         depends: [],
@@ -58,6 +58,7 @@ describe('steps/import.ts', () => {
 
     it('works properly', async () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:latest'], '1234-main', 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',
@@ -100,6 +101,81 @@ describe('steps/import.ts', () => {
       );
 
       expect(result).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const withPreset = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0@main' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(withPreset).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const withoutVersion = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello@main' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(withoutVersion).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const onlyName = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(onlyName).toStrictEqual({
         imports: {
           something: {
             url: 'https://something.com',
