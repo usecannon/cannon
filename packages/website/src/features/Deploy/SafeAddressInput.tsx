@@ -10,7 +10,9 @@ import {
 } from '@chakra-ui/react';
 import {
   chakraComponents,
+  ChakraStylesConfig,
   CreatableSelect,
+  GroupBase,
   OptionProps,
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
@@ -130,14 +132,42 @@ export function SafeAddressInput() {
     deleteSafe(parseSafe(safeString));
   }
 
+  const chakraStyles: ChakraStylesConfig<
+    SafeOption,
+    boolean,
+    GroupBase<SafeOption>
+  > = {
+    container: (provided) => ({
+      ...provided,
+      borderColor: 'whiteAlpha.400',
+      background: 'black',
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      borderColor: 'whiteAlpha.400',
+      background: 'black',
+    }),
+    groupHeading: (provided) => ({
+      ...provided,
+      background: 'black',
+    }),
+    option: (provided) => ({
+      ...provided,
+      background: 'black',
+    }),
+  };
+
   return (
     <Container maxW="100%" w="container.md" pt="4" pb="4">
       <FormControl mb="6">
         <FormLabel>Safe</FormLabel>
         <CreatableSelect
-          chakraStyles={{ borderColor: 'whiteAlpha.400' }}
+          chakraStyles={chakraStyles}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
+          noOptionsMessage={() =>
+            'Add a safe in the format <Code>chainId:safeAddress</Code>'
+          }
           options={[
             ...safeOptions,
             {

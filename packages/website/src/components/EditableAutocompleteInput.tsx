@@ -225,6 +225,8 @@ export function EditableAutocompleteInput(props: {
         </HStack>
       </PopoverAnchor>
       <PopoverContent
+        backgroundColor="black"
+        borderColor="whiteAlpha.400"
         margin="-5px"
         maxHeight={'45vh'}
         overflowY={'auto'}
