@@ -16,7 +16,7 @@ export const BuildPage = () => {
     >
       <Box
         p={8}
-        maxW="container.lg"
+        maxW="container.md"
         m="auto"
         background="black"
         border="1px solid"

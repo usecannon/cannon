@@ -8,7 +8,9 @@ export const externalLinks = {
   HARDHAT: 'https://hardhat.org/',
   IPFS_INSTALL: 'https://docs.ipfs.tech/install/ipfs-desktop/',
   INFURA_IPFS: 'https://www.infura.io/product/ipfs',
-  FOUNDRY_EXAMPLE: github + 'usecannon/cannon/tree/main/packages/sample-foundry-project',
-  HARDHAT_EXAMPLE: github + 'usecannon/cannon/tree/main/packages/sample-hardhat-project',
+  PINATA_IPFS: 'https://www.pinata.cloud/',
+  FOUNDRY_EXAMPLE: github + 'usecannon/cannon/tree/main/examples/sample-foundry-project',
+  HARDHAT_EXAMPLE: github + 'usecannon/cannon/tree/main/examples/sample-hardhat-project',
   ETHERSCAN: 'https://www.etherscan.io/',
+  IPFS_CLUSTER: 'https://cluster.ipfs.io/',
 };

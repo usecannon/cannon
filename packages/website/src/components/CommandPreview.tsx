@@ -17,12 +17,12 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
   const secondPart = command.substring(index, command.length);
   return (
     <Box
-      backgroundColor="gray.700"
+      backgroundColor="gray.800"
       py={1}
       px={3}
       position="relative"
       className={className}
-      borderRadius="sm"
+      borderRadius="md"
     >
       <Text fontFamily="var(--font-mono)">
         <Text as="span" color="#61afef">
@@ -32,7 +32,7 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
       </Text>
       <Box
         position="absolute"
-        top="10px"
+        top="8px"
         right="10px"
         cursor="pointer"
         onClick={onCopy}

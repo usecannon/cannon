@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.5.4",
+  "version": "2.6.0",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -53,5 +53,5 @@
     "node": ">=16.0.0"
   },
   "engineStrict": true,
-  "gitHead": "4cfe2e937a9c1e58381a66e8532e9f69b6ae2a09"
+  "gitHead": "554c8a0ccea8e37097e12075b1984eb980a944ed"
 }
