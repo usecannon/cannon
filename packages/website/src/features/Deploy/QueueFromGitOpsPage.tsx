@@ -17,6 +17,7 @@ import {
   Text,
   Tooltip,
   useColorMode,
+  useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
@@ -253,6 +254,8 @@ function QueueFromGitOps() {
     totalGas += BigInt(step.gas.toString());
   }
 
+  const toast = useToast();
+
   const stager = useTxnStager(
     (multicallTxn.data
       ? {
@@ -268,6 +271,12 @@ function QueueFromGitOps() {
       onSignComplete() {
         console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
+        toast({
+          title: 'Signing is complete',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       },
     }
   );

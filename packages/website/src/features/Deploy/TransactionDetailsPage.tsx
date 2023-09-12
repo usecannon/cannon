@@ -16,6 +16,7 @@ import {
   Tag,
   Text,
   Tooltip,
+  useToast,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { Address, isAddress, zeroAddress } from 'viem';
@@ -89,6 +90,8 @@ const TransactionDetailsPage: FC<{
       )?.txn || null;
   }
 
+  const toast = useToast();
+
   const stager = useTxnStager(safeTxn || {}, {
     safe: {
       chainId: parseInt(chainId ?? '') as any,
@@ -96,6 +99,12 @@ const TransactionDetailsPage: FC<{
     },
     onSignComplete: () => {
       router.push(links.DEPLOY);
+      toast({
+        title: 'Signing is complete',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
     },
   });
   const execTxn = useContractWrite(stager.executeTxnConfig);
