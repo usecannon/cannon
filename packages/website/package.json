@@ -16,8 +16,6 @@
     "@chakra-ui/react": "^2.7.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@ganache/core": "^0.10.1",
-    "@ganache/ethereum": "^0.10.1",
     "@iarna/toml": "^3.0.0",
     "@isomorphic-git/lightning-fs": "^4.6.0",
     "@mdx-js/loader": "^2.3.0",

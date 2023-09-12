@@ -3,8 +3,6 @@ import { Hex, TransactionRequestBase } from 'viem';
 import { createFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
 
-import type { EthereumProvider } from '@ganache/core';
-
 type SimulatedTransactionResult = {
   gasUsed: bigint;
   callResult: Hex;
@@ -13,7 +11,7 @@ type SimulatedTransactionResult = {
 
 // TODO: this probably shuoldn't be global, but it probably also shouldn't be state.
 // its a risk if 2 `useSimulatedTxns` are in use at the same time
-let node: EthereumProvider | null = null;
+let node: any = null;
 
 export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRequestBase, 'from'> | null)[]) {
   const [txnResults, setTxnResults] = useState<(SimulatedTransactionResult | null)[]>([]);

@@ -2,8 +2,6 @@ import * as chains from '@wagmi/core/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { ethers } from 'ethers';
 
-import type { EthereumProvider } from '@ganache/core';
-
 function findChainUrl(chainId: number) {
   if (typeof chainId !== 'number') {
     throw new Error(`Invalid chainId: ${chainId}`);
@@ -68,5 +66,5 @@ export async function createFork({
 
   await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, bunchOfEth])));
 
-  return node as EthereumProvider;
+  return node;
 }
