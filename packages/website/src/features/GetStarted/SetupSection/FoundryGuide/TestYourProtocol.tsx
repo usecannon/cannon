@@ -1,6 +1,6 @@
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
-import { Heading, Text, Code } from '@chakra-ui/react';
+import { Heading, Text, Code, Box } from '@chakra-ui/react';
 import React from 'react';
 
 const code = `pragma solidity ^0.8.13;
@@ -30,12 +30,14 @@ contract SampleIntegrationTest is Test {
 export const TestYourProtocol = () => {
   return (
     <>
-      <Heading as="h2" size="md" mt={16} mb={4}>
-        🧪 Test Your Protocol
+      <Heading size="md" mb={3} mt={8}>
+        Test Your Protocol
       </Heading>
-      <Text>Install Cannon for Foundry:</Text>
-      <CommandPreview command="forge install usecannon/cannon-std" />
-      <Text mt={8} mb={4}>
+      <Text mb={4}>Install Cannon for Foundry:</Text>
+      <Box mb={4}>
+        <CommandPreview command="forge install usecannon/cannon-std" />
+      </Box>
+      <Text mb={4}>
         Grant your Foundry project permission to read from the filesystem. Add
         the following line to your
         <Code colorScheme="blackAlpha" variant="solid">
@@ -43,12 +45,16 @@ export const TestYourProtocol = () => {
         </Code>
         &nbsp; file:
       </Text>
-      <CommandPreview command='fs_permissions = [{ access = "read", path = "./"}]' />
-      <Text mt={8} mb={4}>
+      <Box mb={4}>
+        <CommandPreview command='fs_permissions = [{ access = "read", path = "./"}]' />
+      </Box>
+      <Text mb={4}>
         Include the Cannon.sol library in your tests. Here&apos;s an example:
       </Text>
-      <CodePreview code={code} language="toml" />
-      <Text mt={8} mb={4}>
+      <Text mb={4}>
+        <CodePreview code={code} language="toml" />
+      </Text>
+      <Text mb={4}>
         Use the test command to run them. (Note that the&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
           -chain-id

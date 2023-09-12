@@ -31,10 +31,10 @@ describe('Greeter', function () {
 export const TestYourProtocol = () => {
   return (
     <>
-      <Heading as="h2" size="md" mt={16} mb={4}>
-        🧪 Test Your Protocol
+      <Heading size="md" mb={3} mt={8}>
+        Test Your Protocol
       </Heading>
-      <Text mt={8} mb={4}>
+      <Text mb={4}>
         You can use the build task in your tests and optionally use the
         built-in&nbsp;
         <ChakraLink isExternal href="https://github.com/dethcrypto/TypeChain">

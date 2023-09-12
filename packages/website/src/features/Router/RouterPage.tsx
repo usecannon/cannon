@@ -71,12 +71,12 @@ export const RouterPage = () => {
           size="lg"
           fontWeight={600}
           letterSpacing="0.2px"
-          mb={2}
+          mb={2.5}
         >
           Deploy a Router
         </Heading>
         <Text
-          pb={3}
+          pb={4}
           mb={4}
           borderBottom="1px solid"
           borderBottomColor="gray.800"
