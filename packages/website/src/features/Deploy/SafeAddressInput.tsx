@@ -166,7 +166,7 @@ export function SafeAddressInput() {
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           noOptionsMessage={() =>
-            'Add a safe in the format <Code>chainId:safeAddress</Code>'
+            'Add a safe in the format chainId:safeAddress'
           }
           options={[
             ...safeOptions,
