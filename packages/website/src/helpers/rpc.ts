@@ -1,6 +1,7 @@
 import * as chains from '@wagmi/core/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { ethers } from 'ethers';
+
 import type { EthereumProvider } from '@ganache/core';
 
 function findChainUrl(chainId: number) {

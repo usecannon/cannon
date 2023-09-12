@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Hex, TransactionRequestBase } from 'viem';
-import { EthereumProvider } from '@ganache/core';
 import { createFork } from '@/helpers/rpc';
 import { SafeDefinition } from '@/helpers/store';
+
+import type { EthereumProvider } from '@ganache/core';
 
 type SimulatedTransactionResult = {
   gasUsed: bigint;
