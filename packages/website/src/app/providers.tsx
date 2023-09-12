@@ -17,9 +17,15 @@ const queryClient = new QueryClient({
 });
 
 export function Providers({ children }: { children: ReactNode }) {
+  const csm = {
+    get: () => null,
+    set: () => null,
+    type: 'localStorage',
+  } as const;
+
   return (
     <CacheProvider>
-      <ChakraProvider theme={theme}>
+      <ChakraProvider theme={theme} colorModeManager={csm as any}>
         <ApolloProvider client={apolloClient}>
           <QueryClientProvider client={queryClient}>
             <WalletProvider>{children}</WalletProvider>

@@ -23,7 +23,9 @@ const NavLinks = () => {
       <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
         Explore
       </NavLink>
-      <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
+      <NavLink href={links.DEPLOY} isActive={pathname.startsWith('/deploy')}>
+        Deploy
+      </NavLink>
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
         Learn
       </NavLink>
@@ -49,8 +51,8 @@ export const Header = () => {
             <Image
               src="/images/logo.svg"
               alt="Cannon"
-              h="28px"
-              w="148px"
+              h="23px"
+              w="120px"
               objectFit="cover"
             />
           </Flex>

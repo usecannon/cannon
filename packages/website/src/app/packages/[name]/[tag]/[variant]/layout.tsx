@@ -12,7 +12,7 @@ import { useQuery } from '@apollo/client';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePathname } from 'next/navigation';
 
-export default function RootLayout({
+export default function PackageLayout({
   children,
   params,
 }: {
