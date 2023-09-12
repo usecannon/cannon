@@ -171,7 +171,7 @@ function QueueTransactions() {
         <Alert status="info">
           <AlertIcon />
           <Box>
-            <AlertTitle lineHeight="1.2">Cannon Package Detected</AlertTitle>
+            <AlertTitle>Cannon Package Detected</AlertTitle>
             <AlertDescription fontSize="sm">
               Downloading {cannonInfo.pkgUrl}
             </AlertDescription>
@@ -192,7 +192,7 @@ function QueueTransactions() {
                 txnInfo.txnResults.length === queuedTxns.length &&
                 txnInfo.txnResults[i] &&
                 txnInfo.txnResults[i]?.error && (
-                  <Alert status="error" mt="6">
+                  <Alert mt="6">
                     <AlertIcon />
                     Transaction Error:{' '}
                     {txnInfo.txnResults[i]?.callResult
@@ -205,6 +205,7 @@ function QueueTransactions() {
           <HStack my="3">
             <Button
               size="xs"
+              colorScheme="blue"
               leftIcon={<AddIcon />}
               onClick={() => setQueuedTxns(_.clone(queuedTxns.concat([{}])))}
             >
@@ -213,6 +214,7 @@ function QueueTransactions() {
             {queuedTxns.length > 1 && (
               <Button
                 size="xs"
+                colorScheme="red"
                 leftIcon={<MinusIcon />}
                 onClick={() =>
                   setQueuedTxns(
@@ -273,6 +275,7 @@ function QueueTransactions() {
               <Tooltip label={stager.signConditionFailed}>
                 <Button
                   size="lg"
+                  colorScheme="blue"
                   w="100%"
                   isDisabled={
                     !multisendTxn || txnHasError || !!stager.signConditionFailed
@@ -286,6 +289,7 @@ function QueueTransactions() {
             <Tooltip label={stager.execConditionFailed}>
               <Button
                 size="lg"
+                colorScheme="blue"
                 w="100%"
                 isDisabled={disableExecute}
                 onClick={() => execTxn.write && execTxn.write()}
