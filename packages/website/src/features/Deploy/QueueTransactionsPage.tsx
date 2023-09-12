@@ -158,9 +158,11 @@ function QueueTransactions() {
         <FormLabel>Cannon Package or Contract Address</FormLabel>
         <Input
           type="text"
+          borderColor="whiteAlpha.400"
+          background="black"
           onChange={(event: any) => setTarget(event.target.value)}
         />
-        <FormHelperText>
+        <FormHelperText color="gray.300">
           A package must have deployment data for the same network as your
           connected wallet.
         </FormHelperText>

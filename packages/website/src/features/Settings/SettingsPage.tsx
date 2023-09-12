@@ -96,13 +96,7 @@ export function SettingsPage() {
           Settings
         </Heading>
 
-        <Alert
-          bg="gray.800"
-          border="1px solid"
-          borderColor="gray.700"
-          status="info"
-          mb="8"
-        >
+        <Alert bg="gray.800" status="info" mb="4">
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
@@ -121,6 +115,8 @@ export function SettingsPage() {
             >
               <FormLabel>{s.title}</FormLabel>
               <Input
+                bg="black"
+                borderColor="whiteAlpha.400"
                 type={s.password ? 'password' : 'text'}
                 name={key}
                 placeholder={s.placeholder}
@@ -128,7 +124,9 @@ export function SettingsPage() {
                 onChange={(evt) => setSettings({ [key]: evt.target.value })}
               />
               {!validationError && s.description && (
-                <FormHelperText>{s.description}</FormHelperText>
+                <FormHelperText color="gray.300">
+                  {s.description}
+                </FormHelperText>
               )}
               {validationError && (
                 <FormErrorMessage>{validationError}</FormErrorMessage>

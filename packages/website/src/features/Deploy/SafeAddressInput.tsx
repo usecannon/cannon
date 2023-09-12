@@ -135,7 +135,7 @@ export function SafeAddressInput() {
       <FormControl mb="6">
         <FormLabel>Safe</FormLabel>
         <CreatableSelect
-          variant="filled"
+          chakraStyles={{ borderColor: 'whiteAlpha.400' }}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
           options={[
