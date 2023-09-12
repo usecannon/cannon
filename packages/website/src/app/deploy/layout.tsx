@@ -74,7 +74,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
         </Flex>
       </Box>
       {showSettingsAlert && (
-        <Alert status="error">
+        <Alert bg="gray.700">
           <Flex mx="auto" flexWrap="wrap" justifyContent="center">
             <AlertIcon />
             You must{' '}

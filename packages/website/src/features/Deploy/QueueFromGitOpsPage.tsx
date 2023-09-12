@@ -318,6 +318,8 @@ function QueueFromGitOps() {
             type="text"
             placeholder="https://github.com/myorg/myrepo"
             value={gitUrl}
+            borderColor="whiteAlpha.400"
+            background="black"
             onChange={(evt: any) => setGitUrl(evt.target.value)}
           />
           <Flex height="40px">
@@ -326,7 +328,7 @@ function QueueFromGitOps() {
             ) : (
               <EditableAutocompleteInput
                 editable
-                color={colorMode === 'dark' ? 'white' : 'black'}
+                color={'white'}
                 placeholder="cannonfile.toml"
                 items={(gitDirList.contents || []).map((d: any) => ({
                   label: gitDir + d,
@@ -338,7 +340,7 @@ function QueueFromGitOps() {
             )}
           </Flex>
         </HStack>
-        <FormHelperText>
+        <FormHelperText color="gray.300">
           Enter a Git URL and then select the Cannonfile that was modified in
           the branch chosen below.
         </FormHelperText>
@@ -347,6 +349,8 @@ function QueueFromGitOps() {
         <FormLabel>Branch</FormLabel>
         <HStack>
           <Select
+            borderColor="whiteAlpha.400"
+            background="black"
             value={gitBranch}
             onChange={(evt: any) => setGitBranch(evt.target.value)}
           >
@@ -367,6 +371,8 @@ function QueueFromGitOps() {
           placeholder="Qm..."
           type="text"
           value={partialDeployIpfs}
+          borderColor="whiteAlpha.400"
+          background="black"
           onChange={
             (evt: any) =>
               setPartialDeployIpfs(
@@ -374,7 +380,7 @@ function QueueFromGitOps() {
               ) /** TODO: handle bafy hash or other hashes */
           }
         />
-        <FormHelperText>
+        <FormHelperText color="gray.300">
           If this deployment requires transactions executed in other contexts
           (e.g. contract deployments or function calls using other signers),
           provide the IPFS hash generated from executing that partial deployment
@@ -384,6 +390,7 @@ function QueueFromGitOps() {
       {buildInfo.buildStatus == '' && (
         <Button
           width="100%"
+          colorScheme="blue"
           mb={6}
           isDisabled={
             cannonPkgVersionInfo.ipfsQuery.isFetching ||
