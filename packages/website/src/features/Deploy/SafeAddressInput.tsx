@@ -16,7 +16,7 @@ import {
 import deepEqual from 'fast-deep-equal';
 import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useSwitchNetwork } from 'wagmi';
+import { useAccount, useSwitchNetwork } from 'wagmi';
 import {
   getSafeFromString,
   getSafeUrl,
@@ -47,6 +47,7 @@ export function SafeAddressInput() {
   const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
+  const { isConnected } = useAccount();
 
   const { switchNetwork } = useSwitchNetwork();
   const router = useRouter();
@@ -160,7 +161,10 @@ export function SafeAddressInput() {
         />
       </FormControl>
       {!currentSafe && (
-        <Alert status="info">Select a Safe from the dropdown above.</Alert>
+        <Alert status="info">
+          {isConnected ? 'S' : 'Connect a wallet and s'}elect a Safe from the
+          dropdown above.
+        </Alert>
       )}
       {currentSafe && pendingServiceTransactions.count > 0 && (
         <Alert status="warning">
