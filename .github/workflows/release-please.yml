@@ -17,6 +17,7 @@ jobs:
         id: release
         with:
           release-type: node
+          command: manifest
           token: ${{ secrets.GITHUB_TOKEN }}
           default-branch: main
 
