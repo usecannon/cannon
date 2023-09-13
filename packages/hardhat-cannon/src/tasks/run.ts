@@ -13,7 +13,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
     'List of packages to load, optionally with custom settings for each one'
   )
   .addOptionalParam('port', 'Port which the JSON-RPC server will be exposed', '8545')
-  .addOptionalParam('preset', 'Load an alternate setting preset', 'main')
+  .addOptionalParam('preset', 'Load an alternate setting preset')
   .addOptionalParam('fundAddresses', 'Comma separated list of addresses to receive a balance of 10,000 ETH', '')
   .addOptionalParam('upgradeFrom', 'Perform an upgrade on existing contracts before running')
   .addOptionalParam('registryPriority', 'Whether to use local or remote registry first when resolving packages')

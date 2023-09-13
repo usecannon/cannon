@@ -18,10 +18,10 @@ export type CopyPackageOpts = {
 export interface CannonPackageReference {
   name: string;
   version: string;
-  preset: string;
+  preset?: string;
 
   includesPreset: boolean;
-  formatted(): string;
+  baseRef(): string;
 }
 
 /**
@@ -50,8 +50,8 @@ export class PackageReference implements CannonPackageReference {
   }
 
   /**
-   *  Anything between the colon and the @ is the package version
-   *  Defaults to latest if not specified in reference
+   *  Anything between the colon and the @ is the package version.
+   *  Defaults to 'latest' if not specified in reference
    */
   get version() {
     if (this.ref.indexOf('@') !== -1 && this.ref.indexOf(':') !== -1) {
@@ -64,8 +64,8 @@ export class PackageReference implements CannonPackageReference {
   }
 
   /**
-   * Anything after the @ is the package preset
-   * Defaults to main if not specified in reference
+   * Anything after the @ is the package preset.
+   * Defaults to 'main' if not specified in reference
    */
   get preset() {
     if (this.ref.indexOf('@') !== -1) {
@@ -79,7 +79,7 @@ export class PackageReference implements CannonPackageReference {
   /**
    * Returns default format name:version
    */
-  formatted() {
+  baseRef() {
     return `${this.name}:${this.version}`;
   }
 }
@@ -119,7 +119,13 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-  debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
+
+  const packageSpec = new PackageReference(packageRef);
+
+  const basePkgRef = `${packageSpec.name}:${packageSpec.version}`;
+  const fullPkgRef = `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}`;
+
+  debug(`copy package ${fullPkgRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
 
@@ -129,7 +135,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(basePkgRef, variant);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -164,7 +170,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(basePkgRef, preset, chainId);
 
   if (!deployData) {
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');

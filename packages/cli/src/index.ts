@@ -24,7 +24,7 @@ export * from './types';
 export * from './constants';
 export * from './util/params';
 
-import { interact } from './interact';
+import { interact } from './commands/interact';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 import { resolveCliSettings } from './settings';
@@ -89,7 +89,7 @@ function configureRun(program: Command) {
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
-    .option('--preset <preset>', 'Load an alternate setting preset', 'main')
+    .option('--preset <preset>', 'Load an alternate setting preset')
     .option('--logs', 'Show RPC logs instead of an interactive prompt')
     .option('--fund-addresses <fundAddresses...>', 'Pass a list of addresses to receive a balance of 10,000 ETH')
     .option(
@@ -239,7 +239,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     getSigner,
     getDefaultSigner,
     upgradeFrom: opts.upgradeFrom,
-    preset: opts.preset,
+    presetArg: opts.preset,
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
@@ -261,7 +261,7 @@ program
   .argument('[settings...]', 'Custom settings for building the cannonfile')
   .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
   .option('-c --chain-id <number>', 'The chain id to run against')
-  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
+  .option('-p --preset <preset>', 'The preset label for storing the build with the given settings')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')
   .option('--wipe', 'Clear the existing deployment state and start this deploy from scratch.')
@@ -313,7 +313,7 @@ program
   .argument('<packageName>', 'Name and version of the Cannon package to verify')
   .option('-a --api-key <apiKey>', 'Etherscan API key')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to verify', '1')
-  .option('-p --preset <preset>', 'Preset of the deployment to verify', 'main')
+  .option('-p --preset <preset>', 'Preset of the deployment to verify')
   .action(async function (packageName, options) {
     const { verify } = await import('./commands/verify');
     await verify(packageName, options.apiKey, options.preset, options.chainId);
@@ -329,7 +329,7 @@ program
   )
   .argument('[options...]', 'Additional options for your alteration command')
   .option('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
-  .option('-p --preset <preset>', 'Preset of the deployment to alter', 'main')
+  .option('-p --preset <preset>', 'Preset of the deployment to alter')
   .action(async function (packageName, command, options, flags) {
     const { alter } = await import('./commands/alter');
     // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
@@ -345,7 +345,7 @@ program
   .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
   .option('--private-key <key>', 'Private key to use for publishing the registry package')
   .option('--chain-id <number>', 'The chain ID of the package to publish')
-  .option('--preset <preset>', 'The preset of the packages to publish', 'main')
+  .option('--preset <preset>', 'The preset of the packages to publish')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(
@@ -397,7 +397,7 @@ program
       signer: p.signers[0],
       tags: options.tags.split(','),
       chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
-      preset: options.preset ? (options.preset as string) : undefined,
+      presetArg: options.preset ? (options.preset as string) : undefined,
       quiet: options.quiet,
       overrides,
     });
@@ -408,7 +408,7 @@ program
   .description('Inspect the details of a Cannon package')
   .argument('<packageName>', 'Name and version of the cannon package to inspect')
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
-  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect')
   .option('-j --json', 'Output as JSON')
   .option('--registry-priority <registry>', 'Priority of the registry to use')
   .option(
@@ -557,7 +557,7 @@ program
   .command('interact')
   .description('Start an interactive terminal against a set of active cannon deployments')
   .argument('<packageName>', 'Package to deploy, optionally with custom settings', parsePackageArguments)
-  .requiredOption('-c --chain-id <chainId>', 'Chain ID of deployment to alter')
+  .requiredOption('-c --chain-id <chainId>', 'Chain ID of deployment to interact with ')
   .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
   .option('-p --preset <preset>', 'Load an alternate setting preset', 'main')
   .option('--mnemonic <phrase>', 'Use the specified mnemonic to initialize a chain of signers while running')

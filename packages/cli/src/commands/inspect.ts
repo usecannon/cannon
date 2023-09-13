@@ -7,18 +7,27 @@ import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
 
-export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
-  const { name, version } = parsePackageRef(packageRef);
+export async function inspect(packageRef: string, chainId: number, presetArg: string, json: boolean, writeDeployments: string) {
+  const { name, version, preset } = parsePackageRef(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  } 
+
+  const selectedPreset = preset || presetArg || 'main';
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
   const loader = getMainLoader(resolveCliSettings());
 
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${preset}`);
+  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
   if (!deployUrl) {
     throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${preset}.`
+      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
     );
   }
 
@@ -60,7 +69,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
+    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
     console.log();

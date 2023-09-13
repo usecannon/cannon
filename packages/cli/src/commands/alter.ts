@@ -1,5 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
+
+import { bold, yellow } from 'chalk';
+
 import { createDefaultReadRegistry } from '../registry';
 import {
   createInitialContext,
@@ -12,21 +15,35 @@ import {
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
+import { parsePackageRef } from '../util/params';
+
 
 const debug = Debug('cannon:cli:alter');
 
 export async function alter(
   packageRef: string,
   chainId: number,
-  preset: string,
+  presetArg: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
+
+  const { name, version, preset } = parsePackageRef(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  } 
+
+  const selectedPreset = preset || presetArg || 'main';
+
   const cliSettings = resolveCliSettings();
 
-  const variant = `${chainId}-${preset}`;
+  const variant = `${chainId}-${selectedPreset}`;
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -55,8 +72,8 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(packageRef, preset, chainId);
-  const metaUrl = await resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
+  let startDeployInfo = await runtime.readDeploy(packageRef, selectedPreset, chainId);
+  const metaUrl = await resolver.getMetaUrl(packageRef, `${chainId}-${selectedPreset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy

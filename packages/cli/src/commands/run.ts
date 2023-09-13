@@ -10,7 +10,7 @@ import {
 } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from '../interact';
+import { interact } from './interact';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { getContractsRecursive } from '../util/contracts-recursive';
@@ -92,14 +92,28 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version } = pkg;
+    const { name, version, preset = 'main' } = pkg;
+
+    if (options.preset && preset) {
+      console.warn(
+        yellow(
+          bold(
+            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.preset}"`
+          )
+        )
+      );
+      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    }
+
+    const selectedPreset = preset || options.preset || 'main';
+
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        preset: options.preset,
+        presetArg: selectedPreset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -107,11 +121,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, options.preset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${options.preset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
         );
       }
 
@@ -119,7 +133,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       if (!outputs) {
         throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${options.preset}. Did you mean to run instead?`
+          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
         );
       }
 

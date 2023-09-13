@@ -9,10 +9,23 @@ import Debug from 'debug';
 import { forPackageTree } from '@usecannon/builder/dist/package';
 import { getMainLoader } from '../loader';
 
+import { bold, yellow } from 'chalk';
+import { parsePackageRef } from '../util/params';
+
 const debug = Debug('cannon:cli:verify');
 
-export async function verify(packageRef: string, apiKey: string, preset: string, chainId: number) {
-  await setupAnvil();
+export async function verify(packageRef: string, apiKey: string, presetArg: string, chainId: number) {
+
+  const { name, version, preset } = parsePackageRef(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  } 
+
+  const selectedPreset = preset || presetArg || 'main';
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -132,7 +145,7 @@ export async function verify(packageRef: string, apiKey: string, preset: string,
     }
   };
 
-  const deployData = await runtime.readDeploy(packageRef, preset, chainId);
+  const deployData = await runtime.readDeploy(packageRef, selectedPreset, chainId);
 
   if (!deployData) {
     throw new Error(

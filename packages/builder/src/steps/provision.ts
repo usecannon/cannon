@@ -88,7 +88,7 @@ export default {
       console.warn(yellow(bold(`Defaulting to sourcePreset definition "${config.sourcePreset}"...`)));
     }
 
-    config.source = packageRef.formatted();
+    config.source = packageRef.baseRef();
     config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
@@ -115,7 +115,7 @@ export default {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.formatted();
+    const source = packageRef.baseRef();
     const sourcePreset = config.sourcePreset || packageRef.preset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;

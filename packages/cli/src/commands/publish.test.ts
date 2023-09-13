@@ -1,20 +1,20 @@
 import { CannonWrapperGenericProvider, copyPackage, DeploymentInfo, IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import * as builder from '@usecannon/builder';
-import { LocalLoader } from './loader';
-import { publish } from './commands/publish';
+import { LocalLoader } from '../loader';
+import { publish } from '../commands/publish';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
 import path from 'path';
-import { resolveCliSettings } from './settings';
-import * as settings from './settings';
+import { resolveCliSettings } from '../settings';
+import * as settings from '../settings';
 import _ from 'lodash';
 
 describe('publish command', () => {
   let tags = ['tag0', 'tag1'];
-  const packageName = 'package:1.2.3';
   const chainId = 123;
   const otherChainId = 1234;
   const preset = 'your-preset';
+  const packageName = `package:1.2.3@${preset}`;
   const otherPreset = 'other-preset';
   let signer: ethers.Signer;
   const deployDataLocalFileName = `${packageName.replace(':', '_')}_${chainId}-${preset}.txt`;
@@ -131,7 +131,6 @@ describe('publish command', () => {
       signer,
       tags,
       chainId,
-      preset,
       quiet: true,
       recursive: true,
       overrides: {},
@@ -155,7 +154,6 @@ describe('publish command', () => {
       signer,
       tags,
       chainId,
-      preset,
       quiet: true,
       recursive: true,
       overrides: {},
@@ -189,7 +187,6 @@ describe('publish command', () => {
         signer,
         tags,
         chainId,
-        preset,
         quiet: true,
         recursive: true,
         overrides: {},
@@ -208,7 +205,6 @@ describe('publish command', () => {
         signer,
         tags,
         chainId,
-        preset: '',
         quiet: true,
         recursive: true,
         overrides: {},
@@ -229,7 +225,6 @@ describe('publish command', () => {
         signer,
         tags,
         chainId: 0,
-        preset,
         quiet: true,
         recursive: true,
         overrides: {},

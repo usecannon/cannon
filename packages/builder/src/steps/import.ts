@@ -62,7 +62,7 @@ export default {
       console.warn(yellow(bold(`Defaulting to preset definition "${config.preset}"...`)));
     }
 
-    config.source = packageRef.formatted();
+    config.source = packageRef.baseRef();
     config.preset = _.template(config.preset)(ctx) || packageRef.preset;
 
     return config;
@@ -78,7 +78,7 @@ export default {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.formatted();
+    const source = packageRef.baseRef();
 
     const preset = config.preset || packageRef.preset;
     const chainId = config.chainId ?? runtime.chainId;

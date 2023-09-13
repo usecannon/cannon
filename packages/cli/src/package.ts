@@ -7,6 +7,75 @@ import { getMainLoader } from './loader';
 
 const debug = Debug('cannon:cli:package');
 
+export interface CannonPackageReference {
+  name: string;
+  version: string;
+  preset?: string;
+
+  includesPreset: boolean;
+  baseRef(): string;
+}
+
+/**
+ * Used to format any reference to a cannon package and split it into it's core parts
+ */
+export class PackageReference implements CannonPackageReference {
+  private ref: string;
+  includesPreset: boolean;
+
+  constructor(ref: string) {
+    this.ref = ref;
+    this.includesPreset = false;
+  }
+
+  /**
+   * Anything before the colon or an @ (if no version is present) is the package name.
+   */
+  get name() {
+    if (this.ref.indexOf(':') !== -1) {
+      return this.ref.substring(0, this.ref.indexOf(':'));
+    } else if (this.ref.indexOf('@') !== -1) {
+      return this.ref.substring(0, this.ref.indexOf('@'));
+    } else {
+      return this.ref;
+    }
+  }
+
+  /**
+   *  Anything between the colon and the @ is the package version.
+   *  Defaults to 'latest' if not specified in reference
+   */
+  get version() {
+    if (this.ref.indexOf('@') !== -1 && this.ref.indexOf(':') !== -1) {
+      return this.ref.substring(this.ref.indexOf(':') + 1, this.ref.indexOf('@'));
+    } else if (this.ref.indexOf(':') !== -1) {
+      return this.ref.substring(this.ref.indexOf(':') + 1);
+    } else {
+      return 'latest';
+    }
+  }
+
+  /**
+   * Anything after the @ is the package preset.
+   * Defaults to 'main' if not specified in reference
+   */
+  get preset() {
+    if (this.ref.indexOf('@') !== -1) {
+      this.includesPreset = true;
+      return this.ref.substring(this.ref.indexOf('@') + 1);
+    } else {
+      return 'main';
+    }
+  }
+
+  /**
+   * Returns default format name:version
+   */
+  baseRef() {
+    return `${this.name}:${this.version}`;
+  }
+}
+
 export async function readDeploy(packageName: string, chainId: number, preset: string) {
   debug('readDeploy', packageName, chainId, preset);
   const store = await _getStore();
