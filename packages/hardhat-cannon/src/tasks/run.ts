@@ -43,17 +43,18 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
         ? _getPrivateKeyFromAccount(hre.network.config.accounts[0])
         : undefined;
 
-      const node = await runRpc(
+      const node =
         hre.network.name === 'cannon' || hre.network.name === 'hardhat'
-          ? {
+          ? await runRpc({
               port: Number.parseInt(port) || hre.config.networks.cannon.port,
-            }
-          : {
-              port: Number.parseInt(port) || hre.config.networks.cannon.port,
-              forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url),
-              chainId: networkConfig.chainId,
-            }
-      );
+            })
+          : await runRpc(
+              {
+                port: Number.parseInt(port) || hre.config.networks.cannon.port,
+                chainId: networkConfig.chainId,
+              },
+              { forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url) }
+            );
 
       let toImpersonate: string[] = [];
       if (impersonate) {
