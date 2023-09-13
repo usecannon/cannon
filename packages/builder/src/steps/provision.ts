@@ -77,7 +77,7 @@ export default {
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     // If both definitions of a preset exist, its a user error.
-    if (config.sourcePreset && packageRef.includesPreset) {
+    if (config.sourcePreset && packageRef.preset) {
       console.warn(
         yellow(
           bold(
@@ -85,11 +85,11 @@ export default {
           )
         )
       );
-      console.warn(yellow(bold(`Defaulting to sourcePreset definition "${config.sourcePreset}"...`)));
+      console.warn(yellow(bold(`Defaulting to source name preset "${config.source}"...`)));
     }
 
-    config.source = packageRef.baseRef();
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
+    config.source = packageRef.basePackageRef();
+    config.sourcePreset = packageRef.preset || _.template(config.sourcePreset)(ctx) || 'main';
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -115,8 +115,8 @@ export default {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.baseRef();
-    const sourcePreset = config.sourcePreset || packageRef.preset;
+    const source = packageRef.basePackageRef();
+    const sourcePreset = packageRef.preset || config.sourcePreset || 'main';
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 

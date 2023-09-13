@@ -503,14 +503,14 @@ program
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
   .option('-j --json', 'Output as JSON')
-  .action(async function (packageName, data, options) {
+  .action(async function (packageRef, data, options) {
     const { decode } = await import('./commands/decode');
 
     await decode({
-      packageName,
+      packageRef,
       data,
       chainId: options.chainId,
-      preset: options.preset,
+      presetArg: options.preset,
       json: options.json,
     });
   });
@@ -594,15 +594,17 @@ program
       getMainLoader(cliSettings)
     );
 
+    const selectedPreset = packageDefinition.preset || opts.preset || 'main';
+
     const deployData = await runtime.readDeploy(
       `${packageDefinition.name}:${packageDefinition.version}`,
-      opts.preset || 'main',
+      selectedPreset,
       runtime.chainId
     );
 
     if (!deployData) {
       throw new Error(
-        `deployment not found: ${packageDefinition.name}:${packageDefinition.version}. please make sure it exists for the given preset and current network.`
+        `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${selectedPreset}. please make sure it exists for the given preset and current network.`
       );
     }
 

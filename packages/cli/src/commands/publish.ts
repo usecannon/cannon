@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
-import { parsePackageRef } from '../util/params';
+import { PackageReference } from '@usecannon/builder/dist/package';
 
 import { bold, yellow } from 'chalk';
 
@@ -37,7 +37,7 @@ export async function publish({
     );
   }
 
-  const { name, version, preset } = parsePackageRef(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
@@ -95,11 +95,15 @@ export async function publish({
   // get a list of all deployments the user is requesting
 
   let variantFilter = /.*/;
-  if (chainId && selectedPreset) {
-    variantFilter = new RegExp(`^${chainId}-${selectedPreset}$`);
-  } else {
+  if (chainId && (preset || presetArg)) {
+    variantFilter = new RegExp(`^${chainId}-${(preset || presetArg)}$`);
+  } else if (chainId) {
+    variantFilter = new RegExp(`^${chainId}-.*$`);
+  } else if (selectedPreset) {
     variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
+
+  console.log("VARIANT FILTER==========>", variantFilter)
 
   const deploys = await localRegistry.scanDeploys(`${name}:${version}`, variantFilter);
 
@@ -107,15 +111,15 @@ export async function publish({
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
   }
 
-  console.log("HEREEEEEEEEEE==========>", `${name}:${version}`)
-  console.log(deploys)
-
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
   });
 
   const registrationReceipts = [];
+
+  console.log("PACKAGE BASE REF==========>", `${name}:${version}`)
+  console.log("DEPLOYS =======>", deploys)
 
   for (const deploy of deploys) {
     const newReceipts = await copyPackage({

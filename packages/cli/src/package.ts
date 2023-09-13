@@ -12,8 +12,7 @@ export interface CannonPackageReference {
   version: string;
   preset?: string;
 
-  includesPreset: boolean;
-  baseRef(): string;
+  basePackageRef(): string;
 }
 
 /**
@@ -21,11 +20,9 @@ export interface CannonPackageReference {
  */
 export class PackageReference implements CannonPackageReference {
   private ref: string;
-  includesPreset: boolean;
 
   constructor(ref: string) {
     this.ref = ref;
-    this.includesPreset = false;
   }
 
   /**
@@ -61,17 +58,14 @@ export class PackageReference implements CannonPackageReference {
    */
   get preset() {
     if (this.ref.indexOf('@') !== -1) {
-      this.includesPreset = true;
       return this.ref.substring(this.ref.indexOf('@') + 1);
-    } else {
-      return 'main';
-    }
+    } 
   }
 
   /**
    * Returns default format name:version
    */
-  baseRef() {
+  basePackageRef() {
     return `${this.name}:${this.version}`;
   }
 }

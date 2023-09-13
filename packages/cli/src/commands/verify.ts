@@ -6,17 +6,16 @@ import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
 import Debug from 'debug';
-import { forPackageTree } from '@usecannon/builder/dist/package';
+import { forPackageTree, PackageReference } from '@usecannon/builder/dist/package';
 import { getMainLoader } from '../loader';
 
 import { bold, yellow } from 'chalk';
-import { parsePackageRef } from '../util/params';
 
 const debug = Debug('cannon:cli:verify');
 
 export async function verify(packageRef: string, apiKey: string, presetArg: string, chainId: number) {
 
-  const { name, version, preset } = parsePackageRef(packageRef);
+  const { name, version, preset, basePackageRef } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
@@ -145,11 +144,11 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     }
   };
 
-  const deployData = await runtime.readDeploy(packageRef, selectedPreset, chainId);
+  const deployData = await runtime.readDeploy(basePackageRef(), selectedPreset, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${basePackageRef()}. please make sure it exists for the given preset and current network.`
     );
   }
 

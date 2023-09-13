@@ -15,71 +15,48 @@ export type CopyPackageOpts = {
   recursive?: boolean;
 };
 
-export interface CannonPackageReference {
-  name: string;
-  version: string;
-  preset?: string;
-
-  includesPreset: boolean;
-  baseRef(): string;
-}
-
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
-export class PackageReference implements CannonPackageReference {
+export class PackageReference {
   private ref: string;
-  includesPreset: boolean;
-
-  constructor(ref: string) {
-    this.ref = ref;
-    this.includesPreset = false;
-  }
-
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
-  get name() {
-    if (this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(0, this.ref.indexOf(':'));
-    } else if (this.ref.indexOf('@') !== -1) {
-      return this.ref.substring(0, this.ref.indexOf('@'));
-    } else {
-      return this.ref;
-    }
-  }
-
+  name: string;
   /**
    *  Anything between the colon and the @ is the package version.
    *  Defaults to 'latest' if not specified in reference
    */
-  get version() {
-    if (this.ref.indexOf('@') !== -1 && this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(this.ref.indexOf(':') + 1, this.ref.indexOf('@'));
-    } else if (this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(this.ref.indexOf(':') + 1);
-    } else {
-      return 'latest';
-    }
-  }
-
+  version: string;
   /**
    * Anything after the @ is the package preset.
-   * Defaults to 'main' if not specified in reference
    */
-  get preset() {
-    if (this.ref.indexOf('@') !== -1) {
-      this.includesPreset = true;
-      return this.ref.substring(this.ref.indexOf('@') + 1);
-    } else {
-      return 'main';
+  preset?: string;
+
+  constructor(ref: string) {
+    this.ref = ref;
+
+    const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+    const match = this.ref.match(packageRegExp);
+
+    if (!match) {
+      throw new Error(
+        `Invalid package name "${this.ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+      );
     }
+
+    const { name, version = 'latest', preset } = match.groups!;
+
+    this.name = name;
+    this.version = version;
+    this.preset = preset;
   }
 
   /**
    * Returns default format name:version
    */
-  baseRef() {
+  basePackageRef() {
     return `${this.name}:${this.version}`;
   }
 }
@@ -119,7 +96,6 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-
   const packageSpec = new PackageReference(packageRef);
 
   const basePkgRef = `${packageSpec.name}:${packageSpec.version}`;

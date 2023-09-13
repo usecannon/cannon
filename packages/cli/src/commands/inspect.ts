@@ -1,6 +1,6 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
-import { parsePackageRef } from '../util/params';
+import { PackageReference } from '@usecannon/builder/dist/package';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
@@ -8,7 +8,7 @@ import path from 'path';
 import { getMainLoader } from '../loader';
 
 export async function inspect(packageRef: string, chainId: number, presetArg: string, json: boolean, writeDeployments: string) {
-  const { name, version, preset } = parsePackageRef(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(

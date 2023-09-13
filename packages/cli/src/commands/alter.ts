@@ -15,7 +15,7 @@ import {
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
-import { parsePackageRef } from '../util/params';
+import { PackageReference } from '@usecannon/builder/dist/package';
 
 
 const debug = Debug('cannon:cli:alter');
@@ -30,7 +30,7 @@ export async function alter(
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
 
-  const { name, version, preset } = parsePackageRef(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(

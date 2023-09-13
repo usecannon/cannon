@@ -70,7 +70,7 @@ export class CannonStorage extends EventEmitter {
 
     const loaderScheme = uri.split(':')[0];
 
-    console.log(bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}...`));
+    console.log(bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}@${preset}...`));
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 

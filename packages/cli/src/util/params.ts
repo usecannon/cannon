@@ -2,21 +2,8 @@ import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types';
 
-const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))(?:@(?<preset>\w+))?$/;
+const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
-
-export function parsePackageRef(val: string) {
-  const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))(?:@(?<preset>\w+))?$/;
-  const match = val.match(packageRegExp);
-
-  if (!match) {
-    throw new InvalidArgumentError(`Invalid package name "${val}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`);
-  }
-
-  const { name,  version = 'latest', preset } = match.groups!;
-
-  return { name, version, preset };
-}
 
 export function parseInteger(val: string) {
   const parsedValue = Number.parseInt(val);
