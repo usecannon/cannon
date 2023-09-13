@@ -100,7 +100,7 @@ const TransactionDetailsPage: FC<{
     onSignComplete: () => {
       router.push(links.DEPLOY);
       toast({
-        title: 'Signing is complete',
+        title: 'You successfully signed the transaction.',
         status: 'success',
         duration: 5000,
         isClosable: true,
