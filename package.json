@@ -45,5 +45,6 @@
   "license": "GNU GPL V3.0",
   "dependencies": {
     "concat-md": "^0.5.1"
-  }
+  },
+  "version": "2.7.0"
 }

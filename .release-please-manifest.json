@@ -1,5 +1,6 @@
 {
   "packages/builder": "2.6.0",
   "packages/cli": "2.6.0",
-  "packages/hardhat-cannon": "2.5.5"
+  "packages/hardhat-cannon": "2.5.5",
+  ".": "2.7.0"
 }
