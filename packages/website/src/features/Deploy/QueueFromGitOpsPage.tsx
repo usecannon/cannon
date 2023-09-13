@@ -448,7 +448,18 @@ function QueueFromGitOps() {
                 isDisabled={!!stager.execConditionFailed}
                 size="lg"
                 w="100%"
-                onClick={() => execTxn.write && execTxn.write()}
+                onClick={async () => {
+                  if (execTxn.writeAsync) {
+                    await execTxn.writeAsync();
+                    router.push(links.DEPLOY);
+                    toast({
+                      title: 'You successfully executed the transaction.',
+                      status: 'success',
+                      duration: 5000,
+                      isClosable: true,
+                    });
+                  }
+                }}
               >
                 Execute
               </Button>

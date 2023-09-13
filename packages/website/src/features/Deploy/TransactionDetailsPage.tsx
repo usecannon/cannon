@@ -306,7 +306,18 @@ const TransactionDetailsPage: FC<{
                       isDisabled={
                         (safeTxn && !!stager.execConditionFailed) as any
                       }
-                      onClick={() => execTxn.write && execTxn.write()}
+                      onClick={async () => {
+                        if (execTxn.writeAsync) {
+                          await execTxn.writeAsync();
+                          router.push(links.DEPLOY);
+                          toast({
+                            title: 'You successfully executed the transaction.',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                        }
+                      }}
                     >
                       Execute
                     </Button>
