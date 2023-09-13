@@ -41,10 +41,12 @@ export async function publish({
 
   if (presetArg && preset) {
     console.warn(
-      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      )
     );
     console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
-  } 
+  }
 
   const selectedPreset = preset || presetArg || 'main';
 
@@ -96,14 +98,12 @@ export async function publish({
 
   let variantFilter = /.*/;
   if (chainId && (preset || presetArg)) {
-    variantFilter = new RegExp(`^${chainId}-${(preset || presetArg)}$`);
+    variantFilter = new RegExp(`^${chainId}-${preset || presetArg}$`);
   } else if (chainId) {
     variantFilter = new RegExp(`^${chainId}-.*$`);
   } else if (selectedPreset) {
     variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
-
-  console.log("VARIANT FILTER==========>", variantFilter)
 
   const deploys = await localRegistry.scanDeploys(`${name}:${version}`, variantFilter);
 
@@ -117,9 +117,6 @@ export async function publish({
   });
 
   const registrationReceipts = [];
-
-  console.log("PACKAGE BASE REF==========>", `${name}:${version}`)
-  console.log("DEPLOYS =======>", deploys)
 
   for (const deploy of deploys) {
     const newReceipts = await copyPackage({

@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
-import { alter } from './commands/alter';
-import { createDefaultReadRegistry } from './registry';
+import { alter } from './alter';
+import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { getMainLoader, LocalLoader } from './loader';
+import { getMainLoader, LocalLoader } from '../loader';
 import _ from 'lodash';
-import cli from './index';
+import cli from '../index';
 
 function generatePrivateKey(): string {
   const randomWallet = ethers.Wallet.createRandom();
@@ -12,7 +12,7 @@ function generatePrivateKey(): string {
 }
 
 // Jest Mocking
-jest.mock('./settings', () => ({
+jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({
     registryProviderUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
@@ -21,11 +21,11 @@ jest.mock('./settings', () => ({
   }),
 }));
 
-jest.mock('./registry');
+jest.mock('../registry');
 // jest.mock('@usecannon/builder');
-jest.mock('./loader');
+jest.mock('../loader');
 
-jest.mock('./rpc');
+jest.mock('../rpc');
 
 describe('alter', () => {
   const packageName = 'package:1.2.3';

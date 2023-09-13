@@ -15,7 +15,7 @@ describe('publish command', () => {
   const otherChainId = 1234;
   const preset = 'your-preset';
   const packageRef = `package:1.2.3@${preset}`;
-  const basePackageRef = `package:1.2.3`;
+  const basePackageRef = 'package:1.2.3';
   const otherPreset = 'other-preset';
   let signer: ethers.Signer;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;

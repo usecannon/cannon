@@ -1,30 +1,30 @@
-import * as paramUtils from './util/params';
+import * as paramUtils from '../util/params';
 
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { CannonRpcNode } from './rpc';
+import { CannonRpcNode } from '../rpc';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
 
 describe('build', () => {
-  let cli: typeof import('./index').default;
-  let helpers: typeof import('./helpers');
+  let cli: typeof import('../index').default;
+  let helpers: typeof import('../helpers');
   let ethers: typeof import('ethers').ethers;
-  let buildCommand: typeof import('./commands/build');
-  let utilProvider: typeof import('./util/provider');
-  let rpcModule: typeof import('./rpc');
+  let buildCommand: typeof import('./build');
+  let utilProvider: typeof import('../util/provider');
+  let rpcModule: typeof import('../rpc');
 
   const fixedArgs = ['node', 'cannon.ts', 'build', '--skip-compile'];
 
   beforeEach(async () => {
     // reset all mocks
     jest.clearAllMocks();
-    cli = (await import('./index')).default;
-    helpers = await import('./helpers');
+    cli = (await import('../index')).default;
+    helpers = await import('../helpers');
     ethers = (await import('ethers')).ethers;
-    buildCommand = await import('./commands/build');
-    utilProvider = await import('./util/provider');
-    rpcModule = await import('./rpc');
+    buildCommand = await import('./build');
+    utilProvider = await import('../util/provider');
+    rpcModule = await import('../rpc');
   });
 
   afterEach(() => {

@@ -7,15 +7,23 @@ import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
 
-export async function inspect(packageRef: string, chainId: number, presetArg: string, json: boolean, writeDeployments: string) {
+export async function inspect(
+  packageRef: string,
+  chainId: number,
+  presetArg: string,
+  json: boolean,
+  writeDeployments: string
+) {
   const { name, version, preset } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
-      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      )
     );
     console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
-  } 
+  }
 
   const selectedPreset = preset || presetArg || 'main';
 

@@ -33,6 +33,11 @@ export class PackageReference {
    * Anything after the @ is the package preset.
    */
   preset?: string;
+  
+  /**
+   * Convenience parameter for returning base package format without preset **[name]:[version]**
+  */
+  basePackageRef: string;
 
   constructor(ref: string) {
     this.ref = ref;
@@ -51,13 +56,8 @@ export class PackageReference {
     this.name = name;
     this.version = version;
     this.preset = preset;
-  }
 
-  /**
-   * Returns default format name:version
-   */
-  basePackageRef() {
-    return `${this.name}:${this.version}`;
+    this.basePackageRef = `${this.name}:${this.version}`;
   }
 }
 
@@ -96,12 +96,9 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-  const packageSpec = new PackageReference(packageRef);
+  const { basePackageRef } = new PackageReference(packageRef);
 
-  const basePkgRef = `${packageSpec.name}:${packageSpec.version}`;
-  const fullPkgRef = `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}`;
-
-  debug(`copy package ${fullPkgRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
+  debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
 
@@ -111,7 +108,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(basePkgRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -146,7 +143,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromStorage.readDeploy(basePkgRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');

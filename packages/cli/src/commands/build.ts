@@ -23,7 +23,6 @@ import { createDefaultReadRegistry } from '../registry';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
-
 import pkg from '../../package.json';
 
 interface Params {
@@ -86,10 +85,14 @@ export async function build({
 
   if (presetArg && preset) {
     console.warn(
-      yellow(bold(`Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`))
+      yellow(
+        bold(
+          `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
+        )
+      )
     );
     console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
-  } 
+  }
 
   const selectedPreset = preset || presetArg || 'main';
 
@@ -297,11 +300,7 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
-      console.log(
-        greenBright(
-          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`
-        )
-      );
+      console.log(greenBright(`Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`));
     }
   } else {
     console.log(

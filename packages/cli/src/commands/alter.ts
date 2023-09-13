@@ -17,7 +17,6 @@ import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
 
-
 const debug = Debug('cannon:cli:alter');
 
 export async function alter(
@@ -29,15 +28,16 @@ export async function alter(
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
-
-  const { name, version, preset } = new PackageReference(packageRef);
+  const { preset, basePackageRef } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
-      yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`))
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`)
+      )
     );
     console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
-  } 
+  }
 
   const selectedPreset = preset || presetArg || 'main';
 
@@ -72,15 +72,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(packageRef, selectedPreset, chainId);
-  const metaUrl = await resolver.getMetaUrl(packageRef, `${chainId}-${selectedPreset}`);
+  let startDeployInfo = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
+  const metaUrl = await resolver.getMetaUrl(basePackageRef, `${chainId}-${selectedPreset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(packageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(basePackageRef, 'main', CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${packageRef} (${variant})`);
+      throw new Error(`deployment not found: ${basePackageRef} (${variant})`);
     }
   }
 

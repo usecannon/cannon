@@ -3,7 +3,6 @@ import { SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_INSPECT } from '../task-names';
 import { inspect, PackageSpecification } from '@usecannon/cli';
 import { bold, yellow } from 'chalk';
 
-
 task(TASK_INSPECT, 'Inspect the details of a Cannon package')
   .addOptionalPositionalParam('packageName', 'Name and version of the cannon package to inspect')
   .addOptionalParam('chainId', 'Chain ID of the variant to inspect')
@@ -19,17 +18,20 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
       chainId = hre?.network?.config?.chainId || 13370;
     }
 
-    const packageRef = packageSpec.preset ? `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}` : `${packageSpec.name}:${packageSpec.version}`
+    const packageRef = packageSpec.preset
+      ? `${packageSpec.name}:${packageSpec.version}@${packageSpec.preset}`
+      : `${packageSpec.name}:${packageSpec.version}`;
 
     if (packageSpec.preset && preset) {
       console.warn(
-        yellow(bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${preset}"`))
+        yellow(
+          bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${preset}"`)
+        )
       );
       console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
-    } 
+    }
 
     const selectedPreset = packageSpec.preset || preset || 'main';
-
 
     await inspect(packageRef, chainId, selectedPreset, json, writeDeployments);
   });
