@@ -11,6 +11,7 @@ export const DebugPage = () => {
       background={theme.gradients.dark}
       backgroundAttachment="fixed"
       flex="1"
+      py={[4, 4, 8]}
       p={4}
     >
       <Box
