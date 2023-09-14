@@ -246,9 +246,9 @@ export const invokeSchema = z
          *   Override transaction settings
          */
         overrides: z.object({
-        /**
-         *   Gas limit to send along with the transaction
-        */
+          /**
+           *   Gas limit to send along with the transaction
+           */
           gasLimit: z.string().refine((val) => !!parseInt(val), { message: 'Gas limit is invalid' }),
         }),
         /**
@@ -478,19 +478,19 @@ export const chainDefinitionSchema = z
         import: z.record(importSchema),
         /**
          * @internal
-        */
+         */
         provision: z.record(provisionSchema),
         /**
          * @internal
-        */
+         */
         contract: z.record(contractSchema),
         /**
          * @internal
-        */
+         */
         invoke: z.record(invokeSchema),
         /**
          * @internal
-        */
+         */
         router: z.record(routerSchema),
         // ... there may be others that come from plugins
       })
