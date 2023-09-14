@@ -8,7 +8,7 @@ import { MarkdownSpec } from '@/components/MarkdownSpec';
 
 
 export const metadata: Metadata = {
-  title: 'Cannon | Documentation',
+  title: 'Cannon | Docs',
 };
 
 export default function Docs() {

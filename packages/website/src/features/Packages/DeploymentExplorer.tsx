@@ -317,7 +317,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Package Data Imports
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.import} />
+                <ChainDefinitionSteps
+                  name="import"
+                  modules={deploymentInfo.def.import}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.provision && (
@@ -325,7 +328,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Package Provisioning
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.provision} />
+                <ChainDefinitionSteps
+                  name="provision"
+                  modules={deploymentInfo.def.provision}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.router && (
@@ -333,7 +339,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Router Generation
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.router} />
+                <ChainDefinitionSteps
+                  name="router"
+                  modules={deploymentInfo.def.router}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.contract && (
@@ -341,7 +350,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Contract Deployments
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.contract} />
+                <ChainDefinitionSteps
+                  name="contract"
+                  modules={deploymentInfo.def.contract}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.invoke && (
@@ -349,7 +361,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Function Calls
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.invoke} />
+                <ChainDefinitionSteps
+                  name="invoke"
+                  modules={deploymentInfo.def.invoke}
+                />
               </Box>
             )}
           </Box>

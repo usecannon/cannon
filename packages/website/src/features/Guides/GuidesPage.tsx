@@ -21,7 +21,6 @@ interface GuideCardProps {
 }
 
 const GuideCard: React.FC<GuideCardProps> = ({ href, title, subtitle }) => {
-  const theme = useTheme();
   return (
     <GridItem>
       <Link
@@ -34,15 +33,15 @@ const GuideCard: React.FC<GuideCardProps> = ({ href, title, subtitle }) => {
           border="1px solid"
           borderColor="gray.700"
           borderRadius="md"
-          background={href ? theme.gradients.dark : 'gray.800'}
+          background="gray.900"
           p={5}
           minHeight="178px"
           flexDirection="column"
           justifyContent="flex-end"
           transition={'all 0.2s'}
           _hover={{
-            background: href ? theme.gradients.light : undefined,
-            boxShadow: href ? '0px 0px 12px rgba(0,0,0,0.5)' : undefined,
+            background: 'whiteAlpha.100',
+            boxShadow: '0px 0px 12px rgba(0,0,0,0.5)',
           }}
         >
           {title && (
@@ -64,35 +63,44 @@ const GuideCard: React.FC<GuideCardProps> = ({ href, title, subtitle }) => {
 };
 
 export const GuidesPage = () => {
+  const theme = useTheme();
+
   return (
-    <Container maxW="container.lg">
-      <Grid
-        templateColumns={[
-          'repeat(1, 1fr)',
-          'repeat(1, 1fr)',
-          'repeat(2, 1fr)',
-          'repeat(3, 1fr)',
-        ]}
-        gap={[4, 4, 8]}
-        py={[4, 4, 8]}
-      >
-        <GuideCard
-          href={links.GETSTARTED}
-          title="Get Started"
-          subtitle="Run a package from the registry explorer on a local node in seconds"
-        />
-        <GuideCard
-          href={links.BUILD}
-          title="Build a Protocol"
-          subtitle="Create and deploy a protocol that integrates with Cannon packages"
-        />
-        <GuideCard
-          href={links.ROUTER}
-          title="Deploy a Router"
-          subtitle="Build a protocol of any size with Synthetix’s Router plug-in"
-        />
-        <GuideCard subtitle="More guides coming soon..." />
-      </Grid>
-    </Container>
+    <Flex
+      background={theme.gradients.dark}
+      backgroundAttachment="fixed"
+      flex="1"
+      py={[4, 4, 8]}
+      p={4}
+    >
+      <Container maxW="container.lg">
+        <Grid
+          templateColumns={[
+            'repeat(1, 1fr)',
+            'repeat(1, 1fr)',
+            'repeat(2, 1fr)',
+            'repeat(3, 1fr)',
+          ]}
+          gap={[4, 4, 8]}
+          py={[4, 4, 8]}
+        >
+          <GuideCard
+            href={links.GETSTARTED}
+            title="Get Started"
+            subtitle="Run a package from the registry explorer on a local node in seconds"
+          />
+          <GuideCard
+            href={links.BUILD}
+            title="Build a Protocol"
+            subtitle="Create and deploy a protocol that integrates with Cannon packages"
+          />
+          <GuideCard
+            href={links.ROUTER}
+            title="Deploy a Router"
+            subtitle="Build a protocol of any size with Synthetix’s Router plug-in"
+          />
+        </Grid>
+      </Container>
+    </Flex>
   );
 };
