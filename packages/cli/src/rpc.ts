@@ -16,6 +16,8 @@ const debug = Debug('cannon:cli:rpc');
 export type RpcOptions = {
   port: number;
   forkProvider?: ethers.providers.JsonRpcProvider;
+  forkBlockNumber?: ethers.BigNumberish;
+  timestamp?: ethers.BigNumberish;
   chainId?: number;
 };
 
@@ -37,7 +39,13 @@ export const versionCheck = _.once(async () => {
   }
 });
 
-export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
+export async function runRpc({
+  port,
+  forkProvider,
+  forkBlockNumber,
+  timestamp,
+  chainId = CANNON_CHAIN_ID,
+}: RpcOptions): Promise<CannonRpcNode> {
   await versionCheck();
 
   if (anvilInstance && anvilInstance.exitCode === null) {
@@ -47,7 +55,7 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
       new Promise<CannonRpcNode>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
-          resolve(await runRpc({ port, forkProvider, chainId }));
+          resolve(await runRpc({ port, forkProvider, forkBlockNumber, chainId }));
         });
         anvilInstance!.kill();
       }),
@@ -69,12 +77,23 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
     opts.push('--fork-url', url);
   }
 
+  if (forkBlockNumber) {
+    console.log(`including fork block number ${forkBlockNumber}`);
+    opts.push('--fork-block-number', forkBlockNumber.toString());
+  }
+
+  if (timestamp) {
+    console.log('including timestamp');
+    opts.push('--timestamp', timestamp.toString());
+  }
+
   return Promise.race<Promise<CannonRpcNode>>([
     new Promise<CannonRpcNode>((resolve, reject) => {
       anvilInstance = spawn('anvil', opts) as CannonRpcNode;
 
       anvilInstance.port = port;
       anvilInstance.forkProvider = forkProvider;
+      anvilInstance.forkBlockNumber = forkBlockNumber;
       anvilInstance.chainId = chainId;
 
       process.once('exit', () => anvilInstance?.kill());
