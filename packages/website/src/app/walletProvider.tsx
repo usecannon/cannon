@@ -44,9 +44,22 @@ const wagmiConfig = createConfig({
 });
 
 function WalletProvider({ children }: { children: ReactNode }) {
+  // NOTE: have to hack the style below becuase otherwise it overflows the page.
+  // hopefully the class name doesnt change from compile to compile lol
+  // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} theme={darkTheme()}>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+            div.ju367v1i {
+              max-height: 90vh;
+              overflow: auto;
+            }
+          `,
+          }}
+        />
         {children}
       </RainbowKitProvider>
     </WagmiConfig>
