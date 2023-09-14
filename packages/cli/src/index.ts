@@ -506,7 +506,7 @@ program
   .option('-f --from <source>', 'Caller for the transaction to trace')
   .option('-t --to <target>', 'Contract which should be called')
   .option('-v --value <value>', 'Amonut of gas token to send in the traced call')
-  .option('-b --block-number', 'The block to simulate when the call is on')
+  .option('-b --block-number <value>', 'The block to simulate when the call is on')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
   .option('-j --json', 'Output as JSON')
   .action(async function (packageName, data, options) {

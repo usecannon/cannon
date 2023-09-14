@@ -48,7 +48,6 @@ export async function trace({
   const artifacts: ChainArtifacts = {};
 
   for (const di of deployInfos) {
-    console.log();
     _.merge(artifacts, getArtifacts(new ChainDefinition(di.def), di.state));
   }
 
@@ -66,7 +65,7 @@ export async function trace({
 
     data = txData.data;
     value = value || txData.value;
-    block = txReceipt.blockNumber;
+    block = block || txReceipt.blockNumber;
     from = from || txData.from;
     to = to || txData.to;
   } else if (!to) {

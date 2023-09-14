@@ -78,12 +78,10 @@ export async function runRpc({
   }
 
   if (forkBlockNumber) {
-    console.log(`including fork block number ${forkBlockNumber}`);
     opts.push('--fork-block-number', forkBlockNumber.toString());
   }
 
   if (timestamp) {
-    console.log('including timestamp');
     opts.push('--timestamp', timestamp.toString());
   }
 
