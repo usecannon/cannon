@@ -21,4 +21,4 @@ export { copyPackage } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
 
-export { renderTrace, findContract } from './trace';
+export { renderTrace, findContract, TraceEntry } from './trace';

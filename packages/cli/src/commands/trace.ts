@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import { ethers } from 'ethers';
-import { gray, yellow } from 'chalk';
+import { gray, yellow, green, red, bold } from 'chalk';
 import { readDeployRecursive } from '../package';
 import { resolveWriteProvider } from '../util/provider';
 import { resolveCliSettings } from '../settings';
 
 import { runRpc, getProvider } from '../rpc';
-import { getArtifacts, renderTrace, findContract, ChainDefinition, ChainArtifacts } from '@usecannon/builder';
+import { getArtifacts, renderTrace, findContract, ChainDefinition, ChainArtifacts, TraceEntry } from '@usecannon/builder';
 
 import Debug from 'debug';
 
@@ -65,7 +65,7 @@ export async function trace({
 
     data = txData.data;
     value = value || txData.value;
-    block = block || txReceipt.blockNumber;
+    block = block || txReceipt.blockNumber - 1;
     from = from || txData.from;
     to = to || txData.to;
   } else if (!to) {
@@ -135,13 +135,34 @@ export async function trace({
   }
 
   // once we have forced through the transaction, call `trace_transaction`
-  const traces = await simulateProvider.send('trace_transaction', [txnHash]);
+  const traces: TraceEntry[] = await simulateProvider.send('trace_transaction', [txnHash]);
 
   if (!json) {
     const traceText = renderTrace(artifacts, traces);
 
     console.log(traceText);
+
+    const receipt = await simulateProvider.getTransactionReceipt(txnHash);
+    const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
+    console.log();
+    if (receipt.status == 1) {
+      console.log(
+        green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
+      );
+    } else {
+      console.log(red(bold(`Transaction completes with error: ${traces[0].result.output} (${totalGasUsed} gas)`)));
+    }
   } else {
     console.log(JSON.stringify(traces, null, 2));
   }
+}
+
+function computeGasUsed(traces: TraceEntry[], txn: ethers.providers.TransactionRequest): number {
+  // total gas required for the transaction is whatever was used by the actual txn
+  // + 21000 (base transaction cost)
+  // + cost of the txn calldata
+  const txnData = ethers.utils.arrayify(txn.data || '0x');
+  const zeroDataCount = txnData.filter((d) => d === 0).length;
+  const nonZeroDataCount = txnData.length - zeroDataCount;
+  return parseInt(traces[0].result.gasUsed) + 21000 + 4 * zeroDataCount + 16 * nonZeroDataCount;
 }
