@@ -33,10 +33,10 @@ export class PackageReference {
    * Anything after the @ is the package preset.
    */
   preset?: string;
-  
+
   /**
    * Convenience parameter for returning base package format without preset **[name]:[version]**
-  */
+   */
   basePackageRef: string;
 
   constructor(ref: string) {
