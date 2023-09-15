@@ -1,6 +1,7 @@
 import { ChainArtifacts, ContractData } from './types';
 import { ConsoleLogs } from './consoleLog';
 import { ethers } from 'ethers';
+import { green, grey, bold } from 'chalk';
 
 const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
@@ -57,15 +58,15 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
         trace.result.output
       );
 
-      str =
-        callTraceAction.callType.toUpperCase() +
-        ' ' +
-        (contractName || callTraceAction.to) +
-        '.' +
-        (parsedInput || callTraceAction.input) +
-        (parsedOutput ? ' => ' + parsedOutput : '') +
-        `(${parseInt(callTraceAction.gas)})`;
+      const actionStr = bold(`${callTraceAction.callType.toUpperCase()} `);
+      const gasStr = grey(` (${parseInt(callTraceAction.gas).toLocaleString()} gas)`);
 
+      const txStr =
+        (contractName || callTraceAction.to) +
+        (parsedInput || callTraceAction.input) +
+        (parsedOutput ? ' => ' + parsedOutput : '');
+
+      str = actionStr + (contractName ? green(txStr) : txStr) + gasStr;
       break;
     case 'create':
       //const createTraceAction = trace.action as CreateTraceAction;
