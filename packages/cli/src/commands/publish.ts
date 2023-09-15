@@ -28,9 +28,9 @@ export async function publish({
 }: Params) {
   const cliSettings = resolveCliSettings();
 
-  if (!cliSettings.ipfsUrl && !cliSettings.publishIpfsUrl) {
+  if (!cliSettings.publishIpfsUrl) {
     throw new Error(
-      `In order to publish, a IPFS URL must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
+      `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
 
@@ -65,7 +65,7 @@ export async function publish({
 
     const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
     const toStorage = new CannonStorage(localRegistry, {
-      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
     });
 
     await copyPackage({
