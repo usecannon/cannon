@@ -31,6 +31,7 @@ jobs:
         with:
           cache: npm
           node-version: '20.5.1'
+          registry-url: 'https://registry.npmjs.org'
       - name: Install Dependencies
         if: ${{ steps.release.outputs.releases_created }}
         run: npm ci
