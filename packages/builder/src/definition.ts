@@ -86,6 +86,12 @@ export class ChainDefinition {
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
 
+    const cycles = this.checkCycles();
+
+    if (cycles) {
+      throw new Error(`the following dependency cycle was found in your chain definition:\n${cycles.join('\n')}`);
+    }
+
     // get all dependencies, and filter out the extraneous
     for (const action of this.allActionNames) {
       debug(`compute dependencies for ${action}`);
@@ -241,6 +247,10 @@ export class ChainDefinition {
    * @returns direct dependencies for the specified node
    */
   computeDependencies(node: string) {
+    if (!_.get(this.raw, node)) {
+      throw new Error(`invalid dependency: ${node}`);
+    }
+
     const deps = (_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
@@ -352,10 +362,10 @@ export class ChainDefinition {
 
       currentPath.add(n);
 
-      const cycle = this.checkCycles(this.getDependencies(n), seenNodes, currentPath);
+      const cycle = this.checkCycles(this.computeDependencies(n), seenNodes, currentPath);
 
       if (cycle) {
-        if (this.getDependencies(cycle[cycle.length - 1]).indexOf(cycle[0]) === -1) {
+        if (this.computeDependencies(cycle[cycle.length - 1]).indexOf(cycle[0]) === -1) {
           cycle.unshift(n);
         }
 

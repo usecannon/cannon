@@ -19,6 +19,7 @@ const debug = Debug('cannon:builder:run');
 
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { computeTemplateAccesses } from '@usecannon/builder';
 
 interface ErrorWithCode extends Error {
   code: string;
@@ -130,6 +131,21 @@ const runAction = {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.exec));
+    _.forEach(config.modified, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.env, (a) => accesses.push(...computeTemplateAccesses(a)));
+
+    return accesses;
+  },
+
+  getOutputs(config: Config) {
+    return config.outputs;
   },
 
   async exec(

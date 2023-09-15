@@ -295,30 +295,12 @@ describe('util.ts', () => {
           { action: 'contract.One', dependency: 'contract.Foo' },
           { action: 'contract.One', dependency: 'contract.Bar' },
         ],
-        extraneous: [],
         invalidSchema: {},
       });
 
       expect(problemsInfo).toStrictEqual([
         '1: In action "contract.One", the dependency "contract.Foo" is not defined elsewhere.',
         '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.',
-      ]);
-    });
-
-    it('prints extraneous dependencies', async () => {
-      const problemsInfo = printChainDefinitionProblems({
-        cycles: [],
-        missing: [],
-        extraneous: [
-          { node: 'contract.One', extraneous: 'contract.Two', inDep: 'contract.Three' },
-          { node: 'contract.Two', extraneous: 'contract.Four', inDep: 'contract.Five' },
-        ],
-        invalidSchema: {},
-      });
-
-      expect(problemsInfo).toStrictEqual([
-        '1: The action contract.One defines an unnecessary dependency contract.Two (a sub-dependency of contract.Three). Please remove this unnecessary dependency.',
-        '2: The action contract.Two defines an unnecessary dependency contract.Four (a sub-dependency of contract.Five). Please remove this unnecessary dependency.',
       ]);
     });
 
@@ -329,7 +311,6 @@ describe('util.ts', () => {
           ['contract.Three', 'contract.Five'],
         ],
         missing: [],
-        extraneous: [],
         invalidSchema: {},
       });
 

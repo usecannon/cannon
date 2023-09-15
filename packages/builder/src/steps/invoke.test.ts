@@ -125,7 +125,7 @@ describe('steps/invoke.ts', () => {
       expect(
         action
           .getInputs({
-            target: ['<%= contracts.a %>'],
+            target: ['a'],
             abi: '<%= contracts.b %>',
             from: '<%= contracts.c %>',
             func: '<%= contracts.d %>',
