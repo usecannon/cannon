@@ -1,7 +1,7 @@
 import { ChainArtifacts, ContractData } from './types';
 import { ConsoleLogs } from './consoleLog';
 import { ethers } from 'ethers';
-import { green, grey, bold } from 'chalk';
+import { green, grey, bold, red } from 'chalk';
 
 const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
@@ -63,6 +63,7 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
 
       const txStr =
         (contractName || callTraceAction.to) +
+        '.' +
         (parsedInput || callTraceAction.input) +
         (parsedOutput ? ' => ' + parsedOutput : '');
 
@@ -143,7 +144,7 @@ export function parseFunctionData(
         } catch (err) {
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
-            parsedOutput = parseContractErrorReason(info.contract, output);
+            parsedOutput = bold(red(parseContractErrorReason(info.contract, output)));
             isReverted = true;
           } catch (err) {
             parsedOutput = output;
