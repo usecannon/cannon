@@ -60,8 +60,14 @@ export const CodeExplorer: FC<{
     },
   });
 
-  const miscUrl =
-    deploymentData?.data && JSON.parse(deploymentData?.data)?.miscUrl;
+  let miscUrl: string | undefined;
+  if (deploymentData?.data) {
+    miscUrl =
+      typeof deploymentData?.data === 'string'
+        ? JSON.parse(deploymentData?.data)?.miscUrl
+        : JSON.parse(JSON.stringify((deploymentData as any)?.data))?.miscUrl;
+  }
+
   const miscData = useQuery({
     queryKey: [miscUrl],
     queryFn: async ({ signal }) => {
@@ -101,7 +107,7 @@ export const CodeExplorer: FC<{
         </Box>
       )}
 
-      <IpfsUrl title="Miscellaneous Data" url={miscUrl} />
+      <IpfsUrl title="Miscellaneous Data" url={miscUrl ?? ''} />
       {miscData.data && <CodePreview code={miscData.data} language="json" />}
     </Container>
   );
