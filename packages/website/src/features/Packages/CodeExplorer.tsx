@@ -39,7 +39,7 @@ const handleDownload = (content: JSON) => {
 export const CodeExplorer: FC<{
   variant: any;
 }> = ({ variant }) => {
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [metadata, setMetadata] = useState<any>({});
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export const CodeExplorer: FC<{
         Object.entries(JSON.parse(miscData?.data).artifacts).map(
           ([artifactKey, artifactValue]) => {
             return (
-              <Box mb={8}>
+              <Box key={artifactKey} mb={8}>
                 <Flex flexDirection={['column', 'column', 'row']} mb="2">
                   <Heading size="md" mb="2">
                     {artifactKey}
@@ -145,7 +145,7 @@ export const CodeExplorer: FC<{
                     _hover={{ bg: 'gray.700' }}
                     leftIcon={<DownloadIcon />}
                     onClick={() => {
-                      handleDownload(artifactValue?.abi);
+                      handleDownload((artifactValue as any)?.abi);
                     }}
                     ml={[0, 0, 'auto']}
                   >
@@ -153,15 +153,15 @@ export const CodeExplorer: FC<{
                   </Button>
                 </Flex>
                 {Object.entries(
-                  JSON.parse(artifactValue?.source?.input).sources
+                  JSON.parse((artifactValue as any)?.source?.input).sources
                 ).map(([sourceKey, sourceValue]) => {
                   return (
-                    <Box mb={6}>
+                    <Box key={sourceKey} mb={6}>
                       <Code fontSize="lg" mb="4">
                         {sourceKey}
                       </Code>
                       <CodePreview
-                        code={sourceValue?.content}
+                        code={(sourceValue as any)?.content}
                         language="solidity"
                       />
                     </Box>
