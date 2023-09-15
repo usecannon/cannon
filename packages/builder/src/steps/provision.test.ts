@@ -23,6 +23,9 @@ describe('steps/provision.ts', () => {
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
+    jest.mocked(contractAction.getOutputs).mockReturnValue([]);
+    jest.mocked(contractAction.getInputs).mockReturnValue([]);
+
     jest.mocked(contractAction.exec).mockResolvedValue({
       contracts: {
         Woot: {

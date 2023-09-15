@@ -25,6 +25,16 @@ export interface CannonAction {
     packageState: PackageState
   ) => any;
 
+  /**
+   * Returns a list of state keys that this step consumes (used for dependency inference)
+   */
+  getInputs?: (config: any, packageState: PackageState) => string[];
+
+  /**
+   * Returns a list of state keys this step produces (used for dependency inference)
+   */
+  getOutputs?: (config: any, packageState: PackageState) => string[];
+
   exec: (
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
