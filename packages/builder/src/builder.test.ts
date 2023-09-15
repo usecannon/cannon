@@ -85,6 +85,7 @@ describe('builder.ts', () => {
     },
     invoke: {
       smartFunc: {
+        target: '0x1234123412341234123412341234123412341234',
         func: 'smartFunc',
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
@@ -158,14 +159,12 @@ describe('builder.ts', () => {
 
     it('checks chain definition', async () => {
       // build with an invalid dependency
-      await expect(() =>
-        build(
-          runtime,
-          new ChainDefinition(_.assign({}, fakeDefinition, { invoke: { smartFunc: { depends: ['contract.Fake'] } } })),
-          {},
-          initialCtx
-        )
-      ).rejects.toThrowError('Your cannonfile is invalid: please resolve the following issues before building your project');
+      const fakeDefWithBadDep = _.assign({}, fakeDefinition, {
+        invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['contract.Fake'] } },
+      });
+      await expect(() => build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).rejects.toThrowError(
+        'Your cannonfile is invalid: please resolve the following issues before building your project'
+      );
     });
 
     describe('without layers and skipped steps', () => {

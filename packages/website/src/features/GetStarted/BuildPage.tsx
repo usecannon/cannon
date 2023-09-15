@@ -12,11 +12,13 @@ export const BuildPage = () => {
       background={theme.gradients.dark}
       backgroundAttachment="fixed"
       flex="1"
-      py={[0, 0, 8]}
+      py={[4, 4, 8]}
+      p={4}
     >
       <Box
+        overflowX="hidden"
         p={8}
-        maxW="container.lg"
+        maxW="container.md"
         m="auto"
         background="black"
         border="1px solid"

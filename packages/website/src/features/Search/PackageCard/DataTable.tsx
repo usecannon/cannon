@@ -55,7 +55,7 @@ export function DataTable<Data extends object>({
   packageName,
 }: DataTableProps<Data>) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'tag', desc: false },
+    { id: 'published', desc: true },
   ]);
   const table = useReactTable({
     columns,
@@ -152,7 +152,7 @@ export function DataTable<Data extends object>({
 
               const tooltipTime = format(
                 new Date(cell.row.original.published * 1000),
-                "MMM d 'yy h:mm a"
+                'PPPppp'
               );
 
               return (

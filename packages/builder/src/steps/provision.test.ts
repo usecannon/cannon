@@ -48,7 +48,7 @@ describe('steps/provision.ts', () => {
       );
 
       expect(result).toStrictEqual({
-        source: 'a',
+        source: 'a:latest',
         sourcePreset: 'main',
         targetPreset: 'with-who',
       });

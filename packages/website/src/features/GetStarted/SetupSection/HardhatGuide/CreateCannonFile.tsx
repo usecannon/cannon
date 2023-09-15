@@ -1,4 +1,4 @@
-import { Code, Heading, Link, Text } from '@chakra-ui/react';
+import { Box, Code, Heading, Link, Text } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -52,19 +52,20 @@ args = ["<%= settings.unlock_time %>"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <Heading as="h2" size="md" mt={16} mb={4}>
-        👩‍💻 Create a Cannonfile
+      <Heading size="md" mb={3} mt={8}>
+        Create a Cannonfile
       </Heading>
-      <Text>
+      <Text mb={4}>
         Create a new Hardhat project by following the instructions{' '}
         <Link href="https://hardhat.org/tutorial/creating-a-new-hardhat-project">
           here
         </Link>
-        .
+        . Then install the Hardhat Cannon plug-in:
       </Text>
-      <Text mt={4}>Then install the Hardhat Cannon plug-in:</Text>
-      <CommandPreview command="npm install hardhat-cannon" />
-      <Text mt={8}>
+      <Box mb={4}>
+        <CommandPreview command="npm install hardhat-cannon" />
+      </Box>
+      <Text mb={4}>
         Load the plug-in at the top of your hardhat.config.js file with&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
           {"require('hardhat-cannon');"}
@@ -75,30 +76,38 @@ export const CreateCannonFile = () => {
         </Code>
         &nbsp;if your&apos;re using Typescript.
       </Text>
-      <Text mt={4}>
+      <Text mb={4}>
         In the configuration file, set the default network like so:&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
           {'defaultNetwork: "cannon"'}
         </Code>
       </Text>
-      <Text mt={4}>Your project should have the following contract:</Text>
-      <CodePreview code={code1} language="solidity" />
-      <Text mt={4}>
+      <Text mb={4}>Your project should have the following contract:</Text>
+      <Box mb={4}>
+        <CodePreview code={code1} language="solidity" />
+      </Box>
+      <Text mb={4}>
         Create a cannonfile.toml in the root directory of the project with the
         following contents. If you plan to publish this package, you should
         customize the name. This will deploy the contract and set the unlock
         time to 1700000000:
       </Text>
-      <CodePreview code={code2} language="toml" />
-      <Text mt={8}>
+      <Box mb={4}>
+        <CodePreview code={code2} language="toml" />
+      </Box>
+      <Text mb={4}>
         Now build the cannonfile for local development and testing:
       </Text>
-      <CommandPreview command="npx hardhat cannon:build" />
-      <Text mt={4}>
+      <Box mb={4}>
+        <CommandPreview command="npx hardhat cannon:build" />
+      </Box>
+      <Text mb={4}>
         This created a local deployment of your nascent protocol. You can now
         run this package locally using the command-line tool:
       </Text>
-      <CommandPreview command="cannon sample-hardhat-project" />
+      <Box mb={4}>
+        <CommandPreview command="cannon sample-hardhat-project" />
+      </Box>
     </>
   );
 };

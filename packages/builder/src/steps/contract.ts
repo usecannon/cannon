@@ -275,13 +275,19 @@ const contractSpec = {
 
     // override abi?
     if (config.abi) {
-      const implContract = getContractDefinitionFromPath(ctx, config.abi);
+      if (config.abi.trimStart().startsWith('[')) {
+        // Allow to pass in a literal abi string
+        abi = JSON.parse(config.abi);
+      } else {
+        // Load the abi from another contract
+        const implContract = getContractDefinitionFromPath(ctx, config.abi);
 
-      if (!implContract) {
-        throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
+        if (!implContract) {
+          throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
+        }
+
+        abi = implContract.abi;
       }
-
-      abi = implContract.abi;
     } else if (config.abiOf) {
       abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
     }
