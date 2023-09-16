@@ -6,7 +6,6 @@ import { DocsActions, DocsDetails } from '@/features/Docs/Pages';
 import { DocsPage } from '@/features/Docs/DocsPage';
 import { MarkdownSpec } from '@/components/MarkdownSpec';
 
-
 export const metadata: Metadata = {
   title: 'Cannon | Docs',
 };
@@ -19,11 +18,20 @@ export default function Docs() {
   const zodMarkdown = fs
     .readFileSync(path.join('content', 'docs-configuration.md'))
     .toString()
-    .replaceAll(RegExp(/^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/, 'gmi'), '')
+    .replaceAll(
+      RegExp(
+        /^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/,
+        'gmi'
+      ),
+      ''
+    )
     .replaceAll(RegExp(/\?:\sstring\s\\\|\sundefined/, 'gmi'), '?: string')
     .replaceAll(RegExp(/`Record`<`string`, /, 'gmi'), '')
     .replaceAll(RegExp(/>/, 'gmi'), '')
-    .replaceAll(RegExp(/`string`\[\] | \[`string`, ...string\[\]\]/, 'gmi'), '`[string]`')
+    .replaceAll(
+      RegExp(/`string`\[\] | \[`string`, ...string\[\]\]/, 'gmi'),
+      '`[string]`'
+    );
 
   const detailsMarkdown = fs
     .readFileSync(path.join('content', 'docs-details.mdx'))
