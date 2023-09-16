@@ -59,6 +59,7 @@ export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
+import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
 
 const program = new Command();
 
@@ -75,7 +76,7 @@ configureRun(program);
 configureRun(program.command('run'));
 
 function configureRun(program: Command) {
-  return program
+  return addAnvilOptions(program)
     .description('Utility for instantly loading cannon packages in standalone contexts')
     .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
     .argument(
@@ -83,9 +84,7 @@ function configureRun(program: Command) {
       'List of packages to load, optionally with custom settings for each one',
       parsePackagesArguments
     )
-    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
-    .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
@@ -105,7 +104,7 @@ function configureRun(program: Command) {
     .action(async function (packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 
-      const port = Number.parseInt(options.port) || 8545;
+      options.port = Number.parseInt(options.port) || 8545;
 
       let node: CannonRpcNode;
       if (options.chainId) {
@@ -113,13 +112,11 @@ function configureRun(program: Command) {
 
         const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
-        node = await runRpc({
-          port,
+        node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-          chainId: options.chainId,
         });
       } else {
-        node = await runRpc({ port });
+        node = await runRpc(pickAnvilOptions(options));
       }
 
       await run(packages, {
@@ -173,6 +170,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
+      ...pickAnvilOptions(opts),
       // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
       port: 0,
     });
@@ -188,12 +186,17 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
-      node = await runRpc({
-        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-        port: 0,
-        forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-        chainId,
-      });
+      node = await runRpc(
+        {
+          ...pickAnvilOptions(opts),
+          chainId,
+          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+          port: 0,
+        },
+        {
+          forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        }
+      );
 
       provider = getProvider(node);
 
@@ -254,13 +257,11 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   return [node, outputs];
 }
 
-program
-  .command('build')
+addAnvilOptions(program.command('build'))
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
   .option('-n --provider-url [url]', 'RPC endpoint to execute the deployment on')
-  .option('-c --chain-id <number>', 'The chain id to run against')
   .option('-p --preset <preset>', 'The preset label for storing the build with the given settings', 'main')
   .option('--dry-run', 'Simulate building on a local fork rather than deploying on the real network')
   .option('--private-key [key]', 'Specify a comma separated list of private keys which may be needed to sign a transaction')

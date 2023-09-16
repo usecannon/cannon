@@ -6,7 +6,7 @@ import { DocsPage } from '@/features/Docs/DocsPage';
 import { DocsCli } from '@/features/Docs/Pages';
 
 export const metadata: Metadata = {
-  title: 'Cannon | Documentation',
+  title: 'Cannon | Docs',
 };
 
 export default function Docs() {

@@ -261,6 +261,11 @@ export const invokeSchema = z
              */
             arg: z.number().int(),
             /**
+             *   number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+             */
+            expectCount: z.number().int().optional(),
+
+            /**
              *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
              */
             allowEmptyEvents: z.boolean().optional(),
@@ -281,6 +286,11 @@ export const invokeSchema = z
                *   data argument of the event output
                */
               arg: z.number().int(),
+
+              /**
+               *   number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+               */
+              expectCount: z.number().int().optional(),
 
               /**
                *   name of the contract artifact

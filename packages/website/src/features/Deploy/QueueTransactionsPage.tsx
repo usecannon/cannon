@@ -15,6 +15,7 @@ import {
   HStack,
   Input,
   Tooltip,
+  useToast,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { useState } from 'react';
@@ -85,6 +86,8 @@ function QueueTransactions() {
   console.log('txns', queuedTxns);
   console.log('txnresults', txnInfo.txnResults);
 
+  const toast = useToast();
+
   // TODO: check types
   const stager = useTxnStager(
     (multisendTxn
@@ -109,6 +112,12 @@ function QueueTransactions() {
       onSignComplete() {
         console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
+        toast({
+          title: 'You successfully signed the transaction.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       },
     }
   );
@@ -292,7 +301,18 @@ function QueueTransactions() {
                 colorScheme="blue"
                 w="100%"
                 isDisabled={disableExecute}
-                onClick={() => execTxn.write && execTxn.write()}
+                onClick={async () => {
+                  if (execTxn.writeAsync) {
+                    await execTxn.writeAsync();
+                    router.push(links.DEPLOY);
+                    toast({
+                      title: 'You successfully executed the transaction.',
+                      status: 'success',
+                      duration: 5000,
+                      isClosable: true,
+                    });
+                  }
+                }}
               >
                 Execute
               </Button>

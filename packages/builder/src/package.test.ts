@@ -19,7 +19,11 @@ describe('package.ts', () => {
     const testPkgData: DeploymentInfo = {
       generator: 'cannon test',
       timestamp: 1234,
-      def: { name: 'package', version: '1.2.3', provision: { dummyStep: { tags: ['tag3', 'tag4'] } } } as any,
+      def: {
+        name: 'package',
+        version: '1.2.3',
+        provision: { dummyStep: { source: 'someSource:1.2.3', tags: ['tag3', 'tag4'] } },
+      } as any,
       state: {
         'provision.dummyStep': {
           hash: '',

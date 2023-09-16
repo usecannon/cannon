@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
-
 contract EfficientStorage {
   bytes32 private constant _SLOT_CANNON_REGISTRY_STORAGE = keccak256(abi.encode("usecannon.cannon.registry.efficient"));
 
@@ -16,8 +14,8 @@ contract EfficientStorage {
     mapping(bytes32 => mapping(bytes32 => CannonDeployInfo)) deployments;
     address owner;
     address nominatedOwner;
-    uint additionalDeployersLength;
-    mapping(uint => address) additionalDeployers;
+    uint256 additionalDeployersLength;
+    mapping(uint256 => address) additionalDeployers;
   }
 
   struct CannonDeployInfo {

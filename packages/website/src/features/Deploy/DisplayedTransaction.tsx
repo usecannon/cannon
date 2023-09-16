@@ -241,6 +241,25 @@ export function DisplayedTransaction(props: {
               secondary: l,
             })),
           ];
+        case 'tuple':
+          try {
+            return typeof execFuncArgs[arg] === 'object' &&
+              Object.keys(execFuncArgs[arg] as any).length
+              ? [
+                  {
+                    label:
+                      encodeArg(
+                        execFuncFragment.inputs[arg].type,
+                        (execFuncArgs[arg] as string) || ''
+                      ) || '',
+                    secondary: 'JSON',
+                  },
+                  { label: '{}', secondary: 'JSON' },
+                ]
+              : [{ label: '{}', secondary: 'JSON' }];
+          } catch (e) {
+            return [{ label: '{}', secondary: 'JSON' }];
+          }
         default: // bytes32, string
           return [
             {
@@ -256,7 +275,6 @@ export function DisplayedTransaction(props: {
     }
 
     return [];
-    //const input =
   }
 
   function extractFunctionNames(contractAbi: any[]) {

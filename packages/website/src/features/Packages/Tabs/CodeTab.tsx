@@ -5,7 +5,6 @@ import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { Flex, Container } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
-import UnderConstruction from './UnderConstruction';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
@@ -29,7 +28,6 @@ export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
 
   return (
     <Flex flexDirection="column" width="100%">
-      <UnderConstruction />
       {currentVariant ? (
         <Container maxW="container.xl">
           <CodeExplorer variant={currentVariant} />

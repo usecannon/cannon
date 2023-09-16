@@ -33,6 +33,7 @@ import { format } from 'date-fns';
 import { InfoIcon, ViewIcon, DownloadIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { ChainBuilderContext } from '@usecannon/builder';
+import { isEmpty } from 'lodash';
 
 export const DeploymentExplorer: FC<{
   variant: any;
@@ -239,7 +240,7 @@ export const DeploymentExplorer: FC<{
                 <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
               </Tooltip>
             </Heading>
-            {deploymentInfo?.meta && (
+            {!isEmpty(deploymentInfo?.meta) && (
               <>
                 <Box mb={2}>
                   <Link
@@ -317,7 +318,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Package Data Imports
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.import} />
+                <ChainDefinitionSteps
+                  name="import"
+                  modules={deploymentInfo.def.import}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.provision && (
@@ -325,7 +329,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Package Provisioning
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.provision} />
+                <ChainDefinitionSteps
+                  name="provision"
+                  modules={deploymentInfo.def.provision}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.router && (
@@ -333,7 +340,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Router Generation
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.router} />
+                <ChainDefinitionSteps
+                  name="router"
+                  modules={deploymentInfo.def.router}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.contract && (
@@ -341,7 +351,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Contract Deployments
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.contract} />
+                <ChainDefinitionSteps
+                  name="contract"
+                  modules={deploymentInfo.def.contract}
+                />
               </Box>
             )}
             {deploymentInfo?.def?.invoke && (
@@ -349,7 +362,10 @@ export const DeploymentExplorer: FC<{
                 <Heading size="sm" mb={2}>
                   Function Calls
                 </Heading>
-                <ChainDefinitionSteps modules={deploymentInfo.def.invoke} />
+                <ChainDefinitionSteps
+                  name="invoke"
+                  modules={deploymentInfo.def.invoke}
+                />
               </Box>
             )}
           </Box>
@@ -365,38 +381,44 @@ export const DeploymentExplorer: FC<{
               </Tooltip>
             </Heading>
             <Box mb={4}>
-              <Heading size="sm" mb={2}>
-                Contract Deployments
-              </Heading>
-              {Object.entries(contractState).length > 0 && (
-                <Box overflowX="auto" mb={4}>
-                  <Table variant="simple" size="sm">
-                    <Thead>
-                      <Tr>
-                        <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Contract
-                        </Th>
-                        <Th color="gray.300" borderColor="gray.500">
-                          Address
-                        </Th>
-                        <Th color="gray.300" borderColor="gray.500">
-                          Transaction Hash
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {Object.entries(contractState).map(([key, value]) => (
-                        <Tr key={key}>
-                          <Td pl={0} borderColor="gray.500">
-                            {key?.toString()}
-                          </Td>
-                          <Td borderColor="gray.500">{value.address}</Td>
-                          <Td borderColor="gray.500">{value.deployTxnHash}</Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
+              {!isEmpty(contractState) && (
+                <>
+                  <Heading size="sm" mb={2}>
+                    Contract Deployments
+                  </Heading>
+                  {Object.entries(contractState).length > 0 && (
+                    <Box overflowX="auto" mb={4}>
+                      <Table variant="simple" size="sm">
+                        <Thead>
+                          <Tr>
+                            <Th color="gray.300" pl={0} borderColor="gray.500">
+                              Contract
+                            </Th>
+                            <Th color="gray.300" borderColor="gray.500">
+                              Address
+                            </Th>
+                            <Th color="gray.300" borderColor="gray.500">
+                              Transaction Hash
+                            </Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {Object.entries(contractState).map(([key, value]) => (
+                            <Tr key={key}>
+                              <Td pl={0} borderColor="gray.500">
+                                {key?.toString()}
+                              </Td>
+                              <Td borderColor="gray.500">{value.address}</Td>
+                              <Td borderColor="gray.500">
+                                {value.deployTxnHash}
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  )}
+                </>
               )}
               <Button
                 variant="outline"
@@ -412,71 +434,80 @@ export const DeploymentExplorer: FC<{
                 Download Addresses + ABIs
               </Button>
             </Box>
-            <Box mb={4}>
-              <Heading size="sm" mb={2}>
-                Function Calls
-              </Heading>
-              <Box overflowX="auto" mb={6}>
-                <Table variant="simple" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th color="gray.300" pl={0} borderColor="gray.500">
-                        Function
-                      </Th>
-                      <Th color="gray.300" borderColor="gray.500">
-                        Transaction Hash
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {Object.entries(invokeState).map(([key, value]) => (
-                      <Tr key={key}>
-                        <Td pl={0} borderColor="gray.500">
-                          {key?.toString()}
-                        </Td>
-                        <Td borderColor="gray.500">{value.hash}</Td>
+            {!isEmpty(invokeState) && (
+              <Box mb={4}>
+                <Heading size="sm" mb={2}>
+                  Function Calls
+                </Heading>
+                <Box overflowX="auto" mb={6}>
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th color="gray.300" pl={0} borderColor="gray.500">
+                          Function
+                        </Th>
+                        <Th color="gray.300" borderColor="gray.500">
+                          Transaction Hash
+                        </Th>
                       </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
+                    </Thead>
+                    <Tbody>
+                      {Object.entries(invokeState).map(([key, value]) => (
+                        <Tr key={key}>
+                          <Td pl={0} borderColor="gray.500">
+                            {key?.toString()}
+                          </Td>
+                          <Td borderColor="gray.500">{value.hash}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
               </Box>
-            </Box>
-            <Box mb={4}>
-              <Heading size="sm" mb={2}>
-                Extra Data{' '}
-                <Tooltip
-                  label="This includes event data captured during the build to be referenced in subsequent steps."
-                  placement="right"
-                  hasArrow
-                >
-                  <InfoIcon color="gray.400" boxSize={3.5} mt={-0.5} ml={0.5} />
-                </Tooltip>
-              </Heading>
-              <Box overflowX="auto" mb={6}>
-                <Table variant="simple" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th color="gray.300" pl={0} borderColor="gray.500">
-                        Name
-                      </Th>
-                      <Th color="gray.300" borderColor="gray.500">
-                        Value
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {Object.entries(mergedExtras).map(([key, value]) => (
-                      <Tr key={key}>
-                        <Td pl={0} borderColor="gray.500">
-                          {key?.toString()}
-                        </Td>
-                        <Td borderColor="gray.500">{value.toString()}</Td>
+            )}
+            {!isEmpty(mergedExtras) && (
+              <Box mb={4}>
+                <Heading size="sm" mb={2}>
+                  Extra Data{' '}
+                  <Tooltip
+                    label="This includes event data captured during the build to be referenced in subsequent steps."
+                    placement="right"
+                    hasArrow
+                  >
+                    <InfoIcon
+                      color="gray.400"
+                      boxSize={3.5}
+                      mt={-0.5}
+                      ml={0.5}
+                    />
+                  </Tooltip>
+                </Heading>
+                <Box overflowX="auto" mb={6}>
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th color="gray.300" pl={0} borderColor="gray.500">
+                          Name
+                        </Th>
+                        <Th color="gray.300" borderColor="gray.500">
+                          Value
+                        </Th>
                       </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
+                    </Thead>
+                    <Tbody>
+                      {Object.entries(mergedExtras).map(([key, value]) => (
+                        <Tr key={key}>
+                          <Td pl={0} borderColor="gray.500">
+                            {key?.toString()}
+                          </Td>
+                          <Td borderColor="gray.500">{value.toString()}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
               </Box>
-            </Box>
+            )}
           </Box>
           <Box mb={6}>
             <Heading size="md" mb={4}>
@@ -493,7 +524,7 @@ export const DeploymentExplorer: FC<{
               variant="outline"
               colorScheme="white"
               onClick={openDeploymentDataModal}
-              mb={2}
+              mb={3}
               leftIcon={<ViewIcon />}
             >
               View Deployment Data
