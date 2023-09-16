@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { Button, Flex, Image } from '@chakra-ui/react';
+import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const styleMap = {
@@ -54,6 +54,8 @@ const CustomButton = ({
 );
 
 export const ConnectWallet: FC = () => {
+  const isMobile = useBreakpointValue([true, true, false]);
+
   return (
     <ConnectButton.Custom>
       {({
@@ -104,31 +106,33 @@ export const ConnectWallet: FC = () => {
 
               return (
                 <Flex gap={4}>
-                  <CustomButton onClick={openChainModal} variant="default">
-                    {chain.hasIcon && (
-                      <div
-                        style={{
-                          background: chain.iconBackground,
-                          width: 14,
-                          height: 14,
-                          borderRadius: 999,
-                          overflow: 'hidden',
-                          marginRight: 6,
-                          marginTop: -1,
-                        }}
-                      >
-                        {chain.iconUrl && (
-                          <Image
-                            alt={chain.name ?? 'Chain icon'}
-                            src={chain.iconUrl}
-                            width="14px"
-                            height="14px"
-                          />
-                        )}
-                      </div>
-                    )}
-                    {chain.name}
-                  </CustomButton>
+                  {!isMobile && (
+                    <CustomButton onClick={openChainModal} variant="default">
+                      {chain.hasIcon && (
+                        <div
+                          style={{
+                            background: chain.iconBackground,
+                            width: 14,
+                            height: 14,
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                            marginRight: 6,
+                            marginTop: -1,
+                          }}
+                        >
+                          {chain.iconUrl && (
+                            <Image
+                              alt={chain.name ?? 'Chain icon'}
+                              src={chain.iconUrl}
+                              width="14px"
+                              height="14px"
+                            />
+                          )}
+                        </div>
+                      )}
+                      {chain.name}
+                    </CustomButton>
+                  )}
 
                   <CustomButton onClick={openAccountModal} variant="default">
                     {account.displayName}

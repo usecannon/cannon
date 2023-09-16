@@ -7,6 +7,7 @@ import {
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import * as Chains from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { infuraProvider } from 'wagmi/providers/infura';
 import { ReactNode } from 'react';
 import _ from 'lodash';
 
@@ -17,9 +18,16 @@ const cannonLocalHost = {
   rpcUrl: 'http://127.0.0.1:8545',
 };
 const _chains = Object.values(Chains).filter((item) => _.isObject(item));
+export const supportedChains = [..._chains, cannonLocalHost];
+
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [..._chains, cannonLocalHost],
-  [publicProvider()]
+  supportedChains,
+  [
+    infuraProvider({
+      apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
+    }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({
@@ -36,9 +44,22 @@ const wagmiConfig = createConfig({
 });
 
 function WalletProvider({ children }: { children: ReactNode }) {
+  // NOTE: have to hack the style below becuase otherwise it overflows the page.
+  // hopefully the class name doesnt change from compile to compile lol
+  // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} theme={darkTheme()}>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+            div.ju367v1i {
+              max-height: 90vh;
+              overflow: auto;
+            }
+          `,
+          }}
+        />
         {children}
       </RainbowKitProvider>
     </WagmiConfig>

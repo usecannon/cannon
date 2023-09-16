@@ -9,12 +9,14 @@ import {
   Box,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import { stringify } from '@iarna/toml';
 
 interface Props {
+  name: string;
   modules: Record<string, object>;
 }
 
-const ChainDefinitionSteps: React.FC<Props> = ({ modules }) => {
+const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [activeModule, setActiveModule] = useState<object | null>(null);
 
@@ -28,7 +30,9 @@ const ChainDefinitionSteps: React.FC<Props> = ({ modules }) => {
           _hover={{ bg: 'gray.700' }}
           key={key}
           onClick={() => {
-            setActiveModule(modules[key]);
+            const am: Record<string, object> = {};
+            am[`${name}.${key}`] = modules[key];
+            setActiveModule(am);
             onOpen();
           }}
           size="xs"
@@ -40,13 +44,13 @@ const ChainDefinitionSteps: React.FC<Props> = ({ modules }) => {
       ))}
 
       {activeModule && (
-        <Modal size="6xl" isOpen={isOpen} onClose={onClose}>
+        <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
           <ModalContent>
             <ModalCloseButton />
             <CodePreview
-              code={JSON.stringify(activeModule, null, 2)}
-              language="json"
+              code={stringify({ ...activeModule })}
+              language="toml"
             />
           </ModalContent>
         </Modal>

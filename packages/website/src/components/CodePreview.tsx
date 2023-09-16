@@ -5,12 +5,19 @@ import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
 import solidity from 'react-syntax-highlighter/dist/esm/languages/prism/solidity';
 import toml from 'react-syntax-highlighter/dist/esm/languages/prism/toml';
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
-import { Code } from '@chakra-ui/react';
+import { Box, Code } from '@chakra-ui/react';
+import styled from 'styled-components';
 
 SyntaxHighlighter.registerLanguage('json', json);
 SyntaxHighlighter.registerLanguage('solidity', solidity);
 SyntaxHighlighter.registerLanguage('toml', toml);
 SyntaxHighlighter.registerLanguage('javascript', javascript);
+
+const StyledHighlighter = styled(SyntaxHighlighter)`
+  & span {
+    background: #171b21;
+  }
+`;
 
 interface ICodePreviewProps {
   code: string | string[];
@@ -28,7 +35,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({ code, language }) => {
         variant="subtle"
         p="1em"
         fontSize="md"
-        bgColor="rgb(40, 44, 52)"
+        bgColor="gray.800"
         color="rgb(171, 178, 191)"
       >
         {code}
@@ -36,14 +43,16 @@ export const CodePreview: FC<ICodePreviewProps> = ({ code, language }) => {
     );
   } else {
     return (
-      <SyntaxHighlighter
-        customStyle={{ margin: 0 }}
-        language={language}
-        style={oneDark}
-        wrapLongLines
-      >
-        {code}
-      </SyntaxHighlighter>
+      <Box backgroundColor="gray.800" borderRadius="md">
+        <StyledHighlighter
+          customStyle={{ margin: 0, background: 'none' }}
+          language={language}
+          style={oneDark}
+          wrapLongLines
+        >
+          {code}
+        </StyledHighlighter>
+      </Box>
     );
   }
 };

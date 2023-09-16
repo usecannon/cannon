@@ -16,6 +16,7 @@ import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { CANNON_CHAIN_ID } from '../constants';
+import { computeTemplateAccesses } from '../access-recorder';
 import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
@@ -34,7 +35,7 @@ export interface Outputs {
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const provisionSpec = {
   label: 'provision',
 
   validate: provisionSchema,
@@ -103,6 +104,28 @@ export default {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.source));
+    accesses.push(...computeTemplateAccesses(config.sourcePreset));
+    accesses.push(...computeTemplateAccesses(config.targetPreset));
+
+    if (config.options) {
+      _.forEach(config.options, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    if (config.tags) {
+      _.forEach(config.tags, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`imports.${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
@@ -233,3 +256,5 @@ export default {
 
   timeout: 3600000,
 };
+
+export default provisionSpec;

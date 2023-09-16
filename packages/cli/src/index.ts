@@ -59,6 +59,7 @@ export { loadCannonfile } from './helpers';
 
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
+import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
 
 const program = new Command();
 
@@ -75,7 +76,7 @@ configureRun(program);
 configureRun(program.command('run'));
 
 function configureRun(program: Command) {
-  return program
+  return addAnvilOptions(program)
     .description('Utility for instantly loading cannon packages in standalone contexts')
     .usage('[global options] ...[<name>[:<semver>] ...[<key>=<value>]]')
     .argument(
@@ -83,9 +84,7 @@ function configureRun(program: Command) {
       'List of packages to load, optionally with custom settings for each one',
       parsePackagesArguments
     )
-    .option('-p --port <number>', 'Port which the JSON-RPC server will be exposed', '8545')
     .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
-    .option('-c --chain-id <number>', 'The chain id to run against')
     .option('--build', 'Specify to rebuild generated artifacts with latest, even if no changed settings have been defined.')
     .option('--upgrade-from [cannon-package:0.0.1]', 'Specify a package to use as a new base for the deployment.')
     .option('--registry-priority <registry>', 'Change the default registry to read from first. Default: onchain')
@@ -105,7 +104,7 @@ function configureRun(program: Command) {
     .action(async function (packages: PackageSpecification[], options, program) {
       const { run } = await import('./commands/run');
 
-      const port = Number.parseInt(options.port) || 8545;
+      options.port = Number.parseInt(options.port) || 8545;
 
       let node: CannonRpcNode;
       if (options.chainId) {
@@ -113,13 +112,11 @@ function configureRun(program: Command) {
 
         const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
-        node = await runRpc({
-          port,
+        node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-          chainId: options.chainId,
         });
       } else {
-        node = await runRpc({ port });
+        node = await runRpc(pickAnvilOptions(options));
       }
 
       await run(packages, {
@@ -173,6 +170,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
     node = await runRpc({
+      ...pickAnvilOptions(opts),
       // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
       port: 0,
     });
@@ -188,12 +186,17 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
-      node = await runRpc({
-        // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-        port: 0,
-        forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-        chainId,
-      });
+      node = await runRpc(
+        {
+          ...pickAnvilOptions(opts),
+          chainId,
+          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
+          port: 0,
+        },
+        {
+          forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        }
+      );
 
       provider = getProvider(node);
 
@@ -254,8 +257,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   return [node, outputs];
 }
 
-program
-  .command('build')
+addAnvilOptions(program.command('build'))
   .description('Build a package from a Cannonfile')
   .argument('[cannonfile]', 'Path to a cannonfile', 'cannonfile.toml')
   .argument('[settings...]', 'Custom settings for building the cannonfile')
@@ -410,7 +412,6 @@ program
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
   .option('-p --preset <preset>', 'Preset of the variant to inspect')
   .option('-j --json', 'Output as JSON')
-  .option('--registry-priority <registry>', 'Priority of the registry to use')
   .option(
     '-w --write-deployments <writeDeployments>',
     'Path to write the deployments data (address and ABIs), like "./deployments"'
@@ -493,6 +494,37 @@ program
     } else {
       console.log(bold('Nothing to prune.'));
     }
+  });
+
+program
+  .command('trace')
+  .description('Get a full stack trace for a transaction hash or explicit transaction call')
+  .argument('<packageName>', 'Name and version of the cannon package to use')
+  .argument(
+    '<transactionHash OR bytes32Data>',
+    'base 16 encoded transaction data to input to a function call, or transaction hash'
+  )
+  .requiredOption('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
+  .option('-f --from <source>', 'Caller for the transaction to trace')
+  .option('-t --to <target>', 'Contract which should be called')
+  .option('-v --value <value>', 'Amonut of gas token to send in the traced call')
+  .option('-b --block-number <value>', 'The block to simulate when the call is on')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, data, options) {
+    const { trace } = await import('./commands/trace');
+
+    await trace({
+      packageName,
+      data,
+      chainId: options.chainId,
+      preset: options.preset,
+      from: options.from,
+      to: options.to,
+      value: options.value,
+      block: options.blockNumber,
+      json: options.json,
+    });
   });
 
 program

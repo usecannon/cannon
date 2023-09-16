@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 import { DocsOverview } from '@/features/Docs/Pages';
 
 export const metadata: Metadata = {
-  title: 'Cannon | Documents',
+  title: 'Cannon | Docs',
 };
 
 export default function Docs() {

@@ -9,7 +9,7 @@ export const HardhatSetupPanel = () => {
   return (
     <>
       <SetupCustomAlert
-        label="hardhat sample project"
+        label="Hardhat sample project"
         href={externalLinks.HARDHAT_EXAMPLE}
       />
       <CreateCannonFile />
