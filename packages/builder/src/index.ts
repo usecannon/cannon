@@ -1,4 +1,4 @@
-export { createInitialContext, build, getOutputs } from './builder';
+export { createInitialContext, build, getArtifacts, getOutputs } from './builder';
 export { computeTemplateAccesses } from './access-recorder';
 export { registerAction } from './actions';
 export type { CannonAction } from './actions';
@@ -21,3 +21,6 @@ export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 export { copyPackage } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
+
+export { renderTrace, findContract } from './trace';
+export type { TraceEntry } from './trace';

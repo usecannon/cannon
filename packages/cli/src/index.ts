@@ -411,7 +411,6 @@ program
   .option('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
   .option('-j --json', 'Output as JSON')
-  .option('--registry-priority <registry>', 'Priority of the registry to use')
   .option(
     '-w --write-deployments <writeDeployments>',
     'Path to write the deployments data (address and ABIs), like "./deployments"'
@@ -494,6 +493,37 @@ program
     } else {
       console.log(bold('Nothing to prune.'));
     }
+  });
+
+program
+  .command('trace')
+  .description('Get a full stack trace for a transaction hash or explicit transaction call')
+  .argument('<packageName>', 'Name and version of the cannon package to use')
+  .argument(
+    '<transactionHash OR bytes32Data>',
+    'base 16 encoded transaction data to input to a function call, or transaction hash'
+  )
+  .requiredOption('-c --chain-id <chainId>', 'Chain ID of the variant to inspect', '13370')
+  .option('-f --from <source>', 'Caller for the transaction to trace')
+  .option('-t --to <target>', 'Contract which should be called')
+  .option('-v --value <value>', 'Amonut of gas token to send in the traced call')
+  .option('-b --block-number <value>', 'The block to simulate when the call is on')
+  .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-j --json', 'Output as JSON')
+  .action(async function (packageName, data, options) {
+    const { trace } = await import('./commands/trace');
+
+    await trace({
+      packageName,
+      data,
+      chainId: options.chainId,
+      preset: options.preset,
+      from: options.from,
+      to: options.to,
+      value: options.value,
+      block: options.blockNumber,
+      json: options.json,
+    });
   });
 
 program

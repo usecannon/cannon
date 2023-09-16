@@ -67,7 +67,7 @@ const getRegistryProviderUrl = (fileSettings: any, privateKey: string): string =
   }
   if (registryProviderUrl && !privateKey) {
     console.warn(
-      `\n\nUsing Frame instead of configured registryProviderUrl (${registryProviderUrl}), supply --private-key to change.\n\n`
+      `Using Frame instead of configured registryProviderUrl (${registryProviderUrl}), supply --private-key to change.`
     );
   }
   return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
