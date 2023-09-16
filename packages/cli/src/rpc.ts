@@ -79,14 +79,6 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
 
   debug('starting anvil instance with options: ', anvilOptions);
 
-  if (forkBlockNumber) {
-    opts.push('--fork-block-number', forkBlockNumber.toString());
-  }
-
-  if (timestamp) {
-    opts.push('--timestamp', timestamp.toString());
-  }
-
   return Promise.race<Promise<CannonRpcNode>>([
     new Promise<CannonRpcNode>((resolve, reject) => {
       anvilInstance = spawn('anvil', opts) as CannonRpcNode;
