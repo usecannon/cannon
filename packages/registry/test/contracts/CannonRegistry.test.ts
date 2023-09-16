@@ -1,4 +1,4 @@
-import { Signer } from 'ethers';
+import { Signer, BigNumber } from 'ethers';
 import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
@@ -11,6 +11,7 @@ describe('CannonRegistry', function () {
   let CannonRegistry: TCannonRegistry;
   let owner: Signer, user2: Signer, user3: Signer;
   let ownerAddress: string;
+  let fee: BigNumber;
 
   before('identify signers', async function () {
     [owner, user2, user3] = await ethers.getSigners();
@@ -27,6 +28,8 @@ describe('CannonRegistry', function () {
     await Proxy.deployed();
 
     CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
+
+    fee = await CannonRegistry.PUBLISH_FEE();
   });
 
   describe('Upgradedability', function () {
@@ -70,6 +73,32 @@ describe('CannonRegistry', function () {
   });
 
   describe('publish()', function () {
+    it('should fail when not paying any fee', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.publish(
+          toBytes32('some-module-'),
+          toBytes32('1337-main'),
+          [toBytes32('0.0.1')],
+          '',
+          'ipfs://some-module-meta@0.0.1',
+          { value: 0 }
+        );
+      }, `FeeRequired(${fee})`);
+    });
+
+    it('should fail when paying wrong amount of fee', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.publish(
+          toBytes32('some-module-'),
+          toBytes32('1337-main'),
+          [toBytes32('0.0.1')],
+          '',
+          'ipfs://some-module-meta@0.0.1',
+          { value: fee.add(20) }
+        );
+      }, `FeeRequired(${fee})`);
+    });
+
     it('should not allow to publish empty url', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
@@ -77,7 +106,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           [toBytes32('0.0.1')],
           '',
-          'ipfs://some-module-meta@0.0.1'
+          'ipfs://some-module-meta@0.0.1',
+          { value: fee }
         );
       }, 'InvalidUrl("")');
     });
@@ -89,7 +119,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           [toBytes32('0.0.1')],
           'ipfs://some-module-hash@0.0.1',
-          'ipfs://some-module-meta@0.0.1'
+          'ipfs://some-module-meta@0.0.1',
+          { value: fee }
         );
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
@@ -101,7 +132,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           [],
           'ipfs://some-module-hash@0.0.1',
-          'ipfs://some-module-meta@0.0.1'
+          'ipfs://some-module-meta@0.0.1',
+          { value: fee }
         );
       }, 'InvalidTags()');
     });
@@ -113,7 +145,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           ['one', 'two', 'three', 'four', 'five', 'six'].map(toBytes32),
           'ipfs://some-module-hash@0.0.1',
-          'ipfs://some-module-hash@0.0.1'
+          'ipfs://some-module-hash@0.0.1',
+          { value: fee }
         );
       }, 'InvalidTags()');
     });
@@ -124,7 +157,8 @@ describe('CannonRegistry', function () {
         toBytes32('1337-main'),
         [toBytes32('0.0.1')],
         'ipfs://some-module-hash@0.0.1',
-        'ipfs://some-module-meta@0.0.1'
+        'ipfs://some-module-meta@0.0.1',
+        { value: fee }
       );
 
       const { events } = await tx.wait();
@@ -153,7 +187,8 @@ describe('CannonRegistry', function () {
         toBytes32('1337-main'),
         [toBytes32('0.0.2')],
         'ipfs://some-module-hash@0.0.2',
-        'ipfs://some-module-meta@0.0.2'
+        'ipfs://some-module-meta@0.0.2',
+        { value: fee }
       );
 
       const { events } = await tx.wait();
@@ -168,7 +203,8 @@ describe('CannonRegistry', function () {
         toBytes32('1337-main'),
         [toBytes32('0.0.1')],
         'ipfs://some-module-hash@0.0.1',
-        'ipfs://some-module-meta@0.0.1'
+        'ipfs://some-module-meta@0.0.1',
+        { value: fee }
       );
 
       const { events } = await tx.wait();
@@ -185,7 +221,8 @@ describe('CannonRegistry', function () {
         toBytes32('1337-main'),
         tags.map(toBytes32),
         'ipfs://updated-module-hash@0.0.3',
-        'ipfs://updated-module-meta@0.0.3'
+        'ipfs://updated-module-meta@0.0.3',
+        { value: fee }
       );
 
       const expectedEvents = tags.map((tagName) => [
@@ -212,7 +249,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           ['0.0.4', 'latest', 'stable'].map(toBytes32),
           'ipfs://some-module-hash@0.0.4',
-          'ipfs://some-module-meta@0.0.4'
+          'ipfs://some-module-meta@0.0.4',
+          { value: fee }
         );
       }, 'Unauthorized()');
     });
@@ -240,7 +278,8 @@ describe('CannonRegistry', function () {
           toBytes32('1337-main'),
           ['0.0.10', 'latest', 'stable'].map(toBytes32),
           'ipfs://some-module-hash@0.0.10',
-          'ipfs://some-module-meta@0.0.10'
+          'ipfs://some-module-meta@0.0.10',
+          { value: fee }
         );
       });
 

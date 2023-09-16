@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
+import { yellow, bold } from 'chalk';
 
 import { z } from 'zod';
 import { provisionSchema } from '../schemas.zod';
@@ -15,6 +16,8 @@ import { build, createInitialContext, getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { ChainBuilderRuntime, Events } from '../runtime';
 import { CANNON_CHAIN_ID } from '../constants';
+import { computeTemplateAccesses } from '../access-recorder';
+import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
 
@@ -32,7 +35,7 @@ export interface Outputs {
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const provisionSpec = {
   label: 'provision',
 
   validate: provisionSchema,
@@ -46,8 +49,9 @@ export default {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     const cfg = this.configInject(ctx, config, packageState);
 
-    const sourcePreset = config.sourcePreset ?? 'main';
-    const chainId = config.chainId ?? CANNON_CHAIN_ID;
+    const source = cfg.source;
+    const sourcePreset = cfg.sourcePreset;
+    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
@@ -59,7 +63,7 @@ export default {
       }
     }
 
-    const srcUrl = await runtime.registry.getUrl(cfg.source, `${chainId}-${sourcePreset}`);
+    const srcUrl = await runtime.registry.getUrl(source, `${chainId}-${sourcePreset}`);
 
     return {
       url: srcUrl,
@@ -71,8 +75,22 @@ export default {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    config.source = _.template(config.source)(ctx);
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || 'main';
+    const packageRef = new PackageReference(_.template(config.source)(ctx));
+
+    // If both definitions of a preset exist, its a user error.
+    if (config.sourcePreset && packageRef.includesPreset) {
+      console.warn(
+        yellow(
+          bold(
+            `Duplicate preset definitions in source name "${config.source}" and in sourcePreset definition "${config.sourcePreset}"`
+          )
+        )
+      );
+      console.warn(yellow(bold(`Defaulting to sourcePreset definition "${config.sourcePreset}"...`)));
+    }
+
+    config.source = packageRef.formatted();
+    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -88,6 +106,28 @@ export default {
     return config;
   },
 
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.source));
+    accesses.push(...computeTemplateAccesses(config.sourcePreset));
+    accesses.push(...computeTemplateAccesses(config.targetPreset));
+
+    if (config.options) {
+      _.forEach(config.options, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    if (config.tags) {
+      _.forEach(config.tags, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`imports.${packageState.currentLabel.split('.')[1]}`];
+  },
+
   async exec(
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
@@ -97,15 +137,17 @@ export default {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const sourcePreset = config.sourcePreset ?? 'main';
+    const packageRef = new PackageReference(config.source);
+    const source = packageRef.formatted();
+    const sourcePreset = config.sourcePreset || packageRef.preset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.readDeploy(config.source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(source, sourcePreset, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${config.source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
       );
     }
 
@@ -128,9 +170,11 @@ export default {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.readDeploy(config.source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
         console.warn(
-          'warn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`?'
+          yellow(
+            '\nwarn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`? \n'
+          )
         );
       }
 
@@ -163,6 +207,10 @@ export default {
 
     debug('start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
+    if (importRuntime.isCancelled()) {
+      partialDeploy = true;
+    }
+
     debug('finish build. is partial:', partialDeploy);
 
     const newMiscUrl = await importRuntime.recordMisc();
@@ -190,7 +238,7 @@ export default {
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(config.source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''
       );
     }
 
@@ -208,3 +256,5 @@ export default {
 
   timeout: 3600000,
 };
+
+export default provisionSpec;

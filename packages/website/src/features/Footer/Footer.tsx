@@ -1,5 +1,6 @@
 import { Flex, Box, Text, Link, Image } from '@chakra-ui/react';
 import GitHubButton from 'react-github-btn';
+import { DiscordButton } from '@/components/DiscordButton';
 
 export const Footer = () => {
   return (
@@ -22,16 +23,19 @@ export const Footer = () => {
             Cannon on GitHub
           </GitHubButton>
         </Box>
-        <GitHubButton
-          href="https://github.com/usecannon/cannon"
-          data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-          data-size="large"
-          data-icon="octicon-star"
-          data-show-count="true"
-          aria-label="Follow @usecannon on GitHub"
-        >
-          Star
-        </GitHubButton>
+        <Box mr={2}>
+          <GitHubButton
+            href="https://github.com/usecannon/cannon"
+            data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+            data-size="large"
+            data-icon="octicon-star"
+            data-show-count="true"
+            aria-label="Follow @usecannon on GitHub"
+          >
+            Star
+          </GitHubButton>
+        </Box>
+        <DiscordButton />
       </Flex>
       <Box ml={[0, 0, 'auto']} mr={[0, 0, 1]}>
         <Text

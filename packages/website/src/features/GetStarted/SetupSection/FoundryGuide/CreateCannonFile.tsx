@@ -1,4 +1,4 @@
-import { Heading, Text } from '@chakra-ui/react';
+import { Box, Code, Heading, Text } from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -37,30 +37,38 @@ depends = ["contract.counter"]`;
 export const CreateCannonFile = () => {
   return (
     <>
-      <Heading as="h2" size="md" mt={16} mb={4}>
-        👩‍💻 Create a Cannonfile
+      <Heading size="md" mb={3} mt={8}>
+        Create a Cannonfile
       </Heading>
-      <Text>
-        Create a new Foundry project with forge init sample-project. This will
-        generate the following contract:
+      <Text mb={4}>
+        Create a new Foundry project with <Code>forge init sample-project</Code>
+        . This will generate the following contract:
       </Text>
-      <CodePreview code={code1} language="solidity" />
-      <Text mt={4}>
+      <Box mb={4}>
+        <CodePreview code={code1} language="solidity" />
+      </Box>
+      <Text mb={4}>
         Create a cannonfile.toml in the root directory of the project with the
         following contents. If you plan to publish this package, you should
         customize the name. This will deploy the contract and set the number to
         420:
       </Text>
-      <CodePreview code={code2} language="toml" />
-      <Text mt={4}>
+      <Box mb={4}>
+        <CodePreview code={code2} language="toml" />
+      </Box>
+      <Text mb={4}>
         Now build the cannonfile for local development and testing:
       </Text>
-      <CommandPreview command="cannon build" />
-      <Text mt={4}>
+      <Box mb={4}>
+        <CommandPreview command="cannon build" />
+      </Box>
+      <Text mb={4}>
         This created a local deployment of your nascent protocol. You can now
         run this package locally using the command-line tool:
       </Text>
-      <CommandPreview command="cannon sample-foundry-project" />
+      <Box mb={4}>
+        <CommandPreview command="cannon sample-foundry-project" />
+      </Box>
     </>
   );
 };

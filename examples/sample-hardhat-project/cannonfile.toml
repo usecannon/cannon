@@ -18,4 +18,3 @@ artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"
-depends = ["contract.library"]

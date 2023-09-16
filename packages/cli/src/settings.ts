@@ -66,7 +66,7 @@ const getRegistryProviderUrl = (registryUrl: string | undefined): string => {
     return registryProviderUrl;
   } else {
     console.warn(
-      `\n\nUsing default registry provider url (Frame or ${DEFAULT_REGISTRY_PROVIDER_URL}). Supply a registry provider url in your settings or as an env variable (CANNON_REGISTRY_PROVIDER_URL).\n\n`
+      `\nUsing default registry provider url (Frame or ${DEFAULT_REGISTRY_PROVIDER_URL}). Supply a registry provider url in your settings or as an env variable (CANNON_REGISTRY_PROVIDER_URL).\n`
     );
   }
 

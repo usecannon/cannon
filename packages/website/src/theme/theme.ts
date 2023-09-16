@@ -1,6 +1,10 @@
 import { extendTheme } from '@chakra-ui/react';
 
 export const theme = extendTheme({
+  config: {
+    initialColorMode: 'light',
+    useSystemColorMode: false,
+  },
   fonts: {
     heading: 'var(--font-inter)',
     body: 'var(--font-inter)',
@@ -44,12 +48,24 @@ export const theme = extendTheme({
         textDecoration: 'underline',
       },
     },
+    Code: {
+      baseStyle: {
+        color: 'gray.50',
+        backgroundColor: 'gray.800',
+      },
+    },
   },
   styles: {
     global: {
       'html, body': {
         color: '#ffffffd9',
         backgroundColor: 'black',
+      },
+      ':root': {
+        '--diff-gutter-insert-background-color': '#1c4532 !important',
+        '--diff-gutter-delete-background-color': '#63171b !important',
+        '--diff-code-insert-background-color': '#1c4532 !important',
+        '--diff-code-delete-background-color': '#63171b !important',
       },
     },
   },

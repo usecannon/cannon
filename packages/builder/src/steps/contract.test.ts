@@ -111,6 +111,44 @@ describe('steps/contract.ts', () => {
     });
   });
 
+  describe('getInputs()', () => {
+    it('detects all usages', async () => {
+      expect(
+        action
+          .getInputs({
+            artifact: '<%= contracts.a %>',
+            abi: '<%= contracts.b %>',
+            from: '<%= contracts.c %>',
+            nonce: '<%= contracts.d %>',
+            value: '<%= contracts.e %>',
+            abiOf: ['<%= contracts.f %>', '<%= contracts.g %>'],
+            args: ['<%= contracts.h %>', '<%= contracts.i %>'],
+            salt: '<%= contracts.j %>',
+          })
+          .sort()
+      ).toEqual([
+        'contracts.a',
+        'contracts.b',
+        'contracts.c',
+        'contracts.d',
+        'contracts.e',
+        'contracts.f',
+        'contracts.g',
+        'contracts.h',
+        'contracts.i',
+        'contracts.j',
+      ]);
+    });
+  });
+
+  describe('getOutputs()', () => {
+    it('returns the contract that is outputted', () => {
+      expect(action.getOutputs({ artifact: 'hello' }, { name: '', version: '', currentLabel: 'contract.Hello' })).toEqual([
+        'contracts.Hello',
+      ]);
+    });
+  });
+
   describe('exec()', () => {
     describe('when create2 = true', () => {
       it('works if contract already deployed', async () => {
