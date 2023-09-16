@@ -96,9 +96,9 @@ export async function trace({
   if (block) {
     // subtract one second because 1 second is added when the block is mined
     const timestamp = (await provider.getBlock(ethers.BigNumber.from(block).toNumber())).timestamp - 1;
-    rpc = await runRpc({ port: 0, forkProvider: provider as any, forkBlockNumber: block, timestamp });
+    rpc = await runRpc({ port: 0 }, { forkProvider: provider as any, forkBlockNumber: block, timestamp });
   } else {
-    rpc = await runRpc({ port: 0, forkProvider: provider as any });
+    rpc = await runRpc({ port: 0 }, { forkProvider: provider as any });
   }
   const simulateProvider = getProvider(rpc);
 

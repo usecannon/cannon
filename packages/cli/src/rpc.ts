@@ -12,6 +12,8 @@ const debug = Debug('cannon:cli:rpc');
 
 export type RpcOptions = {
   forkProvider?: ethers.providers.JsonRpcProvider;
+  forkBlockNumber?: ethers.BigNumberish;
+  timestamp?: ethers.BigNumberish;
 };
 
 const ANVIL_OP_TIMEOUT = 10000;
