@@ -33,7 +33,9 @@ export async function alter(
   if (presetArg && preset) {
     console.warn(
       yellow(
-        bold(`Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`)
+        bold(
+          `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
+        )
       )
     );
     console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
