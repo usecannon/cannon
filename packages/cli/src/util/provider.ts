@@ -18,9 +18,9 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
         \n`
     );
     console.warn(
-      `Set a custom provider url in your settings (run ${bold(
-        'cannon setup'
-      )}) or pass it as an env variable (${bold('CANNON_PROVIDER_URL')}).\n\n`
+      `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
+        'CANNON_PROVIDER_URL'
+      )}).\n\n`
     );
   }
 
