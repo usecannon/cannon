@@ -26,75 +26,50 @@ describe('ChainDefinition', () => {
 
     it('works when there are 4 nodes in a diamond with extraneous', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.b', 'contract.c', 'contract.a'] },
       });
       expect(def.checkCycles()).toBeNull();
     });
 
     it('returns cycle when there is one node depending on itself', async () => {
-      const def = makeFakeChainDefinition({ 'contract.a': { depends: ['contract.a'] } });
-      expect(def.checkCycles()).toEqual(['contract.a']);
+      expect(() => makeFakeChainDefinition({ 'contract.a': { artifact: 'Xx', depends: ['contract.a'] } })).toThrowError(
+        'contract.a'
+      );
     });
 
     it('returns cycle when there are two nodes depending on each other', async () => {
-      const def = makeFakeChainDefinition({
-        'contract.a': { depends: ['contract.b'] },
-        'contract.b': { depends: ['contract.a'] },
-      });
-      expect(def.checkCycles()).toEqual(['contract.b', 'contract.a']);
+      expect(() =>
+        makeFakeChainDefinition({
+          'contract.a': { artifact: 'Xx', depends: ['contract.b'] },
+          'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        })
+      ).toThrowError('contract.b\ncontract.a');
     });
 
     it('returns cycle when there are three nodes depending on each other with other conforming nodes', async () => {
-      const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
+      expect(() =>
+        makeFakeChainDefinition({
+          'contract.a': { artifact: 'Xx', depends: [] },
 
-        'contract.b': { depends: ['contract.c'] },
-        'contract.c': { depends: ['contract.y'] },
+          'contract.b': { artifact: 'Xx', depends: ['contract.c'] },
+          'contract.c': { artifact: 'Xx', depends: ['contract.y'] },
 
-        // cycle
-        'contract.x': { depends: ['contract.y'] },
-        'contract.y': { depends: ['contract.z'] },
-        'contract.z': { depends: ['contract.x'] },
-      });
-
-      // based on the order of searching nodes, should enter the cycle on `contract.y`
-      expect(def.checkCycles()).toEqual(['contract.z', 'contract.x', 'contract.y']);
-    });
-  });
-
-  describe('checkExtraneous()', () => {
-    it('works when there are four nodes in a diamond pattern', async () => {
-      const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c'] },
-      });
-
-      expect(def.checkExtraneousDependencies()).toEqual([]);
-    });
-
-    it('works when there are four nodes in a diamond pattern with the 4th node depending on the first (extraneous)', async () => {
-      const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c', 'contract.a'] },
-      });
-
-      expect(def.checkExtraneousDependencies()).toEqual([
-        { node: 'contract.d', extraneous: 'contract.a', inDep: 'contract.b' },
-      ]);
+          // cycle
+          'contract.x': { artifact: 'Xx', depends: ['contract.y'] },
+          'contract.y': { artifact: 'Xx', depends: ['contract.z'] },
+          'contract.z': { artifact: 'Xx', depends: ['contract.x'] },
+        })
+      ).toThrowError('contract.z\ncontract.x\ncontract.y');
     });
   });
 
   describe('getStateLayers()', () => {
     it('works when there is just one node', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
+        'contract.a': { artifact: 'Xx', depends: [] },
       });
 
       expect(def.getStateLayers()).toEqual({
@@ -107,9 +82,9 @@ describe('ChainDefinition', () => {
 
     it('works when there are three nodes in series', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.b'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.b'] },
       });
 
       expect(def.getStateLayers()).toEqual({
@@ -130,9 +105,9 @@ describe('ChainDefinition', () => {
 
     it('works when there are three nodes in triangle', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a'] },
       });
 
       const layers = def.getStateLayers();
@@ -151,10 +126,10 @@ describe('ChainDefinition', () => {
 
     it('works when there are four nodes in a diamond pattern', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b', 'contract.c'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.b', 'contract.c'] },
       });
 
       const layers = def.getStateLayers();
@@ -178,11 +153,11 @@ describe('ChainDefinition', () => {
 
     it('works when there are four nodes in a diamond pattern with another side layer', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: ['contract.a'] },
-        'contract.c': { depends: ['contract.a', 'contract.e'] },
-        'contract.d': { depends: ['contract.b', 'contract.c'] },
-        'contract.e': { depends: [] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a', 'contract.e'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.b', 'contract.c'] },
+        'contract.e': { artifact: 'Xx', depends: [] },
       });
 
       const layers = def.getStateLayers();
@@ -211,12 +186,12 @@ describe('ChainDefinition', () => {
 
     it('works when merging multiple assembled layers together', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: ['contract.c'] },
-        'contract.b': { depends: ['contract.c'] },
-        'contract.c': { depends: ['contract.f', 'contract.e'] },
-        'contract.d': { depends: ['contract.f'] },
-        'contract.e': { depends: [] },
-        'contract.f': { depends: [] },
+        'contract.a': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.f', 'contract.e'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.f'] },
+        'contract.e': { artifact: 'Xx', depends: [] },
+        'contract.f': { artifact: 'Xx', depends: [] },
       });
 
       const layers = def.getStateLayers();
@@ -235,10 +210,10 @@ describe('ChainDefinition', () => {
 
     it('works when nodes share multiple dependencies', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: [] },
-        'contract.c': { depends: ['contract.a', 'contract.b'] },
-        'contract.d': { depends: ['contract.a', 'contract.b'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: [] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a', 'contract.b'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.a', 'contract.b'] },
       });
 
       const layers = def.getStateLayers();
@@ -262,12 +237,12 @@ describe('ChainDefinition', () => {
      */
     it('works when depending on a dependency from a deeper layer you already depend on', async () => {
       const def = makeFakeChainDefinition({
-        'contract.d': { depends: [] },
-        'contract.b': { depends: ['contract.d'] },
-        'contract.c': { depends: ['contract.d'] },
-        'contract.e': { depends: ['contract.c'] },
-        'contract.f': { depends: ['contract.e'] },
-        'contract.a': { depends: ['contract.b', 'contract.f'] },
+        'contract.d': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.d'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.d'] },
+        'contract.e': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.f': { artifact: 'Xx', depends: ['contract.e'] },
+        'contract.a': { artifact: 'Xx', depends: ['contract.b', 'contract.f'] },
       });
 
       const layers = def.getStateLayers();
@@ -281,11 +256,11 @@ describe('ChainDefinition', () => {
      */
     it('works when two subsequent merges are required', async () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: [] },
-        'contract.b': { depends: [] },
-        'contract.c': { depends: ['contract.a'] },
-        'contract.d': { depends: ['contract.b'] },
-        'contract.e': { depends: ['contract.a', 'contract.b'] },
+        'contract.a': { artifact: 'Xx', depends: [] },
+        'contract.b': { artifact: 'Xx', depends: [] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.a'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.b'] },
+        'contract.e': { artifact: 'Xx', depends: ['contract.a', 'contract.b'] },
       });
 
       const layers = def.getStateLayers();
@@ -304,12 +279,12 @@ describe('ChainDefinition', () => {
 
     it('works when a step is independently depended upon by two layers', async () => {
       const def = makeFakeChainDefinition({
-        'contract.L1': { depends: [] },
-        'contract.L2': { depends: ['contract.L1'] },
-        'contract.O': { depends: [] },
+        'contract.L1': { artifact: 'Xx', depends: [] },
+        'contract.L2': { artifact: 'Xx', depends: ['contract.L1'] },
+        'contract.O': { artifact: 'Xx', depends: [] },
         // names here have to non-chronological to trigger the bug
-        'contract.R1': { depends: ['contract.O', 'contract.L2'] },
-        'contract.R2': { depends: ['contract.O', 'contract.L1'] },
+        'contract.R1': { artifact: 'Xx', depends: ['contract.O', 'contract.L2'] },
+        'contract.R2': { artifact: 'Xx', depends: ['contract.O', 'contract.L1'] },
       });
 
       const layers = def.getStateLayers();
@@ -324,14 +299,14 @@ describe('ChainDefinition', () => {
   describe('printTopology()', () => {
     it('prints a complicated topology', () => {
       const def = makeFakeChainDefinition({
-        'contract.a': { depends: ['contract.c'] },
-        'contract.b': { depends: ['contract.c'] },
-        'contract.c': { depends: ['contract.f', 'contract.e'] },
-        'contract.d': { depends: ['contract.f'] },
-        'contract.e': { depends: [] },
-        'contract.f': { depends: [] },
-        'contract.g': { depends: ['contract.h'] },
-        'contract.h': { depends: [] },
+        'contract.a': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.b': { artifact: 'Xx', depends: ['contract.c'] },
+        'contract.c': { artifact: 'Xx', depends: ['contract.f', 'contract.e'] },
+        'contract.d': { artifact: 'Xx', depends: ['contract.f'] },
+        'contract.e': { artifact: 'Xx', depends: [] },
+        'contract.f': { artifact: 'Xx', depends: [] },
+        'contract.g': { artifact: 'Xx', depends: ['contract.h'] },
+        'contract.h': { artifact: 'Xx', depends: [] },
       });
 
       const lines = def.printTopology();

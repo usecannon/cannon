@@ -1,27 +1,28 @@
-import http from 'http';
-
-import { Readable } from 'stream';
-
-import { ethers } from 'ethers';
-
-import { spawn, ChildProcess } from 'child_process';
-
-import Debug from 'debug';
+import http from 'node:http';
+import { Readable } from 'node:stream';
+import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
-import { execPromise } from './helpers';
+import { ethers } from 'ethers';
+import Debug from 'debug';
 import _ from 'lodash';
+import { execPromise, toArgs } from './helpers';
+import { AnvilOptions } from './util/anvil';
 
 const debug = Debug('cannon:cli:rpc');
 
 export type RpcOptions = {
-  port: number;
   forkProvider?: ethers.providers.JsonRpcProvider;
-  chainId?: number;
+  forkBlockNumber?: ethers.BigNumberish;
+  timestamp?: ethers.BigNumberish;
 };
 
 const ANVIL_OP_TIMEOUT = 10000;
 
-export type CannonRpcNode = ChildProcess & RpcOptions;
+export type CannonRpcNode = ChildProcess &
+  RpcOptions & {
+    port: number;
+    chainId: number;
+  };
 
 // saved up here to allow for reset of existing process
 let anvilInstance: CannonRpcNode | null = null;
@@ -37,8 +38,29 @@ export const versionCheck = _.once(async () => {
   }
 });
 
-export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: RpcOptions): Promise<CannonRpcNode> {
+export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions = {}): Promise<CannonRpcNode> {
+  const { forkProvider } = rpcOptions;
+
   await versionCheck();
+
+  if (_.isNil(anvilOptions.chainId)) {
+    anvilOptions.chainId = CANNON_CHAIN_ID;
+  }
+
+  // reduce image size by not creating unnecessary accounts
+  if (_.isNil(anvilOptions.accounts)) {
+    anvilOptions.accounts = 1;
+  }
+
+  if (anvilOptions.forkUrl && rpcOptions.forkProvider) {
+    throw new Error('Cannot set both an anvil forkUrl and a proxy provider connection');
+  }
+
+  // create a tiny proxy server (the most reliable way to make sure that the connection can work anywhere)
+  if (forkProvider) {
+    const url = await createProviderProxy(forkProvider);
+    anvilOptions.forkUrl = url;
+  }
 
   if (anvilInstance && anvilInstance.exitCode === null) {
     console.log('shutting down existing anvil subprocess', anvilInstance.pid);
@@ -47,7 +69,7 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
       new Promise<CannonRpcNode>((resolve) => {
         anvilInstance!.once('close', async () => {
           anvilInstance = null;
-          resolve(await runRpc({ port, forkProvider, chainId }));
+          resolve(await runRpc(anvilOptions, rpcOptions));
         });
         anvilInstance!.kill();
       }),
@@ -55,27 +77,17 @@ export async function runRpc({ port, forkProvider, chainId = CANNON_CHAIN_ID }: 
     ]);
   }
 
-  const opts = ['--port', port.toString()];
-  opts.push('--chain-id', chainId.toString());
+  const opts = toArgs(anvilOptions);
 
-  // reduce image size by not creating unnecessary accounts
-  opts.push('--accounts', '1');
-
-  if (forkProvider) {
-    // create a tiny proxy server (the most reliable way to make sure that the connection can work anywhere)
-
-    const url = await createProviderProxy(forkProvider);
-
-    opts.push('--fork-url', url);
-  }
+  debug('starting anvil instance with options: ', anvilOptions);
 
   return Promise.race<Promise<CannonRpcNode>>([
     new Promise<CannonRpcNode>((resolve, reject) => {
       anvilInstance = spawn('anvil', opts) as CannonRpcNode;
 
-      anvilInstance.port = port;
+      anvilInstance.port = anvilOptions.port!;
       anvilInstance.forkProvider = forkProvider;
-      anvilInstance.chainId = chainId;
+      anvilInstance.chainId = anvilOptions.chainId!;
 
       process.once('exit', () => anvilInstance?.kill());
 

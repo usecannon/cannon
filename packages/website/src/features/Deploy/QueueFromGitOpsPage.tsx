@@ -17,6 +17,7 @@ import {
   Text,
   Tooltip,
   useColorMode,
+  useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
@@ -253,6 +254,8 @@ function QueueFromGitOps() {
     totalGas += BigInt(step.gas.toString());
   }
 
+  const toast = useToast();
+
   const stager = useTxnStager(
     (multicallTxn.data
       ? {
@@ -268,6 +271,12 @@ function QueueFromGitOps() {
       onSignComplete() {
         console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
+        toast({
+          title: 'You successfully signed the transaction.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       },
     }
   );
@@ -446,7 +455,18 @@ function QueueFromGitOps() {
                 isDisabled={!!stager.execConditionFailed}
                 size="lg"
                 w="100%"
-                onClick={() => execTxn.write && execTxn.write()}
+                onClick={async () => {
+                  if (execTxn.writeAsync) {
+                    await execTxn.writeAsync();
+                    router.push(links.DEPLOY);
+                    toast({
+                      title: 'You successfully executed the transaction.',
+                      status: 'success',
+                      duration: 5000,
+                      isClosable: true,
+                    });
+                  }
+                }}
               >
                 Execute
               </Button>
