@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.7.0](https://github.com/usecannon/cannon/compare/v2.6.1...v2.7.0) (2023-09-16)
+
+
+### Features
+
+* **cli:** add `cannon trace` command ([#455](https://github.com/usecannon/cannon/issues/455)) ([177cdbf](https://github.com/usecannon/cannon/commit/177cdbf17e63115e92ffa11f176b93de4ab708ca))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.6.1 to ^2.7.0
+
 ## [2.6.1](https://github.com/usecannon/cannon/compare/v2.6.0...v2.6.1) (2023-09-13)
 
 
