@@ -23,6 +23,9 @@ describe('steps/provision.ts', () => {
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
+    jest.mocked(contractAction.getOutputs).mockReturnValue([]);
+    jest.mocked(contractAction.getInputs).mockReturnValue([]);
+
     jest.mocked(contractAction.exec).mockResolvedValue({
       contracts: {
         Woot: {
@@ -48,7 +51,7 @@ describe('steps/provision.ts', () => {
       );
 
       expect(result).toStrictEqual({
-        source: 'a',
+        source: 'a:latest',
         sourcePreset: 'main',
         targetPreset: 'with-who',
       });

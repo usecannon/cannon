@@ -7,6 +7,7 @@ import { routerSchema } from '../schemas.zod';
 import { ChainBuilderRuntime } from '../runtime';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { computeTemplateAccesses } from '../access-recorder';
 
 const debug = Debug('cannon:builder:router');
 
@@ -63,6 +64,19 @@ const routerStep = {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.from));
+    accesses.push(...computeTemplateAccesses(config.salt));
+
+    return config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`));
+  },
+
+  getOutputs(_: Config, packageState: PackageState) {
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(

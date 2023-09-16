@@ -352,11 +352,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   return result;
 }
 
-export async function getOutputs(
-  runtime: ChainBuilderRuntime,
-  def: ChainDefinition,
-  state: DeploymentState
-): Promise<ChainArtifacts | null> {
+export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
   const artifacts: ChainArtifacts = {};
 
   for (const step of def.topologicalActions) {
@@ -365,6 +361,15 @@ export async function getOutputs(
     }
   }
 
+  return artifacts;
+}
+
+export async function getOutputs(
+  runtime: ChainBuilderRuntime,
+  def: ChainDefinition,
+  state: DeploymentState
+): Promise<ChainArtifacts | null> {
+  const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers
     const layers = _.uniq(Object.values(def.getStateLayers()));

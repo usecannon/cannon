@@ -1,4 +1,4 @@
-import { Heading, Text } from '@chakra-ui/react';
+import { Box, Heading, Text } from '@chakra-ui/react';
 import { CommandPreview } from '@/components/CommandPreview';
 import NextLink from 'next/link';
 import { Link } from '@chakra-ui/next-js';
@@ -8,8 +8,8 @@ import { links } from '@/constants/links';
 export const DeployYourProtocol = () => {
   return (
     <>
-      <Heading as="h2" size="md" mt={16} mb={4}>
-        🚀 Deploy Your Protocol
+      <Heading size="md" mb={3} mt={8}>
+        Deploy Your Protocol
       </Heading>
       <Text mb={4}>
         Deploying is just building on a remote network! Be sure to use a network
@@ -22,8 +22,10 @@ export const DeployYourProtocol = () => {
         </ChakraLink>
         .
       </Text>
-      <CommandPreview command="npx hardhat cannon:build --network REPLACE_WITH_NETWORK_NAME" />
-      <Text mt={8} mb={4}>
+      <Box mb={4}>
+        <CommandPreview command="npx hardhat cannon:build --network REPLACE_WITH_NETWORK_NAME" />
+      </Box>
+      <Text mb={4}>
         Set up the&nbsp;
         <ChakraLink
           isExternal
@@ -33,20 +35,19 @@ export const DeployYourProtocol = () => {
         </ChakraLink>
         :
       </Text>
-      <CommandPreview command="npx hardhat cannon:verify" />
-      <Text mt={8} mb={4}>
+      <Box mb={4}>
+        <CommandPreview command="npx hardhat cannon:verify" />
+      </Box>
+      <Text mb={4}>
         Finally, publish your package on the&nbsp;
         <Link as={NextLink} href={links.EXPLORE}>
           Cannon registry
         </Link>
         :
       </Text>
-      <CommandPreview command="npx hardhat cannon:publish --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_ON_MAINNET" />
-      <Text mt={8} mb={4}>
-        <Text as="span" fontWeight="bold">
-          Great work!
-        </Text>
-      </Text>
+      <Box mb={4}>
+        <CommandPreview command="npx hardhat cannon:publish --private-key REPLACE_WITH_KEY_THAT_HAS_ETH_ON_MAINNET" />
+      </Box>
     </>
   );
 };

@@ -6,7 +6,7 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { usePathname } from 'next/navigation';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function LearnLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (

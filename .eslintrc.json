@@ -6,50 +6,55 @@
     "node": true,
     "jest": true
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier",
-    "next"
-  ],
   "settings": {
     "next": {
       "rootDir": "packages/website/"
     }
   },
   "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module",
-    "project": ["./tsconfig.json"]
-  },
   "plugins": ["@typescript-eslint", "prettier"],
-  "rules": {
-    "prettier/prettier": ["error", { "singleQuote": true }],
-    "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
-    "comma-dangle": [
-      "error",
-      {
-        "arrays": "always-multiline",
-        "objects": "always-multiline",
-        "imports": "always-multiline",
-        "exports": "always-multiline",
-        "functions": "never"
-      }
-    ],
-    "indent": "off",
-    "quotes": ["error", "single", { "avoidEscape": true }],
-    "import/no-unresolved": "off", // messed up by lerna hoisting
-    "no-undef": "error",
-    "import/no-anonymous-default-export": "off",
-    "prefer-const": "error",
-    "semi": ["error", "always"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": [
+        "eslint:recommended",
+        "prettier",
+        "next",
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "project": ["./tsconfig.json"]
+      },
+      "rules": {
+        "prettier/prettier": ["error", { "singleQuote": true }],
+        "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
+        "comma-dangle": [
+          "error",
+          {
+            "arrays": "always-multiline",
+            "objects": "always-multiline",
+            "imports": "always-multiline",
+            "exports": "always-multiline",
+            "functions": "never"
+          }
+        ],
+        "indent": "off",
+        "quotes": ["error", "single", { "avoidEscape": true }],
+        "import/no-unresolved": "off", // messed up by lerna hoisting
+        "no-undef": "error",
+        "import/no-anonymous-default-export": "off",
+        "prefer-const": "error",
+        "semi": ["error", "always"],
 
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-floating-promises": "error",
-    "@typescript-eslint/no-unused-vars": "error"
-  }
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-unused-vars": "error"
+      }
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Flex, Image, Box, useBreakpointValue } from '@chakra-ui/react';
+import { Flex, Image, Box, useBreakpointValue, Tag } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
@@ -23,7 +23,9 @@ const NavLinks = () => {
       <NavLink href={links.EXPLORE} isActive={pathname.startsWith('/packages')}>
         Explore
       </NavLink>
-      <NavLink href={'https://deploy.usecannon.com'}>Deploy</NavLink>
+      <NavLink href={links.DEPLOY} isActive={pathname.startsWith('/deploy')}>
+        Deploy
+      </NavLink>
       <NavLink href={links.LEARN} isActive={pathname.startsWith('/learn')}>
         Learn
       </NavLink>
@@ -55,6 +57,17 @@ export const Header = () => {
             />
           </Flex>
         </Link>
+        <Tag
+          size="sm"
+          variant="outline"
+          textTransform="uppercase"
+          ml={3}
+          letterSpacing="1px"
+          fontFamily="var(--font-miriam)"
+          pt={0.5}
+        >
+          Beta
+        </Tag>
         {!isMobile && <NavLinks />}
         <Box ml={['auto', 'auto', 0]} display="block">
           <ConnectWallet />

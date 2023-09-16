@@ -7,7 +7,7 @@ import { DocsPage } from '@/features/Docs/DocsPage';
 import { MarkdownSpec } from '@/components/MarkdownSpec';
 
 export const metadata: Metadata = {
-  title: 'Cannon | Documentation',
+  title: 'Cannon | Docs',
 };
 
 export default function Docs() {
@@ -17,7 +17,21 @@ export default function Docs() {
 
   const zodMarkdown = fs
     .readFileSync(path.join('content', 'docs-configuration.md'))
-    .toString();
+    .toString()
+    .replaceAll(
+      RegExp(
+        /^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/,
+        'gmi'
+      ),
+      ''
+    )
+    .replaceAll(RegExp(/\?:\sstring\s\\\|\sundefined/, 'gmi'), '?: string')
+    .replaceAll(RegExp(/`Record`<`string`, /, 'gmi'), '')
+    .replaceAll(RegExp(/>/, 'gmi'), '')
+    .replaceAll(
+      RegExp(/`string`\[\] | \[`string`, ...string\[\]\]/, 'gmi'),
+      '`[string]`'
+    );
 
   const detailsMarkdown = fs
     .readFileSync(path.join('content', 'docs-details.mdx'))
