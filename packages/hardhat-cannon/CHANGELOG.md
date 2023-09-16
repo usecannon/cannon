@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.7.0](https://github.com/usecannon/cannon/compare/v2.6.0...v2.7.0) (2023-09-16)
+
+
+### Features
+
+* **cli:** add anvil custom options to run and build commands ([e9cf80b](https://github.com/usecannon/cannon/commit/e9cf80b385f9cd6fa7d6461d201d200d4090aea9))
+
+
+### Bug Fixes
+
+* gitHeads references from lerna ([ae76eae](https://github.com/usecannon/cannon/commit/ae76eaeda3e83ab14a09198449d0e0f096ee7839))
+
 ## [2.6.0](https://github.com/usecannon/cannon/compare/v2.5.6...v2.6.0) (2023-09-16)
 
 
