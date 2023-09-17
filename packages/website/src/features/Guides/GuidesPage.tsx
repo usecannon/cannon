@@ -101,7 +101,7 @@ export const GuidesPage = () => {
           />
           <GuideCard
             href={links.DEBUG}
-            title="Debug Errors"
+            title="Debug Issues"
             subtitle="Use the decode, trace, and interact commands to troubleshoot"
           />
         </Grid>
