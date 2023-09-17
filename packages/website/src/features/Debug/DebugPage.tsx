@@ -8,6 +8,7 @@ import {
   Link,
   Code,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/react';
 import React from 'react';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -39,7 +40,7 @@ export const DebugPage = () => {
           letterSpacing="0.2px"
           mb={2.5}
         >
-          Debug a Protocol
+          Debugging Tips
         </Heading>
         <Text
           pb={4}
@@ -81,8 +82,8 @@ export const DebugPage = () => {
           <Link isExternal href="https://www.4byte.directory/">
             Ethereum Signature Database
           </Link>{' '}
-          may be able to help if the relevant ABI has been uploaded there, but
-          won’t be useful during protocol development.
+          may be able to help, but won’t be useful during protocol development
+          or if the relevant ABI hasn’t been uploaded there.
         </Text>
         <Text mb={4}>
           You can pass hex data to Cannon’s <Code>decode</Code> command, along
@@ -90,28 +91,29 @@ export const DebugPage = () => {
           version of function calls, function output, event data, and error
           data.
         </Text>
-        <Text mb={2}>For example, you can decode this hex data ... :</Text>
+        <Text mb={2}>
+          For example, the following command decodes error data:
+        </Text>
         <Box mb={4}>
-          <CommandPreview command="cannon decode TODO-EXAMPLE" />
+          <CommandPreview command="cannon decode synthetix-omnibus --chain-id 84531 --preset competition 0xb87daa32000000000000000000000000000000000000000000000000000000006502188b00000000000000000000000000000000000000000000000000000000650218190000000000000000000000000000000000000000000000000000000065021855" />
+        </Box>
+        <Box mb={4}>
+          <Image borderRadius="sm" src="/images/guide_debug_1.png" />
         </Box>
         <Heading size="md" mb={4} mt={6}>
           Trace
         </Heading>
         <Text mb={4}>
-          If you’d like to better understand a transaction—whether or not it
-          resulted in an error—you can use Cannon’s <Code>trace</Code> command.
-          This command accepts a transaction hash from a remote network or
-          hex-encoded transaction data (as you might find in a gas estimation
-          error).
+          If you’d like to better understand the execution of a
+          transaction—whether or not it resulted in an error—you can use
+          Cannon’s <Code>trace</Code> command. This command accepts a
+          transaction hash from a remote network or hex-encoded transaction data
+          (as you might find in a gas estimation error).
         </Text>
-        <Text mb={2}>For example, you can ... :</Text>
-        <Box mb={4}>
-          <CommandPreview command="cannon trace TODO-EXAMPLE" />
-        </Box>
         <Text mb={4}>
           The command includes some options that allow you to simulate how a
           transaction (or transaction data) would execute under different
-          circumstances: <Code>--block</Code>, <Code>--to</Code>,{' '}
+          circumstances: <Code>--block-number</Code>, <Code>--to</Code>,{' '}
           <Code>--from</Code>, and <Code>--value</Code>.{' '}
           <strong>
             Note that you must connect to an archive node (using the{' '}
@@ -119,6 +121,16 @@ export const DebugPage = () => {
             on a historical block.
           </strong>
         </Text>
+        <Text mb={2}>
+          For example, the following command provides a full stack trace for
+          retrieve the debt associated with a pool’s vault in Synthetix V3:
+        </Text>
+        <Box mb={4}>
+          <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --provider-url https://optimism.publicnode.com" />
+        </Box>
+        <Box mb={4}>
+          <Image borderRadius="sm" src="/images/guide_debug_2.png" />
+        </Box>
         <Heading size="md" mb={4} mt={6}>
           Interact
         </Heading>
@@ -130,13 +142,21 @@ export const DebugPage = () => {
           in the package explorer, the CLI allows you to call view functions and
           send transactions to protocols in the command-line interface.
         </Text>
-        <Text mb={2}>For example, you can ... :</Text>
+        <Text mb={2}>
+          For example, you can use the interact tool to call functions on
+          Synthetix V3:
+        </Text>
         <Box mb={4}>
           <CommandPreview command="cannon interact synthetix --chain-id 1 --provider-url https://ethereum.publicnode.com" />
         </Box>
         <Text mb={4}>
-          If you’d like to send transactions on-chain, you can include a private
-          key using the <Code>--private-key</Code> option.
+          If you’d like to send transactions, you can use{' '}
+          <Link href="https://frame.sh/" isExternal>
+            Frame
+          </Link>{' '}
+          or include a private key using either an environment variable{' '}
+          <Code>CANNON_PRIVATE_KEY</Code> or the <Code>--private-key</Code>{' '}
+          option.
         </Text>
         <Text>
           For more information on the command-line interact, see the{' '}
