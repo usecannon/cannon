@@ -17,6 +17,7 @@ export async function trace({
   data,
   chainId,
   preset,
+  providerUrl,
   from,
   to,
   value,
@@ -27,13 +28,14 @@ export async function trace({
   data: string;
   chainId: number;
   preset: string;
+  providerUrl: string;
   from?: string;
   to?: string;
-  block?: ethers.BigNumberish;
+  block?: string;
   value?: ethers.BigNumberish;
   json: boolean;
 }) {
-  const cliSettings = resolveCliSettings();
+  const cliSettings = resolveCliSettings({ providerUrl });
   // data can be:
   // 1. on-chain transaction hash
   // 2. calldata (will automatically detect contract to execute on)
@@ -57,17 +59,21 @@ export async function trace({
   if (data.length == 66) {
     const txHash = data;
 
-    const txData = await provider.getTransaction(txHash);
-    const txReceipt = await provider.getTransactionReceipt(txHash);
+    try {
+      const txData = await provider.getTransaction(txHash);
+      const txReceipt = await provider.getTransactionReceipt(txHash);
 
-    // this is a transaction hash
-    console.log(gray('Detected transaction hash'));
+      // this is a transaction hash
+      console.log(gray('Detected transaction hash'));
 
-    data = txData.data;
-    value = value || txData.value;
-    block = block || txReceipt.blockNumber - 1;
-    from = from || txData.from;
-    to = to || txData.to;
+      data = txData.data;
+      value = value || txData.value;
+      block = block || txReceipt.blockNumber.toString();
+      from = from || txData.from;
+      to = to || txData.to;
+    } catch (err) {
+      throw new Error('could not get transaction information. The transaction may not exist?');
+    }
   } else if (!to) {
     const r = findContract(artifacts, ({ address, abi }) => {
       try {
@@ -95,8 +101,12 @@ export async function trace({
   let rpc;
   if (block) {
     // subtract one second because 1 second is added when the block is mined
-    const timestamp = (await provider.getBlock(ethers.BigNumber.from(block).toNumber())).timestamp - 1;
-    rpc = await runRpc({ port: 0 }, { forkProvider: provider as any, forkBlockNumber: block, timestamp });
+    const blockInfo = await provider.getBlock((block || 'latest').match(/^[0-9]*$/) ? parseInt(block) : block);
+    const timestamp = blockInfo.timestamp - 1;
+    rpc = await runRpc(
+      { port: 0, forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number - 1).toString(), timestamp },
+      { forkProvider: provider as any }
+    );
   } else {
     rpc = await runRpc({ port: 0 }, { forkProvider: provider as any });
   }
@@ -122,6 +132,7 @@ export async function trace({
       await simulateProvider.send('hardhat_setBalance', [fullTxn.from, ethers.utils.parseEther('10000').toString()]);
       signer = fullTxn.from;
     }
+    console.log(gray('Simulating transaction (be patient! this could take a while...)'));
     const pushedTxn = await simulateProvider.getSigner(signer).sendTransaction(fullTxn);
 
     try {

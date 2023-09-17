@@ -40,7 +40,7 @@ export type AnvilOptions = {
    *
    * Requires `forkUrl` to be set.
    */
-  forkBlockNumber?: number | bigint | undefined;
+  forkBlockNumber?: string | undefined;
   /**
    * Specify chain id to skip fetching it from remote endpoint. This enables offline-start mode.
    *
