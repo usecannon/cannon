@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.7.1](https://github.com/usecannon/cannon/compare/v2.7.0...v2.7.1) (2023-09-17)
+
+
+### Bug Fixes
+
+* misc debug mode fixes ([#424](https://github.com/usecannon/cannon/issues/424)) ([2f99df5](https://github.com/usecannon/cannon/commit/2f99df57d599653f86594ac889a0c30f8fb74c21))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.7.0 to ^2.7.1
+    * @usecannon/cli bumped from ^2.7.0 to ^2.7.1
+
 ## [2.7.0](https://github.com/usecannon/cannon/compare/v2.6.0...v2.7.0) (2023-09-16)
 
 
