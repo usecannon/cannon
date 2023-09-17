@@ -6,6 +6,11 @@
 ### Features
 
 * **cli:** add `cannon trace` command ([#455](https://github.com/usecannon/cannon/issues/455)) ([177cdbf](https://github.com/usecannon/cannon/commit/177cdbf17e63115e92ffa11f176b93de4ab708ca))
+* **cli:** add anvil custom options to run and build commands ([#445](https://github.com/usecannon/cannon/issues/369)) [e9cf80b](https://github.com/usecannon/cannon/commit/e9cf80b385f9cd6fa7d6461d201d200d4090aea9)
+* **cli:** Add ability to pass params through anvil ([#369](https://github.com/usecannon/cannon/issues/369)) [e9cf80b](https://github.com/usecannon/cannon/commit/e9cf80b385f9cd6fa7d6461d201d200d4090aea9)
+
+* **registry**:  add package publication fee of 1 wei ([#387](https://github.com/usecannon/cannon/issues/387) [26027a0](https://github.com/usecannon/cannon/commit/26027a0333638478adea50228346b93ea1089aa3)
+
 
 ## [2.6.1](https://github.com/usecannon/cannon/compare/v2.6.0...v2.6.1) (2023-09-13)
 
