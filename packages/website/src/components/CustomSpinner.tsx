@@ -6,13 +6,13 @@ type ImageProps = ComponentProps<typeof Image>;
 
 const pulse = keyframes`
   0% {
-    opacity: 0.06;
+    opacity: 0.08;
   }
   50% {
-    opacity: 0.12;
+    opacity: 0.16;
   }
   100% {
-    opacity: 0.06;
+    opacity: 0.08;
   }
 `;
 
