@@ -129,7 +129,10 @@ export class ChainDefinition {
 
     for (const extDep of extraneousDeps) {
       const deps = this.resolvedDependencies.get(extDep.node)!;
-      deps.splice(deps.indexOf(extDep.extraneous), 1);
+      const depIdx = deps.indexOf(extDep.extraneous);
+      if (depIdx !== -1) {
+        deps.splice(depIdx, 1);
+      }
     }
 
     if (this.checkExtraneousDependencies().length > 0) {
@@ -501,29 +504,35 @@ export class ChainDefinition {
           deps = deps.filter((d) => depTree.indexOf(d) === -1);
         }
       }
+
+      deps = _.sortBy(deps, (d) => -this.cachedActionDepths.get(d)!);
       debug('layer dependencies after', deps);
 
       for (const dep of deps) {
         // layer is guarenteed to exist here because topological sort
         const depLayer = layerOfActions.get(dep)!;
-        const dependingLayer = layerDependingOn.get(depLayer);
+        let dependingLayer = layerDependingOn.get(depLayer);
 
         if (dependingLayer && dependingLayer !== attachingLayer) {
-          if (layerDependingOn.get(dependingLayer)) {
-            debug(`skipping dep merge to ${dependingLayer} because its deep already`);
+          while (layerDependingOn.has(dependingLayer!)) {
+            debug(`stepping up dep ${dependingLayer} because its deep already`);
+            dependingLayer = layerDependingOn.get(dependingLayer!);
+          }
+          if (attachingLayer == dependingLayer) {
+            // dependency is already handled
             continue;
           }
           // "merge" this entire layer into the other one
           debug(`merge from ${attachingLayer} into layer`, dependingLayer);
-          layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
-          layers[dependingLayer].depends = _.uniq([...layers[dependingLayer].depends, ...layers[attachingLayer].depends]);
+          layers[dependingLayer!].actions.push(...layers[attachingLayer].actions);
+          layers[dependingLayer!].depends = _.uniq([...layers[dependingLayer!].depends, ...layers[attachingLayer].depends]);
 
           // ensure the other nodes are now pointing to this structure
           for (const a of layers[attachingLayer].actions) {
-            layers[a] = layers[dependingLayer];
+            layers[a] = layers[dependingLayer!];
           }
 
-          attachingLayer = dependingLayer;
+          attachingLayer = dependingLayer!;
         } else if (layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
           debug(`extend the layer ${attachingLayer} with dep`, depLayer);
