@@ -434,7 +434,7 @@ export class ChainDefinition {
     // extraneous dependency is defined as a direct dependency
     // on this node which is also a deeper dependency of another
     // dependency of this node
-    outer: for (const dep of deps) {
+    for (const dep of deps) {
       for (const d of deps) {
         const [childDeps] = this.getDependencyTree(dep);
         if (childDeps.includes(d)) {
