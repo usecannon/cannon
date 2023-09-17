@@ -110,7 +110,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
       quiet: process.env.CANNON_QUIET === 'true' || fileSettings.quiet || false,
     },
-    _.filter(overrides)
+    _.pickBy(overrides)
   );
 
   debug('got settings', finalSettings);
