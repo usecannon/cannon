@@ -122,7 +122,7 @@ describe('alter', () => {
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(newTestPkgData);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -141,7 +141,7 @@ describe('alter', () => {
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -164,7 +164,7 @@ describe('alter', () => {
     // expect(testPkgData.status).toEqual('complete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -186,7 +186,7 @@ describe('alter', () => {
     // expect(testPkgData.status).toEqual('incomplete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual('INCOMPLETE');
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
