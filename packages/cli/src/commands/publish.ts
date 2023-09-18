@@ -76,8 +76,6 @@ export async function publish({
       recursive,
       tags,
     });
-
-    return;
   }
 
   // get a list of all deployments the user is requesting
@@ -114,18 +112,19 @@ export async function publish({
       tags,
     });
 
-    registrationReceipts.push(newReceipts);
+    registrationReceipts.push(...newReceipts);
   }
 
-  console.log(
-    JSON.stringify(
-      {
-        packageRef,
-        tags,
-        registrationReceipts,
-      },
-      null,
-      2
-    )
-  );
+  if (tags.length) {
+    console.log(blueBright('Package published:'));
+    for (const tag of tags) {
+      console.log(`  - ${packageRef} (${tag})`);
+    }
+  }
+
+  const txs = registrationReceipts.filter((tx) => !!tx);
+  if (txs.length) {
+    console.log('\n', blueBright('Transactions:'));
+    for (const tx of txs) console.log(`  - ${tx}`);
+  }
 }
