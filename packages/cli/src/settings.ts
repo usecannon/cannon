@@ -103,12 +103,14 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       registryProviderUrl: getRegistryProviderUrl(fileSettings, privateKey),
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
-      registryPriority: process.env.CANNON_REGISTRY_PRIORITY || fileSettings.registryPriority || 'onchain',
+      registryPriority: (process.env.CANNON_REGISTRY_PRIORITY ||
+        fileSettings.registryPriority ||
+        'onchain') as CliSettings['registryPriority'],
       etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
       etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
       quiet: process.env.CANNON_QUIET === 'true' || fileSettings.quiet || false,
     },
-    overrides
+    _.pickBy(overrides)
   );
 
   debug('got settings', finalSettings);

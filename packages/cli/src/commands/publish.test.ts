@@ -56,6 +56,7 @@ describe('publish command', () => {
     jest.spyOn(settings, 'resolveCliSettings').mockImplementation(
       jest.fn().mockReturnValue({
         ipfsUrl: 'http://127.0.0.1:5001',
+        publishIpfsUrl: 'http://127.0.0.1:5001',
         registryProviderUrl: 'http://localhost:3000',
         registryAddress: ethers.constants.AddressZero,
         registryChainId: '123', // or whatever value is appropriate in your case
@@ -101,6 +102,7 @@ describe('publish command', () => {
       }
       return Promise.resolve(Buffer.from(''));
     });
+
     jest.spyOn(IPFSLoader.prototype, 'read').mockImplementation((url: string): Promise<any> => {
       switch (url) {
         case testPkgDataIpfsUrl:

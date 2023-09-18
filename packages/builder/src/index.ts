@@ -22,5 +22,6 @@ export { copyPackage, PackageReference } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
 
+export * from './access-recorder';
 export { renderTrace, findContract } from './trace';
 export type { TraceEntry } from './trace';

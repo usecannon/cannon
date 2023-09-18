@@ -213,6 +213,10 @@ export async function buildLayer(
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
   for (const dep of layer.depends) {
+    // this doesn't catch all cases of cycles but as a sanity check it works surprisingly well
+    if (dep === cur) {
+      throw new Error(`layer depends on itself: ${cur}`);
+    }
     await buildLayer(runtime, def, baseCtx, state, dep, tainted, built);
 
     // if a prior layer had to be rebuilt, we must rebuild the current layer as well
