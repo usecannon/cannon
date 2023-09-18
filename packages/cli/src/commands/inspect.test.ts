@@ -12,7 +12,7 @@ jest.mock('../helpers');
 describe('inspect', () => {
   const chainId = 123;
   const preset = 'your-preset';
-  const basePkgName = 'package:1.2.3@';
+  const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
 
   let testPkgData: any;

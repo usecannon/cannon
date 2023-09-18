@@ -178,5 +178,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([packageRef], variant, newUrl, metaUrl || '');
+  await resolver.publish([basePackageRef], variant, newUrl, metaUrl || '');
 }
