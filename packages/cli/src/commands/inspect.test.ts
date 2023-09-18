@@ -10,9 +10,10 @@ jest.mock('../loader');
 jest.mock('../helpers');
 
 describe('inspect', () => {
-  const packageName = 'package:1.2.3';
   const chainId = 123;
   const preset = 'your-preset';
+  const basePkgName = `package:1.2.3@`;
+  const packageName = `${basePkgName}@${preset}`;
 
   let testPkgData: any;
   let mockedFallBackRegistry: any;
@@ -105,8 +106,8 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, false, '');
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
-    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
   });
 
@@ -115,8 +116,8 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, false, writeDeployments);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
-    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(fs.outputFile).toHaveBeenCalled();
   });
 
@@ -124,7 +125,7 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, true, '');
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${packageName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
     expect(stdoutOutput.join('')).toEqual(JSON.stringify(testPkgData, null, 2));
   });
