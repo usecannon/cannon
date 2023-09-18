@@ -30,7 +30,7 @@ jest.mock('../rpc');
 describe('alter', () => {
   const chainId = 123;
   const preset = 'your-preset';
-  const basePkgName = `package:1.2.3`;
+  const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
   const runtimeOverrides = {};
   const metaUrl = 'meta-url';
@@ -201,21 +201,9 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     // await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    await cli.parseAsync([
-      'node',
-      'cannon.ts',
-      'alter',
-      packageName,
-      command,
-      ...targets,
-      '-c',
-      String(chainId),
-    ]);
+    await cli.parseAsync(['node', 'cannon.ts', 'alter', packageName, command, ...targets, '-c', String(chainId)]);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(
-      packageName,
-      String(chainId)
-    );
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, String(chainId));
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
