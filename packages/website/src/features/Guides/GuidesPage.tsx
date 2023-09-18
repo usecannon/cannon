@@ -87,7 +87,7 @@ export const GuidesPage = () => {
           <GuideCard
             href={links.GETSTARTED}
             title="Get Started"
-            subtitle="Run a package from the registry explorer on a local node in seconds"
+            subtitle="Run a package from the package explorer on a local node in seconds"
           />
           <GuideCard
             href={links.BUILD}
@@ -98,6 +98,11 @@ export const GuidesPage = () => {
             href={links.ROUTER}
             title="Deploy a Router"
             subtitle="Build a protocol of any size with Synthetix’s Router plug-in"
+          />
+          <GuideCard
+            href={links.DEBUG}
+            title="Debugging Tips"
+            subtitle="Use the decode, trace, and interact commands to troubleshoot"
           />
         </Grid>
       </Container>

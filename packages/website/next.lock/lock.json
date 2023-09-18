@@ -1,4 +1,4 @@
 {
-  "https://unpkg.com/ganache@7.9.1": { "resolved": "https://unpkg.com/ganache@7.9.1/dist/web/ganache.min.js", "integrity": "sha512-T/2p2z36lkxuSAnHo+ifBaglysJqKoq3xsOyJc3AShn5Vyjj7K8+4KMk98PQ7Yxd90efIoC2YC53GaBCOB0w3g==", "contentType": "application/javascript; charset=utf-8" },
+  "https://unpkg.com/ganache@7.9.1": { "resolved": "https://unpkg.com/ganache@7.9.1/dist/web/ganache.min.js", "integrity": "sha512-EEPqnww9PBMaZrA9EveFQklKCHQVcxWD1wdG+9Qynsdb2Idg2TRD2iriqdTkQxIGSnGzu/1lRshLXilk4DxEvw==", "contentType": "application/javascript; charset=utf-8" },
   "version": 1
 }

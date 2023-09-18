@@ -1,5 +1,14 @@
 'use client';
-import { useTheme, Flex, Box, Heading, Text, Link } from '@chakra-ui/react';
+import {
+  useTheme,
+  Flex,
+  Box,
+  Heading,
+  Text,
+  Link,
+  Code,
+} from '@chakra-ui/react';
+import { Image } from '@chakra-ui/react';
 import React from 'react';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -28,93 +37,130 @@ export const DebugPage = () => {
           as="h2"
           size="lg"
           fontWeight={600}
+          letterSpacing="0.2px"
+          mb={2.5}
+        >
+          Debugging Tips
+        </Heading>
+        <Text
           pb={4}
           mb={4}
           borderBottom="1px solid"
           borderBottomColor="gray.800"
-          letterSpacing="0.2px"
+          fontSize="xl"
+          color="gray.400"
         >
-          Debugging your Contracts with Cannon: What to do when things go wrong
-        </Heading>
-        <Text mb={4}>
-          We have all been there. Our production app is emitting a strange hex
-          error, but our wallet wasn’t able to explain the actual cause. Worse,
-          the error could be the dreaded `0x` (aka an error with no revert
-          reason)! Or perhaps you have a transaction on gnosis safe, but its
-          getting sent cross chain or through a proxy of some sort, so the
-          function call cant be verified because its obscured.
+          Troubleshoot issues with your protocol during development and testing.
         </Text>
         <Text mb={4}>
-          Many tools have been built over the years to solve these problems.
-          Since Cannon is effectively a package manager for protocol
-          deployments, it can also assist with errors decoding of unknown data.
-          This guide will show a few examples of how to use Cannon to explain
-          errors, get stack traces, and gather other sorts of useful data you
-          would want when helping a user. The best part: Cannon does this with{' '}
-          <i>no centralized data providers</i>.
+          Protocol development can often involve frustrating errors that consist
+          of inscrutable bytecode. Function calls staged to a Safe might not be
+          legible. A dreaded <Code>0x</Code> error may be returned from a
+          contract with no reason for the revert to be found.
         </Text>
-        <Heading size="md" mb={4} mt={6}>
-          Decoding any Data
-        </Heading>
         <Text mb={4}>
-          If you havent already, you should install/upgrade Cannon:
+          Cannon can leverage data from packages to decode bytecode, generate
+          human-readable stack traces, and send transactions to protocols.
+        </Text>
+        <Text mb={2}>
+          To use the <Code>decode</Code>, <Code>trace</Code>, and{' '}
+          <Code>interact</Code> commands, start by installing/upgrading Cannon:
         </Text>
         <Box mb={4}>
           <CommandPreview command="npm i -g @usecannon/cli" />
         </Box>
-        <Text mb={4}>
-          For this guide we will use the{' '}
-          <Link href="https://usecannon.com/packages/synthetix">synthetix</Link>
-          package as an example. Of course, you can substitute these commands
-          for any other package.
-        </Text>
-        <Text mb={4}>
-          Lets have cannon explain what the hex `0x` means. To do this, we can
-          use the `cannon decode` utility. For exmaple:
-        </Text>
-        <Box mb={4}>
-          <CommandPreview command="cannon decode synthetix 0x" />
-          Command Output
-        </Box>
-        <Text mb={4}>
-          From this output, in a few moments we can see that . Cannon determined
-          this by resolving the `synthetix` package from the registry, and then
-          downloaded the contract ABIs from IPFS.
-        </Text>
-        <Text mb={4}>
-          This works for function definitions, also. For example, lets figure
-          out what this giant call is actually doing:
-        </Text>
-        <Box mb={4}>
-          <CommandPreview command="cannon decode synthetix 0x" />
-          Command Output
-        </Box>
         <Heading size="md" mb={4} mt={6}>
-          Getting a Stack Trace
+          Decode
         </Heading>
         <Text mb={4}>
-          Sometimes just knowing what the error is doesn’t cut it, or perhaps
-          the error we are looking for is being emitted by a contract not inside
-          of Cannon. Luckely, Cannon includes a tool dedicted to ad-hoc
-          debugging of live-network transactions, and it works for any package
-          deployed with Cannon.
+          You may encounter a hex string related to a protocol, but can’t tell
+          what it is. Centralized services such as{' '}
+          <Link isExternal href="https://openchain.xyz/tools/abi">
+            ABI Tools
+          </Link>{' '}
+          or the{' '}
+          <Link isExternal href="https://www.4byte.directory/">
+            Ethereum Signature Database
+          </Link>{' '}
+          may be able to help, but won’t be useful during protocol development
+          or if the relevant ABI hasn’t been uploaded there.
         </Text>
         <Text mb={4}>
-          We will use the cannon cli to understand the reason for why an error
-          occurs for a particular transaction. First, start the cli on the
-          cannon package for mainnet:
+          You can pass hex data to Cannon’s <Code>decode</Code> command, along
+          with the package name and a relevant chain ID, to get a human-readable
+          version of function calls, function output, event data, and error
+          data.
+        </Text>
+        <Text mb={2}>
+          For example, the following command decodes error data:
         </Text>
         <Box mb={4}>
-          <CommandPreview command="cannon synthetix --chain-id 1 --provider-url https://ethereum.publicnode.com --impersonate 0x6cd3f878852769e04A723A5f66CA7DD4d9E38A6C" />
-          Command Output
+          <CommandPreview command="cannon decode synthetix-omnibus --chain-id 84531 --preset competition 0xb87daa32000000000000000000000000000000000000000000000000000000006502188b00000000000000000000000000000000000000000000000000000000650218190000000000000000000000000000000000000000000000000000000065021855" />
         </Box>
+        <Box mb={4}>
+          <Image borderRadius="sm" src="/images/guide_debug_1.png" />
+        </Box>
+        <Heading size="md" mb={4} mt={6}>
+          Trace
+        </Heading>
         <Text mb={4}>
-          If you are running Frame, `--provider-url` is not required.
+          If you’d like to better understand the execution of a
+          transaction—whether or not it resulted in an error—you can use
+          Cannon’s <Code>trace</Code> command. This command accepts a
+          transaction hash from a remote network or hex-encoded transaction data
+          (as you might find in a gas estimation error).
         </Text>
         <Text mb={4}>
-          The address `0x6cd3f878852769e04A723A5f66CA7DD4d9E38A6C` is the
-          Synthetix Dao, which is owner of the Synthetix contracts. Any address
-          can be put in this field, as needed.
+          The command includes some options that allow you to simulate how a
+          transaction (or transaction data) would execute under different
+          circumstances: <Code>--block-number</Code>, <Code>--to</Code>,{' '}
+          <Code>--from</Code>, and <Code>--value</Code>.{' '}
+          <strong>
+            Note that you must connect to an archive node (using the{' '}
+            <Code>--provider-url</Code> option) to successfully simulate a call
+            on a historical block.
+          </strong>
+        </Text>
+        <Text mb={2}>
+          For example, the following command provides a full stack trace for
+          retrieve the debt associated with a pool’s vault in Synthetix V3:
+        </Text>
+        <Box mb={4}>
+          <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --provider-url https://optimism.publicnode.com" />
+        </Box>
+        <Box mb={4}>
+          <Image borderRadius="sm" src="/images/guide_debug_2.png" />
+        </Box>
+        <Heading size="md" mb={4} mt={6}>
+          Interact
+        </Heading>
+        <Text mb={4}>
+          Similar to the{' '}
+          <Link href="/packages/synthetix/latest/1-main/interact">
+            interact tab
+          </Link>{' '}
+          in the package explorer, the CLI allows you to call view functions and
+          send transactions to protocols in the command-line interface.
+        </Text>
+        <Text mb={2}>
+          For example, you can use the interact tool to call functions on
+          Synthetix V3:
+        </Text>
+        <Box mb={4}>
+          <CommandPreview command="cannon interact synthetix --chain-id 1 --provider-url https://ethereum.publicnode.com" />
+        </Box>
+        <Text mb={4}>
+          If you’d like to send transactions, you can use{' '}
+          <Link href="https://frame.sh/" isExternal>
+            Frame
+          </Link>{' '}
+          or include a private key using either an environment variable{' '}
+          <Code>CANNON_PRIVATE_KEY</Code> or the <Code>--private-key</Code>{' '}
+          option.
+        </Text>
+        <Text>
+          For more information on the command-line interact, see the{' '}
+          <Link href="/learn/cli">CLI section of the documentation</Link>.
         </Text>
       </Box>
     </Flex>

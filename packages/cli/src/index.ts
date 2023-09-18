@@ -509,6 +509,7 @@ program
   .option('-v --value <value>', 'Amonut of gas token to send in the traced call')
   .option('-b --block-number <value>', 'The block to simulate when the call is on')
   .option('-p --preset <preset>', 'Preset of the variant to inspect', 'main')
+  .option('-n --provider-url [url]', 'RPC endpoint to fork off of')
   .option('-j --json', 'Output as JSON')
   .action(async function (packageName, data, options) {
     const { trace } = await import('./commands/trace');
@@ -518,6 +519,7 @@ program
       data,
       chainId: options.chainId,
       preset: options.preset,
+      providerUrl: options.providerUrl,
       from: options.from,
       to: options.to,
       value: options.value,

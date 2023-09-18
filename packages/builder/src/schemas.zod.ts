@@ -96,7 +96,7 @@ export const contractSchema = z
           )
         ),
         /**
-         *    Constructor or initializer args
+         *  Constructor or initializer args
          */
         args: z.array(argsUnion),
         /**
@@ -163,10 +163,9 @@ export const importSchema = z
         preset: z.string(),
         /**
          *  Previous steps this step is dependent on
-         *  @example
          *  ```toml
-         *  depends = ['contract.Storage', 'import.Contract']
-         * ```
+         *    depends = ['contract.Storage', 'import.Contract']
+         *  ```
          */
         depends: z.array(
           z.string().refine(
@@ -224,6 +223,9 @@ export const invokeSchema = z
           (val) => ({ message: `"${val}" must be a valid ethereum address` })
         ),
 
+        /**
+         *  Specify a function to use as the 'from' value in a function call. Example `owner()`.
+         */
         fromCall: z.object({
           /**
            *  The name of a view function to call on this contract. The result will be used as the from input.
@@ -244,6 +246,9 @@ export const invokeSchema = z
          *   Override transaction settings
          */
         overrides: z.object({
+          /**
+           *   Gas limit to send along with the transaction
+           */
           gasLimit: z.string().refine((val) => !!parseInt(val), { message: 'Gas limit is invalid' }),
         }),
         /**
@@ -361,17 +366,17 @@ export const provisionSchema = z
       .object({
         /**
          *  ID of the chain to import the package from
-         *  @default - 13370
+         * Default - 13370
          */
         chainId: z.number().int(),
         /**
          *  Override the preset to use when provisioning this package.
-         *  @default - "main"
+         * Default - "main"
          */
         sourcePreset: z.string(),
         /**
          *  Set the new preset to use for this package.
-         *  @default - "main"
+         * Default - "main"
          */
         targetPreset: z.string(),
         /**
@@ -399,9 +404,21 @@ export const provisionSchema = z
   );
 
 export const routerSchema = z.object({
+  /**
+   * Set of contracts that will be passed to the router
+   */
   contracts: z.array(z.string()),
+  /**
+   *  Address to pass to the from call
+   */
   from: z.string().optional(),
+  /**
+   *   Used to force new copy of a contract (not actually used)
+   */
   salt: z.string().optional(),
+  /**
+   *  List of steps that this action depends on
+   */
   depends: z.array(z.string()).optional(),
 });
 
@@ -442,7 +459,6 @@ export const chainDefinitionSchema = z
         keywords: z.array(z.string()),
         /**
          * Object that allows the definition of values for use in next steps
-         * @example
          * ```toml
          *  [settings.owner]
          *  defaultValue: "some-eth-address"
@@ -470,9 +486,21 @@ export const chainDefinitionSchema = z
          * @internal
          */
         import: z.record(importSchema),
+        /**
+         * @internal
+         */
         provision: z.record(provisionSchema),
+        /**
+         * @internal
+         */
         contract: z.record(contractSchema),
+        /**
+         * @internal
+         */
         invoke: z.record(invokeSchema),
+        /**
+         * @internal
+         */
         router: z.record(routerSchema),
         // ... there may be others that come from plugins
       })

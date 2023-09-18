@@ -86,11 +86,15 @@ export class ChainDefinition {
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
 
+    debug('start check cycles');
+
     const cycles = this.checkCycles();
 
     if (cycles) {
       throw new Error(`the following dependency cycle was found in your chain definition:\n${cycles.join('\n')}`);
     }
+
+    debug('no cycles found');
 
     // get all dependencies, and filter out the extraneous
     for (const action of this.allActionNames) {
@@ -98,7 +102,11 @@ export class ChainDefinition {
       this.resolvedDependencies.set(action, this.computeDependencies(action));
     }
 
+    debug('finished resolving dependencies');
+
     this.roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
+
+    debug(`computed roots: ${Array.from(this.roots.values()).join(', ')}`);
 
     this.leaves = new Set(
       _.difference(
@@ -111,16 +119,31 @@ export class ChainDefinition {
       )
     );
 
+    debug('start check all');
     this.checkAll();
+    debug('end check all');
 
     const extraneousDeps = this.checkExtraneousDependencies();
 
+    debug('found extraneous deps', extraneousDeps);
+
     for (const extDep of extraneousDeps) {
       const deps = this.resolvedDependencies.get(extDep.node)!;
-      deps.splice(deps.indexOf(extDep.extraneous), 1);
+      const depIdx = deps.indexOf(extDep.extraneous);
+      if (depIdx !== -1) {
+        deps.splice(depIdx, 1);
+      }
     }
 
-    // compute the step outputs (needed for dependency resolution)
+    if (this.checkExtraneousDependencies().length > 0) {
+      throw new Error(`extraneous dependencies remain after prune: ${this.checkExtraneousDependencies()}`);
+    }
+
+    debug('final depends dump');
+
+    for (const action of this.topologicalActions) {
+      debug(`${action} has depends`, this.resolvedDependencies.get(action));
+    }
 
     debug('finished chain def init');
   }
@@ -411,12 +434,11 @@ export class ChainDefinition {
     // extraneous dependency is defined as a direct dependency
     // on this node which is also a deeper dependency of another
     // dependency of this node
-    outer: for (const dep of deps) {
+    for (const dep of deps) {
       for (const d of deps) {
         const [childDeps] = this.getDependencyTree(dep);
         if (childDeps.includes(d)) {
           extraneous.push({ node, extraneous: d, inDep: dep });
-          break outer;
         }
       }
     }
@@ -472,6 +494,7 @@ export class ChainDefinition {
       let attachingLayer: string = n;
 
       let deps = this.getDependencies(n);
+      debug('layer dependencies before', deps);
 
       // first. filter any deps which are extraneous. This is a dependency which is a subdepenendency of an assigned layer for a dependency.
       // @note this is the slowest part of cannon atm. Improvements here would be most important.
@@ -482,23 +505,34 @@ export class ChainDefinition {
         }
       }
 
+      deps = _.sortBy(deps, (d) => -this.cachedActionDepths.get(d)!);
+      debug('layer dependencies after', deps);
+
       for (const dep of deps) {
         // layer is guarenteed to exist here because topological sort
         const depLayer = layerOfActions.get(dep)!;
-        const dependingLayer = layerDependingOn.get(depLayer);
+        let dependingLayer = layerDependingOn.get(depLayer);
 
         if (dependingLayer && dependingLayer !== attachingLayer) {
+          while (layerDependingOn.has(dependingLayer!)) {
+            debug(`stepping up dep ${dependingLayer} because its deep already`);
+            dependingLayer = layerDependingOn.get(dependingLayer!);
+          }
+          if (attachingLayer == dependingLayer) {
+            // dependency is already handled
+            continue;
+          }
           // "merge" this entire layer into the other one
           debug(`merge from ${attachingLayer} into layer`, dependingLayer);
-          layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
-          layers[dependingLayer].depends = _.uniq([...layers[dependingLayer].depends, ...layers[attachingLayer].depends]);
+          layers[dependingLayer!].actions.push(...layers[attachingLayer].actions);
+          layers[dependingLayer!].depends = _.uniq([...layers[dependingLayer!].depends, ...layers[attachingLayer].depends]);
 
           // ensure the other nodes are now pointing to this structure
           for (const a of layers[attachingLayer].actions) {
-            layers[a] = layers[dependingLayer];
+            layers[a] = layers[dependingLayer!];
           }
 
-          attachingLayer = dependingLayer;
+          attachingLayer = dependingLayer!;
         } else if (layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
           debug(`extend the layer ${attachingLayer} with dep`, depLayer);

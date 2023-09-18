@@ -1,25 +1,21 @@
+import crypto from 'node:crypto';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import Debug from 'debug';
-
 import { z } from 'zod';
-import { runSchema } from '../schemas.zod';
-
 import {
+  computeTemplateAccesses,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
   ChainArtifacts,
   registerAction,
   PackageState,
 } from '@usecannon/builder';
-
-import crypto from 'crypto';
-import fs from 'fs-extra';
+import { runSchema } from '../schemas.zod';
 
 const debug = Debug('cannon:builder:run');
-
-import path from 'node:path';
-import { createRequire } from 'node:module';
-import { computeTemplateAccesses } from '@usecannon/builder';
 
 interface ErrorWithCode extends Error {
   code: string;
@@ -66,7 +62,7 @@ export function hashFs(path: string): Buffer {
  *  Available properties for run step
  *  @public
  *  @group Run
- 
+
  */
 export type Config = z.infer<typeof runSchema>;
 

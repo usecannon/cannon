@@ -1,5 +1,35 @@
 # Changelog
 
+## [2.7.1](https://github.com/usecannon/cannon/compare/v2.7.0...v2.7.1) (2023-09-17)
+
+
+### Bug Fixes
+
+* `cannon trace` bugs ([#463](https://github.com/usecannon/cannon/issues/463)) ([aaf5165](https://github.com/usecannon/cannon/commit/aaf516522773e13ca7e5828f5b03cc073bdd7093))
+* 2.7 regressions ([#461](https://github.com/usecannon/cannon/issues/461)) ([b9ecbb7](https://github.com/usecannon/cannon/commit/b9ecbb7b2564345babd89c9230247970805b570f))
+* misc debug mode fixes ([#424](https://github.com/usecannon/cannon/issues/424)) ([2f99df5](https://github.com/usecannon/cannon/commit/2f99df57d599653f86594ac889a0c30f8fb74c21))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.7.0 to ^2.7.1
+
+## [2.7.0](https://github.com/usecannon/cannon/compare/v2.6.1...v2.7.0) (2023-09-16)
+
+
+### Features
+
+* **cli:** add `cannon trace` command ([#455](https://github.com/usecannon/cannon/issues/455)) ([177cdbf](https://github.com/usecannon/cannon/commit/177cdbf17e63115e92ffa11f176b93de4ab708ca))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.6.1 to ^2.7.0
+
 ## [2.6.1](https://github.com/usecannon/cannon/compare/v2.6.0...v2.6.1) (2023-09-13)
 
 

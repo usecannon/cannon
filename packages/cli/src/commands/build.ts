@@ -215,15 +215,23 @@ export async function build({
   }
 
   // attach control-c handler
-
-  if (persist) {
-    const handler = () => {
+  let ctrlcs = 0;
+  const handler = () => {
+    if (!runtime.isCancelled()) {
       console.log('interrupt received, finishing current build step and cancelling...');
       console.log('please be patient, or state loss may occur.');
       partialDeploy = true;
       runtime.cancel();
-    };
-
+    } else if (ctrlcs < 4) {
+      console.log('you really should not try to cancel the build unless you know what you are doing.');
+      console.log('continue pressing control-c to FORCE, and UNCLEANLY exit cannon');
+    } else {
+      console.log('exiting uncleanly. state loss may have occured. please DO NOT raise bug reports.');
+      process.exit(1234);
+    }
+    ctrlcs++;
+  };
+  if (persist) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -260,6 +268,12 @@ export async function build({
         deployUrl!,
         metaUrl!
       );
+
+      // detach the process handler
+
+      process.off('SIGINT', handler);
+      process.off('SIGTERM', handler);
+      process.off('SIGQUIT', handler);
     }
 
     if (partialDeploy) {
