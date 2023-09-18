@@ -129,7 +129,7 @@ export const DebugPage = () => {
         </Text>
         <Text mb={2}>
           For example, the following command provides a full stack trace for
-          retrieve the debt associated with a pool’s vault in Synthetix V3:
+          retrieving the debt associated with a pool’s vault in Synthetix V3:
         </Text>
         <Box mb={4}>
           <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --provider-url https://optimism.publicnode.com" />
@@ -171,7 +171,7 @@ export const DebugPage = () => {
           option.
         </Text>
         <Text>
-          For more information on the command-line interact, see the{' '}
+          For more information on the command-line interact command, see the{' '}
           <Link href="/learn/cli">CLI section of the documentation</Link>.
         </Text>
       </Box>
