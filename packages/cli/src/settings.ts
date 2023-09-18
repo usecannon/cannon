@@ -134,8 +134,8 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   );
 
   // Filters out API keys from URLs
-  const filteredProviderUrl = finalSettings.providerUrl!.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
-  const filteredRegistryProviderUrl = finalSettings.registryProviderUrl!.replace(
+  const filteredProviderUrl = finalSettings.providerUrl ? finalSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
+  const filteredRegistryProviderUrl = finalSettings.registryProviderUrl ? finalSettings.registryProviderUrl!.replace(
     RegExp(/[=A-Za-z0-9_-]{32,}/),
     '*'.repeat(32)
   );
@@ -145,9 +145,12 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = finalSettings;
 
-  filteredSettings.providerUrl = filteredProviderUrl;
-  filteredSettings.registryProviderUrl = filteredRegistryProviderUrl;
-  filteredSettings.publishIpfsUrl = filteredPublishIpfsUrl;
+  filteredSettings.providerUrl = filteredSettings.providerUrl ? filteredSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : '';
+  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl ? filteredSettings.registryProviderUrl!.replace(
+    RegExp(/[=A-Za-z0-9_-]{32,}/),
+    '*'.repeat(32)
+  ) : '';
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl ? filteredSettings.publishIpfsUrl!.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32)) : '';
 
   debug('got settings', filteredSettings);
 
