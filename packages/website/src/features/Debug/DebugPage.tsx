@@ -97,8 +97,14 @@ export const DebugPage = () => {
         <Box mb={4}>
           <CommandPreview command="cannon decode synthetix-omnibus --chain-id 84531 --preset competition 0xb87daa32000000000000000000000000000000000000000000000000000000006502188b00000000000000000000000000000000000000000000000000000000650218190000000000000000000000000000000000000000000000000000000065021855" />
         </Box>
-        <Box mb={4}>
-          <Image borderRadius="sm" src="/images/guide_debug_1.png" />
+        <Box mb={4} width="100%" overflowX="auto">
+          <Image
+            height="32px"
+            width="1538px"
+            maxWidth="1538px"
+            borderRadius="sm"
+            src="/images/guide_debug_1.png"
+          />
         </Box>
         <Heading size="md" mb={4} mt={6}>
           Trace
@@ -128,8 +134,14 @@ export const DebugPage = () => {
         <Box mb={4}>
           <CommandPreview command="cannon trace --chain-id 10 synthetix-omnibus 0x2fb8ff2400000000000000000000000000000000000000000000000000000000000000010000000000000000000000008700daec35af8ff88c16bdf0418774cb3d7599b4 --to 0xffffffaEff0B96Ea8e4f94b2253f31abdD875847 --provider-url https://optimism.publicnode.com" />
         </Box>
-        <Box mb={4}>
-          <Image borderRadius="sm" src="/images/guide_debug_2.png" />
+        <Box mb={4} width="100%" overflowX="auto">
+          <Image
+            height="250px"
+            width="884px"
+            maxWidth="884px"
+            borderRadius="sm"
+            src="/images/guide_debug_2.png"
+          />
         </Box>
         <Heading size="md" mb={4} mt={6}>
           Interact

@@ -66,7 +66,7 @@ export const CreateCannonFile = () => {
         <CommandPreview command="npm install hardhat-cannon" />
       </Box>
       <Text mb={4}>
-        Load the plug-in at the top of your hardhat.config.js file with&nbsp;
+        Load the plug-in at the top of your hardhat.config.js file with{' '}
         <Code colorScheme="blackAlpha" variant="solid">
           {"require('hardhat-cannon');"}
         </Code>
@@ -77,7 +77,7 @@ export const CreateCannonFile = () => {
         &nbsp;if your&apos;re using Typescript.
       </Text>
       <Text mb={4}>
-        In the configuration file, set the default network like so:&nbsp;
+        In the configuration file, set the default network like so:{' '}
         <Code colorScheme="blackAlpha" variant="solid">
           {'defaultNetwork: "cannon"'}
         </Code>
@@ -103,10 +103,13 @@ export const CreateCannonFile = () => {
       </Box>
       <Text mb={4}>
         This created a local deployment of your nascent protocol. You can now
-        run this package locally using the command-line tool:
+        run this package locally using the command-line tool. (Here, we add the{' '}
+        <Code>--registry-priority local</Code> option to ensure we’re using the
+        version of this package that you just built, regardless of what others
+        have published.)
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon sample-hardhat-project" />
+        <CommandPreview command="cannon sample-hardhat-project --registry-priority local" />
       </Box>
     </>
   );

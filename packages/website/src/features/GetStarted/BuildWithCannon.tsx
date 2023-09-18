@@ -17,6 +17,10 @@ export const BuildWithCannon = () => {
       >
         Build with Cannon
       </Heading>
+      <Text mb={4}>Start by installing/upgrading Cannon:</Text>
+      <Box mb={4}>
+        <CommandPreview command="npm i -g @usecannon/cli" />
+      </Box>
       <Text mb={4}>
         Run the setup command to prepare your development environment:
       </Text>
