@@ -138,7 +138,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
 
   // Filter out private key for logging
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  const { cannonDirectory, privateKey, ...filteredSettings } = finalSettings;
+  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = finalSettings;
 
   filteredSettings.providerUrl = filteredProviderUrl;
   filteredSettings.registryProviderUrl = filteredRegistryProviderUrl;
