@@ -3,7 +3,6 @@ import NextLink from 'next/link';
 import {
   Alert,
   AlertIcon,
-  Badge,
   Box,
   Button,
   Code,
