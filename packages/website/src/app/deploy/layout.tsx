@@ -64,13 +64,6 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           >
             {isMobile ? 'GitOps' : 'Queue From GitOps'}
           </NavLink>
-          <NavLink
-            isSmall
-            href={links.SETTINGS}
-            isActive={pathname.startsWith(links.SETTINGS)}
-          >
-            Settings
-          </NavLink>
         </Flex>
       </Box>
       {showSettingsAlert && (

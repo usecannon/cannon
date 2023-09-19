@@ -43,8 +43,8 @@ export const DebugPage = () => {
           Debugging Tips
         </Heading>
         <Text
-          pb={4}
-          mb={4}
+          pb={6}
+          mb={6}
           borderBottom="1px solid"
           borderBottomColor="gray.800"
           fontSize="xl"
@@ -69,7 +69,7 @@ export const DebugPage = () => {
         <Box mb={4}>
           <CommandPreview command="npm i -g @usecannon/cli" />
         </Box>
-        <Heading size="md" mb={4} mt={6}>
+        <Heading size="md" mb={3} mt={9}>
           Decode
         </Heading>
         <Text mb={4}>
@@ -106,7 +106,7 @@ export const DebugPage = () => {
             src="/images/guide_debug_1.png"
           />
         </Box>
-        <Heading size="md" mb={4} mt={6}>
+        <Heading size="md" mb={3} mt={9}>
           Trace
         </Heading>
         <Text mb={4}>
@@ -143,7 +143,7 @@ export const DebugPage = () => {
             src="/images/guide_debug_2.png"
           />
         </Box>
-        <Heading size="md" mb={4} mt={6}>
+        <Heading size="md" mb={3} mt={9}>
           Interact
         </Heading>
         <Text mb={4}>
