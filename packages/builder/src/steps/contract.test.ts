@@ -182,6 +182,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -224,6 +225,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -314,6 +316,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -347,6 +350,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
