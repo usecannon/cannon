@@ -2,20 +2,8 @@ import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types';
 
-const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
+const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
-
-export function parsePackageRef(val: string) {
-  const match = val.match(packageRegExp);
-
-  if (!match) {
-    throw new InvalidArgumentError(`Invalid package name "${val}". Should be of the format <package-name>:<version>`);
-  }
-
-  const { name, version = 'latest' } = match.groups!;
-
-  return { name, version };
-}
 
 export function parseInteger(val: string) {
   const parsedValue = Number.parseInt(val);
@@ -48,7 +36,9 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
   const packageMatch = val.match(packageRegExp);
 
   if (!result && !packageMatch) {
-    throw new InvalidArgumentError('First argument should be a cannon package name, e.g.: greeter:1.0.0');
+    throw new InvalidArgumentError(
+      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
+    );
   }
 
   if (result && !_.isEmpty(result) && packageMatch) {
@@ -56,11 +46,12 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
   }
 
   if (packageMatch) {
-    const { name, version = 'latest' } = packageMatch.groups!;
+    const { name, version = 'latest', preset } = packageMatch.groups!;
 
     const def = {
       name,
       version,
+      preset,
       settings: {},
     };
 
@@ -80,11 +71,12 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 export function parsePackagesArguments(val: string, result: PackageSpecification[] = []) {
   const packageMatch = val.match(packageRegExp);
   if (packageMatch) {
-    const { name, version = 'latest' } = packageMatch.groups!;
+    const { name, version = 'latest', preset } = packageMatch.groups!;
 
     const def = {
       name,
       version,
+      preset,
       settings: {},
     };
 

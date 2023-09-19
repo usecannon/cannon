@@ -15,72 +15,49 @@ export type CopyPackageOpts = {
   recursive?: boolean;
 };
 
-export interface CannonPackageReference {
-  name: string;
-  version: string;
-  preset: string;
-
-  includesPreset: boolean;
-  formatted(): string;
-}
-
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
-export class PackageReference implements CannonPackageReference {
+export class PackageReference {
   private ref: string;
-  includesPreset: boolean;
-
-  constructor(ref: string) {
-    this.ref = ref;
-    this.includesPreset = false;
-  }
-
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
-  get name() {
-    if (this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(0, this.ref.indexOf(':'));
-    } else if (this.ref.indexOf('@') !== -1) {
-      return this.ref.substring(0, this.ref.indexOf('@'));
-    } else {
-      return this.ref;
-    }
-  }
+  name: string;
+  /**
+   *  Anything between the colon and the @ is the package version.
+   *  Defaults to 'latest' if not specified in reference
+   */
+  version: string;
+  /**
+   * Anything after the @ is the package preset.
+   */
+  preset?: string;
 
   /**
-   *  Anything between the colon and the @ is the package version
-   *  Defaults to latest if not specified in reference
+   * Convenience parameter for returning base package format without preset **[name]:[version]**
    */
-  get version() {
-    if (this.ref.indexOf('@') !== -1 && this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(this.ref.indexOf(':') + 1, this.ref.indexOf('@'));
-    } else if (this.ref.indexOf(':') !== -1) {
-      return this.ref.substring(this.ref.indexOf(':') + 1);
-    } else {
-      return 'latest';
-    }
-  }
+  basePackageRef: string;
 
-  /**
-   * Anything after the @ is the package preset
-   * Defaults to main if not specified in reference
-   */
-  get preset() {
-    if (this.ref.indexOf('@') !== -1) {
-      this.includesPreset = true;
-      return this.ref.substring(this.ref.indexOf('@') + 1);
-    } else {
-      return 'main';
-    }
-  }
+  constructor(ref: string) {
+    this.ref = ref;
 
-  /**
-   * Returns default format name:version
-   */
-  formatted() {
-    return `${this.name}:${this.version}`;
+    const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+    const match = this.ref.match(packageRegExp);
+
+    if (!match) {
+      throw new Error(
+        `Invalid package name "${this.ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+      );
+    }
+
+    const { name, version = 'latest', preset } = match.groups!;
+
+    this.name = name;
+    this.version = version;
+    this.preset = preset;
+
+    this.basePackageRef = `${this.name}:${this.version}`;
   }
 }
 
@@ -119,6 +96,8 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
+  const { basePackageRef } = new PackageReference(packageRef);
+
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
@@ -129,7 +108,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -164,7 +143,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');

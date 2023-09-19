@@ -54,17 +54,17 @@ const importSpec = {
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     // If both definitions of a preset exist, its a user error.
-    if (config.preset && packageRef.includesPreset) {
+    if (config.preset && packageRef.preset) {
       console.warn(
         yellow(
           bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`)
         )
       );
-      console.warn(yellow(bold(`Defaulting to preset definition "${config.preset}"...`)));
+      console.warn(yellow(bold(`Defaulting to source name preset  "${config.source}"...`)));
     }
 
-    config.source = packageRef.formatted();
-    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
+    config.source = packageRef.basePackageRef;
+    config.preset = packageRef.preset || _.template(config.preset)(ctx) || 'main';
 
     return config;
   },
@@ -92,9 +92,9 @@ const importSpec = {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.formatted();
+    const source = packageRef.basePackageRef;
 
-    const preset = config.preset || packageRef.preset;
+    const preset = packageRef.preset || config.preset || 'main';
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain

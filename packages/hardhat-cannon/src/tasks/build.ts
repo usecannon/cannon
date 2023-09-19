@@ -16,7 +16,7 @@ import { loadPackageJson } from '../internal/load-pkg-json';
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
-  .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
+  .addOptionalParam('preset', 'The preset label for storing the build with the given settings')
   .addOptionalParam('registryPriority', 'Which registry should be used first? Default: onchain')
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')

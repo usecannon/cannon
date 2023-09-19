@@ -1,23 +1,24 @@
 import { CannonWrapperGenericProvider, copyPackage, DeploymentInfo, IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import * as builder from '@usecannon/builder';
-import { LocalLoader } from './loader';
-import { publish } from './commands/publish';
+import { LocalLoader } from '../loader';
+import { publish } from '../commands/publish';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
 import path from 'path';
-import { resolveCliSettings } from './settings';
-import * as settings from './settings';
+import { resolveCliSettings } from '../settings';
+import * as settings from '../settings';
 import _ from 'lodash';
 
 describe('publish command', () => {
   let tags = ['tag0', 'tag1'];
-  const packageName = 'package:1.2.3';
   const chainId = 123;
   const otherChainId = 1234;
   const preset = 'your-preset';
+  const packageRef = `package:1.2.3@${preset}`;
+  const basePackageRef = 'package:1.2.3';
   const otherPreset = 'other-preset';
   let signer: ethers.Signer;
-  const deployDataLocalFileName = `${packageName.replace(':', '_')}_${chainId}-${preset}.txt`;
+  const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const miscData = { misc: 'info' };
   const metaData = { itsMeta: 'data' };
 
@@ -129,11 +130,10 @@ describe('publish command', () => {
   it('should publish the package to the registry', async () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
-      packageRef: packageName,
+      packageRef: packageRef,
       signer,
       tags,
       chainId,
-      preset,
       quiet: true,
       recursive: true,
       overrides: {},
@@ -142,7 +142,7 @@ describe('publish command', () => {
     expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
     expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledWith([
       {
-        packagesNames: [packageName, ...tags.map((tag) => 'package:' + tag)],
+        packagesNames: [basePackageRef, ...tags.map((tag) => 'package:' + tag)],
         variant: `${chainId}-${preset}`,
         url: testPkgDataNewIpfsUrl,
         metaUrl: testPkgNewMetaIpfsUrl,
@@ -153,11 +153,10 @@ describe('publish command', () => {
   it('should publish the package to the registry with no tags', async () => {
     tags = [];
     await publish({
-      packageRef: packageName,
+      packageRef: packageRef,
       signer,
       tags,
       chainId,
-      preset,
       quiet: true,
       recursive: true,
       overrides: {},
@@ -166,16 +165,16 @@ describe('publish command', () => {
     expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
     // the first call to publishMany first argument has a property packagesNames which is an array of strings
     // the first element is the package name and the rest are the tags
-    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([packageName]);
+    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([basePackageRef]);
   });
 
   describe('scanDeploys', () => {
     beforeEach(() => {
       const nonSenseFileName = 'nonSenseFileName.txt';
       const _deployDataLocalFileNames = [
-        `${packageName.replace(':', '_')}_${chainId}-${preset}.txt`,
-        `${packageName.replace(':', '_')}_${chainId}-${otherPreset}.txt`,
-        `${packageName.replace(':', '_')}_${otherChainId}-${preset}.txt`,
+        `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`,
+        `${basePackageRef.replace(':', '_')}_${chainId}-${otherPreset}.txt`,
+        `${basePackageRef.replace(':', '_')}_${otherChainId}-${preset}.txt`,
         nonSenseFileName,
       ];
       // @ts-ignore
@@ -187,18 +186,17 @@ describe('publish command', () => {
 
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
-        packageRef: packageName,
+        packageRef: packageRef,
         signer,
         tags,
         chainId,
-        preset,
         quiet: true,
         recursive: true,
         overrides: {},
       });
 
       expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(packageName);
+      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
       expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
     });
 
@@ -206,20 +204,20 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
-        packageRef: packageName,
+        packageRef: basePackageRef,
         signer,
         tags,
         chainId,
-        preset: '',
+        presetArg: '',
         quiet: true,
         recursive: true,
         overrides: {},
       });
 
       expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(2);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(packageName);
+      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
       expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(packageName);
+      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
       expect((copyPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${chainId}-${otherPreset}`);
     });
 
@@ -227,20 +225,19 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: packageName,
+        packageRef: packageRef,
         signer,
         tags,
         chainId: 0,
-        preset,
         quiet: true,
         recursive: true,
         overrides: {},
       });
 
       expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(2);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(packageName);
+      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
       expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(packageName);
+      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
       expect((copyPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${otherChainId}-${preset}`);
     });
   });
