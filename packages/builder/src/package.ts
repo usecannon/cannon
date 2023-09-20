@@ -41,6 +41,10 @@ export class PackageReference {
    */
   basePackageRef: string;
 
+  static isValid(ref: string) {
+    return !!PKG_REG_EXP.test(ref);
+  }
+
   constructor(ref: string) {
     this.ref = ref;
 
