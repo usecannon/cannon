@@ -1,12 +1,42 @@
 import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
-import { copyPackage } from './package';
+import { PackageReference, copyPackage } from './package';
 import { DeploymentInfo } from './types';
 import { CannonStorage } from '.';
 
 jest.mock('./loader');
 
 describe('package.ts', () => {
+  describe('PackageReference', () => {
+    test.each([
+      ['package:2.2.2@main', ['package', '2.2.2', 'main', 'package:2.2.2']],
+      ['package', ['package', 'latest', undefined, 'package:latest']],
+      ['package001', ['package001', 'latest', undefined, 'package001:latest']],
+      ['001package', ['001package', 'latest', undefined, '001package:latest']],
+      ['package-hyphen', ['package-hyphen', 'latest', undefined, 'package-hyphen:latest']],
+      [
+        'super-long-package-valid-nameee',
+        ['super-long-package-valid-nameee', 'latest', undefined, 'super-long-package-valid-nameee:latest'],
+      ],
+    ])('correctly parses "%s"', (packageRef, [name, version, preset, basePackageRef]) => {
+      const ref = new PackageReference(packageRef);
+
+      expect(ref).toHaveProperty('name', name);
+      expect(ref).toHaveProperty('version', version);
+      expect(ref).toHaveProperty('preset', preset);
+      expect(ref).toHaveProperty('basePackageRef', basePackageRef);
+    });
+
+    test.each([['a'], ['aa'], ['-aa'], ['some_package'], ['super-long-package-invalid-namee']])(
+      'throws an error with "%s"',
+      (packageRef) => {
+        expect(() => {
+          new PackageReference(packageRef);
+        }).toThrow();
+      }
+    );
+  });
+
   describe('copyPackage()', () => {
     const fromRegistry = new InMemoryRegistry();
     const fromLoader = new IPFSLoader('hello');
