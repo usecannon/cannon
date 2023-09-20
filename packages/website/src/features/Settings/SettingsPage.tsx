@@ -126,27 +126,26 @@ export function SettingsPage() {
           <Heading size="md" mb={3}>
             Ethereum
           </Heading>
-          <Box mb="8">
+          <Box mb="6">
             <Heading size="sm" fontWeight={600} mb={1}>
               Provider
             </Heading>
-            <Text fontSize="sm">
-              Add custom providers to the list below (like from Alchemy or
-              Infura) if available for the chain you’re attempting to interact
-              with. Otherwise, it will use providers from your wallet.
-              Otherwise, it uses{' '}
+            <Text fontSize="sm" mb={3}>
+              Cannon will use custom providers (which may include{' '}
+              <Link isExternal href="https://www.alchemy.com/">
+                Alchemy
+              </Link>{' '}
+              or{' '}
+              <Link isExternal href="https://www.infura.io/">
+                Infura
+              </Link>{' '}
+              endpoints) added below if available for the target chain.
+              Otherwise, it will use the provider from a connected wallet or{' '}
               <Link isExternal href="https://www.publicnode.com/">
                 PublicNode
               </Link>
               .
             </Text>
-            <Box my="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
-              <InfoIcon mr={1} mt={-1} d="inline" /> Provided detected in
-              connected wallet:{' '}
-              <Text fontFamily="mono" display="inline">
-                https://asdf.com
-              </Text>
-            </Box>
             <FormLabel>Custom Providers</FormLabel>
             <Flex>
               <Input
@@ -175,6 +174,13 @@ export function SettingsPage() {
               Add Provider
             </Button>
           </Box>
+          <Box mb="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
+            <InfoIcon mr={1} mt={-1} d="inline" /> Provided detected in
+            connected wallet:{' '}
+            <Text fontFamily="mono" display="inline">
+              https://asdf.com
+            </Text>
+          </Box>
           <Heading size="sm" fontWeight={600} mb={1}>
             Oracle Multicalls
           </Heading>
@@ -188,29 +194,36 @@ export function SettingsPage() {
             <Link as={NextLink} href="/search">
               package explorer
             </Link>
-            .
+            . Multicalls are composed using a{' '}
+            <Link
+              as={NextLink}
+              href="/packages/trusted-multicall-forwarder/latest/13370-main"
+            >
+              trusted multicall forwarder
+            </Link>{' '}
+            if integrated with the target protocol.
           </Text>
           <Box>
             <TableContainer>
               <Table variant="simple">
                 <Thead>
                   <Tr>
-                    <Th color="gray.400" px={0} pb={2} borderColor="gray.400">
+                    <Th color="gray.400" px={0} pb={2} borderColor="gray.500">
                       Oracle ID
                     </Th>
-                    <Th color="gray.400" px={0} pb={2} borderColor="gray.400">
+                    <Th color="gray.400" px={0} pb={2} borderColor="gray.500">
                       Settings
                     </Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   <Tr>
-                    <Td px={0} borderColor="gray.400">
+                    <Td px={0} borderColor="gray.500">
                       <Code fontSize="lg" p={0}>
                         PYTH
                       </Code>
                     </Td>
-                    <Td px={0} borderColor="gray.400">
+                    <Td px={0} borderColor="gray.500">
                       <FormControl>
                         <FormLabel>Price Service Endpoint</FormLabel>
                         <Input
@@ -221,12 +234,14 @@ export function SettingsPage() {
                           value="https://xc-mainnet.pyth.network"
                         />
                         <FormHelperText color="gray.400">
+                          You can{' '}
                           <Link
                             isExternal
                             href="https://docs.pyth.network/documentation/pythnet-price-feeds/price-service"
                           >
-                            Host your own price service
+                            host your own price service
                           </Link>
+                          .
                         </FormHelperText>
                       </FormControl>
                     </Td>
