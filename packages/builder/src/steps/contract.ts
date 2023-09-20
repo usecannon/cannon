@@ -305,6 +305,7 @@ const contractSpec = {
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
           deployedOn: packageState.currentLabel!,
+          highlight: config.highlight,
         },
       },
     };

@@ -182,6 +182,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -224,6 +225,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -248,6 +250,7 @@ describe('steps/contract.ts', () => {
           fakeCtx,
           {
             artifact: 'hello',
+            highlight: true,
             args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
@@ -270,6 +273,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: true,
             },
           },
         });
@@ -312,6 +316,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
@@ -345,6 +350,7 @@ describe('steps/contract.ts', () => {
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
+              highlight: undefined,
             },
           },
         });
