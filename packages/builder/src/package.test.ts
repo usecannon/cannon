@@ -52,7 +52,7 @@ describe('package.ts', () => {
       def: {
         name: 'package',
         version: '1.2.3',
-        provision: { dummyStep: { source: 'someSource:1.2.3', tags: ['tag3', 'tag4'] } },
+        provision: { dummyStep: { source: 'some-source:1.2.3', tags: ['tag3', 'tag4'] } },
       } as any,
       state: {
         'provision.dummyStep': {
@@ -124,7 +124,7 @@ describe('package.ts', () => {
     it('fails when deployment info is not found', async () => {
       await expect(() =>
         copyPackage({
-          packageRef: 'fakePkg:1.2.3',
+          packageRef: 'fake-pkg:1.2.3',
           variant: '1-main',
           tags: [],
           fromStorage,
