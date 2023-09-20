@@ -16,7 +16,14 @@ import {
   IconButton,
   Input,
   Link,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
   Text,
+  Th,
+  Thead,
+  Tr,
 } from '@chakra-ui/react';
 import { CloseIcon, InfoIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
@@ -119,28 +126,53 @@ export function SettingsPage() {
           <Heading size="md" mb={3}>
             Ethereum
           </Heading>
-          <Box mb="6">
+          <Box mb="8">
             <Heading size="sm" fontWeight={600} mb={1}>
               Provider
             </Heading>
             <Text fontSize="sm">
-              Cannon connects to Ethereum via providers from your wallet
-              application like Metamask, Rabby, or Frame if connected.
-              Otherwise, it uses publicnode.org. Add Custom RPCS (like from
-              Alchemy or Infura) below.
+              Add custom providers to the list below (like from Alchemy or
+              Infura) if available for the chain you’re attempting to interact
+              with. Otherwise, it will use providers from your wallet.
+              Otherwise, it uses{' '}
+              <Link isExternal href="https://www.publicnode.com/">
+                PublicNode
+              </Link>
+              .
             </Text>
-            <Box my="4" bg="gray.900" p={2} borderRadius="md" shadow="sm">
-              <InfoIcon /> <Code>https://asdf.com</Code> detected in your
-              connected wallet
+            <Box my="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
+              <InfoIcon mr={1} mt={-1} d="inline" /> Provided detected in
+              connected wallet:{' '}
+              <Text fontFamily="mono" display="inline">
+                https://asdf.com
+              </Text>
             </Box>
+            <FormLabel>Custom Providers</FormLabel>
             <Flex>
-              <Input placeholder="https://infura.com/...." />
+              <Input
+                bg="black"
+                borderColor="whiteAlpha.400"
+                placeholder="https://ethereum.publicnode.com"
+              />
               <Box ml="3">
-                <IconButton icon={<CloseIcon />} aria-label={'Remove'} />
+                <IconButton
+                  colorScheme="blackAlpha"
+                  background="transparent"
+                  icon={<CloseIcon opacity="0.5" />}
+                  aria-label={'Remove provider'}
+                />
               </Box>
             </Flex>
-            <Button size="xs" colorScheme="green" mt="4">
-              Add another custon RPC
+
+            <Button
+              variant="outline"
+              size="xs"
+              colorScheme="green"
+              mt="4"
+              color="green.200"
+              _hover={{ bg: 'green.900' }}
+            >
+              Add Provider
             </Button>
           </Box>
           <Heading size="sm" fontWeight={600} mb={1}>
@@ -150,30 +182,58 @@ export function SettingsPage() {
             Cannon implements{' '}
             <Link isExternal href="https://eips.ethereum.org/EIPS/eip-7412">
               ERC-7412
-            </Link>
-            , a draft standard to automatically compose transactions that
-            require oracle data and fees. This is primarily used in the Interact
-            tabs in the{' '}
+            </Link>{' '}
+            to automatically compose transactions that require oracle data and
+            fees. This is primarily used in the Interact tabs in the{' '}
             <Link as={NextLink} href="/search">
               package explorer
             </Link>
             .
           </Text>
           <Box>
-            <Text fontSize="xs">Oracle ID</Text>
-            <Text fontSize="lg" fontWeight="bold" mb={1}>
-              PYTH
-            </Text>
-
-            <FormControl mb="4">
-              <FormLabel>Pythnet Gateway URI</FormLabel>
-              <Input
-                bg="black"
-                borderColor="whiteAlpha.400"
-                type={'text'}
-                name={'pyth'}
-              />
-            </FormControl>
+            <TableContainer>
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th color="gray.400" px={0} pb={2} borderColor="gray.400">
+                      Oracle ID
+                    </Th>
+                    <Th color="gray.400" px={0} pb={2} borderColor="gray.400">
+                      Settings
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  <Tr>
+                    <Td px={0} borderColor="gray.400">
+                      <Code fontSize="lg" p={0}>
+                        PYTH
+                      </Code>
+                    </Td>
+                    <Td px={0} borderColor="gray.400">
+                      <FormControl>
+                        <FormLabel>Price Service Endpoint</FormLabel>
+                        <Input
+                          bg="black"
+                          borderColor="whiteAlpha.400"
+                          type={'text'}
+                          name={'pyth'}
+                          value="https://xc-mainnet.pyth.network"
+                        />
+                        <FormHelperText color="gray.400">
+                          <Link
+                            isExternal
+                            href="https://docs.pyth.network/documentation/pythnet-price-feeds/price-service"
+                          >
+                            Host your own price service
+                          </Link>
+                        </FormHelperText>
+                      </FormControl>
+                    </Td>
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
           </Box>
         </Box>
 

@@ -107,7 +107,7 @@ export const Console = () => {
               <Text
                 display="block"
                 background="black"
-                fontSize="sm"
+                fontSize="xs"
                 fontFamily="var(--font-miriam)"
               >
                 [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
@@ -116,7 +116,7 @@ export const Console = () => {
               <Text
                 display="block"
                 background="black"
-                fontSize="sm"
+                fontSize="xs"
                 fontFamily="var(--font-miriam)"
               >
                 [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
@@ -125,7 +125,7 @@ export const Console = () => {
               <Text
                 display="block"
                 background="black"
-                fontSize="sm"
+                fontSize="xs"
                 fontFamily="var(--font-miriam)"
               >
                 [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
@@ -134,7 +134,7 @@ export const Console = () => {
               <Text
                 display="block"
                 background="black"
-                fontSize="sm"
+                fontSize="xs"
                 fontFamily="var(--font-miriam)"
               >
                 [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
@@ -143,7 +143,7 @@ export const Console = () => {
               <Text
                 display="block"
                 background="black"
-                fontSize="sm"
+                fontSize="xs"
                 fontFamily="var(--font-miriam)"
               >
                 [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
