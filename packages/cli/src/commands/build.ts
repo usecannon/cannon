@@ -278,7 +278,7 @@ export async function build({
 
     if (persist) {
       await resolver.publish(
-        [`${name}:latest`, `${name}:${version}@${selectedPreset}`],
+        [`${name}:latest`, `${name}:${version}`],
         `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!
