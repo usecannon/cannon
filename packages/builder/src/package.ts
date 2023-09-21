@@ -137,7 +137,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
 
     return {
-      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly. 
+      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
       packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),

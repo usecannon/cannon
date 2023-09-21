@@ -185,10 +185,6 @@ export async function build({
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
-  console.log(initialCtx)
-  console.log("VERSIONNNN1====>", pkgVersion);
-  console.log("VERSIONNNN====>", def.getVersion(initialCtx));
-
   if (!pkgName) {
     pkgName = def.getName(initialCtx);
   }
@@ -196,8 +192,6 @@ export async function build({
   if (!pkgVersion) {
     pkgVersion = def.getVersion(initialCtx);
   }
-
-
 
   if (oldDeployData && wipe) {
     console.log(bold('Regenerating package...'));
