@@ -52,6 +52,10 @@ export const contractSchema = z
     z
       .object({
         /**
+         *    Determines whether contract should get priority in displays
+         */
+        highlight: z.boolean(),
+        /**
          *    Determines whether to deploy the contract using create2
          */
         create2: z.boolean(),

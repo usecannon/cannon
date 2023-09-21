@@ -15,6 +15,8 @@ export type CopyPackageOpts = {
   recursive?: boolean;
 };
 
+const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
@@ -39,11 +41,14 @@ export class PackageReference {
    */
   basePackageRef: string;
 
+  static isValid(ref: string) {
+    return !!PKG_REG_EXP.test(ref);
+  }
+
   constructor(ref: string) {
     this.ref = ref;
 
-    const packageRegExp = /^(?<name>@?[\w-]+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
-    const match = this.ref.match(packageRegExp);
+    const match = this.ref.match(PKG_REG_EXP);
 
     if (!match) {
       throw new Error(

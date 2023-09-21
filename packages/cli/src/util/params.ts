@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types';
+import { PackageReference } from '@usecannon/builder';
 
-const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
 
 export function parseInteger(val: string) {
@@ -33,20 +33,20 @@ export function parseSettings(values: string[] = []) {
 }
 
 export function parsePackageArguments(val: string, result?: PackageSpecification): PackageSpecification {
-  const packageMatch = val.match(packageRegExp);
-
-  if (!result && !packageMatch) {
+  if (!result) {
     throw new InvalidArgumentError(
       'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
     );
   }
 
-  if (result && !_.isEmpty(result) && packageMatch) {
-    throw new InvalidArgumentError('You can only specify a single cannon package');
-  }
+  if (PackageReference.isValid(val)) {
+    const pkg = new PackageReference(val);
 
-  if (packageMatch) {
-    const { name, version = 'latest', preset } = packageMatch.groups!;
+    if (!_.isEmpty(result)) {
+      throw new InvalidArgumentError('You can only specify a single cannon package');
+    }
+
+    const { name, version, preset } = pkg;
 
     const def = {
       name,
@@ -69,9 +69,9 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 }
 
 export function parsePackagesArguments(val: string, result: PackageSpecification[] = []) {
-  const packageMatch = val.match(packageRegExp);
-  if (packageMatch) {
-    const { name, version = 'latest', preset } = packageMatch.groups!;
+  if (PackageReference.isValid(val)) {
+    const pkg = new PackageReference(val);
+    const { name, version, preset } = pkg;
 
     const def = {
       name,
