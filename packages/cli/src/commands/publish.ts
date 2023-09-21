@@ -5,6 +5,7 @@ import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
+import { fetch } from './fetch';
 
 import { bold, yellow } from 'chalk';
 
@@ -37,7 +38,7 @@ export async function publish({
     );
   }
 
-  const { name, version, preset } = new PackageReference(packageRef);
+  const { preset, basePackageRef } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
@@ -62,36 +63,6 @@ export async function publish({
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
-  if (packageRef.startsWith('@ipfs:')) {
-    if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
-
-    console.log(blueBright('publishing remote ipfs package', packageRef));
-    console.log(
-      blueBright(
-        'Uploading the following Cannon package data to',
-        cliSettings.publishIpfsUrl,
-        'Tags',
-        tags,
-        'Variant',
-        `${chainId!}-${selectedPreset!}`
-      )
-    );
-
-    const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
-    const toStorage = new CannonStorage(localRegistry, {
-      ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
-    });
-
-    await copyPackage({
-      packageRef,
-      variant: `${chainId}-${selectedPreset}`,
-      fromStorage,
-      toStorage,
-      recursive,
-      tags,
-    });
-  }
-
   // get a list of all deployments the user is requesting
 
   let variantFilter = /.*/;
@@ -103,7 +74,7 @@ export async function publish({
     variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
 
-  const deploys = await localRegistry.scanDeploys(`${name}:${version}`, variantFilter);
+  const deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
 
   if (!quiet) {
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));

@@ -151,9 +151,9 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${name}:${version}@${preset}`;
+  const prevPkg = upgradeFrom || `${name}:${version}`;
 
-  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset || 'main', runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
@@ -165,9 +165,9 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`Package "${prevPkg}" not found.`);
+      throw new Error(`Package "${prevPkg}@${selectedPreset}" not found.`);
     } else {
-      console.warn(`Package "${prevPkg}" not found, creating new build...`);
+      console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
     }
   }
   console.log('');
@@ -278,7 +278,7 @@ export async function build({
 
     if (persist) {
       await resolver.publish(
-        [`${name}:latest`, `${name}:${version}@${selectedPreset}`],
+        [`${name}:latest`, `${name}:${version}`],
         `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!

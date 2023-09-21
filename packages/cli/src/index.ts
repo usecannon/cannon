@@ -341,6 +341,19 @@ program
   });
 
 program
+  .command('fetch')
+  .description('Fetch cannon package data from an IPFS hash and store it in the local registry.')
+  .argument('<ipfsHash>', 'List of hashes to fetch from')
+  .action(async function (ipfsHash) {
+    if (!ipfsHash) {
+      throw new Error(`Must supply an IPFS hash to fetch from`)
+    }
+    const { fetch } = await import('./commands/fetch');
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    await fetch(ipfsHash);
+  });
+
+program
   .command('publish')
   .description('Publish a Cannon package to the registry')
   .argument('<packageName>', 'Name and version of the package to publish')
