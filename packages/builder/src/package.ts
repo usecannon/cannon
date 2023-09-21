@@ -42,7 +42,7 @@ export class PackageReference {
   constructor(ref: string) {
     this.ref = ref;
 
-    const packageRegExp = /^(?<name>@?\w+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+    const packageRegExp = /^(?<name>@?[\w-]+)(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
     const match = this.ref.match(packageRegExp);
 
     if (!match) {
@@ -102,14 +102,14 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
   const chainId = parseInt(variant.split('-')[0]);
 
-  // this internal function will copy one package's ipfs records and return a publish call, without recursing
-  const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
-
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
     const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
     let newMetaUrl = metaUrl;
+
+  // this internal function will copy one package's ipfs records and return a publish call, without recursing
+  const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     if (metaUrl) {
       newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));

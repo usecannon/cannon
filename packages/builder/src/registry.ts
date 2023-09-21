@@ -369,6 +369,8 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+    overrides.maxFeePerGas = overrides.maxFeePerGas ? BigNumber.from(overrides.maxFeePerGas) : BigNumber.from('4000000000000') // default to 40 gwei
+    overrides.maxPriorityFeePerGas = overrides.maxPriorityFeePerGas ? BigNumber.from(overrides.maxPriorityFeePerGas) : BigNumber.from('4000000000000') // default to 40 gwei
     try {
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
