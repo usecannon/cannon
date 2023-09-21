@@ -1,6 +1,6 @@
 {
   "name": "cannon-website",
-  "version": "0.1.0",
+  "version": "2.7.2-alpha.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -29,7 +29,7 @@
     "@types/node": "20.3.2",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
-    "@usecannon/builder": "^2.4.21",
+    "@usecannon/builder": "^2.7.2-alpha.0",
     "axios": "^1.4.0",
     "chakra-react-select": "^4.7.0",
     "crypto-js": "^4.1.1",
