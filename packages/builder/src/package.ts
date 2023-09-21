@@ -101,7 +101,7 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-  const { basePackageRef } = new PackageReference(packageRef);
+  const { version, basePackageRef } = new PackageReference(packageRef);
 
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
@@ -137,7 +137,8 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
 
     return {
-      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
+      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly. 
+      packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,

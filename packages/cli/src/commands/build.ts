@@ -151,7 +151,7 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${name}:${version}@${preset}`;
+  const prevPkg = upgradeFrom || `${name}:${version}`;
 
   oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset || 'main', runtime.chainId);
 
@@ -185,6 +185,10 @@ export async function build({
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
+  console.log(initialCtx)
+  console.log("VERSIONNNN1====>", pkgVersion);
+  console.log("VERSIONNNN====>", def.getVersion(initialCtx));
+
   if (!pkgName) {
     pkgName = def.getName(initialCtx);
   }
@@ -192,6 +196,8 @@ export async function build({
   if (!pkgVersion) {
     pkgVersion = def.getVersion(initialCtx);
   }
+
+
 
   if (oldDeployData && wipe) {
     console.log(bold('Regenerating package...'));
