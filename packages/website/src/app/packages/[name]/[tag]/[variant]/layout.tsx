@@ -1,8 +1,15 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Container, Flex, Heading } from '@chakra-ui/react';
+import {
+  Box,
+  Container,
+  Flex,
+  Heading,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import { NavLink } from '@/components/NavLink';
+import { Ipfs } from '@/components/Ipfs';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
 
@@ -36,6 +43,8 @@ export default function PackageLayout({
 
   const pathname = usePathname();
 
+  const isMobile = useBreakpointValue([true, true, false]);
+
   return (
     <Flex flexDirection="column" width="100%">
       {pkg ? (
@@ -62,7 +71,12 @@ export default function PackageLayout({
                   <VersionSelect pkg={pkg} currentVariant={currentVariant} />
                 </Box>
               </Flex>
-              <Flex gap={8}>
+              {isMobile && (
+                <Box mb={1}>
+                  <Ipfs href="ipfs://qMabcd1234abcd1234" />
+                </Box>
+              )}
+              <Flex gap={8} alignItems="center">
                 <NavLink
                   isActive={
                     pathname ==
@@ -93,6 +107,11 @@ export default function PackageLayout({
                 >
                   Interact
                 </NavLink>
+                {!isMobile && (
+                  <Box ml="auto">
+                    <Ipfs href="ipfs://qMabcd1234abcd1234" />
+                  </Box>
+                )}
               </Flex>
             </Container>
           </Box>
