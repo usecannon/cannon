@@ -1,5 +1,14 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Alert, AlertIcon, Box, Text } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  Code,
+  Flex,
+  Heading,
+  Link,
+  Text,
+} from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
@@ -59,52 +68,16 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
     };
   }, [variant]);
 
-  const hasProxy = useMemo(() => {
-    return (
-      ipfs.state && JSON.stringify(ipfs.state).toLowerCase().includes('proxy')
-    );
-  }, [ipfs]);
-
   return (
     <Box position="relative">
-      {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
-
-      <Alert
-        mb="6"
-        status="warning"
-        bg="gray.800"
-        border="1px solid"
-        borderColor="gray.700"
-      >
-        <AlertIcon />
-        <Text fontWeight="bold">
-          Review high-risk transactions carefully in your wallet application
-          prior to execution
-        </Text>
-      </Alert>
-
-      {hasProxy && (
-        <Alert
-          mb="6"
-          status="info"
-          bg="gray.800"
-          border="1px solid"
-          borderColor="gray.700"
-        >
-          <AlertIcon />
-          <Text>
-            If this protocol has a proxy contract, you should typically interact
-            with it instead of the other contracts in the package.
-          </Text>
-        </Alert>
-      )}
-
       {loading ? (
         <Box py="20" textAlign="center">
           <CustomSpinner mx="auto" />
         </Box>
       ) : (
         <Box>
+          <InteractTabPrototype />
+
           <ProvisionStep
             imports={output}
             cannonOutputs={cannonOutputs}
@@ -113,5 +86,79 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
         </Box>
       )}
     </Box>
+  );
+};
+
+const InteractTabPrototype: FC<> = () => {
+  return (
+    <>
+      <Box
+        bg="black"
+        display="block"
+        borderWidth="1px"
+        borderStyle="solid"
+        borderColor="gray.600"
+        borderRadius="4px"
+        transition="all 0.12s"
+        overflow="hidden"
+      >
+        <Flex
+          bg="gray.800"
+          p={2}
+          flexDirection={['column', 'column', 'row']}
+          alignItems={['flex-start', 'flex-start', 'center']}
+          borderBottom="1px solid"
+          borderColor="gray.600"
+        >
+          <Box py={2} px={[1, 1, 3]}>
+            <Heading display="inline-block" as="h4" size="md" mb={1.5}>
+              PerpsMarketProxy
+            </Heading>
+            <Text color="gray.300" fontSize="xs" fontFamily="mono">
+              <Link
+                isExternal
+                styleConfig={{ 'text-decoration': 'none' }}
+                borderBottom="1px dotted"
+                borderBottomColor="gray.300"
+                href={`https://etherscan.io/address/0x}`}
+              >
+                0x0000...0000
+              </Link>
+            </Text>
+          </Box>
+          <Box p={1} ml={[0, 0, 'auto']}>
+            <Flex
+              justifyContent={['flex-start', 'flex-start', 'flex-end']}
+              flexDirection="column"
+              textAlign={['left', 'left', 'right']}
+            >
+              <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
+                via{' '}
+                <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
+                  provision.perpsFactory
+                </Code>
+              </Text>
+              <Text color="gray.300" fontSize="xs" fontFamily="mono">
+                <Link
+                  isExternal
+                  styleConfig={{ 'text-decoration': 'none' }}
+                  borderBottom="1px dotted"
+                  borderBottomColor="gray.300"
+                  href={`https://etherscan.io/address/0x}`}
+                >
+                  ipfs://qMabcd...1234
+                </Link>
+              </Text>
+            </Flex>
+          </Box>
+        </Flex>
+
+        <Box p={6}>
+          <Text fontSize="xs" color="gray.500">
+            Functions listed here
+          </Text>
+        </Box>
+      </Box>
+    </>
   );
 };
