@@ -77,8 +77,8 @@ export async function publish({
 
   const deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
 
-  if (!deploys) {
-    throw new Error(`Could not find deployment for ${basePackageRef}, if you have the IPFS hash of the deployment data, run 'fetch <ipfsHash>'. Otherwise rebuild the package and then re-publish`)
+  if (!deploys || deploys.length === 0) {
+    throw new Error(`Could not find deployment for ${basePackageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`)
   }
 
   if (!quiet) {
