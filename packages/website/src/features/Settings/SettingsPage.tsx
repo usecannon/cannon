@@ -29,7 +29,8 @@ import { CloseIcon, InfoIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
-import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
+//import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
+import { useState } from 'react';
 
 type Setting = {
   title: string;
@@ -42,6 +43,7 @@ type Setting = {
 };
 
 const SETTINGS: Record<keyof Store['settings'], Setting> = {
+  /*
   ipfsUrl: {
     title: 'IPFS Node URL',
     placeholder: 'http://localhost:5001',
@@ -53,6 +55,7 @@ const SETTINGS: Record<keyof Store['settings'], Setting> = {
       }
     },
   },
+  */
   stagingUrl: {
     title: 'Staging Service URL',
     placeholder: 'https://service.com',
@@ -86,7 +89,6 @@ const SETTINGS: Record<keyof Store['settings'], Setting> = {
     title: 'RPC URL for Local Fork',
     description:
       'JSON RPC url to create the local fork where the build will be executed. If not provided, the default RPC url from your wallet will be used.',
-    optional: true,
   },
 };
 
@@ -102,6 +104,29 @@ export function useSettingsValidation() {
 export function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+
+  const [localProviders, setLocalProviders] = useState<string[]>(
+    settings.customProviders
+  );
+
+  const addProvider = () => {
+    setLocalProviders([...localProviders, '']);
+    setSettings({ customProviders: [...localProviders, ''] });
+  };
+
+  const updateProvider = (index: number, value: string) => {
+    const updatedProviders = [...localProviders];
+    updatedProviders[index] = value;
+    setLocalProviders(updatedProviders);
+    setSettings({ customProviders: updatedProviders });
+  };
+
+  const removeProvider = (index: number) => {
+    const updatedProviders = [...localProviders];
+    updatedProviders.splice(index, 1);
+    setLocalProviders(updatedProviders);
+    setSettings({ customProviders: updatedProviders });
+  };
 
   return (
     <Container maxW="100%" w="container.md">
@@ -147,29 +172,39 @@ export function SettingsPage() {
               .
             </Text>
             <FormLabel>Custom Providers</FormLabel>
-            <Flex>
-              <Input
-                bg="black"
-                borderColor="whiteAlpha.400"
-                placeholder="https://ethereum.publicnode.com"
-              />
-              <Box ml="3">
-                <IconButton
-                  colorScheme="blackAlpha"
-                  background="transparent"
-                  icon={<CloseIcon opacity="0.5" />}
-                  aria-label={'Remove provider'}
+
+            {localProviders.map((provider, index) => (
+              <Flex key={index} mb={3}>
+                <Input
+                  bg="black"
+                  borderColor="whiteAlpha.400"
+                  placeholder="https://mainnet.infura.io/v3/api_key"
+                  value={provider}
+                  onChange={(e) => updateProvider(index, e.target.value)}
                 />
-              </Box>
-            </Flex>
+                {localProviders.length > 1 && (
+                  <Box ml="3">
+                    <IconButton
+                      colorScheme="blackAlpha"
+                      background="transparent"
+                      icon={<CloseIcon opacity="0.5" />}
+                      aria-label={'Remove provider'}
+                      onClick={() => removeProvider(index)}
+                    />
+                  </Box>
+                )}
+              </Flex>
+            ))}
 
             <Button
               variant="outline"
               size="xs"
               colorScheme="green"
-              mt="4"
-              color="green.200"
+              mt="2"
+              color="green.400"
+              borderColor="green.400"
               _hover={{ bg: 'green.900' }}
+              onClick={addProvider}
             >
               Add Provider
             </Button>
@@ -231,7 +266,10 @@ export function SettingsPage() {
                           borderColor="whiteAlpha.400"
                           type={'text'}
                           name={'pyth'}
-                          value="https://xc-mainnet.pyth.network"
+                          value={settings.pythUrl}
+                          onChange={(evt) =>
+                            setSettings({ pythUrl: evt.target.value })
+                          }
                         />
                         <FormHelperText color="gray.400">
                           You can{' '}
@@ -272,23 +310,28 @@ export function SettingsPage() {
           </Text>
 
           <FormControl mb="4">
-            <FormLabel>IPFS Query URL</FormLabel>
-            <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
-              value="http://ipfs.io"
-              type={'text'}
-              name={'ipfsread'}
-            />
-          </FormControl>
-
-          <FormControl mb="4">
             <FormLabel>IPFS Pinning URL</FormLabel>
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
+              value={settings.ipfsUrl}
               type={'text'}
-              name={'ipfspublish'}
+              name={'ipfsUrl'}
+              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
+            />
+          </FormControl>
+
+          <FormControl mb="4">
+            <FormLabel>IPFS Query URL</FormLabel>
+            <Input
+              bg="black"
+              borderColor="whiteAlpha.400"
+              value={settings.ipfsQueryUrl}
+              type={'text'}
+              name={'ipfsQueryUrl'}
+              onChange={(evt) =>
+                setSettings({ ipfsQueryUrl: evt.target.value })
+              }
             />
           </FormControl>
         </Box>
@@ -316,15 +359,10 @@ export function SettingsPage() {
           {entries(SETTINGS).map(([key, s]) => {
             const val = settings[key];
             const validationError =
-              !s.optional && !val ? s.description : s.validate?.(settings[key]);
+              !val && val.length ? s.description : s.validate?.(settings[key]);
 
             return (
-              <FormControl
-                key={key}
-                isInvalid={!!validationError}
-                isRequired={!s.optional}
-                mb="4"
-              >
+              <FormControl key={key} isInvalid={!!validationError} mb="4">
                 <FormLabel>{s.title}</FormLabel>
                 <Input
                   bg="black"

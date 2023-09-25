@@ -30,6 +30,9 @@ export interface State {
     registryAddress: string;
     registryProviderUrl: string;
     forkProviderUrl: string;
+    customProviders: string[];
+    pythUrl: string;
+    ipfsQueryUrl: string;
   };
 }
 
@@ -62,6 +65,9 @@ const initialState = {
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
     registryProviderUrl: 'https://ethereum.publicnode.com',
     forkProviderUrl: '',
+    customProviders: [],
+    pythUrl: 'https://hermes.pyth.network',
+    ipfsQueryUrl: 'https://ipfs.io/ipfs/',
   },
 } satisfies State;
 
