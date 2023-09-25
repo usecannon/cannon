@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useState, useMemo } from 'react';
+import { FC, ReactNode, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import axios from 'axios';
@@ -25,7 +25,6 @@ import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/navigation';
 import { Interact } from '../Interact';
-// import { Interact } from '../Interact';
 
 type Option = {
   moduleName: string;
@@ -47,7 +46,6 @@ export const InteractTab: FC<{
 
   const [pkg, setPackage] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [activeContract, setActiveContract] = useState<string | undefined>();
@@ -57,10 +55,8 @@ export const InteractTab: FC<{
     if (data?.packages[0]) setPackage(data?.packages[0]);
   }, [data]);
 
-  const currentVariant = useMemo(
-    () =>
-      pkg?.variants.find((v: any) => v.name === variant && v.tag.name === tag),
-    [pkg]
+  const currentVariant = pkg?.variants.find(
+    (v: any) => v.name === variant && v.tag.name === tag
   );
 
   const selectContract = (contractAddress: string) => {
@@ -91,33 +87,58 @@ export const InteractTab: FC<{
         const _ipfs = JSON.parse(raw);
 
         // Get Builder Outputs
-        setCannonOutputs(getOutput(_ipfs));
+        const cannonOutputs: ChainArtifacts = getOutput(_ipfs);
 
-        // TODO: Map cannonOutputs data
-        const higlightedData = [
-          {
-            moduleName: 'perpsFactory',
-            contractName: 'PerpsMarketProxy',
-            contractAddress: '0x9863Dae3f4b5F4Ffe3A841a21565d57F2BA10E87',
-          },
-          {
-            moduleName: 'perpsFactory',
-            contractName: 'PerpsAccountProxy',
-            contractAddress: '0x518F2905b24AE298Ca06C1137b806DD5ACD493b6',
-          },
-        ];
+        let higlightedData: Option[] = [];
+        if (cannonOutputs.contracts) {
+          const contracts = Object.entries(cannonOutputs.contracts).map(
+            ([k, v]) => ({
+              name: k,
+              address: v.address,
+              highlight: v.highlight,
+            })
+          );
+
+          const higlightedContracts = contracts.filter(
+            (contract) => contract.highlight
+          );
+
+          higlightedData = (
+            higlightedContracts.length > 0 ? higlightedContracts : contracts
+          ).map((contract) => ({
+            moduleName: name,
+            contractName: contract.name,
+            contractAddress: contract.address,
+          }));
+        }
         setHighlightedOptions(higlightedData);
 
-        const otherData = [
-          {
-            moduleName: 'perpsFactory',
-            contractName: 'PerpsMarketRouter',
-            contractAddress: '0xB87397e26230850B707c2cf6a13F6DA447f2ca4e',
-          },
-        ];
+        const otherData: Option[] = [];
+        const addOtherData = (
+          contracts: any,
+          moduleName: string,
+          imports: any
+        ) => {
+          if (contracts) {
+            Object.entries(contracts).forEach(([k, v]) =>
+              otherData.push({
+                moduleName,
+                contractName: k,
+                contractAddress: (v as any).address,
+              })
+            );
+          }
+
+          if (imports) {
+            Object.entries(imports).forEach(([k, v]) =>
+              addOtherData((v as any).contracts, k, (v as any).imports)
+            );
+          }
+        };
+        addOtherData(undefined, '', cannonOutputs.imports);
         setOtherOptions(otherData);
 
-        if (!activeContract) {
+        if (!activeContract && higlightedData.length > 0) {
           selectContract(higlightedData[0].contractAddress);
         }
       })
@@ -154,9 +175,9 @@ export const InteractTab: FC<{
         {currentVariant && !loading ? (
           <Box>
             <Box mb={2}>
-              {highlightedOptions.map((option) => (
+              {highlightedOptions.map((option, i) => (
                 <Button
-                  key={option.contractAddress}
+                  key={i}
                   color="white"
                   borderWidth="2px"
                   borderRadius="md"
@@ -213,6 +234,7 @@ export const InteractTab: FC<{
                 </Button>
               ))}
               <Popover
+                placement="bottom-start"
                 isOpen={isPopoverOpen}
                 onOpen={() => setIsPopoverOpen(true)}
                 onClose={() => setIsPopoverOpen(false)}
@@ -254,14 +276,17 @@ export const InteractTab: FC<{
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
+                  maxHeight={'45vh'}
+                  overflowY={'auto'}
+                  overflowX={'hidden'}
                   width="auto"
                   bg="gray.900"
                   borderColor="gray.700"
                 >
                   <PopoverBody p={0}>
-                    {otherOptions.map((option) => (
+                    {otherOptions.map((option, i) => (
                       <Box
-                        key={option.contractAddress}
+                        key={i}
                         cursor={'pointer'}
                         textAlign="left"
                         p={2}

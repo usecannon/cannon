@@ -1,10 +1,13 @@
 import { FC, useEffect, useMemo, useState } from 'react';
+import { GET_PACKAGE } from '@/graphql/queries';
+import { useQuery } from '@apollo/client';
 import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
-import { ChainArtifacts } from '@usecannon/builder/src';
+import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { ProvisionStep } from '@/features/Packages/ProvisionStep';
+import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
 export const Interact: FC<{ variant: any }> = ({ variant }) => {
@@ -79,79 +82,174 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
 };
 
 export const InteractTabPrototype: FC<{
+  name: string;
+  tag: string;
+  variant: string;
   contractAddress: string;
-}> = ({ contractAddress }) => {
+}> = ({ name, tag, variant, contractAddress }) => {
+  const { data } = useQuery<any, any>(GET_PACKAGE, {
+    variables: { name },
+  });
+
+  const [pkg, setPackage] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
+  const [moduleName, setModuleName] = useState<string | undefined>();
+  const [contract, setContract] = useState<ContractData | undefined>();
+
+  useEffect(() => {
+    if (data?.packages[0]) setPackage(data?.packages[0]);
+  }, [data]);
+
+  const currentVariant = pkg?.variants.find(
+    (v: any) => v.name === variant && v.tag.name === tag
+  );
+
+  useEffect(() => {
+    if (!currentVariant) return;
+    setLoading(true);
+
+    const controller = new AbortController();
+
+    const url = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+      'ipfs://',
+      ''
+    )}`;
+
+    axios
+      .get(url, { responseType: 'arraybuffer' })
+      .then((response) => {
+        // Parse IPFS data
+        const uint8Array = new Uint8Array(response.data);
+        const inflated = pako.inflate(uint8Array);
+        const raw = new TextDecoder().decode(inflated);
+        const _ipfs = JSON.parse(raw);
+
+        // Get Builder Outputs
+        const cannonOutputs: ChainArtifacts = getOutput(_ipfs);
+        setCannonOutputs(cannonOutputs);
+        const findContract = (
+          contracts: any,
+          moduleName: string,
+          imports: any
+        ) => {
+          if (contracts) {
+            Object.entries(contracts).forEach(([, v]) => {
+              if ((v as ContractData).address === contractAddress) {
+                setContract(v as ContractData);
+                setModuleName(moduleName);
+                return;
+              }
+            });
+          }
+
+          if (imports) {
+            Object.entries(imports).forEach(([k, v]) =>
+              findContract((v as any).contracts, k, (v as any).imports)
+            );
+          }
+        };
+        findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [currentVariant]);
+
+  const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+    'ipfs://',
+    ''
+  )}`;
+
   return (
-    <>
-      <Box
-        bg="black"
-        display="block"
-        borderWidth="1px"
-        borderStyle="solid"
-        borderColor="gray.600"
-        borderRadius="4px"
-        transition="all 0.12s"
-        overflow="hidden"
-      >
-        <Flex
-          bg="gray.800"
-          p={2}
-          flexDirection={['column', 'column', 'row']}
-          alignItems={['flex-start', 'flex-start', 'center']}
-          borderBottom="1px solid"
+    <Box position="relative">
+      {loading ? (
+        <Box py="20" textAlign="center">
+          <CustomSpinner mx="auto" />
+        </Box>
+      ) : (
+        <Box
+          bg="black"
+          display="block"
+          borderWidth="1px"
+          borderStyle="solid"
           borderColor="gray.600"
+          borderRadius="4px"
+          transition="all 0.12s"
+          overflow="hidden"
         >
-          <Box py={2} px={[1, 1, 3]}>
-            <Heading display="inline-block" as="h4" size="md" mb={1.5}>
-              PerpsMarketProxy
-            </Heading>
-            <Text color="gray.300" fontSize="xs" fontFamily="mono">
-              <Link
-                isExternal
-                styleConfig={{ 'text-decoration': 'none' }}
-                borderBottom="1px dotted"
-                borderBottomColor="gray.300"
-                href={`https://etherscan.io/address/0x}`}
-              >
-                0x0000...0000
-              </Link>
-            </Text>
-          </Box>
-          <Box p={1} ml={[0, 0, 'auto']}>
-            <Flex
-              justifyContent={['flex-start', 'flex-start', 'flex-end']}
-              flexDirection="column"
-              textAlign={['left', 'left', 'right']}
-            >
-              <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
-                via{' '}
-                <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
-                  provision.perpsFactory
-                </Code>
-              </Text>
+          <Flex
+            bg="gray.800"
+            p={2}
+            flexDirection={['column', 'column', 'row']}
+            alignItems={['flex-start', 'flex-start', 'center']}
+            borderBottom="1px solid"
+            borderColor="gray.600"
+          >
+            <Box py={2} px={[1, 1, 3]}>
+              <Heading display="inline-block" as="h4" size="md" mb={1.5}>
+                {contract?.contractName}
+              </Heading>
               <Text color="gray.300" fontSize="xs" fontFamily="mono">
                 <Link
                   isExternal
                   styleConfig={{ 'text-decoration': 'none' }}
                   borderBottom="1px dotted"
                   borderBottomColor="gray.300"
-                  href={`https://etherscan.io/address/0x}`}
+                  href={`https://etherscan.io/address/${contractAddress}`}
                 >
-                  ipfs://qMabcd...1234
+                  {`${contractAddress.substring(
+                    0,
+                    6
+                  )}...${contractAddress.slice(-4)}`}
                 </Link>
               </Text>
-            </Flex>
-          </Box>
-        </Flex>
+            </Box>
+            <Box p={1} ml={[0, 0, 'auto']}>
+              <Flex
+                justifyContent={['flex-start', 'flex-start', 'flex-end']}
+                flexDirection="column"
+                textAlign={['left', 'left', 'right']}
+              >
+                <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
+                  via{' '}
+                  <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
+                    {moduleName}
+                  </Code>
+                </Text>
+                <Text color="gray.300" fontSize="xs" fontFamily="mono">
+                  <Link
+                    isExternal
+                    styleConfig={{ 'text-decoration': 'none' }}
+                    borderBottom="1px dotted"
+                    borderBottomColor="gray.300"
+                    href={deployUrl}
+                  >
+                    {`${currentVariant?.deploy_url.substring(
+                      0,
+                      13
+                    )}...${currentVariant?.deploy_url.slice(-4)}`}
+                  </Link>
+                </Text>
+              </Flex>
+            </Box>
+          </Flex>
 
-        <Box p={6}>
-          <Text fontSize="xs" color="gray.500">
-            Contract Address: {contractAddress}
-            <br />
-            Functions listed here
-          </Text>
+          <Abi
+            abi={contract?.abi as any}
+            address={contractAddress}
+            cannonOutputs={cannonOutputs}
+            chainId={currentVariant?.chain_id}
+          />
         </Box>
-      </Box>
-    </>
+      )}
+    </Box>
   );
 };

@@ -17,7 +17,19 @@ export const metadata: Metadata = {
 export default function Interact({
   params,
 }: {
-  params: { contractAddress: string };
+  params: {
+    name: string;
+    tag: string;
+    variant: string;
+    contractAddress: string;
+  };
 }) {
-  return <NoSSR contractAddress={params.contractAddress} />;
+  return (
+    <NoSSR
+      name={params.name}
+      tag={params.tag}
+      variant={params.variant}
+      contractAddress={params.contractAddress}
+    />
+  );
 }
