@@ -151,7 +151,7 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${name}:${version}@${preset}`;
+  const prevPkg = upgradeFrom || `${name}:${version}`;
 
   oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset || 'main', runtime.chainId);
 
@@ -278,7 +278,7 @@ export async function build({
 
     if (persist) {
       await resolver.publish(
-        [`${name}:latest`, `${name}:${version}@${selectedPreset}`],
+        [`${name}:latest`, `${name}:${version}`],
         `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!
