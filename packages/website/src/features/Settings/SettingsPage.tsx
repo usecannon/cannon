@@ -133,7 +133,7 @@ export function SettingsPage() {
       <Box>
         <Alert bg="gray.800" status="info" my="10">
           <AlertIcon />
-          Changes to settings automatically persist in your web browser.
+          Changes to settings automatically persist in your web browser
         </Alert>
         <Heading size="lg" mb={6}>
           Settings
@@ -178,7 +178,7 @@ export function SettingsPage() {
                 <Input
                   bg="black"
                   borderColor="whiteAlpha.400"
-                  placeholder="https://mainnet.infura.io/v3/api_key"
+                  placeholder="e.g. https://mainnet.infura.io/v3/api_key"
                   value={provider}
                   onChange={(e) => updateProvider(index, e.target.value)}
                 />
@@ -200,7 +200,6 @@ export function SettingsPage() {
               variant="outline"
               size="xs"
               colorScheme="green"
-              mt="2"
               color="green.400"
               borderColor="green.400"
               _hover={{ bg: 'green.900' }}
@@ -300,27 +299,9 @@ export function SettingsPage() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <Heading size="md" mb={2}>
+          <Heading size="md" mb={3}>
             IPFS
           </Heading>
-
-          <Text fontSize="md" mb={4}>
-            Note about gateways and publish. Something about running a local
-            node.
-          </Text>
-
-          <FormControl mb="4">
-            <FormLabel>IPFS Pinning URL</FormLabel>
-            <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
-              value={settings.ipfsUrl}
-              type={'text'}
-              name={'ipfsUrl'}
-              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
-            />
-          </FormControl>
-
           <FormControl mb="4">
             <FormLabel>IPFS Query URL</FormLabel>
             <Input
@@ -333,6 +314,39 @@ export function SettingsPage() {
                 setSettings({ ipfsQueryUrl: evt.target.value })
               }
             />
+            <FormHelperText color="gray.300">
+              This is used to fetch package data. You can use a public gateway,
+              a paid gateway, or a{' '}
+              <Link
+                isExternal
+                href="https://docs.ipfs.tech/install/ipfs-desktop/"
+              >
+                local node
+              </Link>
+              .
+            </FormHelperText>
+          </FormControl>
+          <FormControl>
+            <FormLabel>IPFS Pinning URL</FormLabel>
+            <Input
+              bg="black"
+              borderColor="whiteAlpha.400"
+              value={settings.ipfsUrl}
+              type={'text'}
+              name={'ipfsUrl'}
+              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
+            />
+            <FormHelperText color="gray.300">
+              This is required by the{' '}
+              <Link as={NextLink} href="/deploy">
+                deployer
+              </Link>{' '}
+              to publish packages. Consider using a pinning service like{' '}
+              <Link isExternal href="https://www.pinata.cloud/">
+                Pinata
+              </Link>
+              .
+            </FormHelperText>
           </FormControl>
         </Box>
         <Box
@@ -387,7 +401,7 @@ export function SettingsPage() {
         </Box>
         <Alert bg="gray.800" status="info" my="10">
           <AlertIcon />
-          Changes to settings automatically persist in your web browser.
+          Changes to settings automatically persist in your web browser
         </Alert>
       </Box>
     </Container>
