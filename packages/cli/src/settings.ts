@@ -59,17 +59,13 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-const getRegistryProviderUrl = (fileSettings: any, privateKey: string): string => {
+const getRegistryProviderUrl = (fileSettings: any): string => {
   const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl;
 
-  if (registryProviderUrl && privateKey) {
+  if (registryProviderUrl) {
     return registryProviderUrl;
   }
-  if (registryProviderUrl && !privateKey) {
-    console.warn(
-      `Using Frame instead of configured registryProviderUrl (${registryProviderUrl}), supply --private-key to change.`
-    );
-  }
+
   return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
 };
 
@@ -100,7 +96,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       privateKey,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl: getRegistryProviderUrl(fileSettings, privateKey),
+      registryProviderUrl: getRegistryProviderUrl(fileSettings),
       registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
       registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
       registryPriority: (process.env.CANNON_REGISTRY_PRIORITY ||

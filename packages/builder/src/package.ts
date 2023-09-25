@@ -3,6 +3,7 @@ import { BundledOutput, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
+import _ from 'lodash';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -101,20 +102,20 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-  const { basePackageRef } = new PackageReference(packageRef);
+  const { version, basePackageRef } = new PackageReference(packageRef);
 
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
 
+  // this internal function will copy one package's ipfs records and return a publish call, without recursing
+  const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
+
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
     const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
     let newMetaUrl = metaUrl;
-
-  // this internal function will copy one package's ipfs records and return a publish call, without recursing
-  const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     if (metaUrl) {
       newMetaUrl = await toStorage.putBlob(await fromStorage.readBlob(metaUrl));
@@ -132,12 +133,18 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
       throw new Error('uploaded url is invalid');
     }
 
+    debug('create chain definition')
+    
     const def = new ChainDefinition(deployInfo.def);
-
-    const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
+    
+    debug('create initial ctx with deploy info', deployInfo)
+    
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
+    
+    debug('created initial ctx with deploy info')
 
     return {
-      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
+      packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,
@@ -151,13 +158,15 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
   const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
 
   if (!deployData) {
-    throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
+    throw new Error(`could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`);
   }
 
   if (recursive) {
+    debug('publish recursive')
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);
   } else {
+    debug('publish')
     const call = await copyIpfs(deployData, null);
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);

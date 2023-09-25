@@ -1,10 +1,12 @@
-import { BigNumber, ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, PayableOverrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
 import CannonRegistryAbi from './abis/CannonRegistry';
 
 import _ from 'lodash';
+
+import { bold, blueBright } from 'chalk';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -198,7 +200,7 @@ export class OnChainRegistry extends CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
-  overrides: ethers.Overrides;
+  overrides: ethers.PayableOverrides;
 
   constructor({
     signerOrProvider,
@@ -207,7 +209,7 @@ export class OnChainRegistry extends CannonRegistry {
   }: {
     address: string;
     signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
-    overrides?: Overrides;
+    overrides?: PayableOverrides;
   }) {
     super();
 
@@ -275,6 +277,17 @@ export class OnChainRegistry extends CannonRegistry {
         (p: string[]) => p[0]
       )
     )) {
+      console.log(
+        bold(
+          blueBright(
+            `\nPublishing package to the On-Chain registry at Chain ID ${(await this.provider?.getNetwork())?.chainId}...\n`
+          )
+        )
+      );
+      console.log(`Package Name: ${registerPackages[0][0]}`);
+      console.log(`Package Deployment Data URL: ${url}`);
+      console.log(`Package Metadata URL: ${metaUrl}`);
+
       const tx = this.generatePublishTransactionData(
         registerPackages[0][0],
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
@@ -291,16 +304,31 @@ export class OnChainRegistry extends CannonRegistry {
   async publishMany(
     toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
   ): Promise<string[]> {
+    debug('Checking signer');
     await this.checkSigner();
+    debug('signer', this.signer);
     const datas: string[] = [];
+    console.log(
+      bold(
+        blueBright(
+          `\nPublishing packages to the On-Chain registry at Chain ID ${(await this.provider?.getNetwork())?.chainId}...\n`
+        )
+      )
+    );
     for (const pub of toPublish) {
-      console.log('publishing:', pub.packagesNames);
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
           (p: string[]) => p[0]
         )
       )) {
+
+        registerPackages.forEach((v, i) => {
+          console.log(`Package Name: ${registerPackages[i][0]}:${registerPackages[i][1]}`);
+        })
+        console.log(`Package URL: ${pub.url}`);
+        console.log(`Package Metadata URL: ${pub.metaUrl}\n`);
+
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],
           registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
@@ -368,10 +396,9 @@ export class OnChainRegistry extends CannonRegistry {
     return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
-    overrides.maxFeePerGas = overrides.maxFeePerGas ? BigNumber.from(overrides.maxFeePerGas) : BigNumber.from('4000000000000') // default to 40 gwei
-    overrides.maxPriorityFeePerGas = overrides.maxPriorityFeePerGas ? BigNumber.from(overrides.maxPriorityFeePerGas) : BigNumber.from('4000000000000') // default to 40 gwei
+  private async logMultiCallEstimatedGas(datas: any, overrides: PayableOverrides): Promise<void> {
     try {
+      console.log(bold(blueBright(`\nCalculating Transaction cost...`)));
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
       const gasPrice =
@@ -382,6 +409,14 @@ export class OnChainRegistry extends CannonRegistry {
       const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
 
       console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+
+      if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
+        console.log(
+          bold(
+            `\nPublishing account does not have enough funds to pay for the publishing transaction, please fund your account and try again.\n`
+          )
+        );
+      }
     } catch (e: any) {
       // We dont want to throw an error if the estimate gas fails
       console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);

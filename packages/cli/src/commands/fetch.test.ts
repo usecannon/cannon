@@ -64,9 +64,10 @@ describe('fetch', () => {
 
   test('should fetch from IPFS hash', async () => {
     const ipfsHash =  'QmcniBv7UQ4gGPQQW2BwbD4ZZHzN3o3tPuNLZCbBchd1zh'
+    const pkgName = 'greeter-foundry:2.4.21'
 
     // Call the 'alter' function with the necessary arguments
-    await fetch(ipfsHash);
+    await fetch(pkgName, ipfsHash);
 
     expect(CannonStorage.prototype.readBlob as jest.Mock<any, any>).toHaveBeenCalled();
     expect(CannonStorage.prototype.putBlob as jest.Mock<any, any>).toHaveBeenCalled();

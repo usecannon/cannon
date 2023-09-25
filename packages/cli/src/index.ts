@@ -121,6 +121,7 @@ function configureRun(program: Command) {
 
       await run(packages, {
         ...options,
+        presetArg: options.preset,
         node,
         helpInformation: program.helpInformation(),
       });
@@ -343,14 +344,16 @@ program
 program
   .command('fetch')
   .description('Fetch cannon package data from an IPFS hash and store it in the local registry.')
-  .argument('<ipfsHash>', 'List of hashes to fetch from')
-  .action(async function (ipfsHash) {
+  .argument('<packageName>', 'Name of the package to fetch data for')
+  .argument('<ipfsHash>', 'IPFS hash to fetch deployment data from')
+  .option('--meta-hash <metaHash>', 'IPFS hash to fetch deployment metadata from')
+  .action(async function (packageName, ipfsHash, options) {
     if (!ipfsHash) {
       throw new Error(`Must supply an IPFS hash to fetch from`)
     }
     const { fetch } = await import('./commands/fetch');
     // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-    await fetch(ipfsHash);
+    await fetch(packageName, ipfsHash, options.metaHash);
   });
 
 program
@@ -378,7 +381,7 @@ program
     const cliSettings = resolveCliSettings(options);
     const p = await resolveRegistryProvider(cliSettings);
 
-    const overrides: ethers.Overrides = {};
+    const overrides: ethers.PayableOverrides = {};
 
     if (!options.chainId) {
       throw new Error(
@@ -397,14 +400,17 @@ program
     if (options.gasLimit) {
       overrides.gasLimit = options.gasLimit;
     }
+
+    overrides.value = ethers.utils.parseUnits('1', 'wei');
+
     console.log(
-      `Settings:\nMax Fee Per Gas: ${
+      `\nSettings:\n - Max Fee Per Gas: ${
         overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
-      }\nMax Priority Fee Per Gas: ${
+      }\n - Max Priority Fee Per Gas: ${
         overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-      }\nGas Limit: ${
+      }\n - Gas Limit: ${
         overrides.gasLimit ? overrides.gasLimit : 'default'
-      }\nTo alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.`
+      }\n - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n`
     );
 
     await publish({

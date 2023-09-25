@@ -5,7 +5,7 @@ import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
-import { fetch } from './fetch';
+
 
 import { bold, yellow } from 'chalk';
 
@@ -17,7 +17,7 @@ interface Params {
   presetArg?: string;
   quiet?: boolean;
   recursive?: boolean;
-  overrides?: ethers.Overrides;
+  overrides?: ethers.PayableOverrides;
 }
 
 export async function publish({
@@ -59,6 +59,7 @@ export async function publish({
 
   if (!quiet) {
     console.log(blueBright('Publishing signer is', await signer.getAddress()));
+    console.log('');
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
@@ -75,6 +76,10 @@ export async function publish({
   }
 
   const deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
+
+  if (!deploys) {
+    throw new Error(`Could not find deployment for ${basePackageRef}, if you have the IPFS hash of the deployment data, run 'fetch <ipfsHash>'. Otherwise rebuild the package and then re-publish`)
+  }
 
   if (!quiet) {
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
@@ -103,7 +108,7 @@ export async function publish({
   if (tags.length) {
     console.log(blueBright('Package published:'));
     for (const tag of tags) {
-      console.log(`  - ${packageRef} (${tag})`);
+      console.log(`  - ${basePackageRef} (${tag})`);
     }
   }
 
