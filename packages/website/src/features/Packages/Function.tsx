@@ -67,11 +67,6 @@ export const Function: FC<{
   //   }, 200)();
   // }, [params, readOnly]);
   //
-  useEffect(() => {
-    if (readOnly && f.inputs.length === 0) {
-      void submit(true);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submit = async (suppressError = false) => {
     setLoading(true);
@@ -150,7 +145,7 @@ export const Function: FC<{
           </Link>
         </Heading>
       </Flex>
-      <Flex flexDirection={['column', 'column', 'row']} gap={8}>
+      <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
         <Box flex="1" w={['100%', '100%', '50%']}>
           {f.inputs.map((input, index) => {
             return (
@@ -231,6 +226,12 @@ export const Function: FC<{
               </Button>
             </>
           )}
+
+          {error && (
+            <Alert mt="2" status="error" bg="red.700">
+              {error}
+            </Alert>
+          )}
         </Box>
         <Box
           flex="1"
@@ -238,6 +239,9 @@ export const Function: FC<{
           background="whiteAlpha.50"
           borderRadius="md"
           p={4}
+          display="flex"
+          flexDirection="column"
+          position="relative"
         >
           <Heading
             size="xs"
@@ -251,16 +255,34 @@ export const Function: FC<{
             Output
           </Heading>
 
-          {error && (
-            <Alert mb="4" status="error" bg="red.700" v-else-if="error">
-              {error}
-            </Alert>
-          )}
-
           {loading ? (
             <CustomSpinner m="auto" />
           ) : (
-            <FunctionOutput result={result} output={f.outputs} />
+            <Flex flex="1">
+              {f.outputs.length != 0 && !result && (
+                <Flex
+                  position="absolute"
+                  zIndex={2}
+                  top={0}
+                  left={0}
+                  background="blackAlpha.800"
+                  width="100%"
+                  height="100%"
+                  alignItems="center"
+                  justifyContent="center"
+                  fontWeight="medium"
+                  color="gray.200"
+                  textShadow="sm"
+                  letterSpacing="0.1px"
+                >
+                  {true
+                    ? 'Simulate the transaction '
+                    : 'Call the view function '}
+                  for output
+                </Flex>
+              )}
+              <FunctionOutput result={result} output={f.outputs} />
+            </Flex>
           )}
         </Box>
       </Flex>

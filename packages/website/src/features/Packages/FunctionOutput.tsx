@@ -1,6 +1,7 @@
 import { FC } from 'react';
-import { Box, Text, Divider, FormLabel } from '@chakra-ui/react';
+import { Box, Text, Divider, FormLabel, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 
 export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
@@ -18,13 +19,21 @@ export const FunctionOutput: FC<{
     : undefined;
 
   return (
-    <div>
+    <>
+      {output.length == 0 && (
+        <Flex flex="1">
+          <Text fontSize="sm" my="auto" color="gray.500">
+            <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
+            any values
+          </Text>
+        </Flex>
+      )}
       {arrayOutput && (
         <div>
           {arrayOutput.map((item: any, index: number) => {
             return (
               <div key={index}>
-                <FormLabel fontSize="sm">
+                <FormLabel fontSize="sm" mb={0}>
                   {item.name && <Text display="inline">{item.name}</Text>}
                   {item.internalType && (
                     <Text fontSize="xs" color="whiteAlpha.700" display="inline">
@@ -34,24 +43,20 @@ export const FunctionOutput: FC<{
                   )}
                 </FormLabel>
 
-                {item.components && (
-                  <div>
-                    {item.type === 'tuple' && result && (
-                      <Box pb="2">
-                        {Object.values(result).map(
-                          (component: any, componentIndex: any) => {
-                            return (
-                              <FunctionOutput
-                                output={item.components[componentIndex]}
-                                result={component}
-                                key={componentIndex}
-                              />
-                            );
-                          }
-                        )}
-                      </Box>
+                {item.components && item.type === 'tuple' && result && (
+                  <Box pb="2">
+                    {Object.values(result).map(
+                      (component: any, componentIndex: any) => {
+                        return (
+                          <FunctionOutput
+                            output={item.components[componentIndex]}
+                            result={component}
+                            key={componentIndex}
+                          />
+                        );
+                      }
                     )}
-                  </div>
+                  </Box>
                 )}
                 {item.type === 'tuple[]' && result?.length && (
                   <div>
@@ -102,19 +107,25 @@ export const FunctionOutput: FC<{
                     )}
                   </div>
                 )}
-                {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  !isArray(result) && <Box pl="1">{String(result)}</Box>}
-                {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  isArray(result) && <Box pl="1">{String(result[index])}</Box>}
+                {!item.components ||
+                (item.type !== 'tuple[]' && item.type !== 'tuple') ? (
+                  <>
+                    {(isArray(result) ? result[index] : result) === null ? (
+                      <Text color="gray.500">—</Text>
+                    ) : (
+                      <Text>
+                        {String(isArray(result) ? result[index] : result)}
+                      </Text>
+                    )}
+                  </>
+                ) : null}
               </div>
             );
           })}
         </div>
       )}
       {objectOutput && (
-        <div>
+        <>
           {objectOutput.name}:{' '}
           {JSON.stringify(
             result,
@@ -129,8 +140,8 @@ export const FunctionOutput: FC<{
           <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
             {String(result)}
           </Text>
-        </div>
+        </>
       )}
-    </div>
+    </>
   );
 };
