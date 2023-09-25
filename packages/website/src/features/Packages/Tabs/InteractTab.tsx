@@ -24,6 +24,7 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
 import { useRouter } from 'next/navigation';
+import { Interact } from '../Interact';
 // import { Interact } from '../Interact';
 
 type Option = {
@@ -298,7 +299,7 @@ export const InteractTab: FC<{
               </Popover>
             </Box>
             {children}
-            {/* <Interact variant={currentVariant} /> */}
+            <Interact variant={currentVariant} />
           </Box>
         ) : (
           <CustomSpinner m="auto" />

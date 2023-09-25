@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Box, Text, Divider } from '@chakra-ui/react';
+import { Box, Text, Divider, FormLabel } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 
 export const FunctionOutput: FC<{
@@ -24,21 +24,20 @@ export const FunctionOutput: FC<{
           {arrayOutput.map((item: any, index: number) => {
             return (
               <div key={index}>
-                <h4>
-                  {item.name}
-                  <Text
-                    pl="1"
-                    fontSize="xs"
-                    color="whiteAlpha.700"
-                    display="inline"
-                  >
-                    {item.internalType}
-                  </Text>
-                </h4>
+                <FormLabel fontSize="sm">
+                  {item.name && <Text display="inline">{item.name}</Text>}
+                  {item.internalType && (
+                    <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                      {' '}
+                      {item.internalType}
+                    </Text>
+                  )}
+                </FormLabel>
+
                 {item.components && (
                   <div>
-                    {item.type === 'tuple' && (
-                      <Box pl="1" pt="2" pb="2">
+                    {item.type === 'tuple' && result && (
+                      <Box pb="2">
                         {Object.values(result).map(
                           (component: any, componentIndex: any) => {
                             return (
@@ -54,14 +53,14 @@ export const FunctionOutput: FC<{
                     )}
                   </div>
                 )}
-                {item.type === 'tuple[]' && (
+                {item.type === 'tuple[]' && result?.length && (
                   <div>
                     {(arrayOutput.length > 1 ? result[index] : result).map(
                       (resultItem: any, resultItemIndex: number) => {
                         if (isObject(resultItem)) {
                           return (
                             <div key={resultItemIndex}>
-                              <Box pl="1" pt="2" pb="2">
+                              <Box pb="2">
                                 {Object.values(resultItem).map(
                                   (component: any, componentIndex: any) => {
                                     return (
@@ -80,7 +79,7 @@ export const FunctionOutput: FC<{
                         } else {
                           return (
                             <div key={resultItemIndex}>
-                              <Box pl="1" pt="2" pb="2">
+                              <Box pb="2">
                                 {resultItem.map(
                                   (component: any, componentIndex: number) => {
                                     return (

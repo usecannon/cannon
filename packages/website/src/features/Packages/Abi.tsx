@@ -1,7 +1,6 @@
 import { FC, useMemo } from 'react';
 import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
 import { ChainArtifacts } from '@usecannon/builder';
-import { Box } from '@chakra-ui/react';
 import { Function } from '@/features/Packages/Function';
 
 export const Abi: FC<{

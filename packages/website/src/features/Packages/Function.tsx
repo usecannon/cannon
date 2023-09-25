@@ -16,7 +16,6 @@ import {
 } from '@chakra-ui/react';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
-import { RefreshCw } from 'react-feather';
 import {
   useAccount,
   useConnect,
@@ -136,28 +135,28 @@ export const Function: FC<{
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600">
-      <Flex alignItems="middle">
-        <Heading size="md" fontFamily="mono" mb="6" fontWeight="normal">
+      <Flex alignItems="center" mb="4">
+        <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
           {f.name}(
-          {f.inputs
-            .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-            .join(', ')}
+          {f.inputs.map((i) => i.type + (i.name ? ' ' + i.name : '')).join(',')}
           )
-          <Link color="gray.300" ml={2}>
+          <Link
+            color="gray.300"
+            ml={1}
+            textDecoration="none"
+            _hover={{ textDecoration: 'underline' }}
+          >
             #
           </Link>
         </Heading>
-        <Box ml="auto">
-          <Badge variant="outline">View Function</Badge>
-        </Box>
       </Flex>
-      <Flex flexDirection={['column', 'column', 'row']} gap={4}>
+      <Flex flexDirection={['column', 'column', 'row']} gap={8}>
         <Box flex="1" w={['100%', '100%', '50%']}>
           {f.inputs.map((input, index) => {
             return (
               <Box key={JSON.stringify(input)}>
                 <FormControl mb="4">
-                  <FormLabel color="white">
+                  <FormLabel fontSize="sm" mb={1}>
                     {input.name && <Text display="inline">{input.name}</Text>}
                     {input.type && (
                       <Text
@@ -183,29 +182,21 @@ export const Function: FC<{
             );
           })}
 
-          {/*{readOnly && (result != null || error) && (*/}
           {readOnly && (
-            <Box
-              display="inline-block"
-              py={1}
-              cursor="pointer"
-              color="gray.400"
-              _hover={{ color: 'gray.200' }}
-              transition="color 0.2s ease-in-out"
+            <Button
+              isLoading={loading}
+              colorScheme="teal"
+              bg="teal.900"
+              _hover={{ bg: 'teal.800' }}
+              variant="outline"
+              size="xs"
+              mr={3}
+              onClick={() => {
+                void submit(false);
+              }}
             >
-              <Button
-                isLoading={loading}
-                colorScheme="teal"
-                variant="outline"
-                size="xs"
-                mr={2}
-                onClick={() => {
-                  void submit(false);
-                }}
-              >
-                Read function
-              </Button>
-            </Box>
+              Call view function
+            </Button>
           )}
 
           {!readOnly && (
@@ -213,9 +204,11 @@ export const Function: FC<{
               <Button
                 isLoading={loading}
                 colorScheme="teal"
+                bg="teal.900"
+                _hover={{ bg: 'teal.800' }}
                 variant="outline"
                 size="xs"
-                mr={2}
+                mr={3}
                 onClick={() => {
                   void submit(false);
                 }}
@@ -225,14 +218,16 @@ export const Function: FC<{
               <Button
                 isLoading={loading}
                 colorScheme="teal"
+                bg="teal.900"
+                _hover={{ bg: 'teal.800' }}
                 variant="outline"
                 size="xs"
-                mr={2}
+                mr={3}
                 onClick={() => {
                   void submit(false);
                 }}
               >
-                Stage transaction in wallet
+                Submit using wallet
               </Button>
             </>
           )}
@@ -240,28 +235,35 @@ export const Function: FC<{
         <Box
           flex="1"
           w={['100%', '100%', '50%']}
-          background="gray.900"
-          borderRadius="lg"
+          background="whiteAlpha.50"
+          borderRadius="md"
           p={4}
         >
-          outputs
-          {result != null && (
-            <Box>
-              <FunctionOutput result={result} output={f.outputs} />
-            </Box>
+          <Heading
+            size="xs"
+            textTransform={'uppercase'}
+            fontWeight={400}
+            letterSpacing={'1px'}
+            fontFamily={'var(--font-miriam)'}
+            color="gray.300"
+            mb={2}
+          >
+            Output
+          </Heading>
+
+          {error && (
+            <Alert mb="4" status="error" bg="red.700" v-else-if="error">
+              {error}
+            </Alert>
+          )}
+
+          {loading ? (
+            <CustomSpinner m="auto" />
+          ) : (
+            <FunctionOutput result={result} output={f.outputs} />
           )}
         </Box>
       </Flex>
-      {loading && (
-        <Box my="4">
-          <CustomSpinner />
-        </Box>
-      )}
-      {error && (
-        <Alert mb="4" status="error" bg="red.700" v-else-if="error">
-          {error}
-        </Alert>
-      )}
     </Box>
   );
 };
