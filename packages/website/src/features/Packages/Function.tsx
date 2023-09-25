@@ -4,11 +4,14 @@ import { AbiFunction, Abi } from 'abitype/src/abi';
 import { ChainArtifacts } from '@usecannon/builder';
 import {
   Alert,
+  Badge,
   Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
+  Link,
   Text,
 } from '@chakra-ui/react';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
@@ -132,35 +135,123 @@ export const Function: FC<{
   };
 
   return (
-    <Box mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
-      <Heading size="sm" mb="2">
-        {f.name}()
-      </Heading>
-      {f.inputs.map((input, index) => {
-        return (
-          <Box key={JSON.stringify(input)}>
-            <FormControl mb="4">
-              <FormLabel color="white">
-                {input.name && <Text display="inline">{input.name}</Text>}
-                {input.type && (
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                    {' '}
-                    {input.type}
-                  </Text>
-                )}
-              </FormLabel>
-              <FunctionInput
-                input={input}
-                valueUpdated={(value) => {
-                  const _params = [...params];
-                  _params[index] = value;
-                  setParams(_params);
+    <Box p={6} borderTop="1px solid" borderColor="gray.600">
+      <Flex alignItems="middle">
+        <Heading size="md" fontFamily="mono" mb="6" fontWeight="normal">
+          {f.name}(
+          {f.inputs
+            .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+            .join(', ')}
+          )
+          <Link color="gray.300" ml={2}>
+            #
+          </Link>
+        </Heading>
+        <Box ml="auto">
+          <Badge variant="outline">View Function</Badge>
+        </Box>
+      </Flex>
+      <Flex flexDirection={['column', 'column', 'row']} gap={4}>
+        <Box flex="1" w={['100%', '100%', '50%']}>
+          {f.inputs.map((input, index) => {
+            return (
+              <Box key={JSON.stringify(input)}>
+                <FormControl mb="4">
+                  <FormLabel color="white">
+                    {input.name && <Text display="inline">{input.name}</Text>}
+                    {input.type && (
+                      <Text
+                        fontSize="xs"
+                        color="whiteAlpha.700"
+                        display="inline"
+                      >
+                        {' '}
+                        {input.type}
+                      </Text>
+                    )}
+                  </FormLabel>
+                  <FunctionInput
+                    input={input}
+                    valueUpdated={(value) => {
+                      const _params = [...params];
+                      _params[index] = value;
+                      setParams(_params);
+                    }}
+                  />
+                </FormControl>
+              </Box>
+            );
+          })}
+
+          {/*{readOnly && (result != null || error) && (*/}
+          {readOnly && (
+            <Box
+              display="inline-block"
+              py={1}
+              cursor="pointer"
+              color="gray.400"
+              _hover={{ color: 'gray.200' }}
+              transition="color 0.2s ease-in-out"
+            >
+              <Button
+                isLoading={loading}
+                colorScheme="teal"
+                variant="outline"
+                size="xs"
+                mr={2}
+                onClick={() => {
+                  void submit(false);
                 }}
-              />
-            </FormControl>
-          </Box>
-        );
-      })}
+              >
+                Read function
+              </Button>
+            </Box>
+          )}
+
+          {!readOnly && (
+            <>
+              <Button
+                isLoading={loading}
+                colorScheme="teal"
+                variant="outline"
+                size="xs"
+                mr={2}
+                onClick={() => {
+                  void submit(false);
+                }}
+              >
+                Simulate transaction
+              </Button>
+              <Button
+                isLoading={loading}
+                colorScheme="teal"
+                variant="outline"
+                size="xs"
+                mr={2}
+                onClick={() => {
+                  void submit(false);
+                }}
+              >
+                Stage transaction in wallet
+              </Button>
+            </>
+          )}
+        </Box>
+        <Box
+          flex="1"
+          w={['100%', '100%', '50%']}
+          background="gray.900"
+          borderRadius="lg"
+          p={4}
+        >
+          outputs
+          {result != null && (
+            <Box>
+              <FunctionOutput result={result} output={f.outputs} />
+            </Box>
+          )}
+        </Box>
+      </Flex>
       {loading && (
         <Box my="4">
           <CustomSpinner />
@@ -170,40 +261,6 @@ export const Function: FC<{
         <Alert mb="4" status="error" bg="red.700" v-else-if="error">
           {error}
         </Alert>
-      )}
-      {result != null && (
-        <Box>
-          <FunctionOutput result={result} output={f.outputs} />
-        </Box>
-      )}
-
-      {/*{readOnly && (result != null || error) && (*/}
-      {readOnly && (
-        <Box
-          display="inline-block"
-          py={1}
-          cursor="pointer"
-          color="gray.400"
-          _hover={{ color: 'gray.200' }}
-          transition="color 0.2s ease-in-out"
-        >
-          <div onClick={() => submit(false)} className="refresh-button">
-            <RefreshCw size={18} />
-          </div>
-        </Box>
-      )}
-
-      {!readOnly && (
-        <Button
-          isLoading={loading}
-          colorScheme="teal"
-          size="sm"
-          onClick={() => {
-            void submit(false);
-          }}
-        >
-          Submit Transaction
-        </Button>
       )}
     </Box>
   );

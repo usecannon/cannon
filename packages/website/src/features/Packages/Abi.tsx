@@ -16,18 +16,17 @@ export const Abi: FC<{
   );
 
   return (
-    <Box mb="2">
+    <>
       {functions.map((f, index) => (
-        <Box key={index}>
-          <Function
-            f={f}
-            abi={abi}
-            address={address}
-            cannonOutputs={cannonOutputs}
-            chainId={chainId}
-          />
-        </Box>
+        <Function
+          key={index}
+          f={f}
+          abi={abi}
+          address={address}
+          cannonOutputs={cannonOutputs}
+          chainId={chainId}
+        />
       ))}
-    </Box>
+    </>
   );
 };
