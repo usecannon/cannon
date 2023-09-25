@@ -1,14 +1,5 @@
 import { FC, useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Code,
-  Flex,
-  Heading,
-  Link,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder/src';
@@ -76,8 +67,6 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
         </Box>
       ) : (
         <Box>
-          <InteractTabPrototype />
-
           <ProvisionStep
             imports={output}
             cannonOutputs={cannonOutputs}
@@ -89,7 +78,9 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
   );
 };
 
-const InteractTabPrototype: FC<> = () => {
+export const InteractTabPrototype: FC<{
+  contractAddress: string;
+}> = ({ contractAddress }) => {
   return (
     <>
       <Box
@@ -155,6 +146,8 @@ const InteractTabPrototype: FC<> = () => {
 
         <Box p={6}>
           <Text fontSize="xs" color="gray.500">
+            Contract Address: {contractAddress}
+            <br />
             Functions listed here
           </Text>
         </Box>
