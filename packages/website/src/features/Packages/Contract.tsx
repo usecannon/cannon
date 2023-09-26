@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 import { Abi as AbiType } from 'abitype';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Box, Code, Flex, Heading } from '@chakra-ui/react';

@@ -1,10 +1,9 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import { AbiFunction, Abi } from 'abitype/src/abi';
 
 import { ChainArtifacts } from '@usecannon/builder';
 import {
   Alert,
-  Badge,
   Box,
   Button,
   Flex,
