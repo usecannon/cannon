@@ -23,7 +23,7 @@ import {
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
 import { getOutput } from '@/lib/builder';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Interact } from '../Interact';
 
 type Option = {
@@ -42,13 +42,14 @@ export const InteractTab: FC<{
     variables: { name },
   });
 
+  const pathName = usePathname();
+  const activeContract = pathName.split('interact/')[1];
   const router = useRouter();
 
   const [pkg, setPackage] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
-  const [activeContract, setActiveContract] = useState<string | undefined>();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   useEffect(() => {
@@ -60,7 +61,6 @@ export const InteractTab: FC<{
   );
 
   const selectContract = (contractAddress: string) => {
-    setActiveContract(contractAddress);
     void router.push(
       `/packages/${name}/${tag}/${variant}/interact/${contractAddress}`
     );
@@ -138,8 +138,12 @@ export const InteractTab: FC<{
         addOtherData(undefined, '', cannonOutputs.imports);
         setOtherOptions(otherData);
 
-        if (!activeContract && higlightedData.length > 0) {
-          selectContract(higlightedData[0].contractAddress);
+        if (!activeContract) {
+          if (higlightedData.length > 0) {
+            selectContract(higlightedData[0].contractAddress);
+          } else if (otherData.length > 0) {
+            selectContract(otherData[0].contractAddress);
+          }
         }
       })
       .catch((error) => {
@@ -291,6 +295,11 @@ export const InteractTab: FC<{
                           cursor={'pointer'}
                           textAlign="left"
                           p={2}
+                          background={
+                            activeContract === option.contractAddress
+                              ? 'gray.800'
+                              : 'transparent'
+                          }
                           _hover={{
                             background: 'gray.800',
                           }}
