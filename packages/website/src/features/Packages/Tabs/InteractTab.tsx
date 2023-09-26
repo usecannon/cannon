@@ -233,95 +233,97 @@ export const InteractTab: FC<{
                   </Box>
                 </Button>
               ))}
-              <Popover
-                placement="bottom-start"
-                isOpen={isPopoverOpen}
-                onOpen={() => setIsPopoverOpen(true)}
-                onClose={() => setIsPopoverOpen(false)}
-              >
-                <PopoverTrigger>
-                  <Button
-                    color="white"
-                    borderColor={'gray.600'}
-                    borderWidth="2px"
-                    borderRadius="md"
-                    variant="outline"
-                    background={'gray.700'}
-                    aria-label="Settings"
-                    boxShadow="lg"
-                    _hover={{
-                      background: 'gray.600',
-                      borderColor: 'teal.500',
-                    }}
-                    mr={4}
-                    mb={4}
-                    height="48px"
-                    width="48px"
-                    p={0}
-                  >
-                    <Icon
-                      boxSize={48}
-                      opacity={0.5}
-                      _hover={{ opacity: 1 }}
-                      viewBox="0 0 48 48"
-                      width="48px"
-                      height="48px"
-                      fill="white"
-                      stroke="none"
-                    >
-                      <circle cx="13" cy="24" r="3"></circle>
-                      <circle cx="24" cy="24" r="3"></circle>
-                      <circle cx="35" cy="24" r="3"></circle>
-                    </Icon>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  maxHeight={'45vh'}
-                  overflowY={'auto'}
-                  overflowX={'hidden'}
-                  width="auto"
-                  bg="gray.900"
-                  borderColor="gray.700"
+              {otherOptions.length > 0 && (
+                <Popover
+                  placement="bottom-start"
+                  isOpen={isPopoverOpen}
+                  onOpen={() => setIsPopoverOpen(true)}
+                  onClose={() => setIsPopoverOpen(false)}
                 >
-                  <PopoverBody p={0}>
-                    {otherOptions.map((option, i) => (
-                      <Box
-                        key={i}
-                        cursor={'pointer'}
-                        textAlign="left"
-                        p={2}
-                        _hover={{
-                          background: 'gray.800',
-                        }}
-                        borderBottom="1px solid"
-                        borderColor="gray.700"
-                        onClick={() => {
-                          setIsPopoverOpen(false);
-                          selectContract(option.contractAddress);
-                        }}
+                  <PopoverTrigger>
+                    <Button
+                      color="white"
+                      borderColor={'gray.600'}
+                      borderWidth="2px"
+                      borderRadius="md"
+                      variant="outline"
+                      background={'gray.700'}
+                      aria-label="Settings"
+                      boxShadow="lg"
+                      _hover={{
+                        background: 'gray.600',
+                        borderColor: 'teal.500',
+                      }}
+                      mr={4}
+                      mb={4}
+                      height="48px"
+                      width="48px"
+                      p={0}
+                    >
+                      <Icon
+                        boxSize={48}
+                        opacity={0.5}
+                        _hover={{ opacity: 1 }}
+                        viewBox="0 0 48 48"
+                        width="48px"
+                        height="48px"
+                        fill="white"
+                        stroke="none"
                       >
-                        <Text
-                          fontSize="xs"
-                          display="block"
-                          fontWeight="normal"
-                          color="gray.400"
-                          mb="1px"
+                        <circle cx="13" cy="24" r="3"></circle>
+                        <circle cx="24" cy="24" r="3"></circle>
+                        <circle cx="35" cy="24" r="3"></circle>
+                      </Icon>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    maxHeight={'45vh'}
+                    overflowY={'auto'}
+                    overflowX={'hidden'}
+                    width="auto"
+                    bg="gray.900"
+                    borderColor="gray.700"
+                  >
+                    <PopoverBody p={0}>
+                      {otherOptions.map((option, i) => (
+                        <Box
+                          key={i}
+                          cursor={'pointer'}
+                          textAlign="left"
+                          p={2}
+                          _hover={{
+                            background: 'gray.800',
+                          }}
+                          borderBottom="1px solid"
+                          borderColor="gray.700"
+                          onClick={() => {
+                            setIsPopoverOpen(false);
+                            selectContract(option.contractAddress);
+                          }}
                         >
-                          {option.moduleName}
-                        </Text>
-                        <Heading
-                          fontWeight="500"
-                          size="sm"
-                          color="gray.200"
-                          letterSpacing="0.1px"
-                        >
-                          {option.contractName}
-                        </Heading>
-                      </Box>
-                    ))}
-                  </PopoverBody>
-                </PopoverContent>
-              </Popover>
+                          <Text
+                            fontSize="xs"
+                            display="block"
+                            fontWeight="normal"
+                            color="gray.400"
+                            mb="1px"
+                          >
+                            {option.moduleName}
+                          </Text>
+                          <Heading
+                            fontWeight="500"
+                            size="sm"
+                            color="gray.200"
+                            letterSpacing="0.1px"
+                          >
+                            {option.contractName}
+                          </Heading>
+                        </Box>
+                      ))}
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
+              )}
             </Box>
             {children}
             <Interact variant={currentVariant} />
