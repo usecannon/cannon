@@ -259,25 +259,25 @@ export const Function: FC<{
             <CustomSpinner m="auto" />
           ) : (
             <Flex flex="1">
-              {f.outputs.length != 0 && !result && (
+              {f.outputs.length != 0 && result == null && (
                 <Flex
                   position="absolute"
                   zIndex={2}
                   top={0}
                   left={0}
-                  background="blackAlpha.800"
+                  background="blackAlpha.700"
                   width="100%"
                   height="100%"
                   alignItems="center"
                   justifyContent="center"
                   fontWeight="medium"
-                  color="gray.200"
+                  color="gray.300"
                   textShadow="sm"
                   letterSpacing="0.1px"
                 >
-                  {true
-                    ? 'Simulate the transaction '
-                    : 'Call the view function '}
+                  {readOnly
+                    ? 'Call the view function '
+                    : 'Simulate the transaction '}
                   for output
                 </Flex>
               )}

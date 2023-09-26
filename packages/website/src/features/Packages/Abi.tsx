@@ -10,13 +10,13 @@ export const Abi: FC<{
   chainId: number;
 }> = ({ abi, address, cannonOutputs, chainId }) => {
   const functions = useMemo<AbiFunction[]>(
-    () => abi.filter((a) => a.type === 'function') as AbiFunction[],
+    () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
   );
 
   return (
     <>
-      {functions.map((f, index) => (
+      {functions?.map((f, index) => (
         <Function
           key={index}
           f={f}
