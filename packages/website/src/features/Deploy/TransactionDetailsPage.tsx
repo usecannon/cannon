@@ -112,11 +112,15 @@ const TransactionDetailsPage: FC<{
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
   const cannonPackage = useCannonPackage(
-    `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
+    hintData?.cannonPackage
+      ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
+      : ''
   );
 
   const reverseLookupCannonPackage = useCannonPackage(
-    `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}`
+    cannonPackage.resolvedName
+      ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}`
+      : ''
   );
 
   const executed = Number(safeNonce) > Number(nonce);
