@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
-import { alter } from './commands/alter';
-import { createDefaultReadRegistry } from './registry';
+import { alter } from './alter';
+import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { getMainLoader, LocalLoader } from './loader';
+import { getMainLoader, LocalLoader } from '../loader';
 import _ from 'lodash';
-import cli from './index';
+import cli from '../index';
 
 function generatePrivateKey(): string {
   const randomWallet = ethers.Wallet.createRandom();
@@ -12,7 +12,7 @@ function generatePrivateKey(): string {
 }
 
 // Jest Mocking
-jest.mock('./settings', () => ({
+jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({
     registryProviderUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
@@ -21,16 +21,17 @@ jest.mock('./settings', () => ({
   }),
 }));
 
-jest.mock('./registry');
+jest.mock('../registry');
 // jest.mock('@usecannon/builder');
-jest.mock('./loader');
+jest.mock('../loader');
 
-jest.mock('./rpc');
+jest.mock('../rpc');
 
 describe('alter', () => {
-  const packageName = 'package:1.2.3';
   const chainId = 123;
   const preset = 'your-preset';
+  const basePkgName = 'package:1.2.3';
+  const packageName = `${basePkgName}@${preset}`;
   const runtimeOverrides = {};
   const metaUrl = 'meta-url';
   const url = 'file:/usecannon.com/url';
@@ -118,10 +119,10 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(newTestPkgData);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -136,11 +137,11 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -156,14 +157,14 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('complete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -178,14 +179,14 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('incomplete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual('INCOMPLETE');
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl
@@ -200,28 +201,17 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     // await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    await cli.parseAsync([
-      'node',
-      'cannon.ts',
-      'alter',
-      packageName,
-      command,
-      ...targets,
-      '-c',
-      String(chainId),
-      '-p',
-      preset,
-    ]);
+    await cli.parseAsync(['node', 'cannon.ts', 'alter', packageName, command, ...targets, '-c', String(chainId)]);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(
-      packageName,
+      basePkgName,
       preset,
       String(chainId)
     );
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [packageName],
+      [basePkgName],
       `${chainId}-${preset}`,
       newUrl,
       metaUrl

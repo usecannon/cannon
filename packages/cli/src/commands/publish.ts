@@ -4,13 +4,16 @@ import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
+import { PackageReference } from '@usecannon/builder/dist/package';
+
+import { bold, yellow } from 'chalk';
 
 interface Params {
   packageRef: string;
   signer: ethers.Signer;
   tags: string[];
   chainId?: number;
-  preset?: string;
+  presetArg?: string;
   quiet?: boolean;
   recursive?: boolean;
   overrides?: ethers.Overrides;
@@ -21,7 +24,7 @@ export async function publish({
   signer,
   tags = ['latest'],
   chainId,
-  preset = 'main',
+  presetArg,
   quiet = false,
   recursive = true,
   overrides,
@@ -33,6 +36,19 @@ export async function publish({
       `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
+
+  const { name, version, preset } = new PackageReference(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
 
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
@@ -48,7 +64,6 @@ export async function publish({
 
   if (packageRef.startsWith('@ipfs:')) {
     if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
-    if (!preset) throw new Error('preset must be specified when publishing an IPFS reference');
 
     console.log(blueBright('publishing remote ipfs package', packageRef));
     console.log(
@@ -58,10 +73,9 @@ export async function publish({
         'Tags',
         tags,
         'Variant',
-        `${chainId!}-${preset!}`
+        `${chainId!}-${selectedPreset!}`
       )
     );
-    console.log();
 
     const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
     const toStorage = new CannonStorage(localRegistry, {
@@ -70,7 +84,7 @@ export async function publish({
 
     await copyPackage({
       packageRef,
-      variant: `${chainId}-${preset}`,
+      variant: `${chainId}-${selectedPreset}`,
       fromStorage,
       toStorage,
       recursive,
@@ -81,15 +95,15 @@ export async function publish({
   // get a list of all deployments the user is requesting
 
   let variantFilter = /.*/;
-  if (chainId && preset) {
-    variantFilter = new RegExp(`^${chainId}-${preset}$`);
+  if (chainId && (preset || presetArg)) {
+    variantFilter = new RegExp(`^${chainId}-${preset || presetArg}$`);
   } else if (chainId) {
     variantFilter = new RegExp(`^${chainId}-.*$`);
-  } else if (preset) {
-    variantFilter = new RegExp(`^.*-${preset}$`);
+  } else if (selectedPreset) {
+    variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
 
-  const deploys = await localRegistry.scanDeploys(new RegExp(`^${packageRef}$`), variantFilter);
+  const deploys = await localRegistry.scanDeploys(`${name}:${version}`, variantFilter);
 
   if (!quiet) {
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));

@@ -36,7 +36,7 @@ interface Params {
   getSigner?: (addr: string) => Promise<ethers.Signer>;
   getDefaultSigner?: () => Promise<ethers.Signer>;
   projectDirectory?: string;
-  preset?: string;
+  presetArg?: string;
   chainId?: number;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
@@ -59,7 +59,7 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  preset = 'main',
+  presetArg,
   overrideResolver,
   wipe = false,
   persist = true,
@@ -80,6 +80,21 @@ export async function build({
       yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
     );
   }
+
+  const { name, version, preset } = packageDefinition;
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(
+          `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
+        )
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -136,9 +151,9 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
+  const prevPkg = upgradeFrom || `${name}:${version}`;
 
-  oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset || 'main', runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
@@ -187,7 +202,7 @@ export async function build({
   }
   console.log('Name: ' + cyan(`${pkgName}`));
   console.log('Version: ' + cyan(`${pkgVersion}`));
-  console.log('Preset: ' + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
+  console.log('Preset: ' + cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
   if (upgradeFrom) {
     console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
   }
@@ -263,8 +278,8 @@ export async function build({
 
     if (persist) {
       await resolver.publish(
-        [`${packageDefinition.name}:latest`, `${packageDefinition.name}:${packageDefinition.version}`],
-        `${runtime.chainId}-${preset}`,
+        [`${name}:latest`, `${name}:${version}`],
+        `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!
       );
@@ -299,11 +314,7 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
-      console.log(
-        greenBright(
-          `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
-        )
-      );
+      console.log(greenBright(`Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`));
     }
   } else {
     console.log(

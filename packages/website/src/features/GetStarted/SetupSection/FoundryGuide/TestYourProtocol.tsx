@@ -39,7 +39,7 @@ export const TestYourProtocol = () => {
       </Box>
       <Text mb={4}>
         Grant your Foundry project permission to read from the filesystem. Add
-        the following line to your
+        the following line to your{' '}
         <Code colorScheme="blackAlpha" variant="solid">
           foundry.toml
         </Code>
@@ -57,9 +57,9 @@ export const TestYourProtocol = () => {
       <Text mb={4}>
         Use the test command to run them. (Note that the&nbsp;
         <Code colorScheme="blackAlpha" variant="solid">
-          -chain-id
-        </Code>
-        &nbsp; - option can be used to run tests against a forked network.)
+          --chain-id
+        </Code>{' '}
+        option can be used to run tests against a forked network.)
       </Text>
       <CommandPreview command="npx cannon test" />
     </>

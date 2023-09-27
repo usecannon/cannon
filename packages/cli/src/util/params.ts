@@ -1,21 +1,9 @@
 import _ from 'lodash';
 import { InvalidArgumentError } from 'commander';
 import { PackageSpecification, PackageSettings } from '../types';
+import { PackageReference } from '@usecannon/builder';
 
-const packageRegExp = /^(?<name>@?[a-z0-9][a-z0-9-]+[a-z0-9])(?::(?<version>.+))?$/;
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
-
-export function parsePackageRef(val: string) {
-  const match = val.match(packageRegExp);
-
-  if (!match) {
-    throw new InvalidArgumentError(`Invalid package name "${val}". Should be of the format <package-name>:<version>`);
-  }
-
-  const { name, version = 'latest' } = match.groups!;
-
-  return { name, version };
-}
 
 export function parseInteger(val: string) {
   const parsedValue = Number.parseInt(val);
@@ -45,22 +33,25 @@ export function parseSettings(values: string[] = []) {
 }
 
 export function parsePackageArguments(val: string, result?: PackageSpecification): PackageSpecification {
-  const packageMatch = val.match(packageRegExp);
-
-  if (!result && !packageMatch) {
-    throw new InvalidArgumentError('First argument should be a cannon package name, e.g.: greeter:1.0.0');
+  if (!result) {
+    throw new InvalidArgumentError(
+      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
+    );
   }
 
-  if (result && !_.isEmpty(result) && packageMatch) {
-    throw new InvalidArgumentError('You can only specify a single cannon package');
-  }
+  if (PackageReference.isValid(val)) {
+    const pkg = new PackageReference(val);
 
-  if (packageMatch) {
-    const { name, version = 'latest' } = packageMatch.groups!;
+    if (!_.isEmpty(result)) {
+      throw new InvalidArgumentError('You can only specify a single cannon package');
+    }
+
+    const { name, version, preset } = pkg;
 
     const def = {
       name,
       version,
+      preset,
       settings: {},
     };
 
@@ -78,13 +69,14 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 }
 
 export function parsePackagesArguments(val: string, result: PackageSpecification[] = []) {
-  const packageMatch = val.match(packageRegExp);
-  if (packageMatch) {
-    const { name, version = 'latest' } = packageMatch.groups!;
+  if (PackageReference.isValid(val)) {
+    const pkg = new PackageReference(val);
+    const { name, version, preset } = pkg;
 
     const def = {
       name,
       version,
+      preset,
       settings: {},
     };
 

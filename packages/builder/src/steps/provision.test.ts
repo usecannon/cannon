@@ -45,13 +45,13 @@ describe('steps/provision.ts', () => {
       const result = action.configInject(
         fakeCtx,
         {
-          source: '<%= settings.a %>',
+          source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         },
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
 
       expect(result).toStrictEqual({
-        source: 'a:latest',
+        source: 'abc:latest',
         sourcePreset: 'main',
         targetPreset: 'with-who',
       });
@@ -100,7 +100,7 @@ describe('steps/provision.ts', () => {
         action.exec(
           fakeRuntime,
           fakeCtx,
-          { source: 'undefinedDeployment:1.0.0' },
+          { source: 'undefined-deployment:1.0.0' },
           { name: 'package', version: '1.0.0', currentLabel: 'provision.whatever' }
         )
       ).rejects.toThrowError('deployment not found');

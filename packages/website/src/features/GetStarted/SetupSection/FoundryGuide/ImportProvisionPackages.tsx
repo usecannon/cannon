@@ -13,8 +13,7 @@ artifact = "SampleIntegration"
 args = [
     "<%= imports.synthetix_omnibus.contracts.system.CoreProxy %>",
     "<%= imports.synthetix_omnibus.contracts.system.USDProxy %>"
-]
-depends = ["import.synthetix_omnibus"]`;
+]`;
 
 const code2 = `[provision.synthetix]
 source = "synthetix:latest"
@@ -27,8 +26,7 @@ func = "createPool"
 args = [
     "1",
     "<%= settings.owner %>"
-]
-depends=["provision.synthetix"]`;
+]`;
 
 export const ImportProvisionPackages = () => {
   return (
@@ -65,7 +63,7 @@ export const ImportProvisionPackages = () => {
       <Text mb={4}>
         <Code colorScheme="blackAlpha" variant="solid">
           provision
-        </Code>
+        </Code>{' '}
         packages to deploy new instances of their protocol&apos;s contracts.
       </Text>
       <Text mb={4}>

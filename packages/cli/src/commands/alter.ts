@@ -1,5 +1,8 @@
 import _ from 'lodash';
 import Debug from 'debug';
+
+import { bold, yellow } from 'chalk';
+
 import { createDefaultReadRegistry } from '../registry';
 import {
   createInitialContext,
@@ -12,21 +15,37 @@ import {
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
+import { PackageReference } from '@usecannon/builder/dist/package';
 
 const debug = Debug('cannon:cli:alter');
 
 export async function alter(
   packageRef: string,
   chainId: number,
-  preset: string,
+  presetArg: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
+  const { preset, basePackageRef } = new PackageReference(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(
+          `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
+        )
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
+
   const cliSettings = resolveCliSettings();
 
-  const variant = `${chainId}-${preset}`;
+  const variant = `${chainId}-${selectedPreset}`;
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -55,15 +74,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(packageRef, preset, chainId);
-  const metaUrl = await resolver.getMetaUrl(packageRef, `${chainId}-${preset}`);
+  let startDeployInfo = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
+  const metaUrl = await resolver.getMetaUrl(basePackageRef, `${chainId}-${selectedPreset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(packageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(basePackageRef, 'main', CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${packageRef} (${variant})`);
+      throw new Error(`deployment not found: ${basePackageRef} (${variant})`);
     }
   }
 
@@ -159,5 +178,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([packageRef], variant, newUrl, metaUrl || '');
+  await resolver.publish([basePackageRef], variant, newUrl, metaUrl || '');
 }

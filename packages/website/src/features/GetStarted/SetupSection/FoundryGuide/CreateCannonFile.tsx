@@ -31,8 +31,7 @@ artifact = "Counter"
 [invoke.set_number]
 target = ["counter"]
 func = "setNumber"
-args = ["<%= settings.number %>"]
-depends = ["contract.counter"]`;
+args = ["<%= settings.number %>"]`;
 
 export const CreateCannonFile = () => {
   return (
@@ -64,10 +63,13 @@ export const CreateCannonFile = () => {
       </Box>
       <Text mb={4}>
         This created a local deployment of your nascent protocol. You can now
-        run this package locally using the command-line tool:
+        run this package locally using the command-line tool. (Here, we add the{' '}
+        <Code>--registry-priority local</Code> option to ensure we’re using the
+        version of this package that you just built, regardless of what others
+        have published.)
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon sample-foundry-project" />
+        <CommandPreview command="cannon sample-foundry-project --registry-priority local" />
       </Box>
     </>
   );

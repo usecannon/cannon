@@ -90,6 +90,16 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
+const getRegistryProviderUrl = (fileSettings: any): string => {
+  const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl;
+
+  if (registryProviderUrl) {
+    return registryProviderUrl;
+  }
+  
+  return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
+};
+
 // TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   const cliSettingsStore = untildify(
@@ -114,7 +124,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     {
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
       providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
-      privateKey: process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey,
+      privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
       ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
       publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
       registryProviderUrl:

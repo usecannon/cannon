@@ -19,7 +19,7 @@ const mockRpcNode: CannonRpcNode = Object.assign(new EventEmitter() as ChildProc
 
 jest.mock('@usecannon/builder');
 jest.mock('../rpc');
-jest.mock('../interact');
+jest.mock('./interact');
 jest.mock('../util/on-keypress');
 jest.mock('./build', () => ({
   getOutputs: jest.fn().mockResolvedValue({}),

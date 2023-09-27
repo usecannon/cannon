@@ -16,7 +16,7 @@ const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^[\w-]+\.*:*[\w.-@]+$/, 'i');
+const packageRegex = RegExp(/^[\w-]+\.*:[\w.@-]+$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
@@ -51,6 +51,10 @@ export const contractSchema = z
   .merge(
     z
       .object({
+        /**
+         *    Determines whether contract should get priority in displays
+         */
+        highlight: z.boolean(),
         /**
          *    Determines whether to deploy the contract using create2
          */

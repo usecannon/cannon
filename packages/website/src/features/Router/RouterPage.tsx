@@ -11,6 +11,7 @@ import {
   AlertIcon,
   AlertTitle,
   AlertDescription,
+  Divider,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import React from 'react';
@@ -31,10 +32,6 @@ artifact = "AnotherCounter"
 contracts = [
   "Counter",
   "AnotherCounter",
-]
-depends = [
-  "contract.Counter",
-  "contract.AnotherCounter",
 ]`;
 
 const code2 = `[setting.admin]
@@ -44,8 +41,7 @@ defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 source = "transparent-upgradable-proxy:4.9.3"
 options.admin = "<%= settings.admin %>"
 options.implementation = "<%= contracts.Router.address %>"
-options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"
-depends = ["router.Router"]`;
+options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"`;
 
 export const RouterPage = () => {
   const theme = useTheme();
@@ -228,23 +224,43 @@ export const RouterPage = () => {
             </AlertDescription>
           </Box>
         </Alert>
-        <Alert status="warning" mb={4} bg="gray.800">
-          <AlertIcon />
-          <Box>
-            <AlertTitle>Beware of storage collisions</AlertTitle>
-            <AlertDescription>
-              Changing the storage layout in smart contracts can irreversibly
-              corrupt protocol data. Thoroughly understand how to avoid{' '}
-              <Link
-                href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
-                isExternal
-              >
-                storage collisions
-              </Link>{' '}
-              when upgrading.
-            </AlertDescription>
-          </Box>
-        </Alert>
+
+        <Heading size="md" mb={4} mt={6}>
+          Avoid Storage Collisions
+        </Heading>
+        <Text mb={4}>
+          Changing the storage layout in smart contracts can irreversibly
+          corrupt protocol data. Thoroughly understand how to avoid{' '}
+          <Link
+            href="https://docs.openzeppelin.com/upgrades-plugins/1.x/proxies"
+            isExternal
+          >
+            storage collisions
+          </Link>{' '}
+          when upgrading. If you’re using Hardhat, check out the{' '}
+          <Link
+            href="https://github.com/Synthetixio/synthetix-v3/tree/main/utils/hardhat-storage"
+            isExternal
+          >
+            hardhat-storage
+          </Link>{' '}
+          plug-in, which validates storage changes.
+        </Text>
+
+        <Text mb={4}>
+          You can use libraries for executing with storage reads/writes to
+          create an MVC-style architecture. See the{' '}
+          <Link
+            href="https://docs.synthetix.io/v/v3/for-developers/technical-architecture"
+            isExternal
+          >
+            Synthetix V3 documentation
+          </Link>{' '}
+          for inspiration.
+        </Text>
+
+        <Divider my={4} />
+
         <Text>
           If the protocol is owned by a{' '}
           <Link isExternal href="https://safe.global/">

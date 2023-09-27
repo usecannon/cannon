@@ -4,32 +4,26 @@ import pako from 'pako';
 import {
   Box,
   Button,
-  Code,
-  Container,
   Flex,
   Heading,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalOverlay,
   Tooltip,
-  useDisclosure,
+  IconButton,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
-import { IpfsUrl } from './IpfsUrl';
 import { useQuery } from '@tanstack/react-query';
-import { DownloadIcon, InfoIcon, ViewIcon } from '@chakra-ui/icons';
+import { DownloadIcon } from '@chakra-ui/icons';
 
-const handleDownload = (content: JSON) => {
+const handleDownload = (content: JSON, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
     type: 'application/json',
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'deployments.json';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -111,142 +105,228 @@ export const CodeExplorer: FC<{
     enabled: !!miscUrl,
   });
 
-  const {
-    isOpen: isCodeDataModalOpen,
-    onOpen: openCodeDataModal,
-    onClose: closeCodeDataModal,
-  } = useDisclosure();
+  useEffect(() => {
+    if (miscData?.data) {
+      const parsedData = JSON.parse(miscData.data);
+      const firstArtifact = Object.entries(parsedData.artifacts).sort(
+        ([keyA], [keyB]) => {
+          const countA = (keyA.match(/:/g) || []).length;
+          const countB = (keyB.match(/:/g) || []).length;
+          return countA - countB;
+        }
+      )[0];
 
-  const {
-    isOpen: isMetadataModalOpen,
-    onOpen: openMetadataModal,
-    onClose: closeMetadataModal,
-  } = useDisclosure();
+      if (firstArtifact) {
+        const [, firstArtifactValue] = firstArtifact;
+        const sortedSources = Object.entries(
+          JSON.parse((firstArtifactValue as any)?.source?.input).sources
+        ).sort(([keyA], [keyB]) => {
+          const countA = (keyA.match(/\//g) || []).length;
+          const countB = (keyB.match(/\//g) || []).length;
+          return countA - countB;
+        });
+
+        const firstSource = sortedSources[0];
+
+        if (firstSource) {
+          const [sourceKey, sourceValue] = firstSource;
+          setSelectedCode((sourceValue as any)?.content);
+          setSelectedLanguage('solidity');
+          setSelectedKey(sourceKey);
+        }
+      }
+    }
+  }, [miscData?.data]);
+
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
+  const [selectedCode, setSelectedCode] = useState('');
+  const [selectedLangauge, setSelectedLanguage] = useState('');
+  const [selectedKey, setSelectedKey] = useState('');
 
   return (
-    <Container maxW="container.lg">
-      {miscData?.data &&
-        Object.entries(JSON.parse(miscData?.data).artifacts).map(
-          ([artifactKey, artifactValue]) => {
-            return (
-              <Box key={artifactKey} mb={8}>
-                <Flex flexDirection={['column', 'column', 'row']} mb="2">
-                  <Heading size="md" mb="2">
-                    {artifactKey}
-                  </Heading>
-
-                  <Button
-                    variant="outline"
-                    colorScheme="white"
-                    mb={2}
-                    size="xs"
-                    color="gray.300"
-                    borderColor="gray.500"
-                    _hover={{ bg: 'gray.700' }}
-                    leftIcon={<DownloadIcon />}
-                    onClick={() => {
-                      handleDownload((artifactValue as any)?.abi);
-                    }}
-                    ml={[0, 0, 'auto']}
-                  >
-                    Download ABI
-                  </Button>
-                </Flex>
-                {Object.entries(
-                  JSON.parse((artifactValue as any)?.source?.input).sources
-                ).map(([sourceKey, sourceValue]) => {
+    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+      <Flex flex="1" direction={['column', 'column', 'row']}>
+        <Flex
+          flexDirection="column"
+          overflowY="auto"
+          maxWidth={['100%', '100%', '300px']}
+          borderRight={isSmall ? 'none' : '1px solid'}
+          borderBottom={isSmall ? '1px solid' : 'none'}
+          borderColor={isSmall ? 'gray.600' : 'gray.700'}
+          width={['100%', '100%', '300px']}
+          maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
+        >
+          <Box px={3} pb={2}>
+            {miscData?.data &&
+              Object.entries(JSON.parse(miscData?.data).artifacts).map(
+                ([artifactKey, artifactValue]) => {
                   return (
-                    <Box key={sourceKey} mb={6}>
-                      <Code fontSize="lg" mb="4">
-                        {sourceKey}
-                      </Code>
-                      <CodePreview
-                        code={(sourceValue as any)?.content}
-                        language="solidity"
-                      />
+                    <Box key={artifactKey} mt={4}>
+                      <Flex
+                        flexDirection="row"
+                        px="2"
+                        alignItems="center"
+                        mb="1"
+                      >
+                        <Heading
+                          fontWeight="500"
+                          size="sm"
+                          color="gray.200"
+                          letterSpacing="0.1px"
+                          mr="1"
+                        >
+                          {artifactKey.split(':').length > 1
+                            ? artifactKey.split(':')[1]
+                            : artifactKey}
+                        </Heading>
+
+                        <Button
+                          variant="outline"
+                          colorScheme="white"
+                          size="xs"
+                          color="gray.300"
+                          borderColor="gray.500"
+                          _hover={{ bg: 'gray.700' }}
+                          leftIcon={<DownloadIcon />}
+                          onClick={() => {
+                            handleDownload(
+                              (artifactValue as any)?.abi,
+                              'deployments.json'
+                            );
+                          }}
+                          ml="auto"
+                        >
+                          ABI
+                        </Button>
+                      </Flex>
+                      {Object.entries(
+                        JSON.parse((artifactValue as any)?.source?.input)
+                          .sources
+                      )
+                        .sort(([keyA], [keyB]) => {
+                          const countA = (keyA.match(/\//g) || []).length;
+                          const countB = (keyB.match(/\//g) || []).length;
+                          return countA - countB; // Sorts in ascending order
+                        })
+                        .map(([sourceKey, sourceValue]) => {
+                          return (
+                            <Tooltip
+                              label={sourceKey}
+                              key={sourceKey}
+                              placement="right"
+                            >
+                              <Box
+                                borderRadius="md"
+                                mb={0.5}
+                                py={0.5}
+                                px="2"
+                                cursor="pointer"
+                                fontSize="sm"
+                                _hover={{ background: 'gray.800' }}
+                                onClick={() => {
+                                  setSelectedCode(
+                                    (sourceValue as any)?.content
+                                  );
+                                  setSelectedLanguage('solidity');
+                                  setSelectedKey(sourceKey);
+                                }}
+                                whiteSpace="nowrap"
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                                style={{
+                                  direction: 'rtl', // Reverses the text display order
+                                  unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
+                                }}
+                                textAlign="left" // Left-aligns the text
+                                fontWeight={
+                                  selectedKey == sourceKey
+                                    ? 'medium'
+                                    : undefined
+                                }
+                                background={
+                                  selectedKey == sourceKey
+                                    ? 'gray.800'
+                                    : undefined
+                                }
+                              >
+                                {sourceKey.split('').reverse().join('')}
+                              </Box>
+                            </Tooltip>
+                          );
+                        })}
                     </Box>
                   );
-                })}
-              </Box>
-            );
-          }
-        )}
+                }
+              )}
 
-      <Box mb={6}>
-        <Heading size="md" mb={4}>
-          Code Data{' '}
-          <Tooltip
-            label="This is the source of the data displayed above."
-            placement="right"
-            hasArrow
-          >
-            <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-          </Tooltip>
-        </Heading>
-        <Button
-          variant="outline"
-          colorScheme="white"
-          onClick={openCodeDataModal}
-          mb={3}
-          leftIcon={<ViewIcon />}
-        >
-          View Code Data
-        </Button>
-        {variant?.deploy_url && <IpfsUrl url={variant.deploy_url} />}
+            {metadata.cannonfile && (
+              <>
+                <Box mt={4}>
+                  <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                    <Heading
+                      fontWeight="500"
+                      size="sm"
+                      color="gray.200"
+                      letterSpacing="0.1px"
+                    >
+                      Metadata
+                    </Heading>
 
-        <Modal
-          isOpen={isCodeDataModalOpen}
-          onClose={closeCodeDataModal}
-          size="6xl"
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalCloseButton />
-            <CodePreview
-              code={JSON.stringify(miscData.data, null, 2)}
-              language="json"
-            />
-          </ModalContent>
-        </Modal>
-      </Box>
+                    <IconButton
+                      aria-label="Download Metadata"
+                      variant="outline"
+                      colorScheme="white"
+                      size="xs"
+                      color="gray.300"
+                      borderColor="gray.500"
+                      _hover={{ bg: 'gray.700' }}
+                      icon={<DownloadIcon />}
+                      onClick={() => {
+                        handleDownload(metadata, 'metadata.json');
+                      }}
+                      ml="auto"
+                    ></IconButton>
+                  </Flex>
+                </Box>
 
-      <Box mb={6}>
-        <Heading size="md" mb={4}>
-          Metadata{' '}
-          <Tooltip
-            label="This includes data like the Cannonfile used to build the package."
-            placement="right"
-            hasArrow
-          >
-            <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-          </Tooltip>
-        </Heading>
-        <Button
-          variant="outline"
-          colorScheme="white"
-          onClick={openMetadataModal}
-          mb={3}
-          leftIcon={<ViewIcon />}
-        >
-          View Metadata
-        </Button>
-        {variant?.meta_url && <IpfsUrl url={variant.meta_url} />}
+                <Box
+                  borderRadius="md"
+                  mb={0.5}
+                  py={0.5}
+                  px="2"
+                  cursor="pointer"
+                  fontSize="sm"
+                  _hover={{ background: 'gray.800' }}
+                  onClick={() => {
+                    setSelectedCode(metadata.cannonfile);
+                    setSelectedLanguage('toml');
+                    setSelectedKey('cannonfile');
+                  }}
+                  fontWeight={
+                    selectedKey == 'cannonfile' ? 'medium' : undefined
+                  }
+                >
+                  Cannonfile
+                </Box>
+              </>
+            )}
+          </Box>
+        </Flex>
 
-        <Modal
-          isOpen={isMetadataModalOpen}
-          onClose={closeMetadataModal}
-          size="6xl"
+        <Box
+          flex="1"
+          overflowY="auto"
+          maxHeight={['none', 'none', 'calc(100vh - 236px)']}
+          background="gray.800"
         >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalCloseButton />
-            <CodePreview
-              code={JSON.stringify(metadata, null, 2)}
-              language="json"
-            />
-          </ModalContent>
-        </Modal>
-      </Box>
-    </Container>
+          <CodePreview code={selectedCode} language={selectedLangauge} />
+        </Box>
+      </Flex>
+    </Flex>
   );
 };
