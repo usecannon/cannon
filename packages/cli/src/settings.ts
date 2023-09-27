@@ -90,16 +90,6 @@ export type CliSettings = {
   priorityGasFee?: string;
 };
 
-const getRegistryProviderUrl = (fileSettings: any): string => {
-  const registryProviderUrl = process.env.CANNON_REGISTRY_PROVIDER_URL || fileSettings.registryProviderUrl;
-
-  if (registryProviderUrl) {
-    return registryProviderUrl;
-  }
-  
-  return `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`;
-};
-
 // TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   const cliSettingsStore = untildify(
