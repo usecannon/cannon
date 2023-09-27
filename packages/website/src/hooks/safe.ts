@@ -8,7 +8,7 @@ import { chains } from '@/constants/deployChains';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import * as onchainStore from '@/helpers/onchain-store';
-import { supportedChains } from '@/app/walletProvider';
+import { supportedChains } from '@/providers/walletProvider';
 
 export type SafeString = `${ChainId}:${Address}`;
 

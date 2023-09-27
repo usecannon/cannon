@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Box,
@@ -10,10 +10,20 @@ import {
   Fade,
   Collapse,
 } from '@chakra-ui/react';
+import { useLogs } from '@/providers/logsProvider';
+import { format } from 'date-fns';
 
 export const Console = () => {
   //const isMobile = useBreakpointValue([true, true, false]);
   const [isOpen, setIsOpen] = useState(false);
+  const { logs, addLog } = useLogs();
+
+  useEffect(() => {
+    addLog('Calling functionName() on 0x0000....0000 via PublicNode');
+    addLog('Calling functionName() on 0x0000....0001 via PublicNode');
+    addLog('Calling functionName() on 0x0000....0002 via PublicNode');
+    addLog('Calling functionName() on 0x0000....0003 via PublicNode');
+  }, []);
 
   return (
     <Flex
@@ -104,51 +114,17 @@ export const Console = () => {
               display="block"
               zIndex="1"
             >
-              <Text
-                display="block"
-                background="black"
-                fontSize="xs"
-                fontFamily="var(--font-miriam)"
-              >
-                [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
-                PublicNode
-              </Text>
-              <Text
-                display="block"
-                background="black"
-                fontSize="xs"
-                fontFamily="var(--font-miriam)"
-              >
-                [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
-                PublicNode
-              </Text>
-              <Text
-                display="block"
-                background="black"
-                fontSize="xs"
-                fontFamily="var(--font-miriam)"
-              >
-                [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
-                PublicNode
-              </Text>
-              <Text
-                display="block"
-                background="black"
-                fontSize="xs"
-                fontFamily="var(--font-miriam)"
-              >
-                [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
-                PublicNode
-              </Text>
-              <Text
-                display="block"
-                background="black"
-                fontSize="xs"
-                fontFamily="var(--font-miriam)"
-              >
-                [12.32.30:23:32] Calling functionName() on 0x0000....0000 via
-                PublicNode
-              </Text>
+              {logs.map((log, i) => (
+                <Text
+                  key={i}
+                  display="block"
+                  background="black"
+                  fontSize="xs"
+                  fontFamily="var(--font-miriam)"
+                >
+                  {`[${format(log.date, 'kk.mm.ss:SSSS')}] ${log.message}`}
+                </Text>
+              ))}
             </Box>
           </Collapse>
         </Box>
