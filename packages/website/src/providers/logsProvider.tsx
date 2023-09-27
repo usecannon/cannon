@@ -16,7 +16,8 @@ function LogsProvider({ children }: { children: ReactNode }) {
   const [logs, setLogs] = useState<Log[]>([]);
 
   const addLog = (message: string) => {
-    setLogs((prevLogs) => [...prevLogs, { date: new Date(), message }]);
+    const date = new Date();
+    setLogs((prevLogs) => [...prevLogs, { date, message }]);
   };
 
   return (
