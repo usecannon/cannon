@@ -20,6 +20,10 @@ export async function decode({
 }) {
   const { preset, basePackageRef } = new PackageReference(packageRef);
 
+  if (!data[0].startsWith('0x')) {
+    data[0] = data[0].replace(/^/, '0x')
+  }
+
   if (presetArg && preset) {
     console.warn(
       yellow(
