@@ -14,7 +14,7 @@ const debug = Debug('cannon:cli:provider');
 export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
-      `\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to Geth and Parity IPC endpoints. Read more here: https://docs.ethers.org/v5/api/providers/other/#IpcProvider \n
+      `\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545. \n
         \n`
     );
     console.warn(
