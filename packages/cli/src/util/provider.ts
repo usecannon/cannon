@@ -11,7 +11,7 @@ const debug = Debug('cannon:cli:provider');
 export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
   return resolveProviderAndSigners({
     chainId,
-    checkProviders: settings.providerUrl?.split(',') || [],
+    checkProviders: settings.providerUrl?.split(','),
     privateKey: settings.privateKey,
   });
 }
@@ -19,7 +19,7 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
 export async function resolveRegistryProvider(settings: CliSettings) {
   return resolveProviderAndSigners({
     chainId: settings.registryChainId,
-    checkProviders: settings.registryProviderUrl!.split(','),
+    checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
   });
 }

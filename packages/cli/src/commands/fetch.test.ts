@@ -27,11 +27,13 @@ describe('fetch', () => {
   beforeAll(async () => {
     jest.resetAllMocks();
 
+    const cliSettings = resolveCliSettings();
+    
     jest.spyOn(settings, 'resolveCliSettings').mockImplementation(
       jest.fn().mockReturnValue({
-        ipfsUrl: 'http://127.0.0.1:5001',
-        publishIpfsUrl: 'http://127.0.0.1:5001',
-        registryProviderUrl: 'http://localhost:3000',
+        ipfsUrl: 'http://localhost:5001',
+        publishIpfsUrl: 'http://localhost:5001',
+        registryProviderUrl: 'http://localhost:8545',
         registryAddress: ethers.constants.AddressZero,
         registryChainId: '123', // or whatever value is appropriate in your case
         cannonDirectory: '/cannon/directory/',
@@ -39,28 +41,13 @@ describe('fetch', () => {
       })
     );
 
+    testPkgDataFilePath = path.join('/cannon/directory/', 'tags', deployDataLocalFileName);
+    testPkgMetaFilePath = path.join('/cannon/directory/', 'tags', deployMetaLocalFileName);
   });
 
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-
-    jest.spyOn(settings, 'resolveCliSettings').mockImplementation(
-      jest.fn().mockReturnValue({
-        ipfsUrl: 'http://127.0.0.1:5001',
-        publishIpfsUrl: 'http://127.0.0.1:5001',
-        registryProviderUrl: 'http://localhost:3000',
-        registryAddress: ethers.constants.AddressZero,
-        registryChainId: '123', // or whatever value is appropriate in your case
-        cannonDirectory: '/cannon/directory/',
-        // Add other properties as needed
-      })
-    );
-
-    const cliSettings = resolveCliSettings();
-    testPkgDataFilePath = path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
-    testPkgMetaFilePath = path.join(cliSettings.cannonDirectory, 'tags', deployMetaLocalFileName);
-
   });
   
   
@@ -69,7 +56,7 @@ describe('fetch', () => {
     expect(fs.existsSync(testPkgMetaFilePath)).toBe(false);
 
     // Call the 'fetch' function with the necessary arguments
-    await fetch(pkgName, ipfsHash);
+    await fetch(pkgName, ipfsHash, ipfsHash);
 
     expect(CannonStorage.prototype.readBlob as jest.Mock<any, any>).toHaveBeenCalled();
     expect(CannonStorage.prototype.putBlob as jest.Mock<any, any>).toHaveBeenCalled();
@@ -81,9 +68,6 @@ describe('fetch', () => {
     expect(fs.existsSync(testPkgDataFilePath)).toBe(false);
     expect(fs.existsSync(testPkgMetaFilePath)).toBe(false);
 
-    // Call the 'fetcg' function with the necessary arguments
-    await fetch(pkgName, '');
-
-    expect(fetch).toThrowError(expect.stringMatching(/One of your IPFS hashes does not match the IPFS CID v0 format/));
+    expect(await fetch(pkgName, '')).toThrowError(expect.stringMatching(/One of your IPFS hashes does not match the IPFS CID v0 format/));
   });
 });

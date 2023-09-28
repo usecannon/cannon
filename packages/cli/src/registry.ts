@@ -30,6 +30,10 @@ export class LocalRegistry extends CannonRegistry {
     return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
   }
 
+  getMetaTagReferenceStorage(packageRef: string, variant: string): string {
+    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt.meta`);
+  }
+
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
     const baseResolved = await super.getUrl(packageRef, variant);
     if (baseResolved) {

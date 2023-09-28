@@ -60,6 +60,7 @@ export { loadCannonfile } from './helpers';
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
 import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
+import { REGISTRY_FEE } from './constants';
 
 const program = new Command();
 
@@ -348,11 +349,8 @@ program
   .argument('<ipfsHash>', 'IPFS hash to fetch deployment data from')
   .option('--meta-hash <metaHash>', 'IPFS hash to fetch deployment metadata from')
   .action(async function (packageName, ipfsHash, options) {
-    if (!ipfsHash) {
-      throw new Error(`Must supply an IPFS hash to fetch from`)
-    }
     const { fetch } = await import('./commands/fetch');
-    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+
     await fetch(packageName, ipfsHash, options.metaHash);
   });
 
@@ -381,7 +379,7 @@ program
     const cliSettings = resolveCliSettings(options);
     const p = await resolveRegistryProvider(cliSettings);
 
-    const overrides: ethers.PayableOverrides = {};
+    const overrides: ethers.CallOverrides = {};
 
     if (!options.chainId) {
       throw new Error(
@@ -401,7 +399,8 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    overrides.value = ethers.utils.parseUnits('1', 'wei');
+    // Set tx value to match the registry fee 
+    overrides.value = ethers.utils.parseUnits(REGISTRY_FEE, 'wei');
 
     console.log(
       `\nSettings:\n - Max Fee Per Gas: ${
