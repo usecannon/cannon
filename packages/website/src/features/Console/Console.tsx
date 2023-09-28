@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Box,
@@ -16,14 +16,7 @@ import { format } from 'date-fns';
 export const Console = () => {
   //const isMobile = useBreakpointValue([true, true, false]);
   const [isOpen, setIsOpen] = useState(false);
-  const { logs, addLog } = useLogs();
-
-  useEffect(() => {
-    addLog('Calling functionName() on 0x0000....0000 via PublicNode');
-    addLog('Calling functionName() on 0x0000....0001 via PublicNode');
-    addLog('Calling functionName() on 0x0000....0002 via PublicNode');
-    addLog('Calling functionName() on 0x0000....0003 via PublicNode');
-  }, []);
+  const { logs } = useLogs();
 
   return (
     <Flex
@@ -110,6 +103,9 @@ export const Console = () => {
               p={2}
               height={isOpen ? '345px' : '48px'}
               width={isOpen ? '570px' : '48px'}
+              maxHeight={'345px'}
+              overflowY={'auto'}
+              overflowX={'hidden'}
               position="relative"
               display="block"
               zIndex="1"

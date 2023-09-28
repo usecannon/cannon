@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import { useQuery } from '@apollo/client';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { Flex, Container } from '@chakra-ui/react';
 import { PackageCard } from '../Search/PackageCard/PackageCard';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -10,7 +10,7 @@ import { CustomSpinner } from '@/components/CustomSpinner';
 export const PackagePage: FC<{
   name: string;
 }> = ({ name }) => {
-  const { data } = useQuery<any, any>(GET_PACKAGE, {
+  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
