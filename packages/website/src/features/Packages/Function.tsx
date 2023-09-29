@@ -10,6 +10,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  IconButton,
   Link,
   Text,
 } from '@chakra-ui/react';
@@ -28,6 +29,7 @@ import { Address, getContract } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -37,6 +39,7 @@ export const Function: FC<{
   chainId: number;
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
+  const [simulated, setSimulated] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
@@ -67,9 +70,11 @@ export const Function: FC<{
   // }, [params, readOnly]);
   //
 
-  const submit = async (suppressError = false) => {
+  const submit = async (suppressError = false, simulate = false) => {
     setLoading(true);
     setError(null);
+    setSimulated(simulate);
+
     try {
       const contract = getContract({
         address: address as Address,
@@ -92,18 +97,24 @@ export const Function: FC<{
             return;
           }
         }
+
         if (connectedChain?.id != chainId) {
           const newChain = await switchNetworkAsync?.(chainId as number);
           if (newChain?.id != chainId) return;
         }
-        try {
-          const _result = await contract.write[f.name](
-            Array.isArray(params) ? params : [params]
-          );
-          setResult(_result);
-        } catch (e) {
-          console.error(e);
-        }
+
+        const _params = Array.isArray(params) ? params : [params];
+        const _result = simulate
+          ? await publicClient.simulateContract({
+              address: address as Address,
+              abi,
+              functionName: f.name,
+              args: _params,
+              account: walletClient?.account || undefined,
+            })
+          : await contract.write[f.name](_params);
+
+        setResult(_result);
       }
     } catch (e: any) {
       if (!suppressError) {
@@ -126,6 +137,16 @@ export const Function: FC<{
       setLoading(false);
     }
   };
+
+  const statusIcon = result ? (
+    <Box display="inline-block" mr={3}>
+      {error ? (
+        <WarningIcon color="red.700" />
+      ) : (
+        <CheckCircleIcon color="green.500" />
+      )}
+    </Box>
+  ) : null;
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600">
@@ -204,11 +225,12 @@ export const Function: FC<{
                 size="xs"
                 mr={3}
                 onClick={() => {
-                  void submit(false);
+                  void submit(false, true);
                 }}
               >
                 Simulate transaction
               </Button>
+              {simulated && statusIcon}
               <Button
                 isLoading={loading}
                 colorScheme="teal"
@@ -221,7 +243,7 @@ export const Function: FC<{
                   void submit(false);
                 }}
               >
-                Submit using wallet
+                Submit using wallet {!simulated && statusIcon}
               </Button>
             </>
           )}
