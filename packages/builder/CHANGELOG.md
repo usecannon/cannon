@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.1](https://github.com/usecannon/cannon/compare/v2.8.0...v2.8.1) (2023-09-29)
+
+
+### Bug Fixes
+
+* **builder:** fix zod package regex for validation ([#485](https://github.com/usecannon/cannon/issues/485)) ([e4fdda7](https://github.com/usecannon/cannon/commit/e4fdda7e5283df75a0b658a9eb1e0f0d7935132f))
+
 ## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
 
 

@@ -1,5 +1,5 @@
 {
-  "packages/builder": "2.8.0",
-  "packages/cli": "2.8.0",
-  "packages/hardhat-cannon": "2.8.0"
+  "packages/builder": "2.8.1",
+  "packages/cli": "2.8.1",
+  "packages/hardhat-cannon": "2.8.1"
 }
