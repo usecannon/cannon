@@ -1,5 +1,12 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
+    * @usecannon/cli bumped from ^2.8.0 to ^2.8.1
+
 ## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
 
 
