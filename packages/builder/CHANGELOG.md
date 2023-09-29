@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
+
+
+### Features
+
+* **builder:** add highlight boolean to contract cannonfile spec ([#470](https://github.com/usecannon/cannon/issues/470)) ([06629e2](https://github.com/usecannon/cannon/commit/06629e23aca1bacf266a68072325332c9ec77f75))
+* **cli:** Add support for preset package reference in CLI  ([#449](https://github.com/usecannon/cannon/issues/449)) ([ec19aff](https://github.com/usecannon/cannon/commit/ec19affe86e0fdc6623ae6fc5d5187118757d2f0))
+
+
+### Bug Fixes
+
+* **builder:** lock ethers version in builder package below 6.0.0 ([#484](https://github.com/usecannon/cannon/issues/484)) ([844c39e](https://github.com/usecannon/cannon/commit/844c39e3a486be2aa2602c5ff8c8bf9babb09c60))
+* fix preset name in deploy local tag filename ([#472](https://github.com/usecannon/cannon/issues/472)) ([acf9d2d](https://github.com/usecannon/cannon/commit/acf9d2d29daf89fead861d7fca0ffbe42e0c6c74))
+* package name validations ([#471](https://github.com/usecannon/cannon/issues/471)) ([e4aef62](https://github.com/usecannon/cannon/commit/e4aef62f98ca4364bfb8efc432222f6909c5d082))
+* set default evmVersion to paris on Router's in not mainnet networks ([#466](https://github.com/usecannon/cannon/issues/466)) ([a24da85](https://github.com/usecannon/cannon/commit/a24da857b048d6c70c5f756535a518ec55d679ae))
+
 ## [2.7.1](https://github.com/usecannon/cannon/compare/v2.7.0...v2.7.1) (2023-09-17)
 
 
