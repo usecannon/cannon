@@ -1,6 +1,4 @@
-import { FC, useEffect, useState } from 'react';
-import axios from 'axios';
-import pako from 'pako';
+import { FC } from 'react';
 import {
   Box,
   Button,
@@ -19,8 +17,8 @@ import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
 import { IpfsUrl } from './IpfsUrl';
-import { useQuery } from '@tanstack/react-query';
 import { DownloadIcon, InfoIcon, ViewIcon } from '@chakra-ui/icons';
+import { useQueryIpfsData } from '@/hooks/ipfs';
 
 const handleDownload = (content: JSON) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -39,52 +37,15 @@ const handleDownload = (content: JSON) => {
 export const CodeExplorer: FC<{
   variant: any;
 }> = ({ variant }) => {
-  const [, setLoading] = useState(false);
-  const [metadata, setMetadata] = useState<any>({});
+  const { data: metadata } = useQueryIpfsData(
+    variant?.meta_url,
+    !!variant?.meta_url
+  );
 
-  useEffect(() => {
-    setLoading(true);
-
-    const controller = new AbortController();
-    if (variant?.meta_url) {
-      axios
-        .get(
-          `https://ipfs.io/ipfs/${variant?.meta_url?.replace('ipfs://', '')}`,
-          { responseType: 'arraybuffer', signal: controller.signal }
-        )
-        .then((response) => {
-          const uint8Array = new Uint8Array(response.data);
-          const inflated = pako.inflate(uint8Array);
-          const raw = new TextDecoder().decode(inflated);
-          setMetadata(JSON.parse(raw));
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-    return () => {
-      controller.abort();
-    };
-  }, [variant]);
-
-  const deploymentData = useQuery({
-    queryKey: [variant?.deploy_url],
-    queryFn: async ({ signal }) => {
-      if (typeof variant?.deploy_url !== 'string') {
-        throw new Error(`Invalid deploy url: ${variant?.deploy_url}`);
-      }
-      const cid = variant?.deploy_url.replace('ipfs://', '');
-      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
-        responseType: 'arraybuffer',
-        signal,
-      });
-      const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.stringify(JSON.parse(data), null, 2);
-    },
-  });
+  const deploymentData = useQueryIpfsData(
+    variant?.deploy_url,
+    !!variant?.deploy_url
+  );
 
   let miscUrl: string | undefined;
   if (deploymentData?.data) {
@@ -94,22 +55,7 @@ export const CodeExplorer: FC<{
         : JSON.parse(JSON.stringify((deploymentData as any)?.data))?.miscUrl;
   }
 
-  const miscData = useQuery({
-    queryKey: [miscUrl],
-    queryFn: async ({ signal }) => {
-      if (typeof miscUrl !== 'string') {
-        throw new Error(`Invalid deploy url: ${miscUrl}`);
-      }
-      const cid = miscUrl.replace('ipfs://', '');
-      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
-        responseType: 'arraybuffer',
-        signal,
-      });
-      const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.stringify(JSON.parse(data), null, 2);
-    },
-    enabled: !!miscUrl,
-  });
+  const miscData = useQueryIpfsData(miscUrl, !!miscUrl);
 
   const {
     isOpen: isCodeDataModalOpen,
@@ -126,7 +72,7 @@ export const CodeExplorer: FC<{
   return (
     <Container maxW="container.lg">
       {miscData?.data &&
-        Object.entries(JSON.parse(miscData?.data).artifacts).map(
+        Object.entries(miscData?.data.artifacts).map(
           ([artifactKey, artifactValue]) => {
             return (
               <Box key={artifactKey} mb={8}>
