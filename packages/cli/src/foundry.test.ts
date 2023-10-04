@@ -45,8 +45,8 @@ describe('getFoundryArtifact', () => {
           abi: [],
           bytecode: { object: '0x1234', linkReferences: {} },
           deployedBytecode: { object: '0x1234' },
-        }),
-      ),
+        })
+      )
     );
 
     jest.mocked(fs.readFileSync).mockReturnValue('test contract');
