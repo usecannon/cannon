@@ -14,8 +14,7 @@ const debug = Debug('cannon:cli:provider');
 export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
-      `\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545. \n
-        \n`
+      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
     );
     console.warn(
       `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
