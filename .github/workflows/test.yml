@@ -21,4 +21,4 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
       - run: npm ci
       - run: npm run build:ts
-      - run: npm run test-all
+      - run: npm run test

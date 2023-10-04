@@ -180,7 +180,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 1. Follow our [Coding Rules](#rules).
 1. Run the full cannon test suite:
 
-- From the root of the repo run `npm run test-all`, and ensure that all tests pass.
+- From the root of the repo run `npm run test`, and ensure that all tests pass.
 
 1. Commit your changes using a descriptive commit message that follows our
    [commit message conventions](#commit). Adherence to these conventions
