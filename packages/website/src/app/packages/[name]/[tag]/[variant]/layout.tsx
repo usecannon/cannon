@@ -31,7 +31,7 @@ export default function PackageLayout({
 
   const currentVariant = pkg?.variants.find(
     (variant: any) =>
-      variant.name === params.variant && variant.tag.name === params.tag
+      variant.name === params.variant && variant.tag.name === params.tag,
   );
 
   const pathname = usePathname();

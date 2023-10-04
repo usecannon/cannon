@@ -43,7 +43,7 @@ export function TransactionDisplay(props: {
   const cannonInfo = useCannonPackageContracts(
     hintData?.cannonPackage
       ? '@' + hintData.cannonPackage.replace('://', ':')
-      : ''
+      : '',
   );
 
   // git stuff
@@ -53,7 +53,7 @@ export function TransactionDisplay(props: {
 
   const prevDeployHashQuery = useGetPreviousGitInfoQuery(
     props.safe,
-    hintData?.gitRepoUrl ?? ''
+    hintData?.gitRepoUrl ?? '',
   );
 
   let prevDeployGitHash: string;
@@ -76,23 +76,23 @@ export function TransactionDisplay(props: {
     (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
       ? `@ipfs:${_.last(
           (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
-            '/'
-          )
+            '/',
+          ),
         )}`
-      : null) || ''
+      : null) || '',
   );
 
   const cannonDefInfo = useLoadCannonDefinition(
     gitUrl ?? '',
     hintData?.gitRepoHash ?? '',
-    gitFile ?? ''
+    gitFile ?? '',
   );
 
   const { patches } = useGitDiff(
     gitUrl ?? '',
     prevDeployGitHash,
     hintData?.gitRepoHash ?? '',
-    cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
+    cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : [],
   );
 
   const buildInfo = useCannonBuild(
@@ -100,7 +100,7 @@ export function TransactionDisplay(props: {
     cannonDefInfo.def as any,
     prevCannonDeployInfo.pkg as any,
     props.verify &&
-      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)
+      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
   );
 
   const stager = useTxnStager(props.safeTxn, { safe: props.safe });
@@ -111,7 +111,7 @@ export function TransactionDisplay(props: {
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildResult?.steps?.map(
-    (s) => s.tx as unknown as Partial<TransactionRequestBase>
+    (s) => s.tx as unknown as Partial<TransactionRequestBase>,
   );
 
   const unequalTransaction =
@@ -277,11 +277,11 @@ export function TransactionDisplay(props: {
             mb={8}
             href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
               props.safe.address
-            }&gas=${8000000}&gasPrice=0&value=${
-              props.safeTxn?.value
-            }&contractAddress=${
-              props.safe?.address
-            }&rawFunctionInput=${createSimulationData(props.safeTxn)}&network=${
+            }&gas=${8000000}&gasPrice=0&value=${props.safeTxn
+              ?.value}&contractAddress=${props.safe
+              ?.address}&rawFunctionInput=${createSimulationData(
+              props.safeTxn,
+            )}&network=${
               props.safe.chainId
             }&headerBlockNumber=&headerTimestamp=`}
             colorScheme="purple"

@@ -16,7 +16,8 @@
     {
       "files": "*.ts",
       "options": {
-        "printWidth": 125
+        "printWidth": 125,
+        "trailingComma": "es5"
       }
     }
   ]

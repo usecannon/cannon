@@ -57,7 +57,7 @@ export function DisplayedTransaction(props: {
       ? parsedFunction
         ? parsedFunction.functionName.split('(')[0]
         : props.txn.data?.slice(0, 10)
-      : ''
+      : '',
   );
 
   const execContractInfo =
@@ -70,7 +70,7 @@ export function DisplayedTransaction(props: {
   const [execFuncArgs, setExecFuncArgs] = useState(
     props.txn
       ? parsedFunction?.args?.map((v) => v) || [props.txn.data?.slice(10)]
-      : []
+      : [],
   );
 
   function selectExecFunc(label: string) {
@@ -146,7 +146,7 @@ export function DisplayedTransaction(props: {
     } else if (type == 'tuple') {
       // TODO: use a lib?
       return JSON.stringify(val, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
+        typeof v === 'bigint' ? v.toString() : v,
       );
     } else if (type == 'bool') {
       return val ? 'true' : 'false';
@@ -219,7 +219,7 @@ export function DisplayedTransaction(props: {
               label:
                 encodeArg(
                   execFuncFragment.inputs[arg].type,
-                  (execFuncArgs[arg] as string) || ''
+                  (execFuncArgs[arg] as string) || '',
                 ) || '',
               secondary: '',
             },
@@ -254,7 +254,7 @@ export function DisplayedTransaction(props: {
                     label:
                       encodeArg(
                         execFuncFragment.inputs[arg].type,
-                        (execFuncArgs[arg] as string) || ''
+                        (execFuncArgs[arg] as string) || '',
                       ) || '',
                     secondary: 'JSON',
                   },
@@ -270,7 +270,7 @@ export function DisplayedTransaction(props: {
               label:
                 encodeArg(
                   execFuncFragment.inputs[arg].type,
-                  (execFuncArgs[arg] as string) || ''
+                  (execFuncArgs[arg] as string) || '',
                 ) || '',
               secondary: '',
             },
@@ -327,7 +327,7 @@ export function DisplayedTransaction(props: {
           color="gray.200"
           defaultValue={encodeArg(
             execFuncFragment.inputs[i].type,
-            (execFuncArgs[i] as string) || ''
+            (execFuncArgs[i] as string) || '',
           )}
           tabKeys=","
           placeholder={arg.name || arg.type || arg.internalType}

@@ -28,16 +28,7 @@
       },
       "rules": {
         "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
-        "comma-dangle": [
-          "error",
-          {
-            "arrays": "always-multiline",
-            "objects": "always-multiline",
-            "imports": "always-multiline",
-            "exports": "always-multiline",
-            "functions": "never"
-          }
-        ],
+        "comma-dangle": "off", // handled by prettier
         "indent": "off",
         "quotes": ["error", "single", { "avoidEscape": true }],
         "import/no-unresolved": "off", // messed up by lerna hoisting

@@ -23,7 +23,7 @@ export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
   const [pkg, setPackage] = useState<any | null>(null);
 
   const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
+    (v: any) => v.name === variant && v.tag.name === tag,
   );
 
   return (

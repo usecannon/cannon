@@ -80,7 +80,7 @@ const PackageNetworks: FC<{
     setLoading(true);
     const response = await axios.get(
       `https://ipfs.io/ipfs/${url.replace('ipfs://', '')}`,
-      { responseType: 'arraybuffer' }
+      { responseType: 'arraybuffer' },
     );
 
     // Parse IPFS data

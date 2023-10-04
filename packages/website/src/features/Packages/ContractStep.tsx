@@ -23,7 +23,7 @@ export const ContractStep: FC<{
       .sort(
         (a, b) =>
           Number(b.highlight ?? false) - Number(a.highlight ?? false) ||
-          a.title.localeCompare(b.title)
+          a.title.localeCompare(b.title),
       );
   }, [contracts]);
   return (

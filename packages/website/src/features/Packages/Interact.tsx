@@ -31,7 +31,7 @@ export const Interact: FC<{ variant: any }> = ({ variant }) => {
 
     const url = `https://ipfs.io/ipfs/${variant?.deploy_url.replace(
       'ipfs://',
-      ''
+      '',
     )}`;
 
     axios

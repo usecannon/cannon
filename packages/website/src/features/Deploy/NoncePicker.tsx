@@ -24,7 +24,7 @@ export default function NoncePicker(props: {
   const [pickedNonce, pickNonce] = useState<number | null>(null);
 
   const { nonce, staged, stagedQuery } = useSafeTransactions(
-    (props.safe || currentSafe) as any
+    (props.safe || currentSafe) as any,
   );
 
   const lastNonce = staged.length

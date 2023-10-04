@@ -3,9 +3,7 @@ coverage
 dist
 next.lock
 node_modules
-packages/*/dist
 packages/contracts/lib
-packages/hardhat-cannon/dist
 packages/registry-subgraph/generated
 packages/registry-subgraph/src
 packages/website/src/types/graphql/*

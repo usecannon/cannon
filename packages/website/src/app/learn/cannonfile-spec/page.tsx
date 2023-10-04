@@ -16,9 +16,9 @@ export default function Docs() {
     .replaceAll(
       RegExp(
         /^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/,
-        'gm'
+        'gm',
       ),
-      ''
+      '',
     );
 
   const sidebarList = exportSpecListFromMarkdown(configurationMarkdown);

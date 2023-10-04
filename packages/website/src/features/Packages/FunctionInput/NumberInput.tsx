@@ -15,7 +15,7 @@ export const NumberInput: FC<{
   useEffect(() => handleUpdate(updateValue), [updateValue]);
   const isInvalid = useMemo(
     () => positiveOnly && updateValue < BigInt(0),
-    [updateValue, positiveOnly]
+    [updateValue, positiveOnly],
   );
 
   return (

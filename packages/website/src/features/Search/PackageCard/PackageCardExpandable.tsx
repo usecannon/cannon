@@ -27,12 +27,15 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
 }) => {
   const { isOpen, onToggle } = useDisclosure();
 
-  const latestUpdate = pkg.variants.reduce((max, variant) => {
-    return max > variant.last_updated ? max : variant.last_updated;
-  }, pkg.variants[0]?.last_updated);
+  const latestUpdate = pkg.variants.reduce(
+    (max, variant) => {
+      return max > variant.last_updated ? max : variant.last_updated;
+    },
+    pkg.variants[0]?.last_updated,
+  );
 
   const latestMainVariants = pkg.variants.filter(
-    (variant) => variant.tag.name === 'latest' && variant.preset === 'main'
+    (variant) => variant.tag.name === 'latest' && variant.preset === 'main',
   );
 
   return (

@@ -70,7 +70,7 @@ function QueueFromGitOps() {
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
-    onchainStore.deployTxn as any
+    onchainStore.deployTxn as any,
   );
   const deployOnChainStore = useSendTransaction({
     ...prepareDeployOnchainStore.config,
@@ -97,7 +97,7 @@ function QueueFromGitOps() {
   if (refsInfo.refs && !gitBranch) {
     const headCommit = refsInfo.refs.find((r) => r.ref === 'HEAD');
     const headBranch = refsInfo.refs.find(
-      (r) => r.oid === headCommit?.oid && r !== headCommit
+      (r) => r.oid === headCommit?.oid && r !== headCommit,
     );
 
     if (headBranch) {
@@ -133,15 +133,15 @@ function QueueFromGitOps() {
 
   const cannonPkgLatestInfo = useCannonPackage(
     (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-${settings.preset}`,
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
       `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
-        ctx
+        ctx,
       )}`) ??
       '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-${settings.preset}`,
   );
 
   const prevDeployLocation =
@@ -150,7 +150,7 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
+    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : '',
   );
 
   // run the build and get the list of transactions we need to run
@@ -158,7 +158,7 @@ function QueueFromGitOps() {
     currentSafe as any,
     cannonDefInfo.def as any,
     prevCannonDeployInfo.pkg as any,
-    false
+    false,
   );
 
   const buildTransactions = () => {
@@ -174,7 +174,7 @@ function QueueFromGitOps() {
       meta: prevCannonDeployInfo.pkg?.meta,
       miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
     } as any,
-    prevCannonDeployInfo.metaUrl as any
+    prevCannonDeployInfo.metaUrl as any,
   );
 
   useEffect(() => {
@@ -187,7 +187,7 @@ function QueueFromGitOps() {
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
-    gitUrl + ':' + gitFile
+    gitUrl + ':' + gitFile,
   );
 
   console.log(' the prev info query data is', prevInfoQuery.data);
@@ -214,7 +214,7 @@ function QueueFromGitOps() {
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
                   ],
-                ]
+                ],
               ),
             } as Partial<TransactionRequestBase>,
             // write data needed for the subsequent deployment to chain
@@ -242,9 +242,9 @@ function QueueFromGitOps() {
             } as Partial<TransactionRequestBase>,
           ].concat(
             buildInfo.buildResult.steps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>
-            )
-          )
+              (s) => s.tx as unknown as Partial<TransactionRequestBase>,
+            ),
+          ),
         )
       : { value: BigInt(0) };
 
@@ -278,7 +278,7 @@ function QueueFromGitOps() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -368,7 +368,7 @@ function QueueFromGitOps() {
                 <option key={i} value={r.ref}>
                   {r.ref}
                 </option>
-              )
+              ),
             )}
           </Select>
         </HStack>
@@ -385,7 +385,7 @@ function QueueFromGitOps() {
           onChange={
             (evt: any) =>
               setPartialDeployIpfs(
-                evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                evt.target.value.slice(evt.target.value.indexOf('Qm')),
               ) /** TODO: handle bafy hash or other hashes */
           }
         />

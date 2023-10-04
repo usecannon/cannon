@@ -22,7 +22,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
 
   const missingSettings = some(
     omit(settings, 'forkProviderUrl'),
-    (value) => !value
+    (value) => !value,
   );
 
   const showSettingsAlert =

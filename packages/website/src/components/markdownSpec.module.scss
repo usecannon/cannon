@@ -9,10 +9,15 @@
     overflow: auto !important;
   }
 
-  tbody, td, tfoot, th, thead, tr {
-      border-color: inherit !important;
-      border-style: solid !important;
-      border-width: 2px !important;
-      padding: 0.5rem;
+  tbody,
+  td,
+  tfoot,
+  th,
+  thead,
+  tr {
+    border-color: inherit !important;
+    border-style: solid !important;
+    border-width: 2px !important;
+    padding: 0.5rem;
   }
 }

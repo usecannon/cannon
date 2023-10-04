@@ -48,7 +48,7 @@ export const FunctionOutput: FC<{
                                 key={componentIndex}
                               />
                             );
-                          }
+                          },
                         )}
                       </Box>
                     )}
@@ -71,7 +71,7 @@ export const FunctionOutput: FC<{
                                         key={componentIndex}
                                       />
                                     );
-                                  }
+                                  },
                                 )}
                               </Box>
                               <Divider />
@@ -93,13 +93,13 @@ export const FunctionOutput: FC<{
                                         />
                                       </div>
                                     );
-                                  }
+                                  },
                                 )}
                               </Box>
                             </div>
                           );
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -122,7 +122,7 @@ export const FunctionOutput: FC<{
             (key, value) => {
               typeof value === 'bigint' ? String(value) : value;
             },
-            2
+            2,
           )}
           <Text pl="1" fontSize="xs" color="whiteAlpha.700" display="inline">
             {objectOutput.internalType}

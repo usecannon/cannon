@@ -15,7 +15,7 @@ const PublishInfo: FC<{
       formatDistanceToNow(new Date(p.last_updated * 1000), {
         addSuffix: true,
       }),
-    [p.last_updated]
+    [p.last_updated],
   );
 
   return (
@@ -34,7 +34,7 @@ const PublishInfo: FC<{
               href={`https://etherscan.io/address/${p.last_publisher}`}
             >
               {`${p.last_publisher.substring(0, 6)}...${p.last_publisher.slice(
-                -4
+                -4,
               )}`}
             </Link>
           </>

@@ -67,7 +67,7 @@ export const SearchPage = () => {
       pkg.variants.some((v) => v.id === variantId);
 
     const mergeResults = (
-      data: GetFilteredPackagesAndVariantsQuery
+      data: GetFilteredPackagesAndVariantsQuery,
     ): Package[] => {
       const packageMap: { [key: string]: Package } = {};
 
@@ -96,12 +96,12 @@ export const SearchPage = () => {
         const latestUpdatedA = a.variants.reduce(
           (maxTimestamp, variant) =>
             Math.max(variant.last_updated, maxTimestamp),
-          0
+          0,
         );
         const latestUpdatedB = b.variants.reduce(
           (maxTimestamp, variant) =>
             Math.max(variant.last_updated, maxTimestamp),
-          0
+          0,
         );
 
         return latestUpdatedB - latestUpdatedA; // Descending order

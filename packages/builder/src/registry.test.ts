@@ -101,10 +101,10 @@ describe('registry.ts', () => {
         jest
           .mocked(provider.sendTransaction)
           .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x1234' } as unknown as ethers.providers.TransactionReceipt),
+            wait: async () => ({ logs: [], transactionHash: '0x1234' }) as unknown as ethers.providers.TransactionReceipt,
           } as any)
           .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
+            wait: async () => ({ logs: [], transactionHash: '0x5678' }) as unknown as ethers.providers.TransactionReceipt,
           } as any);
 
         const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], '1-main', 'ipfs://Qmsomething');

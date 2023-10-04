@@ -72,9 +72,7 @@
       "type": "function"
     }
   ],
-  "constructorArgs": [
-    "Hello world!"
-  ],
+  "constructorArgs": ["Hello world!"],
   "deployTxnHash": "0xc09c4ebb4793eebb1b059ee8725e8caff134771d890644f803ad11882254eba5",
   "sourceName": "src/Greeter.sol",
   "contractName": "Greeter",

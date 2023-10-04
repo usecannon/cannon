@@ -34,9 +34,9 @@ export function EditableAutocompleteInput(props: {
     props.items.filter(
       (i) =>
         props.unfilteredResults ||
-        i.label.toLowerCase().includes(filterInput.toLowerCase())
+        i.label.toLowerCase().includes(filterInput.toLowerCase()),
     ),
-    (i) => !i.label.toLowerCase().startsWith(filterInput.toLowerCase())
+    (i) => !i.label.toLowerCase().startsWith(filterInput.toLowerCase()),
   );
 
   const completedText = pendingItem
@@ -90,8 +90,8 @@ export function EditableAutocompleteInput(props: {
             Math.min(
               filteredItems.length,
               filteredItems.findIndex((i) => i.label === pendingItem) +
-                (event.key == 'ArrowDown' ? 1 : -1)
-            )
+                (event.key == 'ArrowDown' ? 1 : -1),
+            ),
           );
 
           setPendingItem(filteredItems[newIdx].label);
@@ -114,8 +114,8 @@ export function EditableAutocompleteInput(props: {
         // Get all elements that can be focusable
         // removed [tabindex] from query selector
         .querySelectorAll(
-          'a, button, input, textarea, select, details, [tabindex]'
-        )
+          'a, button, input, textarea, select, details, [tabindex]',
+        ),
     )
 
       // remove any that have a tabIndex of -1
@@ -127,20 +127,20 @@ export function EditableAutocompleteInput(props: {
           return (next as any).tabIndex > 0
             ? [
                 [...prev[0], next].sort((a, b) =>
-                  (a as any).tabIndex > (b as any).tabIndex ? -1 : 1
+                  (a as any).tabIndex > (b as any).tabIndex ? -1 : 1,
                 ),
                 prev[1],
               ]
             : [prev[0], [...prev[1], next]];
         },
-        [[], []]
+        [[], []],
       )
 
       // flatten the two-dimensional array
       .flatMap((element) => element);
 
     const currentIndex = tabElements.findIndex(
-      (e: any) => e === editableInputRef.current
+      (e: any) => e === editableInputRef.current,
     );
 
     //console.log('tabdata current index', currentIndex);
@@ -160,12 +160,12 @@ export function EditableAutocompleteInput(props: {
         selectedRef.current.offsetTop -
           scrollRef.current.clientHeight +
           (selectedRef.current as Element).clientHeight,
-        scrollRef.current.scrollTop
+        scrollRef.current.scrollTop,
       );
 
       scrollRef.current.scrollTop = Math.min(
         selectedRef.current.offsetTop,
-        scrollRef.current.scrollTop
+        scrollRef.current.scrollTop,
       );
     }
   }

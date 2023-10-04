@@ -151,12 +151,8 @@
     "absolutePath": "src/ClonedGreeter.sol",
     "id": 26661,
     "exportedSymbols": {
-      "ClonedGreeter": [
-        26660
-      ],
-      "console": [
-        18350
-      ]
+      "ClonedGreeter": [26660],
+      "console": [18350]
     },
     "nodeType": "SourceUnit",
     "src": "37:353:18",
@@ -166,12 +162,7 @@
         "nodeType": "PragmaDirective",
         "src": "37:23:18",
         "nodes": [],
-        "literals": [
-          "solidity",
-          "^",
-          "0.8",
-          ".0"
-        ]
+        "literals": ["solidity", "^", "0.8", ".0"]
       },
       {
         "id": 26632,
@@ -518,9 +509,7 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "fullyImplemented": true,
-        "linearizedBaseContracts": [
-          26660
-        ],
+        "linearizedBaseContracts": [26660],
         "name": "ClonedGreeter",
         "nameLocation": "119:13:18",
         "scope": 26661,

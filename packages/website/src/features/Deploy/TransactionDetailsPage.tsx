@@ -79,14 +79,14 @@ const TransactionDetailsPage: FC<{
       history.results.find(
         (txn: any) =>
           txn._nonce.toString() === nonce &&
-          (!sigHash || sigHash === getSafeTransactionHash(safe, txn))
+          (!sigHash || sigHash === getSafeTransactionHash(safe, txn)),
       ) || null;
   } else if (staged) {
     safeTxn =
       staged.find(
         (s) =>
           s.txn._nonce.toString() === nonce &&
-          (!sigHash || sigHash === getSafeTransactionHash(safe, s.txn))
+          (!sigHash || sigHash === getSafeTransactionHash(safe, s.txn)),
       )?.txn || null;
   }
 
@@ -114,13 +114,13 @@ const TransactionDetailsPage: FC<{
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
       ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
-      : ''
+      : '',
   );
 
   const reverseLookupCannonPackage = useCannonPackage(
     cannonPackage.resolvedName
       ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}`
-      : ''
+      : '',
   );
 
   const executed = Number(safeNonce) > Number(nonce);

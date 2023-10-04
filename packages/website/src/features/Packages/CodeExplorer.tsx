@@ -44,7 +44,7 @@ export const CodeExplorer: FC<{
       axios
         .get(
           `https://ipfs.io/ipfs/${variant?.meta_url?.replace('ipfs://', '')}`,
-          { responseType: 'arraybuffer', signal: controller.signal }
+          { responseType: 'arraybuffer', signal: controller.signal },
         )
         .then((response) => {
           const uint8Array = new Uint8Array(response.data);
@@ -113,13 +113,13 @@ export const CodeExplorer: FC<{
           const countA = (keyA.match(/:/g) || []).length;
           const countB = (keyB.match(/:/g) || []).length;
           return countA - countB;
-        }
+        },
       )[0];
 
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
         const sortedSources = Object.entries(
-          JSON.parse((firstArtifactValue as any)?.source?.input).sources
+          JSON.parse((firstArtifactValue as any)?.source?.input).sources,
         ).sort(([keyA], [keyB]) => {
           const countA = (keyA.match(/\//g) || []).length;
           const countB = (keyB.match(/\//g) || []).length;
@@ -196,7 +196,7 @@ export const CodeExplorer: FC<{
                           onClick={() => {
                             handleDownload(
                               (artifactValue as any)?.abi,
-                              'deployments.json'
+                              'deployments.json',
                             );
                           }}
                           ml="auto"
@@ -206,7 +206,7 @@ export const CodeExplorer: FC<{
                       </Flex>
                       {Object.entries(
                         JSON.parse((artifactValue as any)?.source?.input)
-                          .sources
+                          .sources,
                       )
                         .sort(([keyA], [keyB]) => {
                           const countA = (keyA.match(/\//g) || []).length;
@@ -230,7 +230,7 @@ export const CodeExplorer: FC<{
                                 _hover={{ background: 'gray.800' }}
                                 onClick={() => {
                                   setSelectedCode(
-                                    (sourceValue as any)?.content
+                                    (sourceValue as any)?.content,
                                   );
                                   setSelectedLanguage('solidity');
                                   setSelectedKey(sourceKey);
@@ -261,7 +261,7 @@ export const CodeExplorer: FC<{
                         })}
                     </Box>
                   );
-                }
+                },
               )}
 
             {metadata.cannonfile && (

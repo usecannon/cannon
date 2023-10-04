@@ -94,7 +94,7 @@ export function DataTable<Data extends object>({
                 >
                   {flexRender(
                     header.column.columnDef.header,
-                    header.getContext()
+                    header.getContext(),
                   )}
                   {header.column.columnDef.accessorKey !== 'arrow' && (
                     <chakra.span display="inline-block" h="12px" w="12px">
@@ -135,7 +135,7 @@ export function DataTable<Data extends object>({
             onClick={() => {
               const variant = `${row.original.chain}-${row.original.preset}`;
               router.push(
-                `/packages/${packageName}/${row.original.tag}/${variant}`
+                `/packages/${packageName}/${row.original.tag}/${variant}`,
               );
             }}
           >
@@ -147,12 +147,12 @@ export function DataTable<Data extends object>({
                 new Date(cell.row.original.published * 1000),
                 {
                   addSuffix: true,
-                }
+                },
               );
 
               const tooltipTime = format(
                 new Date(cell.row.original.published * 1000),
-                'PPPppp'
+                'PPPppp',
               );
 
               return (
@@ -194,7 +194,7 @@ export function DataTable<Data extends object>({
                           <>
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
                           </>
                         );

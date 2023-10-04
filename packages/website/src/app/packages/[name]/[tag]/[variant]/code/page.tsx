@@ -7,7 +7,7 @@ const NoSSR = dynamic(
   },
   {
     ssr: false,
-  }
+  },
 );
 export const metadata: Metadata = {
   title: 'Cannon | Package',

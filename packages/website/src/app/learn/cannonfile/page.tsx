@@ -21,16 +21,16 @@ export default function Docs() {
     .replaceAll(
       RegExp(
         /^(Ƭ \*\*RawChainDefinition\*\*: `Object`|Ƭ \*\*Config\*\*: `Object`)$/,
-        'gmi'
+        'gmi',
       ),
-      ''
+      '',
     )
     .replaceAll(RegExp(/\?:\sstring\s\\\|\sundefined/, 'gmi'), '?: string')
     .replaceAll(RegExp(/`Record`<`string`, /, 'gmi'), '')
     .replaceAll(RegExp(/>/, 'gmi'), '')
     .replaceAll(
       RegExp(/`string`\[\] | \[`string`, ...string\[\]\]/, 'gmi'),
-      '`[string]`'
+      '`[string]`',
     );
 
   const detailsMarkdown = fs

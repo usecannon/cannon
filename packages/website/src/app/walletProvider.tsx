@@ -21,7 +21,7 @@ export const supportedChains = [..._chains, cannonLocalHost];
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   supportedChains,
-  createProviders()
+  createProviders(),
 );
 
 const { connectors } = getDefaultWallets({

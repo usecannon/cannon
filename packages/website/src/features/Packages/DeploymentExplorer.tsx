@@ -210,7 +210,7 @@ export const DeploymentExplorer: FC<{
               deploymentInfo?.timestamp &&
               `on ${format(
                 new Date(deploymentInfo?.timestamp * 1000),
-                'PPPppp'
+                'PPPppp',
               ).toLowerCase()}`}
           </Text>
           <Box mb={8}>

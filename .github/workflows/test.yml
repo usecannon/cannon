@@ -22,4 +22,4 @@ jobs:
       - run: |
           npm ci
           npx lerna run build
-      - run: npx lerna run test 
+      - run: npx lerna run test

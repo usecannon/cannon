@@ -1,8 +1,6 @@
 {
   "include-component-in-tag": false,
-  "plugins": [
-    "node-workspace"
-  ],
+  "plugins": ["node-workspace"],
   "packages": {
     "packages/builder": {},
     "packages/cli": {},

@@ -2,3 +2,7 @@ node_modules
 artifacts
 cache
 coverage
+typechain
+dist
+.next
+next.lock

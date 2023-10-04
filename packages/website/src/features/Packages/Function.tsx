@@ -54,7 +54,7 @@ export const Function: FC<{
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
-    [f.stateMutability]
+    [f.stateMutability],
   );
 
   // useEffect(() => {
@@ -84,7 +84,7 @@ export const Function: FC<{
 
       if (readOnly) {
         const _result = await contract.read[f.name](
-          Array.isArray(params) ? params : [params]
+          Array.isArray(params) ? params : [params],
         );
         setResult(_result);
       } else {
@@ -102,7 +102,7 @@ export const Function: FC<{
         }
         try {
           const _result = await contract.write[f.name](
-            Array.isArray(params) ? params : [params]
+            Array.isArray(params) ? params : [params],
           );
           setResult(_result);
         } catch (e) {
@@ -115,14 +115,14 @@ export const Function: FC<{
         // setError(e?.message || e?.error?.message || e?.error || e);
         try {
           const provider = new ethers.providers.JsonRpcProvider(
-            publicClient?.chain?.rpcUrls?.public?.http[0] as string
+            publicClient?.chain?.rpcUrls?.public?.http[0] as string,
           );
           await handleTxnError(cannonOutputs, provider, e);
         } catch (e2: any) {
           setError(
             typeof e2 === 'string'
               ? e2
-              : e2?.message || e2?.error?.message || e2?.error || e2
+              : e2?.message || e2?.error?.message || e2?.error || e2,
           );
         }
       }

@@ -43,7 +43,7 @@ export default function PublishUtility(props: {
     ipfsQuery: ipfsChkQuery,
   } = useCannonPackage(
     `${resolvedName}:${resolvedVersion}`,
-    props.targetVariant
+    props.targetVariant,
   );
 
   const publishMutation = useMutation({
@@ -53,12 +53,12 @@ export default function PublishUtility(props: {
         wc,
         resolvedName,
         resolvedVersion,
-        props.targetVariant
+        props.targetVariant,
       );
 
       const targetRegistry = new OnChainRegistry({
         signerOrProvider: new ethers.providers.Web3Provider(
-          wc.data as any
+          wc.data as any,
         ).getSigner(account.address),
         address: settings.registryAddress,
       });
@@ -69,22 +69,22 @@ export default function PublishUtility(props: {
         [`${resolvedName}:${resolvedVersion}`],
         props.targetVariant,
         props.deployUrl,
-        ''
+        '',
       );
 
       const loader = new IPFSBrowserLoader(
-        settings.ipfsUrl || 'https://ipfs.io/ipfs/'
+        settings.ipfsUrl || 'https://ipfs.io/ipfs/',
       );
 
       const fromStorage = new CannonStorage(
         new FallbackRegistry([fakeLocalRegistry, targetRegistry]),
         { ipfs: loader },
-        'ipfs'
+        'ipfs',
       );
       const toStorage = new CannonStorage(
         targetRegistry,
         { ipfs: loader },
-        'ipfs'
+        'ipfs',
       );
 
       await copyPackage({

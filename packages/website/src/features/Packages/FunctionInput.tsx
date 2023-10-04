@@ -19,7 +19,7 @@ export const FunctionInput: FC<{
   };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
   const [dataArray, setDataArray] = useState<{ id: number; val: any | null }[]>(
-    [{ id: Date.now(), val: getDefaultValue() }]
+    [{ id: Date.now(), val: getDefaultValue() }],
   );
 
   // const getValue = (index: number) => (isArray ? dataArray[index] : input);

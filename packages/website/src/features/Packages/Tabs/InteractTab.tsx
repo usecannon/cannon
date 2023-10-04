@@ -23,7 +23,7 @@ export const InteractTab: FC<{
   const [pkg, setPackage] = useState<any | null>(null);
 
   const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
+    (v: any) => v.name === variant && v.tag.name === tag,
   );
 
   return (

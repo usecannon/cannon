@@ -1,6 +1,7 @@
 node_modules
 artifacts
 cache
+typechain
 coverage*
 gasReporterOutput.json
 dist
