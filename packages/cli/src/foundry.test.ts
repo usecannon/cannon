@@ -38,17 +38,15 @@ describe('getFoundryArtifact', () => {
         })
       );
 
-    jest.mocked(fs.readFile).mockReturnValue(
-      Promise.resolve(
-        Buffer.from(
-          JSON.stringify({
-            ast: { absolutePath: 'test.sol' },
-            abi: [],
-            bytecode: { object: '0x1234', linkReferences: {} },
-            deployedBytecode: { object: '0x1234' },
-          })
-        )
-      )
+    jest.mocked(fs.readFile).mockImplementation(() =>
+      Buffer.from(
+        JSON.stringify({
+          ast: { absolutePath: 'test.sol' },
+          abi: [],
+          bytecode: { object: '0x1234', linkReferences: {} },
+          deployedBytecode: { object: '0x1234' },
+        }),
+      ),
     );
 
     jest.mocked(fs.readFileSync).mockReturnValue('test contract');

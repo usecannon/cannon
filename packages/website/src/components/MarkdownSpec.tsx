@@ -38,6 +38,7 @@ export const MarkdownSpec: FC<IDocsPageProps> = ({ md }) => {
             {children}
           </Table>
         ),
+        // @ts-ignore
         code: ({ inline, className, ...props }) => {
           const lang = className?.replace('language-', '') || 'javascript';
           return inline ? (
@@ -46,7 +47,11 @@ export const MarkdownSpec: FC<IDocsPageProps> = ({ md }) => {
             </Code>
           ) : (
             <CodePreview
-              code={(props.children[0] as string) || ''}
+              code={
+                Array.isArray(props.children) && props.children.length > 0
+                  ? (props.children[0] as string)
+                  : ''
+              }
               language={lang}
               {...props}
             />

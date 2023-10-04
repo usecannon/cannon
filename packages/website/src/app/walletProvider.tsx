@@ -21,6 +21,7 @@ export const supportedChains = [..._chains, cannonLocalHost];
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   supportedChains,
+  // @ts-ignore
   createProviders(),
 );
 
