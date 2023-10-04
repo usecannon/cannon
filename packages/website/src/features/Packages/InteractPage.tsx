@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { InteractTabPrototype } from './Interact';
+import { Interact } from './Interact';
 
 export const InteractPage: FC<{
   name: string;
@@ -10,12 +10,12 @@ export const InteractPage: FC<{
   contractAddress: string;
 }> = ({ name, tag, variant, contractAddress }) => {
   return (
-    <InteractTabPrototype
+    <Interact
       name={name}
       tag={tag}
       variant={variant}
       contractAddress={contractAddress}
-    ></InteractTabPrototype>
+    ></Interact>
   );
 };
 

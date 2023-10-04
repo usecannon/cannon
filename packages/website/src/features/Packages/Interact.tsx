@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
@@ -6,82 +6,10 @@ import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
-import { ProvisionStep } from '@/features/Packages/ProvisionStep';
 import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
-export const Interact: FC<{ variant: any }> = ({ variant }) => {
-  const [loading, setLoading] = useState(true);
-  const [ipfs, setIpfs] = useState<any>({});
-  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
-
-  const output = useMemo(() => {
-    return {
-      '': {
-        title: '',
-        url: '',
-        imports: cannonOutputs?.imports,
-        contracts: cannonOutputs?.contracts,
-      },
-    };
-  }, [cannonOutputs]);
-
-  useEffect(() => {
-    if (!variant) return;
-    setLoading(true);
-
-    const controller = new AbortController();
-
-    const url = `https://ipfs.io/ipfs/${variant?.deploy_url.replace(
-      'ipfs://',
-      ''
-    )}`;
-
-    axios
-      .get(url, { responseType: 'arraybuffer' })
-      .then((response) => {
-        // Parse IPFS data
-        const uint8Array = new Uint8Array(response.data);
-        const inflated = pako.inflate(uint8Array);
-        const raw = new TextDecoder().decode(inflated);
-        const _ipfs = JSON.parse(raw);
-        setIpfs(_ipfs);
-
-        // Get Builder Outputs
-        setCannonOutputs(getOutput(_ipfs));
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [variant]);
-
-  return (
-    <Box position="relative">
-      {loading ? (
-        <Box py="20" textAlign="center">
-          <CustomSpinner mx="auto" />
-        </Box>
-      ) : (
-        <Box>
-          <ProvisionStep
-            imports={output}
-            cannonOutputs={cannonOutputs}
-            chainId={variant?.chain_id}
-          />
-        </Box>
-      )}
-    </Box>
-  );
-};
-
-export const InteractTabPrototype: FC<{
+export const Interact: FC<{
   name: string;
   tag: string;
   variant: string;
