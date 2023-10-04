@@ -33,13 +33,19 @@ export function parseSettings(values: string[] = []) {
 }
 
 export function parsePackageArguments(val: string, result?: PackageSpecification): PackageSpecification {
-  if (!result) {
+  const packageMatch = PackageReference.isValid(val);
+
+  if (!result && !packageMatch) {
     throw new InvalidArgumentError(
       'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
     );
   }
 
-  if (PackageReference.isValid(val)) {
+  if (result && !_.isEmpty(result) && packageMatch) {
+    throw new InvalidArgumentError('You can only specify a single cannon package');
+  }
+
+  if (packageMatch) {
     const pkg = new PackageReference(val);
 
     if (!_.isEmpty(result)) {
@@ -69,7 +75,9 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 }
 
 export function parsePackagesArguments(val: string, result: PackageSpecification[] = []) {
-  if (PackageReference.isValid(val)) {
+  const packageMatch = PackageReference.isValid(val);
+
+  if (packageMatch) {
     const pkg = new PackageReference(val);
     const { name, version, preset } = pkg;
 
