@@ -47,6 +47,9 @@ const config: HardhatUserConfig = {
   cannon: {
     publicSourceCode: true,
   },
+  typechain: {
+    target: 'ethers-v5',
+  },
 } as any;
 
 export default config;

@@ -57,6 +57,9 @@ const config: any = {
     // if your smart contracts are open source, set this to true to enable contract verification and pushing of your contact sources
     publicSourceCode: true,
   },
+  typechain: {
+    target: 'ethers-v5',
+  },
 };
 
 export default config;
