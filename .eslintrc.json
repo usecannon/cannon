@@ -12,13 +12,12 @@
     }
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": ["@typescript-eslint"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
       "extends": [
         "eslint:recommended",
-        "prettier",
         "next",
         "plugin:@typescript-eslint/recommended"
       ],
@@ -28,7 +27,6 @@
         "project": ["./tsconfig.json"]
       },
       "rules": {
-        "prettier/prettier": ["error", { "singleQuote": true }],
         "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
         "comma-dangle": [
           "error",
