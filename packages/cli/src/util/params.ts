@@ -33,7 +33,7 @@ export function parseSettings(values: string[] = []) {
 }
 
 export function parsePackageArguments(val: string, result?: PackageSpecification): PackageSpecification {
-  const packageMatch= PackageReference.isValid(val);
+  const packageMatch = PackageReference.isValid(val);
 
   if (!result && !packageMatch) {
     throw new InvalidArgumentError(

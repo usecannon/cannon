@@ -645,7 +645,9 @@ program
     const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
     if (!outputs) {
-      throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${selectedPreset}. Did you mean to run instead?`);
+      throw new Error(
+        `no cannon build found for chain ${networkInfo.chainId}/${selectedPreset}. Did you mean to run instead?`
+      );
     }
 
     const contracts = [getContractsRecursive(outputs, p.provider)];
