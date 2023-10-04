@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "tsc -p tsconfig.build.json && rollup -c",
+    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run build:ts && rollup -c",
     "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
     "docgen": "typedoc"

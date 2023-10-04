@@ -19,7 +19,6 @@ jobs:
           node-version: '20.5.1'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - run: |
-          npm ci
-          npx lerna run build
-      - run: npx lerna run test
+      - run: npm ci
+      - run: npm run build:ts
+      - run: npm run test-all

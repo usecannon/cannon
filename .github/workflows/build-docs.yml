@@ -39,7 +39,7 @@ jobs:
         if: ${{ steps.file-changes.outputs.schemas_any_changed }}
         run: |
           npm ci
-          npm run build
+          npm run build:ts
 
       - name: Build docs
         if: ${{ steps.file-changes.outputs.schemas_any_changed }}

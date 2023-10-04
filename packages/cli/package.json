@@ -4,7 +4,8 @@
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
-    "build": "tsc",
+    "build:ts": "tsc",
+    "build": "npm run build:ts",
     "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
