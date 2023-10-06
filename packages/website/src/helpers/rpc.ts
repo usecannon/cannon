@@ -1,8 +1,8 @@
 import * as chains from '@wagmi/core/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
+import { publicProvider } from 'wagmi/providers/public';
 import { ethers } from 'ethers';
 
-function findChainUrl(chainId: number) {
+export function findChainUrl(chainId: number) {
   if (typeof chainId !== 'number') {
     throw new Error(`Invalid chainId: ${chainId}`);
   }
@@ -10,9 +10,7 @@ function findChainUrl(chainId: number) {
   const chain = Object.values(chains).find((c) => c.id === chainId);
   if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
 
-  const providerConfig = infuraProvider({
-    apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
-  })(chain);
+  const providerConfig = publicProvider()(chain);
   const url = providerConfig?.rpcUrls.http[0];
 
   if (!url) throw new Error(`Chaind ${chain.name} dos not have a default url`);
