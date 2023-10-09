@@ -59,12 +59,32 @@ export async function contractCall(
   };
   const call = await generate7412CompatibleCall(publicClient, txn, pythUrl);
   const res = await publicClient.call({ ...call, account: zeroAddress });
-  const value = decodeFunctionResult({
-    abi,
-    functionName,
-    data: (res as any).data as any,
-  });
-  return value;
+  try {
+    const multicallValue: any = decodeFunctionResult({
+      abi: MulticallABI,
+      functionName: 'aggregate3Value',
+      data: (res as any).data as any,
+    });
+    if (Array.isArray(multicallValue) && multicallValue[multicallValue.length - 1].success) {
+      return decodeFunctionResult({
+        abi,
+        functionName,
+        data: multicallValue[multicallValue.length - 1].returnData as any,
+      });
+    } else {
+      return decodeFunctionResult({
+        abi,
+        functionName,
+        data: (res as any).data as any,
+      });
+    }
+  } catch {
+    return decodeFunctionResult({
+      abi,
+      functionName,
+      data: (res as any).data as any,
+    });
+  }
 }
 
 export async function contractTransaction(
