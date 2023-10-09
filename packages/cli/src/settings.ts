@@ -59,7 +59,7 @@ export type CliSettings = {
   registryPriority: 'local' | 'onchain';
 
   /**
-   * Directory to load configurations from, for local registry, and
+   * Directory to load configurations from and for local registry
    */
   cannonDirectory: string;
 
