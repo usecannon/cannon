@@ -75,7 +75,7 @@ const PackageNetworks: FC<{
   const openModal = async (url: string) => {
     setIsOpen(true);
     setDeployUrl(url);
-    refetchIpfs();
+    void refetchIpfs();
   };
 
   const closeModal = () => {

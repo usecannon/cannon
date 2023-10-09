@@ -39,23 +39,16 @@ type Setting = {
   password?: boolean;
   optional?: boolean;
   // Validate function should return an error message if the value is invalid
-  validate?: (value: string) => string | undefined;
+  validate?: (value: any) => string | undefined;
 };
 
-const SETTINGS: Record<keyof Store['settings'], Setting> = {
-  /*
-  ipfsUrl: {
-    title: 'IPFS Node URL',
-    placeholder: 'http://localhost:5001',
-    description:
-      'Provide an IPFS URL to fetch Cannon packages and upload new builds.',
-    validate: (val: string) => {
-      if (val && !isIpfsUploadEndpoint(val)) {
-        return 'Looks like you configured an IPFS URL that is not running on port 5001 nor is using the protocol https+ipfs://, which means that the gateway is not compatible with uploading new files. Are you sure you are using the correct ipfs node url?';
-      }
-    },
-  },
-  */
+const SETTINGS: Record<
+  Exclude<
+    keyof Store['settings'],
+    'ipfsUrl' | 'customProviders' | 'pythUrl' | 'ipfsQueryUrl'
+  >,
+  Setting
+> = {
   stagingUrl: {
     title: 'Staging Service URL',
     placeholder: 'https://service.com',
@@ -71,7 +64,7 @@ const SETTINGS: Record<keyof Store['settings'], Setting> = {
     title: 'Package Preset',
     placeholder: 'main',
     description: 'Select the preset that will be used to build the package.',
-    validate: (val: string) => {
+    validate: (val: any) => {
       if (val && !validatePreset(val)) {
         return 'Invalid preset. Should only include lowercase letters.';
       }
