@@ -107,7 +107,7 @@ export async function publish({
   }
 
   if (tags.length) {
-    console.log(blueBright('Package published:'));
+    console.log(bold(blueBright('Package published:')));
     for (const tag of tags) {
       console.log(`  - ${basePackageRef} (${tag})`);
     }
@@ -115,7 +115,7 @@ export async function publish({
 
   const txs = registrationReceipts.filter((tx) => !!tx);
   if (txs.length) {
-    console.log('\n', blueBright('Transactions:'));
+    console.log(blueBright('Transactions:'));
     for (const tx of txs) console.log(`  - ${tx}`);
   }
 }

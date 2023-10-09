@@ -287,7 +287,7 @@ export class OnChainRegistry extends CannonRegistry {
       console.log(`Package Name: ${registerPackages[0][0]}`);
       console.log(`Package Deployment Data URL: ${url}`);
 
-      !!metaUrl ? console.log(`Package Metadata URL: ${metaUrl}`) : null;
+      !metaUrl ? null : console.log(`Package Metadata URL: ${metaUrl}`);
 
       const tx = this.generatePublishTransactionData(
         registerPackages[0][0],
@@ -328,7 +328,7 @@ export class OnChainRegistry extends CannonRegistry {
           console.log(`Package Name: ${registerPackages[i][0]}:${registerPackages[i][1]}`);
         })
         console.log(`Package URL: ${pub.url}`);
-        console.log(`Package Metadata URL: ${pub.metaUrl}\n`);
+        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}\n`) : null;
 
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],

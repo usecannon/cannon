@@ -45,11 +45,6 @@ describe('publish command', () => {
   const testPkgMiscIpfsUrl = 'ipfs:/test-ipfs-misc-url';
   const testPkgNewMetaIpfsUrl = 'ipfs:/test-ipfs-new-meta-url';
 
-  it.skip('should upload the package to IPFS', async () => {
-    // TODO - this functionality will be moved to a new command `extract-link`
-    // https://github.com/usecannon/cannon/issues/280
-  });
-
   beforeAll(async () => {
     jest.resetAllMocks();
 

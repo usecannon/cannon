@@ -76,7 +76,7 @@ args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newes
 
 
 
-# [run.empty]
-# exec = "./scripts/deploy.js"
-# func = "empty"
-# modified = ["dummy.js"]
+[run.empty]
+exec = "./scripts/deploy.js"
+func = "empty"
+modified = ["dummy.js"]
