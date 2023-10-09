@@ -3,7 +3,6 @@ import { BundledOutput, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
 import { CannonStorage } from './runtime';
-import _ from 'lodash';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -133,15 +132,15 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
       throw new Error('uploaded url is invalid');
     }
 
-    debug('create chain definition')
-    
+    debug('create chain definition');
+
     const def = new ChainDefinition(deployInfo.def);
-    
-    debug('create initial ctx with deploy info', deployInfo)
-    
+
+    debug('create initial ctx with deploy info', deployInfo);
+
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
-    
-    debug('created initial ctx with deploy info')
+
+    debug('created initial ctx with deploy info');
 
     return {
       packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
@@ -158,15 +157,17 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
   const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
 
   if (!deployData) {
-    throw new Error(`could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`);
+    throw new Error(
+      `could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`
+    );
   }
 
   if (recursive) {
-    debug('publish recursive')
+    debug('publish recursive');
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);
   } else {
-    debug('publish')
+    debug('publish');
     const call = await copyIpfs(deployData, null);
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);

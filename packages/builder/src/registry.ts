@@ -323,10 +323,9 @@ export class OnChainRegistry extends CannonRegistry {
           (p: string[]) => p[0]
         )
       )) {
-
         registerPackages.forEach((v, i) => {
           console.log(`Package Name: ${registerPackages[i][0]}:${registerPackages[i][1]}`);
-        })
+        });
         console.log(`Package URL: ${pub.url}`);
         pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}\n`) : null;
 
@@ -399,7 +398,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   private async logMultiCallEstimatedGas(datas: any, overrides: CallOverrides): Promise<void> {
     try {
-      console.log(bold(blueBright(`\nCalculating Transaction cost...`)));
+      console.log(bold(blueBright('\nCalculating Transaction cost...')));
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
       const gasPrice =
@@ -414,7 +413,7 @@ export class OnChainRegistry extends CannonRegistry {
       if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
         console.log(
           bold(
-            `\nPublishing account does not have enough funds to pay for the publishing transaction, please fund your account and try again.\n`
+            '\nPublishing account does not have enough funds to pay for the publishing transaction, please fund your account and try again.\n'
           )
         );
       }

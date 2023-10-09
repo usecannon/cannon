@@ -6,7 +6,6 @@ import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
 
-
 import { bold, yellow } from 'chalk';
 
 interface Params {
@@ -78,8 +77,9 @@ export async function publish({
   const deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
 
   if (!deploys || deploys.length === 0) {
-    throw new Error(`Could not find deployment for ${basePackageRef},\ 
-      if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`)
+    throw new Error(
+      `Could not find deployment for ${basePackageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`
+    );
   }
 
   if (!quiet) {

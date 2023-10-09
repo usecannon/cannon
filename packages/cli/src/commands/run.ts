@@ -107,7 +107,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
     }
 
-
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
         ...options,

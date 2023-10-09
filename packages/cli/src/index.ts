@@ -402,20 +402,16 @@ program
     if (options.value) {
       overrides.value = options.value;
     } else {
-      // Set tx value default to match the registry fee 
+      // Set tx value default to match the registry fee
       overrides.value = ethers.utils.parseUnits(REGISTRY_FEE, 'wei');
     }
-
-   
 
     console.log(
       `\nSettings:\n - Max Fee Per Gas: ${
         overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
       }\n - Max Priority Fee Per Gas: ${
         overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-      }\n - Gas Limit: ${
-        overrides.gasLimit ? overrides.gasLimit : 'default'
-      }\n - Value: ${
+      }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n - Value: ${
         overrides.value
       }\n - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n`
     );

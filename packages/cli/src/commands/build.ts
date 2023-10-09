@@ -314,7 +314,13 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
-      console.log(greenBright(`Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl} \n - Metadata Url: ${metaUrl}`));
+      console.log(
+        greenBright(
+          `Successfully built package ${bold(
+            `${name}:${version}@${selectedPreset}`
+          )} \n - Deploy Url: ${deployUrl} \n - Metadata Url: ${metaUrl}`
+        )
+      );
     }
   } else {
     console.log(

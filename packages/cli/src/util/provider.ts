@@ -43,18 +43,21 @@ export async function resolveProviderAndSigners({
     console.error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
-  
-  let localProviders = {
-    'frame': 'http://127.0.0.1:1248',
-    'direct': 'http://127.0.0.1:8545'
-  }
-  
+
+  const localProviders = {
+    frame: 'http://127.0.0.1:1248',
+    direct: 'http://127.0.0.1:8545',
+  };
+
   let ethersProvider;
-  let providerList = [];
-  
+  const providerList = [];
+
   // force provider to use JSON-RPC instead of Web3Provider for local instances
-  if((checkProviders.includes('frame') || checkProviders[0].startsWith('http://')) && Number.parseInt(chainId.toString()) === 13370) {
-    for(const provider in checkProviders) {
+  if (
+    (checkProviders.includes('frame') || checkProviders[0].startsWith('http://')) &&
+    Number.parseInt(chainId.toString()) === 13370
+  ) {
+    for (const provider in checkProviders) {
       providerList.push(new ethers.providers.JsonRpcProvider(localProviders[provider as keyof typeof localProviders]));
     }
 

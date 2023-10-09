@@ -42,7 +42,7 @@ export async function fetch(packageRef: string, hash: string, metaHash?: string)
 
     const variant = `${deployInfo.chainId}-${preset || 'main'}`;
 
-    fs.writeFile(localRegistry.getTagReferenceStorage(basePackageRef, variant), ipfsUrl);
+    await fs.writeFile(localRegistry.getTagReferenceStorage(basePackageRef, variant), ipfsUrl);
 
     if (metaHash) {
       if (!/^Qm[1-9A-Za-z]{44}$/.test(metaHash)) {
@@ -63,7 +63,7 @@ export async function fetch(packageRef: string, hash: string, metaHash?: string)
 
         await storage.putBlob(deployInfo);
 
-        fs.writeFile(localRegistry.getMetaTagReferenceStorage(basePackageRef, variant), ipfsUrl);
+        await fs.writeFile(localRegistry.getMetaTagReferenceStorage(basePackageRef, variant), ipfsUrl);
       }
     }
 

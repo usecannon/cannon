@@ -10,7 +10,7 @@ import { resolveCliSettings } from '../settings';
 import { fetch } from './fetch';
 
 import { getMainLoader, LocalLoader } from '../loader';
-import { DeploymentInfo, IPFSLoader, OnChainRegistry } from '@usecannon/builder';
+import { DeploymentInfo, IPFSLoader } from '@usecannon/builder';
 
 jest.mock('../registry');
 jest.mock('../settings');
@@ -18,12 +18,11 @@ jest.mock('../loader');
 jest.mock('../helpers');
 
 describe('fetch', () => {
-  let tags = ['tag0', 'tag1'];
+  const tags = ['tag0', 'tag1'];
   const chainId = 123;
   const preset = 'your-preset';
   const basePackageRef = 'package:1.2.3';
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
-  const deployMetaLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt.meta`;
 
   const miscData = { misc: 'info' };
   const metaData = { itsMeta: 'data' };
@@ -45,17 +44,14 @@ describe('fetch', () => {
     options: {},
   };
 
-  const ipfsHash =  'QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY'
-
-  const testPkgDataFilePath = path.join('/cannon/directory/', 'tags', deployDataLocalFileName);
-  const testPkgMetaFilePath = path.join('/cannon/directory/', 'tags', deployMetaLocalFileName);
+  const ipfsHash = 'QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
 
   const testPkgDataIpfsUrl = 'ipfs://QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
   const testPkgDataNewIpfsUrl = 'ipfs://QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
   const testPkgMetaIpfsUrl = 'ipfs://QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
   const testPkgMiscIpfsUrl = 'ipfs://QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
   const testPkgNewMetaIpfsUrl = 'ipfs://QmfVq9zcqjCwTMhR2VSChCbiqSK3kBrpidWtUUB3i41FyY';
-  
+
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
   let ipfsLoader: IPFSLoader;
@@ -73,7 +69,7 @@ describe('fetch', () => {
         cannonDirectory: '/cannon/directory/',
         // Add other properties as needed
       })
-    ); 
+    );
   });
 
   beforeEach(() => {
@@ -116,7 +112,6 @@ describe('fetch', () => {
       return Promise.resolve({});
     });
 
-    
     jest.spyOn(CannonStorage.prototype, 'readBlob').mockImplementation((url: string): Promise<any> => {
       switch (url) {
         case testPkgDataIpfsUrl:
@@ -137,7 +132,6 @@ describe('fetch', () => {
       return Promise.resolve({});
     });
 
-
     jest.spyOn(IPFSLoader.prototype, 'put').mockImplementation(async (data: any) => {
       if (_.isEqual(data, miscData)) {
         return testPkgMiscIpfsUrl;
@@ -149,7 +143,7 @@ describe('fetch', () => {
       return '';
     });
 
-    jest.spyOn(LocalRegistry.prototype, 'getTagReferenceStorage').mockImplementation((data: any) => {
+    jest.spyOn(LocalRegistry.prototype, 'getTagReferenceStorage').mockImplementation(() => {
       return path.join(cliSettings.cannonDirectory, 'tags', deployDataLocalFileName);
     });
 
@@ -167,7 +161,6 @@ describe('fetch', () => {
       ipfs: ipfsLoader,
     });
 
-
     jest.mocked(LocalRegistry.prototype.getTagReferenceStorage).mockReturnValueOnce('/cannon/directory/tags/');
 
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
@@ -178,8 +171,7 @@ describe('fetch', () => {
     jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
     jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
   });
-  
-  
+
   test('should fetch package info from IPFS hash', async () => {
     // Call the 'fetch' function with the necessary arguments
     await fetch(basePackageRef, ipfsHash);
@@ -197,7 +189,6 @@ describe('fetch', () => {
   });
 
   test('should fail to fetch if IPFS hash is invalid', async () => {
-    await expect(fetch(basePackageRef, '')).rejects.toThrowError('"" does not match the IPFS CID v0 format')
+    await expect(fetch(basePackageRef, '')).rejects.toThrowError('"" does not match the IPFS CID v0 format');
   });
-
 });
