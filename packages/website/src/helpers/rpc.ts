@@ -1,6 +1,21 @@
 import * as chains from '@wagmi/core/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
+import { publicProvider } from 'wagmi/providers/public';
 import { ethers } from 'ethers';
+
+export function createProviders() {
+  const providers = [publicProvider()];
+
+  if (process.env.NEXT_PUBLIC_INFURA_API_KEY) {
+    providers.unshift(
+      infuraProvider({
+        apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
+      })
+    );
+  }
+
+  return providers;
+}
 
 function findChainUrl(chainId: number) {
   if (typeof chainId !== 'number') {

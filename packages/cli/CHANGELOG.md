@@ -1,5 +1,34 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
+
+## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
+
+
+### Features
+
+* **cli:** Add support for preset package reference in CLI  ([#449](https://github.com/usecannon/cannon/issues/449)) ([ec19aff](https://github.com/usecannon/cannon/commit/ec19affe86e0fdc6623ae6fc5d5187118757d2f0))
+
+
+### Bug Fixes
+
+* **cli:** improve provider resolution outputs and remove sensitive information from debug logs ([#418](https://github.com/usecannon/cannon/issues/418)) ([545298f](https://github.com/usecannon/cannon/commit/545298fc3ca03d8e62a1da05200c191d3084d670))
+* **cli:** prepend 0x to decode input tx data ([#483](https://github.com/usecannon/cannon/issues/483)) ([57ac4d1](https://github.com/usecannon/cannon/commit/57ac4d14d1505c46b30d348d4e7d0f6008939f74))
+* enforce setting publishIpfsUrl for publish command ([#456](https://github.com/usecannon/cannon/issues/456)) ([bff21fb](https://github.com/usecannon/cannon/commit/bff21fb1b81aee605612d36ffb62f7d5e2b2f641))
+* fix preset name in deploy local tag filename ([#472](https://github.com/usecannon/cannon/issues/472)) ([acf9d2d](https://github.com/usecannon/cannon/commit/acf9d2d29daf89fead861d7fca0ffbe42e0c6c74))
+* package name validations ([#471](https://github.com/usecannon/cannon/issues/471)) ([e4aef62](https://github.com/usecannon/cannon/commit/e4aef62f98ca4364bfb8efc432222f6909c5d082))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.7.1 to ^2.8.0
+
 ## [2.7.1](https://github.com/usecannon/cannon/compare/v2.7.0...v2.7.1) (2023-09-17)
 
 

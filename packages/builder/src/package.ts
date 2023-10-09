@@ -143,6 +143,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     debug('created initial ctx with deploy info');
 
     return {
+      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
       packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),

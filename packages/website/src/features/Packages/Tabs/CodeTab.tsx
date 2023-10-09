@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
-import { Flex, Container } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { CodeExplorer } from '@/features/Packages/CodeExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
@@ -27,11 +27,9 @@ export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
   );
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <Flex flexDirection="column" width="100%" flex="1">
       {currentVariant ? (
-        <Container maxW="container.xl">
-          <CodeExplorer variant={currentVariant} />
-        </Container>
+        <CodeExplorer variant={currentVariant} />
       ) : (
         <CustomSpinner m="auto" />
       )}

@@ -43,7 +43,6 @@ export default function PackageLayout({
           <Box
             bg="black"
             pt={12}
-            mb={8}
             borderBottom="1px solid"
             borderColor="gray.700"
           >

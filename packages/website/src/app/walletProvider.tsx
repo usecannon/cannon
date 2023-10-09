@@ -6,10 +6,9 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import * as Chains from 'wagmi/chains';
-import { publicProvider } from 'wagmi/providers/public';
-import { infuraProvider } from 'wagmi/providers/infura';
 import { ReactNode } from 'react';
 import _ from 'lodash';
+import { createProviders } from '@/helpers/rpc';
 
 const cannonLocalHost = {
   ...Chains.localhost,
@@ -22,12 +21,7 @@ export const supportedChains = [..._chains, cannonLocalHost];
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   supportedChains,
-  [
-    infuraProvider({
-      apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
-    }),
-    publicProvider(),
-  ]
+  createProviders()
 );
 
 const { connectors } = getDefaultWallets({

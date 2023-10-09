@@ -9,12 +9,23 @@ export const ContractStep: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
 }> = ({ contracts = {}, cannonOutputs, chainId }) => {
-  const output: ({ title: string } & Pick<ContractData, 'address' | 'abi'>)[] =
-    useMemo(() => {
-      return Object.entries(contracts)
-        .map(([k, v]) => ({ title: k, address: v.address, abi: v.abi }))
-        .sort((a, b) => a.title.localeCompare(b.title));
-    }, [contracts]);
+  const output: ({ title: string } & Pick<
+    ContractData,
+    'address' | 'abi' | 'highlight'
+  >)[] = useMemo(() => {
+    return Object.entries(contracts)
+      .map(([k, v]) => ({
+        title: k,
+        address: v.address,
+        abi: v.abi,
+        highlight: v.highlight,
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.highlight ?? false) - Number(a.highlight ?? false) ||
+          a.title.localeCompare(b.title)
+      );
+  }, [contracts]);
   return (
     <Box mb="8">
       {output.map((o) => (
