@@ -1,6 +1,15 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { Heading, Text, Box, Link } from '@chakra-ui/react';
+import {
+  Heading,
+  Text,
+  Box,
+  Link,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+} from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 export const RunPackage = () => {
@@ -18,6 +27,23 @@ export const RunPackage = () => {
       >
         Run a Cannon Package
       </Heading>
+      <Alert status="info" mb={4} bg="gray.800">
+        <AlertIcon />
+        <Box>
+          <AlertTitle>Install Forge before proceeding</AlertTitle>
+          <AlertDescription>
+            The steps in this guide require Anvil, which is included as part of
+            Forge. If you do not have Forge installed, you can{' '}
+            <Link
+              href="https://book.getfoundry.sh/getting-started/installation"
+              isExternal
+            >
+              follow their installation guide
+            </Link>
+            {'.'}
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Text mb={4}>Start by installing Cannon with the following command:</Text>
       <Box mb={4}>
         <CommandPreview command="npm install -g @usecannon/cli" />
@@ -32,6 +58,7 @@ export const RunPackage = () => {
       <Box mb={4}>
         <CommandPreview command="cannon synthetix-sandbox" />
       </Box>
+
       <Text mb={4}>
         This will start an&nbsp;
         <Link
@@ -73,6 +100,36 @@ export const RunPackage = () => {
         </Link>
         .
       </Text>
+      <Heading size="md" mb={3} mt={8}>
+        Troubleshooting IPFS errors
+      </Heading>
+      <Text mb={4}>
+        Public IPFS nodes are sometimes not responsive, in which case you may
+        receive an error similar to:
+      </Text>
+      <Box mb={4}>
+        <CommandPreview command='Error: could not download cannon package data from "QmdKn7BRDd3Ugv64DcAK7mnPhyNe3PkhHRCTc34eBgExLb": AxiosError: Request failed with status code 504' />
+      </Box>
+      <Text mb={4}>
+        You can resolve this by running a local IPFS node, then telling Cannon
+        to use it. To do this, firstly{' '}
+        <Link href="https://github.com/ipfs/ipfs-desktop/releases" isExternal>
+          install IPFS
+        </Link>
+        {', '}
+        start a local IPFS server, then run the following command:
+      </Text>
+      <Box mb={4}>
+        <CommandPreview command="cannon setup" />
+      </Box>
+      <Text mb={4}>
+        When prompted, enter the following URI for both the publishing packages
+        endpoint and building endpoint:
+      </Text>
+      <Box mb={4}>
+        <CommandPreview command="http://127.0.0.1:5001" />
+      </Box>
+      <Text mb={4}>Running cannon commands should now succeed.</Text>
     </>
   );
 };
