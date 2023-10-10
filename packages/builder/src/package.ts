@@ -102,8 +102,6 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
-  const { version } = new PackageReference(packageRef);
-
   const chainId = parseInt(variant.split('-')[0]);
 
   const uri = await storage.registry.getUrl(packageRef, variant);
@@ -127,7 +125,7 @@ export async function getProvisionedPackages(packageRef: string, variant: string
 
     return {
       // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
-      packagesNames: [def.getVersion(preCtx) || version, tags].map((t) => `${def.getName(preCtx)}:${t}`),
+      packagesNames: [def.getVersion(preCtx), tags].map((t) => `${def.getName(preCtx)}:${t}`),
       variant: context ? `${chainId}-${context.preset}` : variant,
     };
   };
@@ -146,7 +144,7 @@ export async function publishPackage({
   toStorage,
   publishProvisioned = false,
 }: CopyPackageOpts) {
-  const { version, basePackageRef } = new PackageReference(packageRef);
+  const { basePackageRef } = new PackageReference(packageRef);
 
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
@@ -185,11 +183,13 @@ export async function publishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
+    console.log(preCtx);
+
     debug('created initial ctx with deploy info');
 
     return {
       // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
-      packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
+      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,

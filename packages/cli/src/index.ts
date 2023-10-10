@@ -60,6 +60,7 @@ export { loadCannonfile } from './helpers';
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
 import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
+import { chains } from './chains';
 
 const program = new Command();
 
@@ -382,9 +383,38 @@ program
     const overrides: ethers.CallOverrides = {};
 
     if (!options.chainId) {
-      throw new Error(
-        'Please provide a chainId using the format: --chain-id <number>. For example, 13370 is the chainId for a local build.'
-      );
+      const chainIdPrompt = await prompts({
+        type: 'number',
+        name: 'value',
+        message: 'Please provide a Chain ID',
+        initial: true,
+        validate: (value) =>
+          chains
+            .map((c) => {
+              return c.chainId;
+            })
+            .includes(value)
+            ? true
+            : `"${value}" is not a valid Chain ID`,
+      });
+
+      if (!chainIdPrompt.value) {
+        console.log('Chain ID not provided.');
+        process.exit(1);
+      }
+
+      options.chainId = chainIdPrompt.value;
+    }
+
+    if (!options.key) {
+      const keyPrompt = await prompts({
+        type: 'text',
+        name: 'value',
+        message: 'Please provide a Private Key (Can be blank if registry provider url is a local node)',
+        initial: true,
+      });
+
+      options.key = keyPrompt.value;
     }
 
     if (options.maxFeePerGas) {

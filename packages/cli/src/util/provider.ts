@@ -101,6 +101,8 @@ export async function resolveProviderAndSigners({
     signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));
   } else {
     try {
+      console.info('\nAttempting to load signers from local node...\n');
+
       // Attempt to load from eth-provider
       await rawProvider.enable();
       for (const account of rawProvider.accounts) {

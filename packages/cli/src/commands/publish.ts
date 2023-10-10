@@ -75,11 +75,11 @@ export async function publish({
     variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
 
-  const deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
+  const deploys = await localRegistry.scanDeploys(packageRef, variantFilter);
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find deployment for ${basePackageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`
+      `Could not find any deployment for ${packageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`
     );
   }
 
@@ -94,45 +94,65 @@ export async function publish({
 
   const registrationReceipts = [];
 
-  for (const deploy of deploys) {
-    if (!quiet) {
+  // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
+  const deployNames = deploys.map((deploy) => {
+    return { name: deploy.name.split(':')[0], version: deploy.name.split(':')[1], variant: deploy.variant };
+  });
+
+  interface DeployList {
+    name: string;
+    versions: string[];
+    variant: string;
+  }
+
+  const filteredDeploys: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
+    const existingItem = result.find((i) => i.name === item.name && i.variant === item.variant);
+    if (existingItem) {
+      existingItem.versions.push(item.version);
+    } else {
+      result.push({ name: item.name, versions: [item.version], variant: item.variant });
+    }
+    return result;
+  }, []);
+
+  if (!quiet) {
+    filteredDeploys.forEach(async (deploy) => {
       if (publishProvisioned) {
         const packages = await getProvisionedPackages(deploy.name, deploy.variant, tags, fromStorage);
 
         packages.forEach((pkg) => {
-          const pkgRef = new PackageReference(pkg.packagesNames[0]);
-          console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
-          console.log(`${pkgRef.version} (preset: ${selectedPreset})`);
-          for (const tag in tags) {
-            console.log(`${tags[tag]} (preset: ${selectedPreset})`);
-          }
+          console.log(blueBright(`This will publish ${bold(pkg.packagesNames[0])} to the registry:`));
+          deploy.versions.forEach((version) => {
+            console.log(`${version} (preset: ${selectedPreset})`);
+          });
           console.log('\n');
         });
       } else {
         const pkgRef = new PackageReference(deploy.name);
         console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
-        console.log(`${pkgRef.version} (preset: ${selectedPreset})`);
-        for (const tag in tags) {
-          console.log(`${tags[tag]} (preset: ${selectedPreset})`);
-        }
+        deploy.versions.forEach((version) => {
+          console.log(`${version} (preset: ${selectedPreset})`);
+        });
         console.log('\n');
       }
+    });
 
-      const verification = await prompts({
-        type: 'confirm',
-        name: 'confirmation',
-        message: 'Proceed?',
-        initial: true,
-      });
+    const verification = await prompts({
+      type: 'confirm',
+      name: 'confirmation',
+      message: 'Proceed?',
+      initial: true,
+    });
 
-      if (!verification.confirmation) {
-        console.log('Cancelled');
-        process.exit(1);
-      }
-
-      console.log('\n------\n');
+    if (!verification.confirmation) {
+      console.log('Cancelled');
+      process.exit(1);
     }
 
+    console.log('\n------\n');
+  }
+
+  for (const deploy of deploys) {
     const newReceipts = await publishPackage({
       packageRef: deploy.name,
       variant: deploy.variant,
@@ -143,25 +163,25 @@ export async function publish({
     });
 
     registrationReceipts.push(...newReceipts);
+  }
 
-    console.log(bold(blueBright('Packages published:')));
+  console.log(bold(blueBright('Packages published:')));
+  filteredDeploys.forEach(async (deploy) => {
     if (publishProvisioned) {
       const packages = await getProvisionedPackages(deploy.name, deploy.variant, tags, fromStorage);
       packages.forEach((pkg) => {
         const pkgRef = new PackageReference(pkg.packagesNames[0]);
-        console.log(`  - ${pkgRef.basePackageRef}`);
-        for (const tag in tags) {
-          console.log(`  - ${pkgRef.name}:${tags[tag]}`);
-        }
+        deploy.versions.forEach((version) => {
+          console.log(`  - ${pkgRef.name}:${version}`);
+        });
       });
     } else {
       const pkgRef = new PackageReference(deploy.name);
-      console.log(`  - ${pkgRef.basePackageRef}`);
-      for (const tag in tags) {
-        console.log(`  - ${pkgRef.name}:${tags[tag]}`);
-      }
+      deploy.versions.forEach((version) => {
+        console.log(`  - ${pkgRef.name}:${version}`);
+      });
     }
-  }
+  });
 
   const txs = registrationReceipts.filter((tx) => !!tx);
   if (txs.length) {
