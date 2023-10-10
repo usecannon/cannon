@@ -201,13 +201,13 @@ export function SettingsPage() {
               Add Provider
             </Button>
           </Box>
-          <Box mb="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
-            <InfoIcon mr={1} mt={-1} d="inline" /> Provided detected in
+          {/* <Box mb="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
+            <InfoIcon mr={1} mt={-1} d="inline" /> Provider detected in
             connected wallet:{' '}
             <Text fontFamily="mono" display="inline">
               https://asdf.com
             </Text>
-          </Box>
+          </Box> */}
           <Heading size="sm" fontWeight={600} mb={1}>
             Oracle Multicalls
           </Heading>
