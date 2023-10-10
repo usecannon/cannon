@@ -183,8 +183,6 @@ export async function publishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    console.log(preCtx);
-
     debug('created initial ctx with deploy info');
 
     return {
