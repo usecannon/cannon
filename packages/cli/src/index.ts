@@ -377,6 +377,21 @@ program
   .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
+    if (!options.privateKey && !process.env.PRIVATE_KEY) {
+      const keyPrompt = await prompts({
+        type: 'text',
+        name: 'value',
+        message: 'Please provide a Private Key',
+      });
+
+      if (!keyPrompt.value) {
+        console.log('Private Key not provided.');
+        process.exit(1);
+      }
+
+      options.privateKey = keyPrompt.value;
+    }
+
     const cliSettings = resolveCliSettings(options);
     const p = await resolveRegistryProvider(cliSettings);
 
@@ -387,15 +402,7 @@ program
         type: 'number',
         name: 'value',
         message: 'Please provide a Chain ID',
-        initial: true,
-        validate: (value) =>
-          chains
-            .map((c) => {
-              return c.chainId;
-            })
-            .includes(value)
-            ? true
-            : `"${value}" is not a valid Chain ID`,
+        initial: 13370,
       });
 
       if (!chainIdPrompt.value) {
@@ -404,17 +411,6 @@ program
       }
 
       options.chainId = chainIdPrompt.value;
-    }
-
-    if (!options.key) {
-      const keyPrompt = await prompts({
-        type: 'text',
-        name: 'value',
-        message: 'Please provide a Private Key (Can be blank if registry provider url is a local node)',
-        initial: true,
-      });
-
-      options.key = keyPrompt.value;
     }
 
     if (options.maxFeePerGas) {
