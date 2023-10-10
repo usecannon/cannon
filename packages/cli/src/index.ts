@@ -60,7 +60,6 @@ export { loadCannonfile } from './helpers';
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
 import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
-import { REGISTRY_FEE } from './constants';
 
 const program = new Command();
 
@@ -400,16 +399,13 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    // Set tx value default to match the registry fee
-    overrides.value = ethers.utils.parseUnits(REGISTRY_FEE, 'wei');
-
     console.log(
       `\nSettings:\n - Max Fee Per Gas: ${
         overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
       }\n - Max Priority Fee Per Gas: ${
         overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
       }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-        "- To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
     );
 
     await publish({

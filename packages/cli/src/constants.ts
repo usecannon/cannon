@@ -6,5 +6,4 @@ export const DEFAULT_REGISTRY_IPFS_ENDPOINT = 'https://ipfs.io';
 export const DEFAULT_REGISTRY_PROVIDER_URL = 'https://ethereum.publicnode.com/';
 export const DEFAULT_ETHERSCAN_API_URL = '';
 export const DEFAULT_REGISTRY_ADDRESS = '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba';
-export const REGISTRY_FEE = '1'; // Denominated in wei
 export const CLI_SETTINGS_STORE = 'settings.json';
