@@ -13,6 +13,7 @@ export type CopyPackageOpts = {
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
+  publishProvisioned?: boolean;
 };
 
 const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
@@ -100,7 +101,51 @@ function _deployImports(deployInfo: DeploymentInfo) {
   return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
 }
 
-export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
+export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
+  const { version } = new PackageReference(packageRef);
+
+  const chainId = parseInt(variant.split('-')[0]);
+
+  const uri = await storage.registry.getUrl(packageRef, variant);
+
+  const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
+
+  if (!deployInfo) {
+    throw new Error(
+      `could not find deployment artifact for ${packageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
+    );
+  }
+
+  const getPackages = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const def = new ChainDefinition(deployInfo.def);
+
+    debug('create initial ctx with deploy info', deployInfo);
+
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
+
+    debug('created initial ctx with deploy info');
+
+    return {
+      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
+      packagesNames: [def.getVersion(preCtx) || version, tags].map((t) => `${def.getName(preCtx)}:${t}`),
+      variant: context ? `${chainId}-${context.preset}` : variant,
+    };
+  };
+
+  return await forPackageTree(storage, deployInfo, getPackages);
+}
+
+/**
+ * Copies package info from one storage medium to another (usually local to IPFS) and publishes it to the registry.
+ */
+export async function publishPackage({
+  packageRef,
+  tags,
+  variant,
+  fromStorage,
+  toStorage,
+  publishProvisioned = false,
+}: CopyPackageOpts) {
   const { version, basePackageRef } = new PackageReference(packageRef);
 
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
@@ -163,7 +208,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     );
   }
 
-  if (recursive) {
+  if (publishProvisioned) {
     debug('publish recursive');
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);

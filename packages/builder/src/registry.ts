@@ -269,7 +269,6 @@ export class OnChainRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
-    console.log('publishing:', packagesNames);
     const datas: string[] = [];
     for (const registerPackages of _.values(
       _.groupBy(
@@ -277,16 +276,14 @@ export class OnChainRegistry extends CannonRegistry {
         (p: string[]) => p[0]
       )
     )) {
+      console.log(bold(blueBright('\nPublishing package to the On-Chain registry...\n')));
+      console.log(`Package: ${registerPackages[0][0]}:${registerPackages[0][1]}`);
       console.log(
-        bold(
-          blueBright(
-            `\nPublishing package to the On-Chain registry at Chain ID ${(await this.provider?.getNetwork())?.chainId}...\n`
-          )
-        )
+        `Tags: [${registerPackages.map((v, i) => {
+          return `${registerPackages[i][1]}`;
+        })}]`
       );
-      console.log(`Package Name: ${registerPackages[0][0]}`);
-      console.log(`Package Deployment Data URL: ${url}`);
-
+      console.log(`Package URL: ${url}`);
       !metaUrl ? null : console.log(`Package Metadata URL: ${metaUrl}`);
 
       const tx = this.generatePublishTransactionData(
@@ -309,13 +306,7 @@ export class OnChainRegistry extends CannonRegistry {
     await this.checkSigner();
     debug('signer', this.signer);
     const datas: string[] = [];
-    console.log(
-      bold(
-        blueBright(
-          `\nPublishing packages to the On-Chain registry at Chain ID ${(await this.provider?.getNetwork())?.chainId}...\n`
-        )
-      )
-    );
+    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
       for (const registerPackages of _.values(
         _.groupBy(
@@ -323,11 +314,16 @@ export class OnChainRegistry extends CannonRegistry {
           (p: string[]) => p[0]
         )
       )) {
-        registerPackages.forEach((v, i) => {
-          console.log(`Package Name: ${registerPackages[i][0]}:${registerPackages[i][1]}`);
-        });
+        console.log(`Package: ${registerPackages[0][0]}:${registerPackages[0][1]}`);
+        console.log(
+          `Tags: [${registerPackages.map((v, i) => {
+            return `${registerPackages[i][1]}`;
+          })}]`
+        );
         console.log(`Package URL: ${pub.url}`);
-        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}\n`) : null;
+        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
+
+        console.log('\n-----');
 
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],
@@ -408,7 +404,7 @@ export class OnChainRegistry extends CannonRegistry {
       // Convert the transaction fee from wei to ether
       const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
 
-      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
 
       if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
         console.log(

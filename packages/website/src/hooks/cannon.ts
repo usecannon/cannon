@@ -7,7 +7,7 @@ import {
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
-  copyPackage,
+  publishPackage,
   createInitialContext,
   DeploymentInfo,
   Events,
@@ -245,7 +245,7 @@ export function useCannonWriteDeployToIpfs(
 
       const memoryRegistry = new InMemoryRegistry();
 
-      const publishTxns = await copyPackage({
+      const publishTxns = await publishPackage({
         fromStorage: runtime,
         toStorage: new CannonStorage(memoryRegistry, { ipfs: new IPFSBrowserLoader(settings.ipfsUrl) }, 'ipfs'),
         packageRef,

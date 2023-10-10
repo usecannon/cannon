@@ -1,12 +1,13 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
+import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
 import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder/dist/package';
+import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
 
 import { bold, yellow } from 'chalk';
+import prompts from 'prompts';
 
 interface Params {
   packageRef: string;
@@ -15,8 +16,8 @@ interface Params {
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
-  recursive?: boolean;
   overrides?: ethers.CallOverrides;
+  publishProvisioned?: boolean;
 }
 
 export async function publish({
@@ -26,8 +27,8 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  recursive = true,
   overrides,
+  publishProvisioned = false,
 }: Params) {
   const cliSettings = resolveCliSettings();
 
@@ -83,7 +84,7 @@ export async function publish({
   }
 
   if (!quiet) {
-    console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '));
+    console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
   }
 
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
@@ -94,22 +95,71 @@ export async function publish({
   const registrationReceipts = [];
 
   for (const deploy of deploys) {
-    const newReceipts = await copyPackage({
+    if (!quiet) {
+      if (publishProvisioned) {
+        const packages = await getProvisionedPackages(deploy.name, deploy.variant, tags, fromStorage);
+
+        packages.forEach((pkg) => {
+          const pkgRef = new PackageReference(pkg.packagesNames[0]);
+          console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
+          console.log(`${pkgRef.version} (preset: ${selectedPreset})`);
+          for (const tag in tags) {
+            console.log(`${tags[tag]} (preset: ${selectedPreset})`);
+          }
+          console.log('\n');
+        });
+      } else {
+        const pkgRef = new PackageReference(deploy.name);
+        console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
+        console.log(`${pkgRef.version} (preset: ${selectedPreset})`);
+        for (const tag in tags) {
+          console.log(`${tags[tag]} (preset: ${selectedPreset})`);
+        }
+        console.log('\n');
+      }
+
+      const verification = await prompts({
+        type: 'confirm',
+        name: 'confirmation',
+        message: 'Proceed?',
+        initial: true,
+      });
+
+      if (!verification.confirmation) {
+        console.log('Cancelled');
+        process.exit(1);
+      }
+
+      console.log('\n------\n');
+    }
+
+    const newReceipts = await publishPackage({
       packageRef: deploy.name,
       variant: deploy.variant,
       fromStorage,
       toStorage,
-      recursive,
       tags,
+      publishProvisioned,
     });
 
     registrationReceipts.push(...newReceipts);
-  }
 
-  if (tags.length) {
-    console.log(bold(blueBright('Package published:')));
-    for (const tag of tags) {
-      console.log(`  - ${basePackageRef} (${tag})`);
+    console.log(bold(blueBright('Packages published:')));
+    if (publishProvisioned) {
+      const packages = await getProvisionedPackages(deploy.name, deploy.variant, tags, fromStorage);
+      packages.forEach((pkg) => {
+        const pkgRef = new PackageReference(pkg.packagesNames[0]);
+        console.log(`  - ${pkgRef.basePackageRef}`);
+        for (const tag in tags) {
+          console.log(`  - ${pkgRef.name}:${tags[tag]}`);
+        }
+      });
+    } else {
+      const pkgRef = new PackageReference(deploy.name);
+      console.log(`  - ${pkgRef.basePackageRef}`);
+      for (const tag in tags) {
+        console.log(`  - ${pkgRef.name}:${tags[tag]}`);
+      }
     }
   }
 
