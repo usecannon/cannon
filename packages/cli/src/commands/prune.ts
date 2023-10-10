@@ -66,7 +66,7 @@ export async function prune(
   for (const url of loaderUrls) {
     try {
       const deployInfo = (await storage.readBlob(url)) as DeploymentInfo;
-      console.log('delpoy info', deployInfo);
+      console.log('deploy info', deployInfo);
 
       /*if (!deployInfo.generator || !deployInfo.generator.startsWith('cannon ')) {
         debug(`${url}: not cannon package`);

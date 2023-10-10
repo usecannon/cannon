@@ -19,7 +19,7 @@ import { useStore } from '@/helpers/store';
 import { EditableAutocompleteInput } from '@/components/EditableAutocompleteInput';
 
 export function DisplayedTransaction(props: {
-  contracts: { [key: string]: { address: Address; abi: any[] } };
+  contracts?: { [key: string]: { address: Address; abi: any[] } };
   txn?: Omit<TransactionRequestBase, 'from'>;
   onTxn?: (txn: Omit<TransactionRequestBase, 'from'> | null) => void;
   editable?: boolean;
@@ -27,24 +27,27 @@ export function DisplayedTransaction(props: {
   const currentSafe = useStore((s) => s.currentSafe);
   const account = useAccount();
 
-  const parsedContractNames = props.txn
-    ? Object.entries(props.contracts)
-        .filter((c) => c[1].address === props.txn?.to)
-        .map((v) => v[0])
-    : '';
+  const parsedContractNames =
+    props.txn && props.contracts
+      ? Object.entries(props.contracts)
+          .filter((c) => c[1].address === props.txn?.to)
+          .map((v) => v[0])
+      : '';
 
   let parsedContract = props.txn ? props.txn.to : '';
   let parsedFunction = null;
-  for (const n of parsedContractNames) {
-    try {
-      parsedFunction = decodeFunctionData({
-        abi: props.contracts[n].abi,
-        data: props.txn?.data as any,
-      });
-      parsedContract = n;
-      break;
-    } catch {
-      // ignore
+  if (props.contracts) {
+    for (const n of parsedContractNames) {
+      try {
+        parsedFunction = decodeFunctionData({
+          abi: props.contracts[n].abi,
+          data: props.txn?.data as any,
+        });
+        parsedContract = n;
+        break;
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -57,9 +60,10 @@ export function DisplayedTransaction(props: {
       : ''
   );
 
-  const execContractInfo = execContract ? props.contracts[execContract] : null;
+  const execContractInfo =
+    props.contracts && execContract ? props.contracts[execContract] : null;
   const execFuncFragment =
-    execContractInfo && execFunc
+    props.contracts && execContractInfo && execFunc
       ? execContractInfo.abi.find((f) => f.name === execFunc)
       : null;
 
@@ -236,7 +240,7 @@ export function DisplayedTransaction(props: {
             { label: execFuncArgs[arg] || '', secondary: '' },
             { label: currentSafe?.address ?? '', secondary: 'Safe Address' },
             { label: account.address ?? '', secondary: 'Your Address' },
-            ...Object.entries(props.contracts).map(([l, c]) => ({
+            ...Object.entries(props.contracts || {}).map(([l, c]) => ({
               label: c.address,
               secondary: l,
             })),
@@ -283,6 +287,10 @@ export function DisplayedTransaction(props: {
       .map((a) => {
         return { label: a.name, secondary: getFunctionSelector(a) };
       });
+  }
+
+  if (!props.contracts) {
+    return <Text>{props.txn?.data}</Text>;
   }
 
   return (

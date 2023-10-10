@@ -4,7 +4,6 @@ import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { Container, Flex } from '@chakra-ui/react';
 import { Interact } from '@/features/Packages/Interact';
-import UnderConstruction from './UnderConstruction';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 
@@ -29,9 +28,8 @@ export const InteractTab: FC<{
 
   return (
     <Flex flexDirection="column" width="100%">
-      <UnderConstruction />
       {currentVariant ? (
-        <Container maxW="container.lg">
+        <Container maxW="container.xl" my={8}>
           <Interact variant={currentVariant} />
         </Container>
       ) : (

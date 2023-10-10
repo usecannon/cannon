@@ -17,14 +17,14 @@ describe('steps/import.ts', () => {
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(fakeCtx, {
-        source: '<%= settings.a %>',
+        source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         chainId: 1234,
         preset: '<%= settings.c %>',
         depends: [],
       });
 
       expect(result).toStrictEqual({
-        source: 'a:latest',
+        source: 'abc:latest',
         chainId: 1234,
         preset: 'c',
         depends: [],
@@ -50,7 +50,7 @@ describe('steps/import.ts', () => {
         action.exec(
           fakeRuntime,
           fakeCtx,
-          { source: 'undefinedDeployment:1.0.0' },
+          { source: 'undefined-deployment:1.0.0' },
           { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
         )
       ).rejects.toThrowError('deployment not found');

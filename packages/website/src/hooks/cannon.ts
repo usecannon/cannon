@@ -283,7 +283,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
   const registryQuery = useQuery(['cannon', 'registry', packageRef, variant], {
     queryFn: async () => {
-      if (packageRef.length < 3) {
+      if (!packageRef || packageRef.length < 3) {
         return null;
       }
 
@@ -308,6 +308,9 @@ export function useCannonPackage(packageRef: string, variant = '') {
   const ipfsQuery = useQuery(['cannon', 'pkg', pkgUrl], {
     queryFn: async () => {
       addLog(`LOADING PKG URL: ${pkgUrl}`);
+
+      if (!pkgUrl) return null;
+
       const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
 
       const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);

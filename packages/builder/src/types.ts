@@ -41,6 +41,7 @@ export type ContractData = {
   contractName: string;
   sourceName: string;
   deployedOn: string;
+  highlight?: boolean;
 };
 
 export type ContractMap = {

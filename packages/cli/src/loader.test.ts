@@ -54,6 +54,8 @@ function getMainLoaderTestCases() {
   });
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
+      providerUrl: '',
+      registryProviderUrl: '',
       ipfsUrl: 'ipfs',
       cannonDirectory: 'directory',
       registryChainId: 'chainId',
@@ -72,6 +74,8 @@ function getMainLoaderTestCases() {
 
   it('should use default ipfs url if not provided in settings', () => {
     const settings: CliSettings = {
+      providerUrl: '',
+      registryProviderUrl: '',
       cannonDirectory: 'directory',
       registryChainId: 'chainId',
       registryAddress: 'address',

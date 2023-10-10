@@ -1,4 +1,13 @@
-import { Box, Code, Heading, Text } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+  Box,
+  Code,
+  Heading,
+  Text,
+} from '@chakra-ui/react';
 import { CodePreview } from '@/components/CodePreview';
 import { CommandPreview } from '@/components/CommandPreview';
 
@@ -55,6 +64,19 @@ export const CreateCannonFile = () => {
       <Box mb={4}>
         <CodePreview code={code2} language="toml" />
       </Box>
+      <Alert status="info" mb={4} bg="gray.800">
+        <AlertIcon />
+        <Box>
+          <AlertTitle>Include Idempotent Functions</AlertTitle>
+          <AlertDescription>
+            When building a protocol with Cannon, include methods like{' '}
+            <Code>setConfiguration</Code> (instead of/in addition to
+            <Code>addConfiguration</Code> or <Code>removeConfiguration</Code>)
+            such that changes to an <Code>invoke</Code> step will result in
+            predictable behavior.
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Text mb={4}>
         Now build the cannonfile for local development and testing:
       </Text>

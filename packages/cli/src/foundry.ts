@@ -3,6 +3,9 @@ import fs from 'fs-extra';
 import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
 import { execPromise } from './helpers';
+import Debug from 'debug';
+
+const debug = Debug('cannon:cli:foundry');
 
 interface FoundryOpts {
   src: string;
@@ -66,6 +69,11 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
     await execPromise(`forge inspect ${name} metadata` + (baseDir ? ` --root ${baseDir}` : ''))
   );
 
+  const evmVersionInfo = JSON.parse(await execPromise('forge config --json | jq .evm_version'));
+
+  debug('detected foundry info', foundryInfo);
+  debug('evm version', evmVersionInfo);
+
   const solcVersion = foundryInfo.compiler.version;
   const sources = _.mapValues(foundryInfo.sources, (v, sourcePath) => {
     return {
@@ -80,6 +88,7 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
       sources,
       settings: {
         optimizer: foundryInfo.settings.optimizer,
+        evmVersion: evmVersionInfo,
         remappings: foundryInfo.settings.remappings,
         outputSelection: {
           '*': {

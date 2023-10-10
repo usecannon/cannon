@@ -27,7 +27,7 @@ export const DeploymentTab: FC<{
   );
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <Flex flexDirection="column" width="100%" mt="8">
       {currentVariant ? (
         <Container maxW="container.xl">
           <DeploymentExplorer variant={currentVariant} />

@@ -1,5 +1,34 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
+    * @usecannon/cli bumped from ^2.8.0 to ^2.8.1
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.1 to ^2.8.2
+    * @usecannon/cli bumped from ^2.8.1 to ^2.8.2
+
+## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
+
+
+### Features
+
+* **cli:** Add support for preset package reference in CLI  ([#449](https://github.com/usecannon/cannon/issues/449)) ([ec19aff](https://github.com/usecannon/cannon/commit/ec19affe86e0fdc6623ae6fc5d5187118757d2f0))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.7.1 to ^2.8.0
+    * @usecannon/cli bumped from ^2.7.1 to ^2.8.0
+
 ## [2.7.1](https://github.com/usecannon/cannon/compare/v2.7.0...v2.7.1) (2023-09-17)
 
 

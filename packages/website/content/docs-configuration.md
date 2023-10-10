@@ -62,6 +62,7 @@ Available properties for contract step
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `artifact` | `string` | Artifact name or path of the target contract |
+| `highlight?` | `boolean` | Determines whether contract should get priority in displays |
 | `create2?` | `boolean` | Determines whether to deploy the contract using create2 |
 | `from?` | `string` | Contract deployer address. Must match the ethereum address format |
 | `nonce?` | `string` | - |
