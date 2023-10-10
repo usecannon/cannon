@@ -6,6 +6,21 @@
   * dependencies
     * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
 
+## [2.8.2](https://github.com/usecannon/cannon/compare/v2.8.1...v2.8.2) (2023-10-09)
+
+
+### Bug Fixes
+
+* **cli:** fix bug on interact package ref cli input validation ([#488](https://github.com/usecannon/cannon/issues/488)) ([0db8961](https://github.com/usecannon/cannon/commit/0db8961c268a57833aa052182a3aea4b11cb6c4d))
+* **cli:** foundry doesn't resolve evm version ([#480](https://github.com/usecannon/cannon/issues/480)) ([14e34d6](https://github.com/usecannon/cannon/commit/14e34d67009152e2d9cac07e46d2a6f7f1e4f97b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.1 to ^2.8.2
+
 ## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
 
 
