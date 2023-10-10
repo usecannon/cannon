@@ -25,7 +25,7 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
-import { CloseIcon, InfoIcon } from '@chakra-ui/icons';
+import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
