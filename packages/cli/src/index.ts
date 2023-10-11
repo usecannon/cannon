@@ -60,7 +60,6 @@ export { loadCannonfile } from './helpers';
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
 import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
-import { chains } from './chains';
 
 const program = new Command();
 
@@ -377,6 +376,22 @@ program
   .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
+    if (!options.chainId) {
+      const chainIdPrompt = await prompts({
+        type: 'number',
+        name: 'value',
+        message: 'Please provide a Chain ID',
+        initial: 13370,
+      });
+
+      if (!chainIdPrompt.value) {
+        console.log('Chain ID not provided.');
+        process.exit(1);
+      }
+
+      options.chainId = chainIdPrompt.value;
+    }
+
     if (!options.privateKey && !process.env.PRIVATE_KEY) {
       const keyPrompt = await prompts({
         type: 'text',
@@ -396,22 +411,6 @@ program
     const p = await resolveRegistryProvider(cliSettings);
 
     const overrides: ethers.CallOverrides = {};
-
-    if (!options.chainId) {
-      const chainIdPrompt = await prompts({
-        type: 'number',
-        name: 'value',
-        message: 'Please provide a Chain ID',
-        initial: 13370,
-      });
-
-      if (!chainIdPrompt.value) {
-        console.log('Chain ID not provided.');
-        process.exit(1);
-      }
-
-      options.chainId = chainIdPrompt.value;
-    }
 
     if (options.maxFeePerGas) {
       overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
