@@ -26,3 +26,19 @@ There are five types of steps you can use in a Cannonfile:
 - The `run` step executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **The run command breaks composability. Only use this as a last resort.** Use a custom Cannon plug-in if this is necessary for your deployment.
 
 A `setting` may also be defined, which is a user-configurable option that can be referenced in other steps' inputs. For example, a cannonfile may define `[setting.sampleSetting]` and then reference `sampleValue` as `"<%= settings.sampleSetting %>"` after running `npx hardhat cannon sampleSetting="sampleValue"`
+
+There are seven constants available for use in a Cannonfile:
+- `"<%= Zero %>"`
+- `"<%= One %>"`
+- `"<%= Two %>"`
+- `"<%= WeiPerEther %>"`
+- `"<%= MaxUint256 %>"`
+- `"<%= MinInt256 %>"`
+- `"<%= MaxInt256 %>"`
+
+For example, the step below sets a default value type of MaxUInt256 to type 'setting' named 'perpsMaxSnxEth'
+
+```toml
+[setting.perpsMaxSnxEth]
+defaultValue = "<%= MaxUint256 %>"
+```
