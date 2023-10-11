@@ -30,7 +30,6 @@ import entries from 'just-entries';
 import { Store, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
 //import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
-import { useState } from 'react';
 
 type Setting = {
   title: string;
@@ -94,30 +93,23 @@ export function useSettingsValidation() {
   });
 }
 
-export function SettingsPage() {
+export default function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
 
-  const [localProviders, setLocalProviders] = useState<string[]>(
-    settings.customProviders
-  );
-
   const addProvider = () => {
-    setLocalProviders([...localProviders, '']);
-    setSettings({ customProviders: [...localProviders, ''] });
+    setSettings({ customProviders: [...settings.customProviders, ''] });
   };
 
   const updateProvider = (index: number, value: string) => {
-    const updatedProviders = [...localProviders];
+    const updatedProviders = [...settings.customProviders];
     updatedProviders[index] = value;
-    setLocalProviders(updatedProviders);
     setSettings({ customProviders: updatedProviders });
   };
 
   const removeProvider = (index: number) => {
-    const updatedProviders = [...localProviders];
+    const updatedProviders = [...settings.customProviders];
     updatedProviders.splice(index, 1);
-    setLocalProviders(updatedProviders);
     setSettings({ customProviders: updatedProviders });
   };
 
@@ -166,7 +158,7 @@ export function SettingsPage() {
             </Text>
             <FormLabel>Custom Providers</FormLabel>
 
-            {localProviders.map((provider, index) => (
+            {settings.customProviders.map((provider, index) => (
               <Flex key={index} mb={3}>
                 <Input
                   bg="black"
@@ -175,7 +167,7 @@ export function SettingsPage() {
                   value={provider}
                   onChange={(e) => updateProvider(index, e.target.value)}
                 />
-                {localProviders.length > 1 && (
+                {settings.customProviders.length > 1 && (
                   <Box ml="3">
                     <IconButton
                       colorScheme="blackAlpha"

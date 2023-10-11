@@ -53,8 +53,7 @@ export const CodeExplorer: FC<{
 
   useEffect(() => {
     if (miscData?.data) {
-      const parsedData = JSON.parse(miscData.data);
-      const firstArtifact = Object.entries(parsedData.artifacts).sort(
+      const firstArtifact = Object.entries(miscData.data.artifacts).sort(
         ([keyA], [keyB]) => {
           const countA = (keyA.match(/:/g) || []).length;
           const countB = (keyB.match(/:/g) || []).length;
@@ -64,13 +63,15 @@ export const CodeExplorer: FC<{
 
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
-        const sortedSources = Object.entries(
-          JSON.parse((firstArtifactValue as any)?.source?.input).sources
-        ).sort(([keyA], [keyB]) => {
-          const countA = (keyA.match(/\//g) || []).length;
-          const countB = (keyB.match(/\//g) || []).length;
-          return countA - countB;
-        });
+        const sortedSources = (firstArtifactValue as any)?.source?.input
+          ? Object.entries(
+              JSON.parse((firstArtifactValue as any)?.source?.input).sources
+            ).sort(([keyA], [keyB]) => {
+              const countA = (keyA.match(/\//g) || []).length;
+              const countB = (keyB.match(/\//g) || []).length;
+              return countA - countB;
+            })
+          : [];
 
         const firstSource = sortedSources[0];
 
@@ -108,8 +109,8 @@ export const CodeExplorer: FC<{
           maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
         >
           <Box px={3} pb={2}>
-            {miscData?.data &&
-              Object.entries(JSON.parse(miscData?.data).artifacts).map(
+            {miscData?.data?.artifacts &&
+              Object.entries(miscData?.data?.artifacts).map(
                 ([artifactKey, artifactValue]) => {
                   return (
                     <Box key={artifactKey} mt={4}>
@@ -150,67 +151,68 @@ export const CodeExplorer: FC<{
                           ABI
                         </Button>
                       </Flex>
-                      {Object.entries(
-                        JSON.parse((artifactValue as any)?.source?.input)
-                          .sources
-                      )
-                        .sort(([keyA], [keyB]) => {
-                          const countA = (keyA.match(/\//g) || []).length;
-                          const countB = (keyB.match(/\//g) || []).length;
-                          return countA - countB; // Sorts in ascending order
-                        })
-                        .map(([sourceKey, sourceValue]) => {
-                          return (
-                            <Tooltip
-                              label={sourceKey}
-                              key={sourceKey}
-                              placement="right"
-                            >
-                              <Box
-                                borderRadius="md"
-                                mb={0.5}
-                                py={0.5}
-                                px="2"
-                                cursor="pointer"
-                                fontSize="sm"
-                                _hover={{ background: 'gray.800' }}
-                                onClick={() => {
-                                  setSelectedCode(
-                                    (sourceValue as any)?.content
-                                  );
-                                  setSelectedLanguage('solidity');
-                                  setSelectedKey(sourceKey);
-                                }}
-                                whiteSpace="nowrap"
-                                overflow="hidden"
-                                textOverflow="ellipsis"
-                                style={{
-                                  direction: 'rtl', // Reverses the text display order
-                                  unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
-                                }}
-                                textAlign="left" // Left-aligns the text
-                                fontWeight={
-                                  selectedKey == sourceKey
-                                    ? 'medium'
-                                    : undefined
-                                }
-                                background={
-                                  selectedKey == sourceKey
-                                    ? 'gray.800'
-                                    : undefined
-                                }
+                      {(artifactValue as any)?.source?.input &&
+                        Object.entries(
+                          JSON.parse((artifactValue as any)?.source?.input)
+                            .sources
+                        )
+                          .sort(([keyA], [keyB]) => {
+                            const countA = (keyA.match(/\//g) || []).length;
+                            const countB = (keyB.match(/\//g) || []).length;
+                            return countA - countB; // Sorts in ascending order
+                          })
+                          .map(([sourceKey, sourceValue]) => {
+                            return (
+                              <Tooltip
+                                label={sourceKey}
+                                key={sourceKey}
+                                placement="right"
                               >
-                                {sourceKey.split('').reverse().join('')}
-                              </Box>
-                            </Tooltip>
-                          );
-                        })}
+                                <Box
+                                  borderRadius="md"
+                                  mb={0.5}
+                                  py={0.5}
+                                  px="2"
+                                  cursor="pointer"
+                                  fontSize="sm"
+                                  _hover={{ background: 'gray.800' }}
+                                  onClick={() => {
+                                    setSelectedCode(
+                                      (sourceValue as any)?.content
+                                    );
+                                    setSelectedLanguage('solidity');
+                                    setSelectedKey(sourceKey);
+                                  }}
+                                  whiteSpace="nowrap"
+                                  overflow="hidden"
+                                  textOverflow="ellipsis"
+                                  style={{
+                                    direction: 'rtl', // Reverses the text display order
+                                    unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
+                                  }}
+                                  textAlign="left" // Left-aligns the text
+                                  fontWeight={
+                                    selectedKey == sourceKey
+                                      ? 'medium'
+                                      : undefined
+                                  }
+                                  background={
+                                    selectedKey == sourceKey
+                                      ? 'gray.800'
+                                      : undefined
+                                  }
+                                >
+                                  {sourceKey.split('').reverse().join('')}
+                                </Box>
+                              </Tooltip>
+                            );
+                          })}
                     </Box>
                   );
                 }
               )}
 
-            {metadata.cannonfile && (
+            {metadata?.cannonfile && (
               <>
                 <Box mt={4}>
                   <Flex flexDirection="row" px="2" alignItems="center" mb="1">

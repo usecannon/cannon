@@ -1,9 +1,14 @@
 import { Metadata } from 'next';
-import { SettingsPage } from '@/features/Settings/SettingsPage';
+import dynamic from 'next/dynamic';
 
 export const metadata: Metadata = {
   title: 'Cannon | Settings',
 };
-export default function Home() {
-  return <SettingsPage />;
+
+const NoSSR = dynamic(() => import('@/features/Settings/SettingsPage'), {
+  ssr: false,
+});
+
+export default function Settings() {
+  return <NoSSR />;
 }
