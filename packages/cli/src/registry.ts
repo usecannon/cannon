@@ -94,7 +94,7 @@ export class LocalRegistry extends CannonRegistry {
           pkgName = `${name}:${version}`
         }
 
-        return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+        return !t.endsWith('.meta') && pkgName.match(packageName) && tagVariant.match(variant);
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
