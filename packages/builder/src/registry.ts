@@ -6,7 +6,7 @@ import CannonRegistryAbi from './abis/CannonRegistry';
 
 import _ from 'lodash';
 
-import { bold, blueBright } from 'chalk';
+import { bold, blueBright, yellow } from 'chalk';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -408,7 +408,7 @@ export class OnChainRegistry extends CannonRegistry {
       }
     } catch (e: any) {
       // We dont want to throw an error if the estimate gas fails
-      console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);
+      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e?.message);
     }
   }
 }
