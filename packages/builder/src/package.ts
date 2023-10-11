@@ -158,7 +158,7 @@ export async function publishPackage({
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -199,7 +199,7 @@ export async function publishPackage({
 
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
     throw new Error(
