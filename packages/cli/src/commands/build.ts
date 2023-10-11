@@ -23,6 +23,9 @@ import { createDefaultReadRegistry } from '../registry';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
+import Debug from 'debug';
+const debug = Debug('cannon:cli:build');
+
 import pkg from '../../package.json';
 
 interface Params {
@@ -101,6 +104,8 @@ export async function build({
   if (plugins) {
     await loadPlugins();
   }
+
+  debug('checking provider', provider);
 
   const chainId = (await provider.getNetwork()).chainId;
 

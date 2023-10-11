@@ -64,13 +64,17 @@ export async function resolveProviderAndSigners({
 
   // ensure provider is enabled and on the chain we expect
   try {
-    await rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
+    rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
     console.error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
-  const ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(rawProvider as any), false);
+  let ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(rawProvider as any), false);
+
+  if (checkProviders[0].startsWith('http')) {
+    ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(checkProviders[0]));
+  }
 
   const signers = [];
 

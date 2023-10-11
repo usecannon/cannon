@@ -169,6 +169,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   if (!opts.chainId && !opts.providerUrl) {
     // doing a local build, just create a anvil rpc
+    debug('doing local anvil build');
     node = await runRpc({
       ...pickAnvilOptions(opts),
       // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
@@ -178,6 +179,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     provider = getProvider(node);
   } else {
     if (opts.providerUrl && !opts.chainId) {
+      debug('doing build with supplied provider url');
       const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
       chainId = (await _provider.getNetwork()).chainId;
     } else {
@@ -186,6 +188,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
+      debug('performing dry run build');
       node = await runRpc(
         {
           ...pickAnvilOptions(opts),
@@ -208,6 +211,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
         return provider.getSigner(addr);
       };
     } else {
+      debug('performing live network build');
       provider = p.provider;
 
       getSigner = async (s) => {
@@ -228,6 +232,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   const { build } = await import('./commands/build');
   const { name, version, def } = await loadCannonfile(cannonfilePath);
+
+  debug('invoking build cli');
 
   const { outputs } = await build({
     provider,
@@ -564,11 +570,14 @@ program
   .action(async function (cannonfile, forgeOpts, opts) {
     const [node, outputs] = await doBuild(cannonfile, [], opts);
 
+    const provider = getProvider(node!);
+    const anvilConnectionUrl = (provider.passThroughProvider as ethers.providers.JsonRpcProvider).connection.url;
+
     // basically we need to write deployments here
     await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
     // after the build is done we can run the forge tests for the user
-    const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
+    const forgeCmd = spawn('forge', ['test', '--fork-url', anvilConnectionUrl, ...forgeOpts]);
 
     forgeCmd.stdout.on('data', (data: Buffer) => {
       process.stdout.write(data);
