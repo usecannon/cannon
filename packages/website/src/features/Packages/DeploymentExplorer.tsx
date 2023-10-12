@@ -22,6 +22,8 @@ import {
   Tr,
   useDisclosure,
 } from '@chakra-ui/react';
+import NextLink from 'next/link';
+import { links } from '@/constants/links';
 import { CodePreview } from '@/components/CodePreview';
 import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -180,8 +182,22 @@ export const DeploymentExplorer: FC<{
   return variant?.deploy_url ? (
     <Box>
       {deploymentData.isLoading ? (
-        <Box py="20" textAlign="center">
-          <CustomSpinner mx="auto" />
+        <Box
+          py="20"
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+        >
+          <CustomSpinner mx="auto" mb="2" />
+          <Text fontSize="sm" mb="1" color="gray.400">
+            Fetching {variant?.deploy_url}
+          </Text>
+          <Text color="gray.500" fontSize="xs">
+            Taking a while?{' '}
+            <Link href={links.SETTINGS} as={NextLink}>
+              Try another IPFS gateway
+            </Link>
+          </Text>
         </Box>
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
