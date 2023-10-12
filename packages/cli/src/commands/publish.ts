@@ -17,12 +17,17 @@ interface Params {
   presetArg?: string;
   quiet?: boolean;
   overrides?: ethers.CallOverrides;
-  publishProvisioned?: boolean;
+  includeProvisioned?: boolean;
 }
 
 interface DeployList {
   name: string;
   versions: string[];
+  variant: string;
+}
+
+interface ProvisionedPackages {
+  packagesNames: string[];
   variant: string;
 }
 
@@ -34,7 +39,7 @@ export async function publish({
   presetArg,
   quiet = false,
   overrides,
-  publishProvisioned = false,
+  includeProvisioned = false,
 }: Params) {
   const cliSettings = resolveCliSettings();
 
@@ -81,7 +86,7 @@ export async function publish({
     variantFilter = new RegExp(`^.*-${selectedPreset}$`);
   }
 
-  const [name, version] = packageRef.split(':');
+  const [, version] = packageRef.split(':');
 
   // if packageRef doesnt contain a version reference we still want to scan deploys without it.
   // This works as a catch all to get any deployment stored locally.
@@ -103,6 +108,23 @@ export async function publish({
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
   }
 
+  // Select screen for when a user is looking for all the local deploys
+  if (!quiet && !version || version.length === 0) {  
+    const verification = await prompts({
+      type: 'autocompleteMultiselect',
+      message: 'Select which deployments you want to publish:\n',
+      name: 'values',
+      choices: deploys.map(d => {return { title: d.name, description: `(preset: ${d.variant.substring(d.variant.indexOf('-') + 1)})`, value: d }}),
+    });
+    
+    if (!verification.values) {
+      console.log('Cancelled');
+      process.exit(1);
+    }
+
+    deploys = verification.values as typeof deploys;
+  }
+
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
@@ -116,7 +138,7 @@ export async function publish({
   });
 
   // "dedupe" the deploys so that when we iterate we dont go over every package deployment by version
-  const dedupedDeploys: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
+  const toDeploy: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
     const matchingDeploys = result.find((i) => i.name === item.name && i.variant === item.variant);
 
     if (matchingDeploys) {
@@ -127,42 +149,41 @@ export async function publish({
     return result;
   }, []);
 
+  let packages: ProvisionedPackages[] = [];
+  let dedupedPackages: ProvisionedPackages[];
+  for (const pkg in toDeploy) {
+    for (const version in toDeploy[pkg].versions) {
+      let provisionedPackages = await getProvisionedPackages(`${toDeploy[pkg].name}:${ toDeploy[pkg].versions[version]}`, toDeploy[pkg].variant, tags, fromStorage);
+      packages.push(...provisionedPackages);
+    }
+
+    dedupedPackages = packages.reduce<ProvisionedPackages[]>((acc, curr) => {
+      if (!acc.some(item => item.packagesNames !== curr.packagesNames && item.variant === curr.variant)) {
+        acc.push(curr);
+      }
+      return acc;
+    }, []);
+  }
+
+
   if (!quiet) {
-    if (publishProvisioned) {
-      dedupedDeploys.forEach(async (deploy) => {
-        interface ProvisionedPackages {
-          packagesNames: string[];
-          variant: string;
-        }
-        
-        // fetch provisioned packages for each version
-        let packages: ProvisionedPackages[] = [];
-
-        for (const version in deploy.versions) {
-          let pkg = await getProvisionedPackages(`${deploy.name}:${ deploy.versions[version]}`, deploy.variant, tags, fromStorage);
-          packages.push(...pkg);
-        }
-
-        const dedupedPackages: ProvisionedPackages[] = packages.reduce<ProvisionedPackages[]>((acc, curr) => {
-          if (!acc.some(item => item.packagesNames !== curr.packagesNames && item.variant === curr.variant)) {
-            acc.push(curr);
-          }
-          return acc;
-        }, []);
-
-        dedupedPackages.forEach((pkg: { packagesNames: string[]; variant: string }) => {
+    if (includeProvisioned) {
+      toDeploy.forEach(() => {
+        dedupedPackages!.forEach((pkg: { packagesNames: string[]; variant: string }) => {
           console.log(blueBright(`This will publish ${bold(pkg.packagesNames[0])} to the registry:`));
-          deploy.versions.forEach((tag) => {
-            console.log(`- ${tag} (preset: ${deploy.variant.substring(deploy.variant.indexOf('-') + 1)})`);
+          pkg.packagesNames.forEach((pkgName) => {
+            const { version } = new PackageReference(pkgName);
+            const preset = pkg.variant.substring(pkg.variant.indexOf('-')+1);
+            console.log(`- ${version} (preset: ${preset})`);
           });
         });
-
-        console.log('\n');
       });
+
+      console.log('\n');
     } else {
       const pkgRef = new PackageReference(packageRef);
       console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
-      dedupedDeploys.forEach((deploy) => {
+      toDeploy.forEach((deploy) => {
         deploy.versions.forEach((tag) => {
           console.log(`- ${tag} (preset: ${deploy.variant.substring(deploy.variant.indexOf('-') + 1)})`);
         });
@@ -185,31 +206,56 @@ export async function publish({
     console.log('\n------\n');
   }
 
-  for (const deploy of deploys) {
-    const newReceipts = await publishPackage({
-      packageRef: deploy.name,
-      variant: deploy.variant,
-      fromStorage,
-      toStorage,
-      tags,
-      publishProvisioned,
-    });
 
-    registrationReceipts.push(...newReceipts);
+  if(includeProvisioned) {
+    for(const pkg in dedupedPackages!) {
+      for(const name in dedupedPackages[pkg].packagesNames) {
+        console.log(`${dedupedPackages[pkg].packagesNames[name]}`)
+        const newReceipts = await publishPackage({
+          packageRef: `${dedupedPackages[pkg].packagesNames[name]}`,
+          variant: dedupedPackages[pkg].variant,
+          fromStorage,
+          toStorage,
+          tags,
+          includeProvisioned,
+        });
+    
+        registrationReceipts.push(...newReceipts);
+      }
+    }
+  } else {
+    for (const deploy of toDeploy) {
+      for (const version of deploy.versions) {
+        console.log(`${deploy.name}:${version}`)
+        const newReceipts = await publishPackage({
+          packageRef: `${deploy.name}:${version}`,
+          variant: deploy.variant,
+          fromStorage,
+          toStorage,
+          tags,
+          includeProvisioned,
+        });
+    
+        registrationReceipts.push(...newReceipts);
+      }
+    }
   }
 
   console.log(bold(blueBright('Packages published:')));
-  dedupedDeploys.forEach(async (deploy) => {
-    if (publishProvisioned) {
-      const packages = await getProvisionedPackages(deploy.name, deploy.variant, tags, fromStorage);
-      packages.forEach((pkg) => {
-        for (const version of deploy.versions) console.log(`  - ${deploy.name}:${version} (preset: ${deploy.variant.substring(deploy.variant.indexOf('-') + 1)}})`);
+  if (includeProvisioned) {
+      dedupedPackages!.forEach((pkg) => {
+        pkg.packagesNames.forEach((pkgName) => {
+          const { basePackageRef } = new PackageReference(pkgName);
+          const preset = pkg.variant.substring(pkg.variant.indexOf('-')+1);
+          console.log(`- ${basePackageRef} (preset: ${preset})`);
+        });
       });
     } else {
-      const pkgRef = new PackageReference(deploy.name);
-      for (const version of deploy.versions) console.log(`  - ${pkgRef.name}:${version}`);
+      toDeploy.forEach((deploy) => {
+        const pkgRef = new PackageReference(deploy.name);
+        for (const version of deploy.versions) console.log(`  - ${pkgRef.name}:${version}`);
+      });
     }
-  });
 
   const txs = registrationReceipts.filter((tx) => !!tx);
   if (txs.length) {

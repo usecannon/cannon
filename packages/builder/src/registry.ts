@@ -7,6 +7,7 @@ import CannonRegistryAbi from './abis/CannonRegistry';
 import _ from 'lodash';
 
 import { bold, blueBright, yellow } from 'chalk';
+import { handleTxnError } from './error';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -267,23 +268,27 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
+  // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
     const datas: string[] = [];
-
-    for(const pkg in packagesNames) {
-      console.log(bold(blueBright('\nPublishing package to the On-Chain registry...\n')));
-      console.log(`Package: ${packagesNames[pkg]}`);
-      console.log(`Package URL: ${url}`);
-      !metaUrl ? null : console.log(`Package Metadata URL: ${metaUrl}`);
-    }
     
+    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const registerPackages of _.values(
       _.groupBy(
         packagesNames.map((n) => n.split(':')),
         (p: string[]) => p[0]
       )
     )) {
+      console.log(`Package: ${registerPackages[0][0]}`);
+      console.log(
+        `Tags: [${registerPackages.map((v, i) => {
+          return `${registerPackages[i][1]}`;
+        })}]`
+      );
+      console.log(`Package URL: ${url}`);
+      !metaUrl ? null : console.log(`Package Metadata URL: ${metaUrl}`);
+
       const tx = this.generatePublishTransactionData(
         registerPackages[0][0],
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
@@ -306,17 +311,23 @@ export class OnChainRegistry extends CannonRegistry {
     const datas: string[] = [];
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
-      console.log(`Package: ${pub.packagesNames[0]}`);
-      console.log(`Package URL: ${pub.url}`);
-      pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
-
-      console.log('\n-----');
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
           (p: string[]) => p[0]
         )
       )) {
+
+        console.log(`Package: ${pub.packagesNames[0]}`);
+        console.log(`Package URL: ${pub.url}`);
+        console.log(
+          `Tags: [${registerPackages.map((v, i) => {
+            return `${registerPackages[i][1]}`;
+          })}]`
+        );
+        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
+  
+        console.log('\n-----');
 
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],
@@ -408,7 +419,7 @@ export class OnChainRegistry extends CannonRegistry {
       }
     } catch (e: any) {
       // We dont want to throw an error if the estimate gas fails
-      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e?.message);
+      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e);
     }
   }
 }

@@ -11,7 +11,7 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile } from './helpers';
+import { checkCannonVersion, loadCannonfile, saveToMetadataCache } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -230,6 +230,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const { build } = await import('./commands/build');
   const { name, version, def } = await loadCannonfile(cannonfilePath);
 
+  await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile)
+  await saveToMetadataCache(`${name}:${version}`, 'version', version)
+
   const { outputs } = await build({
     provider,
     def,
@@ -361,7 +364,7 @@ program
   .option('--private-key <key>', 'Private key to use for publishing the registry package')
   .option('--chain-id <number>', 'The chain ID of the package to publish')
   .option('--preset <preset>', 'The preset of the packages to publish')
-  .option('-t --tags <tags>', 'Comma separated list of labels for your package', 'latest')
+  .option('-t --tags <tags>', 'Comma separated list of labels for your package')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
   .option(
     '--max-fee-per-gas <maxFeePerGas>',
@@ -372,7 +375,7 @@ program
     'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
-  .option('--publish-provisioned', 'Includes provisioned packages when publishing to the registry')
+  .option('--include-provisioned', 'Includes provisioned packages when publishing to the registry')
   .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
@@ -397,6 +400,7 @@ program
         type: 'text',
         name: 'value',
         message: 'Please provide a Private Key',
+        style: 'password'
       });
 
       if (!keyPrompt.value) {
@@ -436,11 +440,11 @@ program
     await publish({
       packageRef,
       signer: p.signers[0],
-      tags: options.tags.split(','),
+      tags: options.tags ? options.tags.split(',') : [],
       chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
       presetArg: options.preset ? (options.preset as string) : undefined,
       quiet: options.quiet,
-      publishProvisioned: options.publishProvisioned,
+      includeProvisioned: options.includeProvisioned,
       overrides,
     });
   });

@@ -274,11 +274,16 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));
+    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
 
+    console.log(metadata);
+
+    const metaUrl = await runtime.putBlob(metadata);
+
+    // locally store cannon packages (version + latest)
     if (persist) {
       await resolver.publish(
-        [`${name}:latest`, `${name}:${version}`],
+        [`${name}:${version}`, `${name}:latest`],
         `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!

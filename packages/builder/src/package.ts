@@ -13,7 +13,7 @@ export type CopyPackageOpts = {
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
-  publishProvisioned?: boolean;
+  includeProvisioned?: boolean;
 };
 
 const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
@@ -127,7 +127,7 @@ export async function getProvisionedPackages(packageRef: string, variant: string
     debug('created initial ctx with deploy info');
 
     return {
-      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map((t) => `${def.getName(preCtx)}:${t}`),
+      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map((t) => `${def.getName(preCtx)}:${t}`),
       variant: context ? `${chainId}-${context.preset}` : variant,
     };
   };
@@ -144,7 +144,7 @@ export async function publishPackage({
   variant,
   fromStorage,
   toStorage,
-  publishProvisioned = false,
+  includeProvisioned = false,
 }: CopyPackageOpts) {
   const { basePackageRef } = new PackageReference(packageRef);
 
@@ -188,7 +188,7 @@ export async function publishPackage({
     debug('created initial ctx with deploy info');
 
     return {
-      packagesNames: [def.getVersion(preCtx), ...(context ? context.tags || [] : tags)].map(
+      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,
@@ -201,13 +201,14 @@ export async function publishPackage({
 
   const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
 
+
   if (!deployData) {
     throw new Error(
       `could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`
     );
   }
 
-  if (publishProvisioned) {
+  if (includeProvisioned) {
     debug('publish recursive');
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);

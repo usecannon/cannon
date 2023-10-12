@@ -159,7 +159,7 @@ describe('package.ts', () => {
         tags: ['tag1', 'tag2'],
         fromStorage,
         toStorage,
-        publishProvisioned: true,
+        includeProvisioned: true,
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
@@ -176,7 +176,7 @@ describe('package.ts', () => {
           tags: [],
           fromStorage,
           toStorage,
-          publishProvisioned: true,
+          includeProvisioned: true,
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored

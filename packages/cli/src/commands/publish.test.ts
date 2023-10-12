@@ -136,7 +136,7 @@ describe('publish command', () => {
       tags,
       chainId,
       quiet: true,
-      publishProvisioned: true,
+      includeProvisioned: true,
       overrides: {},
     });
 
@@ -159,7 +159,7 @@ describe('publish command', () => {
       tags,
       chainId,
       quiet: true,
-      publishProvisioned: true,
+      includeProvisioned: true,
       overrides: {},
     });
 
@@ -192,7 +192,7 @@ describe('publish command', () => {
         tags,
         chainId,
         quiet: true,
-        publishProvisioned: true,
+        includeProvisioned: true,
         overrides: {},
       });
 

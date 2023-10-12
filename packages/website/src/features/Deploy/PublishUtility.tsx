@@ -93,7 +93,7 @@ export default function PublishUtility(props: {
         variant: props.targetVariant,
         fromStorage,
         toStorage,
-        publishProvisioned: true,
+        includeProvisioned: true,
       });
     },
     onSuccess() {
