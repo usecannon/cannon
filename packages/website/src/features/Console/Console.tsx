@@ -22,9 +22,9 @@ export const Console = () => {
 
   useEffect(() => {
     if (boxRef.current) {
-      boxRef.current.scrollTop = boxRef.current.scrollHeight; // Scroll the content of the box to the bottom
+      (boxRef.current as any).scrollTop = (boxRef.current as any).scrollHeight; // Scroll the content of the box to the bottom
     }
-  }, [logs]);
+  }, [boxRef.current]);
 
   return (
     <Flex

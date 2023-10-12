@@ -6,8 +6,7 @@ import { Flex } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
 import { Footer } from '@/features/Footer/Footer';
 import { Console } from '@/features/Console/Console';
-import { ReactNode, useEffect } from 'react';
-import { useLogs } from '@/providers/logsProvider';
+import { ReactNode } from 'react';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -26,12 +25,6 @@ const mono = Roboto_Mono({
 });
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const { addLog } = useLogs();
-
-  //useEffect(() => {
-  //  addLog(`Cannon Initialized`);
-  //}, [addLog]);
-
   return (
     <html lang="en">
       <style jsx global>

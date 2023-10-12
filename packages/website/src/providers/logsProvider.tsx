@@ -18,7 +18,14 @@ function LogsProvider({ children }: { children: ReactNode }) {
   const addLog = (message: string) => {
     const date = new Date();
     console.log(message);
-    setLogs((prevLogs) => [...prevLogs, { date, message }]);
+    setLogs((prevLogs) => {
+      const res = [...prevLogs];
+      if (prevLogs.length === 0) {
+        res.push({ date, message: 'Cannon Initialized' });
+      }
+      res.push({ date, message });
+      return res;
+    });
   };
 
   return (

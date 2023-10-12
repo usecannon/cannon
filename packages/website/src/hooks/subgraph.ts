@@ -18,7 +18,7 @@ export function useQueryCannonSubgraphData<TData = any, TVariables extends Opera
 
   useEffect(() => {
     addLog(`Querying Subgraph: ${(query.definitions[0] as any).name.value}(${JSON.stringify(options?.variables)})`);
-  }, [query]);
+  }, [query, JSON.stringify(options?.variables)]);
 
   const result = useQuery<TData, TVariables>(query, options);
 
