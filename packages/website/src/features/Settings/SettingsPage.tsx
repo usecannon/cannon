@@ -150,7 +150,7 @@ export default function SettingsPage() {
                 Infura
               </Link>{' '}
               endpoints) added below if available for the target chain.
-              Otherwise, it will use the provider from a connected wallet or{' '}
+              Otherwise, it will use{' '}
               <Link isExternal href="https://www.publicnode.com/">
                 PublicNode
               </Link>
@@ -349,10 +349,11 @@ export default function SettingsPage() {
           </Heading>
 
           <Text fontSize="md" mb={4}>
-            Something something{' '}
+            Configure the{' '}
             <Link as={NextLink} href="/deploy">
               deployer
             </Link>
+            .
           </Text>
 
           {entries(SETTINGS).map(([key, s]) => {

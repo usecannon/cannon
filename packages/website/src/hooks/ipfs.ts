@@ -14,13 +14,14 @@ export function useQueryIpfsData(url?: string, enabled?: boolean) {
         throw new Error(`Invalid IPFS url: ${url}`);
       }
       const cid = url.replace('ipfs://', '');
-      const res = await axios.get(`${settings.ipfsQueryUrl}${cid}`, {
+      const queryUrl = `${settings.ipfsQueryUrl}${cid}`;
+      const res = await axios.get(queryUrl, {
         responseType: 'arraybuffer',
         signal,
       });
       const data = pako.inflate(res.data, { to: 'string' });
       const result = JSON.parse(data);
-      addLog(`Loaded IPFS from URL ${url}: ${JSON.stringify(result)}`);
+      addLog(`Querying IPFS: ${queryUrl}`);
       return result;
     },
     enabled,

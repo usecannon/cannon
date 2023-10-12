@@ -13,7 +13,7 @@ export function useContractCall(to: Address, functionName: string, params: any, 
 
   const fetch = async () => {
     const result = await contractCall(to, functionName, params, abi, publicClient, settings.pythUrl);
-    addLog(`Contract ${to} call of ${functionName} method with parameters (${params}) returned ${result}`);
+    addLog(`Querying ${to}: ${functionName}(${params})`);
     setData(result);
   };
   return [data, fetch];
@@ -43,7 +43,7 @@ export function useContractTransaction(
       walletClient,
       settings.pythUrl
     );
-    addLog(`Hash of contract ${to} tx using ${functionName} method with parameters (${params}) is ${result}`);
+    addLog(`Sending ${to}: ${functionName}(${params})`);
     setData(result);
   };
   return [data, fetch];

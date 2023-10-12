@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Box,
@@ -17,6 +17,14 @@ export const Console = () => {
   //const isMobile = useBreakpointValue([true, true, false]);
   const [isOpen, setIsOpen] = useState(false);
   const { logs } = useLogs();
+
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    if (boxRef.current) {
+      boxRef.current.scrollTop = boxRef.current.scrollHeight; // Scroll the content of the box to the bottom
+    }
+  }, [logs]);
 
   return (
     <Flex
@@ -109,6 +117,7 @@ export const Console = () => {
               position="relative"
               display="block"
               zIndex="1"
+              ref={boxRef}
             >
               {logs.map((log, i) => (
                 <Text
@@ -118,7 +127,7 @@ export const Console = () => {
                   fontSize="xs"
                   fontFamily="var(--font-miriam)"
                 >
-                  {`[${format(log.date, 'kk.mm.ss:SSSS')}] ${log.message}`}
+                  {`[${format(log.date, 'kk:mm:ss')}] ${log.message}`}
                 </Text>
               ))}
             </Box>

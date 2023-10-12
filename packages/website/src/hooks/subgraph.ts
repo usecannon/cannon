@@ -16,16 +16,11 @@ export function useQueryCannonSubgraphData<TData = any, TVariables extends Opera
 ): QueryResult<TData, TVariables> {
   const { addLog } = useLogs();
 
-  const result = useQuery<TData, TVariables>(query, options);
-  const { data } = result;
-
   useEffect(() => {
-    addLog(
-      `Subgraph Query ${JSON.stringify((query.definitions[0] as any).name.value)} with variables: ${JSON.stringify(
-        options?.variables
-      )} responded with result: ${JSON.stringify(data)}`
-    );
-  }, [query, data]);
+    addLog(`Querying Subgraph: ${(query.definitions[0] as any).name.value}(${JSON.stringify(options?.variables)})`);
+  }, [query]);
+
+  const result = useQuery<TData, TVariables>(query, options);
 
   return result;
 }
