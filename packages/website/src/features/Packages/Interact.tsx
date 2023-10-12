@@ -1,7 +1,17 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
-import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  Code,
+  Flex,
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import axios from 'axios';
 import pako from 'pako';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
@@ -97,22 +107,13 @@ export const Interact: FC<{
   )}`;
 
   return (
-    <Box position="relative">
+    <>
       {loading ? (
         <Box py="20" textAlign="center">
           <CustomSpinner mx="auto" />
         </Box>
       ) : (
-        <Box
-          bg="black"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-          transition="all 0.12s"
-          overflow="hidden"
-        >
+        <>
           <Flex
             bg="gray.800"
             p={2}
@@ -176,8 +177,8 @@ export const Interact: FC<{
             cannonOutputs={cannonOutputs}
             chainId={currentVariant?.chain_id}
           />
-        </Box>
+        </>
       )}
-    </Box>
+    </>
   );
 };
