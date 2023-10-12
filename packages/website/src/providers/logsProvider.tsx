@@ -1,4 +1,10 @@
-import { ReactNode, createContext, useContext, useState } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 export type Log = {
   date: Date;
@@ -27,6 +33,16 @@ function LogsProvider({ children }: { children: ReactNode }) {
       return res;
     });
   };
+
+  useEffect(() => {
+    setLogs((prevLogs) => {
+      const res = [...prevLogs];
+      if (prevLogs.length === 0) {
+        res.push({ date: new Date(), message: 'Cannon Initialized' });
+      }
+      return res;
+    });
+  }, []);
 
   return (
     <LogsContext.Provider
