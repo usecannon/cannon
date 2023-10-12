@@ -13,7 +13,8 @@ export function useContractCall(to: Address, functionName: string, params: any, 
 
   const fetch = async () => {
     const result = await contractCall(to, functionName, params, abi, publicClient, settings.pythUrl);
-    addLog(`Querying ${to}: ${functionName}(${params})`);
+
+    addLog(`Querying ${to} (Chain ID ${publicClient.chain.id}): ${functionName}(${params})`);
     setData(result);
   };
   return [data, fetch];
