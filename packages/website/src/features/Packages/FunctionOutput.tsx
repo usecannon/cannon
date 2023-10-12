@@ -20,9 +20,9 @@ export const FunctionOutput: FC<{
 
   return (
     <>
-      {output.length == 0 && (
+      {(output as Array<any>).length == 0 && (
         <Flex flex="1">
-          <Text fontSize="sm" my="auto" color="gray.500">
+          <Text fontSize="sm" m="auto" color="gray.500">
             <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
             any values
           </Text>
