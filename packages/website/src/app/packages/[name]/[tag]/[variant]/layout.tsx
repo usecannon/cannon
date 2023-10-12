@@ -56,7 +56,7 @@ export default function PackageLayout({
                   <Heading as="h1" size="lg" mb="2">
                     {pkg?.name}
                   </Heading>
-                  <PublishInfo p={pkg} />
+                  <PublishInfo p={currentVariant} />
                 </Box>
                 <Box ml={[0, 0, 'auto']} mt={[6, 6, 0]}>
                   <VersionSelect pkg={pkg} currentVariant={currentVariant} />
