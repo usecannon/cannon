@@ -1,9 +1,7 @@
 import { GetPackagesQuery } from '@/types/graphql/graphql';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { Box, Text, Button, Heading } from '@chakra-ui/react';
 import chainData from '@/constants/chainsData';
-import axios from 'axios';
-import pako from 'pako';
 import { ChainArtifacts } from '@usecannon/builder';
 import {
   Modal,
@@ -22,6 +20,7 @@ import { CodePreview } from '@/components/CodePreview';
 import { getOutput } from '@/lib/builder'; //Example style, you can use another
 import style from './packageNetworks.module.scss';
 import { CustomSpinner } from './CustomSpinner';
+import { useQueryIpfsData } from '@/hooks/ipfs';
 
 type Package = GetPackagesQuery['packages'][0];
 type Tag = Package['tags'][0];
@@ -55,47 +54,33 @@ const PackageNetworks: FC<{
   }, [p]);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [deployUrl, setDeployUrl] = useState<string | undefined>();
 
-  const [ipfs, setIpfs] = useState<{ state: any; def: any }>({
-    state: {},
-    def: {},
-  });
+  const {
+    data: ipfs,
+    refetch: refetchIpfs,
+    isLoading,
+  } = useQueryIpfsData(deployUrl, false);
 
-  const [deployData, setDeployData] = useState('');
-  const [deployUrl, setDeployUrl] = useState('');
+  const deployData = useMemo(() => {
+    if (!ipfs) {
+      return '';
+    }
 
-  useEffect(() => {
     const artifacts: ChainArtifacts = getOutput(ipfs);
-
     const _deployData = JSON.stringify(artifacts?.contracts, null, 2);
-    setDeployData(_deployData);
+    return _deployData;
   }, [ipfs]);
 
-  // TODO: Remove unused chainId param? (added console.log to fix TS build)
   const openModal = async (url: string) => {
     setIsOpen(true);
     setDeployUrl(url);
-
-    setLoading(true);
-    const response = await axios.get(
-      `https://ipfs.io/ipfs/${url.replace('ipfs://', '')}`,
-      { responseType: 'arraybuffer' }
-    );
-
-    // Parse IPFS data
-    const uint8Array = new Uint8Array(response.data);
-    const inflated = pako.inflate(uint8Array);
-    const raw = new TextDecoder().decode(inflated);
-    setIpfs(JSON.parse(raw));
-    setLoading(false);
+    void refetchIpfs();
   };
 
   const closeModal = () => {
     setIsOpen(false);
-    setDeployUrl('');
-    setDeployData('');
-    setIpfs({ state: {}, def: {} });
+    setDeployUrl(undefined);
   };
 
   const copyToClipboard = useCopy();
@@ -148,7 +133,7 @@ const PackageNetworks: FC<{
           </ModalHeader>
           <ModalCloseButton onClick={closeModal} />
           <ModalBody>
-            {loading && (
+            {isLoading && (
               <Box py="20" textAlign="center">
                 <CustomSpinner />
               </Box>

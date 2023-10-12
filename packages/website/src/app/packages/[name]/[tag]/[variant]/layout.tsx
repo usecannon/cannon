@@ -8,7 +8,7 @@ import { VersionSelect } from '@/features/Packages/VersionSelect';
 
 import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import { useQuery } from '@apollo/client';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePathname } from 'next/navigation';
 
@@ -19,7 +19,7 @@ export default function PackageLayout({
   children: ReactNode;
   params: { name: string; tag: string; variant: string };
 }) {
-  const { data } = useQuery<any, any>(GET_PACKAGE, {
+  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name: params.name },
   });
 

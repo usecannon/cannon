@@ -23,10 +23,11 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, getContract } from 'viem';
+import { Address } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -36,10 +37,9 @@ export const Function: FC<{
   chainId: number;
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
-  const { isConnected } = useAccount();
+  const { isConnected, address: from } = useAccount();
   const { connectAsync } = useConnect();
   const { openConnectModal } = useConnectModal();
   const { chain: connectedChain } = useNetwork();
@@ -51,6 +51,25 @@ export const Function: FC<{
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
   });
+
+  const [readContractResult, fetchReadContractResult] = useContractCall(
+    address as Address,
+    f.name,
+    params,
+    abi,
+    publicClient
+  );
+
+  const [writeContractResult, fetchWriteContractResult] =
+    useContractTransaction(
+      from as Address,
+      address as Address,
+      f.name,
+      params,
+      abi,
+      publicClient,
+      walletClient as any
+    );
 
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
@@ -75,18 +94,8 @@ export const Function: FC<{
     setLoading(true);
     setError(null);
     try {
-      const contract = getContract({
-        address: address as Address,
-        abi,
-        publicClient,
-        walletClient: walletClient || undefined,
-      });
-
       if (readOnly) {
-        const _result = await contract.read[f.name](
-          Array.isArray(params) ? params : [params]
-        );
-        setResult(_result);
+        await fetchReadContractResult();
       } else {
         if (!isConnected) {
           try {
@@ -101,10 +110,7 @@ export const Function: FC<{
           if (newChain?.id != chainId) return;
         }
         try {
-          const _result = await contract.write[f.name](
-            Array.isArray(params) ? params : [params]
-          );
-          setResult(_result);
+          await fetchWriteContractResult();
         } catch (e) {
           console.error(e);
         }
@@ -171,9 +177,13 @@ export const Function: FC<{
           {error}
         </Alert>
       )}
-      {result != null && (
+      {((readOnly && readContractResult != null) ||
+        (!readOnly && writeContractResult != null)) && (
         <Box>
-          <FunctionOutput result={result} output={f.outputs} />
+          <FunctionOutput
+            result={readOnly ? readContractResult : writeContractResult}
+            output={f.outputs}
+          />
         </Box>
       )}
 
