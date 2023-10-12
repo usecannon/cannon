@@ -95,7 +95,7 @@ export const Function: FC<{
     setError(null);
     try {
       if (readOnly) {
-        fetchReadContractResult();
+        await fetchReadContractResult();
       } else {
         if (!isConnected) {
           try {
@@ -110,7 +110,7 @@ export const Function: FC<{
           if (newChain?.id != chainId) return;
         }
         try {
-          fetchWriteContractResult();
+          await fetchWriteContractResult();
         } catch (e) {
           console.error(e);
         }
