@@ -2,9 +2,8 @@
 
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import { useQuery } from '@apollo/client';
-import axios from 'axios';
-import pako from 'pako';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { useQueryIpfsData } from '@/hooks/ipfs';
 import {
   Box,
   Button,
@@ -16,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
   Text,
-  useBreakpointValue,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -35,7 +33,7 @@ export const InteractTab: FC<{
   variant: string;
   children?: ReactNode;
 }> = ({ name, tag, variant, children }) => {
-  const { data } = useQuery<any, any>(GET_PACKAGE, {
+  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
@@ -44,7 +42,6 @@ export const InteractTab: FC<{
   const router = useRouter();
 
   const [pkg, setPackage] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
   const [highlightedOptions, setHighlightedOptions] = useState<Option[]>([]);
   const [otherOptions, setOtherOptions] = useState<Option[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -63,109 +60,76 @@ export const InteractTab: FC<{
     );
   };
 
+  const deploymentData = useQueryIpfsData(
+    currentVariant?.deploy_url,
+    !!currentVariant?.deploy_url
+  );
+
   useEffect(() => {
-    if (!currentVariant) return;
-    setLoading(true);
+    if (!deploymentData.data) {
+      return;
+    }
 
-    const controller = new AbortController();
+    let highlightedData: any[] = [];
+    let allContracts: any[] = [];
 
-    const url = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
-      'ipfs://',
-      ''
-    )}`;
-
-    axios
-      .get(url, { responseType: 'arraybuffer' })
-      .then((response) => {
-        // Parse IPFS data
-        const uint8Array = new Uint8Array(response.data);
-        const inflated = pako.inflate(uint8Array);
-        const raw = new TextDecoder().decode(inflated);
-        const _ipfs = JSON.parse(raw);
-
-        // Get Builder Outputs
-        const cannonOutputs: ChainArtifacts = getOutput(_ipfs);
-
-        let highlightedData: any[] = [];
-        let allContracts: any[] = [];
-
-        const processContracts = (contracts: any, moduleName: string) => {
-          const processedContracts = Object.entries(contracts).map(
-            ([k, v]) => ({
-              moduleName: moduleName,
-              contractName: k,
-              contractAddress: (v as any).address,
-              highlight: v.highlight,
-            })
-          );
-          allContracts = allContracts.concat(processedContracts);
-        };
-
-        if (cannonOutputs.contracts) {
-          processContracts(cannonOutputs.contracts, name);
-        }
-
-        const processImports = (imports: any, parentModuleName: string) => {
-          if (imports) {
-            Object.entries(imports).forEach(([k, v]) => {
-              const moduleName = parentModuleName
-                ? `${parentModuleName}.${k}`
-                : k;
-              processContracts((v as any).contracts, moduleName);
-              processImports((v as any).imports, moduleName);
-            });
-          }
-        };
-
-        processImports(cannonOutputs.imports, '');
-
-        const highlightedContracts = allContracts.filter(
-          (contract) => contract.highlight
-        );
-        const proxyContracts = allContracts.filter((contract) =>
-          contract.contractName.toLowerCase().includes('proxy')
-        );
-
-        if (highlightedContracts.length > 0) {
-          highlightedData = highlightedContracts;
-        } else if (proxyContracts.length > 0) {
-          highlightedData = proxyContracts;
-        } else {
-          highlightedData = allContracts;
-        }
-
-        setHighlightedOptions(highlightedData);
-
-        const otherData = allContracts.filter(
-          (contract) => !highlightedData.includes(contract)
-        );
-        setOtherOptions(otherData);
-
-        if (!activeContract) {
-          if (highlightedData.length > 0) {
-            selectContract(highlightedData[0].contractAddress);
-          } else if (otherData.length > 0) {
-            selectContract(otherData[0].contractAddress);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    return () => {
-      controller.abort();
+    const processContracts = (contracts: any, moduleName: string) => {
+      const processedContracts = Object.entries(contracts).map(([k, v]) => ({
+        moduleName: moduleName,
+        contractName: k,
+        contractAddress: (v as any).address,
+        highlight: v.highlight,
+      }));
+      allContracts = allContracts.concat(processedContracts);
     };
-  }, [currentVariant]);
 
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
+    const cannonOutputs: ChainArtifacts = getOutput(deploymentData.data);
+    if (cannonOutputs.contracts) {
+      processContracts(cannonOutputs.contracts, name);
+    }
+
+    const processImports = (imports: any, parentModuleName: string) => {
+      if (imports) {
+        Object.entries(imports).forEach(([k, v]) => {
+          const moduleName = parentModuleName ? `${parentModuleName}.${k}` : k;
+          processContracts((v as any).contracts, moduleName);
+          processImports((v as any).imports, moduleName);
+        });
+      }
+    };
+
+    processImports(cannonOutputs.imports, '');
+
+    const highlightedContracts = allContracts.filter(
+      (contract) => contract.highlight
+    );
+    const proxyContracts = allContracts.filter((contract) =>
+      contract.contractName.toLowerCase().includes('proxy')
+    );
+
+    if (highlightedContracts.length > 0) {
+      highlightedData = highlightedContracts;
+    } else if (proxyContracts.length > 0) {
+      highlightedData = proxyContracts;
+    } else {
+      highlightedData = allContracts;
+    }
+
+    setHighlightedOptions(highlightedData);
+
+    const otherData = allContracts.filter(
+      (contract) => !highlightedData.includes(contract)
+    );
+    setOtherOptions(otherData);
+
+    if (!activeContract) {
+      if (highlightedData.length > 0) {
+        selectContract(highlightedData[0].contractAddress);
+      } else if (otherData.length > 0) {
+        selectContract(otherData[0].contractAddress);
+      }
+    }
+  }, [deploymentData.data]);
 
   return (
     <>
@@ -331,7 +295,7 @@ export const InteractTab: FC<{
         )}
       </Flex>
 
-      {currentVariant && !loading ? (
+      {currentVariant && !deploymentData.isLoading ? (
         <Box>{children}</Box>
       ) : (
         <CustomSpinner m="auto" />

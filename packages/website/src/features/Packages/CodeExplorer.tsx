@@ -1,6 +1,4 @@
 import { FC, useEffect, useState } from 'react';
-import axios from 'axios';
-import pako from 'pako';
 import {
   Box,
   Button,
@@ -14,7 +12,7 @@ import {
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import { CodePreview } from '@/components/CodePreview';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryIpfsData } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
@@ -35,47 +33,15 @@ const handleDownload = (content: JSON, filename: string) => {
 export const CodeExplorer: FC<{
   variant: any;
 }> = ({ variant }) => {
-  const [metadata, setMetadata] = useState<any>({});
-  const [loading, setLoading] = useState(true);
+  const { data: metadata } = useQueryIpfsData(
+    variant?.meta_url,
+    !!variant?.meta_url
+  );
 
-  useEffect(() => {
-    const controller = new AbortController();
-    if (variant?.meta_url) {
-      axios
-        .get(
-          `https://ipfs.io/ipfs/${variant?.meta_url?.replace('ipfs://', '')}`,
-          { responseType: 'arraybuffer', signal: controller.signal }
-        )
-        .then((response) => {
-          const uint8Array = new Uint8Array(response.data);
-          const inflated = pako.inflate(uint8Array);
-          const raw = new TextDecoder().decode(inflated);
-          setMetadata(JSON.parse(raw));
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }
-    return () => {
-      controller.abort();
-    };
-  }, [variant]);
-
-  const deploymentData = useQuery({
-    queryKey: [variant?.deploy_url],
-    queryFn: async ({ signal }) => {
-      if (typeof variant?.deploy_url !== 'string') {
-        throw new Error(`Invalid deploy url: ${variant?.deploy_url}`);
-      }
-      const cid = variant?.deploy_url.replace('ipfs://', '');
-      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
-        responseType: 'arraybuffer',
-        signal,
-      });
-      const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.stringify(JSON.parse(data), null, 2);
-    },
-  });
+  const deploymentData = useQueryIpfsData(
+    variant?.deploy_url,
+    !!variant?.deploy_url
+  );
 
   let miscUrl: string | undefined;
   if (deploymentData?.data) {
@@ -85,33 +51,11 @@ export const CodeExplorer: FC<{
         : JSON.parse(JSON.stringify((deploymentData as any)?.data))?.miscUrl;
   }
 
-  const miscData = useQuery({
-    queryKey: [miscUrl],
-    queryFn: async ({ signal }) => {
-      if (typeof miscUrl !== 'string') {
-        throw new Error(`Invalid deploy url: ${miscUrl}`);
-      }
-      const cid = miscUrl.replace('ipfs://', '');
-      const res = await axios.get(`https://ipfs.io/ipfs/${cid}`, {
-        responseType: 'arraybuffer',
-        signal,
-      });
-      const data = pako.inflate(res.data, { to: 'string' });
-      return JSON.stringify(JSON.parse(data), null, 2);
-    },
-    enabled: !!miscUrl,
-    onSuccess: () => {
-      setLoading(false);
-    },
-    onError: () => {
-      setLoading(false);
-    },
-  });
+  const miscData = useQueryIpfsData(miscUrl, !!miscUrl);
 
   useEffect(() => {
     if (miscData?.data) {
-      const parsedData = JSON.parse(miscData.data);
-      const firstArtifact = Object.entries(parsedData.artifacts).sort(
+      const firstArtifact = Object.entries(miscData.data.artifacts).sort(
         ([keyA], [keyB]) => {
           const countA = (keyA.match(/:/g) || []).length;
           const countB = (keyB.match(/:/g) || []).length;
@@ -121,13 +65,15 @@ export const CodeExplorer: FC<{
 
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
-        const sortedSources = Object.entries(
-          JSON.parse((firstArtifactValue as any)?.source?.input).sources
-        ).sort(([keyA], [keyB]) => {
-          const countA = (keyA.match(/\//g) || []).length;
-          const countB = (keyB.match(/\//g) || []).length;
-          return countA - countB;
-        });
+        const sortedSources = (firstArtifactValue as any)?.source?.input
+          ? Object.entries(
+              JSON.parse((firstArtifactValue as any)?.source?.input).sources
+            ).sort(([keyA], [keyB]) => {
+              const countA = (keyA.match(/\//g) || []).length;
+              const countB = (keyB.match(/\//g) || []).length;
+              return countA - countB;
+            })
+          : [];
 
         const firstSource = sortedSources[0];
 
@@ -151,12 +97,11 @@ export const CodeExplorer: FC<{
   const [selectedLangauge, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
 
-  const artifacts =
-    miscData?.data && Object.entries(JSON.parse(miscData?.data).artifacts);
+  const artifacts = miscData?.data && Object.entries(miscData?.data.artifacts);
 
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
-      {loading ? (
+      {!miscData?.data ? (
         <CustomSpinner m="auto" />
       ) : artifacts?.length ? (
         <Flex flex="1" direction={['column', 'column', 'row']}>

@@ -3,12 +3,12 @@ import { EthersAdapter } from '@safe-global/protocol-kit';
 import { ethers } from 'ethers';
 import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
 import { mainnet, useAccount, useChainId, useContractReads, useQuery } from 'wagmi';
-import { infuraProvider } from 'wagmi/providers/infura';
 import { chains } from '@/constants/deployChains';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import * as onchainStore from '@/helpers/onchain-store';
-import { supportedChains } from '@/app/walletProvider';
+import { supportedChains } from '@/providers/walletProvider';
+import { findChainUrl } from '@/helpers/rpc';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -74,7 +74,7 @@ function _createSafeApiKit(chainId: number) {
   const provider = new ethers.providers.Web3Provider(
     createWalletClient({
       chain: mainnet,
-      transport: http(infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '' })(mainnet)?.rpcUrls.http[0]),
+      transport: http(findChainUrl(mainnet.id)),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any
   );

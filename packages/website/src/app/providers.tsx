@@ -5,7 +5,8 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import apolloClient from '@/graphql/ApolloClient';
 import { ApolloProvider } from '@apollo/client';
-import WalletProvider from '@/app/walletProvider';
+import LogsProvider from '@/providers/logsProvider';
+import WalletProvider from '@/providers/walletProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -28,7 +29,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <ChakraProvider theme={theme} colorModeManager={csm as any}>
         <ApolloProvider client={apolloClient}>
           <QueryClientProvider client={queryClient}>
-            <WalletProvider>{children}</WalletProvider>
+            <LogsProvider>
+              <WalletProvider>{children}</WalletProvider>
+            </LogsProvider>
           </QueryClientProvider>
         </ApolloProvider>
       </ChakraProvider>

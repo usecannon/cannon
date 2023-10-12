@@ -1,23 +1,12 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import { useQuery } from '@apollo/client';
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Code,
-  Flex,
-  Heading,
-  Link,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
-import axios from 'axios';
-import pako from 'pako';
+import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { useQueryIpfsData } from '@/hooks/ipfs';
 
 export const Interact: FC<{
   name: string;
@@ -25,12 +14,11 @@ export const Interact: FC<{
   variant: string;
   contractAddress: string;
 }> = ({ name, tag, variant, contractAddress }) => {
-  const { data } = useQuery<any, any>(GET_PACKAGE, {
+  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
   const [pkg, setPackage] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
   const [moduleName, setModuleName] = useState<string | undefined>();
   const [contract, setContract] = useState<ContractData | undefined>();
@@ -43,63 +31,38 @@ export const Interact: FC<{
     (v: any) => v.name === variant && v.tag.name === tag
   );
 
+  const { data: ipfs, isLoading } = useQueryIpfsData(
+    currentVariant?.deploy_url,
+    !!currentVariant?.deploy_url
+  );
+
   useEffect(() => {
-    if (!currentVariant) return;
-    setLoading(true);
+    if (!ipfs) {
+      return;
+    }
 
-    const controller = new AbortController();
+    const cannonOutputs: ChainArtifacts = getOutput(ipfs);
+    setCannonOutputs(cannonOutputs);
 
-    const url = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
-      'ipfs://',
-      ''
-    )}`;
-
-    axios
-      .get(url, { responseType: 'arraybuffer' })
-      .then((response) => {
-        // Parse IPFS data
-        const uint8Array = new Uint8Array(response.data);
-        const inflated = pako.inflate(uint8Array);
-        const raw = new TextDecoder().decode(inflated);
-        const _ipfs = JSON.parse(raw);
-
-        // Get Builder Outputs
-        const cannonOutputs: ChainArtifacts = getOutput(_ipfs);
-        setCannonOutputs(cannonOutputs);
-        const findContract = (
-          contracts: any,
-          moduleName: string,
-          imports: any
-        ) => {
-          if (contracts) {
-            Object.entries(contracts).forEach(([, v]) => {
-              if ((v as ContractData).address === contractAddress) {
-                setContract(v as ContractData);
-                setModuleName(moduleName);
-                return;
-              }
-            });
+    const findContract = (contracts: any, moduleName: string, imports: any) => {
+      if (contracts) {
+        Object.entries(contracts).forEach(([, v]) => {
+          if ((v as ContractData).address === contractAddress) {
+            setContract(v as ContractData);
+            setModuleName(moduleName);
+            return;
           }
+        });
+      }
 
-          if (imports) {
-            Object.entries(imports).forEach(([k, v]) =>
-              findContract((v as any).contracts, k, (v as any).imports)
-            );
-          }
-        };
-        findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    return () => {
-      controller.abort();
+      if (imports) {
+        Object.entries(imports).forEach(([k, v]) =>
+          findContract((v as any).contracts, k, (v as any).imports)
+        );
+      }
     };
-  }, [currentVariant]);
+    findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
+  }, [ipfs]);
 
   const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
     'ipfs://',
@@ -114,7 +77,7 @@ export const Interact: FC<{
 
   return (
     <>
-      {loading ? (
+      {isLoading ? (
         <Box py="20" textAlign="center">
           <CustomSpinner mx="auto" />
         </Box>

@@ -24,11 +24,12 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, getContract } from 'viem';
+import { Address } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
+import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -39,10 +40,10 @@ export const Function: FC<{
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [simulatedResult, setSimulatedResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
-  const { isConnected } = useAccount();
+  const { isConnected, address: from } = useAccount();
   const { connectAsync } = useConnect();
   const { openConnectModal } = useConnectModal();
   const { chain: connectedChain } = useNetwork();
@@ -55,9 +56,44 @@ export const Function: FC<{
     chainId: chainId as number,
   });
 
+  const [readContractResult, fetchReadContractResult] = useContractCall(
+    address as Address,
+    f.name,
+    params,
+    abi,
+    publicClient
+  );
+
+  const [writeContractResult, fetchWriteContractResult] =
+    useContractTransaction(
+      from as Address,
+      address as Address,
+      f.name,
+      params,
+      abi,
+      publicClient,
+      walletClient as any
+    );
+
   const readOnly = useMemo(
     () => f.stateMutability == 'view' || f.stateMutability == 'pure',
     [f.stateMutability]
+  );
+
+  const result = useMemo(
+    () =>
+      readOnly
+        ? readContractResult
+        : simulated
+        ? simulatedResult
+        : writeContractResult,
+    [
+      readOnly,
+      simulated,
+      simulatedResult,
+      readContractResult,
+      writeContractResult,
+    ]
   );
 
   // useEffect(() => {
@@ -75,18 +111,8 @@ export const Function: FC<{
     setSimulated(simulate);
 
     try {
-      const contract = getContract({
-        address: address as Address,
-        abi,
-        publicClient,
-        walletClient: walletClient || undefined,
-      });
-
       if (readOnly) {
-        const _result = await contract.read[f.name](
-          Array.isArray(params) ? params : [params]
-        );
-        setResult(_result);
+        await fetchReadContractResult();
       } else {
         if (!isConnected) {
           try {
@@ -103,17 +129,20 @@ export const Function: FC<{
         }
 
         const _params = Array.isArray(params) ? params : [params];
-        const _result = simulate
-          ? await publicClient.simulateContract({
-              address: address as Address,
-              abi,
-              functionName: f.name,
-              args: _params,
-              account: walletClient?.account || undefined,
-            })
-          : await contract.write[f.name](_params);
 
-        setResult(_result);
+        if (simulate) {
+          const result = await publicClient.simulateContract({
+            address: address as Address,
+            abi,
+            functionName: f.name,
+            args: _params,
+            account: walletClient?.account || undefined,
+          });
+
+          setSimulatedResult(result);
+        } else {
+          await fetchWriteContractResult();
+        }
       }
     } catch (e: any) {
       if (!suppressError) {
