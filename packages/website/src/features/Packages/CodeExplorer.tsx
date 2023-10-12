@@ -116,7 +116,7 @@ export const CodeExplorer: FC<{
             maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
           >
             <Box px={3} pb={2}>
-              {artifacts.map(([artifactKey, artifactValue]) => {
+              {artifacts.map(([artifactKey, artifactValue]: [any, any]) => {
                 return (
                   <Box key={artifactKey} mt={4}>
                     <Flex flexDirection="row" px="2" alignItems="center" mb="1">
