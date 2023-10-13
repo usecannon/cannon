@@ -131,7 +131,7 @@ export const Function: FC<{
         const _params = Array.isArray(params) ? params : [params];
 
         if (simulate) {
-          const result = await publicClient.simulateContract({
+          const { result } = await publicClient.simulateContract({
             address: address as Address,
             abi,
             functionName: f.name,
