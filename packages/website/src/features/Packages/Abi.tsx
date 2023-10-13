@@ -10,6 +10,7 @@ import {
   useBreakpointValue,
   AlertIcon,
   Alert,
+  Heading,
 } from '@chakra-ui/react';
 
 export const Abi: FC<{
@@ -22,6 +23,14 @@ export const Abi: FC<{
     () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
   );
+
+  const readFunctions = functions
+    ?.filter((func) => ['view', 'pure'].includes(func.stateMutability))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const writeFunctions = functions
+    ?.filter((func) => !['view', 'pure'].includes(func.stateMutability))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -44,42 +53,81 @@ export const Abi: FC<{
             maxHeight={['140px', '140px', 'calc(100vh - 185px)']}
           >
             <Box px={3} pb={2}>
-              <Text fontSize="xs" fontWeight="semibold">
-                View Functions
-              </Text>
-              {functions?.map((f, index) => (
-                <Link
-                  display="block"
-                  fontSize="xs"
-                  color="gray.200"
-                  key={index}
-                  mr={2}
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
-                  )
-                </Link>
-              ))}
-              <Text fontSize="xs" fontWeight="semibold">
-                Write Functions
-              </Text>
-              {functions?.map((f, index) => (
-                <Link
-                  display="block"
-                  fontSize="xs"
-                  color="gray.200"
-                  key={index}
-                  mr={2}
-                >
-                  {f.name}(
-                  {f.inputs
-                    .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-                    .join(',')}
-                  )
-                </Link>
-              ))}
+              <Box mt={4}>
+                <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                  <Heading
+                    fontWeight="500"
+                    size="sm"
+                    color="gray.200"
+                    letterSpacing="0.1px"
+                    mr="1"
+                  >
+                    Read Functions
+                  </Heading>
+                </Flex>
+
+                {readFunctions?.map((f, index) => (
+                  <Box
+                    borderRadius="md"
+                    mb={0.5}
+                    py={0.5}
+                    px="2"
+                    cursor="pointer"
+                    fontSize="sm"
+                    _hover={{ background: 'gray.800' }}
+                    onClick={() => {}}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    fontWeight={false ? 'medium' : undefined}
+                    background={false ? 'gray.800' : undefined}
+                    key={index}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </Box>
+                ))}
+              </Box>
+              <Box mt={4}>
+                <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                  <Heading
+                    fontWeight="500"
+                    size="sm"
+                    color="gray.200"
+                    letterSpacing="0.1px"
+                    mr="1"
+                  >
+                    Write Functions
+                  </Heading>
+                </Flex>
+                {writeFunctions?.map((f, index) => (
+                  <Box
+                    borderRadius="md"
+                    mb={0.5}
+                    py={0.5}
+                    px="2"
+                    cursor="pointer"
+                    fontSize="sm"
+                    _hover={{ background: 'gray.800' }}
+                    onClick={() => {}}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    fontWeight={false ? 'medium' : undefined}
+                    background={false ? 'gray.800' : undefined}
+                    key={index}
+                  >
+                    {f.name}(
+                    {f.inputs
+                      .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+                      .join(',')}
+                    )
+                  </Box>
+                ))}
+              </Box>
             </Box>
           </Flex>
 
