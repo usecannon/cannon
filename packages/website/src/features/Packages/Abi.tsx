@@ -12,6 +12,7 @@ import {
   Alert,
   Heading,
 } from '@chakra-ui/react';
+import NextLink from 'next/link';
 
 export const Abi: FC<{
   abi: AbiType;
@@ -99,6 +100,7 @@ export const Abi: FC<{
 
                 {readFunctions?.map((f, index) => (
                   <Link
+                    as={NextLink}
                     display="block"
                     borderRadius="md"
                     mb={0.5}
@@ -142,6 +144,7 @@ export const Abi: FC<{
                 </Flex>
                 {writeFunctions?.map((f, index) => (
                   <Link
+                    as={NextLink}
                     display="block"
                     borderRadius="md"
                     mb={0.5}
