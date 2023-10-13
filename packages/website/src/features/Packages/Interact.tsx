@@ -1,6 +1,14 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
-import { Box, Code, Flex, Heading, Link, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Code,
+  Flex,
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
 import { Abi } from '@/features/Packages/Abi';
