@@ -176,8 +176,24 @@ export const Function: FC<{
     </Box>
   ) : null;
 
+  function sanitizeForIdAndURI(anchor: string) {
+    let sanitized = encodeURIComponent(anchor);
+    sanitized = sanitized.replace(/%20/g, '_');
+    if (/^[0-9]/.test(sanitized)) {
+      sanitized = 'id_' + sanitized;
+    }
+    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
+    return sanitized;
+  }
+
+  const anchor = sanitizeForIdAndURI(
+    `${f.name}(${f.inputs
+      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
+      .join(',')})`
+  );
+
   return (
-    <Box p={6} borderTop="1px solid" borderColor="gray.600">
+    <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
@@ -191,6 +207,7 @@ export const Function: FC<{
               ml={1}
               textDecoration="none"
               _hover={{ textDecoration: 'underline' }}
+              href={`#${anchor}`}
             >
               #
             </Link>

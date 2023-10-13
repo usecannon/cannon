@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo, useRef } from 'react';
 import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
 import { ChainArtifacts } from '@usecannon/builder';
 import { Function } from '@/features/Packages/Function';
@@ -38,6 +38,38 @@ export const Abi: FC<{
     md: false,
   });
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleHashChange() {
+      const hash = window.location.hash.substring(1);
+      if (hash && containerRef.current) {
+        const section = containerRef.current.querySelector(`#${hash}`);
+        if (section) {
+          // If the container is the element with `overflow-y: auto`
+          containerRef.current.scrollTop = section.offsetTop;
+        }
+      }
+    }
+
+    window.addEventListener('hashchange', handleHashChange, false);
+    handleHashChange(); // Call once on mount to handle deep linking
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange, false);
+    };
+  }, []);
+
+  function sanitizeForIdAndURI(anchor: string) {
+    let sanitized = encodeURIComponent(anchor);
+    sanitized = sanitized.replace(/%20/g, '_');
+    if (/^[0-9]/.test(sanitized)) {
+      sanitized = 'id_' + sanitized;
+    }
+    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
+    return sanitized;
+  }
+
   return (
     <>
       <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
@@ -54,20 +86,20 @@ export const Abi: FC<{
           >
             <Box px={3} pb={2}>
               <Box mt={4}>
-                <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
                   <Heading
                     fontWeight="500"
                     size="sm"
                     color="gray.200"
                     letterSpacing="0.1px"
-                    mr="1"
                   >
                     Read Functions
                   </Heading>
                 </Flex>
 
                 {readFunctions?.map((f, index) => (
-                  <Box
+                  <Link
+                    display="block"
                     borderRadius="md"
                     mb={0.5}
                     py={0.5}
@@ -82,29 +114,35 @@ export const Abi: FC<{
                     fontWeight={false ? 'medium' : undefined}
                     background={false ? 'gray.800' : undefined}
                     key={index}
+                    href={`#${sanitizeForIdAndURI(
+                      `${f.name}(${f.inputs
+                        .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
+                        .join(',')})`
+                    )}`}
+                    textDecoration="none"
                   >
                     {f.name}(
                     {f.inputs
                       .map((i) => i.type + (i.name ? ' ' + i.name : ''))
                       .join(',')}
                     )
-                  </Box>
+                  </Link>
                 ))}
               </Box>
               <Box mt={4}>
-                <Flex flexDirection="row" px="2" alignItems="center" mb="1">
+                <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
                   <Heading
                     fontWeight="500"
                     size="sm"
                     color="gray.200"
                     letterSpacing="0.1px"
-                    mr="1"
                   >
                     Write Functions
                   </Heading>
                 </Flex>
                 {writeFunctions?.map((f, index) => (
-                  <Box
+                  <Link
+                    display="block"
                     borderRadius="md"
                     mb={0.5}
                     py={0.5}
@@ -119,13 +157,19 @@ export const Abi: FC<{
                     fontWeight={false ? 'medium' : undefined}
                     background={false ? 'gray.800' : undefined}
                     key={index}
+                    href={`#${sanitizeForIdAndURI(
+                      `${f.name}(${f.inputs
+                        .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
+                        .join(',')})`
+                    )}`}
+                    textDecoration="none"
                   >
                     {f.name}(
                     {f.inputs
                       .map((i) => i.type + (i.name ? ' ' + i.name : ''))
                       .join(',')}
                     )
-                  </Box>
+                  </Link>
                 ))}
               </Box>
             </Box>
@@ -136,6 +180,7 @@ export const Abi: FC<{
             overflowY="auto"
             maxHeight={['none', 'none', 'calc(100vh - 185px)']}
             background="black"
+            ref={containerRef}
           >
             <Alert status="warning" bg="gray.900" borderRadius="sm">
               <AlertIcon />
