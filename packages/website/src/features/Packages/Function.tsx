@@ -149,87 +149,57 @@ export const Function: FC<{
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600">
-      <Flex alignItems="center" mb="4">
-        <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
-          {f.name}(
-          {f.inputs.map((i) => i.type + (i.name ? ' ' + i.name : '')).join(',')}
-          )
-          <Link
-            color="gray.300"
-            ml={1}
-            textDecoration="none"
-            _hover={{ textDecoration: 'underline' }}
-          >
-            #
-          </Link>
-        </Heading>
-      </Flex>
-      <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
-        <Box flex="1" w={['100%', '100%', '50%']}>
-          {f.inputs.map((input, index) => {
-            return (
-              <Box key={JSON.stringify(input)}>
-                <FormControl mb="4">
-                  <FormLabel fontSize="sm" mb={1}>
-                    {input.name && <Text display="inline">{input.name}</Text>}
-                    {input.type && (
-                      <Text
-                        fontSize="xs"
-                        color="whiteAlpha.700"
-                        display="inline"
-                      >
-                        {' '}
-                        {input.type}
-                      </Text>
-                    )}
-                  </FormLabel>
-                  <FunctionInput
-                    input={input}
-                    valueUpdated={(value) => {
-                      const _params = [...params];
-                      _params[index] = value;
-                      setParams(_params);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-            );
-          })}
-
-          {readOnly && (
-            <Button
-              isLoading={loading}
-              colorScheme="teal"
-              bg="teal.900"
-              _hover={{ bg: 'teal.800' }}
-              variant="outline"
-              size="xs"
-              mr={3}
-              onClick={() => {
-                void submit(false);
-              }}
+      <Box maxW="container.xl">
+        <Flex alignItems="center" mb="4">
+          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
+            {f.name}(
+            {f.inputs
+              .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+              .join(',')}
+            )
+            <Link
+              color="gray.300"
+              ml={1}
+              textDecoration="none"
+              _hover={{ textDecoration: 'underline' }}
             >
-              Call view function
-            </Button>
-          )}
+              #
+            </Link>
+          </Heading>
+        </Flex>
+        <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
+          <Box flex="1" w={['100%', '100%', '50%']}>
+            {f.inputs.map((input, index) => {
+              return (
+                <Box key={JSON.stringify(input)}>
+                  <FormControl mb="4">
+                    <FormLabel fontSize="sm" mb={1}>
+                      {input.name && <Text display="inline">{input.name}</Text>}
+                      {input.type && (
+                        <Text
+                          fontSize="xs"
+                          color="whiteAlpha.700"
+                          display="inline"
+                        >
+                          {' '}
+                          {input.type}
+                        </Text>
+                      )}
+                    </FormLabel>
+                    <FunctionInput
+                      input={input}
+                      valueUpdated={(value) => {
+                        const _params = [...params];
+                        _params[index] = value;
+                        setParams(_params);
+                      }}
+                    />
+                  </FormControl>
+                </Box>
+              );
+            })}
 
-          {!readOnly && (
-            <>
-              <Button
-                isLoading={loading}
-                colorScheme="teal"
-                bg="teal.900"
-                _hover={{ bg: 'teal.800' }}
-                variant="outline"
-                size="xs"
-                mr={3}
-                onClick={() => {
-                  void submit(false, true);
-                }}
-              >
-                Simulate transaction
-              </Button>
-              {simulated && statusIcon}
+            {readOnly && (
               <Button
                 isLoading={loading}
                 colorScheme="teal"
@@ -242,70 +212,104 @@ export const Function: FC<{
                   void submit(false);
                 }}
               >
-                Submit using wallet {!simulated && statusIcon}
+                Call view function
               </Button>
-            </>
-          )}
+            )}
 
-          {error && (
-            <Alert mt="2" status="error" bg="red.700">
-              {error}
-            </Alert>
-          )}
-        </Box>
-        <Box
-          flex="1"
-          w={['100%', '100%', '50%']}
-          background="whiteAlpha.50"
-          borderRadius="md"
-          p={4}
-          display="flex"
-          flexDirection="column"
-          position="relative"
-        >
-          <Heading
-            size="xs"
-            textTransform={'uppercase'}
-            fontWeight={400}
-            letterSpacing={'1px'}
-            fontFamily={'var(--font-miriam)'}
-            color="gray.300"
-            mb={2}
-          >
-            Output
-          </Heading>
-
-          {loading ? (
-            <CustomSpinner m="auto" />
-          ) : (
-            <Flex flex="1">
-              {f.outputs.length != 0 && result == null && (
-                <Flex
-                  position="absolute"
-                  zIndex={2}
-                  top={0}
-                  left={0}
-                  background="blackAlpha.700"
-                  width="100%"
-                  height="100%"
-                  alignItems="center"
-                  justifyContent="center"
-                  fontWeight="medium"
-                  color="gray.300"
-                  textShadow="sm"
-                  letterSpacing="0.1px"
+            {!readOnly && (
+              <>
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={() => {
+                    void submit(false, true);
+                  }}
                 >
-                  {readOnly
-                    ? 'Call the view function '
-                    : 'Simulate the transaction '}
-                  for output
-                </Flex>
-              )}
-              <FunctionOutput result={result} output={f.outputs} />
-            </Flex>
-          )}
-        </Box>
-      </Flex>
+                  Simulate transaction
+                </Button>
+                {simulated && statusIcon}
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={() => {
+                    void submit(false);
+                  }}
+                >
+                  Submit using wallet {!simulated && statusIcon}
+                </Button>
+              </>
+            )}
+
+            {error && (
+              <Alert mt="2" status="error" bg="red.700">
+                {error}
+              </Alert>
+            )}
+          </Box>
+          <Box
+            flex="1"
+            w={['100%', '100%', '50%']}
+            background="whiteAlpha.50"
+            borderRadius="md"
+            p={4}
+            display="flex"
+            flexDirection="column"
+            position="relative"
+          >
+            <Heading
+              size="xs"
+              textTransform={'uppercase'}
+              fontWeight={400}
+              letterSpacing={'1px'}
+              fontFamily={'var(--font-miriam)'}
+              color="gray.300"
+              mb={2}
+            >
+              Output
+            </Heading>
+
+            {loading ? (
+              <CustomSpinner m="auto" />
+            ) : (
+              <Flex flex="1">
+                {f.outputs.length != 0 && result == null && (
+                  <Flex
+                    position="absolute"
+                    zIndex={2}
+                    top={0}
+                    left={0}
+                    background="blackAlpha.700"
+                    width="100%"
+                    height="100%"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontWeight="medium"
+                    color="gray.300"
+                    textShadow="sm"
+                    letterSpacing="0.1px"
+                  >
+                    {readOnly
+                      ? 'Call the view function '
+                      : 'Simulate the transaction '}
+                    for output
+                  </Flex>
+                )}
+                <FunctionOutput result={result} output={f.outputs} />
+              </Flex>
+            )}
+          </Box>
+        </Flex>
+      </Box>
     </Box>
   );
 };

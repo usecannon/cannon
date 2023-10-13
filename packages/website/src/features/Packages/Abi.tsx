@@ -87,7 +87,7 @@ export const Abi: FC<{
             flex="1"
             overflowY="auto"
             maxHeight={['none', 'none', 'calc(100vh - 185px)']}
-            background="gray.800"
+            background="black"
           >
             <Alert
               status="warning"
@@ -103,18 +103,16 @@ export const Abi: FC<{
               </Text>
             </Alert>
 
-            <Box bg="black">
-              {functions?.map((f, index) => (
-                <Function
-                  key={index}
-                  f={f}
-                  abi={abi}
-                  address={address}
-                  cannonOutputs={cannonOutputs}
-                  chainId={chainId}
-                />
-              ))}
-            </Box>
+            {functions?.map((f, index) => (
+              <Function
+                key={index}
+                f={f}
+                abi={abi}
+                address={address}
+                cannonOutputs={cannonOutputs}
+                chainId={chainId}
+              />
+            ))}
           </Box>
         </Flex>
       </Flex>
