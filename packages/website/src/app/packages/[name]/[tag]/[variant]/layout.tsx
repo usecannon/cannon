@@ -84,11 +84,16 @@ export default function PackageLayout({
                   Code
                 </NavLink>
                 <NavLink
-                  isActive={
-                    pathname ==
+                  isActive={pathname.startsWith(
                     `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                  )}
+                  href={
+                    pathname.startsWith(
+                      `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
+                    )
+                      ? pathname
+                      : `/packages/${pkg.name}/${params.tag}/${params.variant}/interact`
                   }
-                  href={`/packages/${pkg.name}/${params.tag}/${params.variant}/interact`}
                   isSmall
                 >
                   Interact

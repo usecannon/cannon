@@ -1,82 +1,176 @@
-import { FC, useMemo } from 'react';
-import { Alert, AlertIcon, Box, Text } from '@chakra-ui/react';
+import { FC, useEffect, useState } from 'react';
+import { GET_PACKAGE } from '@/graphql/queries';
+import {
+  Box,
+  Code,
+  Flex,
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+} from '@chakra-ui/react';
+import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { getOutput } from '@/lib/builder';
-import { ProvisionStep } from '@/features/Packages/ProvisionStep';
+import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
+import * as Chains from 'wagmi/chains';
 
-export const Interact: FC<{ variant: any }> = ({ variant }) => {
-  const { data: ipfs, isLoading } = useQueryIpfsData(
-    variant?.deploy_url,
-    !!variant?.deploy_url
+export const Interact: FC<{
+  name: string;
+  tag: string;
+  variant: string;
+  contractAddress: string;
+}> = ({ name, tag, variant, contractAddress }) => {
+  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
+    variables: { name },
+  });
+
+  const [pkg, setPackage] = useState<any | null>(null);
+  const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
+  const [moduleName, setModuleName] = useState<string | undefined>();
+  const [contract, setContract] = useState<ContractData | undefined>();
+
+  useEffect(() => {
+    if (data?.packages[0]) setPackage(data?.packages[0]);
+  }, [data]);
+
+  const currentVariant = pkg?.variants.find(
+    (v: any) => v.name === variant && v.tag.name === tag
   );
 
-  const cannonOutputs = useMemo(() => (ipfs ? getOutput(ipfs) : {}), [ipfs]);
+  const { data: ipfs, isLoading } = useQueryIpfsData(
+    currentVariant?.deploy_url,
+    !!currentVariant?.deploy_url
+  );
 
-  const output = useMemo(() => {
-    return {
-      '': {
-        title: '',
-        url: '',
-        imports: cannonOutputs?.imports,
-        contracts: cannonOutputs?.contracts,
-      },
+  useEffect(() => {
+    if (!ipfs) {
+      return;
+    }
+
+    const cannonOutputs: ChainArtifacts = getOutput(ipfs);
+    setCannonOutputs(cannonOutputs);
+
+    const findContract = (contracts: any, moduleName: string, imports: any) => {
+      if (contracts) {
+        Object.entries(contracts).forEach(([k, v]) => {
+          if ((v as ContractData).address === contractAddress) {
+            setContract({
+              ...(v as ContractData),
+              contractName: k,
+            });
+            setModuleName(moduleName);
+            return;
+          }
+        });
+      }
+
+      if (imports) {
+        Object.entries(imports).forEach(([k, v]) =>
+          findContract((v as any).contracts, k, (v as any).imports)
+        );
+      }
     };
-  }, [cannonOutputs]);
-
-  const hasProxy = useMemo(() => {
-    return (
-      ipfs?.state && JSON.stringify(ipfs.state).toLowerCase().includes('proxy')
-    );
+    findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [ipfs]);
 
+  const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+    'ipfs://',
+    ''
+  )}`;
+
+  const etherscanUrl =
+    (
+      Object.values(Chains).find(
+        (chain) => chain.id === currentVariant?.chain_id
+      ) as any
+    )?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
   return (
-    <Box position="relative">
-      {/*<InteractCommand :packageName="p.name" :variant="selectedVariant" />*/}
-
-      <Alert
-        mb="6"
-        status="warning"
-        bg="gray.800"
-        border="1px solid"
-        borderColor="gray.700"
-      >
-        <AlertIcon />
-        <Text fontWeight="bold">
-          Review high-risk transactions carefully in your wallet application
-          prior to execution
-        </Text>
-      </Alert>
-
-      {hasProxy && (
-        <Alert
-          mb="6"
-          status="info"
-          bg="gray.800"
-          border="1px solid"
-          borderColor="gray.700"
-        >
-          <AlertIcon />
-          <Text>
-            If this protocol has a proxy contract, you should typically interact
-            with it instead of the other contracts in the package.
-          </Text>
-        </Alert>
-      )}
-
+    <>
       {isLoading ? (
         <Box py="20" textAlign="center">
           <CustomSpinner mx="auto" />
         </Box>
       ) : (
-        <Box>
-          <ProvisionStep
-            imports={output}
+        <>
+          <Flex
+            bg="gray.800"
+            p={2}
+            flexDirection={['column', 'column', 'row']}
+            alignItems={['flex-start', 'flex-start', 'center']}
+            borderBottom="1px solid"
+            borderColor="gray.600"
+          >
+            <Box py={2} px={[1, 1, 3]}>
+              <Heading display="inline-block" as="h4" size="md" mb={1.5}>
+                {contract?.contractName}
+              </Heading>
+              <Text color="gray.300" fontSize="xs" fontFamily="mono">
+                <Link
+                  isExternal
+                  styleConfig={{ 'text-decoration': 'none' }}
+                  borderBottom="1px dotted"
+                  borderBottomColor="gray.300"
+                  href={`${etherscanUrl}/address/${contractAddress}`}
+                >
+                  {isSmall
+                    ? `${contractAddress.substring(
+                        0,
+                        6
+                      )}...${contractAddress.slice(-4)}`
+                    : contractAddress}
+                </Link>
+              </Text>
+            </Box>
+            <Box p={1} ml={[0, 0, 'auto']}>
+              <Flex
+                justifyContent={['flex-start', 'flex-start', 'flex-end']}
+                flexDirection="column"
+                textAlign={['left', 'left', 'right']}
+              >
+                <Text fontSize="xs" color="gray.200" display="inline" mb={0.5}>
+                  via{' '}
+                  <Code fontSize="xs" color="gray.200" pr={0} pl={0.5}>
+                    {moduleName}
+                  </Code>
+                </Text>
+                <Text color="gray.300" fontSize="xs" fontFamily="mono">
+                  <Link
+                    isExternal
+                    styleConfig={{ 'text-decoration': 'none' }}
+                    borderBottom="1px dotted"
+                    borderBottomColor="gray.300"
+                    href={deployUrl}
+                  >
+                    {isSmall
+                      ? `${currentVariant?.deploy_url.substring(
+                          0,
+                          13
+                        )}...${currentVariant?.deploy_url.slice(-4)}`
+                      : currentVariant?.deploy_url}
+                  </Link>
+                </Text>
+              </Flex>
+            </Box>
+          </Flex>
+
+          <Abi
+            abi={contract?.abi as any}
+            address={contractAddress}
             cannonOutputs={cannonOutputs}
-            chainId={variant?.chain_id}
+            chainId={currentVariant?.chain_id}
           />
-        </Box>
+        </>
       )}
-    </Box>
+    </>
   );
 };
