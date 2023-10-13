@@ -45,19 +45,23 @@ export const Abi: FC<{
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
       if (hash && containerRef.current) {
-        const section = containerRef.current.querySelector(`#${hash}`);
+        const section = containerRef.current.querySelector(
+          `#${hash}`
+        ) as HTMLElement | null;
         if (section) {
-          // If the container is the element with `overflow-y: auto`
-          containerRef.current.scrollTop = (section as any).offsetTop;
+          window.scrollTo(0, 999999999999999999999);
+          containerRef.current.scrollTop = section.offsetTop;
         }
       }
     }
 
     window.addEventListener('hashchange', handleHashChange, false);
-    handleHashChange(); // Call once on mount to handle deep linking
+
+    const timerId = setTimeout(handleHashChange, 100); // Delay by 100ms
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange, false);
+      clearTimeout(timerId); // Clear the timeout when the component unmounts
     };
   }, []);
 
