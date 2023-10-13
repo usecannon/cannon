@@ -48,7 +48,7 @@ export const Abi: FC<{
         const section = containerRef.current.querySelector(`#${hash}`);
         if (section) {
           // If the container is the element with `overflow-y: auto`
-          containerRef.current.scrollTop = section.offsetTop;
+          containerRef.current.scrollTop = (section as any).offsetTop;
         }
       }
     }
