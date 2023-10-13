@@ -15,6 +15,7 @@ import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
+import * as Chains from 'wagmi/chains';
 
 export const Interact: FC<{
   name: string;
@@ -54,9 +55,12 @@ export const Interact: FC<{
 
     const findContract = (contracts: any, moduleName: string, imports: any) => {
       if (contracts) {
-        Object.entries(contracts).forEach(([, v]) => {
+        Object.entries(contracts).forEach(([k, v]) => {
           if ((v as ContractData).address === contractAddress) {
-            setContract(v as ContractData);
+            setContract({
+              ...(v as ContractData),
+              contractName: k,
+            });
             setModuleName(moduleName);
             return;
           }
@@ -76,6 +80,13 @@ export const Interact: FC<{
     'ipfs://',
     ''
   )}`;
+
+  const etherscanUrl =
+    (
+      Object.values(Chains).find(
+        (chain) => chain.id === currentVariant?.chain_id
+      ) as any
+    )?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -109,7 +120,7 @@ export const Interact: FC<{
                   styleConfig={{ 'text-decoration': 'none' }}
                   borderBottom="1px dotted"
                   borderBottomColor="gray.300"
-                  href={`https://etherscan.io/address/${contractAddress}`}
+                  href={`${etherscanUrl}/address/${contractAddress}`}
                 >
                   {isSmall
                     ? `${contractAddress.substring(
