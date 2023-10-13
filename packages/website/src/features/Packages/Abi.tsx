@@ -10,6 +10,7 @@ import {
   AlertIcon,
   Alert,
   Heading,
+  Link,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
