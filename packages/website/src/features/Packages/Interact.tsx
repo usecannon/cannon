@@ -106,6 +106,12 @@ export const Interact: FC<{
     ''
   )}`;
 
+  const isSmall = useBreakpointValue({
+    base: true,
+    sm: true,
+    md: false,
+  });
+
   return (
     <>
       {loading ? (
@@ -134,10 +140,12 @@ export const Interact: FC<{
                   borderBottomColor="gray.300"
                   href={`https://etherscan.io/address/${contractAddress}`}
                 >
-                  {`${contractAddress.substring(
-                    0,
-                    6
-                  )}...${contractAddress.slice(-4)}`}
+                  {isSmall
+                    ? `${contractAddress.substring(
+                        0,
+                        6
+                      )}...${contractAddress.slice(-4)}`
+                    : contractAddress}
                 </Link>
               </Text>
             </Box>
@@ -161,10 +169,12 @@ export const Interact: FC<{
                     borderBottomColor="gray.300"
                     href={deployUrl}
                   >
-                    {`${currentVariant?.deploy_url.substring(
-                      0,
-                      13
-                    )}...${currentVariant?.deploy_url.slice(-4)}`}
+                    {isSmall
+                      ? `${currentVariant?.deploy_url.substring(
+                          0,
+                          13
+                        )}...${currentVariant?.deploy_url.slice(-4)}`
+                      : currentVariant?.deploy_url}
                   </Link>
                 </Text>
               </Flex>

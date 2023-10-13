@@ -86,58 +86,64 @@ export const InteractTab: FC<{
         // Get Builder Outputs
         const cannonOutputs: ChainArtifacts = getOutput(_ipfs);
 
-        let higlightedData: Option[] = [];
-        if (cannonOutputs.contracts) {
-          const contracts = Object.entries(cannonOutputs.contracts).map(
+        let highlightedData: any[] = [];
+        let allContracts: any[] = [];
+
+        const processContracts = (contracts: any, moduleName: string) => {
+          const processedContracts = Object.entries(contracts).map(
             ([k, v]) => ({
-              name: k,
-              address: v.address,
+              moduleName: moduleName,
+              contractName: k,
+              contractAddress: (v as any).address,
               highlight: v.highlight,
             })
           );
+          allContracts = allContracts.concat(processedContracts);
+        };
 
-          const higlightedContracts = contracts.filter(
-            (contract) => contract.highlight
-          );
-
-          higlightedData = (
-            higlightedContracts.length > 0 ? higlightedContracts : contracts
-          ).map((contract) => ({
-            moduleName: name,
-            contractName: contract.name,
-            contractAddress: contract.address,
-          }));
+        if (cannonOutputs.contracts) {
+          processContracts(cannonOutputs.contracts, name);
         }
-        setHighlightedOptions(higlightedData);
 
-        const otherData: Option[] = [];
-        const addOtherData = (
-          contracts: any,
-          moduleName: string,
-          imports: any
-        ) => {
-          if (contracts) {
-            Object.entries(contracts).forEach(([k, v]) =>
-              otherData.push({
-                moduleName,
-                contractName: k,
-                contractAddress: (v as any).address,
-              })
-            );
-          }
-
+        const processImports = (imports: any, parentModuleName: string) => {
           if (imports) {
-            Object.entries(imports).forEach(([k, v]) =>
-              addOtherData((v as any).contracts, k, (v as any).imports)
-            );
+            Object.entries(imports).forEach(([k, v]) => {
+              const moduleName = parentModuleName
+                ? `${parentModuleName}.${k}`
+                : k;
+              processContracts((v as any).contracts, moduleName);
+              processImports((v as any).imports, moduleName);
+            });
           }
         };
-        addOtherData(undefined, '', cannonOutputs.imports);
+
+        processImports(cannonOutputs.imports, '');
+
+        const highlightedContracts = allContracts.filter(
+          (contract) => contract.highlight
+        );
+        const proxyContracts = allContracts.filter((contract) =>
+          contract.contractName.toLowerCase().includes('proxy')
+        );
+
+        if (highlightedContracts.length > 0) {
+          highlightedData = highlightedContracts;
+        } else if (proxyContracts.length > 0) {
+          highlightedData = proxyContracts;
+        } else {
+          highlightedData = allContracts;
+        }
+
+        setHighlightedOptions(highlightedData);
+
+        const otherData = allContracts.filter(
+          (contract) => !highlightedData.includes(contract)
+        );
         setOtherOptions(otherData);
 
         if (!activeContract) {
-          if (higlightedData.length > 0) {
-            selectContract(higlightedData[0].contractAddress);
+          if (highlightedData.length > 0) {
+            selectContract(highlightedData[0].contractAddress);
           } else if (otherData.length > 0) {
             selectContract(otherData[0].contractAddress);
           }
@@ -165,9 +171,11 @@ export const InteractTab: FC<{
     <>
       <Flex
         overflowX="scroll"
+        maxW="100%"
         p={2}
         borderBottom="1px solid"
         borderColor="gray.800"
+        flexWrap="nowrap"
       >
         {highlightedOptions.map((option, i) => (
           <Button
@@ -178,6 +186,7 @@ export const InteractTab: FC<{
             variant="outline"
             aria-label="contract name"
             boxShadow="lg"
+            flexShrink={0}
             background={
               activeContract === option.contractAddress
                 ? 'teal.900'
@@ -201,7 +210,6 @@ export const InteractTab: FC<{
             }
             mr={4}
             height="48px"
-            minWidth="48px"
             px={2}
             onClick={() => selectContract(option.contractAddress)}
           >
@@ -249,6 +257,7 @@ export const InteractTab: FC<{
                 }}
                 height="48px"
                 width="48px"
+                flexShrink={0}
                 p={0}
               >
                 <Icon

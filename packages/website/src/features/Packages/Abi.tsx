@@ -89,17 +89,11 @@ export const Abi: FC<{
             maxHeight={['none', 'none', 'calc(100vh - 185px)']}
             background="black"
           >
-            <Alert
-              status="warning"
-              bg="gray.800"
-              border="1px solid"
-              borderColor="gray.700"
-              borderRadius="sm"
-            >
+            <Alert status="warning" bg="gray.900" borderRadius="sm">
               <AlertIcon />
               <Text fontWeight="bold">
                 Always review transactions carefully in your wallet application
-                prior to execution
+                prior to execution.
               </Text>
             </Alert>
 
