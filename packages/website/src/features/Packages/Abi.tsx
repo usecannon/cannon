@@ -49,6 +49,7 @@ export const Abi: FC<{
           `#${hash}`
         ) as HTMLElement | null;
         if (section) {
+          // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
           window.scrollTo(0, 999999999999999999999);
           containerRef.current.scrollTop = section.offsetTop;
         }
