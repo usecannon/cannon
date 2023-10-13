@@ -5,7 +5,6 @@ import { Function } from '@/features/Packages/Function';
 import {
   Flex,
   Text,
-  Link,
   Box,
   useBreakpointValue,
   AlertIcon,
@@ -109,12 +108,9 @@ export const Abi: FC<{
                     cursor="pointer"
                     fontSize="sm"
                     _hover={{ background: 'gray.800' }}
-                    onClick={() => {}}
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    fontWeight={false ? 'medium' : undefined}
-                    background={false ? 'gray.800' : undefined}
                     key={index}
                     href={`#${sanitizeForIdAndURI(
                       `${f.name}(${f.inputs
@@ -153,12 +149,9 @@ export const Abi: FC<{
                     cursor="pointer"
                     fontSize="sm"
                     _hover={{ background: 'gray.800' }}
-                    onClick={() => {}}
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    fontWeight={false ? 'medium' : undefined}
-                    background={false ? 'gray.800' : undefined}
                     key={index}
                     href={`#${sanitizeForIdAndURI(
                       `${f.name}(${f.inputs

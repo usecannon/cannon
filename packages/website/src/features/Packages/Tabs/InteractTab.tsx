@@ -78,7 +78,7 @@ export const InteractTab: FC<{
         moduleName: moduleName,
         contractName: k,
         contractAddress: (v as any).address,
-        highlight: v.highlight,
+        highlight: (v as any).highlight,
       }));
       allContracts = allContracts.concat(processedContracts);
     };
