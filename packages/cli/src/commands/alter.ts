@@ -12,6 +12,7 @@ import {
   CANNON_CHAIN_ID,
   DeploymentInfo,
 } from '@usecannon/builder';
+import { ActionKinds } from '@usecannon/builder/dist/actions';
 import { resolveCliSettings } from '../settings';
 import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
@@ -24,7 +25,7 @@ export async function alter(
   chainId: number,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
+  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -142,6 +143,39 @@ export async function alter(
         }
       }
       // clear transaction hash for all contracts and transactions
+      break;
+
+    case 'import':
+      if (targets.length !== 2) {
+        throw new Error(
+          'incorrect number of arguments for import. Should be <stepName> <existingArtifacts (comma separated)>'
+        );
+      }
+
+      {
+        const stepName = targets[0];
+        const existingKeys = targets[1].split(',');
+
+        const stepAction = ActionKinds[stepName.split('.')[0]];
+
+        if (!stepAction.importExisting) {
+          throw new Error(
+            `the given step ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+          );
+        }
+
+        const def = new ChainDefinition(deployInfo.def);
+        const config = def.getConfig(stepName, ctx);
+
+        deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+          runtime,
+          ctx,
+          config,
+          { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+          existingKeys
+        );
+      }
+
       break;
     case 'set-contract-address':
       // find the steps that deploy contract
