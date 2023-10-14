@@ -43,11 +43,13 @@ const routerStep = {
       contractAddresses[n] = contract.address;
     }
 
-    return {
-      contractAbis,
-      contractAddresses,
-      config: newConfig,
-    };
+    return [
+      {
+        contractAbis,
+        contractAddresses,
+        config: newConfig,
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {

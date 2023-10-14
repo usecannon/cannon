@@ -193,7 +193,7 @@ export class ChainDefinition {
     runtime: ChainBuilderRuntime,
     ctx: ChainBuilderContext,
     tainted: boolean
-  ): Promise<string | null> {
+  ): Promise<string[] | null> {
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
 
     if (!ActionKinds[kind]) {
@@ -201,14 +201,14 @@ export class ChainDefinition {
 
       if (tainted) {
         debug('state is tainted for custom plugin. cant recompute state. issuing invalid state.');
-        return 'INVALID';
+        return [];
       } else {
         // no dependencies have changed, though it is possible that a setting inject means this need to be rebuilt
         return null;
       }
     }
 
-    const obj = await ActionKinds[kind].getState(
+    const objs = await ActionKinds[kind].getState(
       runtime,
       { ...ctx, ...ethers.utils, ...ethers.constants },
       this.getConfig(n, ctx) as any,
@@ -219,12 +219,11 @@ export class ChainDefinition {
       }
     );
 
-    if (!obj) {
+    if (!objs) {
       return null;
     } else {
-      const rawState = JSON.stringify(obj);
-      debugVerbose('creating hash of', rawState);
-      return crypto.createHash('md5').update(rawState).digest('hex');
+      debugVerbose('creating hash of', objs.map(JSON.stringify as any));
+      return objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex'));
     }
   }
 

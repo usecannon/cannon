@@ -80,12 +80,14 @@ const contractSpec = {
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
 
-    return {
-      bytecode: resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig)[0],
-      args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
-      salt: parsedConfig.salt,
-      value: parsedConfig.value || [],
-    };
+    return [
+      {
+        bytecode: resolveBytecode(await runtime.getArtifact!(parsedConfig.artifact), parsedConfig)[0],
+        args: parsedConfig.args?.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))) || [],
+        salt: parsedConfig.salt,
+        value: parsedConfig.value || [],
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {

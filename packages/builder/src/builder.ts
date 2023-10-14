@@ -107,6 +107,7 @@ ${printChainDefinitionProblems(problems)}`);
     } else {
       debug('building individual');
       doActions: for (const n of topologicalActions) {
+        debug(`check action ${n}`);
         if (runtime.isCancelled()) {
           break;
         }
@@ -119,7 +120,7 @@ ${printChainDefinitionProblems(problems)}`);
 
         for (const dep of def.getDependencies(n)) {
           if (!built.has(dep)) {
-            debug('skip because previous step incomplete');
+            debug(`skip ${n} because previous step incomplete`);
             runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
             continue doActions;
           }
@@ -141,18 +142,19 @@ ${printChainDefinitionProblems(problems)}`);
         }
 
         try {
-          const curHash = await def.getState(n, runtime, ctx, depsTainted);
+          const curHashes = await def.getState(n, runtime, ctx, depsTainted);
 
-          debug('comparing states', state[n] ? state[n].hash : null, curHash);
-          if (!state[n] || (curHash && state[n].hash !== curHash)) {
+          debug('comparing states', state[n] ? state[n].hash : null, curHashes);
+          if (!state[n] || (curHashes && !curHashes.includes(state[n].hash || ''))) {
             debug('run isolated', n);
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
+            const newStates = await def.getState(n, runtime, ctx, depsTainted);
             state[n] = {
               artifacts: newArtifacts,
-              hash: await def.getState(n, runtime, ctx, depsTainted),
+              hash: newStates ? newStates[0] : null,
               version: BUILD_VERSION,
             };
             tainted.add(n);
@@ -162,6 +164,7 @@ ${printChainDefinitionProblems(problems)}`);
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
         } catch (err: any) {
+          debug(`got error ${err}`);
           if (runtime.allowPartialDeploy) {
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
@@ -245,11 +248,11 @@ export async function buildLayer(
     }
 
     try {
-      const curHash = await def.getState(action, runtime, ctx, false);
+      const curHashes = await def.getState(action, runtime, ctx, false);
 
       if (isCompleteLayer) {
-        debug('comparing layer states', state[action] ? state[action].hash : null, curHash);
-        if (!state[action] || (curHash && state[action].hash !== curHash)) {
+        debug('comparing layer states', state[action] ? state[action].hash : null, curHashes);
+        if (!state[action] || (curHashes && !curHashes.includes(state[action].hash || ''))) {
           debug('step', action, 'in layer needs to be rebuilt');
           isCompleteLayer = false;
           break;
@@ -308,9 +311,10 @@ export async function buildLayer(
 
       addOutputsToContext(ctx, newArtifacts);
 
+      const newHashes = await def.getState(action, runtime, ctx, false);
       state[action] = {
         artifacts: newArtifacts,
-        hash: await def.getState(action, runtime, ctx, false),
+        hash: newHashes ? newHashes[0] : null,
         version: BUILD_VERSION,
         // add the chain dump later once all steps have been executed
       };

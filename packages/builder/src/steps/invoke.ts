@@ -195,12 +195,22 @@ const invokeSpec = {
       cfg.target = [cfg.target as string];
     }
 
-    return {
-      to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
-      func: cfg.func,
-      args: cfg.args?.map((v) => JSON.stringify(v)),
-      value: cfg.value || '0',
-    };
+    return [
+      {
+        to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
+        func: cfg.func,
+        args: cfg.args?.map((v) => JSON.stringify(v)),
+        value: cfg.value || '0',
+        factory: cfg.factory,
+        extra: cfg.extra,
+      },
+      {
+        to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
+        func: cfg.func,
+        args: cfg.args?.map((v) => JSON.stringify(v)),
+        value: cfg.value || '0',
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {

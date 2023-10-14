@@ -95,7 +95,7 @@ describe('steps/invoke.ts', () => {
         func: 'something',
       });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         to: [fakeContractInfo.contracts.Woot.address],
         func: 'something',
         args: undefined,
@@ -111,7 +111,7 @@ describe('steps/invoke.ts', () => {
         value: '1234',
       });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         to: [fakeContractInfo.contracts.Woot.address],
         func: 'something',
         args: ['"split"', '{"wave":"form"}'],
