@@ -84,7 +84,7 @@ export const DocsLandingPage = () => {
         </Text>
         <Text mb={4}>
           Packages enable composability in Cannonfiles. If a package includes a
-          "Cannon" deployment, it can be <em>provisioned</em> to{' '}
+          ”Cannon” deployment, it can be <em>provisioned</em> to{' '}
           <Link
             isExternal
             href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml#L27"

@@ -27,6 +27,7 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
               {m[1].map((s, idx) => {
                 return (
                   <Link
+                    key={idx}
                     display="block"
                     textDecoration="none"
                     borderRadius="md"
