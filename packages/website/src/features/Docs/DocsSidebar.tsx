@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { IContentList } from '@/helpers/markdown';
-import { Box, Link } from '@chakra-ui/react';
+import { Box, Heading, Link } from '@chakra-ui/react';
 
 interface ISidebarProps {
   list: IContentList;
@@ -9,43 +9,37 @@ interface ISidebarProps {
 export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
   const item = Object.entries(list);
   return (
-    <div>
+    <Box my={4}>
       {item.map((m, idx) => {
         return (
           <div key={idx}>
-            <Link
-              key={idx}
-              textDecoration="none"
-              textTransform="uppercase"
-              _hover={{ textDecoration: 'none' }}
-              href={`#${m[0]
-                .toLowerCase()
-                .replaceAll('?', '')
-                .replaceAll(' ', '-')}`}
-              display="block"
-              fontSize={14}
-              mb={6}
-              fontFamily="var(--font-miriam)"
+            <Heading
+              fontWeight="500"
+              size="sm"
+              color="gray.200"
+              letterSpacing="0.1px"
+              px="2"
+              mb="1.5"
             >
               {m[0]}
-            </Link>
+            </Heading>
             <Box mb={6}>
               {m[1].map((s, idx) => {
                 return (
                   <Link
-                    key={idx}
+                    display="block"
                     textDecoration="none"
-                    textTransform="uppercase"
-                    _hover={{ textDecoration: 'none' }}
+                    borderRadius="md"
+                    mb={0.5}
+                    py={0.5}
+                    px="2"
+                    cursor="pointer"
+                    fontSize="sm"
+                    _hover={{ background: 'gray.800' }}
                     href={`#${s
                       .toLowerCase()
                       .replaceAll('?', '')
                       .replaceAll(' ', '-')}`}
-                    display="block"
-                    fontSize={14}
-                    ml={4}
-                    my={2}
-                    fontFamily="var(--font-miriam)"
                   >
                     {s}
                   </Link>
@@ -55,6 +49,6 @@ export const DocsSidebar: FC<ISidebarProps> = ({ list }) => {
           </div>
         );
       })}
-    </div>
+    </Box>
   );
 };

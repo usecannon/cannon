@@ -1,4 +1,4 @@
-## Cannonfile Steps
+## Cannonfiles
 
 Cannonfiles contain a series of steps defined in a TOML file.
 
@@ -10,7 +10,7 @@ Every step updates the return object by adding an entry to the `txns` key with t
 
 For example, the step below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it's the contract named `Storage`.)
 
-```toml
+```
 [contract.myStorage]
 artifact = "Storage"
 ```
@@ -28,6 +28,7 @@ There are five types of steps you can use in a Cannonfile:
 A `setting` may also be defined, which is a user-configurable option that can be referenced in other steps' inputs. For example, a cannonfile may define `[setting.sampleSetting]` and then reference `sampleValue` as `"<%= settings.sampleSetting %>"` after running `npx hardhat cannon sampleSetting="sampleValue"`
 
 There are seven constants available for use in a Cannonfile:
+
 - `"<%= Zero %>"`
 - `"<%= One %>"`
 - `"<%= Two %>"`
@@ -38,7 +39,7 @@ There are seven constants available for use in a Cannonfile:
 
 For example, the step below sets a default value type of MaxUInt256 to type 'setting' named 'perpsMaxSnxEth'
 
-```toml
+```
 [setting.perpsMaxSnxEth]
 defaultValue = "<%= MaxUint256 %>"
 ```
