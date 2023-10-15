@@ -70,18 +70,27 @@ export async function resolveProviderAndSigners({
     throw err;
   }
 
+  const localProviders = {
+    frame: 'http://localhost:1248',
+    direct: 'http://localhost:8545',
+  };
+
   let ethersProvider;
   const providerList = [];
 
   // force provider to use JSON-RPC instead of Web3Provider for local instances
-  if (
-    (checkProviders[0].startsWith('http://')) &&
-    Number.parseInt(chainId.toString()) === 13370
-  ) {
-    providerList.push(new ethers.providers.JsonRpcProvider(checkProviders[0]));
+  if (checkProviders.includes('frame') || checkProviders[0].startsWith('http://')) {
+    for(const provider of checkProviders) {
+      if(Object.keys(localProviders).includes(provider)){
+        providerList.push(new ethers.providers.JsonRpcProvider(localProviders[provider as keyof typeof localProviders]));
+      } else {
+        providerList.push(new ethers.providers.JsonRpcProvider(provider));
+      }
+    }
 
     ethersProvider = new ethers.providers.FallbackProvider(providerList);
   } else {
+    // Use eth-provider wrapped in Web3Provider as default
     ethersProvider = new ethers.providers.Web3Provider(rawProvider as any);
   }
 
@@ -94,7 +103,7 @@ export async function resolveProviderAndSigners({
     signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));
   } else {
     try {
-      console.info('\nAttempting to load signers from local node...\n');
+      console.info(`\nAttempting to load signers from ${checkProviders}\n`);
 
       // Attempt to load from eth-provider
       await rawProvider.enable();

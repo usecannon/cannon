@@ -230,9 +230,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const { build } = await import('./commands/build');
   const { name, version, def } = await loadCannonfile(cannonfilePath);
 
-  await saveToMetadataCache(`${name}:${version}`, 'cannonfile', cannonfile)
-  await saveToMetadataCache(`${name}:${version}`, 'version', version)
-
   const { outputs } = await build({
     provider,
     def,
@@ -414,7 +411,7 @@ program
     const cliSettings = resolveCliSettings(options);
     const p = await resolveRegistryProvider(cliSettings);
 
-    const overrides: ethers.CallOverrides = {};
+    const overrides: ethers.Overrides = {};
 
     if (options.maxFeePerGas) {
       overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
@@ -427,6 +424,10 @@ program
     if (options.gasLimit) {
       overrides.gasLimit = options.gasLimit;
     }
+
+    // if (options.value) {
+    //   overrides.value = options.value;
+    // }
 
     console.log(
       `\nSettings:\n - Max Fee Per Gas: ${

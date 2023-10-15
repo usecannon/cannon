@@ -136,7 +136,6 @@ describe('publish command', () => {
       tags,
       chainId,
       quiet: true,
-      includeProvisioned: true,
       overrides: {},
     });
 
