@@ -260,12 +260,16 @@ export async function build({
 
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
+  
+  const chainDef = def.toJson();
+  
+  chainDef.version = chainDef.version.startsWith('<%=') ? pkgVersion : chainDef.version;
 
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
-      def: def.toJson(),
+      def: chainDef,
       state: newState,
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
@@ -275,8 +279,6 @@ export async function build({
     });
 
     const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
-
-    console.log(metadata);
 
     const metaUrl = await runtime.putBlob(metadata);
 
