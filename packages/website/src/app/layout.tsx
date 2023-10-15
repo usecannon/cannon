@@ -6,6 +6,7 @@ import { Flex } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
 import { Footer } from '@/features/Footer/Footer';
 import { Console } from '@/features/Console/Console';
+import { Analytics } from '@vercel/analytics/react';
 import { ReactNode } from 'react';
 
 const miriam = Miriam_Libre({
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Console />
           </Flex>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
