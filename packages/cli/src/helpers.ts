@@ -107,7 +107,7 @@ export async function resolveCannonVersion(): Promise<string> {
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await resolveCannonVersion();
-  if (currentVersion !== latestVersion) {
+  if (latestVersion && currentVersion !== latestVersion) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
     console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
