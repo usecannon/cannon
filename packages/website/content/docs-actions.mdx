@@ -1,4 +1,4 @@
-## Cannonfile Steps
+## Cannonfiles
 
 Cannonfiles contain a series of steps defined in a TOML file.
 
@@ -10,7 +10,7 @@ Every step updates the return object by adding an entry to the `txns` key with t
 
 For example, the step below has the type `contract` and is named `myStorage`. It requires the input `artifact`, which is the name of the contract to deploy. (In this example, it's the contract named `Storage`.)
 
-```toml
+```
 [contract.myStorage]
 artifact = "Storage"
 ```
@@ -26,3 +26,20 @@ There are five types of steps you can use in a Cannonfile:
 - The `run` step executes a custom script. This script is passed a [ChainBuilder](https://github.com/usecannon/cannon/blob/main/packages/builder/src/builder.ts#L72) object as parameter. **The run command breaks composability. Only use this as a last resort.** Use a custom Cannon plug-in if this is necessary for your deployment.
 
 A `setting` may also be defined, which is a user-configurable option that can be referenced in other steps' inputs. For example, a cannonfile may define `[setting.sampleSetting]` and then reference `sampleValue` as `"<%= settings.sampleSetting %>"` after running `npx hardhat cannon sampleSetting="sampleValue"`
+
+There are seven constants available for use in a Cannonfile:
+
+- `"<%= Zero %>"`
+- `"<%= One %>"`
+- `"<%= Two %>"`
+- `"<%= WeiPerEther %>"`
+- `"<%= MaxUint256 %>"`
+- `"<%= MinInt256 %>"`
+- `"<%= MaxInt256 %>"`
+
+For example, the step below sets a default value type of MaxUInt256 to type 'setting' named 'perpsMaxSnxEth'
+
+```
+[setting.perpsMaxSnxEth]
+defaultValue = "<%= MaxUint256 %>"
+```

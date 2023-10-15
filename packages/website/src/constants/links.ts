@@ -4,7 +4,7 @@ export const links = {
   DEPLOY: '/deploy',
   QUEUETXS: '/deploy/queue',
   QUEUEFROMGITOPS: '/deploy/gitops',
-  SETTINGS: '/deploy/settings',
+  SETTINGS: '/settings',
   LEARN: '/learn',
   GUIDES: '/learn/guides',
   GETSTARTED: '/learn/guides/get-started',

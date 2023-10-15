@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
@@ -7,6 +8,7 @@ import {
   ChainDefinition,
   ContractArtifact,
   getOutputs,
+  renderTrace,
 } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
@@ -37,9 +39,11 @@ export interface RunOptions {
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
-  )} to interact with contracts via the command line.`
+  )} to interact with contracts via the command line.\nPress ${bold(
+    'v'
+  )} to toggle display verbosity of transaction traces as they run.`
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
@@ -168,6 +172,49 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     };
   }
 
+  const mergedOutputs =
+    buildOutputs.length == 1
+      ? buildOutputs[0].outputs
+      : ({
+          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+        } as ChainArtifacts);
+
+  let traceLevel = 0;
+
+  async function debugTracing(blockNumber: number) {
+    if (traceLevel == 0) {
+      return;
+    }
+    const bwt = await provider.getBlockWithTransactions(blockNumber);
+
+    for (const txn of bwt.transactions) {
+      try {
+        const traces = await provider.send('trace_transaction', [txn.hash]);
+
+        let renderedTrace = renderTrace(mergedOutputs, traces);
+
+        if (traceLevel === 1) {
+          // only show lines containing `console.log`s, and prettify
+          renderedTrace = renderedTrace
+            .split('\n')
+            .filter((l) => l.includes('console.log('))
+            .map((l) => l.trim())
+            .join('\n');
+        }
+
+        if (renderedTrace) {
+          console.log(`trace: ${txn.hash}`);
+          console.log(renderedTrace);
+          console.log();
+        }
+      } catch (err) {
+        console.log('could not render trace for transaction:', err);
+      }
+    }
+  }
+
+  provider.on('block', debugTracing);
+
   console.log();
 
   console.log(INITIAL_INSTRUCTIONS);
@@ -206,6 +253,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       console.log(INITIAL_INSTRUCTIONS);
       console.log(INSTRUCTIONS);
+    } else if (evt.name == 'v') {
+      // Toggle showAnvilLogs when the user presses "a"
+      if (traceLevel === 0) {
+        traceLevel = 1;
+        console.log(gray('Enabled display of console.log events from transactions...'));
+      } else if (traceLevel === 1) {
+        traceLevel = 2;
+        console.log(gray('Enabled display of full transaction logs...'));
+      } else {
+        traceLevel = 0;
+        console.log(gray('Disabled transaction tracing...'));
+      }
     } else if (evt.name === 'h') {
       if (nodeLogging.enabled()) return;
 

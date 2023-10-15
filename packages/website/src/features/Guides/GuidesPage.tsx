@@ -31,7 +31,7 @@ const GuideCard: React.FC<GuideCardProps> = ({ href, title, subtitle }) => {
       >
         <Flex
           border="1px solid"
-          borderColor="gray.700"
+          borderColor="gray.800"
           borderRadius="md"
           background="gray.900"
           p={5}

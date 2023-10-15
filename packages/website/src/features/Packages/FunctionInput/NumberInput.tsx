@@ -23,6 +23,7 @@ export const NumberInput: FC<{
       type="number"
       bg="black"
       step="1"
+      size="sm"
       borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
       value={updateValue.toString()}
       _focus={{ borderColor: isInvalid ? 'red.500' : 'blue.300' }}

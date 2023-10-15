@@ -1,6 +1,7 @@
 import { FC } from 'react';
-import { Box, Text, Divider } from '@chakra-ui/react';
+import { Box, Text, Divider, FormLabel, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 
 export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
@@ -18,50 +19,53 @@ export const FunctionOutput: FC<{
     : undefined;
 
   return (
-    <div>
+    <>
+      {(output as Array<any>).length == 0 && (
+        <Flex flex="1">
+          <Text fontSize="sm" m="auto" color="gray.500">
+            <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
+            any values
+          </Text>
+        </Flex>
+      )}
       {arrayOutput && (
         <div>
           {arrayOutput.map((item: any, index: number) => {
             return (
               <div key={index}>
-                <h4>
-                  {item.name}
-                  <Text
-                    pl="1"
-                    fontSize="xs"
-                    color="whiteAlpha.700"
-                    display="inline"
-                  >
-                    {item.internalType}
-                  </Text>
-                </h4>
-                {item.components && (
-                  <div>
-                    {item.type === 'tuple' && (
-                      <Box pl="1" pt="2" pb="2">
-                        {Object.values(result).map(
-                          (component: any, componentIndex: any) => {
-                            return (
-                              <FunctionOutput
-                                output={item.components[componentIndex]}
-                                result={component}
-                                key={componentIndex}
-                              />
-                            );
-                          }
-                        )}
-                      </Box>
+                <FormLabel fontSize="sm" mb={0}>
+                  {item.name && <Text display="inline">{item.name}</Text>}
+                  {item.internalType && (
+                    <Text fontSize="xs" color="whiteAlpha.700" display="inline">
+                      {' '}
+                      {item.internalType}
+                    </Text>
+                  )}
+                </FormLabel>
+
+                {item.components && item.type === 'tuple' && result && (
+                  <Box pb="2">
+                    {Object.values(result).map(
+                      (component: any, componentIndex: any) => {
+                        return (
+                          <FunctionOutput
+                            output={item.components[componentIndex]}
+                            result={component}
+                            key={componentIndex}
+                          />
+                        );
+                      }
                     )}
-                  </div>
+                  </Box>
                 )}
-                {item.type === 'tuple[]' && (
+                {item.type === 'tuple[]' && result?.length && (
                   <div>
                     {(arrayOutput.length > 1 ? result[index] : result).map(
                       (resultItem: any, resultItemIndex: number) => {
                         if (isObject(resultItem)) {
                           return (
                             <div key={resultItemIndex}>
-                              <Box pl="1" pt="2" pb="2">
+                              <Box pb="2">
                                 {Object.values(resultItem).map(
                                   (component: any, componentIndex: any) => {
                                     return (
@@ -80,7 +84,7 @@ export const FunctionOutput: FC<{
                         } else {
                           return (
                             <div key={resultItemIndex}>
-                              <Box pl="1" pt="2" pb="2">
+                              <Box pb="2">
                                 {resultItem.map(
                                   (component: any, componentIndex: number) => {
                                     return (
@@ -103,19 +107,25 @@ export const FunctionOutput: FC<{
                     )}
                   </div>
                 )}
-                {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  !isArray(result) && <Box pl="1">{String(result)}</Box>}
-                {(!item.components ||
-                  (item.type !== 'tuple[]' && item.type !== 'tuple')) &&
-                  isArray(result) && <Box pl="1">{String(result[index])}</Box>}
+                {!item.components ||
+                (item.type !== 'tuple[]' && item.type !== 'tuple') ? (
+                  <>
+                    {(isArray(result) ? result[index] : result) === null ? (
+                      <Text color="gray.500">—</Text>
+                    ) : (
+                      <Text>
+                        {String(isArray(result) ? result[index] : result)}
+                      </Text>
+                    )}
+                  </>
+                ) : null}
               </div>
             );
           })}
         </div>
       )}
       {objectOutput && (
-        <div>
+        <>
           {objectOutput.name}:{' '}
           {JSON.stringify(
             result,
@@ -130,8 +140,8 @@ export const FunctionOutput: FC<{
           <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
             {String(result)}
           </Text>
-        </div>
+        </>
       )}
-    </div>
+    </>
   );
 };

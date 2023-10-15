@@ -51,6 +51,7 @@ jest.mock('../rpc', () => ({
     getNetwork: jest.fn().mockImplementation(() => {
       return Promise.resolve(chainId);
     }),
+    on: jest.fn(),
   }),
 }));
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.2](https://github.com/usecannon/cannon/compare/v2.8.1...v2.8.2) (2023-10-09)
+
+
+### Bug Fixes
+
+* add builder/src/ folder to package build ([#491](https://github.com/usecannon/cannon/issues/491)) ([8b3c084](https://github.com/usecannon/cannon/commit/8b3c084ef42c714a9a83cfd6f1b9d0c837b905c3))
+
 ## [2.8.1](https://github.com/usecannon/cannon/compare/v2.8.0...v2.8.1) (2023-09-29)
 
 

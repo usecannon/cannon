@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import cli from '../src/index';
-import { red } from 'chalk';
+const { red } = require('chalk');
+const cli = require('../dist/src');
 
-cli
+cli.default
   .parseAsync()
   .then(() => {
     process.exit(0);

@@ -13,7 +13,7 @@ import {
   Image,
   Link,
 } from '@chakra-ui/react';
-import { useQuery } from '@apollo/client';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import {
   TOTAL_PACKAGES,
   FILTERED_PACKAGES_AND_VARIANTS,
@@ -33,19 +33,20 @@ import { debounce } from 'lodash';
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  const { data: totalPackages, loading: totalLoading } = useQuery<
-    GetTotalPackagesQuery,
-    GetTotalPackagesQueryVariables
-  >(TOTAL_PACKAGES, {
-    variables: { query: '' },
-  });
+  const { data: totalPackages, loading: totalLoading } =
+    useQueryCannonSubgraphData<
+      GetTotalPackagesQuery,
+      GetTotalPackagesQueryVariables
+    >(TOTAL_PACKAGES, {
+      variables: { query: '' },
+    });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
   };
   const debouncedHandleSearch = debounce(handleSearch, 300);
 
-  const { loading, error, data } = useQuery<
+  const { loading, error, data } = useQueryCannonSubgraphData<
     GetFilteredPackagesAndVariantsQuery,
     GetFilteredPackagesAndVariantsQueryVariables
   >(FILTERED_PACKAGES_AND_VARIANTS, {
@@ -127,7 +128,7 @@ export const SearchPage = () => {
           overflowY="auto"
           maxWidth={['100%', '100%', '300px']}
           borderRight={isSmall ? 'none' : '1px solid'}
-          borderColor="gray.700"
+          borderColor="gray.800"
           width={['100%', '100%', '300px']}
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >

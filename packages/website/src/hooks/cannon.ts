@@ -25,6 +25,7 @@ import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } 
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { createFork } from '@/helpers/rpc';
 import { useGitRepo } from '@/hooks/git';
+import { useLogs } from '@/providers/logsProvider';
 
 export type BuildState =
   | {
@@ -272,6 +273,7 @@ export function useCannonWriteDeployToIpfs(
 
 export function useCannonPackage(packageRef: string, variant = '') {
   const chainId = useChainId();
+  const { addLog } = useLogs();
 
   if (!variant) {
     variant = `${chainId}-main`;
@@ -305,7 +307,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
   const ipfsQuery = useQuery(['cannon', 'pkg', pkgUrl], {
     queryFn: async () => {
-      console.log('LOADING PKG URL', pkgUrl);
+      addLog(`LOADING PKG URL: ${pkgUrl}`);
 
       if (!pkgUrl) return null;
 
@@ -321,7 +323,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       const resolvedVersion = def.getVersion(ctx);
 
       if (deployInfo) {
-        console.log('LOADED');
+        addLog('LOADED');
         return { deployInfo, ctx, resolvedName, resolvedVersion };
       } else {
         throw new Error('failed to download package data');
