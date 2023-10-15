@@ -3,7 +3,7 @@
 const { red } = require('chalk');
 const cli = require('../dist/src');
 
-cli
+cli.default
   .parseAsync()
   .then(() => {
     process.exit(0);

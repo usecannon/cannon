@@ -153,4 +153,4 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   return finalSettings;
 }
 
-export const resolveCliSettings = _.once(_resolveCliSettings);
+export const resolveCliSettings = _.memoize(_resolveCliSettings);
