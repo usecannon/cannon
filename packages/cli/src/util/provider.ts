@@ -80,8 +80,8 @@ export async function resolveProviderAndSigners({
 
   // force provider to use JSON-RPC instead of Web3Provider for local instances
   if (checkProviders.includes('frame') || checkProviders[0].startsWith('http://')) {
-    for(const provider of checkProviders) {
-      if(Object.keys(localProviders).includes(provider)){
+    for (const provider of checkProviders) {
+      if (Object.keys(localProviders).includes(provider)) {
         providerList.push(new ethers.providers.JsonRpcProvider(localProviders[provider as keyof typeof localProviders]));
       } else {
         providerList.push(new ethers.providers.JsonRpcProvider(provider));

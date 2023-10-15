@@ -85,7 +85,7 @@ export class LocalRegistry extends CannonRegistry {
 
     return allTags
       .filter((t) => {
-        let [name, version, tagVariant] = t.replace('.txt', '').split('_');
+        const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
         debug(`found deploy tags for ${name}, ${version}`);
 
@@ -95,9 +95,9 @@ export class LocalRegistry extends CannonRegistry {
 
         let pkgName;
         if (!version) {
-          pkgName = `${name}`
+          pkgName = `${name}`;
         } else {
-          pkgName = `${name}:${version}`
+          pkgName = `${name}:${version}`;
         }
 
         return !t.endsWith('.meta') && pkgName!.match(packageName) && tagVariant!.match(variant);

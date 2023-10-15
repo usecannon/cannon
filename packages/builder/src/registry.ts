@@ -7,7 +7,6 @@ import CannonRegistryAbi from './abis/CannonRegistry';
 import _ from 'lodash';
 
 import { bold, blueBright, yellow } from 'chalk';
-import { handleTxnError } from './error';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -273,7 +272,7 @@ export class OnChainRegistry extends CannonRegistry {
     await this.checkSigner();
     const datas: string[] = [];
     console.log(packagesNames);
-    
+
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const registerPackages of _.values(
       _.groupBy(
@@ -318,7 +317,6 @@ export class OnChainRegistry extends CannonRegistry {
           (p: string[]) => p[0]
         )
       )) {
-
         console.log(`Package: ${pub.packagesNames[0]}`);
         console.log(
           `Tags: [${registerPackages.map((v, i) => {
@@ -327,7 +325,7 @@ export class OnChainRegistry extends CannonRegistry {
         );
         console.log(`Package URL: ${pub.url}`);
         pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
-  
+
         console.log('\n-----');
 
         const tx = this.generatePublishTransactionData(

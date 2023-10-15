@@ -260,9 +260,9 @@ export async function build({
 
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
-  
+
   const chainDef = def.toJson();
-  
+
   chainDef.version = chainDef.version.startsWith('<%=') ? pkgVersion : chainDef.version;
 
   if (miscUrl) {

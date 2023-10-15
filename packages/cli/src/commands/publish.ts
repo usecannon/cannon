@@ -119,7 +119,11 @@ export async function publish({
       message: 'Select the packages you want to publish:\n',
       name: 'values',
       choices: deploys.map((d) => {
-        return { title: `${d.name} (preset: ${d.variant.substring(d.variant.indexOf('-') + 1)})`, description: '', value: d };
+        return {
+          title: `${d.name} (preset: ${d.variant.substring(d.variant.indexOf('-') + 1)})`,
+          description: '',
+          value: d,
+        };
       }),
     });
 
@@ -155,13 +159,12 @@ export async function publish({
 
   console.log(parentPackages);
 
-  
   let subPackages: SubPackage[] = [];
   if (!quiet) {
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {
-          let provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.variant, tags, fromStorage);
+          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.variant, tags, fromStorage);
           subPackages.push(...provisionedPackages);
         }
       }
@@ -169,7 +172,7 @@ export async function publish({
       // dedupe and reduce to subPackages
       subPackages = subPackages.reduce<SubPackage[]>((acc, curr) => {
         if (
-          !acc.some((item, index) => item.packagesNames !== curr.packagesNames && item.variant === curr.variant) &&
+          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.variant === curr.variant) &&
           !curr.packagesNames.some((r) => parentPackages.some((p) => r.includes(`${p.name}`)))
         ) {
           acc.push(curr);
@@ -182,7 +185,7 @@ export async function publish({
         console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
         deploy.versions.concat(tags).map((version) => console.log(`- ${version} (preset: ${preset})`));
       });
-      console.log(`\n`)
+      console.log('\n');
 
       subPackages!.forEach((pkg: SubPackage) => {
         console.log(blueBright(`This will publish ${bold(pkg.packagesNames[0].split(':')[0])} to the registry:`));
@@ -239,11 +242,11 @@ export async function publish({
   console.log(bold(blueBright('Packages published:')));
   if (includeProvisioned) {
     parentPackages.forEach((deploy) => {
-      deploy.versions.concat(tags).forEach(ver => {
+      deploy.versions.concat(tags).forEach((ver) => {
         const { basePackageRef } = new PackageReference(`${deploy.name}:${ver}`);
         const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
         console.log(`- ${basePackageRef} (preset: ${preset})`);
-      })
+      });
     });
     subPackages!.forEach((pkg) => {
       pkg.packagesNames.forEach((pkgName) => {
@@ -254,9 +257,9 @@ export async function publish({
     });
   } else {
     parentPackages.forEach((deploy) => {
-      deploy.versions.concat(tags).forEach(ver => {
+      deploy.versions.concat(tags).forEach((ver) => {
         const pkgRef = new PackageReference(deploy.name);
-        for (const version of deploy.versions) console.log(`  - ${pkgRef.name}:${version}`);
+        console.log(`  - ${pkgRef.name}:${ver}`);
       });
     });
   }

@@ -11,7 +11,7 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile, saveToMetadataCache } from './helpers';
+import { checkCannonVersion, loadCannonfile } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -397,7 +397,7 @@ program
         type: 'text',
         name: 'value',
         message: 'Please provide a Private Key',
-        style: 'password'
+        style: 'password',
       });
 
       if (!keyPrompt.value) {

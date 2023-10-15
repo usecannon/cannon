@@ -105,7 +105,6 @@ export async function getProvisionedPackages(packageRef: string, variant: string
   const chainId = parseInt(variant.split('-')[0]);
 
   const uri = await storage.registry.getUrl(packageRef, variant);
-  
 
   const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
 
@@ -117,7 +116,7 @@ export async function getProvisionedPackages(packageRef: string, variant: string
 
   const getPackages = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
     debug('create chain definition');
-    
+
     const def = new ChainDefinition(deployInfo.def);
 
     debug('create initial ctx with deploy info', deployInfo);
@@ -127,7 +126,9 @@ export async function getProvisionedPackages(packageRef: string, variant: string
     debug('created initial ctx with deploy info');
 
     return {
-      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map((t) => `${def.getName(preCtx)}:${t}`),
+      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
+        (t) => `${def.getName(preCtx)}:${t}`
+      ),
       variant: context ? `${chainId}-${context.preset}` : variant,
     };
   };
@@ -198,7 +199,6 @@ export async function publishPackage({
   const preset = variant.substring(variant.indexOf('-') + 1);
 
   const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
-
 
   if (!deployData) {
     throw new Error(
