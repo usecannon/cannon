@@ -100,7 +100,8 @@ export async function resolveCannonVersion(): Promise<string> {
 
   const resolvedVersion = await execPromise('npm view @usecannon/cli version');
 
-  fs.writeFileSync(versionFile, `${resolvedVersion}:${now}`);
+  await fs.mkdirp(settings.cannonDirectory);
+  await fs.writeFile(versionFile, `${resolvedVersion}:${now}`);
 
   return resolvedVersion;
 }
