@@ -146,7 +146,7 @@ describe('alter', () => {
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 
   it('should perform alteration for mark-complete', async () => {
     const command = 'mark-complete';

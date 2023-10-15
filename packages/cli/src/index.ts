@@ -363,6 +363,7 @@ program
   .option('--preset <preset>', 'The preset of the packages to publish')
   .option('-t --tags <tags>', 'Comma separated list of labels for your package')
   .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
+  .option('--value <value>', 'Value in wei to send with the transaction')
   .option(
     '--max-fee-per-gas <maxFeePerGas>',
     'The maximum value (in gwei) for the base fee when submitting the registry transaction'
@@ -411,7 +412,7 @@ program
     const cliSettings = resolveCliSettings(options);
     const p = await resolveRegistryProvider(cliSettings);
 
-    const overrides: ethers.Overrides = {};
+    const overrides: ethers.PayableOverrides = {};
 
     if (options.maxFeePerGas) {
       overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
@@ -425,9 +426,9 @@ program
       overrides.gasLimit = options.gasLimit;
     }
 
-    // if (options.value) {
-    //   overrides.value = options.value;
-    // }
+    if (options.value) {
+      overrides.value = options.value;
+    }
 
     console.log(
       `\nSettings:\n - Max Fee Per Gas: ${

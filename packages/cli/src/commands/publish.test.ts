@@ -66,9 +66,14 @@ describe('publish command', () => {
       })
     );
 
-    signer = ethers.Wallet.createRandom().connect(
+    const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+    signer = new ethers.Wallet(privateKey).connect(
       new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider())
     );
+
+    // signer = ethers.Wallet.createRandom().connect(
+    //   new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(), false)
+    // );
   });
 
   beforeEach(() => {
@@ -126,6 +131,7 @@ describe('publish command', () => {
     });
 
     jest.spyOn(OnChainRegistry.prototype, 'publishMany').mockResolvedValue([]);
+    jest.spyOn(OnChainRegistry.prototype, 'publish').mockResolvedValue([]);
   });
 
   it('should publish the package to the registry', async () => {
@@ -139,15 +145,13 @@ describe('publish command', () => {
       overrides: {},
     });
 
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledWith([
-      {
-        packagesNames: [basePackageRef, ...tags.map((tag) => 'package:' + tag)],
-        variant: `${chainId}-${preset}`,
-        url: testPkgDataNewIpfsUrl,
-        metaUrl: testPkgNewMetaIpfsUrl,
-      },
-    ]);
+    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
+    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledWith(
+      [basePackageRef, ...tags.map((tag) => 'package:' + tag)],
+      `${chainId}-${preset}`,
+      testPkgDataNewIpfsUrl,
+      testPkgNewMetaIpfsUrl
+    );
   });
 
   it('should publish the package to the registry with no tags', async () => {

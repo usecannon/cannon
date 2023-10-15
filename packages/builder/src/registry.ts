@@ -1,4 +1,4 @@
-import { BigNumber, ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, PayableOverrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -200,7 +200,7 @@ export class OnChainRegistry extends CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
-  overrides: ethers.Overrides;
+  overrides: ethers.PayableOverrides;
 
   constructor({
     signerOrProvider,
@@ -209,7 +209,7 @@ export class OnChainRegistry extends CannonRegistry {
   }: {
     address: string;
     signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
-    overrides?: Overrides;
+    overrides?: PayableOverrides;
   }) {
     super();
 
@@ -395,7 +395,7 @@ export class OnChainRegistry extends CannonRegistry {
     return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+  private async logMultiCallEstimatedGas(datas: any, overrides: PayableOverrides): Promise<void> {
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);

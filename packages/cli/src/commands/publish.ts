@@ -16,7 +16,7 @@ interface Params {
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
-  overrides?: ethers.Overrides;
+  overrides?: ethers.PayableOverrides;
   includeProvisioned?: boolean;
 }
 
@@ -157,8 +157,6 @@ export async function publish({
     return result;
   }, []);
 
-  console.log(parentPackages);
-
   let subPackages: SubPackage[] = [];
   if (!quiet) {
     if (includeProvisioned) {
@@ -258,8 +256,7 @@ export async function publish({
   } else {
     parentPackages.forEach((deploy) => {
       deploy.versions.concat(tags).forEach((ver) => {
-        const pkgRef = new PackageReference(deploy.name);
-        console.log(`  - ${pkgRef.name}:${ver}`);
+        console.log(`  - ${deploy.name}:${ver}`);
       });
     });
   }
