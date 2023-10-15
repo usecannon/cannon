@@ -102,8 +102,6 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
-  const { version } = new PackageReference(packageRef);
-
   const chainId = parseInt(variant.split('-')[0]);
 
   const uri = await storage.registry.getUrl(packageRef, variant);
@@ -118,6 +116,8 @@ export async function getProvisionedPackages(packageRef: string, variant: string
   }
 
   const getPackages = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    debug('create chain definition');
+    
     const def = new ChainDefinition(deployInfo.def);
 
     debug('create initial ctx with deploy info', deployInfo);
@@ -146,8 +146,6 @@ export async function publishPackage({
   toStorage,
   includeProvisioned = false,
 }: CopyPackageOpts) {
-  const { basePackageRef } = new PackageReference(packageRef);
-
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
@@ -211,6 +209,7 @@ export async function publishPackage({
   if (includeProvisioned) {
     debug('publish recursive');
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+
     return toStorage.registry.publishMany(calls);
   } else {
     debug('publish');

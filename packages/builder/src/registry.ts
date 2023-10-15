@@ -1,4 +1,4 @@
-import { BigNumber, ethers, CallOverrides } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
@@ -201,7 +201,7 @@ export class OnChainRegistry extends CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
-  overrides: ethers.CallOverrides;
+  overrides: ethers.Overrides;
 
   constructor({
     signerOrProvider,
@@ -210,7 +210,7 @@ export class OnChainRegistry extends CannonRegistry {
   }: {
     address: string;
     signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
-    overrides?: CallOverrides;
+    overrides?: Overrides;
   }) {
     super();
 
@@ -272,6 +272,7 @@ export class OnChainRegistry extends CannonRegistry {
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
     const datas: string[] = [];
+    console.log(packagesNames);
     
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const registerPackages of _.values(
@@ -282,8 +283,8 @@ export class OnChainRegistry extends CannonRegistry {
     )) {
       console.log(`Package: ${registerPackages[0][0]}`);
       console.log(
-        `Tags: [${registerPackages.map((v, i) => {
-          return `${registerPackages[i][1]}`;
+        `Tags: [${registerPackages.map((pkg) => {
+          return `${pkg[1]}`;
         })}]`
       );
       console.log(`Package URL: ${url}`);
@@ -319,12 +320,12 @@ export class OnChainRegistry extends CannonRegistry {
       )) {
 
         console.log(`Package: ${pub.packagesNames[0]}`);
-        console.log(`Package URL: ${pub.url}`);
         console.log(
           `Tags: [${registerPackages.map((v, i) => {
             return `${registerPackages[i][1]}`;
           })}]`
         );
+        console.log(`Package URL: ${pub.url}`);
         pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
   
         console.log('\n-----');
@@ -396,7 +397,7 @@ export class OnChainRegistry extends CannonRegistry {
     return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: CallOverrides): Promise<void> {
+  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
       const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
@@ -413,13 +414,13 @@ export class OnChainRegistry extends CannonRegistry {
       if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
         console.log(
           bold(
-            '\nPublishing account does not have enough funds to pay for the publishing transaction, please fund your account and try again.\n'
+            '\nPublishing account does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n'
           )
         );
       }
     } catch (e: any) {
       // We dont want to throw an error if the estimate gas fails
-      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e);
+      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e?.message);
     }
   }
 }
