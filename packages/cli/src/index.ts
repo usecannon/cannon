@@ -684,25 +684,27 @@ const pluginCmd = program.command('plugin').description('Manage Cannon plug-in m
 
 pluginCmd
   .command('list')
-  .description('List all installed plugins')
+  .description('List all installed Cannon plug-ins')
   .action(async function () {
-    console.log(green(bold('\n=============== Installed Plugins ===============')));
+    console.log(green(bold('\n=============== Installed Plug-ins ===============')));
     const installedPlugins = await listInstalledPlugins();
     installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
   });
 
 pluginCmd
   .command('add')
-  .argument('<name>', 'Name of an NPM package to add as a Cannon plug-in')
+  .description('Add a Cannon plug-in')
+  .argument('<name>', 'npm package name of the Cannon plug-in')
   .action(async function (name) {
-    console.log(`Installing plugin ${name}...`);
+    console.log(`Installing plug-in ${name}...`);
     await installPlugin(name);
     console.log('Complete!');
   });
 
 pluginCmd
   .command('remove')
-  .argument('<name>', 'Name of an NPM package to remove as a Cannon plug-in')
+  .description('Remove a Cannon plug-in')
+  .argument('<name>', 'npm package name of the Cannon plug-in')
   .action(async function (name) {
     console.log(`Removing plugin ${name}...`);
     await removePlugin(name);
