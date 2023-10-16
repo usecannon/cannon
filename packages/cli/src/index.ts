@@ -11,7 +11,7 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile } from './helpers';
+import { checkCannonVersion, loadCannonfile, getChainIdFromProviderUrl } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -105,6 +105,15 @@ function configureRun(program: Command) {
       const { run } = await import('./commands/run');
 
       options.port = Number.parseInt(options.port) || 8545;
+
+      if (options.chainId && options.providerUrl) {
+        const providerChainId = await getChainIdFromProviderUrl(options.providerUrl);
+        if (providerChainId != options.chainId) {
+          throw new Error(
+            `Provided providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
+          );
+        }
+      }
 
       let node: CannonRpcNode;
       if (options.chainId) {
