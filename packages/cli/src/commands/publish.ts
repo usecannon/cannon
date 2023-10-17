@@ -114,8 +114,6 @@ export async function publish({
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
   }
 
-  console.log(!noConfirm);
-
   // Select screen for when a user is looking for all the local deploys
   if (!noConfirm && (!version || version.length === 0)) {
     const verification = await prompts({
@@ -241,33 +239,35 @@ export async function publish({
     }
   }
 
-  console.log(bold(blueBright('Packages published:')));
-  if (includeProvisioned) {
-    parentPackages.forEach((deploy) => {
-      deploy.versions.concat(tags).forEach((ver) => {
-        const { basePackageRef } = new PackageReference(`${deploy.name}:${ver}`);
-        const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
-        console.log(`- ${basePackageRef} (preset: ${preset})`);
+  if (!quiet) {
+    console.log(bold(blueBright('Packages published:')));
+    if (includeProvisioned) {
+      parentPackages.forEach((deploy) => {
+        deploy.versions.concat(tags).forEach((ver) => {
+          const { basePackageRef } = new PackageReference(`${deploy.name}:${ver}`);
+          const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
+          console.log(`- ${basePackageRef} (preset: ${preset})`);
+        });
       });
-    });
-    subPackages!.forEach((pkg) => {
-      pkg.packagesNames.forEach((pkgName) => {
-        const { basePackageRef } = new PackageReference(pkgName);
-        const preset = pkg.variant.substring(pkg.variant.indexOf('-') + 1);
-        console.log(`- ${basePackageRef} (preset: ${preset})`);
+      subPackages!.forEach((pkg) => {
+        pkg.packagesNames.forEach((pkgName) => {
+          const { basePackageRef } = new PackageReference(pkgName);
+          const preset = pkg.variant.substring(pkg.variant.indexOf('-') + 1);
+          console.log(`- ${basePackageRef} (preset: ${preset})`);
+        });
       });
-    });
-  } else {
-    parentPackages.forEach((deploy) => {
-      deploy.versions.concat(tags).forEach((ver) => {
-        console.log(`  - ${deploy.name}:${ver}`);
+    } else {
+      parentPackages.forEach((deploy) => {
+        deploy.versions.concat(tags).forEach((ver) => {
+          console.log(`  - ${deploy.name}:${ver}`);
+        });
       });
-    });
-  }
+    }
 
-  const txs = registrationReceipts.filter((tx) => !!tx);
-  if (txs.length) {
-    console.log(blueBright('Transactions:'));
-    for (const tx of txs) console.log(`  - ${tx}`);
+    const txs = registrationReceipts.filter((tx) => !!tx);
+    if (txs.length) {
+      console.log(blueBright('Transactions:'));
+      for (const tx of txs) console.log(`  - ${tx}`);
+    }
   }
 }
