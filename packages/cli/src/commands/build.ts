@@ -263,7 +263,7 @@ export async function build({
 
   const chainDef = def.toJson();
 
-  chainDef.version = chainDef.version.startsWith('<%=') ? pkgVersion : chainDef.version;
+  chainDef.version = pkgVersion;
 
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
@@ -323,9 +323,7 @@ export async function build({
     } else {
       console.log(
         greenBright(
-          `Successfully built package ${bold(
-            `${name}:${version}@${selectedPreset}`
-          )} \n - Deploy Url: ${deployUrl} \n - Metadata Url: ${metaUrl}`
+          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl}`
         )
       );
     }

@@ -18,6 +18,7 @@ interface Params {
   quiet?: boolean;
   overrides?: ethers.PayableOverrides;
   includeProvisioned?: boolean;
+  noConfirm?: boolean;
 }
 
 interface DeployList {
@@ -40,6 +41,7 @@ export async function publish({
   quiet = false,
   overrides,
   includeProvisioned = false,
+  noConfirm = false,
 }: Params) {
   const cliSettings = resolveCliSettings();
 
@@ -112,8 +114,10 @@ export async function publish({
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
   }
 
+  console.log(!noConfirm);
+
   // Select screen for when a user is looking for all the local deploys
-  if (!quiet && (!version || version.length === 0)) {
+  if (!noConfirm && (!version || version.length === 0)) {
     const verification = await prompts({
       type: 'autocompleteMultiselect',
       message: 'Select the packages you want to publish:\n',
@@ -144,7 +148,7 @@ export async function publish({
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
     const matchingDeploys = result.find((i) => i.name === item.name && i.variant === item.variant);
 
-    if (item.version == 'latest') {
+    if (item.version == 'latest' && deploys.length > 1) {
       tags.push(item.version);
       return result;
     }
@@ -158,7 +162,7 @@ export async function publish({
   }, []);
 
   let subPackages: SubPackage[] = [];
-  if (!quiet) {
+  if (!noConfirm) {
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {

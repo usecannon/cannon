@@ -176,15 +176,9 @@ export async function publishPackage({
       throw new Error('uploaded url is invalid');
     }
 
-    debug('create chain definition');
-
     const def = new ChainDefinition(deployInfo.def);
 
-    debug('create initial ctx with deploy info', deployInfo);
-
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
-
-    debug('created initial ctx with deploy info');
 
     return {
       packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
@@ -207,12 +201,12 @@ export async function publishPackage({
   }
 
   if (includeProvisioned) {
-    debug('publish recursive');
+    debug('publish with provisioned');
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
     return toStorage.registry.publishMany(calls);
   } else {
-    debug('publish');
+    debug('publish without provisioned');
     const call = await copyIpfs(deployData, null);
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);

@@ -73,8 +73,3 @@ extra.NewClonedGreeterEvent.expectCount = 2
 target = ["greeters.greeter"]
 func = "changeCloneGreeting"
 args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
-
-# [run.empty]
-# exec = "./scripts/deploy.js"
-# func = "empty"
-# modified = ["dummy.js"]

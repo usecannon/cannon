@@ -374,6 +374,7 @@ program
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
   .option('--include-provisioned', 'Includes provisioned packages when publishing to the registry')
+  .option('--no-confirm', 'Skip confirmation and package selection prompts', false)
   .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
@@ -447,6 +448,7 @@ program
       presetArg: options.preset ? (options.preset as string) : undefined,
       quiet: options.quiet,
       includeProvisioned: options.includeProvisioned,
+      noConfirm: options.noConfirm,
       overrides,
     });
   });

@@ -271,7 +271,6 @@ export class OnChainRegistry extends CannonRegistry {
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
     const datas: string[] = [];
-    console.log(packagesNames);
 
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const registerPackages of _.values(
@@ -398,7 +397,7 @@ export class OnChainRegistry extends CannonRegistry {
   private async logMultiCallEstimatedGas(datas: any, overrides: PayableOverrides): Promise<void> {
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
-      const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
+      const estimatedGas = await this.contract.connect(this.signer!).estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
       const gasPrice =
         (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
@@ -412,13 +411,14 @@ export class OnChainRegistry extends CannonRegistry {
       if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
         console.log(
           bold(
-            '\nPublishing account does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n'
+            yellow(
+              `Publishing address "${await this.signer?.getAddress()}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+            )
           )
         );
       }
     } catch (e: any) {
-      // We dont want to throw an error if the estimate gas fails
-      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e?.message);
+      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e);
     }
   }
 }

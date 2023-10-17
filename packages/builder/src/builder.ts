@@ -31,11 +31,7 @@ export async function createInitialContext(
     chainId,
   };
 
-  debug('define chain builder context');
-
   const settings: ChainBuilderContext['settings'] = {};
-
-  debug('get settings', preCtx);
 
   const pkgSettings = def.getSettings(preCtx);
 
