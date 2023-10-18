@@ -10,7 +10,7 @@ registerAction({
   configInject: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   getState: () => {},
-  exec: () => ({ imports: {}, contracts: {}, txns: {}, extras: {} }),
+  exec: async () => ({ imports: {}, contracts: {}, txns: {}, extras: {} }),
   validate: z.any(),
 });
 
