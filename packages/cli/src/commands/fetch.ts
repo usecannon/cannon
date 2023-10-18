@@ -12,7 +12,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
   const cliSettings = resolveCliSettings();
 
-  const { name, preset, basePackageRef } = new PackageReference(packageRef);
+  const { name, version, preset, basePackageRef } = new PackageReference(packageRef);
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
@@ -42,7 +42,10 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
 
-    await fs.writeFile(localRegistry.getTagReferenceStorage(basePackageRef, variant), ipfsUrl);
+    await fs.writeFile(
+      localRegistry.getTagReferenceStorage(`${name}:${deployInfo.def.version || version}`, variant),
+      ipfsUrl
+    );
 
     if (metaHash) {
       if (!/^Qm[1-9A-Za-z]{44}$/.test(metaHash)) {
@@ -50,26 +53,21 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
       }
 
       const ipfsUrl = 'ipfs://' + metaHash;
-      const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
+      const metadata = await storage.readBlob(ipfsUrl);
 
-      if (Object.keys(deployInfo).length === 0) {
-        console.log(`\nPackage does not have any metadata at ${ipfsUrl}`);
-      } else {
-        console.log(`\n - ${metaHash}`);
+      await storage.putBlob(metadata);
 
-        if (!deployInfo) {
-          throw new Error(`could not find package metadata on IPFS using the following hash: ${metaHash}`);
-        }
-
-        await storage.putBlob(deployInfo);
-
-        await fs.writeFile(localRegistry.getMetaTagReferenceStorage(basePackageRef, variant), ipfsUrl);
-      }
+      await fs.writeFile(
+        localRegistry.getMetaTagReferenceStorage(`${name}:${deployInfo.def.version || version}`, variant),
+        ipfsUrl
+      );
     }
 
     console.log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${basePackageRef}`);
     console.log(
-      `run 'cannon publish ${basePackageRef} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the latest package data to the registry`
+      `run 'cannon publish ${name}:${
+        deployInfo.def.version || version
+      } --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the latest package data to the registry`
     );
   } catch (e: any) {
     throw new Error(`${e?.message}`);
