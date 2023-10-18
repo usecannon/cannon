@@ -29,12 +29,14 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
     // Fetching deployment info
     const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
 
+    let pkgName = `${name}:${deployInfo.def.version || version}`;
+
     if (!deployInfo || Object.keys(deployInfo).length === 0) {
       throw new Error(`could not find package data on IPFS using the hash: ${hash}`);
     }
 
     if (name !== deployInfo.def.name) {
-      throw new Error(`deployment data at ${hash} does not match the specified package "${basePackageRef}"`);
+      throw new Error(`deployment data at ${hash} does not match the specified package "${pkgName}"`);
     }
 
     // Writing deployment blobs directory
@@ -43,7 +45,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
     const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
 
     await fs.writeFile(
-      localRegistry.getTagReferenceStorage(`${name}:${deployInfo.def.version || version}`, variant),
+      localRegistry.getTagReferenceStorage(pkgName, variant),
       ipfsUrl
     );
 
@@ -58,16 +60,14 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
       await storage.putBlob(metadata);
 
       await fs.writeFile(
-        localRegistry.getMetaTagReferenceStorage(`${name}:${deployInfo.def.version || version}`, variant),
+        localRegistry.getMetaTagReferenceStorage(pkgName, variant),
         ipfsUrl
       );
     }
 
-    console.log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${basePackageRef}`);
+    console.log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
     console.log(
-      `run 'cannon publish ${name}:${
-        deployInfo.def.version || version
-      } --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the latest package data to the registry`
+      `run 'cannon publish ${pkgName} --chain-id <CHAIN_ID> --private-key <PRIVATE_KEY>' to publish the latest package data to the registry`
     );
   } catch (e: any) {
     throw new Error(`${e?.message}`);
