@@ -1,9 +1,16 @@
 import { blueBright } from 'chalk';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { DeploymentInfo, IPFSLoader, CannonStorage, PackageReference } from '@usecannon/builder';
+import {
+  DeploymentInfo,
+  IPFSLoader,
+  CannonStorage,
+  PackageReference,
+  ChainDefinition,
+  createInitialContext,
+} from '@usecannon/builder';
 import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from '../constants';
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 
 export async function fetch(packageRef: string, chainId: number, hash: string, metaHash?: string) {
   if (!/^Qm[1-9A-Za-z]{44}$/.test(hash)) {
@@ -29,7 +36,11 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
     // Fetching deployment info
     const deployInfo: DeploymentInfo = await storage.readBlob(ipfsUrl);
 
-    let pkgName = `${name}:${deployInfo.def.version || version}`;
+    const def = new ChainDefinition(deployInfo.def);
+
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
+
+    let pkgName = `${name}:${def.getVersion(preCtx) || version}`;
 
     if (!deployInfo || Object.keys(deployInfo).length === 0) {
       throw new Error(`could not find package data on IPFS using the hash: ${hash}`);
@@ -44,10 +55,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
 
-    await fs.writeFile(
-      localRegistry.getTagReferenceStorage(pkgName, variant),
-      ipfsUrl
-    );
+    fs.writeFileSync(localRegistry.getTagReferenceStorage(pkgName, variant), ipfsUrl);
 
     if (metaHash) {
       if (!/^Qm[1-9A-Za-z]{44}$/.test(metaHash)) {
@@ -59,10 +67,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
       await storage.putBlob(metadata);
 
-      await fs.writeFile(
-        localRegistry.getMetaTagReferenceStorage(pkgName, variant),
-        ipfsUrl
-      );
+      fs.writeFileSync(localRegistry.getMetaTagReferenceStorage(pkgName, variant), ipfsUrl);
     }
 
     console.log(`\n\nSuccessfully fetched and saved deployment data for the following package: ${pkgName}`);
