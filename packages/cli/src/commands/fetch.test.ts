@@ -178,13 +178,13 @@ describe('fetch', () => {
 
   test('should fetch package info from IPFS hash and write deployment info', async () => {
     // Call the 'fetch' function with the necessary arguments
-    await fetch(basePackageRef, ipfsHash);
+    await fetch(basePackageRef, chainId, ipfsHash);
 
     expect(CannonStorage.prototype.readBlob).toHaveBeenCalledTimes(1);
     expect(CannonStorage.prototype.putBlob).toHaveBeenCalledTimes(1);
   });
 
   test('should fail if IPFS hash is invalid', async () => {
-    await expect(fetch(basePackageRef, '')).rejects.toThrowError('"" does not match the IPFS CID v0 format');
+    await expect(fetch(basePackageRef, chainId, '')).rejects.toThrowError('"" does not match the IPFS CID v0 format');
   });
 });

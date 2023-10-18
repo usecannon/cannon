@@ -5,7 +5,7 @@ import { DeploymentInfo, IPFSLoader, CannonStorage, PackageReference } from '@us
 import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from '../constants';
 import fs from 'node:fs/promises';
 
-export async function fetch(packageRef: string, hash: string, metaHash?: string) {
+export async function fetch(packageRef: string, chainId: number, hash: string, metaHash?: string) {
   if (!/^Qm[1-9A-Za-z]{44}$/.test(hash)) {
     throw new Error(`"${hash}" does not match the IPFS CID v0 format`);
   }
@@ -40,7 +40,7 @@ export async function fetch(packageRef: string, hash: string, metaHash?: string)
     // Writing deployment blobs directory
     await storage.putBlob(deployInfo);
 
-    const variant = `${deployInfo.chainId}-${preset || 'main'}`;
+    const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
 
     await fs.writeFile(localRegistry.getTagReferenceStorage(basePackageRef, variant), ipfsUrl);
 

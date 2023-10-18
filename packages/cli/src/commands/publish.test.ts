@@ -142,7 +142,7 @@ describe('publish command', () => {
       tags,
       chainId,
       quiet: true,
-      noConfirm: true,
+      skipConfirm: true,
       overrides: {},
     });
 
@@ -163,7 +163,7 @@ describe('publish command', () => {
       tags,
       chainId,
       quiet: true,
-      noConfirm: true,
+      skipConfirm: true,
       includeProvisioned: true,
       overrides: {},
     });
@@ -197,7 +197,7 @@ describe('publish command', () => {
         tags,
         chainId,
         quiet: true,
-        noConfirm: true,
+        skipConfirm: true,
         includeProvisioned: true,
         overrides: {},
       });
@@ -217,7 +217,7 @@ describe('publish command', () => {
         chainId,
         presetArg: '',
         quiet: true,
-        noConfirm: true,
+        skipConfirm: true,
         overrides: {},
       });
 
@@ -238,7 +238,7 @@ describe('publish command', () => {
         chainId: 0,
         presetArg: preset,
         quiet: true,
-        noConfirm: true,
+        skipConfirm: true,
         overrides: {},
       });
 

@@ -16,9 +16,9 @@ interface Params {
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
-  overrides?: ethers.PayableOverrides;
   includeProvisioned?: boolean;
-  noConfirm?: boolean;
+  skipConfirm?: boolean;
+  overrides?: ethers.PayableOverrides;
 }
 
 interface DeployList {
@@ -39,9 +39,9 @@ export async function publish({
   chainId,
   presetArg,
   quiet = false,
-  overrides,
   includeProvisioned = false,
-  noConfirm = false,
+  skipConfirm = false,
+  overrides,
 }: Params) {
   const cliSettings = resolveCliSettings();
 
@@ -115,7 +115,7 @@ export async function publish({
   }
 
   // Select screen for when a user is looking for all the local deploys
-  if (!noConfirm && (!version || version.length === 0)) {
+  if (!skipConfirm && (!version || version.length === 0) && deploys.length > 1) {
     const verification = await prompts({
       type: 'autocompleteMultiselect',
       message: 'Select the packages you want to publish:\n',
@@ -160,7 +160,7 @@ export async function publish({
   }, []);
 
   let subPackages: SubPackage[] = [];
-  if (!noConfirm) {
+  if (!skipConfirm) {
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {

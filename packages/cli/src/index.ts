@@ -346,11 +346,12 @@ program
   .description('Fetch cannon package data from an IPFS hash and store it in the local registry.')
   .argument('<packageName>', 'Name of the package to fetch data for')
   .argument('<ipfsHash>', 'IPFS hash to fetch deployment data from')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to fetch')
   .option('--meta-hash <metaHash>', 'IPFS hash to fetch deployment metadata from')
   .action(async function (packageName, ipfsHash, options) {
     const { fetch } = await import('./commands/fetch');
 
-    await fetch(packageName, ipfsHash, options.metaHash);
+    await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
   });
 
 program
@@ -374,8 +375,8 @@ program
   )
   .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
   .option('--include-provisioned', 'Includes provisioned packages when publishing to the registry')
-  .option('--no-confirm', 'Skip confirmation and package selection prompts')
-  .action(async function (packageRef, options, noConfirm) {
+  .option('--skip-confirm', 'Skip confirmation and package selection prompts')
+  .action(async function (packageRef, options) {
     const { publish } = await import('./commands/publish');
 
     if (!options.chainId) {
@@ -395,15 +396,27 @@ program
     }
 
     if (!options.privateKey && !process.env.PRIVATE_KEY) {
+      const validatePrivateKey = (privateKey: string) => {
+        if (ethers.utils.isHexString(privateKey)) {
+          return true;
+        } else {
+          if (privateKey.length === 64) {
+            return ethers.utils.isHexString(`0x${privateKey}`);
+          }
+          return false;
+        }
+      };
+
       const keyPrompt = await prompts({
         type: 'text',
         name: 'value',
         message: 'Please provide a Private Key',
         style: 'password',
+        validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
       });
 
       if (!keyPrompt.value) {
-        console.log('Private Key not provided.');
+        console.log('Private Key is required.');
         process.exit(1);
       }
 
@@ -448,7 +461,7 @@ program
       presetArg: options.preset ? (options.preset as string) : undefined,
       quiet: options.quiet,
       includeProvisioned: options.includeProvisioned,
-      noConfirm: noConfirm,
+      skipConfirm: options.skipConfirm,
       overrides,
     });
   });
