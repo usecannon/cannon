@@ -351,6 +351,22 @@ program
   .action(async function (packageName, ipfsHash, options) {
     const { fetch } = await import('./commands/fetch');
 
+    if (!options.chainId) {
+      const chainIdPrompt = await prompts({
+        type: 'number',
+        name: 'value',
+        message: 'Please provide the Chain ID for the deployment you want to fetch',
+        initial: 13370,
+      });
+
+      if (!chainIdPrompt.value) {
+        console.log('Chain ID is required.');
+        process.exit(1);
+      }
+
+      options.chainId = chainIdPrompt.value;
+    }
+
     await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
   });
 
@@ -383,12 +399,12 @@ program
       const chainIdPrompt = await prompts({
         type: 'number',
         name: 'value',
-        message: 'Please provide a Chain ID',
+        message: 'Please provide the Chain ID for the package you want to publish',
         initial: 13370,
       });
 
       if (!chainIdPrompt.value) {
-        console.log('Chain ID not provided.');
+        console.log('Chain ID is required.');
         process.exit(1);
       }
 
