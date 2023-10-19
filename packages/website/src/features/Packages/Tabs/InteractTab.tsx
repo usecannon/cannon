@@ -38,7 +38,19 @@ export const InteractTab: FC<{
   });
 
   const pathName = usePathname();
-  const activeContract = pathName.split('interact/')[1];
+
+  let activeContractOption: Option | undefined;
+  const activeContractPath = pathName.split('interact/')[1];
+  if (activeContractPath) {
+    const [moduleName, contractName, contractAddress] =
+      activeContractPath.split('/');
+    activeContractOption = {
+      moduleName,
+      contractName,
+      contractAddress,
+    };
+  }
+
   const router = useRouter();
 
   const [pkg, setPackage] = useState<any | null>(null);
@@ -54,9 +66,19 @@ export const InteractTab: FC<{
     (v: any) => v.name === variant && v.tag.name === tag
   );
 
-  const selectContract = (contractAddress: string) => {
+  const selectContract = (contract: Option) => {
     void router.push(
-      `/packages/${name}/${tag}/${variant}/interact/${contractAddress}`
+      `/packages/${name}/${tag}/${variant}/interact/${contract.moduleName}/${contract.contractName}/${contract.contractAddress}`
+    );
+  };
+
+  const isActiveContract = (contract: Option) => {
+    if (!activeContractOption) return false;
+
+    return (
+      activeContractOption.moduleName === contract.moduleName &&
+      activeContractOption.contractName === contract.contractName &&
+      activeContractOption.contractAddress === contract.contractAddress
     );
   };
 
@@ -122,11 +144,11 @@ export const InteractTab: FC<{
     );
     setOtherOptions(otherData);
 
-    if (!activeContract) {
+    if (!activeContractOption) {
       if (highlightedData.length > 0) {
-        selectContract(highlightedData[0].contractAddress);
+        selectContract(highlightedData[0]);
       } else if (otherData.length > 0) {
-        selectContract(otherData[0].contractAddress);
+        selectContract(otherData[0]);
       }
     }
   }, [deploymentData.data]);
@@ -151,18 +173,10 @@ export const InteractTab: FC<{
             aria-label="contract name"
             boxShadow="lg"
             flexShrink={0}
-            background={
-              activeContract === option.contractAddress
-                ? 'teal.900'
-                : 'gray.700'
-            }
-            borderColor={
-              activeContract === option.contractAddress
-                ? 'teal.600'
-                : 'gray.600'
-            }
+            background={isActiveContract(option) ? 'teal.900' : 'gray.700'}
+            borderColor={isActiveContract(option) ? 'teal.600' : 'gray.600'}
             _hover={
-              activeContract === option.contractAddress
+              isActiveContract(option)
                 ? {
                     background: 'teal.800',
                     borderColor: 'teal.500',
@@ -175,7 +189,7 @@ export const InteractTab: FC<{
             mr={4}
             height="48px"
             px={2}
-            onClick={() => selectContract(option.contractAddress)}
+            onClick={() => selectContract(option)}
           >
             <Box textAlign="left">
               <Text
@@ -256,9 +270,7 @@ export const InteractTab: FC<{
                     textAlign="left"
                     p={2}
                     background={
-                      activeContract === option.contractAddress
-                        ? 'gray.800'
-                        : 'transparent'
+                      isActiveContract(option) ? 'gray.800' : 'transparent'
                     }
                     _hover={{
                       background: 'gray.800',
@@ -267,7 +279,7 @@ export const InteractTab: FC<{
                     borderColor="gray.700"
                     onClick={() => {
                       setIsPopoverOpen(false);
-                      selectContract(option.contractAddress);
+                      selectContract(option);
                     }}
                   >
                     <Text

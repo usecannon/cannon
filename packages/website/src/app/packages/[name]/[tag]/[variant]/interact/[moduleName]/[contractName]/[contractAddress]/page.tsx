@@ -17,6 +17,8 @@ export default function Interact({
     name: string;
     tag: string;
     variant: string;
+    moduleName: string;
+    contractName: string;
     contractAddress: string;
   };
 }) {
@@ -25,6 +27,8 @@ export default function Interact({
       name={params.name}
       tag={params.tag}
       variant={params.variant}
+      moduleName={params.moduleName}
+      contractName={params.contractName}
       contractAddress={params.contractAddress}
     />
   );

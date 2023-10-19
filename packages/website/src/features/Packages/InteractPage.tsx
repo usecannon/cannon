@@ -7,13 +7,17 @@ export const InteractPage: FC<{
   name: string;
   tag: string;
   variant: string;
+  moduleName: string;
+  contractName: string;
   contractAddress: string;
-}> = ({ name, tag, variant, contractAddress }) => {
+}> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   return (
     <Interact
       name={name}
       tag={tag}
       variant={variant}
+      moduleName={moduleName}
+      contractName={contractName}
       contractAddress={contractAddress}
     ></Interact>
   );
