@@ -17,7 +17,10 @@ describe('clean function', () => {
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log');
     // @ts-ignore - show wrong type for mocked function output
-    jest.spyOn(fs, 'readdir').mockImplementation(() => Promise.resolve(['file1.txt', 'file2.txt']));
+    jest.spyOn(fs, 'readdir').mockImplementation(() => Promise.resolve([
+      { name: 'file1.txt', isDirectory: () => false },
+      { name: 'dir1', isDirectory: () => true }
+    ]));
     jest.spyOn(fs, 'rm').mockImplementation(() => Promise.resolve());
   });
 
@@ -26,14 +29,14 @@ describe('clean function', () => {
     jest.resetAllMocks();
   });
 
-  it('should return false if no files found', async () => {
+  it('should return false if no files or folders found', async () => {
     (existsSync as jest.Mock).mockReturnValue(false);
     const result = await clean(false);
     expect(result).toBe(false);
-    expect(console.log).toHaveBeenCalledWith('No files found that could be deleted.');
+    expect(console.log).toHaveBeenCalledWith('No files or folders found that could be deleted.');
   });
 
-  it('should prompt for confirmation and delete files if confirmed', async () => {
+  it('should prompt for confirmation and delete files and directories if confirmed', async () => {
     (existsSync as jest.Mock).mockReturnValue(true);
     (prompts as unknown as jest.Mock).mockResolvedValue({ confirmation: true });
     const result = await clean(true);
@@ -43,7 +46,7 @@ describe('clean function', () => {
     expect(fs.rm).toHaveBeenCalledTimes(4);
   });
 
-  it('should not delete files if not confirmed', async () => {
+  it('should not delete files or directories if not confirmed', async () => {
     (existsSync as jest.Mock).mockReturnValue(true);
     (prompts as unknown as jest.Mock).mockResolvedValue({ confirmation: false });
     const result = await clean(true);
