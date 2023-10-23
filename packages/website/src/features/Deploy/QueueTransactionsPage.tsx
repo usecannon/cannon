@@ -177,7 +177,7 @@ function QueueTransactions() {
         </FormHelperText>
       </FormControl>
       {cannonInfo.pkgUrl && !cannonInfo.contracts && (
-        <Alert status="info">
+        <Alert bg="gray.800" status="info">
           <AlertIcon />
           <Box>
             <AlertTitle>Cannon Package Detected</AlertTitle>
@@ -201,7 +201,7 @@ function QueueTransactions() {
                 txnInfo.txnResults.length === queuedTxns.length &&
                 txnInfo.txnResults[i] &&
                 txnInfo.txnResults[i]?.error && (
-                  <Alert mt="6">
+                  <Alert bg="gray.800" status="error" mt="6">
                     <AlertIcon />
                     Transaction Error:{' '}
                     {txnInfo.txnResults[i]?.callResult
@@ -213,8 +213,12 @@ function QueueTransactions() {
           ))}
           <HStack my="3">
             <Button
+              variant="outline"
               size="xs"
-              colorScheme="blue"
+              colorScheme="green"
+              color="green.400"
+              borderColor="green.400"
+              _hover={{ bg: 'green.900' }}
               leftIcon={<AddIcon />}
               onClick={() => setQueuedTxns(_.clone(queuedTxns.concat([{}])))}
             >
@@ -222,8 +226,12 @@ function QueueTransactions() {
             </Button>
             {queuedTxns.length > 1 && (
               <Button
+                variant="outline"
                 size="xs"
                 colorScheme="red"
+                color="red.400"
+                borderColor="red.400"
+                _hover={{ bg: 'red.900' }}
                 leftIcon={<MinusIcon />}
                 onClick={() =>
                   setQueuedTxns(

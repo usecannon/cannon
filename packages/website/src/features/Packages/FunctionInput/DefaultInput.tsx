@@ -20,6 +20,7 @@ export const DefaultInput: FC<{
   return (
     <Input
       type="text"
+      size="sm"
       bg="black"
       borderColor="whiteAlpha.400"
       value={updateValue}

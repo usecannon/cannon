@@ -19,6 +19,7 @@ export const AddressInput: FC<{
       borderColor={isInvalid ? 'red.500' : 'whiteAlpha.400'}
       placeholder="0x0000000000000000000000000000000000000000"
       value={updateValue}
+      size="sm"
       onChange={(e) => {
         setUpdateValue(e.target.value || '');
       }}

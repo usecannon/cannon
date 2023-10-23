@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import { AbiFunction, Abi } from 'abitype/src/abi';
 
 import { ChainArtifacts } from '@usecannon/builder';
@@ -6,14 +6,15 @@ import {
   Alert,
   Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
+  Link,
   Text,
 } from '@chakra-ui/react';
 import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
-import { RefreshCw } from 'react-feather';
 import {
   useAccount,
   useConnect,
@@ -27,6 +28,7 @@ import { Address } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 
 export const Function: FC<{
@@ -37,6 +39,8 @@ export const Function: FC<{
   chainId: number;
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
+  const [simulated, setSimulated] = useState(false);
+  const [simulatedResult, setSimulatedResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
   const { isConnected, address: from } = useAccount();
@@ -76,6 +80,22 @@ export const Function: FC<{
     [f.stateMutability]
   );
 
+  const result = useMemo(
+    () =>
+      readOnly
+        ? readContractResult
+        : simulated
+        ? simulatedResult
+        : writeContractResult,
+    [
+      readOnly,
+      simulated,
+      simulatedResult,
+      readContractResult,
+      writeContractResult,
+    ]
+  );
+
   // useEffect(() => {
   //   _.debounce(() => {
   //     if (readOnly && f.inputs.length === params.length) {
@@ -84,15 +104,12 @@ export const Function: FC<{
   //   }, 200)();
   // }, [params, readOnly]);
   //
-  useEffect(() => {
-    if (readOnly && f.inputs.length === 0) {
-      void submit(true);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const submit = async (suppressError = false) => {
+  const submit = async (suppressError = false, simulate = false) => {
     setLoading(true);
     setError(null);
+    setSimulated(simulate);
+
     try {
       if (readOnly) {
         await fetchReadContractResult();
@@ -105,14 +122,26 @@ export const Function: FC<{
             return;
           }
         }
+
         if (connectedChain?.id != chainId) {
           const newChain = await switchNetworkAsync?.(chainId as number);
           if (newChain?.id != chainId) return;
         }
-        try {
+
+        const _params = Array.isArray(params) ? params : [params];
+
+        if (simulate) {
+          const { result } = await publicClient.simulateContract({
+            address: address as Address,
+            abi,
+            functionName: f.name,
+            args: _params,
+            account: walletClient?.account || undefined,
+          });
+
+          setSimulatedResult(result);
+        } else {
           await fetchWriteContractResult();
-        } catch (e) {
-          console.error(e);
         }
       }
     } catch (e: any) {
@@ -137,84 +166,196 @@ export const Function: FC<{
     }
   };
 
+  const statusIcon = result ? (
+    <Box display="inline-block" mr={3}>
+      {error ? (
+        <WarningIcon color="red.700" />
+      ) : (
+        <CheckCircleIcon color="green.500" />
+      )}
+    </Box>
+  ) : null;
+
+  function sanitizeForIdAndURI(anchor: string) {
+    let sanitized = encodeURIComponent(anchor);
+    sanitized = sanitized.replace(/%20/g, '_');
+    if (/^[0-9]/.test(sanitized)) {
+      sanitized = 'id_' + sanitized;
+    }
+    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
+    return sanitized;
+  }
+
+  const anchor = sanitizeForIdAndURI(
+    `${f.name}(${f.inputs
+      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
+      .join(',')})`
+  );
+
   return (
-    <Box mb="6" pt="6" borderTop="1px solid rgba(255,255,255,0.15)">
-      <Heading size="sm" mb="2">
-        {f.name}()
-      </Heading>
-      {f.inputs.map((input, index) => {
-        return (
-          <Box key={JSON.stringify(input)}>
-            <FormControl mb="4">
-              <FormLabel color="white">
-                {input.name && <Text display="inline">{input.name}</Text>}
-                {input.type && (
-                  <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                    {' '}
-                    {input.type}
-                  </Text>
-                )}
-              </FormLabel>
-              <FunctionInput
-                input={input}
-                valueUpdated={(value) => {
-                  const _params = [...params];
-                  _params[index] = value;
-                  setParams(_params);
+    <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
+      <Box maxW="container.xl">
+        <Flex alignItems="center" mb="4">
+          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
+            {f.name}(
+            {f.inputs
+              .map((i) => i.type + (i.name ? ' ' + i.name : ''))
+              .join(',')}
+            )
+            <Link
+              color="gray.300"
+              ml={1}
+              textDecoration="none"
+              _hover={{ textDecoration: 'underline' }}
+              href={`#${anchor}`}
+            >
+              #
+            </Link>
+          </Heading>
+        </Flex>
+        <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
+          <Box flex="1" w={['100%', '100%', '50%']}>
+            {f.inputs.map((input, index) => {
+              return (
+                <Box key={JSON.stringify(input)}>
+                  <FormControl mb="4">
+                    <FormLabel fontSize="sm" mb={1}>
+                      {input.name && <Text display="inline">{input.name}</Text>}
+                      {input.type && (
+                        <Text
+                          fontSize="xs"
+                          color="whiteAlpha.700"
+                          display="inline"
+                        >
+                          {' '}
+                          {input.type}
+                        </Text>
+                      )}
+                    </FormLabel>
+                    <FunctionInput
+                      input={input}
+                      valueUpdated={(value) => {
+                        const _params = [...params];
+                        _params[index] = value;
+                        setParams(_params);
+                      }}
+                    />
+                  </FormControl>
+                </Box>
+              );
+            })}
+
+            {readOnly && (
+              <Button
+                isLoading={loading}
+                colorScheme="teal"
+                bg="teal.900"
+                _hover={{ bg: 'teal.800' }}
+                variant="outline"
+                size="xs"
+                mr={3}
+                onClick={() => {
+                  void submit(false);
                 }}
-              />
-            </FormControl>
+              >
+                Call view function
+              </Button>
+            )}
+
+            {!readOnly && (
+              <>
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={() => {
+                    void submit(false, true);
+                  }}
+                >
+                  Simulate transaction
+                </Button>
+                {simulated && statusIcon}
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={() => {
+                    void submit(false);
+                  }}
+                >
+                  Submit using wallet {!simulated && statusIcon}
+                </Button>
+              </>
+            )}
+
+            {error && (
+              <Alert mt="2" status="error" bg="red.700">
+                {error}
+              </Alert>
+            )}
           </Box>
-        );
-      })}
-      {loading && (
-        <Box my="4">
-          <CustomSpinner />
-        </Box>
-      )}
-      {error && (
-        <Alert mb="4" status="error" bg="red.700" v-else-if="error">
-          {error}
-        </Alert>
-      )}
-      {((readOnly && readContractResult != null) ||
-        (!readOnly && writeContractResult != null)) && (
-        <Box>
-          <FunctionOutput
-            result={readOnly ? readContractResult : writeContractResult}
-            output={f.outputs}
-          />
-        </Box>
-      )}
+          <Box
+            flex="1"
+            w={['100%', '100%', '50%']}
+            background="whiteAlpha.50"
+            borderRadius="md"
+            p={4}
+            display="flex"
+            flexDirection="column"
+            position="relative"
+          >
+            <Heading
+              size="xs"
+              textTransform={'uppercase'}
+              fontWeight={400}
+              letterSpacing={'1px'}
+              fontFamily={'var(--font-miriam)'}
+              color="gray.300"
+              mb={2}
+            >
+              Output
+            </Heading>
 
-      {/*{readOnly && (result != null || error) && (*/}
-      {readOnly && (
-        <Box
-          display="inline-block"
-          py={1}
-          cursor="pointer"
-          color="gray.400"
-          _hover={{ color: 'gray.200' }}
-          transition="color 0.2s ease-in-out"
-        >
-          <div onClick={() => submit(false)} className="refresh-button">
-            <RefreshCw size={18} />
-          </div>
-        </Box>
-      )}
-
-      {!readOnly && (
-        <Button
-          isLoading={loading}
-          colorScheme="teal"
-          size="sm"
-          onClick={() => {
-            void submit(false);
-          }}
-        >
-          Submit Transaction
-        </Button>
-      )}
+            {loading ? (
+              <CustomSpinner m="auto" />
+            ) : (
+              <Flex flex="1">
+                {f.outputs.length != 0 && result == null && (
+                  <Flex
+                    position="absolute"
+                    zIndex={2}
+                    top={0}
+                    left={0}
+                    background="blackAlpha.700"
+                    width="100%"
+                    height="100%"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontWeight="medium"
+                    color="gray.300"
+                    textShadow="sm"
+                    letterSpacing="0.1px"
+                  >
+                    {readOnly
+                      ? 'Call the view function '
+                      : 'Simulate the transaction '}
+                    for output
+                  </Flex>
+                )}
+                <FunctionOutput result={result} output={f.outputs} />
+              </Flex>
+            )}
+          </Box>
+        </Flex>
+      </Box>
     </Box>
   );
 };

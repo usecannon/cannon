@@ -12,6 +12,7 @@ export const BoolInput: FC<{
     <Select
       borderColor="whiteAlpha.400"
       bg="black"
+      size="sm"
       onChange={(e) => setUpdateValue(e.target.value === 'true')}
     >
       <option value="false">False</option>
