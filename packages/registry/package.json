@@ -29,7 +29,7 @@
     "@usecannon/cli": "^2.4.21",
     "chai": "4.3.6",
     "dotenv": "16.0.1",
-    "ethers": "5.7.1",
+    "ethers": "5.7.2",
     "hardhat": "^2.12.6",
     "hardhat-cannon": "^2.4.21",
     "hardhat-contract-sizer": "^2.7.0",

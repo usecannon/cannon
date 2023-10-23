@@ -51,7 +51,7 @@
     "commander": "^9.5.0",
     "debug": "^4.3.4",
     "eth-provider": "^0.13.6",
-    "ethers": "^5.7.1",
+    "ethers": "^5.7.2",
     "fastq": "^1.15.0",
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
