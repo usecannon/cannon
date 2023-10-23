@@ -48,7 +48,7 @@
     "@synthetixio/wei": "^2.74.1",
     "@usecannon/builder": "^2.8.2",
     "chalk": "^4.1.2",
-    "commander": "^9.5.0",
+    "commander": "^11.1.0",
     "debug": "^4.3.4",
     "eth-provider": "^0.13.6",
     "ethers": "^5.7.1",
