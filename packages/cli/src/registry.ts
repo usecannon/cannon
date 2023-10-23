@@ -2,6 +2,7 @@ import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
+import os from 'os';
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
@@ -27,7 +28,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   getTagReferenceStorage(packageRef: string, variant: string): string {
-    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
+    return path.relative(os.homedir(), path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`));
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {

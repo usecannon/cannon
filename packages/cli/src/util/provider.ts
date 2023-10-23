@@ -7,6 +7,7 @@ import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
 import { bold } from 'chalk';
 
 import Debug from 'debug';
+import os from 'os';
 import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
@@ -58,7 +59,7 @@ export async function resolveProviderAndSigners({
   checkProviders?: string[];
   privateKey?: string;
 }): Promise<{ provider: CannonWrapperGenericProvider; signers: ethers.Signer[] }> {
-  debug('resolving provider', checkProviders, chainId);
+  debug('resolving provider', checkProviders.map(p => p.replace(RegExp(/[=A-Za-z0-9, '*'.repeat(32))_-]{32,}/), '*'.repeat(32))), chainId);
 
   const rawProvider = provider(checkProviders, { origin: 'Cannon' });
 
@@ -85,7 +86,7 @@ export async function resolveProviderAndSigners({
         signers.push(ethersProvider.getSigner(account));
       }
     } catch (err: any) {
-      debug('Failed to connect signers: ', err);
+      debug('Failed to connect signers: ', (err.stack as string).replace(os.homedir(), ''));
     }
   }
 
