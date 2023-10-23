@@ -417,10 +417,11 @@ program
     'Path to write the deployments data (address and ABIs), like "./deployments"'
   )
   .option('-q --quiet', 'Suppress extra logging')
+  .option('-s --sources', 'Show contract sources')
   .action(async function (packageName, options) {
     const { inspect } = await import('./commands/inspect');
     resolveCliSettings(options);
-    await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+    await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments, options.sources);
   });
 
 program
