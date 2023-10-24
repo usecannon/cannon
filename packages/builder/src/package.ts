@@ -1,4 +1,5 @@
 import Debug from 'debug';
+import _ from 'lodash';
 import { BundledOutput, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
 import { createInitialContext } from './builder';
@@ -74,7 +75,7 @@ export class PackageReference {
  * @param action The action to execute
  * @param onlyProvisioned Skip over sub-packages which are not provisioned within the parent
  */
-export async function forPackageTree<T>(
+export async function forPackageTree<T extends { url?: string }>(
   store: CannonStorage,
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
@@ -84,9 +85,14 @@ export async function forPackageTree<T>(
   const results: T[] = [];
 
   for (const importArtifact of _deployImports(deployInfo)) {
-    if (onlyProvisioned && !importArtifact.tags) continue;
+    // TODO: if we ever have anything besides IPFS for deployment on the registry, this should be updated
+    if (onlyProvisioned && !importArtifact.tags && importArtifact.url && importArtifact.url.split(':')[0] === 'ipfs')
+      continue;
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyProvisioned);
+    if (_.last(result)!.url) {
+      importArtifact.url = _.last(result)!.url!;
+    }
     results.push(...result);
   }
 
@@ -155,12 +161,11 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
     throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
   }
 
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
   if (recursive) {
-    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     return toStorage.registry.publishMany(calls);
   } else {
-    const call = await copyIpfs(deployData, null);
-
+    const call = _.last(calls)!;
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }
 }
