@@ -136,7 +136,7 @@ export async function getProvisionedPackages(packageRef: string, variant: string
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,
-      url: context?.url
+      url: context?.url,
     };
   };
 
@@ -207,14 +207,14 @@ export async function publishPackage({
     );
   }
 
-  if (includeProvisioned) {
-    debug('publish with provisioned');
-    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
+  if (includeProvisioned) {
+    debug('publishing with provisioned');
     return toStorage.registry.publishMany(calls);
   } else {
-    debug('publish without provisioned');
-    const call = await copyIpfs(deployData, null);
+    debug('publishing without provisioned');
+    const call = _.last(calls)!;
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }

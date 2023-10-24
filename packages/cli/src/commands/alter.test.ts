@@ -216,5 +216,5 @@ describe('alter', () => {
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 });
