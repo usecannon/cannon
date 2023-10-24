@@ -110,7 +110,7 @@ function configureRun(program: Command) {
         const providerChainId = await getChainIdFromProviderUrl(options.providerUrl);
         if (providerChainId != options.chainId) {
           throw new Error(
-            `Provided providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
+            `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
           );
         }
       }
