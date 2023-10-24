@@ -60,7 +60,7 @@ export { loadCannonfile } from './helpers';
 import { listInstalledPlugins } from './plugins';
 import prompts from 'prompts';
 import { pickAnvilOptions } from './util/anvil';
-import commandsConfig from './commandsConfig.json';
+import commandsConfig from './commandsConfig';
 
 const program = new Command();
 
