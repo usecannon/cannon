@@ -11,6 +11,9 @@
     "start": "node dist/bin/cannon.js",
     "docgen": "typedoc"
   },
+  "files": [
+    "dist/**"
+  ],
   "keywords": [
     "cannon",
     "hardhat",
