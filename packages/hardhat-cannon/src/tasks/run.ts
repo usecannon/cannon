@@ -64,7 +64,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
       return run(packages, {
         node,
         logs,
-        preset,
+        presetArg: preset,
         upgradeFrom,
         registryPriority,
         getArtifact: (contractName: string) => hre.artifacts.readArtifact(contractName),

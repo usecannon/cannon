@@ -13,7 +13,7 @@ import {
   FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
-  copyPackage,
+  publishPackage,
 } from '@usecannon/builder';
 import { CheckIcon } from '@chakra-ui/icons';
 import { useCannonPackage } from '@/hooks/cannon';
@@ -87,13 +87,13 @@ export default function PublishUtility(props: {
         'ipfs'
       );
 
-      await copyPackage({
+      await publishPackage({
         packageRef: `${resolvedName}:${resolvedVersion}`,
         tags: settings.publishTags.split(','),
         variant: props.targetVariant,
         fromStorage,
         toStorage,
-        recursive: true,
+        includeProvisioned: true,
       });
     },
     onSuccess() {
