@@ -327,51 +327,142 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   });
 });
 
-applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
-  const { publish } = await import('./commands/publish');
+program
+  .command('fetch')
+  .description('Fetch cannon package data from an IPFS hash and store it in the local registry.')
+  .argument('<packageName>', 'Name of the package to fetch data for')
+  .argument('<ipfsHash>', 'IPFS hash to fetch deployment data from')
+  .option('-c --chain-id <chainId>', 'Chain ID of deployment to fetch')
+  .option('--meta-hash <metaHash>', 'IPFS hash to fetch deployment metadata from')
+  .action(async function (packageName, ipfsHash, options) {
+    const { fetch } = await import('./commands/fetch');
 
-  const cliSettings = resolveCliSettings(options);
-  const p = await resolveRegistryProvider(cliSettings);
+    if (!options.chainId) {
+      const chainIdPrompt = await prompts({
+        type: 'number',
+        name: 'value',
+        message: 'Please provide the Chain ID for the deployment you want to fetch',
+        initial: 13370,
+      });
 
-  const overrides: ethers.Overrides = {};
+      if (!chainIdPrompt.value) {
+        console.log('Chain ID is required.');
+        process.exit(1);
+      }
 
-  if (!options.chainId) {
-    throw new Error(
-      'Please provide a chainId using the format: --chain-id <number>. For example, 13370 is the chainId for a local build.'
-    );
-  }
+      options.chainId = chainIdPrompt.value;
+    }
 
-  if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
-  }
-
-  if (options.maxPriorityFeePerGas) {
-    overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei');
-  }
-
-  if (options.gasLimit) {
-    overrides.gasLimit = options.gasLimit;
-  }
-  console.log(
-    `Settings:\nMax Fee Per Gas: ${
-      overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
-    }\nMax Priority Fee Per Gas: ${
-      overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-    }\nGas Limit: ${
-      overrides.gasLimit ? overrides.gasLimit : 'default'
-    }\nTo alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.`
-  );
-
-  await publish({
-    packageRef,
-    signer: p.signers[0],
-    tags: options.tags.split(','),
-    chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
-    presetArg: options.preset ? (options.preset as string) : undefined,
-    quiet: options.quiet,
-    overrides,
+    await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
   });
-});
+
+program
+  .command('publish')
+  .description('Publish a Cannon package to the registry')
+  .argument('<packageName>', 'Name and version of the package to publish')
+  .option('-n --registry-provider-url [url]', 'RPC endpoint to publish to')
+  .option('--private-key <key>', 'Private key to use for publishing the registry package')
+  .option('--chain-id <number>', 'The chain ID of the package to publish')
+  .option('--preset <preset>', 'The preset of the packages to publish')
+  .option('-t --tags <tags>', 'Comma separated list of labels for your package')
+  .option('--gas-limit <gasLimit>', 'The maximum units of gas spent for the registration transaction')
+  .option('--value <value>', 'Value in wei to send with the transaction')
+  .option(
+    '--max-fee-per-gas <maxFeePerGas>',
+    'The maximum value (in gwei) for the base fee when submitting the registry transaction'
+  )
+  .option(
+    '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+    'The maximum value (in gwei) for the miner tip when submitting the registry transaction'
+  )
+  .option('-q --quiet', 'Only output final JSON object at the end, no human readable output')
+  .option('--include-provisioned', 'Includes provisioned packages when publishing to the registry')
+  .option('--skip-confirm', 'Skip confirmation and package selection prompts')
+  .action(async function (packageRef, options) {
+    const { publish } = await import('./commands/publish');
+
+    if (!options.chainId) {
+      const chainIdPrompt = await prompts({
+        type: 'number',
+        name: 'value',
+        message: 'Please provide the Chain ID for the package you want to publish',
+        initial: 13370,
+      });
+
+      if (!chainIdPrompt.value) {
+        console.log('Chain ID is required.');
+        process.exit(1);
+      }
+
+      options.chainId = chainIdPrompt.value;
+    }
+
+    if (!options.privateKey && !process.env.PRIVATE_KEY) {
+      const validatePrivateKey = (privateKey: string) => {
+        if (ethers.utils.isHexString(privateKey)) {
+          return true;
+        } else {
+          if (privateKey.length === 64) {
+            return ethers.utils.isHexString(`0x${privateKey}`);
+          }
+          return false;
+        }
+      };
+
+      const keyPrompt = await prompts({
+        type: 'text',
+        name: 'value',
+        message: 'Please provide a Private Key',
+        style: 'password',
+        validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
+      });
+
+      if (!keyPrompt.value) {
+        console.log('Private Key is required.');
+        process.exit(1);
+      }
+
+      options.privateKey = keyPrompt.value;
+    }
+
+    const cliSettings = resolveCliSettings(options);
+    const p = await resolveRegistryProvider(cliSettings);
+
+    const overrides: ethers.PayableOverrides = {};
+
+    if (options.maxFeePerGas) {
+      overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
+    }
+
+    if (options.gasLimit) {
+      overrides.gasLimit = options.gasLimit;
+    }
+
+    if (options.value) {
+      overrides.value = options.value;
+    }
+
+    console.log(
+      `\nSettings:\n - Max Fee Per Gas: ${
+        overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
+      }\n - Max Priority Fee Per Gas: ${
+        overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
+      }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
+        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+    );
+
+    await publish({
+      packageRef,
+      signer: p.signers[0],
+      tags: options.tags ? options.tags.split(',') : [],
+      chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+      presetArg: options.preset ? (options.preset as string) : undefined,
+      quiet: options.quiet,
+      includeProvisioned: options.includeProvisioned,
+      skipConfirm: options.skipConfirm,
+      overrides,
+    });
+  });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');

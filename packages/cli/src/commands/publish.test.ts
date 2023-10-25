@@ -1,4 +1,10 @@
-import { CannonWrapperGenericProvider, copyPackage, DeploymentInfo, IPFSLoader, OnChainRegistry } from '@usecannon/builder';
+import {
+  CannonWrapperGenericProvider,
+  publishPackage,
+  DeploymentInfo,
+  IPFSLoader,
+  OnChainRegistry,
+} from '@usecannon/builder';
 import * as builder from '@usecannon/builder';
 import { LocalLoader } from '../loader';
 import { publish } from '../commands/publish';
@@ -45,11 +51,6 @@ describe('publish command', () => {
   const testPkgMiscIpfsUrl = 'ipfs:/test-ipfs-misc-url';
   const testPkgNewMetaIpfsUrl = 'ipfs:/test-ipfs-new-meta-url';
 
-  it.skip('should upload the package to IPFS', async () => {
-    // TODO - this functionality will be moved to a new command `extract-link`
-    // https://github.com/usecannon/cannon/issues/280
-  });
-
   beforeAll(async () => {
     jest.resetAllMocks();
 
@@ -65,9 +66,14 @@ describe('publish command', () => {
       })
     );
 
-    signer = ethers.Wallet.createRandom().connect(
+    const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+    signer = new ethers.Wallet(privateKey).connect(
       new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider())
     );
+
+    // signer = ethers.Wallet.createRandom().connect(
+    //   new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(), false)
+    // );
   });
 
   beforeEach(() => {
@@ -125,40 +131,40 @@ describe('publish command', () => {
     });
 
     jest.spyOn(OnChainRegistry.prototype, 'publishMany').mockResolvedValue([]);
+    jest.spyOn(OnChainRegistry.prototype, 'publish').mockResolvedValue([]);
   });
 
   it('should publish the package to the registry', async () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
-      packageRef: packageRef,
+      packageRef: basePackageRef,
       signer,
       tags,
       chainId,
       quiet: true,
-      recursive: true,
+      skipConfirm: true,
       overrides: {},
     });
 
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledWith([
-      {
-        packagesNames: [basePackageRef, ...tags.map((tag) => 'package:' + tag)],
-        variant: `${chainId}-${preset}`,
-        url: testPkgDataNewIpfsUrl,
-        metaUrl: testPkgNewMetaIpfsUrl,
-      },
-    ]);
+    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
+    expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledWith(
+      [basePackageRef, ...tags.map((tag) => 'package:' + tag)],
+      `${chainId}-${preset}`,
+      testPkgDataNewIpfsUrl,
+      testPkgNewMetaIpfsUrl
+    );
   });
 
   it('should publish the package to the registry with no tags', async () => {
     tags = [];
     await publish({
-      packageRef: packageRef,
+      packageRef: basePackageRef,
       signer,
       tags,
       chainId,
       quiet: true,
-      recursive: true,
+      skipConfirm: true,
+      includeProvisioned: true,
       overrides: {},
     });
 
@@ -179,7 +185,7 @@ describe('publish command', () => {
       ];
       // @ts-ignore
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
-      jest.spyOn(builder, 'copyPackage').mockImplementation(async () => {
+      jest.spyOn(builder, 'publishPackage').mockImplementation(async () => {
         return [];
       });
     });
@@ -191,13 +197,14 @@ describe('publish command', () => {
         tags,
         chainId,
         quiet: true,
-        recursive: true,
+        skipConfirm: true,
+        includeProvisioned: true,
         overrides: {},
       });
 
-      expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
+      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on preset is empty
@@ -210,35 +217,36 @@ describe('publish command', () => {
         chainId,
         presetArg: '',
         quiet: true,
-        recursive: true,
+        skipConfirm: true,
         overrides: {},
       });
 
-      expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(2);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${chainId}-${otherPreset}`);
+      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(2);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
+      expect((publishPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${chainId}-${otherPreset}`);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on chainId is zero
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: packageRef,
+        packageRef: basePackageRef,
         signer,
         tags,
         chainId: 0,
+        presetArg: preset,
         quiet: true,
-        recursive: true,
+        skipConfirm: true,
         overrides: {},
       });
 
-      expect(copyPackage as jest.Mock).toHaveBeenCalledTimes(2);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
-      expect((copyPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
-      expect((copyPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${otherChainId}-${preset}`);
+      expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(2);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].variant).toEqual(`${chainId}-${preset}`);
+      expect((publishPackage as jest.Mock).mock.calls[1][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[1][0].variant).toEqual(`${otherChainId}-${preset}`);
     });
   });
 });

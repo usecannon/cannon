@@ -33,7 +33,7 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
 export async function resolveRegistryProvider(settings: CliSettings) {
   if (settings.registryProviderUrl!.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
-      `\nUsing Frame as the default registry provider. If you don't have Frame installed cannon defaults to: ${DEFAULT_REGISTRY_PROVIDER_URL}`
+      `\nUsing Frame as the default registry provider. If you don't have Frame installed cannon defaults to: ${DEFAULT_REGISTRY_PROVIDER_URL} when publishing to the registry.`
     );
     console.warn(
       `Set a custom registry provider url in your settings (run ${bold(
@@ -44,7 +44,7 @@ export async function resolveRegistryProvider(settings: CliSettings) {
 
   return resolveProviderAndSigners({
     chainId: settings.registryChainId,
-    checkProviders: settings.registryProviderUrl!.split(','),
+    checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
   });
 }
@@ -70,19 +70,32 @@ export async function resolveProviderAndSigners({
     throw err;
   }
 
-  const ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(rawProvider as any), false);
+  const providerList = [];
+
+  // force provider to use JSON-RPC instead of Web3Provider for local http urls
+  if (checkProviders[0].startsWith('http')) {
+    providerList.push(new ethers.providers.JsonRpcProvider(checkProviders[0]));
+  } else {
+    // Use eth-provider wrapped in Web3Provider as default
+    providerList.push(new ethers.providers.Web3Provider(rawProvider as any));
+  }
+
+  // Either way we use a fallback provider to ensure connectivity
+  const ethersProvider = new ethers.providers.FallbackProvider(providerList);
+
+  const wrappedEthersProvider = new CannonWrapperGenericProvider({}, ethersProvider, false);
 
   const signers = [];
 
   // Use private key if provided
   if (privateKey) {
-    signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(ethersProvider)));
+    signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));
   } else {
     try {
       // Attempt to load from eth-provider
       await rawProvider.enable();
       for (const account of rawProvider.accounts) {
-        signers.push(ethersProvider.getSigner(account));
+        signers.push(wrappedEthersProvider.getSigner(account));
       }
     } catch (err: any) {
       debug('Failed to connect signers: ', err);
@@ -90,7 +103,7 @@ export async function resolveProviderAndSigners({
   }
 
   return {
-    provider: ethersProvider,
+    provider: wrappedEthersProvider,
     signers,
   };
 }

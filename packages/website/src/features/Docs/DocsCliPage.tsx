@@ -886,6 +886,10 @@ export const DocsCliPage: FC = () => {
                       'The maximum units of gas spent for the registration transaction',
                   },
                   {
+                    key: '--value <value>',
+                    value: 'Value in wei to send with the transaction',
+                  },
+                  {
                     key: '--max-fee-per-gas <maxFeePerGas>',
                     value:
                       'The maximum value (in gwei) for the base fee when submitting the registry transaction',
@@ -899,6 +903,15 @@ export const DocsCliPage: FC = () => {
                     key: '-q --quiet',
                     value:
                       'Only output final JSON object at the end, no human-readable output',
+                  },
+                  {
+                    key: '--include-provisioned',
+                    value:
+                      'Includes provisioned packages when publishing to the registry',
+                  },
+                  {
+                    key: '--no-confirm',
+                    value: 'Skip confirmation and package selection prompts',
                   },
                 ]}
               />
