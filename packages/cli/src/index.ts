@@ -127,6 +127,15 @@ function configureRun(program: Command) {
 
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
+      if (options.providerUrl) {
+        const providerChainId = (await provider.getNetwork()).chainId;
+        if (providerChainId != options.chainId) {
+          throw new Error(
+            `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
+          );
+        }
+      }
+
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
       });
