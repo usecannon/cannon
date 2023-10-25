@@ -443,6 +443,10 @@ ${getAllContractPaths(ctx).join('\n')}`);
           contractName: contractName,
           deployedOn: packageState.currentLabel,
         };
+
+        if (factoryInfo.highlight) {
+          contracts[k].highlight = true;
+        }
       }
     }
 
