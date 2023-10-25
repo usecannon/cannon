@@ -120,7 +120,7 @@ function configureRun(program: Command) {
             );
           }
         }
-        
+
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         });
