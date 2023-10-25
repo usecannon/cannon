@@ -11,7 +11,7 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile, getChainIdFromProviderUrl } from './helpers';
+import { checkCannonVersion, loadCannonfile } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -106,21 +106,21 @@ function configureRun(program: Command) {
 
       options.port = Number.parseInt(options.port) || 8545;
 
-      if (options.chainId && options.providerUrl) {
-        const providerChainId = await getChainIdFromProviderUrl(options.providerUrl);
-        if (providerChainId != options.chainId) {
-          throw new Error(
-            `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
-          );
-        }
-      }
-
       let node: CannonRpcNode;
       if (options.chainId) {
         const settings = resolveCliSettings(options);
 
         const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
+        if (options.providerUrl) {
+          const providerChainId = (await provider.getNetwork()).chainId;
+          if (providerChainId != options.chainId) {
+            throw new Error(
+              `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
+            );
+          }
+        }
+        
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
         });

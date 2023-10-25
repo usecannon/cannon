@@ -11,7 +11,6 @@ import { chains } from './chains';
 import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { ethers } from 'ethers';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
@@ -304,17 +303,4 @@ export function toArgs(options: { [key: string]: string | boolean | number | big
 
     return [flag, stringified];
   });
-}
-
-/**
- * Extract chain id of given provider.
- *
- * @param providerUrl The provider url.
- * @returns The chain id of the provider url.
- */
-export async function getChainIdFromProviderUrl(providerUrl: string) {
-  const provider = new ethers.providers.JsonRpcProvider(providerUrl);
-  const network = await provider.getNetwork();
-
-  return network.chainId;
 }
