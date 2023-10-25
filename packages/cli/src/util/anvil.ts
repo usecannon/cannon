@@ -255,7 +255,7 @@ export function pickAnvilOptions(obj: object) {
   return _.pick(obj, anvilOptionKeys) as AnvilOptions;
 }
 
-export const anvilConfig = [
+export const anvilOptions = [
   {
     flags: '-p --port <number>',
     description: 'Port which the JSON-RPC server will be exposed.',

@@ -94,6 +94,13 @@ function applyCommandsConfig(command: Command, config: any) {
       }
     });
   }
+  if (config.anvilOptions) {
+    config.anvilOptions.map((option: any) => {
+      option.required
+        ? command.requiredOption(option.flags, option.description, option.defaultValue)
+        : command.option(option.flags, option.description, option.defaultValue);
+    });
+  }
   if (config.options) {
     config.options.map((option: any) => {
       option.required

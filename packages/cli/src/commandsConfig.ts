@@ -1,4 +1,4 @@
-import { anvilConfig } from './util/anvil';
+import { anvilOptions } from './util/anvil';
 
 const commandsConfig = {
   run: {
@@ -10,8 +10,8 @@ const commandsConfig = {
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
+    anvilOptions: anvilOptions,
     options: [
-      ...anvilConfig,
       {
         flags: '-n --provider-url [url]',
         description: 'RPC endpoint to fork off of',
@@ -68,8 +68,8 @@ const commandsConfig = {
         description: 'Custom settings for building the cannonfile',
       },
     ],
+    anvilOptions: anvilOptions,
     options: [
-      ...anvilConfig,
       {
         flags: '-n --provider-url [url]',
         description: 'RPC endpoint to execute the deployment on',
