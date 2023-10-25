@@ -451,18 +451,18 @@ program
         " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
     );
 
-  await publish({
-    packageRef,
-    signer: p.signers[0],
-    tags: options.tags ? options.tags.split(',') : [],
-    chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
-    presetArg: options.preset ? (options.preset as string) : undefined,
-    quiet: options.quiet,
-    includeProvisioned: options.includeProvisioned,
-    skipConfirm: options.skipConfirm,
-    overrides,
+    await publish({
+      packageRef,
+      signer: p.signers[0],
+      tags: options.tags ? options.tags.split(',') : [],
+      chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+      presetArg: options.preset ? (options.preset as string) : undefined,
+      quiet: options.quiet,
+      includeProvisioned: options.includeProvisioned,
+      skipConfirm: options.skipConfirm,
+      overrides,
+    });
   });
-});
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');
