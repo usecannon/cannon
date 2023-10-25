@@ -12,7 +12,10 @@
     "docgen": "typedoc"
   },
   "files": [
-    "dist/**"
+    "bin",
+    "dist",
+    "error",
+    "src"
   ],
   "keywords": [
     "cannon",
