@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
+
+
+### Features
+
+* Add fetch command and improve publish outputs ([#479](https://github.com/usecannon/cannon/issues/479)) ([286d44b](https://github.com/usecannon/cannon/commit/286d44b248efd5352cb68a54a25304a201264ddc))
+
+
+### Bug Fixes
+
+* **builder:** file links in recursive provision packages ([#534](https://github.com/usecannon/cannon/issues/534)) ([d085863](https://github.com/usecannon/cannon/commit/d085863a778997ca65144b1f06fabdfd58d9088c))
+* **builder:** handling of package url modification during copy ([#529](https://github.com/usecannon/cannon/issues/529)) ([7c5d585](https://github.com/usecannon/cannon/commit/7c5d5857770412d0f47b52ee4c8beace9504441d))
+
 ## [2.8.2](https://github.com/usecannon/cannon/compare/v2.8.1...v2.8.2) (2023-10-09)
 
 

@@ -6,6 +6,29 @@
   * dependencies
     * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
 
+## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
+
+
+### Features
+
+* Add fetch command and improve publish outputs ([#479](https://github.com/usecannon/cannon/issues/479)) ([286d44b](https://github.com/usecannon/cannon/commit/286d44b248efd5352cb68a54a25304a201264ddc))
+* **cli:** add ability to trace transactions while in cannon run ([#507](https://github.com/usecannon/cannon/issues/507)) ([099a02e](https://github.com/usecannon/cannon/commit/099a02e81e18be3561716f69e5a4a522a57b3d42))
+
+
+### Bug Fixes
+
+* **builder:** handling of package url modification during copy ([#529](https://github.com/usecannon/cannon/issues/529)) ([7c5d585](https://github.com/usecannon/cannon/commit/7c5d5857770412d0f47b52ee4c8beace9504441d))
+* **cli:** cannon executable ([#499](https://github.com/usecannon/cannon/issues/499)) ([9b7fa1f](https://github.com/usecannon/cannon/commit/9b7fa1f32ca99c9aebf3d6fc4e441c17c70fa1c7))
+* **cli:** much faster startup ([#508](https://github.com/usecannon/cannon/issues/508)) ([5c199ee](https://github.com/usecannon/cannon/commit/5c199ee4a0977b63a69c12c000e78dc958ccde59))
+* **cli:** proper error on providerurl chainid and chainid mismatch ([#509](https://github.com/usecannon/cannon/issues/509)) ([3f9d4ab](https://github.com/usecannon/cannon/commit/3f9d4ab71d9fb8758bf1bee256524feb8fef0fd5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.2 to ^2.9.0
+
 ## [2.8.2](https://github.com/usecannon/cannon/compare/v2.8.1...v2.8.2) (2023-10-09)
 
 
