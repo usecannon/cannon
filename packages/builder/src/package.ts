@@ -1,8 +1,8 @@
 import Debug from 'debug';
 import _ from 'lodash';
-import { BundledOutput, DeploymentInfo } from './types';
+import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
-import { createInitialContext } from './builder';
+import { createInitialContext, getArtifacts } from './builder';
 import { CannonStorage } from './runtime';
 
 const debug = Debug('cannon:cli:publish');
@@ -73,27 +73,33 @@ export class PackageReference {
  * @param loader The loader to use for downloading sub-packages
  * @param deployInfo The head node of the tree, which will be executed on `action` last
  * @param action The action to execute
- * @param onlyProvisioned Skip over sub-packages which are not provisioned within the parent
+ * @param onlyResultProvisioned Only return results for packages that were provisioned. Useful when publishing. Does not prevent execution of action.
  */
-export async function forPackageTree<T extends { url?: string }>(
+export async function forPackageTree<T extends { url?: string, artifacts?: ChainArtifacts }>(
   store: CannonStorage,
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
   context?: BundledOutput | null,
-  onlyProvisioned = true
+  onlyResultProvisioned = true
 ): Promise<T[]> {
   const results: T[] = [];
 
   for (const importArtifact of _deployImports(deployInfo)) {
-    // TODO: if we ever have anything besides IPFS for deployment on the registry, this should be updated
-    if (onlyProvisioned && !importArtifact.tags && importArtifact.url && importArtifact.url.split(':')[0] === 'ipfs')
-      continue;
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
-    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyProvisioned);
-    if (_.last(result)!.url) {
-      importArtifact.url = _.last(result)!.url!;
+    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
+
+    const newUrl = _.last(result)!.url
+    if (newUrl && newUrl !== importArtifact.url) {
+      importArtifact.url = newUrl!;
+      const updatedNestedDeployInfo = await store.readBlob(newUrl);
+      // the nested artifacts (stored in this import artifact) might have changed because of the new url. if so, lets pull those changes in
+      // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of 
+      importArtifact.imports = getArtifacts(new ChainDefinition(updatedNestedDeployInfo.def), updatedNestedDeployInfo.state).imports;
     }
-    results.push(...result);
+
+    if (!onlyResultProvisioned || importArtifact.tags) {
+      results.push(...result);
+    }
   }
 
   results.push(await action(deployInfo, context || null));
