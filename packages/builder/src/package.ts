@@ -75,7 +75,7 @@ export class PackageReference {
  * @param action The action to execute
  * @param onlyResultProvisioned Only return results for packages that were provisioned. Useful when publishing. Does not prevent execution of action.
  */
-export async function forPackageTree<T extends { url?: string, artifacts?: ChainArtifacts }>(
+export async function forPackageTree<T extends { url?: string; artifacts?: ChainArtifacts }>(
   store: CannonStorage,
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
@@ -88,13 +88,16 @@ export async function forPackageTree<T extends { url?: string, artifacts?: Chain
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
 
-    const newUrl = _.last(result)!.url
+    const newUrl = _.last(result)!.url;
     if (newUrl && newUrl !== importArtifact.url) {
       importArtifact.url = newUrl!;
       const updatedNestedDeployInfo = await store.readBlob(newUrl);
       // the nested artifacts (stored in this import artifact) might have changed because of the new url. if so, lets pull those changes in
-      // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of 
-      importArtifact.imports = getArtifacts(new ChainDefinition(updatedNestedDeployInfo.def), updatedNestedDeployInfo.state).imports;
+      // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of
+      importArtifact.imports = getArtifacts(
+        new ChainDefinition(updatedNestedDeployInfo.def),
+        updatedNestedDeployInfo.state
+      ).imports;
     }
 
     if (!onlyResultProvisioned || importArtifact.tags) {
