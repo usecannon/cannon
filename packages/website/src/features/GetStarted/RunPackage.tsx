@@ -119,15 +119,22 @@ export const RunPackage = () => {
         Note that it prompts for two IPFS urls, the publish IPFS url and the
         build IPFS url. They are respectively used when publishing to the
         registry and building a package. If you're in development and simply
-        wish to test things try running a local IPFS node. To do this, firstly{' '}
-        <Link href="https://github.com/ipfs/ipfs-desktop/releases" isExternal>
+        wish to test things try running a local IPFS node. 
+      </Text>
+        
+      <Text mb={4}>
+        To do this, firstly{' '}
+        <Link href="https://docs.ipfs.tech/install/#get-started" isExternal>
           install IPFS
         </Link>
         {', '}
-        And start a local IPFS server with <CommandPreview command='ipfs daemon' />
+        To start IPFS with IPFS desktop simply open the app, to start a local IPFS server using the the IPFS cli run:
+        <Box mb={4}>
+          <CommandPreview command='ipfs daemon' />
+        </Box>
       </Text>
       <Text mb={4}>
-        Then run the setup command above and when prompted, enter the following
+        Then run the cannon setup and when prompted, enter the following
         URI for both the publishing ipfs endpoint and building ipfs endpoint:
       </Text>
       <Box mb={4}>
