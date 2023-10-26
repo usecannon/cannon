@@ -70,18 +70,16 @@ export async function resolveProviderAndSigners({
     throw err;
   }
 
-  const providerList = [];
-
+  let ethersProvider;
+  
+  // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   if (checkProviders[0].startsWith('http')) {
-    providerList.push(new ethers.providers.JsonRpcProvider(checkProviders[0]));
+    ethersProvider = new ethers.providers.JsonRpcProvider(checkProviders[0]);
   } else {
     // Use eth-provider wrapped in Web3Provider as default
-    providerList.push(new ethers.providers.Web3Provider(rawProvider as any));
+    ethersProvider = new ethers.providers.Web3Provider(rawProvider as any);
   }
-
-  // Either way we use a fallback provider to ensure connectivity
-  const ethersProvider = new ethers.providers.FallbackProvider(providerList);
 
   const wrappedEthersProvider = new CannonWrapperGenericProvider({}, ethersProvider, false);
 
