@@ -71,7 +71,7 @@ export async function resolveProviderAndSigners({
   }
 
   let ethersProvider;
-  
+
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   if (checkProviders[0].startsWith('http')) {
