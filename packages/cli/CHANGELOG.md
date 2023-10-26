@@ -6,6 +6,13 @@
   * dependencies
     * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
 
+## [2.9.1](https://github.com/usecannon/cannon/compare/v2.9.0...v2.9.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* **cli:** remove fallback provider ([#537](https://github.com/usecannon/cannon/issues/537)) ([05c6638](https://github.com/usecannon/cannon/commit/05c6638ea761ad0ffcff588416e329c11e690ae5))
+
 ## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
 
 
