@@ -193,6 +193,29 @@ const commandsConfig = {
       },
     ],
   },
+  fetch: {
+    description: 'Fetch cannon package data from an IPFS hash and store it in the local registry.',
+    arguments: [
+      {
+        flags: '<packageName>',
+        description: 'Name of the package to fetch data for',
+      },
+      {
+        flags: '<ipfsHash>',
+        description: 'IPFS hash to fetch deployment data from',
+      },
+    ],
+    options: [
+      {
+        flags: '-c --chain-id <chainId>',
+        description: 'Chain ID of deployment to fetch',
+      },
+      {
+        flags: '--meta-hash <metaHash>',
+        description: 'IPFS hash to fetch deployment metadata from',
+      },
+    ],
+  },
   publish: {
     description: 'Publish a Cannon package to the registry',
     arguments: [
@@ -221,11 +244,14 @@ const commandsConfig = {
       {
         flags: '-t --tags <tags>',
         description: 'Comma separated list of labels for your package',
-        defaultValue: 'latest',
       },
       {
         flags: '--gas-limit <gasLimit>',
         description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction',
       },
       {
         flags: '--max-fee-per-gas <maxFeePerGas>',
@@ -238,6 +264,14 @@ const commandsConfig = {
       {
         flags: '-q --quiet',
         description: 'Only output final JSON object at the end, no human readable output',
+      },
+      {
+        flags: '--include-provisioned',
+        description: 'Includes provisioned packages when publishing to the registry',
+      },
+      {
+        flags: '--skip-confirm',
+        description: 'Skip confirmation and package selection prompts',
       },
     ],
   },
