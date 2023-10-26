@@ -328,13 +328,19 @@ export const invokeSchema = z
                 .optional(),
 
               /**
-               *
+               *   Constructor or initializer args
                */
               constructorArgs: z.array(argsUnion).optional(),
+
               /**
                *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
                */
               allowEmptyEvents: z.boolean().optional(),
+
+              /**
+               *    Determines whether contract should get priority in displays
+               */
+              highlight: z.boolean().optional(),
             })
           )
           .optional(),
