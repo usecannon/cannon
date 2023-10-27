@@ -58,9 +58,6 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# next.js build output
-.next
-
 # environment variables
 .env
 
