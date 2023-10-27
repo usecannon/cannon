@@ -68,7 +68,7 @@ export const contractSchema = z
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
         nonce: z.string().refine(
-          (val) => ethers.utils.isHexString(val) || !!parseInt(val),
+          (val) => ethers.utils.isHexString(val) || Boolean(parseInt(val)),
           (val) => ({
             message: `Nonce ${val} must be of numeric or hexadecimal value`,
           })
@@ -449,11 +449,9 @@ export const chainDefinitionSchema = z
     /**
      *  version of the package
      */
-    version: z
-      .string()
-      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
-        message: 'Version cannot contain any special characters',
-      }),
+    version: z.string().refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
+      message: 'Version cannot contain any special characters',
+    }),
   })
   .merge(
     z
