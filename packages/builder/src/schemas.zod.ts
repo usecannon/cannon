@@ -451,7 +451,6 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
-      .max(31)
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       }),
