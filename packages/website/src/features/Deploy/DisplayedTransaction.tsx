@@ -297,7 +297,7 @@ export function DisplayedTransaction(props: {
     <HStack fontFamily={'monospace'} gap={0} fontSize={20}>
       <EditableAutocompleteInput
         color="gray.200"
-        defaultValue={execContract}
+        defaultValue={execContract || undefined}
         tabKeys="."
         placeholder="Contract"
         items={Object.entries(props.contracts).map(([k, v]) => ({

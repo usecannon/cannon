@@ -45,7 +45,7 @@ const createWagmiConfig = (customProviders: string[]) => {
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(
     supportedChains,
-    [...providers, publicProvider()]
+    [...(providers as any), publicProvider()]
   );
 
   const { connectors } = getDefaultWallets({

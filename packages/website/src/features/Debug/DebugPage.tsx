@@ -104,6 +104,7 @@ export const DebugPage = () => {
             maxWidth="1538px"
             borderRadius="sm"
             src="/images/guide_debug_1.png"
+            alt="first debug guide"
           />
         </Box>
         <Heading size="md" mb={3} mt={9}>
@@ -141,6 +142,7 @@ export const DebugPage = () => {
             maxWidth="884px"
             borderRadius="sm"
             src="/images/guide_debug_2.png"
+            alt="second debug guide"
           />
         </Box>
         <Heading size="md" mb={3} mt={9}>
