@@ -12,21 +12,21 @@ export async function clean(confirm = true) {
 
   const folders = ['tags', 'metadata_cache'].map((dir) => path.join(settings.cannonDirectory, dir));
 
-  const files = await Promise.all(
+  const filesAndDirs = await Promise.all(
     folders.map(async (dir) => {
       if (!existsSync(dir)) return [];
-      const files = await fs.readdir(dir);
-      return files.filter((file) => path.extname(file) === '.txt').map((file) => path.join(dir, file));
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      return entries.map((entry) => path.join(dir, entry.name));
     })
-  ).then((files) => files.flat());
+  ).then((entries) => entries.flat());
 
-  if (!files.length) {
-    console.log('No files found that could be deleted.');
+  if (!filesAndDirs.length) {
+    console.log('No files or folders found that could be deleted.');
     return false;
   }
 
-  console.log('Found the following files for deletion:');
-  for (const file of files) console.log(`  - ${file}`);
+  console.log('Found the following files and/or folders for deletion:');
+  for (const entry of filesAndDirs) console.log(`  - ${entry}`);
   console.log();
 
   if (confirm) {
@@ -41,9 +41,17 @@ export async function clean(confirm = true) {
   }
 
   await Promise.all(
-    files.map(async (file) => {
-      debug(`removing file: ${file}`);
-      await fs.rm(file);
+    filesAndDirs.map(async (entry) => {
+      try {
+        debug(`removing entry: ${entry}`);
+        await fs.rm(entry, { recursive: true });
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          debug(`error removing entry ${entry}: ${error.message}`);
+        } else {
+          debug('An error has occurred');
+        }
+      }
     })
   );
 
