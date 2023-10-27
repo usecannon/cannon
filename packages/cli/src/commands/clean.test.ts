@@ -17,10 +17,12 @@ describe('clean function', () => {
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log');
     // @ts-ignore - show wrong type for mocked function output
-    jest.spyOn(fs, 'readdir').mockImplementation(() => Promise.resolve([
-      { name: 'file1.txt', isDirectory: () => false },
-      { name: 'dir1', isDirectory: () => true }
-    ]));
+    jest.spyOn(fs, 'readdir').mockImplementation(() =>
+      Promise.resolve([
+        { name: 'file1.txt', isDirectory: () => false },
+        { name: 'dir1', isDirectory: () => true },
+      ])
+    );
     jest.spyOn(fs, 'rm').mockImplementation(() => Promise.resolve());
   });
 
