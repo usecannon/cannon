@@ -128,7 +128,7 @@ export const SearchPage = () => {
           overflowY="auto"
           maxWidth={['100%', '100%', '300px']}
           borderRight={isSmall ? 'none' : '1px solid'}
-          borderColor="gray.800"
+          borderColor="gray.700"
           width={['100%', '100%', '300px']}
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >
@@ -191,11 +191,7 @@ export const SearchPage = () => {
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCardExpandable
-                      maxHeight="186px"
-                      pkg={pkg}
-                      key={pkg.name}
-                    />
+                    <PackageCardExpandable pkg={pkg} key={pkg.name} />
                   </Box>
                 ))}
               </Container>
