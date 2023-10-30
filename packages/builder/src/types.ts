@@ -46,14 +46,6 @@ export type ContractData = {
   gasCost: string;
 };
 
-export type ArtifactContracts = {
-  artifacts: {
-      contracts: {
-          [contractName: string]: ContractData;
-      };
-  };
-};
-
 export type ContractMap = {
   [label: string]: ContractData;
 };
