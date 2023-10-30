@@ -38,7 +38,7 @@
     "deepmerge-ts": "^5.1.0",
     "diff": "^5.1.0",
     "erc7412": "^0.1.16",
-    "eslint": "8.43.0",
+    "eslint": "8.52.0",
     "eslint-config-next": "13.4.12",
     "framer-motion": "^10.12.17",
     "graphql-tag": "^2.12.6",
