@@ -1,13 +1,13 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
 import { PackageReference } from '@usecannon/builder/dist/package';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs'
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
-import { getContractsAndDetails, getSourceFromLocalRegistry } from '../helpers';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 
 export async function inspect(
   packageRef: string,
@@ -82,8 +82,9 @@ export async function inspect(
   } else {
     const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
-    const localSource = getSourceFromLocalRegistry(resolver.registries);
-    const ipfsAvailabilityScore = await fetchIPFSAvailability(deployUrl.replace('ipfs://', ''));
+    const localSource = getSourceFromRegistry(resolver.registries);
+    const ipfsUrl = resolveCliSettings().ipfsUrl;
+    const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
 
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
@@ -98,40 +99,43 @@ export async function inspect(
         .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
-    packageOwner ? console.log('           Owner:', packageOwner) : console.log('          Source:', localSource || '(none)');
+    packageOwner
+      ? console.log('           Owner:', packageOwner)
+      : console.log('          Source:', localSource || '(none)');
     console.log('     Package URL:', deployUrl);
     console.log('        Misc URL:', deployData.miscUrl);
     console.log('Package Info URL:', metaUrl || '(none)');
     console.log('Cannon generator:', deployData.generator);
     console.log('       timestamp:', deployData.timestamp);
+    console.log();
     console.log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
-    console.log()
-    console.log(yellow(bold('Smart Contracts')))
-    console.log(`Note: Any ${bold("contract name")} that is bolded is highlighted and marked as important.`);
+    console.log();
+    console.log(yellow(bold('Smart Contracts')));
+    console.log(`Note: Any ${bold('contract name')} that is bolded is highlighted and marked as important.`);
     console.log('Contract Addresses:');
     console.log('-------------------');
-    for (let contractName in contractsAndDetails) {
-        const { address, highlight } = contractsAndDetails[contractName];
-        const displayName = highlight ? bold(contractName) : contractName;
-        console.log(`${displayName}: ${address}`);
+    for (const contractName in contractsAndDetails) {
+      const { address, highlight } = contractsAndDetails[contractName];
+      const displayName = highlight ? bold(contractName) : contractName;
+      console.log(`${displayName}: ${address}`);
     }
     console.log('-------------------');
     console.log();
     if (sources) {
       console.log('Contract Sources:');
       console.log('-------------------');
-      for (let contractName in contractsAndDetails) {
-          const { sourceName, highlight } = contractsAndDetails[contractName];
-          if (sourceName) {
-              const displayName = highlight ? bold(contractName) : contractName;
-              console.log(`${displayName}: ${sourceName}`);
-          }
+      for (const contractName in contractsAndDetails) {
+        const { sourceName, highlight } = contractsAndDetails[contractName];
+        if (sourceName) {
+          const displayName = highlight ? bold(contractName) : contractName;
+          console.log(`${displayName}: ${sourceName}`);
+        }
       }
       console.log('-------------------');
     } else {
-      const hasContractSources = Object.values(contractsAndDetails).some(contract => 'sourceName' in contract);
+      const hasContractSources = Object.values(contractsAndDetails).some((contract) => 'sourceName' in contract);
       if (hasContractSources) {
-        console.log('Contract sources are available. Run inspect command with --sources flag to display')
+        console.log('Contract sources are available. Run inspect command with --sources flag to display');
       }
     }
     console.log();

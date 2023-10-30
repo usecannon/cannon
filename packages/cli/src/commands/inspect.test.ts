@@ -1,17 +1,20 @@
 import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
-import { getContractsAndDetails, getSourceFromLocalRegistry } from '../helpers';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
 import { getMainLoader, LocalLoader } from '../loader';
-import { ContractData } from "@usecannon/builder"
+import { ContractData } from '@usecannon/builder';
 import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
 
 jest.mock('../registry');
 jest.mock('../settings');
 jest.mock('../loader');
 jest.mock('../helpers');
-jest.mock('@usecannon/builder/dist/ipfs')
+jest.mock('@usecannon/builder/dist/ipfs');
+jest.mock('../settings', () => ({
+  resolveCliSettings: jest.fn().mockReturnValue({ ipfsUrl: 'ipfsUrl' }),
+}));
 
 describe('inspect', () => {
   const chainId = 123;
@@ -25,7 +28,7 @@ describe('inspect', () => {
   let ipfsLoader: IPFSLoader;
   let stdoutOutput: string[] = [];
   let writeSpy: jest.SpyInstance;
-  let contractsAndDetails:  { [contractName: string]: ContractData };
+  let contractsAndDetails: { [contractName: string]: ContractData };
   let ipfsAvailabilityScore: number | undefined;
   let localSource: string | undefined;
 
@@ -80,23 +83,23 @@ describe('inspect', () => {
       getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
       getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
       getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
-      registries: []
+      registries: [],
     };
 
     contractsAndDetails = {
-      "TokenContract": {
-        address: "0x1234567890abcdef1234567890abcdef12345678",
+      TokenContract: {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
         abi: [],
-        deployTxnHash: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-        contractName: "TokenContract",
-        sourceName: "TokenSource",
-        deployedOn: "2023-10-16",
-        highlight: true
-      }
+        deployTxnHash: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        contractName: 'TokenContract',
+        sourceName: 'TokenSource',
+        deployedOn: '2023-10-16',
+        highlight: true,
+      },
     };
 
     ipfsAvailabilityScore = 10;
-    localSource = "/.local/random/the/path/cannon"
+    localSource = 'on chain 0x1AAAAAAAA';
 
     localLoader = new LocalLoader('path');
     ipfsLoader = new IPFSLoader('ipfs');
@@ -110,11 +113,8 @@ describe('inspect', () => {
     jest.mocked(fetchIPFSAvailability).mockResolvedValue(Promise.resolve(ipfsAvailabilityScore));
 
     jest.mocked(getContractsAndDetails).mockReturnValue(contractsAndDetails);
-    jest.mocked(getSourceFromLocalRegistry).mockReturnValue(localSource);
+    jest.mocked(getSourceFromRegistry).mockReturnValue(localSource);
 
-    jest.mock('../settings', () => ({
-      resolveCliSettings: jest.fn().mockReturnValue({}),
-    }));
     jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
     jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
 
@@ -135,9 +135,9 @@ describe('inspect', () => {
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
-    expect(getSourceFromLocalRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
-    expect(fetchIPFSAvailability).toHaveBeenCalledWith('file:/usecannon.com/url')
-    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state)
+    expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
+    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
+    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
   });
@@ -158,9 +158,9 @@ describe('inspect', () => {
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
-    expect(getSourceFromLocalRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
-    expect(fetchIPFSAvailability).toHaveBeenCalledWith('file:/usecannon.com/url')
-    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state)
+    expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
+    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
+    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
 
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
   });

@@ -1,4 +1,4 @@
-import { getChainId, getChainDataFromId, getChainName, getContractsAndDetails, getSourceFromLocalRegistry } from './helpers';
+import { getChainId, getChainDataFromId, getChainName, getContractsAndDetails, getSourceFromRegistry } from './helpers';
 import { LocalRegistry } from './registry';
 import { FallbackRegistry } from '@usecannon/builder';
 
@@ -77,11 +77,11 @@ function getContractsAndDetailsTestCases() {
               deployTxnHash: 'hash1',
               contractName: 'Contract1',
               sourceName: 'Source1',
-              deployedOn: 'date1'
-            }
-          }
-        }
-      }
+              deployedOn: 'date1',
+            },
+          },
+        },
+      },
     };
     const result = getContractsAndDetails(state);
     expect(result).toEqual({
@@ -91,8 +91,8 @@ function getContractsAndDetailsTestCases() {
         deployTxnHash: 'hash1',
         contractName: 'Contract1',
         sourceName: 'Source1',
-        deployedOn: 'date1'
-      }
+        deployedOn: 'date1',
+      },
     });
   });
 
@@ -104,31 +104,23 @@ function getContractsAndDetailsTestCases() {
 }
 
 function getSourceFromLocalRegistryTestCases() {
-  it('should return the LocalRegistry source if present', () => {
-    const mockPackagesDir = "/mock/path/to/packages";
-    const localRegistryInstance = new LocalRegistry(mockPackagesDir);
+  it('should return the source if registry present', () => {
+    const mockSource = 'local';
+    const localRegistryInstance = new LocalRegistry('mockPackageDir');
     const registries = [localRegistryInstance];
-    const result = getSourceFromLocalRegistry(registries);
+    const result = getSourceFromRegistry(registries);
 
-    expect(result).toBe(mockPackagesDir);
+    expect(result).toBe(mockSource);
   });
 
-  it('should return undefined if no LocalRegistry is present', () => {
-    const fallbackRegistryInstance = new FallbackRegistry([]);
-    const registries = [fallbackRegistryInstance];
-    const result = getSourceFromLocalRegistry(registries);
-
-    expect(result).toBeUndefined();
-  });
-
-  it('should return the LocalRegistry source even when mixed with other registries', () => {
-    const mockPackagesDir = "/mock/path/to/packages";
-    const localRegistryInstance = new LocalRegistry(mockPackagesDir);
+  it('should return the source of registry in use when mixed with other registries', () => {
+    const mockSource = 'fallback ()';
+    const localRegistryInstance = new LocalRegistry('mockPackageDir');
     const fallbackRegistryInstance1 = new FallbackRegistry([]);
     const fallbackRegistryInstance2 = new FallbackRegistry([]);
     const registries = [fallbackRegistryInstance1, localRegistryInstance, fallbackRegistryInstance2];
-    const result = getSourceFromLocalRegistry(registries);
-    
-    expect(result).toBe(mockPackagesDir);
+    const result = getSourceFromRegistry(registries);
+
+    expect(result).toBe(mockSource);
   });
 }

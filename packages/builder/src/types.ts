@@ -44,14 +44,6 @@ export type ContractData = {
   highlight?: boolean;
 };
 
-export type ArtifactContracts = {
-  artifacts: {
-      contracts: {
-          [contractName: string]: ContractData;
-      };
-  };
-};
-
 export type ContractMap = {
   [label: string]: ContractData;
 };

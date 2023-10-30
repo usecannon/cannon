@@ -1,14 +1,20 @@
 import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
-import { LocalRegistry } from './registry';
-import { CannonRegistry } from '@usecannon/builder';
+import { CannonRegistry, ContractMap } from '@usecannon/builder';
 import path from 'node:path';
 import _ from 'lodash';
 import fs from 'fs-extra';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';
-import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext, ArtifactContracts, ContractData } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainDefinition,
+  RawChainDefinition,
+  ChainBuilderContext,
+  ChainArtifacts,
+  ContractData,
+} from '@usecannon/builder';
 import { chains } from './chains';
 import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
@@ -312,35 +318,34 @@ export function toArgs(options: { [key: string]: string | boolean | number | big
  *
  * @param state The deploy package state
  * @returns an object containing ContractData
+ *
  */
-export function getContractsAndDetails(state: { [key: string]: ArtifactContracts }): {
-  [contractName: string]: ContractData;
-} {
-  let contractsAndDetails: { [contractName: string]: ContractData } = {};
-    
-  for (let key in state) {
-      if (key.startsWith('contract.')) {
-          const contracts = state[key]?.artifacts?.contracts;
-          if (contracts) {
-              for (let contractName in contracts) {
-                  contractsAndDetails[contractName] = contracts[contractName];
-              }
-          }
+
+export function getContractsAndDetails(state: {
+  [key: string]: { artifacts: Pick<ChainArtifacts, 'contracts'> };
+}): ContractMap {
+  const contractsAndDetails: { [contractName: string]: ContractData } = {};
+
+  for (const key in state) {
+    if (key.startsWith('contract.')) {
+      const contracts = state[key]?.artifacts?.contracts;
+      if (contracts) {
+        for (const contractName in contracts) {
+          contractsAndDetails[contractName] = contracts[contractName];
+        }
       }
+    }
   }
 
-  return contractsAndDetails
+  return contractsAndDetails;
 }
 
 /**
  *
  * @param registries The cannon registries
- * @returns The LocalRegistry source
+ * @returns The source a cannon package is loaded from
  */
-export function getSourceFromLocalRegistry(registries: CannonRegistry[]): string | undefined {
-  const localRegistry = registries.find((registry: CannonRegistry) => {
-    return registry instanceof LocalRegistry;
-  }) as LocalRegistry;
-
-  return localRegistry ? localRegistry.packagesDir : undefined;
+export function getSourceFromRegistry(registries: CannonRegistry[]): string | undefined {
+  const prioritizedRegistry = registries[0];
+  return prioritizedRegistry ? prioritizedRegistry.getLabel() : undefined;
 }
