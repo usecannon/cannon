@@ -154,7 +154,12 @@ export const DocsCannonfilesPage: FC = () => {
             />
             <Section
               title="Recipes"
-              links={[{ href: '#misc', text: 'Proxy Router Architecture' }]}
+              links={[
+                {
+                  href: '#proxy-router-architecture',
+                  text: 'Proxy Router Architecture',
+                },
+              ]}
             />
             <Section
               title="Advanced Usage"
@@ -211,7 +216,7 @@ export const DocsCannonfilesPage: FC = () => {
               <Heading fontSize="2xl" mb={5}>
                 Cannonfile Specification
               </Heading>
-              <Box mb={16} id="#cannonfile-metadata">
+              <Box mb={16} id="cannonfile-metadata">
                 <Heading mb={4} fontSize="lg">
                   Metadata
                   <Link
@@ -250,7 +255,7 @@ export const DocsCannonfilesPage: FC = () => {
                   ]}
                 />
               </Box>
-              <Box mb={16} id="#constants">
+              <Box mb={16} id="constants">
                 <Heading mb={4} fontSize="lg">
                   Constants
                   <Link
@@ -310,7 +315,7 @@ export const DocsCannonfilesPage: FC = () => {
                   ]}
                 />
               </Box>
-              <Box mb={16} id="#setting">
+              <Box mb={16} id="setting">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     setting
@@ -354,7 +359,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#contract">
+              <Box mb={16} id="contract">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     contract
@@ -448,7 +453,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#invoke">
+              <Box mb={16} id="invoke">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     invoke
@@ -554,7 +559,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#import">
+              <Box mb={16} id="import">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     import
@@ -604,7 +609,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#provision">
+              <Box mb={16} id="provision">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     provision
@@ -670,7 +675,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#router">
+              <Box mb={16} id="router">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     router
@@ -714,7 +719,7 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
 
-              <Box mb={16} id="#run">
+              <Box mb={16} id="run">
                 <Heading mb={4} fontSize="lg">
                   <Code px={0} fontSize="lg">
                     run
@@ -779,7 +784,7 @@ export const DocsCannonfilesPage: FC = () => {
                 Package Specification
               </Heading>
 
-              <Box mb={16} id="#deployment-data">
+              <Box mb={16} id="deployment-data">
                 <Heading mb={4} fontSize="lg">
                   Deployment Data
                   <Link
@@ -795,7 +800,7 @@ export const DocsCannonfilesPage: FC = () => {
                 <Text color="gray.400">Coming soon.</Text>
               </Box>
 
-              <Box mb={16} id="#miscellaneous-data">
+              <Box mb={16} id="miscellaneous-data">
                 <Heading mb={4} fontSize="lg">
                   Miscellaneous Data
                   <Link
@@ -811,7 +816,7 @@ export const DocsCannonfilesPage: FC = () => {
                 <Text color="gray.400">Coming soon.</Text>
               </Box>
 
-              <Box mb={16} id="#metadata">
+              <Box mb={16} id="metadata">
                 <Heading mb={4} fontSize="lg">
                   Metadata
                   <Link
@@ -833,7 +838,7 @@ export const DocsCannonfilesPage: FC = () => {
                 Recipes
               </Heading>
 
-              <Box mb={16} id="#proxy-router-architecture">
+              <Box mb={16} id="proxy-router-architecture">
                 <Heading mb={4} fontSize="lg">
                   Proxy Router Architecture
                   <Link
@@ -855,7 +860,7 @@ export const DocsCannonfilesPage: FC = () => {
                 Advanced Usage
               </Heading>
 
-              <Box mb={16} id="#factory-deployed-contracts">
+              <Box mb={16} id="factory-deployed-contracts">
                 <Heading mb={4} fontSize="lg">
                   Factory-deployed Contracts
                   <Link
@@ -933,7 +938,7 @@ export const DocsCannonfilesPage: FC = () => {
                 </Text>
               </Box>
 
-              <Box mb={16} id="#extras">
+              <Box mb={16} id="extras">
                 <Heading mb={4} fontSize="lg">
                   ’Extra’ Event Data
                   <Link
@@ -990,7 +995,7 @@ export const DocsCannonfilesPage: FC = () => {
                 </Text>
               </Box>
 
-              <Box mb={16} id="#event-error-logging">
+              <Box mb={16} id="event-error-logging">
                 <Heading mb={4} fontSize="lg">
                   Event Error Logging
                   <Link
