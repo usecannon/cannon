@@ -155,6 +155,10 @@ export function SafeAddressInput() {
       ...provided,
       background: 'black',
     }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      background: 'black',
+    }),
   };
 
   return (
