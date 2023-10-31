@@ -20,6 +20,13 @@
   * dependencies
     * @usecannon/cli bumped from ^2.9.0 to ^2.9.1
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.9.0 to ^2.9.1
+    * @usecannon/cli bumped from ^2.9.1 to ^2.9.2
+
 ## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
 
 

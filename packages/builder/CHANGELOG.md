@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.1](https://github.com/usecannon/cannon/compare/v2.9.0...v2.9.1) (2023-10-31)
+
+
+### Bug Fixes
+
+* **builder:** remove 31 char limit on cannonfile version and fix nonce validation ([#543](https://github.com/usecannon/cannon/issues/543)) ([155d39f](https://github.com/usecannon/cannon/commit/155d39f9d05c3090deb92c7482b709cfd22773e2))
+* **highlight:** add highlight boolean to factory contracts ([#536](https://github.com/usecannon/cannon/issues/536)) ([f4d40fe](https://github.com/usecannon/cannon/commit/f4d40fed13c15ac9e0a50d236cb1b35a8faa5578))
+
 ## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
 
 
