@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ethers } from 'ethers';
+import { isNumber } from 'lodash';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -67,12 +68,15 @@ export const contractSchema = z
           (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
-        nonce: z.string().refine(
-          (val) => ethers.utils.isHexString(val) || Boolean(parseInt(val)),
+        nonce: z.union([z.string(), z.number()])
+        .refine(
+        (val) => ethers.utils.isHexString(val) || isNumber(parseInt(val.toString())),
           (val) => ({
-            message: `Nonce ${val} must be of numeric or hexadecimal value`,
+            message: `Nonce ${val} must be a string, number or hexadecimal value`,
           })
-        ),
+        ).transform((val) => {
+          return val.toString();
+        }),
         /**
          *  Abi of the contract being deployed
          */
