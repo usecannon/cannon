@@ -8,7 +8,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import { getExecutionSigner } from './util';
 import { CannonLoader, IPFSLoader, InMemoryLoader } from './loader';
-import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry } from './registry';
+import { CannonRegistry } from './registry';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -272,7 +272,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
-    newRuntime.on(Events.PostStepExecute, (t, n, o, d) => this.emit(Events.PostStepExecute, t, n, o, d + 1));
+    newRuntime.on(Events.PostStepExecute, (t, n, o, c, d) => this.emit(Events.PostStepExecute, t, n, o, c, d + 1));
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
