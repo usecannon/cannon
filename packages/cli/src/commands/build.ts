@@ -364,10 +364,12 @@ export async function build({
         ])
       );
       console.log(bold(`Publish ${bold(packageRef)}`));
-      console.log(`> ${`cannon publish ${packageRef}`}`);
-      console.log('');
-      console.log(bold(`Verify Contracts on Etherscan`));
-      console.log(`> ${`cannon verify ${packageRef}`}`);
+      console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
+      if (chainId !== 13370) {
+        console.log('');
+        console.log(bold(`Verify Contracts on Etherscan`));
+        console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
+      }
     }
   } else {
     console.log(
