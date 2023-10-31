@@ -58,11 +58,28 @@ export const Footer = () => {
             <Image
               height="12px"
               src="/images/optimism.svg"
-              alt="Cannon"
+              alt="Optimism"
               objectFit="cover"
             />
           </Link>
-          RetroPGF
+          and
+          <Link
+            display="inline-block"
+            isExternal
+            mx="2"
+            href="https://safe.global/"
+            color="white"
+            textDecoration="none"
+            _hover={{ textDecoration: 'none' }}
+            transform="translateY(2px)"
+          >
+            <Image
+              height="16px"
+              src="/images/safe.svg"
+              alt="Safe"
+              objectFit="cover"
+            />
+          </Link>
         </Text>
       </Box>
     </Flex>

@@ -32,5 +32,6 @@ fromCall.func = "owner"
 factory.Proxy.abiOf = ["Implementation"]
 factory.Proxy.event = "Upgraded"
 factory.Proxy.arg = 0
+factory.Proxy.highlight = true
 
 depends = ["contract.InitialProxy", "contract.Implementation"]

@@ -25,7 +25,7 @@ export interface RunOptions {
   node: CannonRpcNode;
   logs?: boolean;
   pkgInfo: any;
-  preset: string;
+  presetArg?: string;
   impersonate: string;
   mnemonic?: string;
   privateKey?: string;
@@ -96,20 +96,20 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version, preset = 'main' } = pkg;
+    const { name, version, preset } = pkg;
 
-    if (options.preset && preset) {
+    const selectedPreset = preset || options.presetArg || 'main';
+
+    if (options.presetArg && preset) {
       console.warn(
         yellow(
           bold(
-            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.preset}"`
+            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.presetArg}"`
           )
         )
       );
       console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
     }
-
-    const selectedPreset = preset || options.preset || 'main';
 
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({

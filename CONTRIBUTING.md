@@ -16,7 +16,7 @@ Help us keep Cannon open and inclusive. Please read and follow our [Code of Cond
 
 Do not open issues for general support questions as we want to keep GitHub issues for bug reports and feature requests.
 
-If you would like to chat about the question in real-time, you can reach out via [our discord channel][discord].
+If you would like to chat about the question in real-time, you can reach out via [our discord server](https://discord.gg/U2BJ7W2WAY]).
 
 ## <a name="issue"></a> Found a Bug?
 

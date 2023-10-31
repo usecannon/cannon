@@ -31,6 +31,10 @@ export class LocalRegistry extends CannonRegistry {
     return path.relative(os.homedir(), path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`));
   }
 
+  getMetaTagReferenceStorage(packageRef: string, variant: string): string {
+    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt.meta`);
+  }
+
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
     const baseResolved = await super.getUrl(packageRef, variant);
     if (baseResolved) {
@@ -84,7 +88,20 @@ export class LocalRegistry extends CannonRegistry {
       .filter((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
-        return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+        debug(`found deploy tags for ${name}, ${version}`);
+
+        if (!tagVariant) {
+          return false;
+        }
+
+        let pkgName;
+        if (!version) {
+          pkgName = `${name}`;
+        } else {
+          pkgName = `${name}:${version}`;
+        }
+
+        return !t.endsWith('.meta') && pkgName!.match(packageName) && tagVariant!.match(variant);
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');

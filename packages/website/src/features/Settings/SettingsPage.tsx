@@ -49,10 +49,10 @@ const SETTINGS: Record<
   Setting
 > = {
   stagingUrl: {
-    title: 'Staging Service URL',
+    title: 'Safe Signature Collection Service',
     placeholder: 'https://service.com',
     description:
-      'Provide a URL to stage transactions. Must be the same as other staged transaction operators to accumulate signatures.',
+      'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
   },
   publishTags: {
     title: 'Package Tags',
@@ -80,7 +80,7 @@ const SETTINGS: Record<
   forkProviderUrl: {
     title: 'RPC URL for Local Fork',
     description:
-      'JSON RPC url to create the local fork where the build will be executed. If not provided, the default RPC url from your wallet will be used.',
+      'JSON RPC url to create the local fork where the build will be executed.',
   },
 };
 
@@ -118,7 +118,7 @@ export default function SettingsPage() {
       <Box>
         <Alert bg="gray.800" status="info" my="10">
           <AlertIcon />
-          Changes to settings automatically persist in your web browser
+          Changes to settings automatically persist in your web browser.
         </Alert>
         <Heading size="lg" mb={6}>
           Settings
@@ -353,6 +353,11 @@ export default function SettingsPage() {
             <Link as={NextLink} href="/deploy">
               deployer
             </Link>
+            , which allows the staging and execution of builds for protocols
+            controlled by{' '}
+            <Link isExternal href="https://safe.global/">
+              Safes
+            </Link>
             .
           </Text>
 
@@ -387,7 +392,7 @@ export default function SettingsPage() {
         </Box>
         <Alert bg="gray.800" status="info" my="10">
           <AlertIcon />
-          Changes to settings automatically persist in your web browser
+          Changes to settings automatically persist in your web browser.
         </Alert>
       </Box>
     </Container>

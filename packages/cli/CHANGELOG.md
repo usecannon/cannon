@@ -6,6 +6,53 @@
   * dependencies
     * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
 
+## [2.9.2](https://github.com/usecannon/cannon/compare/v2.9.1...v2.9.2) (2023-10-31)
+
+
+### Bug Fixes
+
+* **cli:** commands config actualized ([#539](https://github.com/usecannon/cannon/issues/539)) ([63da051](https://github.com/usecannon/cannon/commit/63da051243b858c4ba809b82a988ce1120d99a1e))
+* **cli:** make clean remove all files/folders in tags and metadata_cache ([#531](https://github.com/usecannon/cannon/issues/531)) ([9363471](https://github.com/usecannon/cannon/commit/9363471621bf771b7d70780a9811eb9560359b17))
+* **cli:** move anvilOptions to commandsConfig file ([#541](https://github.com/usecannon/cannon/issues/541)) ([f70ea47](https://github.com/usecannon/cannon/commit/f70ea471807ba74ce137f27bddb2c27dbb285dbb))
+* **highlight:** add highlight boolean to factory contracts ([#536](https://github.com/usecannon/cannon/issues/536)) ([f4d40fe](https://github.com/usecannon/cannon/commit/f4d40fed13c15ac9e0a50d236cb1b35a8faa5578))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.9.0 to ^2.9.1
+
+## [2.9.1](https://github.com/usecannon/cannon/compare/v2.9.0...v2.9.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* **cli:** remove fallback provider ([#537](https://github.com/usecannon/cannon/issues/537)) ([05c6638](https://github.com/usecannon/cannon/commit/05c6638ea761ad0ffcff588416e329c11e690ae5))
+
+## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
+
+
+### Features
+
+* Add fetch command and improve publish outputs ([#479](https://github.com/usecannon/cannon/issues/479)) ([286d44b](https://github.com/usecannon/cannon/commit/286d44b248efd5352cb68a54a25304a201264ddc))
+* **cli:** add ability to trace transactions while in cannon run ([#507](https://github.com/usecannon/cannon/issues/507)) ([099a02e](https://github.com/usecannon/cannon/commit/099a02e81e18be3561716f69e5a4a522a57b3d42))
+
+
+### Bug Fixes
+
+* **builder:** handling of package url modification during copy ([#529](https://github.com/usecannon/cannon/issues/529)) ([7c5d585](https://github.com/usecannon/cannon/commit/7c5d5857770412d0f47b52ee4c8beace9504441d))
+* **cli:** cannon executable ([#499](https://github.com/usecannon/cannon/issues/499)) ([9b7fa1f](https://github.com/usecannon/cannon/commit/9b7fa1f32ca99c9aebf3d6fc4e441c17c70fa1c7))
+* **cli:** much faster startup ([#508](https://github.com/usecannon/cannon/issues/508)) ([5c199ee](https://github.com/usecannon/cannon/commit/5c199ee4a0977b63a69c12c000e78dc958ccde59))
+* **cli:** proper error on providerurl chainid and chainid mismatch ([#509](https://github.com/usecannon/cannon/issues/509)) ([3f9d4ab](https://github.com/usecannon/cannon/commit/3f9d4ab71d9fb8758bf1bee256524feb8fef0fd5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.2 to ^2.9.0
+
 ## [2.8.2](https://github.com/usecannon/cannon/compare/v2.8.1...v2.8.2) (2023-10-09)
 
 

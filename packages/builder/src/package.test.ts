@@ -1,6 +1,6 @@
 import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
-import { PackageReference, copyPackage } from './package';
+import { PackageReference, publishPackage } from './package';
 import { DeploymentInfo } from './types';
 import { CannonStorage } from '.';
 
@@ -37,7 +37,7 @@ describe('package.ts', () => {
     );
   });
 
-  describe('copyPackage()', () => {
+  describe('publishPackage()', () => {
     const fromRegistry = new InMemoryRegistry();
     const fromLoader = new IPFSLoader('hello');
     const fromStorage = new CannonStorage(fromRegistry, { https: fromLoader }, 'https');
@@ -123,7 +123,7 @@ describe('package.ts', () => {
 
     it('fails when deployment info is not found', async () => {
       await expect(() =>
-        copyPackage({
+        publishPackage({
           packageRef: 'fake-pkg:1.2.3',
           variant: '1-main',
           tags: [],
@@ -134,7 +134,7 @@ describe('package.ts', () => {
     });
 
     it('works fine for regular, full, package', async () => {
-      await copyPackage({
+      await publishPackage({
         packageRef: testPkg,
         variant: '1-main',
         tags: [],
@@ -153,13 +153,13 @@ describe('package.ts', () => {
     });
 
     it('recurses with correct tags and name', async () => {
-      await copyPackage({
+      await publishPackage({
         packageRef: nestedPkg,
         variant: '1-main',
         tags: ['tag1', 'tag2'],
         fromStorage,
         toStorage,
-        recursive: true,
+        includeProvisioned: true,
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
@@ -170,13 +170,13 @@ describe('package.ts', () => {
 
     describe('recursive = true', () => {
       it('recurses with correct tags and name', async () => {
-        await copyPackage({
+        await publishPackage({
           packageRef: testPkg,
           variant: '1-main',
           tags: [],
           fromStorage,
           toStorage,
-          recursive: true,
+          includeProvisioned: true,
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored
