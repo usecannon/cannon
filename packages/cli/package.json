@@ -8,7 +8,7 @@
     "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "start": "node dist/bin/cannon.js",
+    "start": "node bin/cannon.js",
     "docgen": "typedoc"
   },
   "files": [

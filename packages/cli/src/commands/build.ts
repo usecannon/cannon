@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import ethers from 'ethers';
-import { bold, greenBright, yellow, gray, cyan, yellowBright } from 'chalk';
+import { bold, greenBright, yellow, gray, cyan, yellowBright, green, cyanBright, magenta } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -15,7 +15,6 @@ import {
 } from '@usecannon/builder';
 import { readMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
-import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
@@ -24,6 +23,7 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
 import pkg from '../../package.json';
+import { table } from 'table';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -103,6 +103,7 @@ export async function build({
   }
 
   const chainId = (await provider.getNetwork()).chainId;
+  const chainName = (await provider.getNetwork()).name;
 
   const runtimeOptions = {
     provider,
@@ -139,15 +140,46 @@ export async function build({
   );
 
   let partialDeploy = false;
-  runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
+    console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+  );
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     console.log(
-      `${'  '.repeat(d)}  -> skip ${n} (${
+      `${'  '.repeat(d)}  \u26A0\uFE0F Skipped [${n}] (${
         typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
       })`
     );
   });
+  runtime.on(Events.PostStepExecute, (t, n, o, d) => {
+    for (const txnKey in o.txns) {
+      const txn = o.txns[txnKey];
+      console.log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${txnKey}`);
+      console.log(gray(`${'  '.repeat(d)}  Transaction Target: [TODO]`));
+      console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
+    }
+    for (const contractKey in o.contracts) {
+      const contract = o.contracts[contractKey];
+      if (contract.deployTxnHash) {
+        console.log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}`);
+        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
+        console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
+      }
+    }
+    console.log(gray(`${'  '.repeat(d)}  Gas Cost: [TODO] gwei`));
+    // TODO - gray(Event Data Stored: eventName = eventValue)
+    console.log();
+  });
+
+  runtime.on(Events.ReadDeploy, (packageName, preset, chainId, d) =>
+    console.log(magenta(`${'  '.repeat(d)}  Fetching ${packageName}@${preset} (Chain ID: ${chainId})`))
+  );
+  runtime.on(Events.ResolveDeploy, (registry, d) =>
+    console.log(gray(`${'  '.repeat(d)}    Resolving package via ${registry}`))
+  );
+  runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
+    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
+  );
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
@@ -170,7 +202,6 @@ export async function build({
       console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
     }
   }
-  console.log('');
 
   let pkgName = packageDefinition?.name;
   let pkgVersion = packageDefinition?.version;
@@ -198,13 +229,14 @@ export async function build({
   } else if (oldDeployData && !upgradeFrom) {
     console.log(bold('Using package...'));
   } else {
-    console.log(bold('Generating new package...'));
+    console.log(bold('Initializing new package...'));
   }
-  console.log('Name: ' + cyan(`${pkgName}`));
-  console.log('Version: ' + cyan(`${pkgVersion}`));
-  console.log('Preset: ' + cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Name: ' + cyanBright(`${pkgName}`));
+  console.log('Version: ' + cyanBright(`${pkgVersion}`));
+  console.log('Preset: ' + cyanBright(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Chain ID: ' + cyanBright(`${chainId}`));
   if (upgradeFrom) {
-    console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
+    console.log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
   }
   if (publicSourceCode) {
     console.log(gray('Source code will be included in the package'));
@@ -212,11 +244,11 @@ export async function build({
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
+  console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + providerUrlMsg : ''}...`));
   if (!_.isEmpty(packageDefinition.settings)) {
-    console.log('Overriding the default values for the cannonfile’s settings with the following:');
+    console.log(gray('Overriding the default values for the cannonfile’s settings with the following:'));
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
-      console.log(`  - ${key} = ${value}`);
+      console.log(gray(`  - ${key} = ${value}`));
     }
     console.log('');
   }
@@ -255,8 +287,6 @@ export async function build({
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
 
   const outputs = (await getOutputs(runtime, def, newState))!;
-
-  printChainBuilderOutput(outputs);
 
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
@@ -299,6 +329,7 @@ export async function build({
     }
 
     if (partialDeploy) {
+      // TODO: Fix me up too
       console.log(
         yellow(
           bold(
@@ -321,11 +352,22 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
+      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
+      console.log(bold(`💥 ${packageRef} built on ${chainName} (ID: ${chainId})`));
+      console.log('');
+      console.log(`The following package data has been stored to [TODO]:`);
       console.log(
-        greenBright(
-          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl}`
-        )
+        table([
+          ['Deployment Data', deployUrl],
+          ['Metadata', metaUrl],
+          ['Miscellaneous Data', miscUrl],
+        ])
       );
+      console.log(bold(`Publish ${bold(packageRef)}`));
+      console.log(`> ${`cannon publish ${packageRef}`}`);
+      console.log('');
+      console.log(bold(`Verify Contracts on Etherscan`));
+      console.log(`> ${`cannon verify ${packageRef}`}`);
     }
   } else {
     console.log(

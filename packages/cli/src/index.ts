@@ -35,7 +35,7 @@ import { writeModuleDeployments } from './util/write-deployments';
 import { getFoundryArtifact } from './foundry';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { getMainLoader } from './loader';
-import { bold, green, red, yellow } from 'chalk';
+import { bold, green, red, yellow, gray } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -286,16 +286,17 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
-    console.log(bold('Building the foundry project using forge build...'));
+    console.log(bold('Building the foundry project...'));
     if (!opts.skipCompile) {
       const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
-            console.log(green('forge build succeeded'));
+            console.log(gray('forge build succeeded'));
           } else {
             console.log(red('forge build failed'));
-            console.log('Continuing with cannon build...');
+            console.log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+            reject(new Error(`forge build failed with exit code "${code}"`));
           }
           resolve(null);
         });
@@ -303,6 +304,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     } else {
       console.log(yellow('Skipping forge build...'));
     }
+    console.log(''); // Linebreak in CLI to signify end of compilation.
 
     const [node] = await doBuild(cannonfile, settings, opts);
 
