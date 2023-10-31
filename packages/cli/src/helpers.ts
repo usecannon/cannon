@@ -15,18 +15,20 @@ import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
 export async function filterSettings(settings: any) {
-  const {privateKey, ...filteredSettings} = settings;
+  // Filter out private key for logging
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl
-  ? filteredSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32))
-  : '';
-  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl
-    ? filteredSettings.registryProviderUrl!.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32))
-    : '';
-  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl
-    ? filteredSettings.publishIpfsUrl!.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
-    : '';
+  filteredSettings.providerUrl = filteredSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl!.replace(
+    RegExp(/[=A-Za-z0-9_-]{32,}/),
+    '*'.repeat(32)
+  );
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl!.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl!.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+
+  return filteredSettings;
 }
 
 export async function setupAnvil(): Promise<void> {
