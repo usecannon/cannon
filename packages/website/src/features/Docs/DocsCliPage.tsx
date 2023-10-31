@@ -35,7 +35,7 @@ import { FaYarn } from 'react-icons/fa';
 import { SiPnpm } from 'react-icons/si';
 import commandsConfig from '@usecannon/cli/src/commandsConfig';
 
-const basicCommands = new Set(['run', 'setup', 'build', 'verify', 'publish']);
+const basicCommands = ['run', 'setup', 'build', 'verify', 'publish'];
 
 const commandsData: any[] = [];
 
@@ -298,17 +298,15 @@ export const DocsCliPage: FC = () => {
             <Section title="Installation" links={[]} />
             <Section
               title="Basic Commands"
-              links={commandsData
-                .filter((command) => basicCommands.has(command.name))
-                .map((command) => ({
-                  href: `#${command.name.replaceAll(' ', '-')}`,
-                  text: command.name,
-                }))}
+              links={basicCommands.map((commandName) => ({
+                href: `#${commandName.replaceAll(' ', '-')}`,
+                text: commandName,
+              }))}
             />
             <Section
               title="Advanced Commands"
               links={commandsData
-                .filter((command) => !basicCommands.has(command.name))
+                .filter((command) => !new Set(basicCommands).has(command.name))
                 .map((command) => ({
                   href: `#${command.name.replaceAll(' ', '-')}`,
                   text: command.name,
@@ -434,9 +432,11 @@ export const DocsCliPage: FC = () => {
               <Heading fontSize="2xl" mb={5}>
                 Basic Commands
               </Heading>
-              {commandsData
-                .filter((command) => basicCommands.has(command.name))
-                .map((command) => renderCommandConfig(command))}
+              {basicCommands.map((commandName) =>
+                renderCommandConfig(
+                  commandsData.find((command) => command.name === commandName)
+                )
+              )}
             </Box>
 
             <Box mb={8}>
@@ -444,7 +444,7 @@ export const DocsCliPage: FC = () => {
                 Advanced Commands
               </Heading>
               {commandsData
-                .filter((command) => !basicCommands.has(command.name))
+                .filter((command) => !new Set(basicCommands).has(command.name))
                 .map((command) => renderCommandConfig(command))}
             </Box>
           </Container>
