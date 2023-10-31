@@ -5,4 +5,4 @@ local.graphql
 
 
 # next.js build output
-.next/cache/
+.next/
