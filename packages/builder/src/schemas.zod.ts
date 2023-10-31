@@ -68,15 +68,17 @@ export const contractSchema = z
           (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
-        nonce: z.union([z.string(), z.number()])
-        .refine(
-        (val) => ethers.utils.isHexString(val) || isNumber(parseInt(val.toString())),
-          (val) => ({
-            message: `Nonce ${val} must be a string, number or hexadecimal value`,
-          })
-        ).transform((val) => {
-          return val.toString();
-        }),
+        nonce: z
+          .union([z.string(), z.number()])
+          .refine(
+            (val) => ethers.utils.isHexString(val) || isNumber(parseInt(val.toString())),
+            (val) => ({
+              message: `Nonce ${val} must be a string, number or hexadecimal value`,
+            })
+          )
+          .transform((val) => {
+            return val.toString();
+          }),
         /**
          *  Abi of the contract being deployed
          */
