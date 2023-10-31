@@ -11,7 +11,7 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile } from './helpers';
+import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
 import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
 
 import pkg from '../package.json';
@@ -168,7 +168,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
       break;
   }
 
-  debug('do build called with', cannonfile, settings, opts);
+  debug('do build called with', cannonfile, settings, filterSettings(opts));
   // If the first param is not a cannonfile, it should be parsed as settings
   if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
     settings.unshift(cannonfile);
