@@ -25,4 +25,3 @@ export interface IChainData {
   faucets: string[];
   infoURL: string;
 }
-

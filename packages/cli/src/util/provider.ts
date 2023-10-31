@@ -59,7 +59,11 @@ export async function resolveProviderAndSigners({
   checkProviders?: string[];
   privateKey?: string;
 }): Promise<{ provider: CannonWrapperGenericProvider; signers: ethers.Signer[] }> {
-  debug('resolving provider', checkProviders.map(p => p.replace(RegExp(/[=A-Za-z0-9, '*'.repeat(32))_-]{32,}/), '*'.repeat(32))), chainId);
+  debug(
+    'resolving provider',
+    checkProviders.map((p) => p.replace(RegExp(/[=A-Za-z0-9, '*'.repeat(32))_-]{32,}/), '*'.repeat(32))),
+    chainId
+  );
 
   const rawProvider = provider(checkProviders, { origin: 'Cannon' });
 

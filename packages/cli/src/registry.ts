@@ -41,7 +41,13 @@ export class LocalRegistry extends CannonRegistry {
       return baseResolved;
     }
 
-    debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant).replace(os.homedir(), ''));
+    debug(
+      'load local package link',
+      packageRef,
+      variant,
+      'at file',
+      this.getTagReferenceStorage(packageRef, variant).replace(os.homedir(), '')
+    );
     try {
       return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
     } catch (err) {
