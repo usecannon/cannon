@@ -22,6 +22,12 @@ import {
   Th,
   Thead,
   Tr,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Button,
 } from '@chakra-ui/react';
 import React, { FC } from 'react';
 import { ImNpm } from 'react-icons/im';
@@ -167,8 +173,41 @@ const DocumentationSection: React.FC<{
       <CommandPreview backgroundColor="black" command={'cannon ' + command} />
     </Box>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
-    {anvilOptionsData && <CustomTable title="Option" data={anvilOptionsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
+    {anvilOptionsData && (
+      <Accordion allowToggle>
+        <AccordionItem border="none">
+          <h2>
+            <AccordionButton px={0}>
+              <Button
+                fontWeight={500}
+                size="sm"
+                colorScheme="white"
+                variant="outline"
+                letterSpacing="0.1px"
+                rightIcon={<AccordionIcon />}
+              >
+                Anvil Options
+              </Button>
+            </AccordionButton>
+          </h2>
+          <AccordionPanel p={0}>
+            <Text mt={2} mb={4}>
+              Cannon uses an{' '}
+              <Link
+                isExternal
+                href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil"
+              >
+                Anvil
+              </Link>{' '}
+              node to execute this command. The following options can also be
+              passed through to the Anvil process:
+            </Text>
+            <CustomTable title="Option" data={anvilOptionsData} />
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+    )}
   </Box>
 );
 
@@ -323,7 +362,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'red.500',
                     }}
-                    _active={{ background: 'gray.700' }}
+                    _active={{ background: 'whiteAlpha.100' }}
                   >
                     <Icon as={ImNpm} color="red.500" /> npm
                   </Tab>
@@ -335,7 +374,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'blue.500',
                     }}
-                    _active={{ background: 'gray.700' }}
+                    _active={{ background: 'whiteAlpha.100' }}
                   >
                     <Icon as={FaYarn} fontSize="lg" color="blue.500" /> yarn
                   </Tab>
@@ -347,7 +386,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'orange.500',
                     }}
-                    _active={{ background: 'gray.700' }}
+                    _active={{ background: 'whiteAlpha.100' }}
                   >
                     <Icon as={SiPnpm} color="orange.500" /> pnpm
                   </Tab>
