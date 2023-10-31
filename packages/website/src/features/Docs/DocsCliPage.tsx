@@ -135,8 +135,16 @@ const DocumentationSection: React.FC<{
   command: string;
   description: string;
   argumentsData?: { key: string; value: string }[];
+  anvilOptionsData?: { key: string; value: string }[];
   optionsData?: { key: string; value: string }[];
-}> = ({ id, command, description, argumentsData, optionsData }) => (
+}> = ({
+  id,
+  command,
+  description,
+  argumentsData,
+  anvilOptionsData,
+  optionsData,
+}) => (
   <Box mb={16} id={id}>
     <Heading mb={4} fontSize="lg">
       <Code px={0} fontSize="lg">
@@ -159,6 +167,7 @@ const DocumentationSection: React.FC<{
       <CommandPreview backgroundColor="black" command={'cannon ' + command} />
     </Box>
     {argumentsData && <CustomTable title="Argument" data={argumentsData} />}
+    {anvilOptionsData && <CustomTable title="Option" data={anvilOptionsData} />}
     {optionsData && <CustomTable title="Option" data={optionsData} />}
   </Box>
 );
@@ -204,9 +213,18 @@ const renderCommandConfig = (commandConfig: any) => {
               : ''),
         }))
       }
+      anvilOptionsData={
+        commandConfig.anvilOptions &&
+        commandConfig.anvilOptions.map((option: any) => ({
+          key: option.flags,
+          value:
+            option.description +
+            (option.defaultValue ? ` (default: "${option.defaultValue}")` : ''),
+        }))
+      }
       optionsData={
-        options &&
-        options.map((option: any) => ({
+        commandConfig.options &&
+        commandConfig.options.map((option: any) => ({
           key: option.flags,
           value:
             option.description +
