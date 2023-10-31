@@ -1,3 +1,9 @@
+import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { createFork } from '@/helpers/rpc';
+import { SafeDefinition, useStore } from '@/helpers/store';
+import { useGitRepo } from '@/hooks/git';
+import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import {
@@ -5,9 +11,9 @@ import {
   CannonStorage,
   CannonWrapperGenericProvider,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderRuntime,
   ChainDefinition,
-  publishPackage,
   createInitialContext,
   DeploymentInfo,
   Events,
@@ -15,17 +21,12 @@ import {
   getOutputs,
   InMemoryRegistry,
   OnChainRegistry,
+  publishPackage,
 } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Address, useChainId } from 'wagmi';
-import { SafeDefinition, useStore } from '@/helpers/store';
-import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { createFork } from '@/helpers/rpc';
-import { useGitRepo } from '@/hooks/git';
-import { useLogs } from '@/providers/logsProvider';
 
 export type BuildState =
   | {
@@ -124,10 +125,13 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     const simulatedSteps: ChainArtifacts[] = [];
     const skippedSteps: StepExecutionError[] = [];
 
-    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
-      simulatedSteps.push(stepOutput);
-      setBuildStatus(`Building ${stepType}.${stepLabel}...`);
-    });
+    currentRuntime.on(
+      Events.PostStepExecute,
+      (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        simulatedSteps.push(stepOutput);
+        setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+      }
+    );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
       console.log(stepName, err);

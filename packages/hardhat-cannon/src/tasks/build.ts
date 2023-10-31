@@ -1,18 +1,18 @@
-import path from 'path';
-import { task } from 'hardhat/config';
-import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { ethers } from 'ethers';
-import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
-import { getProvider } from '@usecannon/cli/dist/src/rpc';
+import path from 'node:path';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { HttpNetworkConfig } from 'hardhat/types';
+import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
+import { getProvider } from '@usecannon/cli/dist/src/rpc';
+import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import { yellow } from 'chalk';
-import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
+import { ethers } from 'ethers';
+import * as fs from 'fs-extra';
+import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
+import { task } from 'hardhat/config';
+import { HttpNetworkConfig } from 'hardhat/types';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
-import * as fs from 'fs-extra';
+import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -31,6 +31,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
   )
   .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
+  .addOptionalParam(
+    'writeScript',
+    '(Experimental) Path to write all the actions taken as a script that can be later executed'
+  )
+  .addOptionalParam(
+    'writeScriptFormat',
+    '(Experimental) Format in which to write the actions script (Options: json, ethers)'
+  )
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
     async (
@@ -46,6 +54,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         dryRun,
         anvilOptions,
         impersonate,
+        writeScript,
+        writeScriptFormat,
       },
       hre
     ) => {
@@ -172,6 +182,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
         publicSourceCode: hre.config.cannon.publicSourceCode,
+        writeScript,
+        writeScriptFormat,
       } as const;
 
       const { outputs } = await build(params);
