@@ -305,6 +305,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'red.500',
                     }}
+                    _active={{ background: 'gray.700' }}
                   >
                     <Icon as={ImNpm} color="red.500" /> npm
                   </Tab>
@@ -316,6 +317,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'blue.500',
                     }}
+                    _active={{ background: 'gray.700' }}
                   >
                     <Icon as={FaYarn} fontSize="lg" color="blue.500" /> yarn
                   </Tab>
@@ -327,6 +329,7 @@ export const DocsCliPage: FC = () => {
                       borderBottomWidth: '2px',
                       borderBottomColor: 'orange.500',
                     }}
+                    _active={{ background: 'gray.700' }}
                   >
                     <Icon as={SiPnpm} color="orange.500" /> pnpm
                   </Tab>
