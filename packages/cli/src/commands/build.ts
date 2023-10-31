@@ -151,23 +151,36 @@ export async function build({
       })`
     );
   });
-  runtime.on(Events.PostStepExecute, (t, n, o, d) => {
+  runtime.on(Events.PostStepExecute, (t, n, o, c, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
-      console.log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${txnKey}`);
-      console.log(gray(`${'  '.repeat(d)}  Transaction Target: [TODO]`));
+      console.log(
+        `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
+          ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
+          .join(', ')})`
+      );
+      if (c.fromCall) {
+        // TODO: only render if the signer isn't the default signer
+        console.log(gray(`  Signer: 0x[TODO]`));
+      }
+      console.log(gray(`${'  '.repeat(d)}  Contract Address: [TODO]`));
       console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
     }
     for (const contractKey in o.contracts) {
       const contract = o.contracts[contractKey];
       if (contract.deployTxnHash) {
-        console.log(`${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}`);
+        console.log(
+          `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
+            c.create2 ? ' using CREATE2' : ''
+          }`
+        );
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
         console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
       }
     }
+    //TODO console.log(gray(`${'  '.repeat(d)}  Event Data Stored: ${extraKey} = ${extra}`));
+
     console.log(gray(`${'  '.repeat(d)}  Gas Cost: [TODO] gwei`));
-    // TODO - gray(Event Data Stored: eventName = eventValue)
     console.log();
   });
 
@@ -189,7 +202,7 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log('Existing package found.');
+    console.log(`${name}:${version}@${preset} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -197,9 +210,9 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`Package "${prevPkg}@${selectedPreset}" not found.`);
+      throw new Error(`${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`);
     } else {
-      console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
+      console.log(`${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`);
     }
   }
 
@@ -225,9 +238,10 @@ export async function build({
   }
 
   if (oldDeployData && wipe) {
-    console.log(bold('Regenerating package...'));
+    console.log('Wiping existing package...');
+    console.log(bold('Initializing new package...'));
   } else if (oldDeployData && !upgradeFrom) {
-    console.log(bold('Using package...'));
+    console.log(bold('Continuing with existing package...'));
   } else {
     console.log(bold('Initializing new package...'));
   }
@@ -245,6 +259,8 @@ export async function build({
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + providerUrlMsg : ''}...`));
+  console.log(`Using signer 0x[TODO]`);
+
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log(gray('Overriding the default values for the cannonfile’s settings with the following:'));
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
@@ -260,6 +276,7 @@ export async function build({
       console.log('plugins:', pluginList.join(', '), 'detected');
     }
   }
+  console.log('');
 
   // attach control-c handler
   let ctrlcs = 0;
@@ -367,7 +384,7 @@ export async function build({
       console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
       if (chainId !== 13370) {
         console.log('');
-        console.log(bold(`Verify Contracts on Etherscan`));
+        console.log(bold(`Verify contracts on Etherscan`));
         console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
       }
     }
