@@ -20,7 +20,7 @@ export async function filterSettings(settings: any) {
   const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
 
   // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.providerUrl = filteredSettings.providerUrl!.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
   filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl!.replace(
     RegExp(/[=A-Za-z0-9_-]{32,}/),
     '*'.repeat(32)
