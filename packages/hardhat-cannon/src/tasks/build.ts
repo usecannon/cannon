@@ -1,5 +1,5 @@
 import path from 'path';
-import { task, types } from 'hardhat/config';
+import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
 import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
@@ -12,9 +12,8 @@ import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { AnvilOptions, pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
+import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import * as fs from 'fs-extra';
-import os from 'os';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -65,16 +64,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const parsedSettings = parseSettings(settings);
 
       let anvilOpts;
-      try {
-        if (anvilOptions.endsWith('.json')) {
-          anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
-        } else {
-          anvilOpts = JSON.parse(anvilOptions);
-        }
-      } catch (error: any) {
-        throw new Error(error);
+      if (anvilOptions.endsWith('.json')) {
+        anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
+      } else {
+        anvilOpts = JSON.parse(anvilOptions);
       }
-
       anvilOpts = pickAnvilOptions(anvilOpts);
 
       const { name, version, def } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
