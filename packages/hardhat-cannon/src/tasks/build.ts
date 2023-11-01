@@ -1,5 +1,5 @@
 import path from 'path';
-import { task } from 'hardhat/config';
+import { task, types } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
 import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
@@ -12,24 +12,43 @@ import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
+import { AnvilOptions, pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
+import * as fs from 'fs-extra';
+import os from 'os';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
-  .addOptionalParam('preset', 'The preset label for storing the build with the given settings')
-  .addOptionalParam('registryPriority', 'Which registry should be used first? Default: onchain')
+  .addOptionalParam('preset', '(Optional) The preset label for storing the build with the given settings')
+  .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
+  .addOptionalParam(
+    'anvilOptions',
+    '(Optional) Custom anvil options json file to configure when running on the cannon network or a local forked node'
+  )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
   .addFlag('usePlugins', 'Load plugins globally installed using the cannon CLI')
   .addOptionalParam(
     'upgradeFrom',
-    'Wipe the deployment files, and use the deployment files from another cannon package as base'
+    '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
   )
-  .addOptionalParam('impersonate', 'When dry running, uses forked signers rather than actual signing keys')
+  .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
     async (
-      { cannonfile, settings, upgradeFrom, preset, noCompile, wipe, usePlugins, registryPriority, dryRun, impersonate },
+      {
+        cannonfile,
+        settings,
+        upgradeFrom,
+        preset,
+        noCompile,
+        wipe,
+        usePlugins,
+        registryPriority,
+        dryRun,
+        anvilOptions,
+        impersonate,
+      },
       hre
     ) => {
       if (!noCompile) {
@@ -44,6 +63,19 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       const parsedSettings = parseSettings(settings);
+
+      let anvilOpts;
+      try {
+        if (anvilOptions.endsWith('.json')) {
+          anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
+        } else {
+          anvilOpts = JSON.parse(anvilOptions);
+        }
+      } catch (error: any) {
+        throw new Error(error);
+      }
+
+      anvilOpts = pickAnvilOptions(anvilOpts);
 
       const { name, version, def } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
@@ -68,12 +100,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
               {
                 port: hre.config.networks.cannon.port,
                 chainId: (await hre.ethers.provider.getNetwork()).chainId,
+                accounts: anvilOpts.accounts || 10,
+                ...anvilOpts,
               },
               {
                 forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
               }
             )
-          : await runRpc({ port: hre.config.networks.cannon.port });
+          : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
 
         provider = getProvider(node);
       }
