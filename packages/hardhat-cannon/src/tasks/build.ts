@@ -64,7 +64,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const parsedSettings = parseSettings(settings);
 
       let anvilOpts;
-      if(anvilOptions) {
+      if (anvilOptions) {
         if ((anvilOptions as string).endsWith('.json')) {
           anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
         } else {
