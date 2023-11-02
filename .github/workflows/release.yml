@@ -10,9 +10,9 @@ permissions:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+name: Create Release
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
     steps:
       # The logic below handles the npm publication:
@@ -35,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'true'
+        if: steps.changesets.outputs.hasChangesets == 'false'
         run: npx lerna publish from-package --no-push --no-private --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
