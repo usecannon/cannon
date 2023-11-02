@@ -76,12 +76,12 @@ export class CannonStorage extends EventEmitter {
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
-    this.emit(Events.ResolveDeploy, 'registry', 0); // TODO: Make more specific
+    const registryName = this.registry.getLabel();
+    this.emit(Events.ResolveDeploy, packageName, preset, chainId, registryName, 0);
+
     const uri = await this.registry.getUrl(packageName, `${chainId}-${preset}`);
 
     if (!uri) return null;
-
-    this.emit(Events.ReadDeploy, packageName, preset, chainId, 0);
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 
@@ -272,15 +272,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
-    newRuntime.on(Events.PostStepExecute, (t, n, o, c, d) => this.emit(Events.PostStepExecute, t, n, o, c, d + 1));
+    newRuntime.on(Events.PostStepExecute, (t, n, o, c, ctx, d) => this.emit(Events.PostStepExecute, t, n, o, c, ctx, d + 1));
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
     newRuntime.on(Events.SkipDeploy, (n, e, d) => this.emit(Events.SkipDeploy, n, e, d + 1));
-    newRuntime.on(Events.ReadDeploy, (packageName, preset, chainId, d) =>
-      this.emit(Events.ReadDeploy, packageName, preset, chainId, d + 1)
+    newRuntime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
     );
-    newRuntime.on(Events.ResolveDeploy, (registry, d) => this.emit(Events.ResolveDeploy, registry, d + 1));
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
 
     return newRuntime;

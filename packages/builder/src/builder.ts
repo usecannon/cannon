@@ -347,7 +347,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
     throw new Error('timed out without error');
   }
 
-  runtime.emit(Events.PostStepExecute, type, label, result, cfg, 0);
+  runtime.emit(Events.PostStepExecute, type, label, result, cfg, ctx, 0);
 
   return result;
 }

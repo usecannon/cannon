@@ -213,6 +213,9 @@ const contractSpec = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
+    let gasUsed = 0;
+    let gasCost = '0';
+
     if (config.create2) {
       await ensureArachnidCreate2Exists(runtime);
 
@@ -230,6 +233,8 @@ const contractSpec = {
           : await runtime.getDefaultSigner!(txn, config.salt);
         const pendingTxn = await signer.sendTransaction(_.assign(create2Txn, overrides));
         const receipt = await pendingTxn.wait();
+        gasUsed = receipt.gasUsed.toNumber();
+        gasCost = receipt.effectiveGasPrice.toString();
         transactionHash = pendingTxn.hash;
 
         debug('arachnid create2 complete', receipt);
@@ -268,6 +273,8 @@ const contractSpec = {
         const receipt = await txnData.wait();
         contractAddress = receipt.contractAddress;
         transactionHash = receipt.transactionHash;
+        gasUsed = receipt.gasUsed.toNumber();
+        gasCost = receipt.effectiveGasPrice.toString();
       }
     }
 
@@ -306,6 +313,8 @@ const contractSpec = {
           contractName: artifactData.contractName,
           deployedOn: packageState.currentLabel!,
           highlight: config.highlight,
+          gasUsed,
+          gasCost,
         },
       },
     };
