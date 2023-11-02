@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { ethers } from 'ethers';
-import { bold, greenBright, yellow, gray, cyan, yellowBright, green, cyanBright, magenta } from 'chalk';
+import { bold, yellow, gray, yellowBright, green, cyanBright, magenta } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -423,15 +423,15 @@ export async function build({
       console.log(
         table([
           ['Deployment Data', deployUrl],
+          ['Package Code', miscUrl],
           ['Metadata', metaUrl],
-          ['Miscellaneous Data', miscUrl],
         ])
       );
       console.log(bold(`Publish ${bold(packageRef)}`));
       console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
       if (chainId !== 13370) {
         console.log('');
-        console.log(bold(`Verify contracts on Etherscan`));
+        console.log(bold('Verify contracts on Etherscan'));
         console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
       }
     }
