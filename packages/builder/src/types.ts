@@ -42,6 +42,8 @@ export type ContractData = {
   sourceName: string;
   deployedOn: string;
   highlight?: boolean;
+  gasUsed: number;
+  gasCost: string;
 };
 
 export type ContractMap = {
@@ -53,6 +55,9 @@ export type TransactionMap = {
     hash: string;
     events: EventMap;
     deployedOn: string;
+    gasUsed: number;
+    gasCost: string;
+    signer: string;
   };
 };
 

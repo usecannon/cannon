@@ -8,7 +8,6 @@ import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { yellow } from 'chalk';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
-import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
@@ -128,7 +127,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           defaultSigner = provider.getSigner(impersonate);
           signers.push(defaultSigner);
         }
-      } else if (hre.network.name !== CANNON_NETWORK_NAME) {
+      } else {
         defaultSigner = signers[0].connect(provider);
       }
 

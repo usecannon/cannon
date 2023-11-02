@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import '../actions';
+import { ethers } from 'ethers';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './testUtils';
 
@@ -170,6 +171,8 @@ describe('steps/invoke.ts', () => {
     it('works and parses all information from transaction result', async () => {
       jest.mocked((await (await fakeRuntime.getDefaultSigner({}, '')).sendTransaction({})).wait).mockResolvedValue({
         transactionHash: '0x1234',
+        gasUsed: ethers.BigNumber.from('0'),
+        effectiveGasPrice: 0,
         logs: [
           {
             blockNumber: 0,
@@ -222,6 +225,8 @@ describe('steps/invoke.ts', () => {
           deployTxnHash: '',
           deployedOn: 'invoke.something',
           sourceName: '',
+          gasCost: '0',
+          gasUsed: 0,
         },
       });
 

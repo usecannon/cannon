@@ -61,7 +61,7 @@ export class InMemoryRegistry extends CannonRegistry {
   count = 0;
 
   getLabel() {
-    return 'in memory';
+    return 'memory';
   }
 
   async publish(packagesNames: string[], variant: string, url: string, meta: string): Promise<string[]> {
@@ -110,7 +110,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   getLabel() {
-    return `fallback (${this.registries.map((r) => r.getLabel()).join(', ')})`;
+    return `${this.registries.map((r) => r.getLabel()).join(', ')}`;
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
@@ -229,7 +229,7 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   getLabel() {
-    return `on chain ${this.contract.address}`;
+    return `${this.contract.address}`;
   }
 
   private async checkSigner() {
