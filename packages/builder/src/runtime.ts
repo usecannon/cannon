@@ -19,7 +19,6 @@ export enum Events {
   DeployTxn = 'deploy-txn',
   DeployExtra = 'deploy-extra',
   SkipDeploy = 'skip-deploy', // step name, error causing skip
-  ReadDeploy = 'read-deploy',
   ResolveDeploy = 'resolve-deploy',
   DownloadDeploy = 'download-deploy',
 }

@@ -94,6 +94,8 @@ describe('steps/router.ts', () => {
           deployTxnHash: tx.hash,
           contractName: 'Router',
           sourceName: 'Router.sol',
+          gasCost: '0',
+          gasUsed: 0,
         },
       });
     });
