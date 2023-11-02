@@ -25,6 +25,7 @@ import { getMainLoader } from '../loader';
 
 import pkg from '../../package.json';
 import { table } from 'table';
+import { ChainBuilderContext } from '@usecannon/builder/dist/types';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -142,14 +143,14 @@ export async function build({
     cliSettings.ipfsUrl ? 'ipfs' : 'file'
   );
 
-  function getContractAddress(target: string, ctx: any): string | null {
-    function search(contracts: any): string | null {
-      for (const key in contracts) {
-        if (key === target && contracts[key].address) {
-          return contracts[key].address;
+  function getContractAddress(target: string, ctx: ChainBuilderContext): string | null {
+    function search(c: any): string | null {
+      for (const key in c) {
+        if (key === target && c[key].address) {
+          return c[key].address;
         }
-        if (contracts[key].contracts) {
-          const nestedSearchResult = search(contracts[key].contracts);
+        if (c[key].contracts) {
+          const nestedSearchResult = search(c[key].contracts);
           if (nestedSearchResult) {
             return nestedSearchResult;
           }
