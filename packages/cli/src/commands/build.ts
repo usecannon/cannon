@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import ethers from 'ethers';
-import { bold, greenBright, yellow, gray, cyan, yellowBright } from 'chalk';
+import { ethers } from 'ethers';
+import { bold, yellow, gray, yellowBright, green, cyanBright, magenta } from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -13,9 +13,9 @@ import {
   DeploymentInfo,
   CannonWrapperGenericProvider,
 } from '@usecannon/builder';
+import { chains } from '../chains';
 import { readMetadataCache } from '../helpers';
 import { PackageSpecification } from '../types';
-import { printChainBuilderOutput } from '../util/printer';
 import { CannonRegistry } from '@usecannon/builder';
 import { resolveCliSettings } from '../settings';
 import { createDefaultReadRegistry } from '../registry';
@@ -24,6 +24,8 @@ import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
 import pkg from '../../package.json';
+import { table } from 'table';
+import { ChainBuilderContext } from '@usecannon/builder/dist/types';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -103,6 +105,9 @@ export async function build({
   }
 
   const chainId = (await provider.getNetwork()).chainId;
+  const chainName = chains.find((c) => c.chainId === chainId)?.name;
+  const nativeCurrencySymbol = chains.find((c) => c.chainId === chainId)?.nativeCurrency.symbol;
+  let totalCost = ethers.BigNumber.from(0);
 
   const runtimeOptions = {
     provider,
@@ -138,26 +143,108 @@ export async function build({
     cliSettings.ipfsUrl ? 'ipfs' : 'file'
   );
 
+  function getContractAddress(target: string, ctx: ChainBuilderContext): string | null {
+    function search(c: any): string | null {
+      for (const key in c) {
+        if (key === target && c[key].address) {
+          return c[key].address;
+        }
+        if (c[key].contracts) {
+          const nestedSearchResult = search(c[key].contracts);
+          if (nestedSearchResult) {
+            return nestedSearchResult;
+          }
+        }
+      }
+      return null;
+    }
+
+    return search(ctx.contracts);
+  }
+
   let partialDeploy = false;
-  runtime.on(Events.PreStepExecute, (t, n, _c, d) => console.log(`${'  '.repeat(d)}exec: ${t}.${n}`));
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
+    console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+  );
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     console.log(
-      `${'  '.repeat(d)}  -> skip ${n} (${
+      `${'  '.repeat(d)}  \u26A0\uFE0F Skipped [${n}] (${
         typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
       })`
     );
   });
+  runtime.on(Events.PostStepExecute, (t, n, o, c, ctx, d) => {
+    for (const txnKey in o.txns) {
+      const txn = o.txns[txnKey];
+      console.log(
+        `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
+          ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
+          .join(', ')})`
+      );
+      if (txn.signer != defaultSigner) {
+        console.log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
+      }
+      const contractAddress = getContractAddress(c.target[0], ctx);
+      if (contractAddress) {
+        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+      }
+      console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
+      const cost = ethers.BigNumber.from(txn.gasCost).mul(txn.gasUsed);
+      totalCost = totalCost.add(cost);
+      console.log(
+        gray(
+          `${'  '.repeat(d)}  Transaction Cost: ${ethers.utils.formatEther(
+            cost
+          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
+        )
+      );
+    }
+    for (const contractKey in o.contracts) {
+      const contract = o.contracts[contractKey];
+      if (contract.deployTxnHash) {
+        console.log(
+          `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
+            c.create2 ? ' using CREATE2' : ''
+          }`
+        );
+        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
+        console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
+        const cost = ethers.BigNumber.from(contract.gasCost).mul(contract.gasUsed);
+        totalCost = totalCost.add(cost);
+        console.log(
+          gray(
+            `${'  '.repeat(d)}  Transaction Cost: ${ethers.utils.formatEther(
+              cost
+            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
+          )
+        );
+      }
+    }
+    for (const extra in o.extras) {
+      console.log(gray(`${'  '.repeat(d)}  Stored Event Data: ${extra} = ${o.extras[extra]}`));
+    }
+
+    console.log();
+  });
+
+  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+    console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName}@${preset} (Chain ID: ${chainId}) via ${registry}...`))
+  );
+  runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
+    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}\n`))
+  );
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
   const prevPkg = upgradeFrom || `${name}:${version}`;
 
+  console.log(bold('Checking for existing package...'));
   oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log('Existing package found.');
+    console.log(`${name}:${version}@${preset} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -165,12 +252,11 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`Package "${prevPkg}@${selectedPreset}" not found.`);
+      throw new Error(`${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`);
     } else {
-      console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
+      console.log(gray(`  ${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`));
     }
   }
-  console.log('');
 
   let pkgName = packageDefinition?.name;
   let pkgVersion = packageDefinition?.version;
@@ -193,36 +279,42 @@ export async function build({
     pkgVersion = def.getVersion(initialCtx);
   }
 
+  console.log('');
   if (oldDeployData && wipe) {
-    console.log(bold('Regenerating package...'));
+    console.log('Wiping existing package...');
+    console.log(bold('Initializing new package...'));
   } else if (oldDeployData && !upgradeFrom) {
-    console.log(bold('Using package...'));
+    console.log(bold('Continuing with existing package...'));
   } else {
-    console.log(bold('Generating new package...'));
+    console.log(bold('Initializing new package...'));
   }
-  console.log('Name: ' + cyan(`${pkgName}`));
-  console.log('Version: ' + cyan(`${pkgVersion}`));
-  console.log('Preset: ' + cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Name: ' + cyanBright(`${pkgName}`));
+  console.log('Version: ' + cyanBright(`${pkgVersion}`));
+  console.log('Preset: ' + cyanBright(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Chain ID: ' + cyanBright(`${chainId}`));
   if (upgradeFrom) {
-    console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
+    console.log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
   }
   if (publicSourceCode) {
     console.log(gray('Source code will be included in the package'));
   }
   console.log('');
 
+  const defaultSigner = await (await getDefaultSigner!()).getAddress();
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(
     bold(
-      `Building the chain (ID ${chainId}${
+      `Building the chain (ID ${chainId})${
         providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
-      })...`
+      }...`
     )
   );
+  console.log(`Using signer ${defaultSigner}`);
+
   if (!_.isEmpty(packageDefinition.settings)) {
-    console.log('Overriding the default values for the cannonfile’s settings with the following:');
+    console.log(gray('Overriding the default values for the cannonfile’s settings with the following:'));
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
-      console.log(`  - ${key} = ${value}`);
+      console.log(gray(`  - ${key} = ${value}`));
     }
     console.log('');
   }
@@ -234,6 +326,7 @@ export async function build({
       console.log('plugins:', pluginList.join(', '), 'detected');
     }
   }
+  console.log('');
 
   // attach control-c handler
   let ctrlcs = 0;
@@ -261,8 +354,6 @@ export async function build({
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
 
   const outputs = (await getOutputs(runtime, def, newState))!;
-
-  printChainBuilderOutput(outputs);
 
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
@@ -305,6 +396,7 @@ export async function build({
     }
 
     if (partialDeploy) {
+      // TODO: Fix me up too
       console.log(
         yellow(
           bold(
@@ -327,11 +419,28 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
+      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
+      console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
+      console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+      console.log('');
+
       console.log(
-        greenBright(
-          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl}`
-        )
+        `The following package data has been stored to ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}`
       );
+      console.log(
+        table([
+          ['Deployment Data', deployUrl],
+          ['Package Code', miscUrl],
+          ['Metadata', metaUrl],
+        ])
+      );
+      console.log(bold(`Publish ${bold(packageRef)}`));
+      console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
+      if (chainId !== 13370) {
+        console.log('');
+        console.log(bold('Verify contracts on Etherscan'));
+        console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
+      }
     }
   } else {
     console.log(
