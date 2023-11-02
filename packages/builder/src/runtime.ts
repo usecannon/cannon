@@ -56,7 +56,7 @@ export class CannonStorage extends EventEmitter {
     if (loader instanceof IPFSLoader) {
       loaderLabel = loader.ipfsUrl;
     } else if (loader instanceof InMemoryLoader) {
-      loaderLabel = 'memory';
+      loaderLabel = loader.getLabel();
     }
 
     this.emit(Events.DownloadDeploy, url, loaderLabel, 0);
