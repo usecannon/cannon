@@ -158,6 +158,8 @@ const routerStep = {
           deployTxnHash: deployedRouterContractTxn.hash,
           contractName,
           sourceName: contractName + '.sol',
+          gasUsed: receipt.gasUsed.toNumber(),
+          gasCost: receipt.effectiveGasPrice.toString(),
           //sourceCode
         },
       },

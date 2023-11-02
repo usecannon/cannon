@@ -69,6 +69,8 @@ describe('alter', () => {
                 contractName: 'TestContract',
                 sourceName: 'TestContract.sol',
                 deployedOn: '',
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },
