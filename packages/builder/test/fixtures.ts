@@ -48,6 +48,8 @@ export const fixtureContractData = (contractName = 'Greeter') => {
     contractName: artifact.contractName,
     sourceName: artifact.sourceName,
     deployedOn: `contract.${artifact.contractName}`,
+    gasCost: '0',
+    gasUsed: 0,
   };
 };
 
@@ -80,6 +82,8 @@ export async function mockDeployTransaction(signer: ethers.Signer) {
   const rx = {
     contractAddress: fixtureAddress(),
     transactionHash: hash,
+    gasUsed: ethers.BigNumber.from('0'),
+    effectiveGasPrice: 0,
     logs: [],
   };
 

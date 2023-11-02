@@ -37,6 +37,8 @@ export function makeFakeSigner(address: string) {
       contractAddress: '0x2345234523452345234523452345234523452345',
       transactionHash: '0x1234',
       logs: [],
+      gasUsed: ethers.BigNumber.from('0'),
+      effectiveGasPrice: 0,
     }),
   });
   signer.signTransaction = jest.fn();

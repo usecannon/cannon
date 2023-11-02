@@ -105,6 +105,8 @@ describe('builder.ts', () => {
             contractName: 'Wohoo',
             abi: [],
             deployedOn: 'contract.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
           },
         },
       },
@@ -119,6 +121,9 @@ describe('builder.ts', () => {
             hash: '',
             events: {},
             deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
           },
         },
       },
@@ -141,6 +146,8 @@ describe('builder.ts', () => {
         contractName: 'Wohoo',
         abi: [],
         deployedOn: 'contract.Yoop',
+        gasCost: '0',
+        gasUsed: 0,
       },
     },
   });
@@ -149,7 +156,9 @@ describe('builder.ts', () => {
 
   jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
-    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } },
+    txns: {
+      smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
+    },
   });
   jest.mocked(invokeStep.getInputs).mockReturnValue([]);
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
@@ -210,6 +219,8 @@ describe('builder.ts', () => {
               contractName: 'Wohoo',
               abi: [],
               deployedOn: 'contract.Yoop',
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });

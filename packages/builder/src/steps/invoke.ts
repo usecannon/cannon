@@ -400,6 +400,9 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: receipt.transactionHash,
         events: txnEvents,
         deployedOn: packageState.currentLabel,
+        gasUsed: receipt.gasUsed.toNumber(),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: receipt.from,
       };
     }
 
@@ -442,6 +445,8 @@ ${getAllContractPaths(ctx).join('\n')}`);
           sourceName: sourceName,
           contractName: contractName,
           deployedOn: packageState.currentLabel,
+          gasUsed: 0,
+          gasCost: '0',
         };
 
         if (factoryInfo.highlight) {
