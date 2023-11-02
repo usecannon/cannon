@@ -23,6 +23,9 @@ describe('steps/provision.ts', () => {
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
+    jest.mocked(contractAction.getOutputs).mockReturnValue([]);
+    jest.mocked(contractAction.getInputs).mockReturnValue([]);
+
     jest.mocked(contractAction.exec).mockResolvedValue({
       contracts: {
         Woot: {
@@ -42,13 +45,13 @@ describe('steps/provision.ts', () => {
       const result = action.configInject(
         fakeCtx,
         {
-          source: '<%= settings.a %>',
+          source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         },
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
 
       expect(result).toStrictEqual({
-        source: 'a',
+        source: 'abc:latest',
         sourcePreset: 'main',
         targetPreset: 'with-who',
       });
@@ -97,16 +100,72 @@ describe('steps/provision.ts', () => {
         action.exec(
           fakeRuntime,
           fakeCtx,
-          { source: 'undefinedDeployment:1.0.0' },
+          { source: 'undefined-deployment:1.0.0' },
           { name: 'package', version: '1.0.0', currentLabel: 'provision.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
     });
 
-    it('works properly', async () => {
+    it('returns partial deployment if runtime becomes cancelled', async () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
+        state: {
+          'contract.Woot': {
+            version: BUILD_VERSION,
+            hash: 'arst',
+            artifacts: {
+              contracts: {
+                Woot: {
+                  address: '0xfoobar',
+                  abi: [],
+                  deployTxnHash: '0x',
+                  contractName: 'Woot',
+                  sourceName: 'Woot.sol',
+                  deployedOn: 'contract.Woot',
+                },
+              },
+            },
+          },
+        },
+        options: {},
+        def: {
+          name: 'hello',
+          version: '1.0.0',
+          contract: {
+            Woot: { artifact: 'Woot' },
+          },
+        } as any,
+        meta: {},
+        miscUrl: 'https://something.com',
+      });
+
+      jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
+      jest.mocked(fakeRuntime.isCancelled).mockReturnValue(true);
+      console.log('is c ancel', fakeRuntime.isCancelled());
+
+      const result = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(result.imports!['something'].url).toEqual('ipfs://Qmsomething');
+
+      expect(jest.mocked(fakeRuntime.putDeploy).mock.calls[0][0].status).toEqual('partial');
+
+      jest.mocked(fakeRuntime.isCancelled).mockReturnValue(false);
+    });
+
+    it('works with complete deployment', async () => {
+      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+
+      jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
         state: {
           'contract.Woot': {
             version: BUILD_VERSION,

@@ -8,12 +8,14 @@ jest.mock('./settings');
 jest.mock('./loader');
 
 describe('readDeploy', () => {
-  it('should call the _readDeloy function', async () => {
+  it('should call the _readDeploy function', async () => {
     const packageName = 'packageName';
     const chainId = 1;
     const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 0,
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},
@@ -37,6 +39,8 @@ describe('readDeployRecursive', () => {
     const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 0,
       def: { name: 'mockName', version: '1.0.0' }, // Add properties based on your DeploymentInfo type
       options: {},
       state: {},

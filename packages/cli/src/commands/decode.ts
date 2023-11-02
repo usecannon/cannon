@@ -1,22 +1,41 @@
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import { ethers } from 'ethers';
-import { bold, gray, green, italic } from 'chalk';
+import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
 
+import { PackageReference } from '@usecannon/builder/dist/package';
+
 export async function decode({
-  packageName,
+  packageRef,
   data,
   chainId,
-  preset,
+  presetArg,
   json = false,
 }: {
-  packageName: string;
+  packageRef: string;
   data: string[];
   chainId: number;
-  preset: string;
+  presetArg: string;
   json: boolean;
 }) {
-  const deployInfos = await readDeployRecursive(packageName, chainId, preset);
+  const { preset, basePackageRef } = new PackageReference(packageRef);
+
+  if (!data[0].startsWith('0x')) {
+    data[0] = '0x' + data[0];
+  }
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
+
+  const deployInfos = await readDeployRecursive(basePackageRef, chainId, selectedPreset);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);

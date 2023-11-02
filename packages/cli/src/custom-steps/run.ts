@@ -1,24 +1,21 @@
+import crypto from 'node:crypto';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import fs from 'fs-extra';
 import _ from 'lodash';
 import Debug from 'debug';
-
 import { z } from 'zod';
-import { runSchema } from '../schemas.zod';
-
 import {
+  computeTemplateAccesses,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
   ChainArtifacts,
   registerAction,
   PackageState,
 } from '@usecannon/builder';
-
-import crypto from 'crypto';
-import fs from 'fs-extra';
+import { runSchema } from '../schemas.zod';
 
 const debug = Debug('cannon:builder:run');
-
-import path from 'node:path';
-import { createRequire } from 'node:module';
 
 interface ErrorWithCode extends Error {
   code: string;
@@ -65,7 +62,7 @@ export function hashFs(path: string): Buffer {
  *  Available properties for run step
  *  @public
  *  @group Run
- 
+
  */
 export type Config = z.infer<typeof runSchema>;
 
@@ -76,6 +73,8 @@ const runAction = {
   label: 'run',
 
   validate: runSchema,
+
+  timeout: 3600000, // 1 hour, run steps can go for much longer
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
     const newConfig = this.configInject(ctx, config);
@@ -128,6 +127,21 @@ const runAction = {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    accesses.push(...computeTemplateAccesses(config.exec));
+    _.forEach(config.modified, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.env, (a) => accesses.push(...computeTemplateAccesses(a)));
+
+    return accesses;
+  },
+
+  getOutputs(config: Config) {
+    return config.outputs;
   },
 
   async exec(

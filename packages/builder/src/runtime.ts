@@ -34,16 +34,33 @@ export class CannonStorage extends EventEmitter {
     this.loaders = loaders;
   }
 
-  readBlob(url: string) {
+  lookupLoader(url: string) {
     if (!url) {
       throw new Error('url not defined');
     }
 
-    return this.loaders[url.split(':')[0]].read(url);
+    const loaderScheme = url.split(':')[0];
+    if (!this.loaders[loaderScheme]) {
+      throw new Error(`loader scheme not configured: ${loaderScheme}`);
+    }
+
+    return this.loaders[loaderScheme];
+  }
+
+  readBlob(url: string) {
+    return this.lookupLoader(url).read(url);
   }
 
   putBlob(data: any) {
     return this.loaders[this.defaultLoaderScheme].put(data);
+  }
+
+  deleteBlob(url: string) {
+    const loader = this.lookupLoader(url);
+
+    if (loader.remove) {
+      return loader.remove(url);
+    }
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
@@ -53,7 +70,9 @@ export class CannonStorage extends EventEmitter {
 
     const loaderScheme = uri.split(':')[0];
 
-    console.log(bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}...`));
+    console.log(
+      bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}@${preset} with chain Id ${chainId}...\n`)
+    );
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 

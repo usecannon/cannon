@@ -23,6 +23,8 @@ import { createDefaultReadRegistry } from '../registry';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
 
+import pkg from '../../package.json';
+
 interface Params {
   provider: CannonWrapperGenericProvider;
   def?: ChainDefinition;
@@ -34,7 +36,7 @@ interface Params {
   getSigner?: (addr: string) => Promise<ethers.Signer>;
   getDefaultSigner?: () => Promise<ethers.Signer>;
   projectDirectory?: string;
-  preset?: string;
+  presetArg?: string;
   chainId?: number;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
@@ -42,7 +44,7 @@ interface Params {
   plugins?: boolean;
   publicSourceCode?: boolean;
   providerUrl?: string;
-
+  registryPriority?: 'local' | 'onchain';
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
@@ -57,13 +59,14 @@ export async function build({
   getArtifact,
   getSigner,
   getDefaultSigner,
-  preset = 'main',
+  presetArg,
   overrideResolver,
   wipe = false,
   persist = true,
   plugins = true,
   publicSourceCode = false,
   providerUrl,
+  registryPriority,
   gasPrice,
   gasFee,
   priorityGasFee,
@@ -78,7 +81,22 @@ export async function build({
     );
   }
 
-  const cliSettings = resolveCliSettings();
+  const { name, version, preset } = packageDefinition;
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(
+          `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
+        )
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
+
+  const cliSettings = resolveCliSettings({ registryPriority });
 
   if (plugins) {
     await loadPlugins();
@@ -133,9 +151,9 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${packageDefinition.name}:${packageDefinition.version}`;
+  const prevPkg = upgradeFrom || `${name}:${version}`;
 
-  oldDeployData = await runtime.readDeploy(prevPkg, preset || 'main', runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
@@ -146,11 +164,16 @@ export async function build({
       pkgInfo = oldDeployData.meta;
     }
   } else {
-    console.log('No existing package found.');
+    if (upgradeFrom) {
+      throw new Error(`Package "${prevPkg}@${selectedPreset}" not found.`);
+    } else {
+      console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
+    }
   }
   console.log('');
 
-  let pkgName, pkgVersion;
+  let pkgName = packageDefinition?.name;
+  let pkgVersion = packageDefinition?.version;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
@@ -179,7 +202,7 @@ export async function build({
   }
   console.log('Name: ' + cyan(`${pkgName}`));
   console.log('Version: ' + cyan(`${pkgVersion}`));
-  console.log('Preset: ' + cyan(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
+  console.log('Preset: ' + cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
   if (upgradeFrom) {
     console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
   }
@@ -189,7 +212,13 @@ export async function build({
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
+  console.log(
+    bold(
+      `Building the chain (ID ${chainId}${
+        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
+      })...`
+    )
+  );
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
@@ -207,15 +236,23 @@ export async function build({
   }
 
   // attach control-c handler
-
-  if (persist) {
-    const handler = () => {
+  let ctrlcs = 0;
+  const handler = () => {
+    if (!runtime.isCancelled()) {
       console.log('interrupt received, finishing current build step and cancelling...');
       console.log('please be patient, or state loss may occur.');
       partialDeploy = true;
       runtime.cancel();
-    };
-
+    } else if (ctrlcs < 4) {
+      console.log('you really should not try to cancel the build unless you know what you are doing.');
+      console.log('continue pressing control-c to FORCE, and UNCLEANLY exit cannon');
+    } else {
+      console.log('exiting uncleanly. state loss may have occured. please DO NOT raise bug reports.');
+      process.exit(1234);
+    }
+    ctrlcs++;
+  };
+  if (persist) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -230,9 +267,15 @@ export async function build({
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
 
+  const chainDef = def.toJson();
+
+  chainDef.version = pkgVersion;
+
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
-      def: def.toJson(),
+      generator: `cannon cli ${pkg.version}`,
+      timestamp: Math.floor(Date.now() / 1000),
+      def: chainDef,
       state: newState,
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
@@ -241,15 +284,24 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));
+    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
 
+    const metaUrl = await runtime.putBlob(metadata);
+
+    // locally store cannon packages (version + latest)
     if (persist) {
       await resolver.publish(
-        [`${packageDefinition.name}:latest`, `${packageDefinition.name}:${packageDefinition.version}`],
-        `${runtime.chainId}-${preset}`,
+        [`${name}:${version}`, `${name}:latest`],
+        `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!
       );
+
+      // detach the process handler
+
+      process.off('SIGINT', handler);
+      process.off('SIGTERM', handler);
+      process.off('SIGQUIT', handler);
     }
 
     if (partialDeploy) {
@@ -277,7 +329,7 @@ export async function build({
     } else {
       console.log(
         greenBright(
-          `Successfully built package ${bold(`${packageDefinition.name}:${packageDefinition.version}`)} (${deployUrl})`
+          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl}`
         )
       );
     }

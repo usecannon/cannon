@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
@@ -7,10 +8,11 @@ import {
   ChainDefinition,
   ContractArtifact,
   getOutputs,
+  renderTrace,
 } from '@usecannon/builder';
 import { PackageSpecification } from '../types';
 import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from '../interact';
+import { interact } from './interact';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { getContractsRecursive } from '../util/contracts-recursive';
@@ -23,12 +25,13 @@ export interface RunOptions {
   node: CannonRpcNode;
   logs?: boolean;
   pkgInfo: any;
-  preset: string;
+  presetArg?: string;
   impersonate: string;
   mnemonic?: string;
   privateKey?: string;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
+  registryPriority: 'local' | 'onchain';
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
@@ -36,18 +39,21 @@ export interface RunOptions {
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
-  )} to interact with contracts via the command line.`
+  )} to interact with contracts via the command line.\nPress ${bold(
+    'v'
+  )} to toggle display verbosity of transaction traces as they run.`
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
+
   console.log(bold('Starting local node...\n'));
 
   // Start the rpc server
   const node = options.node;
-  const provider = await getProvider(node);
+  const provider = getProvider(node);
   const nodeLogging = await createLoggingInterface(node);
 
   if (options.fundAddresses && options.fundAddresses.length) {
@@ -56,8 +62,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  const cliSettings = resolveCliSettings();
-
+  const cliSettings = resolveCliSettings(options);
   const resolver = await createDefaultReadRegistry(cliSettings);
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
@@ -91,14 +96,28 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version } = pkg;
+    const { name, version, preset } = pkg;
+
+    const selectedPreset = preset || options.presetArg || 'main';
+
+    if (options.presetArg && preset) {
+      console.warn(
+        yellow(
+          bold(
+            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.presetArg}"`
+          )
+        )
+      );
+      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    }
+
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        preset: options.preset,
+        presetArg: selectedPreset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -106,11 +125,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, options.preset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${options.preset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
         );
       }
 
@@ -118,7 +137,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       if (!outputs) {
         throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${options.preset}. Did you mean to run instead?`
+          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
         );
       }
 
@@ -152,6 +171,49 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       node,
     };
   }
+
+  const mergedOutputs =
+    buildOutputs.length == 1
+      ? buildOutputs[0].outputs
+      : ({
+          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+        } as ChainArtifacts);
+
+  let traceLevel = 0;
+
+  async function debugTracing(blockNumber: number) {
+    if (traceLevel == 0) {
+      return;
+    }
+    const bwt = await provider.getBlockWithTransactions(blockNumber);
+
+    for (const txn of bwt.transactions) {
+      try {
+        const traces = await provider.send('trace_transaction', [txn.hash]);
+
+        let renderedTrace = renderTrace(mergedOutputs, traces);
+
+        if (traceLevel === 1) {
+          // only show lines containing `console.log`s, and prettify
+          renderedTrace = renderedTrace
+            .split('\n')
+            .filter((l) => l.includes('console.log('))
+            .map((l) => l.trim())
+            .join('\n');
+        }
+
+        if (renderedTrace) {
+          console.log(`trace: ${txn.hash}`);
+          console.log(renderedTrace);
+          console.log();
+        }
+      } catch (err) {
+        console.log('could not render trace for transaction:', err);
+      }
+    }
+  }
+
+  provider.on('block', debugTracing);
 
   console.log();
 
@@ -191,6 +253,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       console.log(INITIAL_INSTRUCTIONS);
       console.log(INSTRUCTIONS);
+    } else if (evt.name == 'v') {
+      // Toggle showAnvilLogs when the user presses "a"
+      if (traceLevel === 0) {
+        traceLevel = 1;
+        console.log(gray('Enabled display of console.log events from transactions...'));
+      } else if (traceLevel === 1) {
+        traceLevel = 2;
+        console.log(gray('Enabled display of full transaction logs...'));
+      } else {
+        traceLevel = 0;
+        console.log(gray('Disabled transaction tracing...'));
+      }
     } else if (evt.name === 'h') {
       if (nodeLogging.enabled()) return;
 

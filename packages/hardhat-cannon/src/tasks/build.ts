@@ -3,32 +3,53 @@ import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { ethers } from 'ethers';
 import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
+import { getProvider } from '@usecannon/cli/dist/src/rpc';
+import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { HttpNetworkConfig } from 'hardhat/types';
+import { yellow } from 'chalk';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 import { CANNON_NETWORK_NAME } from '../constants';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
-import { getProvider, RpcOptions } from '@usecannon/cli/dist/src/rpc';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { HttpNetworkConfig } from 'hardhat/types';
-
-import { yellow } from 'chalk';
 import { loadPackageJson } from '../internal/load-pkg-json';
+import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
+import * as fs from 'fs-extra';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
-  .addOptionalParam('preset', 'The preset label for storing the build with the given settings', 'main')
+  .addOptionalParam('preset', '(Optional) The preset label for storing the build with the given settings')
+  .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
+  .addOptionalParam(
+    'anvilOptions',
+    '(Optional) Custom anvil options json file to configure when running on the cannon network or a local forked node'
+  )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
   .addFlag('usePlugins', 'Load plugins globally installed using the cannon CLI')
   .addOptionalParam(
     'upgradeFrom',
-    'Wipe the deployment files, and use the deployment files from another cannon package as base'
+    '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
   )
-  .addOptionalParam('impersonate', 'When dry running, uses forked signers rather than actual signing keys')
+  .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
-    async ({ cannonfile, settings, upgradeFrom, preset, noCompile, wipe, usePlugins, dryRun, impersonate }, hre) => {
+    async (
+      {
+        cannonfile,
+        settings,
+        upgradeFrom,
+        preset,
+        noCompile,
+        wipe,
+        usePlugins,
+        registryPriority,
+        dryRun,
+        anvilOptions,
+        impersonate,
+      },
+      hre
+    ) => {
       if (!noCompile) {
         await hre.run(TASK_COMPILE);
         console.log('');
@@ -41,6 +62,16 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       const parsedSettings = parseSettings(settings);
+
+      let anvilOpts;
+      if (anvilOptions) {
+        if ((anvilOptions as string).endsWith('.json')) {
+          anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
+        } else {
+          anvilOpts = JSON.parse(anvilOptions);
+        }
+      }
+      anvilOpts = pickAnvilOptions(anvilOpts);
 
       const { name, version, def } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
@@ -60,14 +91,20 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       if (dryRun || hre.network.name === 'cannon') {
-        const opts: RpcOptions = { port: hre.config.networks.cannon.port };
+        const node = dryRun
+          ? await runRpc(
+              {
+                port: hre.config.networks.cannon.port,
+                chainId: (await hre.ethers.provider.getNetwork()).chainId,
+                accounts: anvilOpts.accounts || 10,
+                ...anvilOpts,
+              },
+              {
+                forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
+              }
+            )
+          : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
 
-        if (dryRun) {
-          opts.chainId = (await hre.ethers.provider.getNetwork()).chainId;
-          opts.forkProvider = new ethers.providers.JsonRpcProvider(providerUrl);
-        }
-
-        const node = await runRpc(opts);
         provider = getProvider(node);
       }
 
@@ -131,6 +168,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         preset,
         upgradeFrom,
         wipe,
+        registryPriority,
         persist: !dryRun && hre.network.name !== 'hardhat',
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
@@ -147,7 +185,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         );
       }
 
-      augmentProvider(hre, outputs);
+      await augmentProvider(hre, outputs);
       provider.artifacts = outputs;
 
       return { outputs, provider, signers };

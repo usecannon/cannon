@@ -9,15 +9,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: ${{secrets.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           cache: npm
-          node-version: '16.16.0'
+          node-version: '20.5.1'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
       - run: |
           npm ci
-          npm run build
-      - run: cd ./packages/builder && npm test
-      - run: cd ./packages/cli && npm test
-      - run: cd ./packages/registry && REPORT_GAS=1 npm test
+          npx lerna run build
+      - run: npx lerna run test 

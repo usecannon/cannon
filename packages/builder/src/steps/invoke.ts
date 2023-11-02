@@ -12,6 +12,7 @@ import {
   ChainBuilderContextWithHelpers,
   PackageState,
 } from '../types';
+import { computeTemplateAccesses } from '../access-recorder';
 import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
 
@@ -182,13 +183,17 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-export default {
+const invokeSpec = {
   label: 'invoke',
 
   validate: invokeSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
+
+    if (typeof cfg.target === 'string') {
+      cfg.target = [cfg.target as string];
+    }
 
     return {
       to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
@@ -200,6 +205,10 @@ export default {
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
+
+    if (typeof config.target === 'string') {
+      config.target = [config.target as string];
+    }
 
     if (config.target) {
       // [string, ...string[]] refers to a nonempty array
@@ -259,6 +268,84 @@ export default {
     }
 
     return config;
+  },
+
+  getInputs(config: Config) {
+    const accesses: string[] = [];
+
+    for (const target of config.target) {
+      if (!ethers.utils.isAddress(target)) {
+        if (target.includes('.')) {
+          accesses.push(`imports.${target.split('.')[0]}`);
+        } else {
+          accesses.push(`contracts.${target}`);
+        }
+      }
+    }
+
+    accesses.push(...computeTemplateAccesses(config.abi));
+    accesses.push(...computeTemplateAccesses(config.func));
+    accesses.push(...computeTemplateAccesses(config.from));
+    accesses.push(...computeTemplateAccesses(config.value));
+
+    if (config.args) {
+      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+    }
+
+    if (config.fromCall) {
+      accesses.push(...computeTemplateAccesses(config.fromCall.func));
+      _.forEach(config.fromCall.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+    }
+
+    if (config?.overrides) {
+      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+    }
+
+    for (const name in config.factory) {
+      const f = config.factory[name];
+
+      accesses.push(...computeTemplateAccesses(f.event));
+      accesses.push(...computeTemplateAccesses(f.artifact));
+      _.forEach(f.abiOf, (a) => accesses.push(...computeTemplateAccesses(a)));
+    }
+
+    for (const name in config.extra) {
+      const f = config.extra[name];
+      accesses.push(...computeTemplateAccesses(f.event));
+    }
+
+    return accesses;
+  },
+
+  getOutputs(config: Config, packageState: PackageState) {
+    const outputs = [`txns.${packageState.currentLabel.split('.')[1]}`];
+
+    // factories can output contracts, and extras can output extras
+    if (config.factory) {
+      for (const k in config.factory) {
+        if ((config.factory[k].expectCount || 1) > 1) {
+          for (let i = 0; i < config.factory[k].expectCount!; i++) {
+            outputs.push(`contracts.${k}_${i}`);
+          }
+        } else {
+          outputs.push(`contracts.${k}`);
+        }
+      }
+    }
+
+    if (config.extra) {
+      for (const k in config.extra) {
+        if ((config.extra[k].expectCount || 1) > 1) {
+          for (let i = 0; i < config.extra[k].expectCount!; i++) {
+            outputs.push(`extras.${k}_${i}`);
+          }
+        } else {
+          outputs.push(`extras.${k}`);
+        }
+      }
+    }
+
+    return outputs;
   },
 
   async exec(
@@ -356,6 +443,10 @@ ${getAllContractPaths(ctx).join('\n')}`);
           contractName: contractName,
           deployedOn: packageState.currentLabel,
         };
+
+        if (factoryInfo.highlight) {
+          contracts[k].highlight = true;
+        }
       }
     }
 
@@ -368,3 +459,5 @@ ${getAllContractPaths(ctx).join('\n')}`);
     };
   },
 };
+
+export default invokeSpec;

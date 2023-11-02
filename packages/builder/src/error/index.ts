@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
-import { ConsoleLogs } from './consoleLog';
 import { ChainArtifacts, ContractData } from '../types';
+import { renderTrace } from '../trace';
 
 /* eslint-disable no-case-declarations */
 
@@ -9,14 +9,12 @@ import { Logger } from 'ethers/lib/utils';
 
 const debug = Debug('cannon:builder:error');
 
-const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
-
 export async function handleTxnError(
   artifacts: ChainArtifacts,
   provider: ethers.providers.Provider,
   err: any
 ): Promise<any> {
-  if (err instanceof CannonTraceError || (err.toString() as string).includes('CannonTraceError')) {
+  if (err instanceof CannonTraceError || (err?.toString() as string).includes('CannonTraceError')) {
     // error already parsed
     debug('skipping trace of error because already processed', err.toString());
     throw err;
@@ -263,132 +261,4 @@ export function parseContractErrorReason(contract: ethers.Contract | null, data:
   }
 
   return data;
-}
-
-function parseFunctionData(
-  ctx: ChainArtifacts,
-  contractAddress: string,
-  input: string,
-  output: string
-): {
-  contractName: string;
-  parsedInput: string;
-  parsedOutput: string;
-  isReverted: boolean;
-} {
-  let parsedInput: string, parsedOutput: string;
-  let contractName = '';
-
-  let isReverted = false;
-
-  // input
-  if (contractAddress.toLowerCase() == CONSOLE_LOG_ADDRESS) {
-    // this is the "well known" console log address
-    contractName = 'console';
-    parsedInput =
-      'log' +
-      renderResult(
-        ethers.utils.defaultAbiCoder.decode(
-          ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs],
-          '0x' + input.slice(10)
-        )
-      );
-
-    // console logs have no output
-    parsedOutput = '';
-  } else {
-    const info =
-      findContract(ctx, ({ address, abi }) => {
-        if (address.toLowerCase() === contractAddress.toLowerCase()) {
-          try {
-            new ethers.Contract(address, abi).interface.parseTransaction({ data: input, value: 0 });
-            return true;
-          } catch {
-            return false;
-          }
-        }
-
-        return false;
-      }) || findContract(ctx, ({ address }) => address.toLowerCase() === contractAddress.toLowerCase());
-
-    if (info) {
-      contractName = info.name;
-
-      let decodedInput: any;
-      try {
-        decodedInput = info.contract.interface.parseTransaction({ data: input, value: 0 })!;
-        parsedInput = decodedInput.name + renderResult(decodedInput.args);
-
-        // its actually easier to start by trying to parse the output first
-        try {
-          const decodedOutput = info.contract.interface.decodeFunctionResult(decodedInput.functionFragment, output)!;
-          parsedOutput = renderResult(decodedOutput);
-        } catch (err) {
-          // if we found an address but the transaction cannot be parsed, it could be decodable error
-          try {
-            parsedOutput = parseContractErrorReason(info.contract, output);
-            isReverted = true;
-          } catch (err) {
-            parsedOutput = output;
-          }
-        }
-      } catch (err) {
-        // this shouldn't happen unless the ABI is incomplete or the contract is non-conformant
-        parsedInput = `<unknown function ${input.slice(0, 10)}>`;
-        parsedOutput = output;
-      }
-    } else {
-      parsedInput = input;
-      parsedOutput = output;
-    }
-  }
-
-  return {
-    contractName,
-    parsedInput,
-    parsedOutput,
-    isReverted,
-  };
-}
-
-function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
-  let str;
-
-  switch (trace.type) {
-    case 'call':
-      const callTraceAction = trace.action as CallTraceAction;
-
-      const { contractName, parsedInput, parsedOutput } = parseFunctionData(
-        ctx,
-        callTraceAction.to,
-        callTraceAction.input,
-        trace.result.output
-      );
-
-      str =
-        callTraceAction.callType.toUpperCase() +
-        ' ' +
-        (contractName || callTraceAction.to) +
-        '.' +
-        (parsedInput || callTraceAction.input) +
-        (parsedOutput ? ' => ' + parsedOutput : '') +
-        `(${parseInt(callTraceAction.gas)})`;
-
-      break;
-    case 'create':
-      //const createTraceAction = trace.action as CreateTraceAction;
-
-      str = 'CREATE'; // TODO: find matching bytecode
-
-      break;
-
-    default:
-      str = `UNKOWN ${trace.type}`;
-  }
-
-  return ' '.repeat(2 * (trace.traceAddress.length + 1)) + str;
-}
-
-export function renderTrace(ctx: ChainArtifacts, traces: TraceEntry[]): string {
-  return traces.map((t) => renderTraceEntry(ctx, t)).join('\n');
 }

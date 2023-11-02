@@ -1,5 +1,8 @@
 {
+<<<<<<< HEAD
   "bootstrap-sha": "ef97245a7527d4825b6e79f856e41a9bdd86092d",
+=======
+>>>>>>> a86e89cf4e2cbcf3142ff3585b5b7c8cfe2d0f2d
   "include-component-in-tag": false,
   "plugins": [
     "node-workspace"

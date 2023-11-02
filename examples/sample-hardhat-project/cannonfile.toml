@@ -1,0 +1,20 @@
+name = "greeter"
+version = "<%= package.version %>"
+description = "Simple project to verify the functionality of Cannon"
+keywords = ["sample", "greeter"]
+
+[setting.salt]
+defaultValue = "greeter"
+
+[setting.msg]
+defaultValue = "Hello world!"
+description="The greeting passed to the constructor"
+
+[contract.library]
+artifact = "Library"
+
+[contract.Greeter]
+artifact = "Greeter"
+args = ["<%= settings.msg %>"]
+libraries.Library = "<%= contracts.library.address %>"
+salt = "<%= settings.salt %>"

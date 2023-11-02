@@ -1,4 +1,4 @@
-import { Headers, readIpfs, writeIpfs } from './ipfs';
+import { Headers, listPinsIpfs, readIpfs, writeIpfs, deleteIpfs } from './ipfs';
 
 import Debug from 'debug';
 
@@ -8,6 +8,8 @@ export interface CannonLoader {
   getLabel(): string;
   read(url: string): Promise<any | null>;
   put(misc: any): Promise<string | null>;
+  list?(): Promise<string[]>;
+  remove?(url: string): Promise<void>;
 }
 
 export class IPFSLoader implements CannonLoader {
@@ -37,6 +39,20 @@ export class IPFSLoader implements CannonLoader {
     debug('ipfs read', url);
 
     return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
+  }
+
+  async remove(url: string) {
+    debug('ipfs remove', url);
+
+    const hash = url.replace(IPFSLoader.PREFIX, '');
+
+    await deleteIpfs(this.ipfsUrl, hash, this.customHeaders);
+  }
+
+  async list() {
+    debug('ipfs list');
+
+    return listPinsIpfs(this.ipfsUrl, this.customHeaders);
   }
 }
 

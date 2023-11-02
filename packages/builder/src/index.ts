@@ -1,9 +1,12 @@
-export { createInitialContext, build, getOutputs } from './builder';
-export { registerAction, CannonAction } from './actions';
+export { createInitialContext, build, getArtifacts, getOutputs } from './builder';
+export { computeTemplateAccesses } from './access-recorder';
+export { registerAction } from './actions';
+export type { CannonAction } from './actions';
 export type { RawChainDefinition } from './actions';
 export { ChainDefinition } from './definition';
 export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
-export { CannonLoader, IPFSLoader, InMemoryLoader } from './loader';
+export type { CannonLoader } from './loader';
+export { IPFSLoader, InMemoryLoader } from './loader';
 export { decodeTxError } from './error';
 
 export * from './util';
@@ -15,6 +18,10 @@ export { handleTxnError } from './error';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
-export { copyPackage } from './package';
+export { publishPackage, PackageReference } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
+
+export * from './access-recorder';
+export { renderTrace, findContract } from './trace';
+export type { TraceEntry } from './trace';

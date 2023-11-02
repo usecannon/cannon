@@ -146,9 +146,7 @@ ${printChainDefinitionProblems(problems)}`);
           debug('comparing states', state[n] ? state[n].hash : null, curHash);
           if (!state[n] || (curHash && state[n].hash !== curHash)) {
             debug('run isolated', n);
-            console.log('HERE');
             const newArtifacts = await runStep(runtime, { name, version, currentLabel: n }, def.getConfig(n, ctx), ctx);
-            console.log('HERE2');
 
             // some steps may be self introspective, causing a step to be giving the wrong hash initially. to counteract this, we recompute the hash
             addOutputsToContext(ctx, newArtifacts);
@@ -215,6 +213,10 @@ export async function buildLayer(
   // check all dependencies. If the dependency is not done, run the dep layer first
   let isCompleteLayer = true;
   for (const dep of layer.depends) {
+    // this doesn't catch all cases of cycles but as a sanity check it works surprisingly well
+    if (dep === cur) {
+      throw new Error(`layer depends on itself: ${cur}`);
+    }
     await buildLayer(runtime, def, baseCtx, state, dep, tainted, built);
 
     // if a prior layer had to be rebuilt, we must rebuild the current layer as well
@@ -350,11 +352,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   return result;
 }
 
-export async function getOutputs(
-  runtime: ChainBuilderRuntime,
-  def: ChainDefinition,
-  state: DeploymentState
-): Promise<ChainArtifacts | null> {
+export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
   const artifacts: ChainArtifacts = {};
 
   for (const step of def.topologicalActions) {
@@ -363,6 +361,15 @@ export async function getOutputs(
     }
   }
 
+  return artifacts;
+}
+
+export async function getOutputs(
+  runtime: ChainBuilderRuntime,
+  def: ChainDefinition,
+  state: DeploymentState
+): Promise<ChainArtifacts | null> {
+  const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers
     const layers = _.uniq(Object.values(def.getStateLayers()));

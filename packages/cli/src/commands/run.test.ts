@@ -19,7 +19,7 @@ const mockRpcNode: CannonRpcNode = Object.assign(new EventEmitter() as ChildProc
 
 jest.mock('@usecannon/builder');
 jest.mock('../rpc');
-jest.mock('../interact');
+jest.mock('./interact');
 jest.mock('../util/on-keypress');
 jest.mock('./build', () => ({
   getOutputs: jest.fn().mockResolvedValue({}),
@@ -51,6 +51,7 @@ jest.mock('../rpc', () => ({
     getNetwork: jest.fn().mockImplementation(() => {
       return Promise.resolve(chainId);
     }),
+    on: jest.fn(),
   }),
 }));
 
@@ -70,8 +71,9 @@ describe('run function', () => {
     options = {
       node: mockRpcNode,
       pkgInfo: {},
-      preset: 'preset1',
+      presetArg: 'preset1',
       impersonate: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+      registryPriority: 'local',
       mnemonic: 'mnemonic',
       privateKey: 'privateKey',
       upgradeFrom: 'upgradeFrom',

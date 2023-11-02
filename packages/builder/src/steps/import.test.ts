@@ -17,14 +17,14 @@ describe('steps/import.ts', () => {
   describe('configInject()', () => {
     it('injects all fields', async () => {
       const result = action.configInject(fakeCtx, {
-        source: '<%= settings.a %>',
+        source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         chainId: 1234,
         preset: '<%= settings.c %>',
         depends: [],
       });
 
       expect(result).toStrictEqual({
-        source: 'a',
+        source: 'abc:latest',
         chainId: 1234,
         preset: 'c',
         depends: [],
@@ -50,7 +50,7 @@ describe('steps/import.ts', () => {
         action.exec(
           fakeRuntime,
           fakeCtx,
-          { source: 'undefinedDeployment:1.0.0' },
+          { source: 'undefined-deployment:1.0.0' },
           { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
         )
       ).rejects.toThrowError('deployment not found');
@@ -58,8 +58,11 @@ describe('steps/import.ts', () => {
 
     it('works properly', async () => {
       await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:latest'], '1234-main', 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
+        generator: 'cannon test',
+        timestamp: 1234,
         state: {
           'contract.Woot': {
             version: BUILD_VERSION,
@@ -98,6 +101,81 @@ describe('steps/import.ts', () => {
       );
 
       expect(result).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const withPreset = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello:1.0.0@main' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(withPreset).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const withoutVersion = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello@main' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(withoutVersion).toStrictEqual({
+        imports: {
+          something: {
+            url: 'https://something.com',
+            contracts: {
+              Woot: {
+                address: '0xfoobar',
+                abi: [],
+                deployTxnHash: '0x',
+                contractName: 'Woot',
+                sourceName: 'Woot.sol',
+                deployedOn: 'contract.Woot',
+              },
+            },
+          },
+        },
+      });
+
+      const onlyName = await action.exec(
+        fakeRuntime,
+        fakeCtx,
+        { source: 'hello' },
+        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+      );
+
+      expect(onlyName).toStrictEqual({
         imports: {
           something: {
             url: 'https://something.com',

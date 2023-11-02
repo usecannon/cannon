@@ -2,6 +2,7 @@ import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
+import os from 'os';
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
@@ -30,13 +31,23 @@ export class LocalRegistry extends CannonRegistry {
     return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
   }
 
+  getMetaTagReferenceStorage(packageRef: string, variant: string): string {
+    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt.meta`);
+  }
+
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
     const baseResolved = await super.getUrl(packageRef, variant);
     if (baseResolved) {
       return baseResolved;
     }
 
-    debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
+    debug(
+      'load local package link',
+      packageRef,
+      variant,
+      'at file',
+      this.getTagReferenceStorage(packageRef, variant).replace(os.homedir(), '')
+    );
     try {
       return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
     } catch (err) {
@@ -52,9 +63,9 @@ export class LocalRegistry extends CannonRegistry {
         packageName,
         variant,
         'at file',
-        this.getTagReferenceStorage(packageName, variant) + '.meta'
+        this.getMetaTagReferenceStorage(packageName, variant)
       );
-      return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+      return (await fs.readFile(this.getMetaTagReferenceStorage(packageName, variant))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
@@ -65,9 +76,10 @@ export class LocalRegistry extends CannonRegistry {
     for (const packageName of packagesNames) {
       debug('package local link', packageName);
       const file = this.getTagReferenceStorage(packageName, variant);
+      const metaFile = this.getMetaTagReferenceStorage(packageName, variant);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
-      await fs.writeFile(file + '.meta', metaUrl);
+      await fs.writeFile(metaFile, metaUrl);
     }
 
     return [];
@@ -83,12 +95,38 @@ export class LocalRegistry extends CannonRegistry {
       .filter((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
 
-        return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+        debug(`found deploy tags for ${name}, ${version}`);
+
+        if (!tagVariant) {
+          return false;
+        }
+
+        let pkgName;
+        if (!version) {
+          pkgName = `${name}`;
+        } else {
+          pkgName = `${name}:${version}`;
+        }
+
+        return !t.endsWith('.meta') && pkgName!.match(packageName) && tagVariant!.match(variant);
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
         return { name: `${name}:${version}`, variant: tagVariant };
       });
+  }
+
+  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+    if (!filterPackage) {
+      return new Set();
+    }
+    const [name, version] = filterPackage.split(':');
+
+    const urls = (await fs.readdir(this.packagesDir))
+      .filter((f) => f.match(new RegExp(`${name || '.*'}_${version || '.*'}_${filterVariant || '.*'}`)))
+      .map((f) => fs.readFileSync(path.join(this.packagesDir, f)).toString('utf8'));
+
+    return new Set(urls);
   }
 }
 
@@ -109,7 +147,7 @@ async function checkLocalRegistryOverride({
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     console.log(
       yellowBright(
-        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry local'`
+        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
     );
   }

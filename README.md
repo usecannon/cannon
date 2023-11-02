@@ -1,6 +1,6 @@
 # Cannon
 
-This is the monorepo for Cannon. If you’re just interested in using the project, [visit the website](https://usecannon.com).
+This is the monorepo for Cannon. If you're just interested in using the project, [visit the website](https://usecannon.com).
 
 **⚠️ Cannon is under active development. While the interface and functionality are generally stable, use the tool with caution when conducting high-risk deployments.**
 
@@ -12,8 +12,12 @@ For more information, please see documentation in the modules listed below:
 - [`registry`](packages/registry): The smart contract for the package registry.
 - [`registry-subgraph`](packages/registry-subgraph): Indexes the registry contract onto The Graph for display on the website.
 - [`website`](packages/website): The website, hosted at https://usecannon.com
-- [`sample-hardhat-project`](packages/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
-- [`sample-foundry-project`](packages/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
+
+Usage Examples:
+
+- [`router-architecture`](examples/router-architecture): Project demonstrating how to setup an upgradable [Router Architecture](https://www.npmjs.com/package/@synthetixio/router).
+- [`sample-hardhat-project`](examples/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
+- [`sample-foundry-project`](examples/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
 
 ## Development
 
@@ -40,7 +44,7 @@ cd ./packages/cli && npm start -- <package:version>
 Test changes to the Hardhat plug-in in the sample project:
 
 ```
-cd ./packages/sample-hardhat-project && npx hardhat cannon:build
+cd ./examples/sample-hardhat-project && npx hardhat cannon:build
 ```
 
 Preview updates to the website
@@ -49,14 +53,18 @@ Preview updates to the website
 cd ./packages/website && npm run dev
 ```
 
-### Contributing Guidelines
+### Contribution Guidelines
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ### Publishing
 
-Currently our [release please workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
+Currently our [release workflow](.github/workflows/release-please.yml) handles publishing releases to npm through lerna.
 It only publishes releases if any SemVer version changes have been added to the commit history merged into main.
+
+If a situation where a commit was merged without proper convention arises, we can always bump and publish manually using lerna's [version and publish](https://lerna.js.org/docs/features/version-and-publish) workflow:
+
+`npx lerna publish --no-private` will bump package versions and find npm packages that need to be published in the repo.
 
 ## License
 

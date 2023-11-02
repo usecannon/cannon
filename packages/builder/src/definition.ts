@@ -16,7 +16,6 @@ export type ChainDefinitionProblems = {
   invalidSchema: any;
   missing: { action: string; dependency: string }[];
   cycles: string[][];
-  extraneous: { node: string; extraneous: string; inDep: string }[];
 };
 
 export type StateLayers = {
@@ -40,7 +39,11 @@ export class ChainDefinition {
   private cachedLayers: StateLayers | null = null;
   readonly cachedActionDepths = new Map<string, number>();
 
+  readonly dependencyFor = new Map<string, string>();
+  readonly resolvedDependencies = new Map<string, string[]>();
+
   constructor(def: RawChainDefinition) {
+    debug('begin chain def init');
     this.raw = def;
 
     const actions = [];
@@ -58,15 +61,52 @@ export class ChainDefinition {
           throw new Error(`Duplicated step name found "${name}"`);
         }
 
+        const fullActionName = `${action}.${name}`;
         actionNames.push(name);
-        actions.push(`${action}.${name}`);
+        actions.push(fullActionName);
+
+        if (ActionKinds[action] && ActionKinds[action].getOutputs) {
+          for (const output of ActionKinds[action].getOutputs!(_.get(def, fullActionName), {
+            // TODO: what to do about name and version? do they even matter?
+            name: '',
+            version: '',
+            currentLabel: fullActionName,
+          })) {
+            debug(`deps: ${fullActionName} provides ${output}`);
+            if (!this.dependencyFor.has(output)) {
+              this.dependencyFor.set(output, fullActionName);
+            } else {
+              throw new Error(`output clash: both ${this.dependencyFor.get(output)} and ${fullActionName} output ${output}`);
+            }
+          }
+        }
       }
     }
 
     // do some preindexing
     this.allActionNames = _.sortBy(actions, _.identity);
 
+    debug('start check cycles');
+
+    const cycles = this.checkCycles();
+
+    if (cycles) {
+      throw new Error(`the following dependency cycle was found in your chain definition:\n${cycles.join('\n')}`);
+    }
+
+    debug('no cycles found');
+
+    // get all dependencies, and filter out the extraneous
+    for (const action of this.allActionNames) {
+      debug(`compute dependencies for ${action}`);
+      this.resolvedDependencies.set(action, this.computeDependencies(action));
+    }
+
+    debug('finished resolving dependencies');
+
     this.roots = new Set(this.allActionNames.filter((n) => !this.getDependencies(n).length));
+
+    debug(`computed roots: ${Array.from(this.roots.values()).join(', ')}`);
 
     this.leaves = new Set(
       _.difference(
@@ -78,6 +118,34 @@ export class ChainDefinition {
           .value()
       )
     );
+
+    debug('start check all');
+    this.checkAll();
+    debug('end check all');
+
+    const extraneousDeps = this.checkExtraneousDependencies();
+
+    debug('found extraneous deps', extraneousDeps);
+
+    for (const extDep of extraneousDeps) {
+      const deps = this.resolvedDependencies.get(extDep.node)!;
+      const depIdx = deps.indexOf(extDep.extraneous);
+      if (depIdx !== -1) {
+        deps.splice(depIdx, 1);
+      }
+    }
+
+    if (this.checkExtraneousDependencies().length > 0) {
+      throw new Error(`extraneous dependencies remain after prune: ${this.checkExtraneousDependencies()}`);
+    }
+
+    debug('final depends dump');
+
+    for (const action of this.topologicalActions) {
+      debug(`${action} has depends`, this.resolvedDependencies.get(action));
+    }
+
+    debug('finished chain def init');
   }
 
   getName(ctx: ChainBuilderContext) {
@@ -188,7 +256,7 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import.validate).map((d) => ({
+      Object.values(this.raw.import).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || 'main')(ctx),
@@ -201,8 +269,32 @@ export class ChainDefinition {
    * @param node action to get dependencies for
    * @returns direct dependencies for the specified node
    */
+  computeDependencies(node: string) {
+    if (!_.get(this.raw, node)) {
+      throw new Error(`invalid dependency: ${node}`);
+    }
+
+    const deps = (_.get(this.raw, node)!.depends || []) as string[];
+
+    const n = node.split('.')[0];
+
+    if (ActionKinds[n].getInputs) {
+      for (const input of ActionKinds[n].getInputs!(_.get(this.raw, node), { name: '', version: '', currentLabel: node })) {
+        debug(`deps: ${node} consumes ${input}`);
+        if (this.dependencyFor.has(input)) {
+          deps.push(this.dependencyFor.get(input)!);
+        } else if (!input.startsWith('settings.')) {
+          console.log(`WARNING: dependency ${input} not found for step ${node}`);
+        }
+      }
+    }
+
+    debug(`resolved dependencies for ${node}: ${deps}`);
+    return _.uniq(deps);
+  }
+
   getDependencies(node: string) {
-    return (_.get(this.raw, node)!.depends || []) as string[];
+    return this.resolvedDependencies.get(node)!;
   }
 
   /**
@@ -241,9 +333,8 @@ export class ChainDefinition {
 
     const missing = this.checkMissing();
     const cycle = missing.length ? [] : this.checkCycles();
-    const extraneous = cycle ? [] : this.checkExtraneousDependencies();
 
-    if (!missing.length && !cycle && !extraneous.length) {
+    if (!missing.length && !cycle) {
       return null;
     }
 
@@ -251,7 +342,6 @@ export class ChainDefinition {
       invalidSchema,
       missing,
       cycles: cycle ? [cycle] : [],
-      extraneous,
     };
   }
 
@@ -295,10 +385,10 @@ export class ChainDefinition {
 
       currentPath.add(n);
 
-      const cycle = this.checkCycles(this.getDependencies(n), seenNodes, currentPath);
+      const cycle = this.checkCycles(this.computeDependencies(n), seenNodes, currentPath);
 
       if (cycle) {
-        if (this.getDependencies(cycle[cycle.length - 1]).indexOf(cycle[0]) === -1) {
+        if (this.computeDependencies(cycle[cycle.length - 1]).indexOf(cycle[0]) === -1) {
           cycle.unshift(n);
         }
 
@@ -344,12 +434,11 @@ export class ChainDefinition {
     // extraneous dependency is defined as a direct dependency
     // on this node which is also a deeper dependency of another
     // dependency of this node
-    outer: for (const dep of deps) {
+    for (const dep of deps) {
       for (const d of deps) {
         const [childDeps] = this.getDependencyTree(dep);
         if (childDeps.includes(d)) {
           extraneous.push({ node, extraneous: d, inDep: dep });
-          break outer;
         }
       }
     }
@@ -405,6 +494,7 @@ export class ChainDefinition {
       let attachingLayer: string = n;
 
       let deps = this.getDependencies(n);
+      debug('layer dependencies before', deps);
 
       // first. filter any deps which are extraneous. This is a dependency which is a subdepenendency of an assigned layer for a dependency.
       // @note this is the slowest part of cannon atm. Improvements here would be most important.
@@ -415,23 +505,34 @@ export class ChainDefinition {
         }
       }
 
+      deps = _.sortBy(deps, (d) => -this.cachedActionDepths.get(d)!);
+      debug('layer dependencies after', deps);
+
       for (const dep of deps) {
         // layer is guarenteed to exist here because topological sort
         const depLayer = layerOfActions.get(dep)!;
-        const dependingLayer = layerDependingOn.get(depLayer);
+        let dependingLayer = layerDependingOn.get(depLayer);
 
         if (dependingLayer && dependingLayer !== attachingLayer) {
+          while (layerDependingOn.has(dependingLayer!)) {
+            debug(`stepping up dep ${dependingLayer} because its deep already`);
+            dependingLayer = layerDependingOn.get(dependingLayer!);
+          }
+          if (attachingLayer == dependingLayer) {
+            // dependency is already handled
+            continue;
+          }
           // "merge" this entire layer into the other one
           debug(`merge from ${attachingLayer} into layer`, dependingLayer);
-          layers[dependingLayer].actions.push(...layers[attachingLayer].actions);
-          layers[dependingLayer].depends = _.uniq([...layers[dependingLayer].depends, ...layers[attachingLayer].depends]);
+          layers[dependingLayer!].actions.push(...layers[attachingLayer].actions);
+          layers[dependingLayer!].depends = _.uniq([...layers[dependingLayer!].depends, ...layers[attachingLayer].depends]);
 
           // ensure the other nodes are now pointing to this structure
           for (const a of layers[attachingLayer].actions) {
-            layers[a] = layers[dependingLayer];
+            layers[a] = layers[dependingLayer!];
           }
 
-          attachingLayer = dependingLayer;
+          attachingLayer = dependingLayer!;
         } else if (layers[attachingLayer].depends.indexOf(depLayer) === -1) {
           // "extend" this layer to encapsulate this
           debug(`extend the layer ${attachingLayer} with dep`, depLayer);

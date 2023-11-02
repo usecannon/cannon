@@ -12,7 +12,7 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
   )
   .addOptionalVariadicPositionalParam('options', 'Additional options for your alteration command')
   .addOptionalParam('chainId', 'Chain ID of the variant to inspect')
-  .addOptionalParam('preset', 'Preset of the variant to inspect', 'main')
+  .addOptionalParam('preset', 'Preset of the variant to inspect')
   .setAction(async ({ packageName, chainId, preset, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],

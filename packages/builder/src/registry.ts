@@ -1,10 +1,12 @@
-import { BigNumber, ethers, Overrides } from 'ethers';
+import { BigNumber, ethers, PayableOverrides } from 'ethers';
 import Debug from 'debug';
 import EventEmitter from 'promise-events';
 
 import CannonRegistryAbi from './abis/CannonRegistry';
 
 import _ from 'lodash';
+
+import { bold, blueBright, yellow } from 'chalk';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -37,6 +39,12 @@ export abstract class CannonRegistry {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getMetaUrl(_packageName: string, _variant: string): Promise<string | null> {
     return null;
+  }
+
+  // used to clean up unused resources on a loader
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
+    return new Set();
   }
 
   abstract getLabel(): string;
@@ -85,6 +93,11 @@ export class InMemoryRegistry extends CannonRegistry {
 
   async getMetaUrl(packageRef: string, variant: string): Promise<string | null> {
     return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getAllUrls(_filterPackage?: string, _filterVariant?: string): Promise<Set<string>> {
+    return new Set();
   }
 }
 
@@ -147,6 +160,13 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return null;
   }
 
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
+    const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackage, filterVariant)));
+
+    // apparently converting back to an array is the most efficient way to merge sets
+    return new Set(r.flatMap((s) => Array.from(s)));
+  }
+
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
     // try to publish to any of the registries
@@ -180,7 +200,7 @@ export class OnChainRegistry extends CannonRegistry {
   provider?: ethers.providers.Provider | null;
   signer?: ethers.Signer | null;
   contract: ethers.Contract;
-  overrides: ethers.Overrides;
+  overrides: ethers.PayableOverrides;
 
   constructor({
     signerOrProvider,
@@ -189,7 +209,7 @@ export class OnChainRegistry extends CannonRegistry {
   }: {
     address: string;
     signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
-    overrides?: Overrides;
+    overrides?: PayableOverrides;
   }) {
     super();
 
@@ -247,16 +267,27 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
+  // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
-    console.log('publishing:', packagesNames);
     const datas: string[] = [];
+
+    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const registerPackages of _.values(
       _.groupBy(
         packagesNames.map((n) => n.split(':')),
         (p: string[]) => p[0]
       )
     )) {
+      console.log(`Package: ${registerPackages[0][0]}`);
+      console.log(
+        `Tags: [${registerPackages.map((pkg) => {
+          return `${pkg[1]}`;
+        })}]`
+      );
+      console.log(`Package URL: ${url}`);
+      !metaUrl ? null : console.log(`Package Metadata URL: ${metaUrl}`);
+
       const tx = this.generatePublishTransactionData(
         registerPackages[0][0],
         registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
@@ -273,16 +304,29 @@ export class OnChainRegistry extends CannonRegistry {
   async publishMany(
     toPublish: { packagesNames: string[]; variant: string; url: string; metaUrl: string }[]
   ): Promise<string[]> {
+    debug('Checking signer');
     await this.checkSigner();
+    debug('signer', this.signer);
     const datas: string[] = [];
+    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
-      console.log('publishing:', pub.packagesNames);
       for (const registerPackages of _.values(
         _.groupBy(
           pub.packagesNames.map((n) => n.split(':')),
           (p: string[]) => p[0]
         )
       )) {
+        console.log(`Package: ${pub.packagesNames[0]}`);
+        console.log(
+          `Tags: [${registerPackages.map((v, i) => {
+            return `${registerPackages[i][1]}`;
+          })}]`
+        );
+        console.log(`Package URL: ${pub.url}`);
+        pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
+
+        console.log('\n-----');
+
         const tx = this.generatePublishTransactionData(
           registerPackages[0][0],
           registerPackages.map((p) => ethers.utils.formatBytes32String(p[1])),
@@ -330,9 +374,30 @@ export class OnChainRegistry extends CannonRegistry {
     return url === '' ? null : url;
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: Overrides): Promise<void> {
+  async getAllUrls(filterPackage?: string, filterVariant?: string): Promise<Set<string>> {
+    if (!filterPackage) {
+      // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
+      // in the future we might have a way to give the urls to search for and then limit
+      return new Set();
+    }
+
+    const [name, version] = filterPackage.split(':');
+
+    const filter = this.contract.filters.PackagePublish(
+      name ? ethers.utils.formatBytes32String(name) : null,
+      version ? ethers.utils.formatBytes32String(version) : null,
+      filterVariant ? ethers.utils.formatBytes32String(filterVariant) : null
+    );
+
+    const events = await this.contract.queryFilter(filter, 0, 'latest');
+
+    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
+  }
+
+  private async logMultiCallEstimatedGas(datas: any, overrides: PayableOverrides): Promise<void> {
     try {
-      const estimatedGas = await this.contract.estimateGas.multicall(datas, overrides);
+      console.log(bold(blueBright('\nCalculating Transaction cost...')));
+      const estimatedGas = await this.contract.connect(this.signer!).estimateGas.multicall(datas, overrides);
       console.log(`\nEstimated gas: ${estimatedGas}`);
       const gasPrice =
         (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
@@ -341,10 +406,19 @@ export class OnChainRegistry extends CannonRegistry {
       // Convert the transaction fee from wei to ether
       const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
 
-      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n`);
+      console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
+
+      if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
+        console.log(
+          bold(
+            yellow(
+              `Publishing address "${await this.signer?.getAddress()}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+            )
+          )
+        );
+      }
     } catch (e: any) {
-      // We dont want to throw an error if the estimate gas fails
-      console.log('\n Error in calculating estimated transaction fee for publishing packages: ', e?.message);
+      console.log(yellow('\n Error in calculating estimated transaction fee for publishing packages: '), e);
     }
   }
 }

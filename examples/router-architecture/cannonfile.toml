@@ -1,0 +1,44 @@
+name = "examples-router-architecture"
+description = "Cannon Router step example usage"
+version = "0.0.1"
+
+# Configurable Proxy admin, this will be the account that will be able to upgrade
+# the proxy's implementation on the future
+[setting.admin]
+defaultValue = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # Test Account 0
+
+# Counter and Greeeter are the example modules that are going to be accessible
+# behind our Proxy + Router architecture
+[contract.Counter]
+artifact = "Counter"
+
+[contract.Greeter]
+artifact = "Greeter"
+
+# Generate a single Router contract merging all the desired implementations
+[router.Router]
+contracts = [
+  "Counter",
+  "Greeter",
+]
+
+# Deploy a new Proxy using as implementation our just craeted Router
+[provision.proxy]
+source = "transparent-upgradable-proxy:4.9.3"
+options.admin = "<%= settings.admin %>"
+options.implementation = "<%= contracts.Router.address %>"
+options.abi = "<%= JSON.stringify(contracts.Router.abi) %>"
+
+# Make example contracts calls, through the Proxy
+
+# Call Counter.setCount
+[invoke.setCount]
+target = ["proxy.Proxy"]
+func = "setCount"
+args = [0]
+
+# Call Greeter.setGreeting
+[invoke.setGreeting]
+target = ["proxy.Proxy"]
+func = "setGreeting"
+args = ["hello world!"]

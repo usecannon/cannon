@@ -1,4 +1,4 @@
-import { EIP1193Provider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
+import { EthereumProvider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
 
 //import { HttpProvider } from 'hardhat/internal/core/providers/http';
 import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
@@ -14,7 +14,7 @@ import { createProviderProxy } from '@nomiclabs/hardhat-ethers/internal/provider
 class CannonWrapperProvider extends ProviderWrapper {
   artifacts: ChainArtifacts;
 
-  constructor(provider: EIP1193Provider, artifacts: ChainArtifacts) {
+  constructor(provider: EthereumProvider, artifacts: ChainArtifacts) {
     super(provider);
     this.artifacts = artifacts;
   }
@@ -29,17 +29,11 @@ class CannonWrapperProvider extends ProviderWrapper {
   }
 }
 
-export function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
+export async function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
   if (hre.network.name === 'cannon') {
-    const baseProvider = createProvider(
-      hre.network.name,
-      {
-        ...hre.network.config,
-        url: `http://127.0.0.1:${hre.config.networks.cannon.port}`,
-      },
-      hre.config.paths,
-      hre.artifacts
-    );
+    hre.config.networks.cannon.url = `http://127.0.0.1:${hre.config.networks.cannon.port}`;
+
+    const baseProvider = await createProvider(hre.config, hre.network.name, hre.artifacts);
 
     const cannonProvider = new CannonWrapperProvider(baseProvider, artifacts);
 

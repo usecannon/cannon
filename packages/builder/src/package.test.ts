@@ -1,13 +1,43 @@
 import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
-import { copyPackage } from './package';
+import { PackageReference, publishPackage } from './package';
 import { DeploymentInfo } from './types';
 import { CannonStorage } from '.';
 
 jest.mock('./loader');
 
 describe('package.ts', () => {
-  describe('copyPackage()', () => {
+  describe('PackageReference', () => {
+    test.each([
+      ['package:2.2.2@main', ['package', '2.2.2', 'main', 'package:2.2.2']],
+      ['package', ['package', 'latest', undefined, 'package:latest']],
+      ['package001', ['package001', 'latest', undefined, 'package001:latest']],
+      ['001package', ['001package', 'latest', undefined, '001package:latest']],
+      ['package-hyphen', ['package-hyphen', 'latest', undefined, 'package-hyphen:latest']],
+      [
+        'super-long-package-valid-nameee',
+        ['super-long-package-valid-nameee', 'latest', undefined, 'super-long-package-valid-nameee:latest'],
+      ],
+    ])('correctly parses "%s"', (packageRef, [name, version, preset, basePackageRef]) => {
+      const ref = new PackageReference(packageRef);
+
+      expect(ref).toHaveProperty('name', name);
+      expect(ref).toHaveProperty('version', version);
+      expect(ref).toHaveProperty('preset', preset);
+      expect(ref).toHaveProperty('basePackageRef', basePackageRef);
+    });
+
+    test.each([['a'], ['aa'], ['-aa'], ['some_package'], ['super-long-package-invalid-namee']])(
+      'throws an error with "%s"',
+      (packageRef) => {
+        expect(() => {
+          new PackageReference(packageRef);
+        }).toThrow();
+      }
+    );
+  });
+
+  describe('publishPackage()', () => {
     const fromRegistry = new InMemoryRegistry();
     const fromLoader = new IPFSLoader('hello');
     const fromStorage = new CannonStorage(fromRegistry, { https: fromLoader }, 'https');
@@ -17,7 +47,13 @@ describe('package.ts', () => {
 
     const testPkg = 'package:1.2.3';
     const testPkgData: DeploymentInfo = {
-      def: { name: 'package', version: '1.2.3', provision: { dummyStep: { tags: ['tag3', 'tag4'] } } } as any,
+      generator: 'cannon test',
+      timestamp: 1234,
+      def: {
+        name: 'package',
+        version: '1.2.3',
+        provision: { dummyStep: { source: 'some-source:1.2.3', tags: ['tag3', 'tag4'] } },
+      } as any,
       state: {
         'provision.dummyStep': {
           hash: '',
@@ -34,6 +70,8 @@ describe('package.ts', () => {
     };
     const nestedPkg = 'nested:2.34.5';
     const nestedPkgData: DeploymentInfo = {
+      generator: 'cannon test',
+      timestamp: 1234,
       def: { name: 'nested', version: '2.34.5' },
       state: {},
       status: 'complete',
@@ -85,8 +123,8 @@ describe('package.ts', () => {
 
     it('fails when deployment info is not found', async () => {
       await expect(() =>
-        copyPackage({
-          packageRef: 'fakePkg:1.2.3',
+        publishPackage({
+          packageRef: 'fake-pkg:1.2.3',
           variant: '1-main',
           tags: [],
           fromStorage,
@@ -96,7 +134,7 @@ describe('package.ts', () => {
     });
 
     it('works fine for regular, full, package', async () => {
-      await copyPackage({
+      await publishPackage({
         packageRef: testPkg,
         variant: '1-main',
         tags: [],
@@ -115,13 +153,13 @@ describe('package.ts', () => {
     });
 
     it('recurses with correct tags and name', async () => {
-      await copyPackage({
+      await publishPackage({
         packageRef: nestedPkg,
         variant: '1-main',
         tags: ['tag1', 'tag2'],
         fromStorage,
         toStorage,
-        recursive: true,
+        includeProvisioned: true,
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
@@ -132,13 +170,13 @@ describe('package.ts', () => {
 
     describe('recursive = true', () => {
       it('recurses with correct tags and name', async () => {
-        await copyPackage({
+        await publishPackage({
           packageRef: testPkg,
           variant: '1-main',
           tags: [],
           fromStorage,
           toStorage,
-          recursive: true,
+          includeProvisioned: true,
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored

@@ -85,6 +85,7 @@ describe('builder.ts', () => {
     },
     invoke: {
       smartFunc: {
+        target: '0x1234123412341234123412341234123412341234',
         func: 'smartFunc',
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
@@ -143,11 +144,15 @@ describe('builder.ts', () => {
       },
     },
   });
+  jest.mocked(contractStep.getInputs).mockReturnValue([]);
+  jest.mocked(contractStep.getOutputs).mockReturnValue([]);
 
   jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
     txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } },
   });
+  jest.mocked(invokeStep.getInputs).mockReturnValue([]);
+  jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
 
   describe('build()', () => {
     beforeAll(async () => {
@@ -158,14 +163,12 @@ describe('builder.ts', () => {
 
     it('checks chain definition', async () => {
       // build with an invalid dependency
-      await expect(() =>
-        build(
-          runtime,
-          new ChainDefinition(_.assign({}, fakeDefinition, { invoke: { smartFunc: { depends: ['contract.Fake'] } } })),
-          {},
-          initialCtx
-        )
-      ).rejects.toThrowError('Your cannonfile is invalid: please resolve the following issues before building your project');
+      const fakeDefWithBadDep = _.assign({}, fakeDefinition, {
+        invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['contract.Fake'] } },
+      });
+      expect(() => build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).toThrowError(
+        'invalid dependency'
+      );
     });
 
     describe('without layers and skipped steps', () => {

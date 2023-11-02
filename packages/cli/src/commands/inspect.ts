@@ -1,26 +1,50 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
-import { parsePackageRef } from '../util/params';
+import { PackageReference } from '@usecannon/builder/dist/package';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
-import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
 
-export async function inspect(packageRef: string, chainId: number, preset: string, json: boolean, writeDeployments: string) {
-  await setupAnvil();
-  const { name, version } = parsePackageRef(packageRef);
+export async function inspect(
+  packageRef: string,
+  chainId: number,
+  presetArg: string,
+  json: boolean,
+  writeDeployments: string
+) {
+  const { name, version, preset } = new PackageReference(packageRef);
+
+  if (presetArg && preset) {
+    console.warn(
+      yellow(
+        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      )
+    );
+    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  }
+
+  const selectedPreset = preset || presetArg || 'main';
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
   const loader = getMainLoader(resolveCliSettings());
 
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${preset}`);
+  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
   if (!deployUrl) {
     throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${preset}.`
+      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
+    );
+  }
+
+  if (!chainId) {
+    console.warn(
+      yellow(
+        "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
+      Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
+      )
     );
   }
 
@@ -53,7 +77,7 @@ export async function inspect(packageRef: string, chainId: number, preset: strin
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${preset}`);
+    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
     console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
     console.log();

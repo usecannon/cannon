@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import importSpec from './steps/import';
 import { ethers } from 'ethers';
+import { isNumber } from 'lodash';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -17,12 +17,27 @@ const argsUnion = z.union([argtype, argtype2, argtype3, argtype4]);
 // <%=  string interpolation %>, step.names or property.names, packages:versions
 const interpolatedRegex = RegExp(/^<%=\s\w+.+[\w()[\]-]+\s%>$/, 'i');
 const stepRegex = RegExp(/^[\w-]+\.[.\w-]+$/, 'i');
-const packageRegex = RegExp(/^[\w-]+\.*:*[\w.-]+$/, 'i');
+const packageRegex = RegExp(/^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/, 'i');
 const jsonAbiPathRegex = RegExp(/^(?!.*\.d?$).*\.json?$/, 'i');
 
 // This regex matches artifact names which are just capitalized words like solidity contract names
 const artifactNameRegex = RegExp(/^[A-Z]{1}[\w]+$/, 'i');
 const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
+
+// Invoke target string schema
+const targetString = z.string().refine(
+  (val) =>
+    ethers.utils.isAddress(val) ||
+    !!val.match(interpolatedRegex) ||
+    !!val.match(stepRegex) ||
+    !!val.match(artifactNameRegex) ||
+    !!val.match(artifactPathRegex),
+  (val) => ({
+    message: `"${val}" must be a valid ethereum address, existing contract step name, contract artifact name or filepath`,
+  })
+);
+
+const targetSchema = targetString.or(z.array(targetString).nonempty());
 
 export const contractSchema = z
   .object({
@@ -38,6 +53,10 @@ export const contractSchema = z
     z
       .object({
         /**
+         *    Determines whether contract should get priority in displays
+         */
+        highlight: z.boolean(),
+        /**
          *    Determines whether to deploy the contract using create2
          */
         create2: z.boolean(),
@@ -49,12 +68,17 @@ export const contractSchema = z
           (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
           (val) => ({ message: `"${val}" is not a valid ethereum address` })
         ),
-        nonce: z.string().refine(
-          (val) => ethers.utils.isHexString(val) || !!parseInt(val),
-          (val) => ({
-            message: `Nonce ${val} must be of numeric or hexadecimal value`,
-          })
-        ),
+        nonce: z
+          .union([z.string(), z.number()])
+          .refine(
+            (val) => ethers.utils.isHexString(val) || isNumber(parseInt(val.toString())),
+            (val) => ({
+              message: `Nonce ${val} must be a string, number or hexadecimal value`,
+            })
+          )
+          .transform((val) => {
+            return val.toString();
+          }),
         /**
          *  Abi of the contract being deployed
          */
@@ -82,7 +106,7 @@ export const contractSchema = z
           )
         ),
         /**
-         *    Constructor or initializer args
+         *  Constructor or initializer args
          */
         args: z.array(argsUnion),
         /**
@@ -132,7 +156,7 @@ export const importSchema = z
     source: z.string().refine(
       (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or step format "import.Contract" or be an interpolated value`,
+        message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or step format "import.Contract" or be an interpolated value`,
       })
     ),
   })
@@ -149,10 +173,9 @@ export const importSchema = z
         preset: z.string(),
         /**
          *  Previous steps this step is dependent on
-         *  @example
          *  ```toml
-         *  depends = ['contract.Storage', 'import.Contract']
-         * ```
+         *    depends = ['contract.Storage', 'import.Contract']
+         *  ```
          */
         depends: z.array(
           z.string().refine(
@@ -171,21 +194,7 @@ export const invokeSchema = z
     /**
      *  Names of the contract to call or contract action that deployed the contract to call
      */
-    target: z
-      .array(
-        z.string().refine(
-          (val) =>
-            ethers.utils.isAddress(val) ||
-            !!val.match(interpolatedRegex) ||
-            !!val.match(stepRegex) ||
-            !!val.match(artifactNameRegex) ||
-            !!val.match(artifactPathRegex),
-          (val) => ({
-            message: `"${val}" must be a valid ethereum address, previously defined contract step name or contract artifact name or path`,
-          })
-        )
-      )
-      .nonempty(),
+    target: targetSchema,
     /**
      *  Name of the function to call on the contract
      */
@@ -224,6 +233,9 @@ export const invokeSchema = z
           (val) => ({ message: `"${val}" must be a valid ethereum address` })
         ),
 
+        /**
+         *  Specify a function to use as the 'from' value in a function call. Example `owner()`.
+         */
         fromCall: z.object({
           /**
            *  The name of a view function to call on this contract. The result will be used as the from input.
@@ -244,6 +256,9 @@ export const invokeSchema = z
          *   Override transaction settings
          */
         overrides: z.object({
+          /**
+           *   Gas limit to send along with the transaction
+           */
           gasLimit: z.string().refine((val) => !!parseInt(val), { message: 'Gas limit is invalid' }),
         }),
         /**
@@ -260,6 +275,11 @@ export const invokeSchema = z
              *   data argument of the event output
              */
             arg: z.number().int(),
+            /**
+             *   number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+             */
+            expectCount: z.number().int().optional(),
+
             /**
              *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
              */
@@ -281,6 +301,11 @@ export const invokeSchema = z
                *   data argument of the event output
                */
               arg: z.number().int(),
+
+              /**
+               *   number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+               */
+              expectCount: z.number().int().optional(),
 
               /**
                *   name of the contract artifact
@@ -309,13 +334,19 @@ export const invokeSchema = z
                 .optional(),
 
               /**
-               *
+               *   Constructor or initializer args
                */
               constructorArgs: z.array(argsUnion).optional(),
+
               /**
                *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
                */
               allowEmptyEvents: z.boolean().optional(),
+
+              /**
+               *    Determines whether contract should get priority in displays
+               */
+              highlight: z.boolean().optional(),
             })
           )
           .optional(),
@@ -342,7 +373,7 @@ export const provisionSchema = z
     source: z.string().refine(
       (val) => !!val.match(packageRegex) || !!val.match(interpolatedRegex),
       (val) => ({
-        message: `Source value: ${val} must match package format "package:version" or be an interpolated value`,
+        message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or be an interpolated value`,
       })
     ),
   })
@@ -351,17 +382,17 @@ export const provisionSchema = z
       .object({
         /**
          *  ID of the chain to import the package from
-         *  @default - 13370
+         * Default - 13370
          */
         chainId: z.number().int(),
         /**
          *  Override the preset to use when provisioning this package.
-         *  @default - "main"
+         * Default - "main"
          */
         sourcePreset: z.string(),
         /**
          *  Set the new preset to use for this package.
-         *  @default - "main"
+         * Default - "main"
          */
         targetPreset: z.string(),
         /**
@@ -388,6 +419,25 @@ export const provisionSchema = z
       .deepPartial()
   );
 
+export const routerSchema = z.object({
+  /**
+   * Set of contracts that will be passed to the router
+   */
+  contracts: z.array(z.string()),
+  /**
+   *  Address to pass to the from call
+   */
+  from: z.string().optional(),
+  /**
+   *   Used to force new copy of a contract (not actually used)
+   */
+  salt: z.string().optional(),
+  /**
+   *  List of steps that this action depends on
+   */
+  depends: z.array(z.string()).optional(),
+});
+
 /**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
  */
@@ -405,12 +455,9 @@ export const chainDefinitionSchema = z
     /**
      *  version of the package
      */
-    version: z
-      .string()
-      .max(31)
-      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
-        message: 'Version cannot contain any special characters',
-      }),
+    version: z.string().refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
+      message: 'Version cannot contain any special characters',
+    }),
   })
   .merge(
     z
@@ -425,7 +472,6 @@ export const chainDefinitionSchema = z
         keywords: z.array(z.string()),
         /**
          * Object that allows the definition of values for use in next steps
-         * @example
          * ```toml
          *  [settings.owner]
          *  defaultValue: "some-eth-address"
@@ -452,7 +498,24 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        import: z.custom<typeof importSpec>(),
+        import: z.record(importSchema),
+        /**
+         * @internal
+         */
+        provision: z.record(provisionSchema),
+        /**
+         * @internal
+         */
+        contract: z.record(contractSchema),
+        /**
+         * @internal
+         */
+        invoke: z.record(invokeSchema),
+        /**
+         * @internal
+         */
+        router: z.record(routerSchema),
+        // ... there may be others that come from plugins
       })
       .deepPartial()
   );
