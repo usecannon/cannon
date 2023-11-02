@@ -2,6 +2,7 @@ import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
+import os from 'os';
 import Debug from 'debug';
 import { yellowBright } from 'chalk';
 
@@ -40,7 +41,13 @@ export class LocalRegistry extends CannonRegistry {
       return baseResolved;
     }
 
-    debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
+    debug(
+      'load local package link',
+      packageRef,
+      variant,
+      'at file',
+      this.getTagReferenceStorage(packageRef, variant).replace(os.homedir(), '')
+    );
     try {
       return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
     } catch (err) {
@@ -56,9 +63,9 @@ export class LocalRegistry extends CannonRegistry {
         packageName,
         variant,
         'at file',
-        this.getTagReferenceStorage(packageName, variant) + '.meta'
+        this.getMetaTagReferenceStorage(packageName, variant)
       );
-      return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+      return (await fs.readFile(this.getMetaTagReferenceStorage(packageName, variant))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
@@ -69,9 +76,10 @@ export class LocalRegistry extends CannonRegistry {
     for (const packageName of packagesNames) {
       debug('package local link', packageName);
       const file = this.getTagReferenceStorage(packageName, variant);
+      const metaFile = this.getMetaTagReferenceStorage(packageName, variant);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
-      await fs.writeFile(file + '.meta', metaUrl);
+      await fs.writeFile(metaFile, metaUrl);
     }
 
     return [];

@@ -301,7 +301,13 @@ export async function build({
 
   const defaultSigner = await (await getDefaultSigner!()).getAddress();
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(bold(`Building the chain (ID ${chainId})${providerUrlMsg ? ' via ' + providerUrlMsg : ''}...`));
+  console.log(
+    bold(
+      `Building the chain (ID ${chainId})${
+        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
+      }...`
+    )
+  );
   console.log(`Using signer ${defaultSigner}`);
 
   if (!_.isEmpty(packageDefinition.settings)) {

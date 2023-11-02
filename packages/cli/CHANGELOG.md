@@ -6,6 +6,23 @@
   * dependencies
     * @usecannon/builder bumped from ^2.8.0 to ^2.8.1
 
+## [2.9.2](https://github.com/usecannon/cannon/compare/v2.9.1...v2.9.2) (2023-10-31)
+
+
+### Bug Fixes
+
+* **cli:** commands config actualized ([#539](https://github.com/usecannon/cannon/issues/539)) ([63da051](https://github.com/usecannon/cannon/commit/63da051243b858c4ba809b82a988ce1120d99a1e))
+* **cli:** make clean remove all files/folders in tags and metadata_cache ([#531](https://github.com/usecannon/cannon/issues/531)) ([9363471](https://github.com/usecannon/cannon/commit/9363471621bf771b7d70780a9811eb9560359b17))
+* **cli:** move anvilOptions to commandsConfig file ([#541](https://github.com/usecannon/cannon/issues/541)) ([f70ea47](https://github.com/usecannon/cannon/commit/f70ea471807ba74ce137f27bddb2c27dbb285dbb))
+* **highlight:** add highlight boolean to factory contracts ([#536](https://github.com/usecannon/cannon/issues/536)) ([f4d40fe](https://github.com/usecannon/cannon/commit/f4d40fed13c15ac9e0a50d236cb1b35a8faa5578))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.9.0 to ^2.9.1
+
 ## [2.9.1](https://github.com/usecannon/cannon/compare/v2.9.0...v2.9.1) (2023-10-26)
 
 

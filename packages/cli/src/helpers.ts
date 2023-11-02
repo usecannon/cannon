@@ -14,6 +14,23 @@ import { isConnectedToInternet } from './util/is-connected-to-internet';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
+export async function filterSettings(settings: any) {
+  // Filter out private key for logging
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
+
+  // Filters out API keys
+  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
+    RegExp(/[=A-Za-z0-9_-]{32,}/),
+    '*'.repeat(32)
+  );
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+
+  return filteredSettings;
+}
+
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
   //      It also works when the necessary foundry binary is not on PATH
