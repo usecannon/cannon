@@ -130,6 +130,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         }
       } else if (hre.network.name !== CANNON_NETWORK_NAME) {
         defaultSigner = signers[0].connect(provider);
+      } else {
+        defaultSigner = (await getSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266')) || null;
       }
 
       if (defaultSigner) {
