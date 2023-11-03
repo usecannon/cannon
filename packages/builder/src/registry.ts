@@ -64,7 +64,7 @@ export class InMemoryRegistry extends CannonRegistry {
     return 'memory';
   }
 
-  async publish(packagesNames: string[], variant: string, url: string, meta: string): Promise<string[]> {
+  async publish(packagesNames: string[], variant: string, url: string, meta?: string): Promise<string[]> {
     const receipts: string[] = [];
     for (const name of packagesNames) {
       if (!this.pkgs[name]) {
@@ -75,7 +75,9 @@ export class InMemoryRegistry extends CannonRegistry {
       }
 
       this.pkgs[name][variant] = url;
-      this.metas[name][variant] = meta;
+      if (meta) {
+        this.metas[name][variant] = meta;
+      }
       receipts.push((++this.count).toString());
     }
 
@@ -102,10 +104,12 @@ export class InMemoryRegistry extends CannonRegistry {
 }
 
 export class FallbackRegistry extends EventEmitter implements CannonRegistry {
+  readonly memoryCacheRegistry: InMemoryRegistry;
   readonly registries: any[];
 
   constructor(registries: any[]) {
     super();
+    this.memoryCacheRegistry = new InMemoryRegistry();
     this.registries = registries;
   }
 
@@ -114,7 +118,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    for (const registry of this.registries) {
+    for (const registry of [this.memoryCacheRegistry, ...this.registries]) {
       try {
         const result = await registry.getUrl(packageRef, variant);
 
@@ -170,10 +174,14 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   async publish(packagesNames: string[], variant: string, url: string, metaUrl?: string): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames);
     // try to publish to any of the registries
-    // first one to succeed
+    await this.memoryCacheRegistry.publish(packagesNames, variant, url, metaUrl);
+
+    // now push to other registries.
+    // first one to succeed is fine.
     const errors = [];
     for (const registry of this.registries) {
       try {
+        debug('try publish to registry', registry.getLabel());
         return await registry.publish(packagesNames, variant, url, metaUrl);
       } catch (err: any) {
         debug('error caught in registry while publishing (may be normal):', err);
