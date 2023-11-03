@@ -174,6 +174,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     const errors = [];
     for (const registry of this.registries) {
       try {
+        debug('try publish to registry', registry.getLabel());
         return await registry.publish(packagesNames, variant, url, metaUrl);
       } catch (err: any) {
         debug('error caught in registry while publishing (may be normal):', err);
