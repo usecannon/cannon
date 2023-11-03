@@ -22,6 +22,7 @@ import { createDefaultReadRegistry } from '../registry';
 
 import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
+import fs from 'node:fs/promises';
 
 import pkg from '../../package.json';
 
@@ -272,7 +273,9 @@ export async function build({
   chainDef.version = pkgVersion;
 
   if (miscUrl) {
-    const deployUrl = await runtime.putDeploy({
+    console.log('Saving build result locally...');
+    console.log();
+    const localBuildResult: DeploymentInfo = {
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: chainDef,
@@ -281,8 +284,27 @@ export async function build({
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
-      chainId: runtime.chainId,
-    });
+      chainId: runtime.chainId
+    };
+
+    try {
+      const localBuildResultJson = JSON.stringify(localBuildResult, null, 2);
+      const settings = resolveCliSettings();
+      const buildResultsDir = `${settings.cannonDirectory}/build_results`;
+      const localFilePath = `${buildResultsDir}/${pkgName}_${pkgVersion}_${Date.now()}.json`;
+      try {
+        await fs.access(buildResultsDir);
+      } catch {
+        await fs.mkdir(buildResultsDir, { recursive: true });
+      }
+  
+      await fs.writeFile(localFilePath, localBuildResultJson, 'utf-8');
+      console.log(greenBright(`Local build result saved at ${localFilePath}`));
+    } catch (error) {
+      console.error('Failed to save local build result:', error);
+    }
+
+    const deployUrl = await runtime.putDeploy(localBuildResult);
 
     const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
 
