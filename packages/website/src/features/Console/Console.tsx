@@ -109,9 +109,10 @@ export const Console = () => {
             <Box
               background="black"
               p={2}
-              height={isOpen ? '345px' : '48px'}
-              width={isOpen ? '570px' : '48px'}
-              maxHeight={'345px'}
+              maxHeight={isOpen ? '345px' : '48px'}
+              maxWidth={isOpen ? '570px' : '48px'}
+              height="345px"
+              width="calc(100vw - 96px)"
               overflowY={'auto'}
               overflowX={'hidden'}
               position="relative"
@@ -125,7 +126,7 @@ export const Console = () => {
                   display="block"
                   background="black"
                   fontSize="xs"
-                  fontFamily="var(--font-miriam)"
+                  fontFamily="mono"
                 >
                   {`[${format(log.date, 'kk:mm:ss')}] ${log.message}`}
                 </Text>

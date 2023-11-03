@@ -20,7 +20,7 @@ export const GetStartedPage = () => {
         m="auto"
         background="black"
         border="1px solid"
-        borderColor="gray.700"
+        borderColor="gray.800"
         borderRadius="md"
       >
         <RunPackage />

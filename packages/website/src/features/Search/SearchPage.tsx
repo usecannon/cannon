@@ -191,11 +191,7 @@ export const SearchPage = () => {
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCardExpandable
-                      maxHeight="186px"
-                      pkg={pkg}
-                      key={pkg.name}
-                    />
+                    <PackageCardExpandable pkg={pkg} key={pkg.name} />
                   </Box>
                 ))}
               </Container>

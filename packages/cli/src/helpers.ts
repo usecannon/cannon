@@ -12,7 +12,24 @@ import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import Debug from 'debug';
-const debug = Debug('cannon:builder:loader');
+const debug = Debug('cannon:cli:helpers');
+
+export async function filterSettings(settings: any) {
+  // Filter out private key for logging
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
+
+  // Filters out API keys
+  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
+    RegExp(/[=A-Za-z0-9_-]{32,}/),
+    '*'.repeat(32)
+  );
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+
+  return filteredSettings;
+}
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -78,14 +95,37 @@ export function execPromise(command: string): Promise<string> {
   });
 }
 
-export async function checkCannonVersion(currentVersion: string): Promise<void> {
+export async function resolveCannonVersion(): Promise<string> {
+  const settings = resolveCliSettings();
+  const versionFile = settings.cannonDirectory + '/version';
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const fileData = fs.readFileSync(versionFile).toString('utf8').split(':');
+    if (parseInt(fileData[1]) >= now - 86400 * 7) {
+      debug('read cannon version from file', fileData);
+      return fileData[0];
+    }
+  } catch (err) {
+    debug('could not load version file', err);
+  }
+
+  debug('downloading version from the internet');
   if (!(await isConnectedToInternet())) {
     debug('You are offline so we dont check the latest version of cannon');
-    return;
+    return '';
   }
-  const latestVersion = await execPromise('npm view @usecannon/cli version');
 
-  if (currentVersion !== latestVersion) {
+  const resolvedVersion = await execPromise('npm view @usecannon/cli version');
+
+  await fs.mkdirp(settings.cannonDirectory || 'undefined');
+  await fs.writeFile(versionFile, `${resolvedVersion}:${now}`);
+
+  return resolvedVersion;
+}
+
+export async function checkCannonVersion(currentVersion: string): Promise<void> {
+  const latestVersion = await resolveCannonVersion();
+  if (latestVersion && currentVersion !== latestVersion) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
     console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }

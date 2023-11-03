@@ -9,7 +9,7 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
 import { PackageSpecification } from '../types';
-import { CannonWrapperGenericProvider, ChainArtifacts } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, ChainArtifacts, ContractMap } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -51,6 +51,7 @@ export async function interact(ctx: InteractTaskArgs) {
     } else if (!pickedContract) {
       pickedContract = await pickContract({
         contractNames: Object.keys(ctx.contracts[pickedPackage]),
+        contractArtifacts: ctx.packagesArtifacts?.[pickedPackage]?.contracts,
       });
 
       if (!pickedContract) {
@@ -186,8 +187,23 @@ async function pickPackage(packages: PackageSpecification[]) {
   return typeof pickedPackage === 'number' ? pickedPackage : -1;
 }
 
-async function pickContract({ contractNames }: { contractNames: string[] }) {
-  const choices = contractNames.sort().map((s) => ({ title: s }));
+async function pickContract({
+  contractNames,
+  contractArtifacts,
+}: {
+  contractNames: string[];
+  contractArtifacts?: ContractMap;
+}) {
+  const isHighlighted = (n: string) => !!contractArtifacts?.[n]?.highlight ?? false;
+
+  const choices: Choice[] = _.sortBy(contractNames, [
+    (contractName) => !isHighlighted(contractName),
+    (contractName) => contractName,
+  ]).map((contractName) => ({
+    title: isHighlighted(contractName) ? bold(contractName) : contractName,
+    value: contractName,
+  }));
+
   choices.unshift(PROMPT_BACK_OPTION);
 
   const { pickedContract } = await prompts.prompt([

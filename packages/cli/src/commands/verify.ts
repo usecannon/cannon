@@ -143,6 +143,8 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
 
       await sleep(500);
     }
+
+    return {};
   };
 
   const deployData = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);

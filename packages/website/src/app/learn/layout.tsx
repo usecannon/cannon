@@ -18,7 +18,6 @@ export default function LearnLayout({ children }: { children: ReactNode }) {
           flexWrap="nowrap"
           justifyContent="center"
           overflowX="auto"
-          overflowY="hidden"
           whiteSpace="nowrap"
         >
           <NavLink

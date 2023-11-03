@@ -21,15 +21,16 @@ export const Interact: FC<{
   name: string;
   tag: string;
   variant: string;
+  moduleName: string;
+  contractName: string;
   contractAddress: string;
-}> = ({ name, tag, variant, contractAddress }) => {
+}> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
   const [pkg, setPackage] = useState<any | null>(null);
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
-  const [moduleName, setModuleName] = useState<string | undefined>();
   const [contract, setContract] = useState<ContractData | undefined>();
 
   useEffect(() => {
@@ -53,15 +54,22 @@ export const Interact: FC<{
     const cannonOutputs: ChainArtifacts = getOutput(ipfs);
     setCannonOutputs(cannonOutputs);
 
-    const findContract = (contracts: any, moduleName: string, imports: any) => {
+    const findContract = (
+      contracts: any,
+      parentModuleName: string,
+      imports: any
+    ) => {
       if (contracts) {
         Object.entries(contracts).forEach(([k, v]) => {
-          if ((v as ContractData).address === contractAddress) {
+          if (
+            parentModuleName === moduleName &&
+            k === contractName &&
+            (v as ContractData).address === contractAddress
+          ) {
             setContract({
               ...(v as ContractData),
               contractName: k,
             });
-            setModuleName(moduleName);
             return;
           }
         });
@@ -69,7 +77,13 @@ export const Interact: FC<{
 
       if (imports) {
         Object.entries(imports).forEach(([k, v]) =>
-          findContract((v as any).contracts, k, (v as any).imports)
+          findContract(
+            (v as any).contracts,
+            parentModuleName && parentModuleName !== name
+              ? `${parentModuleName}.${k}`
+              : k,
+            (v as any).imports
+          )
         );
       }
     };

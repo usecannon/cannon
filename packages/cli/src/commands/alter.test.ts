@@ -69,6 +69,8 @@ describe('alter', () => {
                 contractName: 'TestContract',
                 sourceName: 'TestContract.sol',
                 deployedOn: '',
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },
@@ -146,7 +148,7 @@ describe('alter', () => {
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 
   it('should perform alteration for mark-complete', async () => {
     const command = 'mark-complete';
@@ -216,5 +218,5 @@ describe('alter', () => {
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 });

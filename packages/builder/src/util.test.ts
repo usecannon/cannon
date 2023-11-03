@@ -90,6 +90,8 @@ describe('util.ts', () => {
         deployTxnHash: '',
         deployedOn: '',
         abi: [fakeEventFragment, fakeReadFragment],
+        gasCost: '0',
+        gasUsed: 0,
       },
 
       AnotherFake: {
@@ -99,6 +101,8 @@ describe('util.ts', () => {
         deployTxnHash: '',
         deployedOn: '',
         abi: [fakeTransferFragment],
+        gasCost: '0',
+        gasUsed: 0,
       },
     },
     imports: {
@@ -115,6 +119,8 @@ describe('util.ts', () => {
                 deployTxnHash: '',
                 deployedOn: '',
                 abi: [fakeTransferFragment, fakeReadFragment],
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },
@@ -127,6 +133,8 @@ describe('util.ts', () => {
             deployTxnHash: '',
             deployedOn: '',
             abi: [fakeTransferFragment, fakeReadFragment],
+            gasCost: '0',
+            gasUsed: 0,
           },
         },
       },
@@ -250,6 +258,8 @@ describe('util.ts', () => {
             contractName: 'Wohoo',
             abi: [],
             deployedOn: 'contract.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
           },
           Dupe: {
             address: '0x1234123412341234123412341234123412341234',
@@ -258,6 +268,8 @@ describe('util.ts', () => {
             contractName: 'Dupe',
             abi: [],
             deployedOn: 'contract.Dupe',
+            gasCost: '0',
+            gasUsed: 0,
           },
         },
       });
@@ -279,6 +291,9 @@ describe('util.ts', () => {
               ],
             },
             deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
           },
         },
       });

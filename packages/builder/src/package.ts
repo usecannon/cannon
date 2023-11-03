@@ -1,7 +1,8 @@
 import Debug from 'debug';
-import { BundledOutput, DeploymentInfo } from './types';
+import _ from 'lodash';
+import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
 import { ChainDefinition } from './definition';
-import { createInitialContext } from './builder';
+import { createInitialContext, getArtifacts } from './builder';
 import { CannonStorage } from './runtime';
 
 const debug = Debug('cannon:cli:publish');
@@ -13,6 +14,7 @@ export type CopyPackageOpts = {
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
+  includeProvisioned?: boolean;
 };
 
 const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
@@ -72,22 +74,36 @@ export class PackageReference {
  * @param loader The loader to use for downloading sub-packages
  * @param deployInfo The head node of the tree, which will be executed on `action` last
  * @param action The action to execute
- * @param onlyProvisioned Skip over sub-packages which are not provisioned within the parent
+ * @param onlyResultProvisioned Only return results for packages that were provisioned. Useful when publishing. Does not prevent execution of action.
  */
-export async function forPackageTree<T>(
+export async function forPackageTree<T extends { url?: string; artifacts?: ChainArtifacts }>(
   store: CannonStorage,
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
   context?: BundledOutput | null,
-  onlyProvisioned = true
+  onlyResultProvisioned = true
 ): Promise<T[]> {
   const results: T[] = [];
 
   for (const importArtifact of _deployImports(deployInfo)) {
-    if (onlyProvisioned && !importArtifact.tags) continue;
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
-    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyProvisioned);
-    results.push(...result);
+    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
+
+    const newUrl = _.last(result)!.url;
+    if (newUrl && newUrl !== importArtifact.url) {
+      importArtifact.url = newUrl!;
+      const updatedNestedDeployInfo = await store.readBlob(newUrl);
+      // the nested artifacts (stored in this import artifact) might have changed because of the new url. if so, lets pull those changes in
+      // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of
+      importArtifact.imports = getArtifacts(
+        new ChainDefinition(updatedNestedDeployInfo.def),
+        updatedNestedDeployInfo.state
+      ).imports;
+    }
+
+    if (!onlyResultProvisioned || importArtifact.tags) {
+      results.push(...result);
+    }
   }
 
   results.push(await action(deployInfo, context || null));
@@ -100,9 +116,53 @@ function _deployImports(deployInfo: DeploymentInfo) {
   return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
 }
 
-export async function copyPackage({ packageRef, tags, variant, fromStorage, toStorage, recursive }: CopyPackageOpts) {
-  const { version, basePackageRef } = new PackageReference(packageRef);
+export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
+  const chainId = parseInt(variant.split('-')[0]);
 
+  const uri = await storage.registry.getUrl(packageRef, variant);
+
+  const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
+
+  if (!deployInfo) {
+    throw new Error(
+      `could not find deployment artifact for ${packageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
+    );
+  }
+
+  const getPackages = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    debug('create chain definition');
+
+    const def = new ChainDefinition(deployInfo.def);
+
+    debug('create initial ctx with deploy info', deployInfo);
+
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
+
+    debug('created initial ctx with deploy info');
+
+    return {
+      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
+        (t) => `${def.getName(preCtx)}:${t}`
+      ),
+      variant: context ? `${chainId}-${context.preset}` : variant,
+      url: context?.url,
+    };
+  };
+
+  return await forPackageTree(storage, deployInfo, getPackages);
+}
+
+/**
+ * Copies package info from one storage medium to another (usually local to IPFS) and publishes it to the registry.
+ */
+export async function publishPackage({
+  packageRef,
+  tags,
+  variant,
+  fromStorage,
+  toStorage,
+  includeProvisioned = false,
+}: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
   const chainId = parseInt(variant.split('-')[0]);
@@ -113,7 +173,7 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(basePackageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -134,11 +194,10 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
     const def = new ChainDefinition(deployInfo.def);
 
-    const preCtx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
+    const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
     return {
-      // TODO (FIX): When using an interpolated <%= package.version %>, def.getVersion doesnt return a value properly.
-      packagesNames: [def.getVersion(preCtx) || version, ...(context ? context.tags || [] : tags)].map(
+      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
       variant: context ? `${chainId}-${context.preset}` : variant,
@@ -149,17 +208,22 @@ export async function copyPackage({ packageRef, tags, variant, fromStorage, toSt
 
   const preset = variant.substring(variant.indexOf('-') + 1);
 
-  const deployData = await fromStorage.readDeploy(basePackageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
 
   if (!deployData) {
-    throw new Error('ipfs could not find deployment artifact. please double check your settings, and rebuild your package.');
+    throw new Error(
+      `could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`
+    );
   }
 
-  if (recursive) {
-    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+
+  if (includeProvisioned) {
+    debug('publishing with provisioned');
     return toStorage.registry.publishMany(calls);
   } else {
-    const call = await copyIpfs(deployData, null);
+    debug('publishing without provisioned');
+    const call = _.last(calls)!;
 
     return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
   }

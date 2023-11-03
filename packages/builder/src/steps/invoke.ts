@@ -459,6 +459,9 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: receipt.transactionHash,
         events: txnEvents,
         deployedOn: packageState.currentLabel,
+        gasUsed: receipt.gasUsed.toNumber(),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: receipt.from,
       };
     }
 

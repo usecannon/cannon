@@ -11,6 +11,7 @@ import {
 } from './constants';
 
 import Debug from 'debug';
+import { filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -59,7 +60,7 @@ export type CliSettings = {
   registryPriority: 'local' | 'onchain';
 
   /**
-   * Directory to load configurations from, for local registry, and
+   * Directory to load configurations from and for local registry
    */
   cannonDirectory: string;
 
@@ -133,24 +134,9 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     _.pickBy(overrides)
   );
 
-  // Filter out private key for logging
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = finalSettings;
-
-  // Filters out API keys
-  filteredSettings.providerUrl = filteredSettings.providerUrl
-    ? filteredSettings.providerUrl.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32))
-    : '';
-  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl
-    ? filteredSettings.registryProviderUrl!.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32))
-    : '';
-  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl
-    ? filteredSettings.publishIpfsUrl!.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32))
-    : '';
-
-  debug('got settings', filteredSettings);
+  debug('got settings', filterSettings(finalSettings));
 
   return finalSettings;
 }
 
-export const resolveCliSettings = _.once(_resolveCliSettings);
+export const resolveCliSettings = _.memoize(_resolveCliSettings);

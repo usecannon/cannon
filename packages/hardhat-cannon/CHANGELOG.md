@@ -14,6 +14,34 @@
     * @usecannon/builder bumped from ^2.8.1 to ^2.8.2
     * @usecannon/cli bumped from ^2.8.1 to ^2.8.2
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/cli bumped from ^2.9.0 to ^2.9.1
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.9.0 to ^2.9.1
+    * @usecannon/cli bumped from ^2.9.1 to ^2.9.2
+
+## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
+
+
+### Features
+
+* Add fetch command and improve publish outputs ([#479](https://github.com/usecannon/cannon/issues/479)) ([286d44b](https://github.com/usecannon/cannon/commit/286d44b248efd5352cb68a54a25304a201264ddc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @usecannon/builder bumped from ^2.8.2 to ^2.9.0
+    * @usecannon/cli bumped from ^2.8.2 to ^2.9.0
+
 ## [2.8.0](https://github.com/usecannon/cannon/compare/v2.7.1...v2.8.0) (2023-09-29)
 
 

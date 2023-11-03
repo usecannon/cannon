@@ -173,7 +173,7 @@ const provisionSpec = {
       if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
         console.warn(
           yellow(
-            '\nwarn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`? \n'
+            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
         );
       }
