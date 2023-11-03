@@ -96,7 +96,7 @@ describe('inspect', () => {
         deployedOn: '2023-10-16',
         highlight: true,
         gasUsed: 1,
-        gasCost: "1"
+        gasCost: '1',
       },
     };
 
