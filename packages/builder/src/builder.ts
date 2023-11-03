@@ -1,20 +1,16 @@
+import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
-import Debug from 'debug';
-
-import { ChainBuilderContext, BuildOptions, ChainArtifacts, PreChainBuilderContext, PackageState } from './types';
-
+import { ContractMap, DeploymentState, TransactionMap } from './';
+import { ActionKinds } from './actions';
+import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
-
+import { ChainBuilderRuntime, Events } from './runtime';
+import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
 import { printChainDefinitionProblems } from './util';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
-
-import { ContractMap, DeploymentState, TransactionMap } from '.';
-import { ChainBuilderRuntime, Events } from './runtime';
-import { BUILD_VERSION } from './constants';
-import { ActionKinds } from './actions';
 
 // a step is considered failed if it takes longer than 5 minutes always
 const DEFAULT_STEP_TIMEOUT = 300000;
@@ -347,7 +343,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
     throw new Error('timed out without error');
   }
 
-  runtime.emit(Events.PostStepExecute, type, label, result, cfg, ctx, 0);
+  runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
 
   return result;
 }
