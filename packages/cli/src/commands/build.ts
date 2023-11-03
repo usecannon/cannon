@@ -284,7 +284,7 @@ export async function build({
       status: partialDeploy ? 'partial' : 'complete',
       meta: pkgInfo,
       miscUrl: miscUrl,
-      chainId: runtime.chainId
+      chainId: runtime.chainId,
     };
 
     try {
@@ -297,7 +297,7 @@ export async function build({
       } catch {
         await fs.mkdir(buildResultsDir, { recursive: true });
       }
-  
+
       await fs.writeFile(localFilePath, localBuildResultJson, 'utf-8');
       console.log(greenBright(`Local build result saved at ${localFilePath}`));
     } catch (error) {
