@@ -12,7 +12,6 @@ import {
   getContractFromPath,
   getOutputs,
 } from '@usecannon/builder';
-import { ChainBuilderContext } from '@usecannon/builder/dist/types';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import _ from 'lodash';
