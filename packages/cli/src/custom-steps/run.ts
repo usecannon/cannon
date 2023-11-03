@@ -13,9 +13,11 @@ import {
   registerAction,
   PackageState,
 } from '@usecannon/builder';
-import { runSchema } from '../schemas.zod';
+import { createRunSchema } from '../schemas.zod';
 
 const debug = Debug('cannon:builder:run');
+
+const runSchema = createRunSchema(fs);
 
 interface ErrorWithCode extends Error {
   code: string;
