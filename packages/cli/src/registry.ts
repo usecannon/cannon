@@ -159,7 +159,6 @@ export async function createDefaultReadRegistry(
 ): Promise<FallbackRegistry> {
   const { provider } = await resolveRegistryProvider(settings);
 
-  const inMemoryRegistry = new InMemoryRegistry();
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
 
@@ -167,18 +166,13 @@ export async function createDefaultReadRegistry(
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
-    return new FallbackRegistry([inMemoryRegistry, ...additionalRegistries, localRegistry]);
+    return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (settings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
-    return new FallbackRegistry([inMemoryRegistry, ...additionalRegistries, localRegistry, onChainRegistry]);
+    return new FallbackRegistry([...additionalRegistries, localRegistry, onChainRegistry]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([
-      inMemoryRegistry,
-      ...additionalRegistries,
-      onChainRegistry,
-      localRegistry,
-    ]);
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, onChainRegistry, localRegistry]);
 
     if (!settings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {
