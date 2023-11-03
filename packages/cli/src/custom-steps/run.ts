@@ -82,7 +82,7 @@ const runAction = {
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
       if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
         throw new Error(
-          'Invalid elements in `modified` variable of `run` step. Only paths to existing files and directories are allowed.'
+          `Invalid element in "modified" for "run" step. Path ${pathToScan} not found.`
         );
       }
 
