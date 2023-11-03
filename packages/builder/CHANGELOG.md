@@ -1,5 +1,52 @@
 # Changelog
 
+## [2.10.0](https://github.com/usecannon/cannon/compare/v2.9.1...v2.10.0) (2023-11-03)
+
+
+### Features
+
+* **abi:** add the option to use a literal abi string ([#423](https://github.com/usecannon/cannon/issues/423)) ([3287cd1](https://github.com/usecannon/cannon/commit/3287cd1461eb357476a55c3f6358f5eeceab8498))
+* Add fetch command and improve publish outputs ([#479](https://github.com/usecannon/cannon/issues/479)) ([286d44b](https://github.com/usecannon/cannon/commit/286d44b248efd5352cb68a54a25304a201264ddc))
+* **builder:** add descriptions to zod schemas ([#566](https://github.com/usecannon/cannon/issues/566)) ([c45197d](https://github.com/usecannon/cannon/commit/c45197d3376c0be2a1524d70d318a98d59dc3461))
+* **builder:** add highlight boolean to contract cannonfile spec ([#470](https://github.com/usecannon/cannon/issues/470)) ([06629e2](https://github.com/usecannon/cannon/commit/06629e23aca1bacf266a68072325332c9ec77f75))
+* **cli:** add `cannon trace` command ([#455](https://github.com/usecannon/cannon/issues/455)) ([177cdbf](https://github.com/usecannon/cannon/commit/177cdbf17e63115e92ffa11f176b93de4ab708ca))
+* **cli:** Add support for preset package reference in CLI  ([#449](https://github.com/usecannon/cannon/issues/449)) ([ec19aff](https://github.com/usecannon/cannon/commit/ec19affe86e0fdc6623ae6fc5d5187118757d2f0))
+* migrate cannonfile validation to zod ([#320](https://github.com/usecannon/cannon/issues/320)) ([04ebdf6](https://github.com/usecannon/cannon/commit/04ebdf64f38da38f2076f4cb09b9b1e1c88d721a))
+* **router:** add @synthetixio/router dependency ([9b0de26](https://github.com/usecannon/cannon/commit/9b0de26c395b856974a932d8dee5724998e05efb))
+* **router:** add example ([6e5f177](https://github.com/usecannon/cannon/commit/6e5f177b53b8ca57939f6385bc84092d0cb0f9ac))
+* **router:** add router action step ([56cab91](https://github.com/usecannon/cannon/commit/56cab91720b1bd35c945ad3757fa077268803609))
+* **router:** add router step tests ([aa1e7ae](https://github.com/usecannon/cannon/commit/aa1e7ae1290650111443c867552f311c1291701b))
+* **router:** add test fixtures ([ce7f2d3](https://github.com/usecannon/cannon/commit/ce7f2d3bae72cdd57b53e8544a6fffacfc1439e6))
+* **router:** add usage of transparent-upgradable-proxy:4.9.3 ([0038f5f](https://github.com/usecannon/cannon/commit/0038f5f902eed9931e6abcd3bc7ea9ac2a59a425))
+* **router:** fix plugin loading ([f199216](https://github.com/usecannon/cannon/commit/f1992163722f28eb35b44e73c931e417b3c4ec1a))
+* **website:** Explorer UI ([09988e2](https://github.com/usecannon/cannon/commit/09988e28a85373d375a81a38affa06e1b83b5bde))
+* **website:** Explorer UI ([09988e2](https://github.com/usecannon/cannon/commit/09988e28a85373d375a81a38affa06e1b83b5bde))
+* **write-scripts:** add basic json dump script ([#556](https://github.com/usecannon/cannon/issues/556)) ([edcd88c](https://github.com/usecannon/cannon/commit/edcd88cc5afb1ab743f7699e623a29e465b187a8))
+
+
+### Bug Fixes
+
+* 2.7 regressions ([#461](https://github.com/usecannon/cannon/issues/461)) ([b9ecbb7](https://github.com/usecannon/cannon/commit/b9ecbb7b2564345babd89c9230247970805b570f))
+* add builder/src/ folder to package build ([#491](https://github.com/usecannon/cannon/issues/491)) ([8b3c084](https://github.com/usecannon/cannon/commit/8b3c084ef42c714a9a83cfd6f1b9d0c837b905c3))
+* **builder:** Add preset reference in source/package name ([#415](https://github.com/usecannon/cannon/issues/415)) ([32c7745](https://github.com/usecannon/cannon/commit/32c77453464dc3c8be25df2c630d6ec026335781))
+* **builder:** file links in recursive provision packages ([#534](https://github.com/usecannon/cannon/issues/534)) ([d085863](https://github.com/usecannon/cannon/commit/d085863a778997ca65144b1f06fabdfd58d9088c))
+* **builder:** fix zod package regex for validation ([#485](https://github.com/usecannon/cannon/issues/485)) ([e4fdda7](https://github.com/usecannon/cannon/commit/e4fdda7e5283df75a0b658a9eb1e0f0d7935132f))
+* **builder:** handling of package url modification during copy ([#529](https://github.com/usecannon/cannon/issues/529)) ([7c5d585](https://github.com/usecannon/cannon/commit/7c5d5857770412d0f47b52ee4c8beace9504441d))
+* **builder:** lock ethers version in builder package below 6.0.0 ([#484](https://github.com/usecannon/cannon/issues/484)) ([844c39e](https://github.com/usecannon/cannon/commit/844c39e3a486be2aa2602c5ff8c8bf9babb09c60))
+* **builder:** remove 31 char limit on cannonfile version and fix nonce validation ([#543](https://github.com/usecannon/cannon/issues/543)) ([155d39f](https://github.com/usecannon/cannon/commit/155d39f9d05c3090deb92c7482b709cfd22773e2))
+* **builder:** use in memory during build ([#573](https://github.com/usecannon/cannon/issues/573)) ([2efa683](https://github.com/usecannon/cannon/commit/2efa683e1076f606889b963e69a90d0e907d63bf))
+* fix preset name in deploy local tag filename ([#472](https://github.com/usecannon/cannon/issues/472)) ([acf9d2d](https://github.com/usecannon/cannon/commit/acf9d2d29daf89fead861d7fca0ffbe42e0c6c74))
+* gitHeads references from lerna ([ae76eae](https://github.com/usecannon/cannon/commit/ae76eaeda3e83ab14a09198449d0e0f096ee7839))
+* **highlight:** add highlight boolean to factory contracts ([#536](https://github.com/usecannon/cannon/issues/536)) ([f4d40fe](https://github.com/usecannon/cannon/commit/f4d40fed13c15ac9e0a50d236cb1b35a8faa5578))
+* **logs:** build command ux ([#553](https://github.com/usecannon/cannon/issues/553)) ([a1a9ed0](https://github.com/usecannon/cannon/commit/a1a9ed07de875413e38aeb2e3fc2d3e9012d2606))
+* misc debug mode fixes ([#424](https://github.com/usecannon/cannon/issues/424)) ([2f99df5](https://github.com/usecannon/cannon/commit/2f99df57d599653f86594ac889a0c30f8fb74c21))
+* package name validations ([#471](https://github.com/usecannon/cannon/issues/471)) ([e4aef62](https://github.com/usecannon/cannon/commit/e4aef62f98ca4364bfb8efc432222f6909c5d082))
+* remove anvil from inspect command and add support for invoke target string ([#364](https://github.com/usecannon/cannon/issues/364)) ([1dcaffb](https://github.com/usecannon/cannon/commit/1dcaffbbefad4b03841843f8f0f07c7eaf9fe93b))
+* set default evmVersion to paris on Router's in not mainnet networks ([#466](https://github.com/usecannon/cannon/issues/466)) ([a24da85](https://github.com/usecannon/cannon/commit/a24da857b048d6c70c5f756535a518ec55d679ae))
+* tsconfig ([56e7943](https://github.com/usecannon/cannon/commit/56e79439cbda49fd0b49a56738b0c8b7041b5b93))
+* update @synthetixio/router to 3.3.0 ([7110c21](https://github.com/usecannon/cannon/commit/7110c2110b87dbe1a63aece54ec2ed7aab9d0fc5))
+* update @synthetixio/router to 3.3.0 ([4ecd62d](https://github.com/usecannon/cannon/commit/4ecd62d7565edf7aff92e7c07cb3e5a27d08f617))
+
 ## [2.9.1](https://github.com/usecannon/cannon/compare/v2.9.0...v2.9.1) (2023-10-31)
 
 
