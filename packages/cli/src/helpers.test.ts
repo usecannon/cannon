@@ -78,6 +78,8 @@ function getContractsAndDetailsTestCases() {
               contractName: 'Contract1',
               sourceName: 'Source1',
               deployedOn: 'date1',
+              gasUsed: 1,
+              gasCost: "1"
             },
           },
         },

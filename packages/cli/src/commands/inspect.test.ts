@@ -95,6 +95,8 @@ describe('inspect', () => {
         sourceName: 'TokenSource',
         deployedOn: '2023-10-16',
         highlight: true,
+        gasUsed: 1,
+        gasCost: "1"
       },
     };
 
