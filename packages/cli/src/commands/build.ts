@@ -404,13 +404,13 @@ export async function build({
       console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       console.log('');
       console.log(
-        'Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.'
+        '- Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.'
       );
-      console.log('To re-run executed steps, add the --wipe flag to the build command.');
-      console.log(`Your partial deployment can be accessed from the URL: ${deployUrl}`);
-      console.log('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.');
+      console.log('- To re-run executed steps, add the --wipe flag to the build command.');
+      console.log(`- Your partial deployment can be accessed from the URL: ${deployUrl}`);
+      console.log('- Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.');
       console.log(
-        'Use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
+        '- Use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {
       const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
