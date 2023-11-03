@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import fs from 'fs-extra';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -10,10 +9,7 @@ const stepRegex = RegExp(/^[\w-]+\.[\w-]+$/, 'i');
 export const runSchema = z
   .object({
     /** The javascript (or typescript) file to load  */
-    exec: z
-      .string()
-      .refine((val) => fs.statSync(val).isFile())
-      .describe('The javascript (or typescript) file to load'),
+    exec: z.string().describe('The javascript (or typescript) file to load'),
     /** The function to call in this file  */
     func: z.string().describe('The function to call in this file'),
     /**
@@ -21,7 +17,7 @@ export const runSchema = z
      * The cache of the cannonfile's build is recreated when these files change.
      */
     modified: z
-      .array(z.string().refine((val) => fs.statSync(val).isFile() || fs.statSync(val).isDirectory()))
+      .array(z.string())
       .nonempty()
       .describe(
         "An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change."
