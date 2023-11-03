@@ -13,11 +13,9 @@ import {
   registerAction,
   PackageState,
 } from '@usecannon/builder';
-import { createRunSchema } from '../schemas.zod';
+import { runSchema } from '../schemas.zod';
 
 const debug = Debug('cannon:builder:run');
-
-const runSchema = createRunSchema(fs);
 
 interface ErrorWithCode extends Error {
   code: string;
@@ -82,6 +80,12 @@ const runAction = {
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
+      if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
+        throw new Error(
+          'Invalid elements in `modified` variable of `run` step. Only paths to existing files and directories are allowed.'
+        );
+      }
+
       try {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
@@ -153,6 +157,10 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    if (!fs.statSync(config.exec).isFile()) {
+      throw new Error('Invalid value in `exec` variable of `run` step. Only path to existing file is allowed.');
+    }
 
     const runfile = await importFrom(process.cwd(), config.exec);
 
