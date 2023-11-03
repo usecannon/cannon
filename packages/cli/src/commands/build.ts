@@ -1,30 +1,30 @@
-import _ from 'lodash';
-import { ethers } from 'ethers';
-import { bold, yellow, red, gray, yellowBright, green, cyanBright, magenta } from 'chalk';
 import {
+  build as cannonBuild,
   CANNON_CHAIN_ID,
+  CannonRegistry,
+  CannonWrapperGenericProvider,
+  ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
-  Events,
-  ChainBuilderRuntime,
-  build as cannonBuild,
   createInitialContext,
-  getOutputs,
   DeploymentInfo,
-  CannonWrapperGenericProvider,
+  Events,
+  getContractFromPath,
+  getOutputs,
 } from '@usecannon/builder';
+import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import { ethers } from 'ethers';
+import _ from 'lodash';
+import { table } from 'table';
+import pkg from '../../package.json';
 import { chains } from '../chains';
 import { readMetadataCache } from '../helpers';
-import { PackageSpecification } from '../types';
-import { CannonRegistry, getContractFromPath } from '@usecannon/builder';
-import { resolveCliSettings } from '../settings';
-import { createDefaultReadRegistry } from '../registry';
-
-import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
-
-import pkg from '../../package.json';
-import { table } from 'table';
+import { listInstalledPlugins, loadPlugins } from '../plugins';
+import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -49,6 +49,8 @@ interface Params {
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
+  writeScript?: string;
+  writeScriptFormat?: WriteScriptFormat;
 }
 
 export async function build({
@@ -71,6 +73,8 @@ export async function build({
   gasPrice,
   gasFee,
   priorityGasFee,
+  writeScript,
+  writeScriptFormat = 'ethers',
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -142,6 +146,8 @@ export async function build({
     cliSettings.ipfsUrl ? 'ipfs' : 'file'
   );
 
+  const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
+
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
     console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
@@ -156,7 +162,7 @@ export async function build({
       )
     );
   });
-  runtime.on(Events.PostStepExecute, (t, n, o, c, ctx, d) => {
+  runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       console.log(
@@ -350,6 +356,10 @@ export async function build({
   }
 
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+
+  if (writeScript) {
+    await dump!.end();
+  }
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
