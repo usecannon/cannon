@@ -159,7 +159,7 @@ const runAction = {
     debug('exec', config);
 
     if (!fs.statSync(config.exec).isFile()) {
-      throw new Error('Invalid value in `exec` variable of `run` step. Only path to existing file is allowed.');
+      throw new Error(`Invalid "exec" value for "run" step. Path "${config.exec}" not found.');
     }
 
     const runfile = await importFrom(process.cwd(), config.exec);
