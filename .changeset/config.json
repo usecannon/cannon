@@ -3,9 +3,9 @@
   "changelog": "@changesets/cli/changelog",
   "commit": true,
   "fixed": [],
-  "linked": [],
+  "linked": [["@usecannon/cli"], ["@usecannon/builder"], ["hardhat-cannon"]],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["registry", "registry-subgraph", "website"]
+  "ignore": ["cannon-registry", "cannon-registry-subgraph", "cannon-website"]
 }
