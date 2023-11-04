@@ -119,11 +119,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const signers = getHardhatSigners(hre, provider);
 
-      const getSigner = async (addr: string) => {
-        addr = addr.toLowerCase();
+      const getSigner = async (address: string) => {
+        const addr = ethers.utils.getAddress(address);
         for (const signer of signers) {
-          const signerAddr = await signer.getAddress();
-          if (addr === signerAddr.toLowerCase()) return signer.connect(provider);
+          if (addr === (await signer.getAddress())) {
+            return signer.connect(provider);
+          }
         }
       };
 

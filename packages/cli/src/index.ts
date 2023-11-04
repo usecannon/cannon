@@ -199,6 +199,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       chainId = opts.chainId;
     }
+
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
@@ -226,7 +227,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       provider = p.provider;
 
-      getSigner = async (s) => {
+      getSigner = async (address) => {
+        const s = ethers.utils.getAddress(address);
+
         for (const signer of p.signers) {
           if ((await signer.getAddress()) === s) {
             return signer;
@@ -274,6 +277,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   return [node, outputs];
 }
+
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
