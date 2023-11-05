@@ -287,8 +287,8 @@ export default function SettingsPage() {
           <Heading size="md" mb={3}>
             IPFS
           </Heading>
-          <FormControl mb="4">
-            <FormLabel>IPFS Query URL</FormLabel>
+          <FormControl>
+            <FormLabel>HTTP API URL</FormLabel>
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
@@ -307,32 +307,18 @@ export default function SettingsPage() {
               >
                 IPFS HTTP Gateway URL
               </Link>{' '}
-              used to fetch package data.
-            </FormHelperText>
-          </FormControl>
-          <FormControl>
-            <FormLabel>IPFS Pinning URL</FormLabel>
-            <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
-              value={settings.ipfsUrl}
-              type={'text'}
-              name={'ipfsUrl'}
-              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
-            />
-            <FormHelperText color="gray.300">
-              This is a{' '}
+              or a{' '}
               <Link
                 isExternal
                 href="https://docs.ipfs.tech/reference/kubo/rpc/"
               >
                 Kubo RPC API URL
               </Link>
-              , which is required by the{' '}
+              . It must be a Kubo RPC API URL to publish packages using the{' '}
               <Link as={NextLink} href="/deploy">
                 deployer
-              </Link>{' '}
-              to publish packages.
+              </Link>
+              .
             </FormHelperText>
           </FormControl>
         </Box>
