@@ -29,7 +29,7 @@ import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { format } from 'date-fns';
-import { InfoIcon, ViewIcon, DownloadIcon } from '@chakra-ui/icons';
+import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
@@ -46,12 +46,6 @@ export const DeploymentExplorer: FC<{
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
     : undefined;
-
-  const {
-    isOpen: isDeploymentDataModalOpen,
-    onOpen: openDeploymentDataModal,
-    onClose: closeDeploymentDataModal,
-  } = useDisclosure();
 
   const {
     isOpen: isPackageJsonModalOpen,
@@ -472,7 +466,7 @@ export const DeploymentExplorer: FC<{
                     <Thead>
                       <Tr>
                         <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Function
+                          Step
                         </Th>
                         <Th color="gray.300" borderColor="gray.500">
                           Transaction Hash
@@ -483,7 +477,7 @@ export const DeploymentExplorer: FC<{
                       {Object.entries(invokeState).map(([key, value]) => (
                         <Tr key={key}>
                           <Td pl={0} borderColor="gray.500">
-                            {key?.toString()}
+                            [invoke.{key?.toString()}]
                           </Td>
                           <Td borderColor="gray.500">{value.hash}</Td>
                         </Tr>
@@ -547,38 +541,60 @@ export const DeploymentExplorer: FC<{
           >
             <Box mb={4}>
               <Heading size="md" mb={1}>
-                Deployment Data
+                Package Data
               </Heading>
               <Text fontSize="sm" color="gray.300">
-                This is the source of the data displayed above.
+                These files contain all of the data relevant to this package.
               </Text>
             </Box>
-            <Box mb={3}>
-              {variant?.deploy_url && <IpfsUrl url={variant.deploy_url} />}
-            </Box>
-            <Button
-              variant="outline"
-              colorScheme="white"
-              onClick={openDeploymentDataModal}
-              leftIcon={<ViewIcon />}
-            >
-              View Deployment Data
-            </Button>
+            <Box mb={3}></Box>
 
-            <Modal
-              isOpen={isDeploymentDataModalOpen}
-              onClose={closeDeploymentDataModal}
-              size="6xl"
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalCloseButton />
-                <CodePreview
-                  code={JSON.stringify(deploymentInfo, null, 2)}
-                  language="json"
-                />
-              </ModalContent>
-            </Modal>
+            <Box overflowX="auto">
+              <Table variant="simple" size="sm">
+                <Thead>
+                  <Tr>
+                    <Th color="gray.300" pl={0} borderColor="gray.500">
+                      Name
+                    </Th>
+                    <Th color="gray.300" borderColor="gray.500">
+                      Value
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {variant?.deploy_url && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Deployment Data
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={variant.deploy_url} />
+                      </Td>
+                    </Tr>
+                  )}
+                  {deploymentInfo?.miscUrl && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Package Code
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={deploymentInfo.miscUrl} />
+                      </Td>
+                    </Tr>
+                  )}
+                  {variant?.meta_url && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Metadata
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={variant.meta_url} />
+                      </Td>
+                    </Tr>
+                  )}
+                </Tbody>
+              </Table>
+            </Box>
           </Box>
         </Container>
       ) : (
