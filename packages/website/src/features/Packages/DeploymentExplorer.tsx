@@ -233,48 +233,50 @@ export const DeploymentExplorer: FC<{
             )}
           </Box>
           <Box mb={6}>
-            <Heading size="md" mb={1}>
-              Chain Definition{' '}
-              <Tooltip
-                label="The chain definition describes the desired state of the blockchain based on a Cannonfile."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
-            {!isEmpty(deploymentInfo?.meta) && (
-              <>
-                <Box mb={2}>
-                  <Link
-                    isExternal
-                    styleConfig={{ 'text-decoration': 'none' }}
-                    borderBottom="1px dotted"
-                    borderBottomColor="gray.300"
-                    onClick={openPackageJsonModal}
-                    color="gray.300"
-                    fontSize="xs"
-                    fontFamily="mono"
-                  >
-                    View package.json Data
-                  </Link>
-                </Box>
-                <Modal
-                  isOpen={isPackageJsonModalOpen}
-                  onClose={closePackageJsonModal}
-                  size="6xl"
+            <Box mb={3}>
+              <Heading size="md" mb={1}>
+                Chain Definition{' '}
+                <Tooltip
+                  label="The chain definition describes the desired state of the blockchain based on a Cannonfile."
+                  placement="right"
+                  hasArrow
                 >
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalCloseButton />
-                    <CodePreview
-                      code={JSON.stringify(deploymentInfo?.meta, null, 2)}
-                      language="json"
-                    />
-                  </ModalContent>
-                </Modal>
-              </>
-            )}
+                  <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
+                </Tooltip>
+              </Heading>
+              {!isEmpty(deploymentInfo?.meta) && (
+                <>
+                  <Box>
+                    <Link
+                      isExternal
+                      styleConfig={{ 'text-decoration': 'none' }}
+                      borderBottom="1px dotted"
+                      borderBottomColor="gray.300"
+                      onClick={openPackageJsonModal}
+                      color="gray.300"
+                      fontSize="xs"
+                      fontFamily="mono"
+                    >
+                      View package.json Data
+                    </Link>
+                  </Box>
+                  <Modal
+                    isOpen={isPackageJsonModalOpen}
+                    onClose={closePackageJsonModal}
+                    size="6xl"
+                  >
+                    <ModalOverlay />
+                    <ModalContent>
+                      <ModalCloseButton />
+                      <CodePreview
+                        code={JSON.stringify(deploymentInfo?.meta, null, 2)}
+                        language="json"
+                      />
+                    </ModalContent>
+                  </Modal>
+                </>
+              )}
+            </Box>
             <Box overflowX="auto" mb={6}>
               <Table variant="simple" size="sm">
                 <Thead>
@@ -287,7 +289,7 @@ export const DeploymentExplorer: FC<{
                     </Th>
                   </Tr>
                 </Thead>
-                <Tbody>
+                <Tbody fontFamily={'mono'}>
                   {Object.entries(settings).map(([key, value]) => (
                     <Tr key={key}>
                       <Td pl={0} borderColor="gray.500">
@@ -317,8 +319,8 @@ export const DeploymentExplorer: FC<{
               </Table>
             </Box>
             {deploymentInfo?.def?.import && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Package Data Imports
                 </Heading>
                 <ChainDefinitionSteps
@@ -328,8 +330,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.provision && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Package Provisioning
                 </Heading>
                 <ChainDefinitionSteps
@@ -339,8 +341,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.router && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Router Generation
                 </Heading>
                 <ChainDefinitionSteps
@@ -350,8 +352,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.contract && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Contract Deployments
                 </Heading>
                 <ChainDefinitionSteps
@@ -361,8 +363,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.invoke && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Function Calls
                 </Heading>
                 <ChainDefinitionSteps
@@ -405,7 +407,7 @@ export const DeploymentExplorer: FC<{
                             </Th>
                           </Tr>
                         </Thead>
-                        <Tbody>
+                        <Tbody fontFamily={'mono'}>
                           {Object.entries(contractState).map(([key, value]) => (
                             <Tr key={key}>
                               <Td pl={0} borderColor="gray.500">
@@ -454,7 +456,7 @@ export const DeploymentExplorer: FC<{
                         </Th>
                       </Tr>
                     </Thead>
-                    <Tbody>
+                    <Tbody fontFamily={'mono'}>
                       {Object.entries(invokeState).map(([key, value]) => (
                         <Tr key={key}>
                           <Td pl={0} borderColor="gray.500">
@@ -471,9 +473,9 @@ export const DeploymentExplorer: FC<{
             {!isEmpty(mergedExtras) && (
               <Box mb={4}>
                 <Heading size="sm" mb={2}>
-                  Extra Data{' '}
+                  Stored Event Data{' '}
                   <Tooltip
-                    label="This includes event data captured during the build to be referenced in subsequent steps."
+                    label="This includes event data captured during the build, to be referenced in dependent steps."
                     placement="right"
                     hasArrow
                   >
@@ -497,7 +499,7 @@ export const DeploymentExplorer: FC<{
                         </Th>
                       </Tr>
                     </Thead>
-                    <Tbody>
+                    <Tbody fontFamily={'mono'}>
                       {Object.entries(mergedExtras).map(([key, value]) => (
                         <Tr key={key}>
                           <Td pl={0} borderColor="gray.500">
