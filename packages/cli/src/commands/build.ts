@@ -414,19 +414,24 @@ export async function build({
       console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       console.log('');
       console.log(
-        '- Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.'
+        '- Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps. (To re-run executed steps, add the --wipe flag to the build command.)'
       );
-      console.log('- To re-run executed steps, add the --wipe flag to the build command.');
-      console.log(`- Your partial deployment can be accessed from the URL: ${deployUrl}`);
-      console.log('- Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.');
+      console.log(`- Your partial deployment has been stored to ${deployUrl}`);
       console.log(
-        '- Use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
+        '- Run ' +
+          bold(`cannon publish ${deployUrl}`) +
+          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {
       const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
-      console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
-      console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
-      console.log('');
+      if (chainId == 13370) {
+        console.log(bold(`💥 ${packageRef} built for Cannon (Chain ID: ${chainId})`));
+        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+      } else {
+        console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
+        console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+      }
+      console.log();
 
       console.log(
         `The following package data has been stored to ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}`

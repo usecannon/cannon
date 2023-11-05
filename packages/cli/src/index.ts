@@ -383,13 +383,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Please provide a Private Key',
+      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
       validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
     });
 
     if (!keyPrompt.value) {
-      console.log('Private Key is required.');
+      console.log('A valid private key is required.');
       process.exit(1);
     }
 
