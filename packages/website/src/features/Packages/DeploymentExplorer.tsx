@@ -230,18 +230,24 @@ export const DeploymentExplorer: FC<{
               </Tooltip>
             )}
           </Box>
-          <Box mb={6}>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
             <Box mb={3}>
-              <Heading size="md" mb={4}>
-                Chain Definition{' '}
-                <Tooltip
-                  label="The chain definition describes the desired state of the blockchain based on a Cannonfile."
-                  placement="right"
-                  hasArrow
-                >
-                  <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-                </Tooltip>
-              </Heading>
+              <Box mb={4}>
+                <Heading size="md" mb={1}>
+                  Chain Definition
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  The chain definition describes the desired state of the
+                  blockchain based on a Cannonfile.
+                </Text>
+              </Box>
               <Box mb={6}>
                 <Heading size="sm" mb={2}>
                   Settings
@@ -386,17 +392,22 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Box>
-          <Box mb={6}>
-            <Heading size="md" mb={3}>
-              Chain State{' '}
-              <Tooltip
-                label="The chain state describes the state of blockchain resulting from the build."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
+            <Box mb={4}>
+              <Heading size="md" mb={1}>
+                Chain State
+              </Heading>
+              <Text fontSize="sm" color="gray.300">
+                The chain state includes data recorded during the build.
+              </Text>
+            </Box>
             <Box mb={4}>
               {!isEmpty(contractState) && (
                 <>
@@ -483,7 +494,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {!isEmpty(mergedExtras) && (
-              <Box mb={4}>
+              <Box>
                 <Heading size="sm" mb={2}>
                   Stored Event Data{' '}
                   <Tooltip
@@ -526,27 +537,33 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Box>
-          <Box mb={6}>
-            <Heading size="md" mb={4}>
-              Deployment Data{' '}
-              <Tooltip
-                label="This is the source of the data displayed above."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
+            <Box mb={4}>
+              <Heading size="md" mb={1}>
+                Deployment Data
+              </Heading>
+              <Text fontSize="sm" color="gray.300">
+                This is the source of the data displayed above.
+              </Text>
+            </Box>
+            <Box mb={3}>
+              {variant?.deploy_url && <IpfsUrl url={variant.deploy_url} />}
+            </Box>
             <Button
               variant="outline"
               colorScheme="white"
               onClick={openDeploymentDataModal}
-              mb={3}
               leftIcon={<ViewIcon />}
             >
               View Deployment Data
             </Button>
-            {variant?.deploy_url && <IpfsUrl url={variant.deploy_url} />}
 
             <Modal
               isOpen={isDeploymentDataModalOpen}
