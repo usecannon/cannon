@@ -159,6 +159,12 @@ export function SafeAddressInput() {
       ...provided,
       background: 'black',
     }),
+    control: (provided) => ({
+      ...provided,
+      '& hr.chakra-divider': {
+        borderColor: 'whiteAlpha.400',
+      },
+    }),
   };
 
   return (
