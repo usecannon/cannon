@@ -47,9 +47,9 @@ export const DocsLandingPage = () => {
           Quick Overview
         </Heading>
         <Text mb={4}>
-          <strong>Cannon</strong> is a DevOps tool for Ethereum. It manages
-          protocol and smart contract deployments for local development and live
-          networks.
+          <strong>Cannon</strong> is a DevOps tool for protocols on Ethereum. It
+          manages protocol and smart contract deployments for local development
+          and live networks.
         </Text>
         <Text mb={4}>
           Drawing inspiration from <em>Infrastructure as Code</em> tools like
@@ -62,8 +62,8 @@ export const DocsLandingPage = () => {
         <Text mb={4}>
           Cannonfiles describe the desired state of a blockchain (rather than a
           list of transactions to execute). For example, you may want a chain to
-          have particular smart contracts deployed with certain functions called
-          on them.
+          have particular protocols deployed with certain functions called on
+          them.
         </Text>
         <Text mb={4}>
           Then you can <strong>build</strong> the chain into this state using
