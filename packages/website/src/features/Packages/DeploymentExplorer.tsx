@@ -402,12 +402,25 @@ export const DeploymentExplorer: FC<{
                 The chain state includes data recorded during the build.
               </Text>
             </Box>
-            <Box mb={4}>
+            <Box mb={2}>
+              <Heading size="sm" mb={2}>
+                Contract Deployments
+              </Heading>
+              <Button
+                variant="outline"
+                colorScheme="white"
+                mb={4}
+                size="xs"
+                color="gray.300"
+                borderColor="gray.500"
+                _hover={{ bg: 'gray.700' }}
+                leftIcon={<DownloadIcon />}
+                onClick={handleDownload}
+              >
+                Download Addresses + ABIs
+              </Button>
               {!isEmpty(contractState) && (
                 <>
-                  <Heading size="sm" mb={2}>
-                    Contract Deployments
-                  </Heading>
                   {Object.entries(contractState).length > 0 && (
                     <Box overflowX="auto" mb={4}>
                       <Table variant="simple" size="sm">
@@ -442,19 +455,6 @@ export const DeploymentExplorer: FC<{
                   )}
                 </>
               )}
-              <Button
-                variant="outline"
-                colorScheme="white"
-                mb={2}
-                size="xs"
-                color="gray.300"
-                borderColor="gray.500"
-                _hover={{ bg: 'gray.700' }}
-                leftIcon={<DownloadIcon />}
-                onClick={handleDownload}
-              >
-                Download Addresses + ABIs
-              </Button>
             </Box>
             {!isEmpty(invokeState) && (
               <Box mb={4}>
@@ -490,7 +490,7 @@ export const DeploymentExplorer: FC<{
             {!isEmpty(mergedExtras) && (
               <Box>
                 <Heading size="sm" mb={2}>
-                  Stored Event Data{' '}
+                  Event Data{' '}
                   <Tooltip
                     label="This includes event data captured during the build, to be referenced in dependent steps."
                     placement="right"
