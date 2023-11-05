@@ -202,11 +202,9 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
           {deploymentInfo?.def?.description && (
-            <Text fontSize="xl" mb={1}>
-              {deploymentInfo.def.description}
-            </Text>
+            <Text fontSize="xl">{deploymentInfo.def.description}</Text>
           )}
-          <Text color="gray.300" fontSize="xs" fontFamily="mono" mb={2}>
+          <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
             {deploymentInfo?.generator &&
               `built with ${deploymentInfo.generator} `}
             {deploymentInfo?.generator &&
@@ -234,7 +232,7 @@ export const DeploymentExplorer: FC<{
           </Box>
           <Box mb={6}>
             <Box mb={3}>
-              <Heading size="md" mb={1}>
+              <Heading size="md" mb={4}>
                 Chain Definition{' '}
                 <Tooltip
                   label="The chain definition describes the desired state of the blockchain based on a Cannonfile."
@@ -244,79 +242,93 @@ export const DeploymentExplorer: FC<{
                   <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
                 </Tooltip>
               </Heading>
-              {!isEmpty(deploymentInfo?.meta) && (
-                <>
-                  <Box>
-                    <Link
-                      isExternal
-                      styleConfig={{ 'text-decoration': 'none' }}
-                      borderBottom="1px dotted"
-                      borderBottomColor="gray.300"
-                      onClick={openPackageJsonModal}
-                      color="gray.300"
-                      fontSize="xs"
-                      fontFamily="mono"
+              <Box mb={6}>
+                <Heading size="sm" mb={2}>
+                  Settings
+                </Heading>
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th color="gray.300" pl={0} borderColor="gray.500">
+                          Setting
+                        </Th>
+                        <Th color="gray.300" borderColor="gray.500">
+                          Value
+                        </Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody fontFamily={'mono'}>
+                      {Object.entries(settings).map(([key, value]) => (
+                        <Tr key={key}>
+                          <Td pl={0} borderColor="gray.500">
+                            <Tooltip label={value.description}>
+                              {key?.toString()}
+                            </Tooltip>
+                          </Td>
+                          <Td borderColor="gray.500">
+                            {value.option ? (
+                              <>
+                                {value.option}{' '}
+                                <Text
+                                  color="gray.500"
+                                  textDecoration="line-through"
+                                  display="inline"
+                                >
+                                  {value.defaultValue}
+                                </Text>
+                              </>
+                            ) : (
+                              <>{value.defaultValue}</>
+                            )}
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+
+                {!isEmpty(deploymentInfo?.meta) && (
+                  <>
+                    <Box mt={1.5}>
+                      <Link
+                        isExternal
+                        styleConfig={{ 'text-decoration': 'none' }}
+                        borderBottom="1px dotted"
+                        borderBottomColor="gray.300"
+                        onClick={openPackageJsonModal}
+                        color="gray.300"
+                        fontSize="xs"
+                        fontFamily="mono"
+                        cursor={'pointer'}
+                      >
+                        package.json
+                      </Link>{' '}
+                      <Tooltip
+                        label="Cannon includes a project's package.json in the Cannonfile context."
+                        placement="right"
+                        hasArrow
+                      >
+                        <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
+                      </Tooltip>
+                    </Box>
+                    <Modal
+                      isOpen={isPackageJsonModalOpen}
+                      onClose={closePackageJsonModal}
+                      size="6xl"
                     >
-                      View package.json Data
-                    </Link>
-                  </Box>
-                  <Modal
-                    isOpen={isPackageJsonModalOpen}
-                    onClose={closePackageJsonModal}
-                    size="6xl"
-                  >
-                    <ModalOverlay />
-                    <ModalContent>
-                      <ModalCloseButton />
-                      <CodePreview
-                        code={JSON.stringify(deploymentInfo?.meta, null, 2)}
-                        language="json"
-                      />
-                    </ModalContent>
-                  </Modal>
-                </>
-              )}
-            </Box>
-            <Box overflowX="auto" mb={6}>
-              <Table variant="simple" size="sm">
-                <Thead>
-                  <Tr>
-                    <Th color="gray.300" pl={0} borderColor="gray.500">
-                      Setting
-                    </Th>
-                    <Th color="gray.300" borderColor="gray.500">
-                      Value
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody fontFamily={'mono'}>
-                  {Object.entries(settings).map(([key, value]) => (
-                    <Tr key={key}>
-                      <Td pl={0} borderColor="gray.500">
-                        <Tooltip label={value.description}>
-                          {key?.toString()}
-                        </Tooltip>
-                      </Td>
-                      <Td borderColor="gray.500">
-                        {value.option ? (
-                          <>
-                            {value.option}{' '}
-                            <Text
-                              color="gray.500"
-                              textDecoration="line-through"
-                              display="inline"
-                            >
-                              {value.defaultValue}
-                            </Text>
-                          </>
-                        ) : (
-                          <>{value.defaultValue}</>
-                        )}
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
+                      <ModalOverlay />
+                      <ModalContent>
+                        <ModalCloseButton />
+                        <CodePreview
+                          code={JSON.stringify(deploymentInfo?.meta, null, 2)}
+                          language="json"
+                        />
+                      </ModalContent>
+                    </Modal>
+                  </>
+                )}
+              </Box>
             </Box>
             {deploymentInfo?.def?.import && (
               <Box mb={4}>
