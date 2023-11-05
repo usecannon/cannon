@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { useStore } from '@/helpers/store';
+import UnderConstruction from '@/features/Packages/Tabs/UnderConstruction';
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -84,6 +85,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           </Flex>
         </Alert>
       )}
+      <UnderConstruction />
       {children}
     </Flex>
   );
