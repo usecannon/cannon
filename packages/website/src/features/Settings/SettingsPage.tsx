@@ -300,15 +300,14 @@ export default function SettingsPage() {
               }
             />
             <FormHelperText color="gray.300">
-              This is used to fetch package data. You can use a public gateway,
-              a paid gateway, or a{' '}
+              This is an{' '}
               <Link
                 isExternal
-                href="https://docs.ipfs.tech/install/ipfs-desktop/"
+                href="https://docs.ipfs.tech/reference/http/gateway/"
               >
-                local node
-              </Link>
-              .
+                IPFS HTTP Gateway URL
+              </Link>{' '}
+              used to fetch package data.
             </FormHelperText>
           </FormControl>
           <FormControl>
@@ -322,15 +321,18 @@ export default function SettingsPage() {
               onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
             />
             <FormHelperText color="gray.300">
-              This is required by the{' '}
+              This is a{' '}
+              <Link
+                isExternal
+                href="https://docs.ipfs.tech/reference/kubo/rpc/"
+              >
+                Kubo RPC API URL
+              </Link>
+              , which is required by the{' '}
               <Link as={NextLink} href="/deploy">
                 deployer
               </Link>{' '}
-              to publish packages. Consider using a pinning service like{' '}
-              <Link isExternal href="https://www.pinata.cloud/">
-                Pinata
-              </Link>
-              .
+              to publish packages.
             </FormHelperText>
           </FormControl>
         </Box>
