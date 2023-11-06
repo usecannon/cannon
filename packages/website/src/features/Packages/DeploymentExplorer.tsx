@@ -187,10 +187,11 @@ export const DeploymentExplorer: FC<{
             Fetching {variant?.deploy_url}
           </Text>
           <Text color="gray.500" fontSize="xs">
-            Taking a while?{' '}
+            This could take a minute. You can also{' '}
             <Link href={links.SETTINGS} as={NextLink}>
-              Try another IPFS gateway
+              try another IPFS gateway
             </Link>
+            .
           </Text>
         </Box>
       ) : deploymentInfo ? (
