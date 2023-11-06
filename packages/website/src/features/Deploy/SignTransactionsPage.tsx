@@ -7,14 +7,9 @@ import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { useStore } from '@/helpers/store';
 import { Transaction } from './Transaction';
-import WithSafe from './WithSafe';
 
 export default function SignTransactionsPage() {
-  return (
-    <WithSafe>
-      <SignTransactions />
-    </WithSafe>
-  );
+  return <SignTransactions />;
 }
 
 function SignTransactions() {
@@ -28,7 +23,7 @@ function SignTransactions() {
   };
 
   return (
-    <Container maxW="container.md">
+    <Container maxW="container.md" py={8}>
       <Box mb="10">
         <FormLabel mb="3">Queued Transactions</FormLabel>
         {currentSafe &&

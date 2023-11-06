@@ -116,7 +116,13 @@ export default function SettingsPage() {
   return (
     <Container maxW="100%" w="container.md">
       <Box>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          my="10"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
@@ -385,7 +391,13 @@ export default function SettingsPage() {
             Reset to default
           </Button>
         </Flex>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          my="10"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
