@@ -315,7 +315,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
       if (!pkgUrl) return null;
 
-      const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
+      const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://repo.usecannon.com/');
 
       const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -379,7 +379,7 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
+        const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://repo.usecannon.com/');
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,

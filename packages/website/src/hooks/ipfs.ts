@@ -14,14 +14,28 @@ export function useQueryIpfsData(url?: string, enabled?: boolean) {
         throw new Error(`Invalid IPFS url: ${url}`);
       }
       const cid = url.replace('ipfs://', '');
-      const queryUrl = `${settings.ipfsQueryUrl}${cid}`;
-      const res = await axios.get(queryUrl, {
-        responseType: 'arraybuffer',
-        signal,
-      });
+      const ipfsQueryUrl = settings.ipfsQueryUrl.endsWith('/') ? settings.ipfsQueryUrl : settings.ipfsQueryUrl + '/';
+
+      const kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
+      addLog(`Querying IPFS: ${kuboQueryUrl}`);
+
+      const res = await axios
+        .post(kuboQueryUrl, null, {
+          responseType: 'arraybuffer',
+          signal,
+        })
+        .catch(async (err) => {
+          addLog(`IPFS Error: ${err.message}`);
+          const gatewayQueryUrl = `${ipfsQueryUrl}${cid}`;
+          addLog(`Querying IPFS as HTTP gateway: ${gatewayQueryUrl}`);
+          return await axios.get(gatewayQueryUrl, {
+            responseType: 'arraybuffer',
+            signal,
+          });
+        });
+
       const data = pako.inflate(res.data, { to: 'string' });
       const result = JSON.parse(data);
-      addLog(`Querying IPFS: ${queryUrl}`);
       return result;
     },
     enabled,
