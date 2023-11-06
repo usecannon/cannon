@@ -278,6 +278,10 @@ export class ChainDefinition {
 
     const n = node.split('.')[0];
 
+    if (!ActionKinds[n]) {
+      throw new Error(`Unrecognized action type ${n} at [${node}]`);
+    }
+
     if (ActionKinds[n].getInputs) {
       for (const input of ActionKinds[n].getInputs!(_.get(this.raw, node), { name: '', version: '', currentLabel: node })) {
         debug(`deps: ${node} consumes ${input}`);
