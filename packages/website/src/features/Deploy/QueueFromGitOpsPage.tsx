@@ -12,6 +12,7 @@ import {
   FormLabel,
   HStack,
   Input,
+  Link,
   Select,
   Spinner,
   Text,
@@ -22,7 +23,7 @@ import {
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   encodeAbiParameters,
   encodeFunctionData,
@@ -55,14 +56,11 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import WithSafe from './WithSafe';
+import { some, omit } from 'lodash';
+import NextLink from 'next/link';
 
 export default function QueueFromGitOpsPage() {
-  return (
-    <WithSafe>
-      <QueueFromGitOps />
-    </WithSafe>
-  );
+  return <QueueFromGitOps />;
 }
 
 function QueueFromGitOps() {
@@ -70,7 +68,7 @@ function QueueFromGitOps() {
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
-    onchainStore.deployTxn as any
+    onchainStore.deployTxn as any,
   );
   const deployOnChainStore = useSendTransaction({
     ...prepareDeployOnchainStore.config,
@@ -97,7 +95,7 @@ function QueueFromGitOps() {
   if (refsInfo.refs && !gitBranch) {
     const headCommit = refsInfo.refs.find((r) => r.ref === 'HEAD');
     const headBranch = refsInfo.refs.find(
-      (r) => r.oid === headCommit?.oid && r !== headCommit
+      (r) => r.oid === headCommit?.oid && r !== headCommit,
     );
 
     if (headBranch) {
@@ -133,15 +131,15 @@ function QueueFromGitOps() {
 
   const cannonPkgLatestInfo = useCannonPackage(
     (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-${settings.preset}`,
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
       `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
-        ctx
+        ctx,
       )}`) ??
       '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-${settings.preset}`,
   );
 
   const prevDeployLocation =
@@ -150,7 +148,7 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
+    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : '',
   );
 
   // run the build and get the list of transactions we need to run
@@ -158,7 +156,7 @@ function QueueFromGitOps() {
     currentSafe as any,
     cannonDefInfo.def as any,
     prevCannonDeployInfo.pkg as any,
-    false
+    false,
   );
 
   const buildTransactions = () => {
@@ -174,7 +172,7 @@ function QueueFromGitOps() {
       meta: prevCannonDeployInfo.pkg?.meta,
       miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
     } as any,
-    prevCannonDeployInfo.metaUrl as any
+    prevCannonDeployInfo.metaUrl as any,
   );
 
   useEffect(() => {
@@ -187,7 +185,7 @@ function QueueFromGitOps() {
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
-    gitUrl + ':' + gitFile
+    gitUrl + ':' + gitFile,
   );
 
   console.log(' the prev info query data is', prevInfoQuery.data);
@@ -214,7 +212,7 @@ function QueueFromGitOps() {
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
                   ],
-                ]
+                ],
               ),
             } as Partial<TransactionRequestBase>,
             // write data needed for the subsequent deployment to chain
@@ -242,9 +240,9 @@ function QueueFromGitOps() {
             } as Partial<TransactionRequestBase>,
           ].concat(
             buildInfo.buildResult.steps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>
-            )
-          )
+              (s) => s.tx as unknown as Partial<TransactionRequestBase>,
+            ),
+          ),
         )
       : { value: BigInt(0) };
 
@@ -278,7 +276,7 @@ function QueueFromGitOps() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -318,162 +316,194 @@ function QueueFromGitOps() {
     );
   }
 
+  const pathname = usePathname();
+
+  const missingSettings = some(
+    omit(settings, 'forkProviderUrl'),
+    (value) => !value,
+  );
+
+  const showSettingsAlert =
+    (pathname.includes('/transactions') || pathname.includes('/gitops')) &&
+    missingSettings;
+
   return (
-    <Container maxWidth="container.md" pb="12">
-      <FormControl mb="8">
-        <FormLabel>GitOps Repository</FormLabel>
-        <HStack>
-          <Input
-            type="text"
-            placeholder="https://github.com/myorg/myrepo"
-            value={gitUrl}
-            borderColor="whiteAlpha.400"
-            background="black"
-            onChange={(evt: any) => setGitUrl(evt.target.value)}
-          />
-          <Flex height="40px">
-            {gitDirList.readdirQuery.isLoading ? (
-              <Spinner my="auto" ml="2" />
-            ) : (
-              <EditableAutocompleteInput
-                editable
-                color={'white'}
-                placeholder="cannonfile.toml"
-                items={(gitDirList.contents || []).map((d: any) => ({
-                  label: gitDir + d,
-                  secondary: '',
-                }))}
-                onFilterChange={(v) => setGitFile(v)}
-                onChange={(v) => setGitFile(v)}
-              />
-            )}
+    <>
+      {showSettingsAlert && (
+        <Alert bg="gray.700">
+          <Flex mx="auto" flexWrap="wrap" justifyContent="center">
+            <AlertIcon />
+            You must{' '}
+            <Link
+              mx="1"
+              fontWeight="medium"
+              textDecoration="underline"
+              as={NextLink}
+              href={links.SETTINGS}
+            >
+              update your settings
+            </Link>{' '}
+            to queue builds.
           </Flex>
-        </HStack>
-        <FormHelperText color="gray.300">
-          Enter a Git URL and then select the Cannonfile that was modified in
-          the branch chosen below.
-        </FormHelperText>
-      </FormControl>
-      <FormControl mb="8">
-        <FormLabel>Branch</FormLabel>
-        <HStack>
-          <Select
-            borderColor="whiteAlpha.400"
-            background="black"
-            value={gitBranch}
-            onChange={(evt: any) => setGitBranch(evt.target.value)}
-          >
-            {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
-              (r, i) => (
-                <option key={i} value={r.ref}>
-                  {r.ref}
-                </option>
-              )
-            )}
-          </Select>
-        </HStack>
-      </FormControl>
-      {/* TODO: insert/load override settings here */}
-      <FormControl mb="8">
-        <FormLabel>Partial Deployment Data (Optional)</FormLabel>
-        <Input
-          placeholder="Qm..."
-          type="text"
-          value={partialDeployIpfs}
-          borderColor="whiteAlpha.400"
-          background="black"
-          onChange={
-            (evt: any) =>
-              setPartialDeployIpfs(
-                evt.target.value.slice(evt.target.value.indexOf('Qm'))
-              ) /** TODO: handle bafy hash or other hashes */
-          }
-        />
-        <FormHelperText color="gray.300">
-          If this deployment requires transactions executed in other contexts
-          (e.g. contract deployments or function calls using other signers),
-          provide the IPFS hash generated from executing that partial deployment
-          using the build command in the CLI.
-        </FormHelperText>
-      </FormControl>
-      {buildInfo.buildStatus == '' && (
-        <Button
-          width="100%"
-          colorScheme="blue"
-          mb={6}
-          isDisabled={
-            cannonPkgVersionInfo.ipfsQuery.isFetching ||
-            cannonPkgLatestInfo.ipfsQuery.isFetching ||
-            cannonPkgVersionInfo.registryQuery.isFetching ||
-            cannonPkgLatestInfo.registryQuery.isFetching
-          }
-          onClick={() => buildTransactions()}
-        >
-          Preview Transactions to Queue
-        </Button>
-      )}
-      {buildInfo.buildStatus && (
-        <Alert mb="6" status="info">
-          <Spinner mr={3} boxSize={4} />
-          <strong>{buildInfo.buildStatus}</strong>
         </Alert>
-      )}
-      {buildInfo.buildError && (
-        <Alert mb="6" status="error">
-          <AlertIcon mr={3} />
-          <strong>{buildInfo.buildError}</strong>
-        </Alert>
-      )}
-      {multicallTxn.data && stager.safeTxn && (
-        <TransactionDisplay
-          safe={currentSafe as any}
-          safeTxn={stager.safeTxn}
-        />
       )}
 
-      {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-        <Box my="6">
-          <NoncePicker
-            safe={currentSafe as any}
-            onPickedNonce={setPickedNonce}
+      <Container maxWidth="container.md" py={8}>
+        <FormControl mb="8">
+          <FormLabel>GitOps Repository</FormLabel>
+          <HStack>
+            <Input
+              type="text"
+              placeholder="https://github.com/myorg/myrepo"
+              value={gitUrl}
+              borderColor="whiteAlpha.400"
+              background="black"
+              onChange={(evt: any) => setGitUrl(evt.target.value)}
+            />
+            <Flex height="40px">
+              {gitDirList.readdirQuery.isLoading ? (
+                <Spinner my="auto" ml="2" />
+              ) : (
+                <EditableAutocompleteInput
+                  editable
+                  color={'white'}
+                  placeholder="cannonfile.toml"
+                  items={(gitDirList.contents || []).map((d: any) => ({
+                    label: gitDir + d,
+                    secondary: '',
+                  }))}
+                  onFilterChange={(v) => setGitFile(v)}
+                  onChange={(v) => setGitFile(v)}
+                />
+              )}
+            </Flex>
+          </HStack>
+          <FormHelperText color="gray.300">
+            Enter a Git URL and then select the Cannonfile that was modified in
+            the branch chosen below.
+          </FormHelperText>
+        </FormControl>
+        <FormControl mb="8">
+          <FormLabel>Branch</FormLabel>
+          <HStack>
+            <Select
+              borderColor="whiteAlpha.400"
+              background="black"
+              value={gitBranch}
+              onChange={(evt: any) => setGitBranch(evt.target.value)}
+            >
+              {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
+                (r, i) => (
+                  <option key={i} value={r.ref}>
+                    {r.ref}
+                  </option>
+                ),
+              )}
+            </Select>
+          </HStack>
+        </FormControl>
+        {/* TODO: insert/load override settings here */}
+        <FormControl mb="8">
+          <FormLabel>Partial Deployment Data (Optional)</FormLabel>
+          <Input
+            placeholder="Qm..."
+            type="text"
+            value={partialDeployIpfs}
+            borderColor="whiteAlpha.400"
+            background="black"
+            onChange={
+              (evt: any) =>
+                setPartialDeployIpfs(
+                  evt.target.value.slice(evt.target.value.indexOf('Qm')),
+                ) /** TODO: handle bafy hash or other hashes */
+            }
           />
-          <HStack gap="6">
-            {stager.execConditionFailed ? (
-              <Tooltip label={stager.signConditionFailed}>
+          <FormHelperText color="gray.300">
+            If this deployment requires transactions executed in other contexts
+            (e.g. contract deployments or function calls using other signers),
+            provide the IPFS hash generated from executing that partial
+            deployment using the build command in the CLI.
+          </FormHelperText>
+        </FormControl>
+        {buildInfo.buildStatus == '' && (
+          <Button
+            width="100%"
+            colorScheme="teal"
+            mb={6}
+            isDisabled={
+              cannonPkgVersionInfo.ipfsQuery.isFetching ||
+              cannonPkgLatestInfo.ipfsQuery.isFetching ||
+              cannonPkgVersionInfo.registryQuery.isFetching ||
+              cannonPkgLatestInfo.registryQuery.isFetching
+            }
+            onClick={() => buildTransactions()}
+          >
+            Preview Transactions to Queue
+          </Button>
+        )}
+        {buildInfo.buildStatus && (
+          <Alert mb="6" status="info">
+            <Spinner mr={3} boxSize={4} />
+            <strong>{buildInfo.buildStatus}</strong>
+          </Alert>
+        )}
+        {buildInfo.buildError && (
+          <Alert mb="6" status="error">
+            <AlertIcon mr={3} />
+            <strong>{buildInfo.buildError}</strong>
+          </Alert>
+        )}
+        {multicallTxn.data && stager.safeTxn && (
+          <TransactionDisplay
+            safe={currentSafe as any}
+            safeTxn={stager.safeTxn}
+          />
+        )}
+
+        {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
+          <Box my="6">
+            <NoncePicker
+              safe={currentSafe as any}
+              onPickedNonce={setPickedNonce}
+            />
+            <HStack gap="6">
+              {stager.execConditionFailed ? (
+                <Tooltip label={stager.signConditionFailed}>
+                  <Button
+                    isDisabled={!!stager.signConditionFailed}
+                    size="lg"
+                    w="100%"
+                    onClick={() => stager.sign()}
+                  >
+                    Queue &amp; Sign
+                  </Button>
+                </Tooltip>
+              ) : null}
+              <Tooltip label={stager.execConditionFailed}>
                 <Button
-                  isDisabled={!!stager.signConditionFailed}
+                  isDisabled={!!stager.execConditionFailed}
                   size="lg"
                   w="100%"
-                  onClick={() => stager.sign()}
+                  onClick={async () => {
+                    if (execTxn.writeAsync) {
+                      await execTxn.writeAsync();
+                      router.push(links.DEPLOY);
+                      toast({
+                        title: 'You successfully executed the transaction.',
+                        status: 'success',
+                        duration: 5000,
+                        isClosable: true,
+                      });
+                    }
+                  }}
                 >
-                  Queue &amp; Sign
+                  Execute
                 </Button>
               </Tooltip>
-            ) : null}
-            <Tooltip label={stager.execConditionFailed}>
-              <Button
-                isDisabled={!!stager.execConditionFailed}
-                size="lg"
-                w="100%"
-                onClick={async () => {
-                  if (execTxn.writeAsync) {
-                    await execTxn.writeAsync();
-                    router.push(links.DEPLOY);
-                    toast({
-                      title: 'You successfully executed the transaction.',
-                      status: 'success',
-                      duration: 5000,
-                      isClosable: true,
-                    });
-                  }
-                }}
-              >
-                Execute
-              </Button>
-            </Tooltip>
-          </HStack>
-        </Box>
-      )}
-    </Container>
+            </HStack>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 }

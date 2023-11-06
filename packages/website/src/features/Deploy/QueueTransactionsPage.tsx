@@ -39,14 +39,9 @@ import { useStore } from '@/helpers/store';
 import { makeMultisend } from '@/helpers/multisend';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
-import WithSafe from './WithSafe';
 
 export default function QueueTransactionsPage() {
-  return (
-    <WithSafe>
-      <QueueTransactions />
-    </WithSafe>
-  );
+  return <QueueTransactions />;
 }
 
 function QueueTransactions() {
@@ -63,7 +58,7 @@ function QueueTransactions() {
   const settings = useStore((s) => s.settings);
   const cannonInfo = useCannonPackageContracts(
     target,
-    `${currentSafe?.chainId}-${settings.preset}`
+    `${currentSafe?.chainId}-${settings.preset}`,
   );
 
   const multisendTxn =
@@ -74,10 +69,10 @@ function QueueTransactions() {
               to: zeroAddress,
               data: encodeAbiParameters(
                 [{ type: 'string[]' }],
-                [['invoke', cannonInfo.pkgUrl || '']]
+                [['invoke', cannonInfo.pkgUrl || '']],
               ),
             } as Partial<TransactionRequestBase>,
-          ].concat(queuedTxns)
+          ].concat(queuedTxns),
         )
       : null;
 
@@ -119,7 +114,7 @@ function QueueTransactions() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -128,7 +123,7 @@ function QueueTransactions() {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>
+    txn: Omit<TransactionRequestBase, 'from'>,
   ) {
     queuedTxns[i] = txn;
     setQueuedTxns(_.clone(queuedTxns));
@@ -162,7 +157,7 @@ function QueueTransactions() {
     !multisendTxn || txnHasError || !!stager.execConditionFailed;
 
   return (
-    <Container maxWidth="container.md" pb="12">
+    <Container maxWidth="container.md" py={8}>
       <FormControl mb="8">
         <FormLabel>Cannon Package or Contract Address</FormLabel>
         <Input
@@ -235,7 +230,7 @@ function QueueTransactions() {
                 leftIcon={<MinusIcon />}
                 onClick={() =>
                   setQueuedTxns(
-                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1))
+                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1)),
                   )
                 }
               >
