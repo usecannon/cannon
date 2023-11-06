@@ -8,6 +8,7 @@ import { ChainDefinition } from './definition';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
 import { printChainDefinitionProblems } from './util';
+import { redBright } from 'chalk';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
@@ -37,7 +38,7 @@ export async function createInitialContext(
     } else if (pkgSettings[s].defaultValue !== undefined) {
       settings[s] = pkgSettings[s].defaultValue!;
     } else {
-      throw new Error(`required setting not supplied: ${s}`);
+      throw new Error(`Required setting not supplied: ${s}`);
     }
   }
 
@@ -165,8 +166,7 @@ ${printChainDefinitionProblems(problems)}`);
             // make sure its possible to debug the original error
             debug('error', err);
             debugVerbose('context', JSON.stringify(ctx, null, 2));
-
-            console.log(`failure on step ${n}`);
+            console.log(redBright(`\nFailure on step ${n}`));
             throw err;
           }
         }
@@ -259,7 +259,7 @@ export async function buildLayer(
       debug('error', err);
 
       // now log a more friendly message
-      throw new Error(`failure on step ${action}: ${(err as Error).toString()}`);
+      throw new Error(`Failure on step ${action}: ${(err as Error).toString()}`);
     }
   }
 
