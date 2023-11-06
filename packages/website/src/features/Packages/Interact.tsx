@@ -90,7 +90,7 @@ export const Interact: FC<{
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [ipfs]);
 
-  const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+  const deployUrl = `https://repo.usecannon.com/${currentVariant?.deploy_url.replace(
     'ipfs://',
     ''
   )}`;

@@ -67,7 +67,7 @@ const initialState = {
     forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
-    ipfsQueryUrl: 'https://ipfs.io/ipfs/',
+    ipfsQueryUrl: 'https://repo.usecannon.com/',
   },
 } satisfies State;
 
