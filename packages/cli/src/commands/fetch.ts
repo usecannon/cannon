@@ -9,11 +9,12 @@ import {
   ChainDefinition,
   createInitialContext,
 } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from '../constants';
 import Debug from 'debug';
 import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
+
+import { getCannonRepoRegistryUrl } from './../constants';
 
 const debug = Debug('cannon:cli:clean');
 
@@ -50,7 +51,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   const storage = new CannonStorage(localRegistry, {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || DEFAULT_REGISTRY_IPFS_ENDPOINT),
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
   });
 
   console.log(blueBright('Fetching IPFS data from: '));

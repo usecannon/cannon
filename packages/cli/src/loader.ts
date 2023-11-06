@@ -4,8 +4,9 @@ import path from 'path';
 import fs from 'fs-extra';
 import crypto from 'crypto';
 import { CliSettings } from './settings';
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
 import debug from 'debug';
+
+import { getCannonRepoRegistryUrl } from './constants';
 
 export class LocalLoader implements CannonLoader {
   dir: string;
@@ -51,7 +52,7 @@ export class LocalLoader implements CannonLoader {
 
 export function getMainLoader(cliSettings: CliSettings) {
   return {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl || DEFAULT_REGISTRY_IPFS_ENDPOINT),
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl || getCannonRepoRegistryUrl()),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }
