@@ -1,5 +1,7 @@
 'use client';
 
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { useCannonfileSpecs } from '@/hooks/cannonfileSpecs';
 import {
   Flex,
   Box,
@@ -116,6 +118,12 @@ export const DocsCannonfilesPage: FC = () => {
     md: false,
   });
 
+  const cannonfileSpecs = useCannonfileSpecs();
+
+  if (!cannonfileSpecs) {
+    return <CustomSpinner m="auto" />;
+  }
+
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
@@ -135,20 +143,19 @@ export const DocsCannonfilesPage: FC = () => {
               links={[
                 { href: '#cannonfile-metadata', text: 'Cannonfile Metadata' },
                 { href: '#constants', text: 'Constants' },
-                { href: '#setting', text: 'setting' },
-                { href: '#contract', text: 'contract' },
-                { href: '#invoke', text: 'invoke' },
-                { href: '#import', text: 'import' },
-                { href: '#provision', text: 'provision' },
-                { href: '#router', text: 'router' },
-                { href: '#run', text: 'run' },
+                ...Array.from(cannonfileSpecs, ([key]) => key)
+                  .filter((key) => key !== 'metadata')
+                  .map((key) => ({
+                    href: `#${key}`,
+                    text: key as string,
+                  })),
               ]}
             />
             <Section
-              title="Package Specification"
+              title="Package Data Specification"
               links={[
                 { href: '#deployment-data', text: 'Deployment Data' },
-                { href: '#miscellaneous-data', text: 'Miscellaneous Data' },
+                { href: '#package-code', text: 'Package Code' },
                 { href: '#metadata', text: 'Metadata' },
               ]}
             />
@@ -207,7 +214,7 @@ export const DocsCannonfilesPage: FC = () => {
                 desired state. This results in a package, which can be published
                 to the registry. Packages contain three files:{' '}
                 <Link href="#deployment-data">deployment data</Link>,{' '}
-                <Link href="#miscellaneous-data">miscellaneous data</Link>, and{' '}
+                <Link href="#package-code">package code</Link>, and{' '}
                 <Link href="#metadata">metadata</Link>.
               </Text>
             </Box>
@@ -229,30 +236,17 @@ export const DocsCannonfilesPage: FC = () => {
                     #
                   </Link>
                 </Heading>
-                <Text mb="4">Provide metadata for your Cannonfile.</Text>
+                <Text mb="4">
+                  {cannonfileSpecs.get('metadata')?.description}
+                </Text>
                 <CustomTable
-                  data={[
-                    {
-                      key: 'name',
-                      dataType: 'string',
-                      value: 'Name of the package',
-                    },
-                    {
-                      key: 'version',
-                      dataType: 'string',
-                      value: 'version of the package',
-                    },
-                    {
-                      key: 'description?',
-                      dataType: 'string',
-                      value: 'Description for the package',
-                    },
-                    {
-                      key: 'keywords?',
-                      dataType: '[string]',
-                      value: 'keywords for search indexing',
-                    },
-                  ]}
+                  data={
+                    cannonfileSpecs.get('metadata')?.specs.map((spec) => ({
+                      key: spec.name,
+                      dataType: spec.type,
+                      value: spec.description,
+                    })) ?? []
+                  }
                 />
               </Box>
               <Box mb={16} id="constants">
@@ -315,469 +309,34 @@ export const DocsCannonfilesPage: FC = () => {
                   ]}
                 />
               </Box>
-              <Box mb={16} id="setting">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    setting
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#setting'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  A setting is a variable that can be set (or overriden using
-                  the CLI) when building a Cannonfile. It is accessible
-                  elsewhere in the file a property of the <Code>settings</Code>{' '}
-                  object. For example, <Code>[setting.sampleSetting]</Code> can
-                  be referenced with{' '}
-                  <Code>&lt;%= settings.sampleSetting %&gt;</Code>
-                </Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'defaultValue?',
-                      dataType: 'string',
-                      value: '',
-                    },
-                    {
-                      key: 'type?',
-                      dataType: '"string" | "number" | "boolean" | undefined',
-                      value: '',
-                    },
-                    {
-                      key: 'description?',
-                      dataType: 'string',
-                      value: '',
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="contract">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    contract
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#contract'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">Deploy a contract.</Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'artifact',
-                      dataType: 'string',
-                      value: 'Artifact name or path of the target contract',
-                    },
-                    {
-                      key: 'highlight?',
-                      dataType: 'boolean',
-                      value:
-                        'Determines whether contract should get priority in displays',
-                    },
-                    {
-                      key: 'create2?',
-                      dataType: 'boolean',
-                      value:
-                        'Determines whether to deploy the contract using create2',
-                    },
-                    {
-                      key: 'from?',
-                      dataType: 'string',
-                      value:
-                        'Contract deployer address. Must match the ethereum address format',
-                    },
-                    {
-                      key: 'nonce?',
-                      dataType: 'string',
-                      value: '-',
-                    },
-                    {
-                      key: 'abi?',
-                      dataType: 'string',
-                      value: 'Abi of the contract being deployed',
-                    },
-                    {
-                      key: 'abiOf?',
-                      dataType: '[string]',
-                      value:
-                        'An array of contract artifacts that have already been deployed with Cannon. This is useful when deploying proxy contracts.',
-                    },
-                    {
-                      key: 'args?',
-                      dataType:
-                        '(string | number | boolean | (string | number | boolean)[] | string | number | boolean | string | number | boolean[])[]',
-                      value: 'Constructor or initializer args',
-                    },
-                    {
-                      key: 'libraries?',
-                      dataType: 'string',
-                      value:
-                        'An array of contract action names that deploy libraries this contract depends on.',
-                    },
-                    {
-                      key: 'salt?',
-                      dataType: 'string',
-                      value:
-                        'Used to force new copy of a contract (not actually used)',
-                    },
-                    {
-                      key: 'value?',
-                      dataType: 'string',
-                      value: 'Native currency value to send in the transaction',
-                    },
-                    {
-                      key: 'overrides?',
-                      dataType: '{ gasLimit?: string; }',
-                      value: 'Override transaction settings',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value: 'List of steps that this action depends on',
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="invoke">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    invoke
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#invoke'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">Call a function.</Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'target',
-                      dataType: 'Object',
-                      value:
-                        'Names of the contract to call or contract action that deployed the contract to call',
-                    },
-                    {
-                      key: 'func',
-                      dataType: 'string',
-                      value: 'Name of the function to call on the contract',
-                    },
-                    {
-                      key: 'abi?',
-                      dataType: 'string',
-                      value:
-                        'JSON file of the contract ABI Required if the target contains an address rather than a contract action name.',
-                    },
-                    {
-                      key: 'args?',
-                      dataType:
-                        '(string | number | boolean | (string | number | boolean)[] | string | number | boolean | string | number | boolean[])[]',
-                      value: 'Arguments to use when invoking this call.',
-                    },
-                    {
-                      key: 'from?',
-                      dataType: 'string',
-                      value:
-                        'The calling address to use when invoking this call.',
-                    },
-                    {
-                      key: 'fromCall?',
-                      dataType:
-                        '{ func: string; args?: (string | number | boolean | (string | number | boolean)[] | string | number | boolean | string | number | boolean[])[] }',
-                      value:
-                        "Specify a function to use as the 'from' value in a function call. Example owner().",
-                    },
-                    {
-                      key: 'fromCall.func',
-                      dataType: 'string',
-                      value:
-                        'The name of a view function to call on this contract. The result will be used as the from input.',
-                    },
-                    {
-                      key: 'fromCall.args?',
-                      dataType:
-                        '(string | number | boolean | (string | number | boolean)[] | string | number | boolean | string | number | boolean[])[]',
-                      value:
-                        'The arguments to pass into the function being called.',
-                    },
-                    {
-                      key: 'value?',
-                      dataType: 'string',
-                      value:
-                        'The amount of ether/wei to send in the transaction.',
-                    },
-                    {
-                      key: 'overrides?',
-                      dataType: '{ gasLimit: string }',
-                      value: 'Override transaction settings',
-                    },
-                    {
-                      key: 'overrides.gasLimit',
-                      dataType: 'string',
-                      value: 'Gas limit to send along with the transaction',
-                    },
-                    {
-                      key: 'extra?',
-                      dataType:
-                        '{ event: string; arg: number; allowEmptyEvents?: boolean }',
-                      value:
-                        'Object defined to hold extra transaction result data. For now its limited to getting event data so it can be reused in other steps',
-                    },
-                    {
-                      key: 'factory?',
-                      dataType:
-                        '{ event: string; arg: number; artifact?: string; abiOf?: [string]; constructorArgs?: (string | number | boolean | (string | number | boolean)[] | string | number | boolean | string | number | boolean[])[]; allowEmptyEvents?: boolean }',
-                      value:
-                        'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other steps',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value: 'Previous steps this step is dependent on',
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="import">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    import
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#import'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  Import a package from the registry. This will make the output
-                  of that deployment, such as contract addresses, available to
-                  other actions in your Cannonfile. Imported packages must
-                  include deployments with chain ID that matches the chain ID of
-                  the network you are deploying to.
-                </Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'source',
-                      dataType: 'string',
-                      value:
-                        'Source of the cannonfile package to import from. Can be a cannonfile step name or package name',
-                    },
-                    {
-                      key: 'chainId?',
-                      dataType: 'number',
-                      value: 'ID of the chain to import the package from',
-                    },
-                    {
-                      key: 'preset?',
-                      dataType: 'string',
-                      value: 'Preset label of the package being imported',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value:
-                        "Previous steps this step is dependent on. Example in toml: depends = ['contract.Storage', 'import.Contract']",
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="provision">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    provision
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#provision'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  Deploy a new instance of a package from the registry. Packages
-                  may only be provisioned if they include a local,{' '}
-                  <em>Cannon</em> deployment (Chain ID: 13370).
-                </Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'source',
-                      dataType: 'string',
-                      value: 'Name of the package to provision',
-                    },
-                    {
-                      key: 'chainId?',
-                      dataType: 'number',
-                      value:
-                        'ID of the chain to import the package from. Default - 13370',
-                    },
-                    {
-                      key: 'sourcePreset?',
-                      dataType: 'string',
-                      value:
-                        'Override the preset to use when provisioning this package. Default - "main"',
-                    },
-                    {
-                      key: 'targetPreset?',
-                      dataType: 'string',
-                      value:
-                        'Set the new preset to use for this package. Default - "main"',
-                    },
-                    {
-                      key: 'options?',
-                      dataType: 'string',
-                      value:
-                        'The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.',
-                    },
-                    {
-                      key: 'tags?',
-                      dataType: '[string]',
-                      value:
-                        'Additional tags to set on the registry for when this provisioned package is published.',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value: 'Previous steps this step is dependent on',
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="router">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    router
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#router'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">Explain what this is</Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'contracts',
-                      dataType: '[string]',
-                      value:
-                        'Set of contracts that will be passed to the router',
-                    },
-                    {
-                      key: 'from?',
-                      dataType: 'string',
-                      value: 'Address to pass to the from call',
-                    },
-                    {
-                      key: 'salt?',
-                      dataType: 'string',
-                      value:
-                        'Used to force new copy of a contract (not actually used)',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value: 'List of steps that this action depends on',
-                    },
-                  ]}
-                />
-              </Box>
-
-              <Box mb={16} id="run">
-                <Heading mb={4} fontSize="lg">
-                  <Code px={0} fontSize="lg">
-                    run
-                  </Code>
-                  <Link
-                    color="gray.300"
-                    ml={2}
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'underline' }}
-                    href={'#run'}
-                  >
-                    #
-                  </Link>
-                </Heading>
-                <Text mb="4">
-                  Execute a custom script. This script is passed a
-                  <Code>ChainBuilder</Code> object as parameter. This action
-                  breaks composability—only use this as a last resort. Instead,
-                  you should use a custom Cannon plug-in if this is necessary
-                  for your deployment.
-                </Text>
-                <CustomTable
-                  data={[
-                    {
-                      key: 'exec',
-                      dataType: 'string',
-                      value: 'The javascript (or typescript) file to load',
-                    },
-                    {
-                      key: 'func',
-                      dataType: 'string',
-                      value: 'The function to call in this file',
-                    },
-                    {
-                      key: 'modified',
-                      dataType: '[string]',
-                      value:
-                        "An array of files and directories that this script depends on. The cache of the cannonfile's build is recreated when these files change.",
-                    },
-                    {
-                      key: 'args?',
-                      dataType: '[string]',
-                      value:
-                        'Arguments passed to the function (after the ChainBuilder object)',
-                    },
-                    {
-                      key: 'env?',
-                      dataType: '[string]',
-                      value: 'Environment variables to be set on the script',
-                    },
-                    {
-                      key: 'depends?',
-                      dataType: '[string]',
-                      value: 'List of steps that this action depends on',
-                    },
-                  ]}
-                />
-              </Box>
+              {Array.from(cannonfileSpecs)
+                .filter(([key]) => key !== 'metadata')
+                .map(([key, value]) => (
+                  <Box key={key} id={key} mb={16}>
+                    <Heading mb={4} fontSize="lg">
+                      <Code px={0} fontSize="lg">
+                        {key}
+                      </Code>
+                      <Link
+                        color="gray.300"
+                        ml={2}
+                        textDecoration="none"
+                        _hover={{ textDecoration: 'underline' }}
+                        href={`#${key}`}
+                      >
+                        #
+                      </Link>
+                    </Heading>
+                    <Text mb="4">{value.description}</Text>
+                    <CustomTable
+                      data={value.specs.map((spec) => ({
+                        key: spec.name,
+                        dataType: spec.type,
+                        value: spec.description,
+                      }))}
+                    />
+                  </Box>
+                ))}
             </Box>
             <Box mb={8}>
               <Heading fontSize="2xl" mb={5}>
@@ -800,15 +359,15 @@ export const DocsCannonfilesPage: FC = () => {
                 <Text color="gray.400">Coming soon.</Text>
               </Box>
 
-              <Box mb={16} id="miscellaneous-data">
+              <Box mb={16} id="package-code">
                 <Heading mb={4} fontSize="lg">
-                  Miscellaneous Data
+                  Package Code
                   <Link
                     color="gray.300"
                     ml={2}
                     textDecoration="none"
                     _hover={{ textDecoration: 'underline' }}
-                    href={'#miscellaneous-data'}
+                    href={'#package-code'}
                   >
                     #
                   </Link>
