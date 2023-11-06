@@ -73,7 +73,7 @@ export default function PublishUtility(props: {
       );
 
       const loader = new IPFSBrowserLoader(
-        settings.ipfsUrl || 'https://ipfs.io/ipfs/'
+        settings.ipfsUrl || 'https://repo.usecannon.com/'
       );
 
       const fromStorage = new CannonStorage(

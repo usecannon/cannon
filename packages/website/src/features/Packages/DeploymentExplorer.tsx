@@ -554,10 +554,10 @@ export const DeploymentExplorer: FC<{
                 <Thead>
                   <Tr>
                     <Th color="gray.300" pl={0} borderColor="gray.500">
-                      Name
+                      File
                     </Th>
                     <Th color="gray.300" borderColor="gray.500">
-                      Value
+                      IPFS URL
                     </Th>
                   </Tr>
                 </Thead>
