@@ -42,10 +42,7 @@ type Setting = {
 };
 
 const SETTINGS: Record<
-  Exclude<
-    keyof Store['settings'],
-    'ipfsUrl' | 'customProviders' | 'pythUrl' | 'ipfsQueryUrl'
-  >,
+  Exclude<keyof Store['settings'], 'ipfsUrl' | 'customProviders' | 'pythUrl'>,
   Setting
 > = {
   stagingUrl: {
@@ -292,12 +289,10 @@ export default function SettingsPage() {
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
-              value={settings.ipfsQueryUrl}
+              value={settings.ipfsUrl}
               type={'text'}
-              name={'ipfsQueryUrl'}
-              onChange={(evt) =>
-                setSettings({ ipfsQueryUrl: evt.target.value })
-              }
+              name={'ipfsUrl'}
+              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
             />
             <FormHelperText color="gray.300">
               This is an{' '}

@@ -315,22 +315,27 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
       if (!pkgUrl) return null;
 
-      const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://repo.usecannon.com/');
+      try {
+        const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://repo.usecannon.com/');
 
-      const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
+        const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
-      const def = new ChainDefinition(deployInfo.def);
+        const def = new ChainDefinition(deployInfo.def);
 
-      const ctx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
+        const ctx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
 
-      const resolvedName = def.getName(ctx);
-      const resolvedVersion = def.getVersion(ctx);
+        const resolvedName = def.getName(ctx);
+        const resolvedVersion = def.getVersion(ctx);
 
-      if (deployInfo) {
-        addLog('LOADED');
-        return { deployInfo, ctx, resolvedName, resolvedVersion };
-      } else {
-        throw new Error('failed to download package data');
+        if (deployInfo) {
+          addLog('LOADED');
+          return { deployInfo, ctx, resolvedName, resolvedVersion };
+        } else {
+          throw new Error('failed to download package data');
+        }
+      } catch (err) {
+        addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
+        return null;
       }
     },
     enabled: !!pkgUrl,
