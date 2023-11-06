@@ -31,7 +31,6 @@ async function storeDeployReference(filePath: string, content: string) {
   try {
     await mkdir(dir, { recursive: true });
     await writeFile(filePath, content);
-    console.log(`File created successfully at ${filePath}`);
   } catch (error) {
     throw new Error(`Error creating file: ${error}`);
   }
@@ -81,8 +80,6 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     debug('storing deploy info');
 
-    await storage.putBlob(deployInfo);
-
     const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
 
     const deployPath = localRegistry.getTagReferenceStorage(pkgName, variant);
@@ -97,10 +94,6 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
       const ipfsUrl = 'ipfs://' + metaHash;
 
       debug('reading metadata from ipfs');
-
-      const metadata = await storage.readBlob(ipfsUrl);
-
-      await storage.putBlob(metadata);
 
       const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, variant);
 

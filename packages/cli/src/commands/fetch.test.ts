@@ -181,7 +181,6 @@ describe('fetch', () => {
     await fetch(basePackageRef, chainId, ipfsHash);
 
     expect(CannonStorage.prototype.readBlob).toHaveBeenCalledTimes(1);
-    expect(CannonStorage.prototype.putBlob).toHaveBeenCalledTimes(1);
   });
 
   test('should fail if IPFS hash is invalid', async () => {
