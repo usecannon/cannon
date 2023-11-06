@@ -32,7 +32,6 @@ export interface State {
     forkProviderUrl: string;
     customProviders: string[];
     pythUrl: string;
-    ipfsQueryUrl: string;
   };
 }
 
@@ -58,7 +57,7 @@ const initialState = {
     },
   },
   settings: {
-    ipfsUrl: '',
+    ipfsUrl: 'https://repo.usecannon.com/',
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     publishTags: 'latest',
     preset: 'main',
@@ -67,7 +66,6 @@ const initialState = {
     forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
-    ipfsQueryUrl: 'https://repo.usecannon.com/',
   },
 } satisfies State;
 
