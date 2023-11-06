@@ -152,10 +152,10 @@ export const DocsCannonfilesPage: FC = () => {
               ]}
             />
             <Section
-              title="Package Specification"
+              title="Package Data Specification"
               links={[
                 { href: '#deployment-data', text: 'Deployment Data' },
-                { href: '#miscellaneous-data', text: 'Miscellaneous Data' },
+                { href: '#package-code', text: 'Package Code' },
                 { href: '#metadata', text: 'Metadata' },
               ]}
             />
@@ -214,7 +214,7 @@ export const DocsCannonfilesPage: FC = () => {
                 desired state. This results in a package, which can be published
                 to the registry. Packages contain three files:{' '}
                 <Link href="#deployment-data">deployment data</Link>,{' '}
-                <Link href="#miscellaneous-data">miscellaneous data</Link>, and{' '}
+                <Link href="#package-code">package code</Link>, and{' '}
                 <Link href="#metadata">metadata</Link>.
               </Text>
             </Box>
@@ -359,15 +359,15 @@ export const DocsCannonfilesPage: FC = () => {
                 <Text color="gray.400">Coming soon.</Text>
               </Box>
 
-              <Box mb={16} id="miscellaneous-data">
+              <Box mb={16} id="package-code">
                 <Heading mb={4} fontSize="lg">
-                  Miscellaneous Data
+                  Package Code
                   <Link
                     color="gray.300"
                     ml={2}
                     textDecoration="none"
                     _hover={{ textDecoration: 'underline' }}
-                    href={'#miscellaneous-data'}
+                    href={'#package-code'}
                   >
                     #
                   </Link>
