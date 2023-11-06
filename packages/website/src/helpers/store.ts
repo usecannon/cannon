@@ -23,7 +23,7 @@ export interface State {
     buildState: BuildState;
   };
   settings: {
-    ipfsUrl: string;
+    ipfsApiUrl: string;
     stagingUrl: string;
     publishTags: string;
     preset: string;
@@ -57,7 +57,7 @@ const initialState = {
     },
   },
   settings: {
-    ipfsUrl: 'https://repo.usecannon.com/',
+    ipfsApiUrl: 'https://repo.usecannon.com/',
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     publishTags: 'latest',
     preset: 'main',
