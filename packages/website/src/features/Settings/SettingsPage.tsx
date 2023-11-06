@@ -27,7 +27,7 @@ import {
 } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
-import { Store, useStore } from '@/helpers/store';
+import { Store, initialState, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
 //import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
 
@@ -376,6 +376,15 @@ export default function SettingsPage() {
             );
           })}
         </Box>
+        <Flex alignItems="center" justifyContent="center" my="10">
+          <Button
+            width="100%"
+            colorScheme="blue"
+            onClick={() => setSettings(initialState.settings)}
+          >
+            Reset to default
+          </Button>
+        </Flex>
         <Alert bg="gray.800" status="info" my="10">
           <AlertIcon />
           Changes to settings automatically persist in your web browser.

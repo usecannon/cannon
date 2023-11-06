@@ -46,7 +46,7 @@ export interface Actions {
 
 export type Store = State & Actions;
 
-const initialState = {
+export const initialState = {
   currentSafe: null,
   safeAddresses: [],
   build: {
