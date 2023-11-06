@@ -1,13 +1,5 @@
 import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import {
-  Container,
-  FormControl,
-  FormLabel,
-  IconButton,
-  Link,
-  Spacer,
-  Text,
-} from '@chakra-ui/react';
+import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
@@ -57,7 +49,7 @@ export function SafeAddressInput() {
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
-    walletSafes.filter((s: any) => !includes(safeAddresses, s)),
+    walletSafes.filter((s: any) => !includes(safeAddresses, s))
   );
 
   // Load the safe address from url
@@ -77,7 +69,7 @@ export function SafeAddressInput() {
         }
       } else {
         const newSearchParams = new URLSearchParams(
-          Array.from(searchParams.entries()),
+          Array.from(searchParams.entries())
         );
         newSearchParams.delete('chainId');
         newSearchParams.delete('address');
@@ -92,7 +84,7 @@ export function SafeAddressInput() {
   function handleSafeChange(safeString: SafeString) {
     if (!safeString) {
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries()),
+        Array.from(searchParams.entries())
       );
       newSearchParams.delete('chainId');
       newSearchParams.delete('address');
@@ -107,7 +99,7 @@ export function SafeAddressInput() {
 
     setCurrentSafe(selectedSafe);
     const newSearchParams = new URLSearchParams(
-      Array.from(searchParams.entries()),
+      Array.from(searchParams.entries())
     );
     newSearchParams.set('chainId', selectedSafe.chainId.toString());
     newSearchParams.set('address', selectedSafe.address);
@@ -256,7 +248,7 @@ function DeletableOption({
 
 function _safeToOption(
   safe: State['currentSafe'],
-  extraProps: { isDeletable?: boolean } = {},
+  extraProps: { isDeletable?: boolean } = {}
 ) {
   const option = {
     value: safeToString(safe as any),
@@ -268,7 +260,7 @@ function _safeToOption(
 
 function _safesToOptions(
   safes: State['safeAddresses'],
-  extraProps: { isDeletable?: boolean } = {},
+  extraProps: { isDeletable?: boolean } = {}
 ) {
   return safes.map((s: any) => _safeToOption(s, extraProps));
 }

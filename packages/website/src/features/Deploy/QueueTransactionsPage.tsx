@@ -58,7 +58,7 @@ function QueueTransactions() {
   const settings = useStore((s) => s.settings);
   const cannonInfo = useCannonPackageContracts(
     target,
-    `${currentSafe?.chainId}-${settings.preset}`,
+    `${currentSafe?.chainId}-${settings.preset}`
   );
 
   const multisendTxn =
@@ -69,10 +69,10 @@ function QueueTransactions() {
               to: zeroAddress,
               data: encodeAbiParameters(
                 [{ type: 'string[]' }],
-                [['invoke', cannonInfo.pkgUrl || '']],
+                [['invoke', cannonInfo.pkgUrl || '']]
               ),
             } as Partial<TransactionRequestBase>,
-          ].concat(queuedTxns),
+          ].concat(queuedTxns)
         )
       : null;
 
@@ -114,7 +114,7 @@ function QueueTransactions() {
           isClosable: true,
         });
       },
-    },
+    }
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -123,7 +123,7 @@ function QueueTransactions() {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>,
+    txn: Omit<TransactionRequestBase, 'from'>
   ) {
     queuedTxns[i] = txn;
     setQueuedTxns(_.clone(queuedTxns));
@@ -230,7 +230,7 @@ function QueueTransactions() {
                 leftIcon={<MinusIcon />}
                 onClick={() =>
                   setQueuedTxns(
-                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1)),
+                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1))
                   )
                 }
               >

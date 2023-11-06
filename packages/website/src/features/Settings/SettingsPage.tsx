@@ -27,7 +27,7 @@ import {
 } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
-import { Store, useStore } from '@/helpers/store';
+import { Store, initialState, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
 //import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
 
@@ -42,7 +42,10 @@ type Setting = {
 };
 
 const SETTINGS: Record<
-  Exclude<keyof Store['settings'], 'ipfsUrl' | 'customProviders' | 'pythUrl'>,
+  Exclude<
+    keyof Store['settings'],
+    'ipfsApiUrl' | 'customProviders' | 'pythUrl'
+  >,
   Setting
 > = {
   stagingUrl: {
@@ -295,10 +298,10 @@ export default function SettingsPage() {
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
-              value={settings.ipfsUrl}
+              value={settings.ipfsApiUrl}
               type={'text'}
-              name={'ipfsUrl'}
-              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
+              name={'ipfsApiUrl'}
+              onChange={(evt) => setSettings({ ipfsApiUrl: evt.target.value })}
             />
             <FormHelperText color="gray.300">
               This is an{' '}
@@ -382,13 +385,34 @@ export default function SettingsPage() {
         <Alert
           bg="gray.800"
           status="info"
-          my="10"
+          mt="10"
+          mb="5"
           border="1px solid"
           borderColor="gray.700"
         >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
+        <FormControl>
+          <FormHelperText color="gray.300" mb={5} textAlign="right">
+            <Link
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (
+                  window.confirm(
+                    'Are you sure you want to reset to default settings? This can’t be undone.'
+                  )
+                ) {
+                  setSettings(initialState.settings);
+                  alert('Done!');
+                }
+              }}
+            >
+              Reset to defaults
+            </Link>
+          </FormHelperText>
+        </FormControl>
       </Box>
     </Container>
   );
