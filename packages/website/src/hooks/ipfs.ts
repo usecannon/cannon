@@ -14,7 +14,7 @@ export function useQueryIpfsData(url?: string, enabled?: boolean) {
         throw new Error(`Invalid IPFS url: ${url}`);
       }
       const cid = url.replace('ipfs://', '');
-      const ipfsQueryUrl = settings.ipfsQueryUrl.endsWith('/') ? settings.ipfsQueryUrl : settings.ipfsQueryUrl + '/';
+      const ipfsQueryUrl = settings.ipfsUrl.endsWith('/') ? settings.ipfsUrl : settings.ipfsUrl + '/';
 
       const kuboQueryUrl = `${ipfsQueryUrl}api/v0/cat?arg=${cid}`;
       addLog(`Querying IPFS: ${kuboQueryUrl}`);
