@@ -382,25 +382,37 @@ export default function SettingsPage() {
             );
           })}
         </Box>
-        <Flex alignItems="center" justifyContent="center" my="10">
-          <Button
-            width="100%"
-            colorScheme="blue"
-            onClick={() => setSettings(initialState.settings)}
-          >
-            Reset to default
-          </Button>
-        </Flex>
         <Alert
           bg="gray.800"
           status="info"
-          my="10"
+          mt="10"
+          mb="5"
           border="1px solid"
           borderColor="gray.700"
         >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
+        <FormControl>
+          <FormHelperText color="gray.300" mb={5} textAlign="right">
+            <Link
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (
+                  window.confirm(
+                    'Are you sure you want to reset to default settings? This can’t be undone.'
+                  )
+                ) {
+                  setSettings(initialState.settings);
+                  alert('Done!');
+                }
+              }}
+            >
+              Reset to defaults
+            </Link>
+          </FormHelperText>
+        </FormControl>
       </Box>
     </Container>
   );
