@@ -18,7 +18,7 @@ import {
 import deepEqual from 'fast-deep-equal';
 import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useAccount, useSwitchNetwork } from 'wagmi';
+import { useSwitchNetwork } from 'wagmi';
 import {
   getSafeFromString,
   getSafeUrl,
@@ -49,7 +49,6 @@ export function SafeAddressInput() {
   const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
-  const { isConnected } = useAccount();
 
   const { switchNetwork } = useSwitchNetwork();
   const router = useRouter();
@@ -58,7 +57,7 @@ export function SafeAddressInput() {
 
   const safeOptions = _safesToOptions(safeAddresses, { isDeletable: true });
   const walletSafeOptions = _safesToOptions(
-    walletSafes.filter((s: any) => !includes(safeAddresses, s))
+    walletSafes.filter((s: any) => !includes(safeAddresses, s)),
   );
 
   // Load the safe address from url
@@ -78,7 +77,7 @@ export function SafeAddressInput() {
         }
       } else {
         const newSearchParams = new URLSearchParams(
-          Array.from(searchParams.entries())
+          Array.from(searchParams.entries()),
         );
         newSearchParams.delete('chainId');
         newSearchParams.delete('address');
@@ -93,7 +92,7 @@ export function SafeAddressInput() {
   function handleSafeChange(safeString: SafeString) {
     if (!safeString) {
       const newSearchParams = new URLSearchParams(
-        Array.from(searchParams.entries())
+        Array.from(searchParams.entries()),
       );
       newSearchParams.delete('chainId');
       newSearchParams.delete('address');
@@ -108,7 +107,7 @@ export function SafeAddressInput() {
 
     setCurrentSafe(selectedSafe);
     const newSearchParams = new URLSearchParams(
-      Array.from(searchParams.entries())
+      Array.from(searchParams.entries()),
     );
     newSearchParams.set('chainId', selectedSafe.chainId.toString());
     newSearchParams.set('address', selectedSafe.address);
@@ -132,6 +131,8 @@ export function SafeAddressInput() {
     deleteSafe(parseSafe(safeString));
   }
 
+  const isEmpty = !currentSafe;
+
   const chakraStyles: ChakraStylesConfig<
     SafeOption,
     boolean,
@@ -139,8 +140,9 @@ export function SafeAddressInput() {
   > = {
     container: (provided) => ({
       ...provided,
-      borderColor: 'whiteAlpha.400',
+      borderColor: isEmpty ? 'teal.700' : 'gray.700',
       background: 'black',
+      cursor: 'pointer',
     }),
     menuList: (provided) => ({
       ...provided,
@@ -162,19 +164,19 @@ export function SafeAddressInput() {
     control: (provided) => ({
       ...provided,
       '& hr.chakra-divider': {
-        borderColor: 'whiteAlpha.400',
+        display: 'none',
       },
     }),
   };
 
   return (
-    <Container maxW="100%" w="container.md" pt="4" pb="4">
-      <FormControl mb="6">
-        <FormLabel>Safe</FormLabel>
+    <>
+      <FormControl>
         <CreatableSelect
           chakraStyles={chakraStyles}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
+          placeholder="Select a Safe"
           noOptionsMessage={() =>
             'Add a safe in the format chainId:safeAddress'
           }
@@ -200,12 +202,6 @@ export function SafeAddressInput() {
           components={{ Option: DeletableOption }}
         />
       </FormControl>
-      {!currentSafe && (
-        <Alert status="info">
-          {isConnected ? 'S' : 'Connect a wallet and s'}elect a Safe from the
-          dropdown above.
-        </Alert>
-      )}
       {currentSafe && pendingServiceTransactions.count > 0 && (
         <Alert status="warning">
           There
@@ -224,7 +220,7 @@ export function SafeAddressInput() {
           override the ones on Safe.
         </Alert>
       )}
-    </Container>
+    </>
   );
 }
 
@@ -260,7 +256,7 @@ function DeletableOption({
 
 function _safeToOption(
   safe: State['currentSafe'],
-  extraProps: { isDeletable?: boolean } = {}
+  extraProps: { isDeletable?: boolean } = {},
 ) {
   const option = {
     value: safeToString(safe as any),
@@ -272,7 +268,7 @@ function _safeToOption(
 
 function _safesToOptions(
   safes: State['safeAddresses'],
-  extraProps: { isDeletable?: boolean } = {}
+  extraProps: { isDeletable?: boolean } = {},
 ) {
   return safes.map((s: any) => _safeToOption(s, extraProps));
 }
