@@ -152,7 +152,7 @@ export const DocsCannonfilesPage: FC = () => {
               ]}
             />
             <Section
-              title="Package Data Specification"
+              title="Package Specification"
               links={[
                 { href: '#deployment-data', text: 'Deployment Data' },
                 { href: '#package-code', text: 'Package Code' },
