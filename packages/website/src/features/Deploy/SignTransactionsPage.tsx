@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Checkbox, Container, Flex, FormLabel } from '@chakra-ui/react';
+import {
+  Box,
+  Checkbox,
+  Container,
+  Flex,
+  FormLabel,
+  Heading,
+  Text,
+} from '@chakra-ui/react';
 import { Alert } from '@/components/Alert';
 import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
@@ -24,6 +32,15 @@ function SignTransactions() {
 
   return (
     <Container maxW="container.md" py={8}>
+      <Box mb={6}>
+        <Heading size="md" mb={2}>
+          Sign & Execute Transactions
+        </Heading>
+        <Text fontSize="sm" color="gray.300">
+          Collect signtures and execute transactions.
+        </Text>
+      </Box>
+
       <Box mb="10">
         <FormLabel mb="3">Queued Transactions</FormLabel>
         {currentSafe &&
@@ -37,7 +54,7 @@ function SignTransactions() {
           ))}
         {currentSafe && staged.length === 0 && (
           <Alert status="info">
-            There are no transactions queued on the selected safe.
+            There are no transactions queued on the selected safe
           </Alert>
         )}
       </Box>
@@ -47,6 +64,8 @@ function SignTransactions() {
             <FormLabel mb={0}>Executed Transactions</FormLabel>
             <Checkbox
               size="sm"
+              borderColor="gray.200"
+              color="gray.200"
               ml="auto"
               isChecked={isChecked}
               onChange={handleCheckboxChange}

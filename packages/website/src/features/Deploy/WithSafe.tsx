@@ -3,9 +3,12 @@ import { useStore } from '@/helpers/store';
 import { SafeAddressInput } from './SafeAddressInput';
 import { Flex, Box, Text, Image, Link } from '@chakra-ui/react';
 import { useAccount } from 'wagmi';
+import { EditIcon } from '@chakra-ui/icons';
+import NextLink from 'next/link';
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
+  const stagingUrl = useStore((s) => s.settings.stagingUrl);
   const { isConnected } = useAccount();
 
   return (
@@ -20,23 +23,39 @@ export default function WithSafe({ children }: { children: ReactNode }) {
         <Box w="100%" maxW={{ lg: 'container.sm' }} mb={{ base: 2, lg: 0 }}>
           <SafeAddressInput />
         </Box>
-        <Box
-          ml={{ lg: 'auto' }}
-          bg="gray.700"
-          color="gray.300"
-          border="1px solid"
-          borderColor="gray.900"
-          borderRadius="md"
-          py={1}
-          px={2}
-          fontSize="xs"
-          letterSpacing="0.2px"
-          w={{ base: '100%', lg: 'auto' }}
-        >
-          🚧&nbsp;&nbsp;The web deployer is currently under
-          construction&nbsp;&nbsp;🚧
+        <Box ml={{ lg: 'auto' }}>
+          <Text fontSize="sm" color="gray.200">
+            Safe Signature Collection Service
+          </Text>
+          <Text fontSize="xs">
+            {stagingUrl?.length ? (
+              stagingUrl
+            ) : (
+              <Text display="inline" color="gray.400">
+                None
+              </Text>
+            )}
+            <Link as={NextLink} href="/settings" ml={1} color="gray.300">
+              <EditIcon transform="translateY(-1px)" />
+            </Link>
+          </Text>
         </Box>
       </Flex>
+      <Box
+        bg="gray.700"
+        color="gray.300"
+        border="1px solid"
+        borderColor="gray.900"
+        py={1}
+        px={2}
+        fontSize="xs"
+        letterSpacing="0.2px"
+        w="100%"
+        textAlign="center"
+      >
+        🚧&nbsp;&nbsp;The web deployer is currently under
+        construction&nbsp;&nbsp;🚧
+      </Box>
       {currentSafe ? (
         children
       ) : (
