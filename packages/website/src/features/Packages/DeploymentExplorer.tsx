@@ -40,7 +40,7 @@ export const DeploymentExplorer: FC<{
 }> = ({ variant }) => {
   const deploymentData = useQueryIpfsData(
     variant?.deploy_url,
-    !!variant?.deploy_url,
+    !!variant?.deploy_url
   );
 
   const deploymentInfo = deploymentData.data
@@ -206,7 +206,7 @@ export const DeploymentExplorer: FC<{
               deploymentInfo?.timestamp &&
               `on ${format(
                 new Date(deploymentInfo?.timestamp * 1000),
-                'PPPppp',
+                'PPPppp'
               ).toLowerCase()}`}
           </Text>
           <Box mb={8}>
