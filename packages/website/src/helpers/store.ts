@@ -28,7 +28,6 @@ export interface State {
     publishTags: string;
     preset: string;
     registryAddress: string;
-    registryProviderUrl: string;
     forkProviderUrl: string;
     customProviders: string[];
     pythUrl: string;
@@ -62,7 +61,6 @@ export const initialState = {
     publishTags: 'latest',
     preset: 'main',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    registryProviderUrl: 'https://ethereum.publicnode.com',
     forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
