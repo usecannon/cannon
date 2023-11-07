@@ -1,6 +1,6 @@
 import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { createFork } from '@/helpers/rpc';
+import { createFork, findChainUrl } from '@/helpers/rpc';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useGitRepo } from '@/hooks/git';
 import { useLogs } from '@/providers/logsProvider';
@@ -26,7 +26,7 @@ import {
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Address, useChainId } from 'wagmi';
+import { mainnet, Address, useChainId } from 'wagmi';
 
 export type BuildState =
   | {
@@ -90,7 +90,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     });
 
     const registry = new OnChainRegistry({
-      signerOrProvider: settings.registryProviderUrl,
+      signerOrProvider: findChainUrl(mainnet.id),
       address: settings.registryAddress,
     });
 
@@ -292,7 +292,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       }
 
       const registry = new OnChainRegistry({
-        signerOrProvider: settings.registryProviderUrl,
+        signerOrProvider: findChainUrl(mainnet.id),
         address: settings.registryAddress,
       });
 
