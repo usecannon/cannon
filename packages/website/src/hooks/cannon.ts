@@ -94,7 +94,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       address: settings.registryAddress,
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl);
+    const ipfsLoader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
 
     setBuildStatus('Loading deployment data...');
 
@@ -252,7 +252,11 @@ export function useCannonWriteDeployToIpfs(
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
-        toStorage: new CannonStorage(memoryRegistry, { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl) }, 'ipfs'),
+        toStorage: new CannonStorage(
+          memoryRegistry,
+          { ipfs: new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001') },
+          'ipfs'
+        ),
         packageRef,
         variant,
         tags: ['latest'],
@@ -316,7 +320,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -377,14 +381,14 @@ export function getContractsRecursive(
 export function useCannonPackageContracts(packageRef: string, variant = '') {
   const pkg = useCannonPackage(packageRef, variant);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
-  const settings = useStore((s) => s.settings);
+  // const settings = useStore((s) => s.settings);
 
   useEffect(() => {
     const getContracts = async () => {
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
+        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,
