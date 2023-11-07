@@ -14,7 +14,7 @@ const debug = Debug('cannon:builder:ipfs');
 // we need to alter how we are communicating with IPFS.
 export function isIpfsGateway(ipfsUrl: string) {
   const url = new URL(ipfsUrl);
-  return url.port !== '5001' && url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
+  return url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
 }
 
 export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<any> {
