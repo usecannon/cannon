@@ -12,7 +12,7 @@ export function parseIpfsHash(url: string) {
 export function isIpfsUploadEndpoint(ipfsUrl: string) {
   try {
     const url = new URL(ipfsUrl);
-    return url.port === '5001' || url.protocol === 'http+ipfs:' || url.protocol === 'https+ipfs:';
+    url.protocol === 'http+ipfs:' || url.protocol === 'https+ipfs:';
   } catch (_) {
     return false;
   }
@@ -30,10 +30,8 @@ export function createIpfsUrl(base: string, pathname = '') {
   const parsedUrl = parseUrl(base);
   const headers: { [k: string]: string } = {};
 
-  const customProtocol = parsedUrl.protocol.endsWith('+ipfs');
-
   const uri = {
-    protocol: customProtocol ? parsedUrl.protocol.split('+')[0] : parsedUrl.protocol,
+    protocol: parsedUrl.protocol,
     host: parsedUrl.host,
     pathname,
     query: parsedUrl.query,
