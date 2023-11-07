@@ -13,9 +13,11 @@ import {
   FormHelperText,
   FormLabel,
   HStack,
+  Heading,
   Input,
   Tooltip,
   useToast,
+  Text,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { useState } from 'react';
@@ -58,7 +60,7 @@ function QueueTransactions() {
   const settings = useStore((s) => s.settings);
   const cannonInfo = useCannonPackageContracts(
     target,
-    `${currentSafe?.chainId}-${settings.preset}`
+    `${currentSafe?.chainId}-${settings.preset}`,
   );
 
   const multisendTxn =
@@ -69,10 +71,10 @@ function QueueTransactions() {
               to: zeroAddress,
               data: encodeAbiParameters(
                 [{ type: 'string[]' }],
-                [['invoke', cannonInfo.pkgUrl || '']]
+                [['invoke', cannonInfo.pkgUrl || '']],
               ),
             } as Partial<TransactionRequestBase>,
-          ].concat(queuedTxns)
+          ].concat(queuedTxns),
         )
       : null;
 
@@ -114,7 +116,7 @@ function QueueTransactions() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -123,7 +125,7 @@ function QueueTransactions() {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>
+    txn: Omit<TransactionRequestBase, 'from'>,
   ) {
     queuedTxns[i] = txn;
     setQueuedTxns(_.clone(queuedTxns));
@@ -158,6 +160,15 @@ function QueueTransactions() {
 
   return (
     <Container maxWidth="container.md" py={8}>
+      <Box mb={6}>
+        <Heading size="md" mb={2}>
+          Queue Transactions
+        </Heading>
+        <Text fontSize="sm" color="gray.300">
+          Add transactions for a specified package or contract address to the
+          queue.
+        </Text>
+      </Box>
       <FormControl mb="8">
         <FormLabel>Cannon Package or Contract Address</FormLabel>
         <Input
@@ -230,7 +241,7 @@ function QueueTransactions() {
                 leftIcon={<MinusIcon />}
                 onClick={() =>
                   setQueuedTxns(
-                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1))
+                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1)),
                   )
                 }
               >

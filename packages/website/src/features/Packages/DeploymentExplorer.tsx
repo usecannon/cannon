@@ -40,7 +40,7 @@ export const DeploymentExplorer: FC<{
 }> = ({ variant }) => {
   const deploymentData = useQueryIpfsData(
     variant?.deploy_url,
-    !!variant?.deploy_url
+    !!variant?.deploy_url,
   );
 
   const deploymentInfo = deploymentData.data
@@ -206,7 +206,7 @@ export const DeploymentExplorer: FC<{
               deploymentInfo?.timestamp &&
               `on ${format(
                 new Date(deploymentInfo?.timestamp * 1000),
-                'PPPppp'
+                'PPPppp',
               ).toLowerCase()}`}
           </Text>
           <Box mb={8}>
@@ -235,7 +235,7 @@ export const DeploymentExplorer: FC<{
           >
             <Box mb={3}>
               <Box mb={4}>
-                <Heading size="md" mb={1}>
+                <Heading size="md" mb={2}>
                   Chain Definition
                 </Heading>
                 <Text fontSize="sm" color="gray.300">
@@ -396,7 +396,7 @@ export const DeploymentExplorer: FC<{
             mb={6}
           >
             <Box mb={4}>
-              <Heading size="md" mb={1}>
+              <Heading size="md" mb={2}>
                 Chain State
               </Heading>
               <Text fontSize="sm" color="gray.300">
@@ -541,7 +541,7 @@ export const DeploymentExplorer: FC<{
             mb={6}
           >
             <Box mb={4}>
-              <Heading size="md" mb={1}>
+              <Heading size="md" mb={2}>
                 Package Data
               </Heading>
               <Text fontSize="sm" color="gray.300">
