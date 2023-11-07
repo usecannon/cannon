@@ -29,7 +29,7 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
 
   const sigHash = useMemo(
     () => hintData && getSafeTransactionHash(safe, tx),
-    [safe, tx],
+    [safe, tx]
   );
 
   const isLink = sigHash != null;

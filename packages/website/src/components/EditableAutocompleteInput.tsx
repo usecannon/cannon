@@ -25,6 +25,7 @@ export function EditableAutocompleteInput(props: {
   color: string;
   onPending?: (item: string) => void;
   onFilterChange?: (text: string) => void;
+  minWidth?: string;
 }) {
   const [filterInput, setFilterInput] = useState(props.defaultValue || '');
   const [isEditing, setIsEditing] = useState(false);
@@ -184,6 +185,7 @@ export function EditableAutocompleteInput(props: {
     >
       <PopoverAnchor>
         <HStack
+          minWidth={props.minWidth}
           color={props.color}
           gap={0}
           border="1px solid"
@@ -289,7 +291,7 @@ function AutocompleteOption(props: {
         evt.preventDefault();
         props.onClick();
       }}
-      background={props.selected ? 'gray.800' : 'transparent'}
+      background="black"
       px="2"
       pb="1"
     >

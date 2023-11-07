@@ -13,18 +13,16 @@ import {
   HStack,
   Heading,
   Input,
-  Link,
   Select,
   Spinner,
   Text,
   Tooltip,
-  useColorMode,
   useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   encodeAbiParameters,
   encodeFunctionData,
@@ -63,11 +61,10 @@ export default function QueueFromGitOpsPage() {
 }
 
 function QueueFromGitOps() {
-  const { colorMode } = useColorMode();
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
-    onchainStore.deployTxn as any,
+    onchainStore.deployTxn as any
   );
   const deployOnChainStore = useSendTransaction({
     ...prepareDeployOnchainStore.config,
@@ -94,7 +91,7 @@ function QueueFromGitOps() {
   if (refsInfo.refs && !gitBranch) {
     const headCommit = refsInfo.refs.find((r) => r.ref === 'HEAD');
     const headBranch = refsInfo.refs.find(
-      (r) => r.oid === headCommit?.oid && r !== headCommit,
+      (r) => r.oid === headCommit?.oid && r !== headCommit
     );
 
     if (headBranch) {
@@ -130,15 +127,15 @@ function QueueFromGitOps() {
 
   const cannonPkgLatestInfo = useCannonPackage(
     (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-${settings.preset}`,
+    `${chainId}-${settings.preset}`
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
       `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
-        ctx,
+        ctx
       )}`) ??
       '',
-    `${chainId}-${settings.preset}`,
+    `${chainId}-${settings.preset}`
   );
 
   const prevDeployLocation =
@@ -147,7 +144,7 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : '',
+    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
   );
 
   // run the build and get the list of transactions we need to run
@@ -155,7 +152,7 @@ function QueueFromGitOps() {
     currentSafe as any,
     cannonDefInfo.def as any,
     prevCannonDeployInfo.pkg as any,
-    false,
+    false
   );
 
   const buildTransactions = () => {
@@ -171,7 +168,7 @@ function QueueFromGitOps() {
       meta: prevCannonDeployInfo.pkg?.meta,
       miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
     } as any,
-    prevCannonDeployInfo.metaUrl as any,
+    prevCannonDeployInfo.metaUrl as any
   );
 
   useEffect(() => {
@@ -184,7 +181,7 @@ function QueueFromGitOps() {
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
-    gitUrl + ':' + gitFile,
+    gitUrl + ':' + gitFile
   );
 
   console.log(' the prev info query data is', prevInfoQuery.data);
@@ -211,7 +208,7 @@ function QueueFromGitOps() {
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
                   ],
-                ],
+                ]
               ),
             } as Partial<TransactionRequestBase>,
             // write data needed for the subsequent deployment to chain
@@ -239,9 +236,9 @@ function QueueFromGitOps() {
             } as Partial<TransactionRequestBase>,
           ].concat(
             buildInfo.buildResult.steps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>,
-            ),
-          ),
+              (s) => s.tx as unknown as Partial<TransactionRequestBase>
+            )
+          )
         )
       : { value: BigInt(0) };
 
@@ -275,7 +272,7 @@ function QueueFromGitOps() {
           isClosable: true,
         });
       },
-    },
+    }
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
@@ -285,16 +282,14 @@ function QueueFromGitOps() {
     !prepareDeployOnchainStore.isError
   ) {
     return (
-      <Container maxWidth="container.md">
-        <Text mb="8">
-          If your protocol is managed using a GitOps repository (with
-          cannonfiles on GitHub), you can use this tool to queue transactions
-          that would be created by merging the branch you specify.
-        </Text>
+      <Container maxWidth="container.sm">
         <Box
-          p="6"
-          bg={colorMode === 'dark' ? 'blackAlpha.400' : 'blackAlpha.50'}
-          borderRadius="12px"
+          bg="blackAlpha.600"
+          border="1px solid"
+          borderColor="gray.900"
+          borderRadius="md"
+          p={6}
+          my={16}
         >
           <Text mb={4}>
             To use this tool, you need to deploy the on-chain store contract.
@@ -302,6 +297,7 @@ function QueueFromGitOps() {
             amount of gas.
           </Text>
           <Button
+            colorScheme="teal"
             w="100%"
             onClick={() =>
               deployOnChainStore.sendTransaction &&
@@ -338,23 +334,26 @@ function QueueFromGitOps() {
               background="black"
               onChange={(evt: any) => setGitUrl(evt.target.value)}
             />
-            <Flex height="40px">
-              {gitDirList.readdirQuery.isLoading ? (
-                <Spinner my="auto" ml="2" />
-              ) : (
-                <EditableAutocompleteInput
-                  editable
-                  color={'white'}
-                  placeholder="cannonfile.toml"
-                  items={(gitDirList.contents || []).map((d: any) => ({
-                    label: gitDir + d,
-                    secondary: '',
-                  }))}
-                  onFilterChange={(v) => setGitFile(v)}
-                  onChange={(v) => setGitFile(v)}
-                />
-              )}
-            </Flex>
+            {gitUrl.length && (
+              <Flex height="40px">
+                {gitDirList.readdirQuery.isLoading ? (
+                  <Spinner my="auto" ml="2" />
+                ) : (
+                  <EditableAutocompleteInput
+                    minWidth="220px"
+                    editable
+                    color={'white'}
+                    placeholder="cannonfile.toml"
+                    items={(gitDirList.contents || []).map((d: any) => ({
+                      label: gitDir + d,
+                      secondary: '',
+                    }))}
+                    onFilterChange={(v) => setGitFile(v)}
+                    onChange={(v) => setGitFile(v)}
+                  />
+                )}
+              </Flex>
+            )}
           </HStack>
           <FormHelperText color="gray.300">
             Enter a Git URL and then select the Cannonfile that was modified in
@@ -375,7 +374,7 @@ function QueueFromGitOps() {
                   <option key={i} value={r.ref}>
                     {r.ref}
                   </option>
-                ),
+                )
               )}
             </Select>
           </HStack>
@@ -392,7 +391,7 @@ function QueueFromGitOps() {
             onChange={
               (evt: any) =>
                 setPartialDeployIpfs(
-                  evt.target.value.slice(evt.target.value.indexOf('Qm')),
+                  evt.target.value.slice(evt.target.value.indexOf('Qm'))
                 ) /** TODO: handle bafy hash or other hashes */
             }
           />
