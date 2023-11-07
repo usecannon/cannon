@@ -73,10 +73,6 @@ const SETTINGS: Record<
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
   },
-  registryProviderUrl: {
-    title: 'Registry Provider RPC URL',
-    description: 'JSON RPC url to connect with the Cannon Registry.',
-  },
   forkProviderUrl: {
     title: 'RPC URL for Local Fork',
     description:
