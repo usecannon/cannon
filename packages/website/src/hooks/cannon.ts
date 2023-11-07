@@ -94,7 +94,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       address: settings.registryAddress,
     });
 
-    const ipfsLoader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
+    const ipfsLoader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
 
     setBuildStatus('Loading deployment data...');
 
@@ -254,7 +254,7 @@ export function useCannonWriteDeployToIpfs(
         fromStorage: runtime,
         toStorage: new CannonStorage(
           memoryRegistry,
-          { ipfs: new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001') },
+          { ipfs: new IPFSBrowserLoader('https+ipfs://repo.usecannon.com') },
           'ipfs'
         ),
         packageRef,
@@ -320,7 +320,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
+        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -388,7 +388,7 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com:5001');
+        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,

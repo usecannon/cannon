@@ -34,7 +34,7 @@ export function createIpfsUrl(base: string, pathname = '') {
 
   const uri = {
     protocol: customProtocol ? parsedUrl.protocol.split('+')[0] : parsedUrl.protocol,
-    host: customProtocol && !parsedUrl.host.includes(':') ? `${parsedUrl.host}:5001` : parsedUrl.host,
+    host: parsedUrl.host,
     pathname,
     query: parsedUrl.query,
     hash: parsedUrl.hash,

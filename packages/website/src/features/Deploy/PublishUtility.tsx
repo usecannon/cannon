@@ -72,9 +72,7 @@ export default function PublishUtility(props: {
         ''
       );
 
-      const loader = new IPFSBrowserLoader(
-        'https+ipfs://repo.usecannon.com:5001'
-      );
+      const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
 
       const fromStorage = new CannonStorage(
         new FallbackRegistry([fakeLocalRegistry, targetRegistry]),
