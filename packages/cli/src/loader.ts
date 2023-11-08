@@ -86,7 +86,7 @@ export class CliLoader implements CannonLoader {
 
     const url = this.ipfs
       ? await this.ipfs.put(misc) // if configured, write to settings ipfs
-      : await getContentCID(compress(data)); // if not, calculate CID to save to file;
+      : await getContentCID(Buffer.from(compress(data))); // if not, calculate CID to save to file;
 
     debug(`cli ipfs put ${url}`);
 
