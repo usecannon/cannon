@@ -39,7 +39,8 @@ export class CannonStorage extends EventEmitter {
       throw new Error('url not defined');
     }
 
-    const loaderScheme = url.split(':')[0];
+    const loaderScheme = url.includes(':') ? url.split(':')[0] : 'ipfs';
+
     if (!this.loaders[loaderScheme]) {
       throw new Error(`loader scheme not configured: ${loaderScheme}`);
     }
@@ -53,7 +54,7 @@ export class CannonStorage extends EventEmitter {
 
     if (loader instanceof IPFSLoader) {
       loaderLabel = loader.ipfsUrl;
-    } else if (loader instanceof InMemoryLoader) {
+    } else {
       loaderLabel = loader.getLabel();
     }
 

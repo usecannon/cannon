@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Buffer } from 'buffer';
 import Debug from 'debug';
 import FormData from 'form-data';
@@ -24,8 +24,24 @@ export async function getContentCID(value: Uint8Array): Promise<string> {
 }
 
 export async function isIpfsGateway(ipfsUrl: string) {
-  const res = await axios.post(ipfsUrl + '/api/v0/cat', null, { timeout: 15 * 1000 });
-  return !res.data.includes('argument "ipfs-path" is required');
+  debug(`is-gateway ${ipfsUrl}`);
+
+  let isGateway = true;
+  try {
+    await axios.post(ipfsUrl + '/api/v0/cat', null, { timeout: 15 * 1000 });
+  } catch (err: unknown) {
+    if (
+      err instanceof AxiosError &&
+      err.response?.status === 400 &&
+      err.response?.data.includes('argument "ipfs-path" is required')
+    ) {
+      isGateway = false;
+    }
+  }
+
+  debug(`is-gateway ${ipfsUrl} ${isGateway}`);
+
+  return isGateway;
 }
 
 export async function readIpfs(

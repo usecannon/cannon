@@ -9,6 +9,14 @@ import { CliSettings } from './settings';
 
 const debug = Debug('cannon:cli:loader');
 
+const isFile = (filepath: string) => {
+  try {
+    return fs.statSync(filepath).isFile();
+  } catch (err: unknown) {
+    return false;
+  }
+};
+
 /**
  * @deprecated
  */
@@ -74,19 +82,18 @@ export class CliLoader implements CannonLoader {
   }
 
   async put(misc: any): Promise<string> {
+    const data = JSON.stringify(misc);
+
     const url = this.ipfs
       ? await this.ipfs.put(misc) // if configured, write to settings ipfs
-      : await getContentCID(compress(misc)); // if not, calculate CID to save to file;
+      : await getContentCID(compress(data)); // if not, calculate CID to save to file;
 
     debug(`cli ipfs put ${url}`);
-
-    // Always save cached to filesystem
-    const data = JSON.stringify(misc);
 
     await fs.mkdirp(this.dir);
     await fs.writeFile(this.getCacheFilePath(url), data);
 
-    return url;
+    return this.ipfs ? url : IPFSLoader.PREFIX + url;
   }
 
   async read(url: string) {
@@ -95,7 +102,7 @@ export class CliLoader implements CannonLoader {
     const cacheFile = this.getCacheFilePath(url);
 
     // Check if we already have the file cached locally
-    if (fs.statSync(cacheFile).isFile()) {
+    if (isFile(cacheFile)) {
       return fs.readJson(cacheFile);
     }
 
@@ -114,7 +121,7 @@ export class CliLoader implements CannonLoader {
     const cacheFile = this.getCacheFilePath(url);
 
     // Remove from the local cache
-    if (fs.statSync(cacheFile).isFile()) {
+    if (isFile(cacheFile)) {
       await fs.unlink(cacheFile);
     }
 
