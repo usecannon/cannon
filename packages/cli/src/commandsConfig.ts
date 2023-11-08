@@ -470,6 +470,10 @@ const commandsConfig = {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
+      {
+        flags: '--registry-priority <registry>',
+        description: 'Change the default registry to read from first. Default: onchain',
+      },
     ],
   },
   prune: {

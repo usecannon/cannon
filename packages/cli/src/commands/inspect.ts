@@ -12,7 +12,8 @@ export async function inspect(
   chainId: number,
   presetArg: string,
   json: boolean,
-  writeDeployments: string
+  writeDeployments: string,
+  registryPriority?: 'local' | 'onchain'
 ) {
   const { name, version, preset } = new PackageReference(packageRef);
 
@@ -27,9 +28,11 @@ export async function inspect(
 
   const selectedPreset = preset || presetArg || 'main';
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings());
+  const cliSettings = resolveCliSettings({ registryPriority });
 
-  const loader = getMainLoader(resolveCliSettings());
+  const resolver = await createDefaultReadRegistry(cliSettings);
+
+  const loader = getMainLoader(cliSettings);
 
   const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
