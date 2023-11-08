@@ -155,7 +155,6 @@ describe('fetch', () => {
       getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
     };
 
-
     localLoader = new LocalLoader('path');
     ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
 
