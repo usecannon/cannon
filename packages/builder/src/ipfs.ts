@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
-import Debug from 'debug';
-import pako from 'pako';
 import { Buffer } from 'buffer';
+import Debug from 'debug';
 import FormData from 'form-data';
+import pako from 'pako';
 
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;
@@ -10,20 +10,13 @@ export interface Headers {
 
 const debug = Debug('cannon:builder:ipfs');
 
-// IPFS Gateway is a special type of read-only endpoint which may be supplied by the user. If that is the case,
-// we need to alter how we are communicating with IPFS.
-export function isIpfsGateway(ipfsUrl: string) {
-  const url = new URL(ipfsUrl);
-  return url.protocol !== 'http+ipfs:' && url.protocol !== 'https+ipfs:';
-}
-
-export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<any> {
+export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}, isGateway = false): Promise<any> {
   debug(`downloading content from ${hash}`);
 
   let result: AxiosResponse;
 
   try {
-    if (isIpfsGateway(ipfsUrl)) {
+    if (isGateway) {
       result = await axios.get(ipfsUrl + `/ipfs/${hash}`, {
         responseType: 'arraybuffer',
         responseEncoding: 'application/octet-stream',
@@ -65,10 +58,14 @@ export async function readIpfs(ipfsUrl: string, hash: string, customHeaders: Hea
   }
 }
 
-export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Headers = {}): Promise<string | null> {
-  if (isIpfsGateway(ipfsUrl)) {
-    // cannot write to IPFS on gateway
-    return null;
+export async function writeIpfs(
+  ipfsUrl: string,
+  info: any,
+  customHeaders: Headers = {},
+  isGateway = false
+): Promise<string | null> {
+  if (isGateway) {
+    throw new Error('Cannot write files to an IPFS gateway endpoint');
   }
 
   const data = JSON.stringify(info);
@@ -97,8 +94,13 @@ export async function writeIpfs(ipfsUrl: string, info: any, customHeaders: Heade
   }
 }
 
-export async function deleteIpfs(ipfsUrl: string, hash: string, customHeaders: Headers = {}): Promise<void> {
-  if (isIpfsGateway(ipfsUrl)) {
+export async function deleteIpfs(
+  ipfsUrl: string,
+  hash: string,
+  customHeaders: Headers = {},
+  isGateway = false
+): Promise<void> {
+  if (isGateway) {
     // cannot write to IPFS on gateway
     throw new Error('Cannot delete from IPFS gateway');
   }
@@ -112,10 +114,9 @@ export async function deleteIpfs(ipfsUrl: string, hash: string, customHeaders: H
   }
 }
 
-export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {}): Promise<string[]> {
-  if (isIpfsGateway(ipfsUrl)) {
-    // cannot write to IPFS on gateway
-    return [];
+export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {}, isGateway = false): Promise<string[]> {
+  if (isGateway) {
+    throw new Error('Cannot list pinned IPFS files on a gateway endpoint');
   }
 
   debug('list ipfs pins');

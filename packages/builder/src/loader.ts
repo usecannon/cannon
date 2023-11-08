@@ -1,6 +1,5 @@
-import { Headers, listPinsIpfs, readIpfs, writeIpfs, deleteIpfs } from './ipfs';
-
 import Debug from 'debug';
+import { deleteIpfs, Headers, listPinsIpfs, readIpfs, writeIpfs } from './ipfs';
 
 const debug = Debug('cannon:builder:loader');
 
@@ -14,12 +13,14 @@ export interface CannonLoader {
 
 export class IPFSLoader implements CannonLoader {
   ipfsUrl: string;
+  isGateway: boolean;
   customHeaders: Headers = {};
 
   static PREFIX = 'ipfs://';
 
-  constructor(ipfsUrl: string, customHeaders: Headers = {}) {
-    this.ipfsUrl = ipfsUrl;
+  constructor(ipfsUrl: string, customHeaders: Headers = {}, isGateway = false) {
+    this.isGateway = isGateway;
+    this.ipfsUrl = ipfsUrl.replace('+ipfs://', '://');
     this.customHeaders = customHeaders;
   }
 
