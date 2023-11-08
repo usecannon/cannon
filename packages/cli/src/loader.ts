@@ -1,13 +1,15 @@
 import { CannonLoader, IPFSLoader } from '@usecannon/builder';
-
-import path from 'path';
-import fs from 'fs-extra';
+import { compress, getContentCID } from '@usecannon/builder/dist/ipfs';
 import crypto from 'crypto';
-import { CliSettings } from './settings';
 import debug from 'debug';
-
+import fs from 'fs-extra';
+import path from 'path';
 import { getCannonRepoRegistryUrl } from './constants';
+import { CliSettings } from './settings';
 
+/**
+ * @deprecated
+ */
 export class LocalLoader implements CannonLoader {
   dir: string;
 
@@ -50,9 +52,94 @@ export class LocalLoader implements CannonLoader {
   }
 }
 
+export class CliLoader implements CannonLoader {
+  ipfs?: IPFSLoader;
+  repo: IPFSLoader;
+  dir: string;
+
+  constructor(ipfsLoader: IPFSLoader | undefined, repoLoader: IPFSLoader, fileCacheDir: string) {
+    this.ipfs = ipfsLoader;
+    this.repo = repoLoader;
+    this.dir = fileCacheDir;
+  }
+
+  getLabel() {
+    return this.ipfs ? this.ipfs.getLabel() : this.repo.getLabel();
+  }
+
+  getCacheFilePath(url: string) {
+    return path.join(this.dir, `${CliLoader.getCacheHash(url)}.json`);
+  }
+
+  async put(misc: any): Promise<string> {
+    const url = this.ipfs
+      ? await this.ipfs.put(misc) // if configured, write to settings ipfs
+      : await getContentCID(compress(misc)); // if not, calculate CID to save to file;
+
+    debug(`cli ipfs put ${url}`);
+
+    // Always save cached to filesystem
+    const data = JSON.stringify(misc);
+
+    await fs.mkdirp(this.dir);
+    await fs.writeFile(this.getCacheFilePath(url), data);
+
+    return url;
+  }
+
+  async read(url: string) {
+    debug(`cli ipfs read ${url}`);
+
+    const cacheFile = this.getCacheFilePath(url);
+
+    // Check if we already have the file cached locally
+    if (fs.statSync(cacheFile).isFile()) {
+      return fs.readJson(cacheFile);
+    }
+
+    // If its configured, try to get it from the settings ipfs
+    if (this.ipfs) {
+      return this.ipfs.read(url);
+    }
+
+    // Lastly, default to the Cannon repo ipfs
+    return this.repo.read(url);
+  }
+
+  async remove(url: string) {
+    debug(`cli ipfs remove ${url}`);
+
+    const cacheFile = this.getCacheFilePath(url);
+
+    // Remove from the local cache
+    if (fs.statSync(cacheFile).isFile()) {
+      await fs.unlink(cacheFile);
+    }
+
+    // If its configured, try to remove it from the settings ipfs
+    if (this.ipfs) {
+      return this.ipfs.remove(url);
+    }
+
+    // Notice: Never try to remove from the repo
+  }
+
+  async list() {
+    return this.ipfs ? this.ipfs.list() : [];
+  }
+
+  static getCacheHash(url: string) {
+    return crypto.createHash('md5').update(url.replace(IPFSLoader.PREFIX, '')).digest('hex');
+  }
+}
+
 export function getMainLoader(cliSettings: CliSettings) {
   return {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl || getCannonRepoRegistryUrl()),
+    ipfs: new CliLoader(
+      cliSettings.ipfsUrl ? new IPFSLoader(cliSettings.ipfsUrl) : undefined,
+      new IPFSLoader(getCannonRepoRegistryUrl()),
+      path.join(cliSettings.cannonDirectory, 'ipfs_cache')
+    ),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }
