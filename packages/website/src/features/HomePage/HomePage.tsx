@@ -3,7 +3,7 @@
 import { Flex, Button, Container, Heading, Link, Box } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { gsap } from 'gsap';
 
 const CustomLink = ({
