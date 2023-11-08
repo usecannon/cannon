@@ -1,11 +1,13 @@
 import { CannonLoader, IPFSLoader } from '@usecannon/builder';
 import { compress, getContentCID } from '@usecannon/builder/dist/ipfs';
 import crypto from 'crypto';
-import debug from 'debug';
+import Debug from 'debug';
 import fs from 'fs-extra';
 import path from 'path';
 import { getCannonRepoRegistryUrl } from './constants';
 import { CliSettings } from './settings';
+
+const debug = Debug('cannon:cli:loader');
 
 /**
  * @deprecated
