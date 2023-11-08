@@ -2,10 +2,8 @@ import axios, { AxiosResponse } from 'axios';
 import { Buffer } from 'buffer';
 import Debug from 'debug';
 import FormData from 'form-data';
-import * as Block from 'multiformats/block';
-import * as raw from 'multiformats/codecs/raw';
-import { sha256 } from 'multiformats/hashes/sha2';
 import pako from 'pako';
+import Hash from 'typestub-ipfs-only-hash';
 
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;
@@ -22,11 +20,7 @@ export function uncompress(data: any) {
 }
 
 export async function getContentCID(value: Uint8Array): Promise<string> {
-  // Create an IPLD block with the raw data and SHA2-256 hash
-  const block = await Block.encode({ value, codec: raw, hasher: sha256 });
-
-  // The CID is accessible via the block.cid property
-  return block.cid.toString();
+  return Hash.of(value.toString());
 }
 
 export async function isIpfsGateway(ipfsUrl: string) {
