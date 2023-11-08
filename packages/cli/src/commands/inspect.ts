@@ -18,6 +18,8 @@ export async function inspect(
   sources: boolean,
   registryPriority?: 'local' | 'onchain'
 ) {
+  
+
   // Handle deprecated preset specification
   if (presetArg) {
     console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));

@@ -495,8 +495,8 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
     options.preset,
     options.json,
     options.writeDeployments,
-    options.registryPriority,
-    options.sources
+    options.sources,
+    options.registryPriority
   );
 });
 
