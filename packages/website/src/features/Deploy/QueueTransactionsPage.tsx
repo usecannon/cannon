@@ -165,8 +165,8 @@ function QueueTransactions() {
           Queue Transactions
         </Heading>
         <Text fontSize="sm" color="gray.300">
-          Add transactions for a specified package or contract address to the
-          queue.
+          Transactions queued here will not generate a Cannon package after
+          execution.
         </Text>
       </Box>
       <FormControl mb="8">

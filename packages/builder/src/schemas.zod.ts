@@ -42,15 +42,15 @@ const targetSchema = targetString.or(z.array(targetString).nonempty());
 export const contractSchema = z
   .object({
     /**
-     *    Artifact name or path of the target contract
+     *    Artifact name of the target contract
      */
     artifact: z
       .string()
       .refine(
         (val) => !!val.match(artifactNameRegex) || !!val.match(artifactPathRegex),
-        (val) => ({ message: `Artifact name or path "${val}" is invalid` })
+        (val) => ({ message: `Artifact name "${val}" is invalid` })
       )
-      .describe('Artifact name or path of the target contract'),
+      .describe('Artifact name of the target contract'),
   })
   .merge(
     z

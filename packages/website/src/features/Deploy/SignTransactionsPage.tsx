@@ -37,7 +37,8 @@ function SignTransactions() {
           Sign & Execute Transactions
         </Heading>
         <Text fontSize="sm" color="gray.300">
-          Collect signtures and execute transactions.
+          Collect signatures and execute transactions with{' '}
+          {currentSafe?.address}
         </Text>
       </Box>
 
