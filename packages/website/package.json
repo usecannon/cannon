@@ -40,6 +40,7 @@
     "eslint-config-next": "13.4.12",
     "framer-motion": "^10.12.17",
     "graphql-tag": "^2.12.6",
+    "gsap": "^3.12.2",
     "isomorphic-git": "^1.24.5",
     "json-schema-to-typescript": "^13.1.1",
     "just-entries": "^2.3.0",
