@@ -48,6 +48,12 @@ export default function PublishUtility(props: {
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error(
+          'You cannot publish on an IPFS gateway, only read operations can be done'
+        );
+      }
+
       console.log(
         'publish triggered',
         wc,
@@ -122,8 +128,18 @@ export default function PublishUtility(props: {
             matching name and version.
           </Text>
         )}
+        {settings.isIpfsGateway && (
+          <Text mb={3}>
+            You cannot publish on an IPFS gateway, only read operations can be
+            done.
+          </Text>
+        )}
         <Button
-          isDisabled={wc.data?.chain?.id !== 1 || publishMutation.isLoading}
+          isDisabled={
+            settings.isIpfsGateway ||
+            wc.data?.chain?.id !== 1 ||
+            publishMutation.isLoading
+          }
           onClick={() => publishMutation.mutate()}
         >
           {publishMutation.isLoading
