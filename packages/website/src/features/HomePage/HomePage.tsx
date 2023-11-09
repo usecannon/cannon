@@ -160,7 +160,7 @@ export default function HomePage() {
         top="50%"
         transform="translateY(-50%)"
         right="0"
-        opacity="0.3"
+        opacity="0.5"
         style={{ filter: 'url(#noise)' }}
       >
         <svg

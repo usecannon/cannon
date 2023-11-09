@@ -319,8 +319,11 @@ function QueueFromGitOps() {
             Queue Build
           </Heading>
           <Text fontSize="sm" color="gray.300">
-            Queue transactions from a GitOps repository or partial build
-            information.
+            Queue transactions based on a pull request that modifies a
+            cannonfile in a git repository. Optionally, you can provide partial
+            build information. (This is especially useful for builds that
+            involve contract deployments.) After the queued transactions are
+            executed, a resulting package can be published to the registry.
           </Text>
         </Box>
         <FormControl mb="8">
