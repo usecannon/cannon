@@ -403,20 +403,26 @@ function QueueFromGitOps() {
           </FormHelperText>
         </FormControl>
         {buildInfo.buildStatus == '' && (
-          <Button
-            width="100%"
-            colorScheme="teal"
-            mb={6}
-            isDisabled={
-              cannonPkgVersionInfo.ipfsQuery.isFetching ||
-              cannonPkgLatestInfo.ipfsQuery.isFetching ||
-              cannonPkgVersionInfo.registryQuery.isFetching ||
-              cannonPkgLatestInfo.registryQuery.isFetching
-            }
-            onClick={() => buildTransactions()}
-          >
-            Preview Transactions to Queue
-          </Button>
+          <>
+            {settings.isIpfsGateway && (
+              <Text mb={3}>You can only read from IPFS gateway.</Text>
+            )}
+            <Button
+              width="100%"
+              colorScheme="teal"
+              mb={6}
+              isDisabled={
+                settings.isIpfsGateway ||
+                cannonPkgVersionInfo.ipfsQuery.isFetching ||
+                cannonPkgLatestInfo.ipfsQuery.isFetching ||
+                cannonPkgVersionInfo.registryQuery.isFetching ||
+                cannonPkgLatestInfo.registryQuery.isFetching
+              }
+              onClick={() => buildTransactions()}
+            >
+              Preview Transactions to Queue
+            </Button>
+          </>
         )}
         {buildInfo.buildStatus && (
           <Alert mb="6" status="info">

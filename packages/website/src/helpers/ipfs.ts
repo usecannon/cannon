@@ -9,15 +9,6 @@ export function parseIpfsHash(url: string) {
   return url.trim().match(FILE_URL_REGEX)?.groups?.cid || '';
 }
 
-export function isIpfsUploadEndpoint(ipfsUrl: string) {
-  try {
-    const url = new URL(ipfsUrl);
-    url.protocol === 'http+ipfs:' || url.protocol === 'https+ipfs:';
-  } catch (_) {
-    return false;
-  }
-}
-
 export class IPFSBrowserLoader extends IPFSLoader {
   constructor(ipfsUrl: string) {
     const { url, headers } = createIpfsUrl(ipfsUrl);
@@ -25,7 +16,7 @@ export class IPFSBrowserLoader extends IPFSLoader {
   }
 }
 
-// Create an ipfs url with compatibility for custom auth and https+ipfs:// protocol
+// Create an ipfs url with compatibility for custom auth
 export function createIpfsUrl(base: string, pathname = '') {
   const parsedUrl = parseUrl(base);
   const headers: { [k: string]: string } = {};

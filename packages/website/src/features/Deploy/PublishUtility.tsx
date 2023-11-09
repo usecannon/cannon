@@ -48,6 +48,10 @@ export default function PublishUtility(props: {
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error('You can only read from IPFS gateway.');
+      }
+
       console.log(
         'publish triggered',
         wc,
@@ -72,7 +76,9 @@ export default function PublishUtility(props: {
         ''
       );
 
-      const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
+      const loader = new IPFSBrowserLoader(
+        settings.ipfsApiUrl || 'https://repo.usecannon.com/'
+      );
 
       const fromStorage = new CannonStorage(
         new FallbackRegistry([fakeLocalRegistry, targetRegistry]),
@@ -120,8 +126,15 @@ export default function PublishUtility(props: {
             matching name and version.
           </Text>
         )}
+        {settings.isIpfsGateway && (
+          <Text mb={3}>You can only read from IPFS gateway.</Text>
+        )}
         <Button
-          isDisabled={wc.data?.chain?.id !== 1 || publishMutation.isLoading}
+          isDisabled={
+            settings.isIpfsGateway ||
+            wc.data?.chain?.id !== 1 ||
+            publishMutation.isLoading
+          }
           onClick={() => publishMutation.mutate()}
         >
           {publishMutation.isLoading

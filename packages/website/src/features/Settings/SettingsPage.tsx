@@ -29,7 +29,7 @@ import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
-//import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
+import { isIpfsGateway } from '@usecannon/builder/src/ipfs';
 
 type Setting = {
   title: string;
@@ -44,7 +44,7 @@ type Setting = {
 const SETTINGS: Record<
   Exclude<
     keyof Store['settings'],
-    'ipfsApiUrl' | 'customProviders' | 'pythUrl'
+    'ipfsApiUrl' | 'isIpfsGateway' | 'customProviders' | 'pythUrl'
   >,
   Setting
 > = {
@@ -297,7 +297,12 @@ export default function SettingsPage() {
               value={settings.ipfsApiUrl}
               type={'text'}
               name={'ipfsApiUrl'}
-              onChange={(evt) => setSettings({ ipfsApiUrl: evt.target.value })}
+              onChange={async (evt) => {
+                setSettings({ ipfsApiUrl: evt.target.value });
+                setSettings({
+                  isIpfsGateway: await isIpfsGateway(evt.target.value),
+                });
+              }}
             />
             <FormHelperText color="gray.300">
               This is an{' '}

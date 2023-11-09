@@ -79,6 +79,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const [buildError, setBuildError] = useState<string | null>(null);
 
   const buildFn = async () => {
+    if (settings.isIpfsGateway) {
+      throw new Error('You can only read from IPFS gateway.');
+    }
+
     setBuildStatus('Creating fork...');
     const fork = await createFork({
       url: settings.forkProviderUrl,
@@ -94,7 +98,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       address: settings.registryAddress,
     });
 
-    const ipfsLoader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
 
     setBuildStatus('Loading deployment data...');
 
@@ -240,6 +244,10 @@ export function useCannonWriteDeployToIpfs(
   const writeToIpfsMutation = useMutation<IPFSPackageWriteResult>({
     ...mutationOptions,
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error('You can only read from IPFS gateway.');
+      }
+
       const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
@@ -254,7 +262,7 @@ export function useCannonWriteDeployToIpfs(
         fromStorage: runtime,
         toStorage: new CannonStorage(
           memoryRegistry,
-          { ipfs: new IPFSBrowserLoader('https+ipfs://repo.usecannon.com') },
+          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
           'ipfs'
         ),
         packageRef,
@@ -320,7 +328,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       if (!pkgUrl) return null;
 
       try {
-        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
 
         const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
@@ -381,14 +389,14 @@ export function getContractsRecursive(
 export function useCannonPackageContracts(packageRef: string, variant = '') {
   const pkg = useCannonPackage(packageRef, variant);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
-  // const settings = useStore((s) => s.settings);
+  const settings = useStore((s) => s.settings);
 
   useEffect(() => {
     const getContracts = async () => {
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader('https+ipfs://repo.usecannon.com');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,
