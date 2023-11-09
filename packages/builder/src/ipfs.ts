@@ -19,8 +19,8 @@ export function uncompress(data: any) {
   return pako.inflate(data, { to: 'string' });
 }
 
-export async function getContentCID(value: Uint8Array): Promise<string> {
-  return Hash.of(value.toString());
+export async function getContentCID(value: string | Buffer): Promise<string> {
+  return Hash.of(value);
 }
 
 export async function isIpfsGateway(ipfsUrl: string) {
@@ -105,7 +105,7 @@ export async function writeIpfs(
 ): Promise<string> {
   const data = JSON.stringify(info);
   const buf = compress(data);
-  const cid = await getContentCID(buf);
+  const cid = await getContentCID(Buffer.from(buf));
 
   if (!isGateway) {
     debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
@@ -121,7 +121,7 @@ export async function writeIpfs(
       debug('upload', result.statusText, result.data.Hash);
 
       if (cid !== result.data.Hash) {
-        throw new Error('nope');
+        throw new Error('Invalid CID generated locally');
       }
     } catch (err) {
       throw new Error(

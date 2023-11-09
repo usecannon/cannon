@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
 import { CannonWrapperGenericProvider } from './error/provider';
-import { CannonLoader, InMemoryLoader, IPFSLoader } from './loader';
+import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';

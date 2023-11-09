@@ -83,7 +83,7 @@ describe('alter', () => {
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValue(testPkgData);
     jest.spyOn(CannonStorage.prototype, 'putDeploy').mockResolvedValue(newUrl);
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
-    
+
     localLoader = new LocalLoader('path');
     ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
 
