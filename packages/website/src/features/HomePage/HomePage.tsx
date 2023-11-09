@@ -61,7 +61,7 @@ export default function HomePage() {
           stroke: '#1ad6ff',
           duration: randomDuration,
         },
-        0
+        0,
       ) // Synchronize with the start of turbulence animation
       .to(turb, {
         attr: { baseFrequency: '0.000001' },
@@ -73,7 +73,7 @@ export default function HomePage() {
           stroke: '#7E858F',
           duration: randomDuration,
         },
-        `>-${randomDuration()}`
+        `>-${randomDuration()}`,
       ); // Offset to start before the turbulence animation ends
 
     return () => {
@@ -160,7 +160,7 @@ export default function HomePage() {
         top="50%"
         transform="translateY(-50%)"
         right="0"
-        opacity="0.3"
+        opacity="0.5"
         style={{ filter: 'url(#noise)' }}
       >
         <svg
