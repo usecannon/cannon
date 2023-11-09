@@ -1,13 +1,10 @@
-import { ethers } from 'ethers';
-
-import provider from 'eth-provider';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
-
 import { bold } from 'chalk';
-
 import Debug from 'debug';
+import provider from 'eth-provider';
+import { ethers } from 'ethers';
 import os from 'os';
+import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
 import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');

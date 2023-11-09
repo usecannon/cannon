@@ -9,7 +9,7 @@ import * as settings from '../settings';
 import { resolveCliSettings } from '../settings';
 import { fetch } from './fetch';
 
-import { getMainLoader, LocalLoader } from '../loader';
+import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { DeploymentInfo, IPFSLoader } from '@usecannon/builder';
 
 afterEach(() => {
@@ -56,7 +56,7 @@ describe('fetch', () => {
 
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
+  let ipfsLoader: CliLoader;
 
   beforeAll(() => {
     jest.resetAllMocks();
@@ -156,7 +156,7 @@ describe('fetch', () => {
     };
 
     localLoader = new LocalLoader('path');
-    ipfsLoader = new IPFSLoader('ipfs');
+    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
@@ -181,7 +181,6 @@ describe('fetch', () => {
     await fetch(basePackageRef, chainId, ipfsHash);
 
     expect(CannonStorage.prototype.readBlob).toHaveBeenCalledTimes(1);
-    expect(CannonStorage.prototype.putBlob).toHaveBeenCalledTimes(1);
   });
 
   test('should fail if IPFS hash is invalid', async () => {

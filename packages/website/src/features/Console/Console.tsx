@@ -29,6 +29,7 @@ export const Console = () => {
   return (
     <Flex
       position="fixed"
+      zIndex={1000}
       bottom="48px"
       right="48px"
       flexDirection="column"

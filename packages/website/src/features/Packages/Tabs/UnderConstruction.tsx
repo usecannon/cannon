@@ -3,10 +3,10 @@ import { Container, Alert, AlertTitle } from '@chakra-ui/react';
 
 export const UnderConstruction: FC = () => {
   return (
-    <Container maxW="container.lg" mb="6">
+    <Container maxW="container.md" mb="4" mt="10">
       <Alert bg="gray.800" border="1px solid" borderColor="gray.700">
         <AlertTitle>
-          🚧&nbsp;&nbsp;Cannon&apos;s package explorer is under construction
+          🚧&nbsp;&nbsp;&nbsp;The web deployer is currently under construction.
         </AlertTitle>
       </Alert>
     </Container>

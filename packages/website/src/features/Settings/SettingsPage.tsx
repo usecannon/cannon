@@ -27,7 +27,7 @@ import {
 } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
-import { Store, useStore } from '@/helpers/store';
+import { Store, initialState, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
 //import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
 
@@ -44,7 +44,7 @@ type Setting = {
 const SETTINGS: Record<
   Exclude<
     keyof Store['settings'],
-    'ipfsUrl' | 'customProviders' | 'pythUrl' | 'ipfsQueryUrl'
+    'ipfsApiUrl' | 'customProviders' | 'pythUrl'
   >,
   Setting
 > = {
@@ -72,10 +72,6 @@ const SETTINGS: Record<
   registryAddress: {
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
-  },
-  registryProviderUrl: {
-    title: 'Registry Provider RPC URL',
-    description: 'JSON RPC url to connect with the Cannon Registry.',
   },
   forkProviderUrl: {
     title: 'RPC URL for Local Fork',
@@ -116,7 +112,13 @@ export default function SettingsPage() {
   return (
     <Container maxW="100%" w="container.md">
       <Box>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          my="10"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
@@ -287,48 +289,34 @@ export default function SettingsPage() {
           <Heading size="md" mb={3}>
             IPFS
           </Heading>
-          <FormControl mb="4">
-            <FormLabel>IPFS Query URL</FormLabel>
+          <FormControl>
+            <FormLabel>HTTP API URL</FormLabel>
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
-              value={settings.ipfsQueryUrl}
+              value={settings.ipfsApiUrl}
               type={'text'}
-              name={'ipfsQueryUrl'}
-              onChange={(evt) =>
-                setSettings({ ipfsQueryUrl: evt.target.value })
-              }
+              name={'ipfsApiUrl'}
+              onChange={(evt) => setSettings({ ipfsApiUrl: evt.target.value })}
             />
             <FormHelperText color="gray.300">
-              This is used to fetch package data. You can use a public gateway,
-              a paid gateway, or a{' '}
+              This is an{' '}
               <Link
                 isExternal
-                href="https://docs.ipfs.tech/install/ipfs-desktop/"
+                href="https://docs.ipfs.tech/reference/http/gateway/"
               >
-                local node
+                IPFS HTTP Gateway URL
+              </Link>{' '}
+              or a{' '}
+              <Link
+                isExternal
+                href="https://docs.ipfs.tech/reference/kubo/rpc/"
+              >
+                Kubo RPC API URL
               </Link>
-              .
-            </FormHelperText>
-          </FormControl>
-          <FormControl>
-            <FormLabel>IPFS Pinning URL</FormLabel>
-            <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
-              value={settings.ipfsUrl}
-              type={'text'}
-              name={'ipfsUrl'}
-              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
-            />
-            <FormHelperText color="gray.300">
-              This is required by the{' '}
+              . It must be a Kubo RPC API URL to publish packages using the{' '}
               <Link as={NextLink} href="/deploy">
                 deployer
-              </Link>{' '}
-              to publish packages. Consider using a pinning service like{' '}
-              <Link isExternal href="https://www.pinata.cloud/">
-                Pinata
               </Link>
               .
             </FormHelperText>
@@ -390,10 +378,37 @@ export default function SettingsPage() {
             );
           })}
         </Box>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          mt="10"
+          mb="5"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
+        <FormControl>
+          <FormHelperText color="gray.300" mb={5} textAlign="right">
+            <Link
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (
+                  window.confirm(
+                    'Are you sure you want to reset to default settings? This can’t be undone.'
+                  )
+                ) {
+                  setSettings(initialState.settings);
+                  alert('Done!');
+                }
+              }}
+            >
+              Reset to defaults
+            </Link>
+          </FormHelperText>
+        </FormControl>
       </Box>
     </Container>
   );

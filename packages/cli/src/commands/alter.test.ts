@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { alter } from './alter';
 import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { getMainLoader, LocalLoader } from '../loader';
+import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import _ from 'lodash';
 import cli from '../index';
 
@@ -38,15 +38,12 @@ describe('alter', () => {
   const newUrl = 'file:/usecannon.com/new-url';
   let testPkgData: DeploymentInfo;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
+  let ipfsLoader: CliLoader;
   let mockedFallBackRegistry: FallbackRegistry;
 
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-
-    localLoader = new LocalLoader('path');
-    ipfsLoader = new IPFSLoader('ipfs');
     mockedFallBackRegistry = new FallbackRegistry([]);
     testPkgData = {
       generator: 'cannon test',
@@ -69,6 +66,8 @@ describe('alter', () => {
                 contractName: 'TestContract',
                 sourceName: 'TestContract.sol',
                 deployedOn: '',
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },
@@ -84,6 +83,10 @@ describe('alter', () => {
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValue(testPkgData);
     jest.spyOn(CannonStorage.prototype, 'putDeploy').mockResolvedValue(newUrl);
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
+
+    localLoader = new LocalLoader('path');
+    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
+
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
       ipfs: ipfsLoader,

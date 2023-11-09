@@ -1,3 +1,9 @@
+import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { createFork, findChainUrl } from '@/helpers/rpc';
+import { SafeDefinition, useStore } from '@/helpers/store';
+import { useGitRepo } from '@/hooks/git';
+import { useLogs } from '@/providers/logsProvider';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import {
@@ -5,9 +11,9 @@ import {
   CannonStorage,
   CannonWrapperGenericProvider,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderRuntime,
   ChainDefinition,
-  publishPackage,
   createInitialContext,
   DeploymentInfo,
   Events,
@@ -15,17 +21,12 @@ import {
   getOutputs,
   InMemoryRegistry,
   OnChainRegistry,
+  publishPackage,
 } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Address, useChainId } from 'wagmi';
-import { SafeDefinition, useStore } from '@/helpers/store';
-import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { createFork } from '@/helpers/rpc';
-import { useGitRepo } from '@/hooks/git';
-import { useLogs } from '@/providers/logsProvider';
+import { mainnet, Address, useChainId } from 'wagmi';
 
 export type BuildState =
   | {
@@ -89,11 +90,11 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     });
 
     const registry = new OnChainRegistry({
-      signerOrProvider: settings.registryProviderUrl,
+      signerOrProvider: findChainUrl(mainnet.id),
       address: settings.registryAddress,
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsUrl);
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl);
 
     setBuildStatus('Loading deployment data...');
 
@@ -124,10 +125,13 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     const simulatedSteps: ChainArtifacts[] = [];
     const skippedSteps: StepExecutionError[] = [];
 
-    currentRuntime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
-      simulatedSteps.push(stepOutput);
-      setBuildStatus(`Building ${stepType}.${stepLabel}...`);
-    });
+    currentRuntime.on(
+      Events.PostStepExecute,
+      (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        simulatedSteps.push(stepOutput);
+        setBuildStatus(`Building ${stepType}.${stepLabel}...`);
+      }
+    );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
       console.log(stepName, err);
@@ -248,7 +252,7 @@ export function useCannonWriteDeployToIpfs(
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
-        toStorage: new CannonStorage(memoryRegistry, { ipfs: new IPFSBrowserLoader(settings.ipfsUrl) }, 'ipfs'),
+        toStorage: new CannonStorage(memoryRegistry, { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl) }, 'ipfs'),
         packageRef,
         variant,
         tags: ['latest'],
@@ -288,7 +292,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
       }
 
       const registry = new OnChainRegistry({
-        signerOrProvider: settings.registryProviderUrl,
+        signerOrProvider: findChainUrl(mainnet.id),
         address: settings.registryAddress,
       });
 
@@ -311,22 +315,27 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
       if (!pkgUrl) return null;
 
-      const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
+      try {
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
 
-      const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
+        const deployInfo: DeploymentInfo = await loader.read(pkgUrl as any);
 
-      const def = new ChainDefinition(deployInfo.def);
+        const def = new ChainDefinition(deployInfo.def);
 
-      const ctx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
+        const ctx = await createInitialContext(def, deployInfo.meta, 0, deployInfo.options);
 
-      const resolvedName = def.getName(ctx);
-      const resolvedVersion = def.getVersion(ctx);
+        const resolvedName = def.getName(ctx);
+        const resolvedVersion = def.getVersion(ctx);
 
-      if (deployInfo) {
-        addLog('LOADED');
-        return { deployInfo, ctx, resolvedName, resolvedVersion };
-      } else {
-        throw new Error('failed to download package data');
+        if (deployInfo) {
+          addLog('LOADED');
+          return { deployInfo, ctx, resolvedName, resolvedVersion };
+        } else {
+          throw new Error('failed to download package data');
+        }
+      } catch (err) {
+        addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
+        return null;
       }
     },
     enabled: !!pkgUrl,
@@ -375,7 +384,7 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
       if (pkg.pkg) {
         const info = pkg.pkg;
 
-        const loader = new IPFSBrowserLoader(settings.ipfsUrl || 'https://ipfs.io/ipfs/');
+        const loader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
         const readRuntime = new ChainBuilderRuntime(
           {
             provider: null as any,

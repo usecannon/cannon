@@ -13,9 +13,11 @@ import {
   FormHelperText,
   FormLabel,
   HStack,
+  Heading,
   Input,
   Tooltip,
   useToast,
+  Text,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { useState } from 'react';
@@ -39,14 +41,9 @@ import { useStore } from '@/helpers/store';
 import { makeMultisend } from '@/helpers/multisend';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
-import WithSafe from './WithSafe';
 
 export default function QueueTransactionsPage() {
-  return (
-    <WithSafe>
-      <QueueTransactions />
-    </WithSafe>
-  );
+  return <QueueTransactions />;
 }
 
 function QueueTransactions() {
@@ -162,7 +159,16 @@ function QueueTransactions() {
     !multisendTxn || txnHasError || !!stager.execConditionFailed;
 
   return (
-    <Container maxWidth="container.md" pb="12">
+    <Container maxWidth="container.md" py={8}>
+      <Box mb={6}>
+        <Heading size="md" mb={2}>
+          Queue Transactions
+        </Heading>
+        <Text fontSize="sm" color="gray.300">
+          Transactions queued here will not generate a Cannon package after
+          execution.
+        </Text>
+      </Box>
       <FormControl mb="8">
         <FormLabel>Cannon Package or Contract Address</FormLabel>
         <Input

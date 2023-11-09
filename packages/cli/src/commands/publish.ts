@@ -1,5 +1,5 @@
 import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
-import { blueBright } from 'chalk';
+import { blueBright, gray } from 'chalk';
 import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
@@ -219,7 +219,9 @@ export async function publish({
       process.exit(1);
     }
 
-    console.log('\n------\n');
+    console.log(bold('Publishing package...'));
+    console.log(gray('This may take a few minutes.'));
+    console.log();
   }
 
   const registrationReceipts = [];

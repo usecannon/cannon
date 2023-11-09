@@ -29,7 +29,7 @@ import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { format } from 'date-fns';
-import { InfoIcon, ViewIcon, DownloadIcon } from '@chakra-ui/icons';
+import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
@@ -46,12 +46,6 @@ export const DeploymentExplorer: FC<{
   const deploymentInfo = deploymentData.data
     ? (deploymentData.data as DeploymentInfo)
     : undefined;
-
-  const {
-    isOpen: isDeploymentDataModalOpen,
-    onOpen: openDeploymentDataModal,
-    onClose: closeDeploymentDataModal,
-  } = useDisclosure();
 
   const {
     isOpen: isPackageJsonModalOpen,
@@ -193,20 +187,19 @@ export const DeploymentExplorer: FC<{
             Fetching {variant?.deploy_url}
           </Text>
           <Text color="gray.500" fontSize="xs">
-            Taking a while?{' '}
+            This could take a minute. You can also{' '}
             <Link href={links.SETTINGS} as={NextLink}>
-              Try another IPFS gateway
+              try another IPFS gateway
             </Link>
+            .
           </Text>
         </Box>
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
           {deploymentInfo?.def?.description && (
-            <Text fontSize="xl" mb={1}>
-              {deploymentInfo.def.description}
-            </Text>
+            <Text fontSize="xl">{deploymentInfo.def.description}</Text>
           )}
-          <Text color="gray.300" fontSize="xs" fontFamily="mono" mb={2}>
+          <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
             {deploymentInfo?.generator &&
               `built with ${deploymentInfo.generator} `}
             {deploymentInfo?.generator &&
@@ -232,93 +225,115 @@ export const DeploymentExplorer: FC<{
               </Tooltip>
             )}
           </Box>
-          <Box mb={6}>
-            <Heading size="md" mb={1}>
-              Chain Definition{' '}
-              <Tooltip
-                label="The chain definition describes the desired state of the blockchain based on a Cannonfile."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
-            {!isEmpty(deploymentInfo?.meta) && (
-              <>
-                <Box mb={2}>
-                  <Link
-                    isExternal
-                    styleConfig={{ 'text-decoration': 'none' }}
-                    borderBottom="1px dotted"
-                    borderBottomColor="gray.300"
-                    onClick={openPackageJsonModal}
-                    color="gray.300"
-                    fontSize="xs"
-                    fontFamily="mono"
-                  >
-                    View package.json Data
-                  </Link>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
+            <Box mb={3}>
+              <Box mb={4}>
+                <Heading size="md" mb={2}>
+                  Chain Definition
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  The chain definition describes the desired state of the
+                  blockchain based on a Cannonfile.
+                </Text>
+              </Box>
+              <Box mb={6}>
+                <Heading size="sm" mb={2}>
+                  Settings
+                </Heading>
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th color="gray.300" pl={0} borderColor="gray.500">
+                          Setting
+                        </Th>
+                        <Th color="gray.300" borderColor="gray.500">
+                          Value
+                        </Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody fontFamily={'mono'}>
+                      {Object.entries(settings).map(([key, value]) => (
+                        <Tr key={key}>
+                          <Td pl={0} borderColor="gray.500">
+                            <Tooltip label={value.description}>
+                              {key?.toString()}
+                            </Tooltip>
+                          </Td>
+                          <Td borderColor="gray.500">
+                            {value.option ? (
+                              <>
+                                {value.option}{' '}
+                                <Text
+                                  color="gray.500"
+                                  textDecoration="line-through"
+                                  display="inline"
+                                >
+                                  {value.defaultValue}
+                                </Text>
+                              </>
+                            ) : (
+                              <>{value.defaultValue}</>
+                            )}
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
                 </Box>
-                <Modal
-                  isOpen={isPackageJsonModalOpen}
-                  onClose={closePackageJsonModal}
-                  size="6xl"
-                >
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalCloseButton />
-                    <CodePreview
-                      code={JSON.stringify(deploymentInfo?.meta, null, 2)}
-                      language="json"
-                    />
-                  </ModalContent>
-                </Modal>
-              </>
-            )}
-            <Box overflowX="auto" mb={6}>
-              <Table variant="simple" size="sm">
-                <Thead>
-                  <Tr>
-                    <Th color="gray.300" pl={0} borderColor="gray.500">
-                      Setting
-                    </Th>
-                    <Th color="gray.300" borderColor="gray.500">
-                      Value
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {Object.entries(settings).map(([key, value]) => (
-                    <Tr key={key}>
-                      <Td pl={0} borderColor="gray.500">
-                        <Tooltip label={value.description}>
-                          {key?.toString()}
-                        </Tooltip>
-                      </Td>
-                      <Td borderColor="gray.500">
-                        {value.option ? (
-                          <>
-                            {value.option}{' '}
-                            <Text
-                              color="gray.500"
-                              textDecoration="line-through"
-                              display="inline"
-                            >
-                              {value.defaultValue}
-                            </Text>
-                          </>
-                        ) : (
-                          <>{value.defaultValue}</>
-                        )}
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
+
+                {!isEmpty(deploymentInfo?.meta) && (
+                  <>
+                    <Box mt={1.5}>
+                      <Link
+                        isExternal
+                        styleConfig={{ 'text-decoration': 'none' }}
+                        borderBottom="1px dotted"
+                        borderBottomColor="gray.300"
+                        onClick={openPackageJsonModal}
+                        color="gray.300"
+                        fontSize="xs"
+                        fontFamily="mono"
+                        cursor={'pointer'}
+                      >
+                        package.json
+                      </Link>{' '}
+                      <Tooltip
+                        label="Cannon includes a project's package.json in the Cannonfile context."
+                        placement="right"
+                        hasArrow
+                      >
+                        <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
+                      </Tooltip>
+                    </Box>
+                    <Modal
+                      isOpen={isPackageJsonModalOpen}
+                      onClose={closePackageJsonModal}
+                      size="6xl"
+                    >
+                      <ModalOverlay />
+                      <ModalContent>
+                        <ModalCloseButton />
+                        <CodePreview
+                          code={JSON.stringify(deploymentInfo?.meta, null, 2)}
+                          language="json"
+                        />
+                      </ModalContent>
+                    </Modal>
+                  </>
+                )}
+              </Box>
             </Box>
             {deploymentInfo?.def?.import && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Package Data Imports
                 </Heading>
                 <ChainDefinitionSteps
@@ -328,8 +343,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.provision && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Package Provisioning
                 </Heading>
                 <ChainDefinitionSteps
@@ -339,8 +354,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.router && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Router Generation
                 </Heading>
                 <ChainDefinitionSteps
@@ -350,8 +365,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.contract && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Contract Deployments
                 </Heading>
                 <ChainDefinitionSteps
@@ -361,8 +376,8 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.invoke && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
+              <Box mb={4}>
+                <Heading size="sm" mb={3}>
                   Function Calls
                 </Heading>
                 <ChainDefinitionSteps
@@ -372,23 +387,41 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Box>
-          <Box mb={6}>
-            <Heading size="md" mb={3}>
-              Chain State{' '}
-              <Tooltip
-                label="The chain state describes the state of blockchain resulting from the build."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
             <Box mb={4}>
+              <Heading size="md" mb={2}>
+                Chain State
+              </Heading>
+              <Text fontSize="sm" color="gray.300">
+                The chain state includes data recorded during the build.
+              </Text>
+            </Box>
+            <Box mb={2}>
+              <Heading size="sm" mb={2}>
+                Contract Deployments
+              </Heading>
+              <Button
+                variant="outline"
+                colorScheme="white"
+                mb={4}
+                size="xs"
+                color="gray.300"
+                borderColor="gray.500"
+                _hover={{ bg: 'gray.700' }}
+                leftIcon={<DownloadIcon />}
+                onClick={handleDownload}
+              >
+                Download Addresses + ABIs
+              </Button>
               {!isEmpty(contractState) && (
                 <>
-                  <Heading size="sm" mb={2}>
-                    Contract Deployments
-                  </Heading>
                   {Object.entries(contractState).length > 0 && (
                     <Box overflowX="auto" mb={4}>
                       <Table variant="simple" size="sm">
@@ -405,7 +438,7 @@ export const DeploymentExplorer: FC<{
                             </Th>
                           </Tr>
                         </Thead>
-                        <Tbody>
+                        <Tbody fontFamily={'mono'}>
                           {Object.entries(contractState).map(([key, value]) => (
                             <Tr key={key}>
                               <Td pl={0} borderColor="gray.500">
@@ -423,19 +456,6 @@ export const DeploymentExplorer: FC<{
                   )}
                 </>
               )}
-              <Button
-                variant="outline"
-                colorScheme="white"
-                mb={2}
-                size="xs"
-                color="gray.300"
-                borderColor="gray.500"
-                _hover={{ bg: 'gray.700' }}
-                leftIcon={<DownloadIcon />}
-                onClick={handleDownload}
-              >
-                Download Addresses + ABIs
-              </Button>
             </Box>
             {!isEmpty(invokeState) && (
               <Box mb={4}>
@@ -447,18 +467,18 @@ export const DeploymentExplorer: FC<{
                     <Thead>
                       <Tr>
                         <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Function
+                          Step
                         </Th>
                         <Th color="gray.300" borderColor="gray.500">
                           Transaction Hash
                         </Th>
                       </Tr>
                     </Thead>
-                    <Tbody>
+                    <Tbody fontFamily={'mono'}>
                       {Object.entries(invokeState).map(([key, value]) => (
                         <Tr key={key}>
                           <Td pl={0} borderColor="gray.500">
-                            {key?.toString()}
+                            [invoke.{key?.toString()}]
                           </Td>
                           <Td borderColor="gray.500">{value.hash}</Td>
                         </Tr>
@@ -469,11 +489,11 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {!isEmpty(mergedExtras) && (
-              <Box mb={4}>
+              <Box>
                 <Heading size="sm" mb={2}>
-                  Extra Data{' '}
+                  Event Data{' '}
                   <Tooltip
-                    label="This includes event data captured during the build to be referenced in subsequent steps."
+                    label="This includes event data captured during the build, to be referenced in dependent steps."
                     placement="right"
                     hasArrow
                   >
@@ -497,7 +517,7 @@ export const DeploymentExplorer: FC<{
                         </Th>
                       </Tr>
                     </Thead>
-                    <Tbody>
+                    <Tbody fontFamily={'mono'}>
                       {Object.entries(mergedExtras).map(([key, value]) => (
                         <Tr key={key}>
                           <Td pl={0} borderColor="gray.500">
@@ -512,42 +532,70 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Box>
-          <Box mb={6}>
-            <Heading size="md" mb={4}>
-              Deployment Data{' '}
-              <Tooltip
-                label="This is the source of the data displayed above."
-                placement="right"
-                hasArrow
-              >
-                <InfoIcon color="gray.400" boxSize={4} mt={-1} ml={1} />
-              </Tooltip>
-            </Heading>
-            <Button
-              variant="outline"
-              colorScheme="white"
-              onClick={openDeploymentDataModal}
-              mb={3}
-              leftIcon={<ViewIcon />}
-            >
-              View Deployment Data
-            </Button>
-            {variant?.deploy_url && <IpfsUrl url={variant.deploy_url} />}
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
+            <Box mb={4}>
+              <Heading size="md" mb={2}>
+                Package Data
+              </Heading>
+              <Text fontSize="sm" color="gray.300">
+                These files contain all of the data relevant to this package.
+              </Text>
+            </Box>
+            <Box mb={3}></Box>
 
-            <Modal
-              isOpen={isDeploymentDataModalOpen}
-              onClose={closeDeploymentDataModal}
-              size="6xl"
-            >
-              <ModalOverlay />
-              <ModalContent>
-                <ModalCloseButton />
-                <CodePreview
-                  code={JSON.stringify(deploymentInfo, null, 2)}
-                  language="json"
-                />
-              </ModalContent>
-            </Modal>
+            <Box overflowX="auto">
+              <Table variant="simple" size="sm">
+                <Thead>
+                  <Tr>
+                    <Th color="gray.300" pl={0} borderColor="gray.500">
+                      File
+                    </Th>
+                    <Th color="gray.300" borderColor="gray.500">
+                      IPFS URL
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {variant?.deploy_url && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Deployment Data
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={variant.deploy_url} />
+                      </Td>
+                    </Tr>
+                  )}
+                  {deploymentInfo?.miscUrl && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Package Code
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={deploymentInfo.miscUrl} />
+                      </Td>
+                    </Tr>
+                  )}
+                  {variant?.meta_url && (
+                    <Tr>
+                      <Td pl={0} borderColor="gray.500">
+                        Metadata
+                      </Td>
+                      <Td borderColor="gray.500">
+                        <IpfsUrl url={variant.meta_url} />
+                      </Td>
+                    </Tr>
+                  )}
+                </Tbody>
+              </Table>
+            </Box>
           </Box>
         </Container>
       ) : (

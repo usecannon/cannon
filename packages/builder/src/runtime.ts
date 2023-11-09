@@ -1,15 +1,13 @@
-import _ from 'lodash';
+import { yellow } from 'chalk';
+import Debug from 'debug';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
+import _ from 'lodash';
 import { CannonWrapperGenericProvider } from './error/provider';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
-import { yellow } from 'chalk';
-
-import Debug from 'debug';
-import { getExecutionSigner } from './util';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
-import { bold } from 'chalk';
+import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -20,6 +18,8 @@ export enum Events {
   DeployTxn = 'deploy-txn',
   DeployExtra = 'deploy-extra',
   SkipDeploy = 'skip-deploy', // step name, error causing skip
+  ResolveDeploy = 'resolve-deploy',
+  DownloadDeploy = 'download-deploy',
 }
 
 export class CannonStorage extends EventEmitter {
@@ -39,7 +39,8 @@ export class CannonStorage extends EventEmitter {
       throw new Error('url not defined');
     }
 
-    const loaderScheme = url.split(':')[0];
+    const loaderScheme = url.includes(':') ? url.split(':')[0] : 'ipfs';
+
     if (!this.loaders[loaderScheme]) {
       throw new Error(`loader scheme not configured: ${loaderScheme}`);
     }
@@ -48,7 +49,17 @@ export class CannonStorage extends EventEmitter {
   }
 
   readBlob(url: string) {
-    return this.lookupLoader(url).read(url);
+    const loader = this.lookupLoader(url);
+    let loaderLabel;
+
+    if (loader instanceof IPFSLoader) {
+      loaderLabel = loader.ipfsUrl;
+    } else {
+      loaderLabel = loader.getLabel();
+    }
+
+    this.emit(Events.DownloadDeploy, url, loaderLabel, 0);
+    return loader.read(url);
   }
 
   putBlob(data: any) {
@@ -64,15 +75,12 @@ export class CannonStorage extends EventEmitter {
   }
 
   async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
+    const registryName = this.registry.getLabel();
+    this.emit(Events.ResolveDeploy, packageName, preset, chainId, registryName, 0);
+
     const uri = await this.registry.getUrl(packageName, `${chainId}-${preset}`);
 
     if (!uri) return null;
-
-    const loaderScheme = uri.split(':')[0];
-
-    console.log(
-      bold(`Checking ${loaderScheme?.toUpperCase()} for package ${packageName}@${preset} with chain Id ${chainId}...\n`)
-    );
 
     const deployInfo: DeploymentInfo = await this.readBlob(uri);
 
@@ -263,11 +271,17 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
-    newRuntime.on(Events.PostStepExecute, (t, n, o, d) => this.emit(Events.PostStepExecute, t, n, o, d + 1));
+    newRuntime.on(Events.PostStepExecute, (t, n, cfg, ctx, result, d) =>
+      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1)
+    );
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
     newRuntime.on(Events.SkipDeploy, (n, e, d) => this.emit(Events.SkipDeploy, n, e, d + 1));
+    newRuntime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
+    );
+    newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
 
     return newRuntime;
   }
