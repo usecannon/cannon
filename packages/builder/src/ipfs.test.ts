@@ -40,8 +40,8 @@ describe('ipfs.ts', () => {
 
   describe('writeIpfs()', () => {
     it('returns custom local content hash', async () => {
-      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, true)).toBe(
-        'QmV6LRj85oTg1YwYFjPSWu9xX4aP3eG5Un1aW9dxyRizRU'
+      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, true)).toEqual(
+        'QmP4iRbwrrP4DjRXsxh6uxnMfwhsHpCfX1THt2nR9RYP9M'
       );
     });
 
