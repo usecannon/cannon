@@ -112,9 +112,9 @@ describe('package.ts', () => {
           } else {
             return 'https://usecannon.com/nested';
           }
+        } else {
+          return '';
         }
-
-        return null;
       });
 
       await fromRegistry.publish([testPkg], '1-main', 'https://usecannon.com', 'https://usecannon.com/meta');
