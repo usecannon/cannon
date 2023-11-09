@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import crypto from 'crypto';
 import path from 'path';
-import { LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
+import { CliLoader, LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
 import { CliSettings } from './settings';
 import { IPFSLoader } from '@usecannon/builder';
 
@@ -68,7 +68,7 @@ function getMainLoaderTestCases() {
     const loaders = getMainLoader(settings);
     expect(loaders).toHaveProperty('ipfs');
     expect(loaders).toHaveProperty('file');
-    expect(loaders.ipfs).toBeInstanceOf(IPFSLoader); // Changed this line
+    expect(loaders.ipfs).toBeInstanceOf(CliLoader); // Changed this line
     expect(loaders.file).toBeInstanceOf(LocalLoader);
   });
 
@@ -85,6 +85,6 @@ function getMainLoaderTestCases() {
       quiet: true,
     };
     const loaders = getMainLoader(settings);
-    expect(loaders.ipfs).toBeInstanceOf(IPFSLoader); // Changed this line
+    expect(loaders.ipfs).toBeInstanceOf(CliLoader); // Changed this line
   });
 }
