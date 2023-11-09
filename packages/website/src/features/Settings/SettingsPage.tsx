@@ -29,7 +29,25 @@ import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
 import { validatePreset } from '@/helpers/cannon';
-import { isIpfsGateway } from '@usecannon/builder/src/ipfs';
+import axios, { AxiosError } from 'axios';
+
+export async function isIpfsGateway(ipfsUrl: string) {
+  let isGateway = true;
+  try {
+    ipfsUrl = ipfsUrl.endsWith('/') ? ipfsUrl : ipfsUrl + '/';
+    await axios.post(ipfsUrl + 'api/v0/cat', null, { timeout: 15 * 1000 });
+  } catch (err: unknown) {
+    if (
+      err instanceof AxiosError &&
+      err.response?.status === 400 &&
+      err.response?.data.includes('argument "ipfs-path" is required')
+    ) {
+      isGateway = false;
+    }
+  }
+
+  return isGateway;
+}
 
 type Setting = {
   title: string;
