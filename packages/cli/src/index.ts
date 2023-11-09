@@ -188,7 +188,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     node = await runRpc({
       ...pickAnvilOptions(opts),
       // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: 0,
+      port: opts.port || 0,
     });
 
     provider = getProvider(node);
@@ -529,6 +529,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
+  opts.port = 8545;
   const [node, outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
