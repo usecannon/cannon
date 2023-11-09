@@ -15,31 +15,45 @@ export default function WithSafe({ children }: { children: ReactNode }) {
     <Flex direction="column" flex="1">
       <Flex
         direction={{ base: 'column', lg: 'row' }}
-        p={3}
         alignItems={{ base: 'flex-start', lg: 'center' }}
         borderBottom="1px solid"
         borderColor="gray.700"
       >
-        <Box w="100%" maxW={{ lg: 'container.sm' }} mb={{ base: 2, lg: 0 }}>
+        <Box
+          p={3}
+          w="100%"
+          maxW={{ lg: 'container.sm' }}
+          mb={{ base: 2, lg: 0 }}
+        >
           <SafeAddressInput />
         </Box>
-        <Box ml={{ lg: 'auto' }}>
-          <Text fontSize="sm" color="gray.200">
-            Safe Signature Collection Service
-          </Text>
-          <Text fontSize="xs">
-            {stagingUrl?.length ? (
-              stagingUrl
-            ) : (
-              <Text display="inline" color="gray.400">
-                None
-              </Text>
-            )}
-            <Link as={NextLink} href="/settings" ml={1} color="gray.300">
-              <EditIcon transform="translateY(-1px)" />
-            </Link>
-          </Text>
-        </Box>
+        <Flex
+          px={4}
+          pb={{ base: 4, lg: 0 }}
+          height="100%"
+          alignItems={{ base: 'flex-start', lg: 'center' }}
+          ml={{ lg: 'auto' }}
+          borderLeft={{ lg: '1px solid' }}
+          borderColor={{ lg: 'gray.700' }}
+        >
+          <Box>
+            <Text fontSize="sm" color="gray.200">
+              Safe Signature Collection Service
+            </Text>
+            <Text fontSize="xs">
+              {stagingUrl?.length ? (
+                stagingUrl
+              ) : (
+                <Text display="inline" color="gray.400">
+                  None
+                </Text>
+              )}
+              <Link as={NextLink} href="/settings" ml={1} color="gray.300">
+                <EditIcon transform="translateY(-1px)" />
+              </Link>
+            </Text>
+          </Box>
+        </Flex>
       </Flex>
       <Box
         bg="gray.700"

@@ -35,7 +35,7 @@ export default function HomePage() {
     const randomDuration = () => 0.15 * (0.2 + Math.random());
 
     // Function to generate a random repeat delay
-    const randomRepeatDelay = () => 4 * (0.2 + Math.random());
+    const randomRepeatDelay = () => 1.5 * (0.2 + Math.random());
 
     // GSAP timeline for the combined effects
     const tl = gsap.timeline({
