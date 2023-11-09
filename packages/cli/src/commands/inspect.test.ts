@@ -2,7 +2,7 @@ import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
 import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
-import { getMainLoader, LocalLoader } from '../loader';
+import { getMainLoader, CliLoader, LocalLoader } from '../loader';
 
 jest.mock('../registry');
 jest.mock('../settings');
@@ -18,7 +18,7 @@ describe('inspect', () => {
   let testPkgData: any;
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
+  let ipfsLoader: CliLoader;
   let stdoutOutput: string[] = [];
   let writeSpy: jest.SpyInstance;
 
@@ -76,7 +76,7 @@ describe('inspect', () => {
     };
 
     localLoader = new LocalLoader('path');
-    ipfsLoader = new IPFSLoader('ipfs');
+    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
