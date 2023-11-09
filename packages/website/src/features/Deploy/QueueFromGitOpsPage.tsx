@@ -408,7 +408,10 @@ function QueueFromGitOps() {
         {buildInfo.buildStatus == '' && (
           <>
             {settings.isIpfsGateway && (
-              <Text mb={3}>You can only read from IPFS gateway.</Text>
+              <Text mb={3}>
+                You cannot build transactions on an IPFS gateway, only read
+                operations can be done.
+              </Text>
             )}
             <Button
               width="100%"

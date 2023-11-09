@@ -80,7 +80,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
   const buildFn = async () => {
     if (settings.isIpfsGateway) {
-      throw new Error('You can only read from IPFS gateway.');
+      throw new Error('You cannot build on an IPFS gateway, only read operations can be done');
     }
 
     setBuildStatus('Creating fork...');
@@ -245,7 +245,7 @@ export function useCannonWriteDeployToIpfs(
     ...mutationOptions,
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
-        throw new Error('You can only read from IPFS gateway.');
+        throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
       const def = new ChainDefinition(deployInfo.def);
