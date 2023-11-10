@@ -415,12 +415,16 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
 
         if (outputs) {
           setContracts(getContractsRecursive(outputs, null as any));
+        } else {
+          setContracts(null);
         }
+      } else {
+        setContracts(null);
       }
     };
 
     void getContracts();
-  }, [pkg.pkg]);
+  }, [pkg.pkg, packageRef]);
 
   return { contracts, ...pkg };
 }
