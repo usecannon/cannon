@@ -1,6 +1,6 @@
 'use client';
 
-import { AddIcon, MinusIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -18,9 +18,11 @@ import {
   Tooltip,
   useToast,
   Text,
+  IconButton,
+  Flex,
 } from '@chakra-ui/react';
-import _ from 'lodash';
-import { useState } from 'react';
+import { CloseIcon } from '@chakra-ui/icons';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Abi,
@@ -42,6 +44,11 @@ import { makeMultisend } from '@/helpers/multisend';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
 
+type IdentifiableTxn = {
+  txn: Omit<TransactionRequestBase, 'from'>;
+  id: string;
+};
+
 export default function QueueTransactionsPage() {
   return <QueueTransactions />;
 }
@@ -51,9 +58,11 @@ function QueueTransactions() {
   const router = useRouter();
 
   const [target, setTarget] = useState('');
-  const [queuedTxns, setQueuedTxns] = useState<
-    Omit<TransactionRequestBase, 'from'>[]
-  >([null as any]);
+
+  const [lastQueuedTxnsId, setLastQueuedTxnsId] = useState(0);
+  const [queuedIdentifiableTxns, setQueuedIdentifiableTxns] = useState<
+    IdentifiableTxn[]
+  >([{ txn: null as any, id: String(lastQueuedTxnsId) }]);
 
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
@@ -62,6 +71,8 @@ function QueueTransactions() {
     target,
     `${currentSafe?.chainId}-${settings.preset}`
   );
+
+  const queuedTxns = queuedIdentifiableTxns.map((item) => item.txn);
 
   const multisendTxn =
     queuedTxns.indexOf(null as any) === -1
@@ -127,9 +138,28 @@ function QueueTransactions() {
     i: number,
     txn: Omit<TransactionRequestBase, 'from'>
   ) {
-    queuedTxns[i] = txn;
-    setQueuedTxns(_.clone(queuedTxns));
+    setQueuedIdentifiableTxns((prev) => {
+      const result = [...prev];
+      result[i].txn = txn;
+      return result;
+    });
   }
+
+  const removeQueuedTxn = (i: number) => {
+    setQueuedIdentifiableTxns((prev) => {
+      const result = [...prev];
+      result.splice(i, 1);
+      return result;
+    });
+  };
+
+  const addQueuedTxn = () => {
+    setQueuedIdentifiableTxns((prev) => [
+      ...prev,
+      { txn: {}, id: String(lastQueuedTxnsId + 1) },
+    ]);
+    setLastQueuedTxnsId((prev) => prev + 1);
+  };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
 
@@ -158,6 +188,17 @@ function QueueTransactions() {
   const disableExecute =
     !multisendTxn || txnHasError || !!stager.execConditionFailed;
 
+  console.log('xxx cannonInfo: ', cannonInfo);
+
+  useEffect(() => {
+    if (!cannonInfo.contracts) {
+      setQueuedIdentifiableTxns([
+        { txn: null as any, id: String(lastQueuedTxnsId + 1) },
+      ]);
+      setLastQueuedTxnsId((prev) => prev + 1);
+    }
+  }, [cannonInfo.contracts]);
+
   return (
     <Container maxWidth="container.md" py={8}>
       <Box mb={6}>
@@ -182,7 +223,7 @@ function QueueTransactions() {
           connected wallet.
         </FormHelperText>
       </FormControl>
-      {cannonInfo.pkgUrl && !cannonInfo.contracts && (
+      {!isAddress(target) && cannonInfo.pkgUrl && !cannonInfo.contracts && (
         <Alert bg="gray.800" status="info">
           <AlertIcon />
           <Box>
@@ -193,18 +234,32 @@ function QueueTransactions() {
           </Box>
         </Alert>
       )}
-      {cannonInfo.contracts && (
+      {!isAddress(target) && cannonInfo.contracts && (
         <FormControl mb="8">
           <FormLabel>Transactions</FormLabel>
-          {queuedTxns.map((_, i) => (
-            <Box key={i} mb={3}>
-              <DisplayedTransaction
-                editable
-                contracts={cannonInfo.contracts as any}
-                onTxn={(txn) => updateQueuedTxn(i, txn as any)}
-              />
+          {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+            <Flex key={queuedIdentifiableTxn.id} mb={3} direction="column">
+              <Flex>
+                <DisplayedTransaction
+                  editable
+                  contracts={cannonInfo.contracts as any}
+                  txn={queuedIdentifiableTxn.txn}
+                  onTxn={(txn) => updateQueuedTxn(i, txn as any)}
+                />
+                {queuedIdentifiableTxns.length > 1 && (
+                  <Box ml="3">
+                    <IconButton
+                      colorScheme="blackAlpha"
+                      background="transparent"
+                      icon={<CloseIcon opacity="0.5" />}
+                      aria-label={'Remove provider'}
+                      onClick={() => removeQueuedTxn(i)}
+                    />
+                  </Box>
+                )}
+              </Flex>
               {txnInfo.txnResults &&
-                txnInfo.txnResults.length === queuedTxns.length &&
+                txnInfo.txnResults.length === queuedIdentifiableTxns.length &&
                 txnInfo.txnResults[i] &&
                 txnInfo.txnResults[i]?.error && (
                   <Alert bg="gray.800" status="error" mt="6">
@@ -215,7 +270,7 @@ function QueueTransactions() {
                       : txnInfo.txnResults[i]?.error}
                   </Alert>
                 )}
-            </Box>
+            </Flex>
           ))}
           <HStack my="3">
             <Button
@@ -226,28 +281,10 @@ function QueueTransactions() {
               borderColor="green.400"
               _hover={{ bg: 'green.900' }}
               leftIcon={<AddIcon />}
-              onClick={() => setQueuedTxns(_.clone(queuedTxns.concat([{}])))}
+              onClick={() => addQueuedTxn()}
             >
               Add Transaction
             </Button>
-            {queuedTxns.length > 1 && (
-              <Button
-                variant="outline"
-                size="xs"
-                colorScheme="red"
-                color="red.400"
-                borderColor="red.400"
-                _hover={{ bg: 'red.900' }}
-                leftIcon={<MinusIcon />}
-                onClick={() =>
-                  setQueuedTxns(
-                    _.clone(queuedTxns.slice(0, queuedTxns.length - 1))
-                  )
-                }
-              >
-                Remove Transaction
-              </Button>
-            )}
           </HStack>
         </FormControl>
       )}
@@ -256,6 +293,8 @@ function QueueTransactions() {
           <FormLabel>Value</FormLabel>
           <Input
             type="text"
+            borderColor="whiteAlpha.400"
+            background="black"
             onChange={(event: any) =>
               updateQueuedTxn(0, {
                 ...queuedTxns[0],
@@ -273,6 +312,8 @@ function QueueTransactions() {
           <FormLabel>Transaction Data</FormLabel>
           <Input
             type="text"
+            borderColor="whiteAlpha.400"
+            background="black"
             placeholder="0x"
             onChange={(event: any) =>
               updateQueuedTxn(0, {
