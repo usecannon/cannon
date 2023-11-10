@@ -109,7 +109,6 @@ export function EditableAutocompleteInput(props: {
   const editableInputRef = useRef();
 
   function tabToNext() {
-    console.log('tabdata trigger tabtonext');
     const tabElements = Array.from(
       document
         // Get all elements that can be focusable
@@ -143,10 +142,6 @@ export function EditableAutocompleteInput(props: {
     const currentIndex = tabElements.findIndex(
       (e: any) => e === editableInputRef.current
     );
-
-    //console.log('tabdata current index', currentIndex);
-    //console.log('tabdata', editableInputRef)
-    //console.log('tabdata', tabElements);
 
     const nextIndex = (currentIndex + 1) % tabElements.length;
     tabElements[nextIndex].focus();
@@ -201,7 +196,6 @@ export function EditableAutocompleteInput(props: {
             onEdit={() => setIsEditing(true)}
             onBlur={() => {
               finishEdit();
-              tabToNext();
             }}
             onKeyDown={handleKey}
             onChange={(value) => {
@@ -243,15 +237,14 @@ export function EditableAutocompleteInput(props: {
                   key={index}
                   item={item}
                   filterInput={filterInput}
-                  selected={item.label === pendingItem}
-                  isVisible={isEditing && filteredItems.length > 0}
                   onMouseOver={() => setPendingItem(item.label)}
+                  onMouseDown={(evt: any) => {
+                    evt.preventDefault();
+                  }}
                   onClick={() => {
-                    console.log('tabdata click');
                     setPendingItem(item.label);
                     setFilterInput(item.label);
                     tabToNext();
-                    console.log('tabdata end');
                   }}
                   internalRef={
                     (item.label === pendingItem
@@ -271,10 +264,9 @@ export function EditableAutocompleteInput(props: {
 function AutocompleteOption(props: {
   item: { label: string; secondary: string };
   filterInput: string;
-  selected?: boolean;
   onMouseOver: () => void;
+  onMouseDown: (evt: any) => void;
   onClick: () => void;
-  isVisible: boolean;
   // eslint-disable-next-line no-undef
   internalRef: React.MutableRefObject<HTMLDivElement> | undefined;
 }) {
@@ -287,21 +279,13 @@ function AutocompleteOption(props: {
     <Box
       ref={props.internalRef}
       onMouseOver={props.onMouseOver}
-      onClick={(evt) => {
-        evt.preventDefault();
-        props.onClick();
-      }}
+      onMouseDown={(evt: any) => props.onMouseDown(evt)}
+      onClick={props.onClick}
       background="black"
       px="2"
       pb="1"
     >
-      <HStack
-        onClick={(evt) => {
-          evt.preventDefault();
-          props.onClick();
-        }}
-        gap={0}
-      >
+      <HStack gap={0}>
         {matched.map((p, i) => [
           <Text key={i}>{p}</Text>,
           i < matched.length - 1 ? <Text as="b">{props.filterInput}</Text> : [],

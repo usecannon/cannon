@@ -1,11 +1,15 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
 import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
-import WithSafe from '@/features/Deploy/WithSafe';
+
+const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
+  ssr: false,
+});
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -47,7 +51,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           </NavLink>
         </Flex>
       </Box>
-      <WithSafe>{children}</WithSafe>
+      <NoSSRWithSafe>{children}</NoSSRWithSafe>
     </Flex>
   );
 }

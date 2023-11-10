@@ -165,6 +165,7 @@ export function SafeAddressInput() {
     <>
       <FormControl>
         <CreatableSelect
+          instanceId={'safe-address-select'}
           chakraStyles={chakraStyles}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
