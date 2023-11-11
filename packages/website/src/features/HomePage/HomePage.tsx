@@ -48,7 +48,7 @@ export default function HomePage() {
 
     // Combine the turbulence and color animations in the same timeline
     tl.to(turb, {
-      attr: { baseFrequency: '0.25' },
+      attr: { baseFrequency: '0.3' },
       duration: randomDuration,
       onComplete: () => {
         // Update repeatDelay after each cycle
@@ -59,6 +59,7 @@ export default function HomePage() {
         paths,
         {
           stroke: '#1ad6ff',
+          opacity: '0.8',
           duration: randomDuration,
         },
         0
@@ -71,6 +72,7 @@ export default function HomePage() {
         paths,
         {
           stroke: '#7E858F',
+          opacity: '0.4',
           duration: randomDuration,
         },
         `>-${randomDuration()}`
@@ -160,7 +162,6 @@ export default function HomePage() {
         top="50%"
         transform="translateY(-50%)"
         right="0"
-        opacity="0.5"
         style={{ filter: 'url(#noise)' }}
       >
         <svg
@@ -174,11 +175,13 @@ export default function HomePage() {
             d="M42.1984 15.1439C44.7336 14.4668 47.0791 16.7293 46.4936 19.2873L42.2577 37.7937C41.8258 39.6807 39.9384 40.8538 38.0552 40.4057L30.9874 38.7243C27.2801 37.8424 24.3466 35.0126 23.3318 31.3394L21.3972 24.3367C20.8817 22.4708 21.9861 20.5425 23.8564 20.043L42.1984 15.1439Z"
             stroke="#7E858F"
             strokeWidth="0.05px"
+            opacity="0.4"
           />
           <path
             d="M14.6917 44.8648C14.4224 46.6439 15.9899 48.1565 17.7583 47.8239L36.926 44.2186C37.3878 44.1317 37.4036 43.476 36.9465 43.367L28.4394 41.3389C24.7351 40.4557 21.8042 37.6277 20.7893 33.9572L18.4605 25.5348C18.3353 25.0819 17.6805 25.1211 17.6102 25.5857L14.6917 44.8648Z"
             stroke="#7E858F"
             strokeWidth="0.05px"
+            opacity="0.4"
           />
         </svg>
       </Box>
