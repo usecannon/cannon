@@ -440,8 +440,11 @@ export async function build({
       );
       console.log(bold(`Publish ${bold(packageRef)}`));
       console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
-      if (chainId !== 13370) {
-        console.log('');
+      console.log('');
+      if (chainId == 13370) {
+        console.log(bold('Run this package'));
+        console.log(`> ${`cannon ${packageRef}`}`);
+      } else {
         console.log(bold('Verify contracts on Etherscan'));
         console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
       }
