@@ -118,7 +118,9 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getUrl(packageRef: string, variant: string): Promise<string | null> {
+    debug('resolving', packageRef, variant);
     for (const registry of [this.memoryCacheRegistry, ...this.registries]) {
+      debug('trying registry', registry.getLabel());
       try {
         const result = await registry.getUrl(packageRef, variant);
 
