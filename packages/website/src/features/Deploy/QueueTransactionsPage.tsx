@@ -339,7 +339,7 @@ function QueueTransactions() {
               <Tooltip label={stager.signConditionFailed}>
                 <Button
                   size="lg"
-                  colorScheme="blue"
+                  colorScheme="teal"
                   w="100%"
                   isDisabled={
                     !multisendTxn || txnHasError || !!stager.signConditionFailed
@@ -353,7 +353,7 @@ function QueueTransactions() {
             <Tooltip label={stager.execConditionFailed}>
               <Button
                 size="lg"
-                colorScheme="blue"
+                colorScheme="teal"
                 w="100%"
                 isDisabled={disableExecute}
                 onClick={async () => {
