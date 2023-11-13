@@ -12,18 +12,7 @@ import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
 import { ethers } from 'ethers';
-import pkg from '../package.json';
-import { interact } from './commands/interact';
-import { getFoundryArtifact } from './foundry';
-import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
-import { getMainLoader } from './loader';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-import { CannonRpcNode, getProvider, runRpc } from './rpc';
-import { resolveCliSettings } from './settings';
-import { PackageSpecification } from './types';
-import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
-
+import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
@@ -324,23 +313,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   const { verify } = await import('./commands/verify');
   await verify(packageName, options.apiKey, options.preset, options.chainId);
 });
-applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
-  const { verify } = await import('./commands/verify');
-  await verify(packageName, options.apiKey, options.preset, options.chainId);
-});
 
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
-  packageName,
-  command,
-  options,
-  flags
-) {
-  const { alter } = await import('./commands/alter');
-  // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
-    getArtifact: getFoundryArtifact,
-  });
-});
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
   packageName,
   command,
@@ -567,20 +540,6 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
     json: options.json,
   });
 });
-  await trace({
-    packageName,
-    data,
-    chainId: options.chainId,
-    preset: options.preset,
-    providerUrl: options.providerUrl,
-    from: options.from,
-    to: options.to,
-    value: options.value,
-    block: options.blockNumber,
-    json: options.json,
-  });
-});
-
 
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   const { decode } = await import('./commands/decode');
@@ -598,19 +557,12 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 8545;
   const [node, outputs] = await doBuild(cannonfile, [], opts);
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  opts.port = 8545;
-  const [node, outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
   const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
-
-  forgeCmd.stdout.on('data', (data: Buffer) => {
-    process.stdout.write(data);
-  });
 
   forgeCmd.stderr.on('data', (data: Buffer) => {
     process.stderr.write(data);
