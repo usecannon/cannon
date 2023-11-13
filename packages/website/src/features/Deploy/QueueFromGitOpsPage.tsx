@@ -75,25 +75,25 @@ function QueueFromGitOps() {
     },
   });
 
-  const [gitTomlFileUrl, setGitTomlFileUrl] = useState('');
-  const [upgradeFrom, setUpgradeFrom] = useState('');
+  const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
+  const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
   const gitUrl = useMemo(
     () =>
-      gitTomlFileUrl.includes('/blob/')
-        ? gitTomlFileUrl.split('/blob/')[0]
+      cannonfileUrlInput.includes('/blob/')
+        ? cannonfileUrlInput.split('/blob/')[0]
         : '',
-    [gitTomlFileUrl]
+    [cannonfileUrlInput]
   );
 
   const gitBranch = useMemo(() => {
-    if (!gitTomlFileUrl.includes('/blob/')) {
+    if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
 
-    const branchAndFile = gitTomlFileUrl.split('/blob/')[1];
+    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
     if (!branchAndFile) {
       return '';
     }
@@ -104,14 +104,14 @@ function QueueFromGitOps() {
     }
 
     return `refs/heads/${branchName}`;
-  }, [gitTomlFileUrl]);
+  }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
-    if (!gitTomlFileUrl.includes('/blob/')) {
+    if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
 
-    const branchAndFile = gitTomlFileUrl.split('/blob/')[1];
+    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
     if (!branchAndFile) {
       return '';
     }
@@ -119,7 +119,7 @@ function QueueFromGitOps() {
     const urlComponents = branchAndFile.split('/');
     urlComponents.shift();
     return urlComponents.join('/');
-  }, [gitTomlFileUrl]);
+  }, [cannonfileUrlInput]);
 
   const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
 
@@ -353,10 +353,10 @@ function QueueFromGitOps() {
             <Input
               type="text"
               placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
-              value={gitTomlFileUrl}
+              value={cannonfileUrlInput}
               borderColor="whiteAlpha.400"
               background="black"
-              onChange={(evt: any) => setGitTomlFileUrl(evt.target.value)}
+              onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
             />
           </HStack>
           <FormHelperText color="gray.300">
@@ -368,10 +368,10 @@ function QueueFromGitOps() {
           <Input
             placeholder="package:latest@main"
             type="text"
-            value={upgradeFrom}
+            value={previousPackageInput}
             borderColor="whiteAlpha.400"
             background="black"
-            onChange={(evt: any) => setUpgradeFrom(evt.target.value)}
+            onChange={(evt: any) => setPreviousPackageInput(evt.target.value)}
           />
           <FormHelperText color="gray.300">
             <strong>Optional.</strong> Enter the name of the package this
