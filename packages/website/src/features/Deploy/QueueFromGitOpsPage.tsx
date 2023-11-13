@@ -6,14 +6,12 @@ import {
   Box,
   Button,
   Container,
-  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
   HStack,
   Heading,
   Input,
-  Select,
   Spinner,
   Text,
   Tooltip,
@@ -21,7 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   encodeAbiParameters,
@@ -39,7 +37,6 @@ import {
   useSendTransaction,
 } from 'wagmi';
 import 'react-diff-view/style/index.css';
-import { EditableAutocompleteInput } from '@/components/EditableAutocompleteInput';
 import { links } from '@/constants/links';
 import { useTxnStager } from '@/hooks/backend';
 import {
@@ -48,7 +45,7 @@ import {
   useCannonWriteDeployToIpfs,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
-import { useGitFilesList, useGitRefsList } from '@/hooks/git';
+import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { useStore } from '@/helpers/store';
 import { makeMultisend } from '@/helpers/multisend';
@@ -61,6 +58,7 @@ export default function QueueFromGitOpsPage() {
 }
 
 function QueueFromGitOps() {
+  const router = useRouter();
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
@@ -74,33 +72,51 @@ function QueueFromGitOps() {
     },
   });
 
-  const [gitUrl, setGitUrl] = useState('');
-  const [gitFile, setGitFile] = useState('');
-  const [gitBranch, setGitBranch] = useState('');
+  const [gitTomlFileUrl, setGitTomlFileUrl] = useState('');
   const [upgradeFrom, setUpgradeFrom] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  const gitDir = gitFile.includes('/')
-    ? gitFile.slice(gitFile.lastIndexOf('/'))[0]
-    : '';
+  const gitUrl = useMemo(
+    () =>
+      gitTomlFileUrl.includes('/blob/')
+        ? gitTomlFileUrl.split('/blob/')[0]
+        : '',
+    [gitTomlFileUrl]
+  );
 
-  const refsInfo = useGitRefsList(gitUrl);
-
-  const router = useRouter();
-
-  if (refsInfo.refs && !gitBranch) {
-    const headCommit = refsInfo.refs.find((r) => r.ref === 'HEAD');
-    const headBranch = refsInfo.refs.find(
-      (r) => r.oid === headCommit?.oid && r !== headCommit
-    );
-
-    if (headBranch) {
-      setGitBranch(headBranch.ref);
+  const gitBranch = useMemo(() => {
+    if (!gitTomlFileUrl.includes('/blob/')) {
+      return '';
     }
-  }
 
-  const gitDirList = useGitFilesList(gitUrl, gitBranch, gitDir);
+    const branchAndFile = gitTomlFileUrl.split('/blob/')[1];
+    if (!branchAndFile) {
+      return '';
+    }
+
+    const branchName = branchAndFile.split('/')[0];
+    if (!branchName) {
+      return '';
+    }
+
+    return `refs/heads/${branchName}`;
+  }, [gitTomlFileUrl]);
+
+  const gitFile = useMemo(() => {
+    if (!gitTomlFileUrl.includes('/blob/')) {
+      return '';
+    }
+
+    const branchAndFile = gitTomlFileUrl.split('/blob/')[1];
+    if (!branchAndFile) {
+      return '';
+    }
+
+    const urlComponents = branchAndFile.split('/');
+    urlComponents.shift();
+    return urlComponents.join('/');
+  }, [gitTomlFileUrl]);
 
   const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
 
@@ -178,6 +194,7 @@ function QueueFromGitOps() {
     }
   }, [buildInfo.buildResult?.steps]);
 
+  const refsInfo = useGitRefsList(gitUrl);
   const gitHash = refsInfo.refs?.find((r) => r.ref === gitBranch)?.oid;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
@@ -185,7 +202,7 @@ function QueueFromGitOps() {
     gitUrl + ':' + gitFile
   );
 
-  console.log(' the prev info query data is', prevInfoQuery.data);
+  console.log('the prev info query data is', prevInfoQuery.data);
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
@@ -333,31 +350,11 @@ function QueueFromGitOps() {
             <Input
               type="text"
               placeholder="https://github.com/myorg/myrepo"
-              value={gitUrl}
+              value={gitTomlFileUrl}
               borderColor="whiteAlpha.400"
               background="black"
-              onChange={(evt: any) => setGitUrl(evt.target.value)}
+              onChange={(evt: any) => setGitTomlFileUrl(evt.target.value)}
             />
-            {gitUrl.length && (
-              <Flex height="40px">
-                {gitDirList.readdirQuery.isLoading ? (
-                  <Spinner my="auto" ml="2" />
-                ) : (
-                  <EditableAutocompleteInput
-                    minWidth="220px"
-                    editable
-                    color={'white'}
-                    placeholder="cannonfile.toml"
-                    items={(gitDirList.contents || []).map((d: any) => ({
-                      label: gitDir + d,
-                      secondary: '',
-                    }))}
-                    onFilterChange={(v) => setGitFile(v)}
-                    onChange={(v) => setGitFile(v)}
-                  />
-                )}
-              </Flex>
-            )}
           </HStack>
           <FormHelperText color="gray.300">
             Enter a Git URL and then select the Cannonfile that was modified in
@@ -375,25 +372,6 @@ function QueueFromGitOps() {
             onChange={(evt: any) => setUpgradeFrom(evt.target.value)}
           />
           <FormHelperText color="gray.300">TBD</FormHelperText>
-        </FormControl>
-        <FormControl mb="8">
-          <FormLabel>Branch</FormLabel>
-          <HStack>
-            <Select
-              borderColor="whiteAlpha.400"
-              background="black"
-              value={gitBranch}
-              onChange={(evt: any) => setGitBranch(evt.target.value)}
-            >
-              {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
-                (r, i) => (
-                  <option key={i} value={r.ref}>
-                    {r.ref}
-                  </option>
-                )
-              )}
-            </Select>
-          </HStack>
         </FormControl>
         {/* TODO: insert/load override settings here */}
         <FormControl mb="8">
