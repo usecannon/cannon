@@ -173,12 +173,8 @@ function QueueFromGitOps() {
       return previousPackageInput.split('@')[0]?.split(':')[1];
     }
 
-    if (cannonDefInfo.def) {
-      return cannonDefInfo.def.getVersion(ctx);
-    }
-
-    return '';
-  }, [previousPackageInput, cannonDefInfo.def]);
+    return 'latest';
+  }, [previousPackageInput]);
 
   const previousPreset = useMemo(() => {
     if (previousPackageInput) {
