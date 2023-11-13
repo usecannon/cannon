@@ -98,7 +98,7 @@ export async function resolveProviderAndSigners({
         signers.push(wrappedEthersProvider.getSigner(account));
       }
     } catch (err: any) {
-      debug('Failed to connect signers: ', (err.stack as string).replace(os.homedir(), ''));
+      debug('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), ''));
     }
   }
 
