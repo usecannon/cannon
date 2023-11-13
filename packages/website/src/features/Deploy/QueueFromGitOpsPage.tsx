@@ -77,6 +77,7 @@ function QueueFromGitOps() {
   const [gitUrl, setGitUrl] = useState('');
   const [gitFile, setGitFile] = useState('');
   const [gitBranch, setGitBranch] = useState('');
+  const [upgradeFrom, setUpgradeFrom] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
@@ -362,6 +363,18 @@ function QueueFromGitOps() {
             Enter a Git URL and then select the Cannonfile that was modified in
             the branch chosen below.
           </FormHelperText>
+        </FormControl>
+        <FormControl mb="8">
+          <FormLabel>Upgrade from (Optional)</FormLabel>
+          <Input
+            placeholder="TBD"
+            type="text"
+            value={upgradeFrom}
+            borderColor="whiteAlpha.400"
+            background="black"
+            onChange={(evt: any) => setUpgradeFrom(evt.target.value)}
+          />
+          <FormHelperText color="gray.300">TBD</FormHelperText>
         </FormControl>
         <FormControl mb="8">
           <FormLabel>Branch</FormLabel>
