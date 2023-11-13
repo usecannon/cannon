@@ -1,3 +1,4 @@
+import { InMemoryRegistry } from '@usecannon/builder/src';
 import { getChainId, getChainDataFromId, getChainName, getContractsAndDetails, getSourceFromRegistry } from './helpers';
 import { LocalRegistry } from './registry';
 import { FallbackRegistry } from '@usecannon/builder';
@@ -94,6 +95,8 @@ function getContractsAndDetailsTestCases() {
         contractName: 'Contract1',
         sourceName: 'Source1',
         deployedOn: 'date1',
+        gasUsed: 1,
+        gasCost: '1'
       },
     });
   });
@@ -116,9 +119,9 @@ function getSourceFromLocalRegistryTestCases() {
   });
 
   it('should return the source of registry in use when mixed with other registries', () => {
-    const mockSource = 'fallback ()';
+    const mockSource = 'memory';
     const localRegistryInstance = new LocalRegistry('mockPackageDir');
-    const fallbackRegistryInstance1 = new FallbackRegistry([]);
+    const fallbackRegistryInstance1 = new FallbackRegistry([new InMemoryRegistry()]);
     const fallbackRegistryInstance2 = new FallbackRegistry([]);
     const registries = [fallbackRegistryInstance1, localRegistryInstance, fallbackRegistryInstance2];
     const result = getSourceFromRegistry(registries);
