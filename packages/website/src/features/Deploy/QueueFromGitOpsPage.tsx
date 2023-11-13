@@ -147,7 +147,7 @@ function QueueFromGitOps() {
 
   const cannonPkgLatestInfo = useCannonPackage(
     (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-main`
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
@@ -155,7 +155,7 @@ function QueueFromGitOps() {
         ctx
       )}`) ??
       '',
-    `${chainId}-${settings.preset}`
+    `${chainId}-main`
   );
 
   const prevDeployLocation =

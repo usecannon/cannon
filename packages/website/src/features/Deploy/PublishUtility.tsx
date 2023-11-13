@@ -95,7 +95,8 @@ export default function PublishUtility(props: {
 
       await publishPackage({
         packageRef: `${resolvedName}:${resolvedVersion}`,
-        tags: settings.publishTags.split(','),
+        // TODO: Check if we need to provide tags
+        tags: ['latest'],
         variant: props.targetVariant,
         fromStorage,
         toStorage,

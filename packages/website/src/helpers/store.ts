@@ -26,8 +26,6 @@ export interface State {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
     stagingUrl: string;
-    publishTags: string;
-    preset: string;
     registryAddress: string;
     forkProviderUrl: string;
     customProviders: string[];
@@ -60,8 +58,6 @@ export const initialState = {
     ipfsApiUrl: 'https://repo.usecannon.com/',
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
-    publishTags: 'latest',
-    preset: 'main',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
     forkProviderUrl: '',
     customProviders: [],

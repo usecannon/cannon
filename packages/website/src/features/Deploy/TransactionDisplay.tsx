@@ -21,7 +21,7 @@ import {
 } from '@/hooks/cannon';
 import { useGitDiff } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
-import { SafeDefinition, useStore } from '@/helpers/store';
+import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { createSimulationData } from '@/helpers/safe';
@@ -37,7 +37,6 @@ export function TransactionDisplay(props: {
 }) {
   const account = useAccount();
 
-  const settings = useStore((s) => s.settings);
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(
@@ -312,7 +311,8 @@ export function TransactionDisplay(props: {
             </Heading>
             <PublishUtility
               deployUrl={hintData.cannonPackage}
-              targetVariant={`${props.safe.chainId}-${settings.preset}`}
+              // TODO: Check if we need to provide preset
+              targetVariant={`${props.safe.chainId}-main`}
             />
           </Box>
         )

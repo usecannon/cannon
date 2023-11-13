@@ -252,7 +252,8 @@ export function useCannonWriteDeployToIpfs(
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
-      const variant = `${runtime.chainId}-${settings.preset}`;
+      // TODO: Check if we need to provide preset
+      const variant = `${runtime.chainId}-main`;
 
       await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
 
