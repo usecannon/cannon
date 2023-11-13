@@ -145,9 +145,52 @@ function QueueFromGitOps() {
   const settings = useStore((s) => s.settings);
   const chainId = useChainId();
 
-  const cannonPkgLatestInfo = useCannonPackage(
-    (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-main`
+  useEffect(() => {
+    if (cannonDefInfo.def) {
+      const name = cannonDefInfo.def.getName(ctx);
+      const version = 'latest';
+      const preset = 'main';
+      setPreviousPackageInput(`${name}:${version}@${preset}`);
+    } else {
+      setPreviousPackageInput('');
+    }
+  }, [cannonDefInfo.def]);
+
+  const previousName = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split(':')[0];
+    }
+
+    if (cannonDefInfo.def) {
+      return cannonDefInfo.def.getName(ctx);
+    }
+
+    return '';
+  }, [previousPackageInput, cannonDefInfo.def]);
+
+  const previousVersion = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split('@')[0]?.split(':')[1];
+    }
+
+    if (cannonDefInfo.def) {
+      return cannonDefInfo.def.getVersion(ctx);
+    }
+
+    return '';
+  }, [previousPackageInput, cannonDefInfo.def]);
+
+  const previousPreset = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split('@')[1];
+    }
+
+    return 'main';
+  }, [previousPackageInput]);
+
+  const cannonPkgPreviousInfo = useCannonPackage(
+    (cannonDefInfo.def && `${previousName}:${previousVersion}`) ?? '',
+    `${chainId}-${previousPreset}`
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
@@ -160,7 +203,7 @@ function QueueFromGitOps() {
 
   const prevDeployLocation =
     (partialDeployIpfs ? 'ipfs://' + partialDeployIpfs : null) ||
-    cannonPkgLatestInfo.pkgUrl ||
+    cannonPkgPreviousInfo.pkgUrl ||
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
@@ -421,9 +464,9 @@ function QueueFromGitOps() {
               isDisabled={
                 settings.isIpfsGateway ||
                 cannonPkgVersionInfo.ipfsQuery.isFetching ||
-                cannonPkgLatestInfo.ipfsQuery.isFetching ||
+                cannonPkgPreviousInfo.ipfsQuery.isFetching ||
                 cannonPkgVersionInfo.registryQuery.isFetching ||
-                cannonPkgLatestInfo.registryQuery.isFetching
+                cannonPkgPreviousInfo.registryQuery.isFetching
               }
               onClick={() => buildTransactions()}
             >
