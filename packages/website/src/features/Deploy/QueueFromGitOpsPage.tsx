@@ -12,6 +12,8 @@ import {
   HStack,
   Heading,
   Input,
+  Link,
+  Code,
   Spinner,
   Text,
   Tooltip,
@@ -52,6 +54,7 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
+import NextLink from 'next/link';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -345,11 +348,11 @@ function QueueFromGitOps() {
           </Text>
         </Box>
         <FormControl mb="8">
-          <FormLabel>GitOps Repository</FormLabel>
+          <FormLabel>Cannonfile</FormLabel>
           <HStack>
             <Input
               type="text"
-              placeholder="https://github.com/myorg/myrepo"
+              placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
               value={gitTomlFileUrl}
               borderColor="whiteAlpha.400"
               background="black"
@@ -357,25 +360,31 @@ function QueueFromGitOps() {
             />
           </HStack>
           <FormHelperText color="gray.300">
-            Enter a Git URL and then select the Cannonfile that was modified in
-            the branch chosen below.
+            Enter a Git or GitHub URL for the cannonfile you’d like to build.
           </FormHelperText>
         </FormControl>
         <FormControl mb="8">
-          <FormLabel>Upgrade from (Optional)</FormLabel>
+          <FormLabel>Previous Package</FormLabel>
           <Input
-            placeholder="TBD"
+            placeholder="package:latest@main"
             type="text"
             value={upgradeFrom}
             borderColor="whiteAlpha.400"
             background="black"
             onChange={(evt: any) => setUpgradeFrom(evt.target.value)}
           />
-          <FormHelperText color="gray.300">TBD</FormHelperText>
+          <FormHelperText color="gray.300">
+            <strong>Optional.</strong> Enter the name of the package this
+            cannonfile is upgrading from. See{' '}
+            <Link as={NextLink} href="/learn/cli#build">
+              <Code>--upgrade-from</Code>
+            </Link>
+            .
+          </FormHelperText>
         </FormControl>
         {/* TODO: insert/load override settings here */}
         <FormControl mb="8">
-          <FormLabel>Partial Deployment Data (Optional)</FormLabel>
+          <FormLabel>Partial Deployment Data</FormLabel>
           <Input
             placeholder="Qm..."
             type="text"
@@ -390,10 +399,11 @@ function QueueFromGitOps() {
             }
           />
           <FormHelperText color="gray.300">
-            If this deployment requires transactions executed in other contexts
-            (e.g. contract deployments or function calls using other signers),
-            provide the IPFS hash generated from executing that partial
-            deployment using the build command in the CLI.
+            <strong>Optional.</strong> If this deployment requires transactions
+            executed in other contexts (e.g. contract deployments or function
+            calls using other signers), provide the IPFS hash generated from
+            executing that partial deployment using the build command in the
+            CLI.
           </FormHelperText>
         </FormControl>
         {buildInfo.buildStatus == '' && (
