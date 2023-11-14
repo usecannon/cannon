@@ -318,6 +318,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
         throw new Error(`package not found: ${packageRef} (${variant})`);
       }
     },
+    refetchOnWindowFocus: false,
   });
 
   const pkgUrl = registryQuery.data?.url;
