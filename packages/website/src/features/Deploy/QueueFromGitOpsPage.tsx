@@ -459,6 +459,7 @@ function QueueFromGitOps() {
               mb={6}
               isDisabled={
                 settings.isIpfsGateway ||
+                !cannonDefInfo.def ||
                 cannonPkgVersionInfo.ipfsQuery.isFetching ||
                 cannonPkgPreviousInfo.ipfsQuery.isFetching ||
                 cannonPkgVersionInfo.registryQuery.isFetching ||
