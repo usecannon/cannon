@@ -1,4 +1,7 @@
-import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway } from './ipfs';
+import axios from 'axios';
+import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway, fetchIPFSAvailability } from './ipfs';
+
+jest.mock('axios');
 
 describe('ipfs.ts', () => {
   const IPFS_GATEWAY_URL = process.env.IPFS_GATEWAY_URL;
@@ -75,5 +78,37 @@ describe('ipfs.ts', () => {
         expect(await listPinsIpfs(IPFS_API_URL, {}, true)).toContain(url);
       });
     }
+  });
+
+  describe('fetchIPFSAvailability()', () => {
+    const mockedPost = axios.post as jest.MockedFunction<typeof axios.post>;
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns the score if IPFS is running locally', async () => {
+      mockedPost.mockResolvedValueOnce({ status: 200 });
+      const mockData = '{"Type":4,"Responses":[{},{}]}\n';
+      mockedPost.mockResolvedValueOnce({ data: mockData });
+      const score = await fetchIPFSAvailability('ipfsUrl', 'someCID');
+
+      expect(score).toBe(2);
+    });
+
+    it('returns undefined if IPFS is not running locally', async () => {
+      mockedPost.mockRejectedValueOnce(new Error('Failed to connect to IPFS'));
+      const score = await fetchIPFSAvailability('ipfsUrl', 'someCID');
+
+      expect(score).toBeUndefined();
+    });
+
+    it('returns 0 if there is an issue fetching the availability score', async () => {
+      mockedPost.mockResolvedValueOnce({ status: 200 });
+      mockedPost.mockRejectedValueOnce(new Error('Failed to fetch availability score'));
+      const score = await fetchIPFSAvailability('ipfsUrl', 'someCID');
+
+      expect(score).toBe(0);
+    });
   });
 });

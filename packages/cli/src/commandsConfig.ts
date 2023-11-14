@@ -470,6 +470,10 @@ const commandsConfig = {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
+      {
+        flags: '-s --sources',
+        description: 'Show contract sources',
+      },
     ],
   },
   prune: {

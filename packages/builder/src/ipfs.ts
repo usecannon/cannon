@@ -168,3 +168,44 @@ export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {},
     throw new Error('Failed to list ipfs artifacts' + err);
   }
 }
+
+async function isIPFSRunningLocally(ipfsUrl: string): Promise<boolean> {
+  try {
+    const response = await axios.post(`${ipfsUrl}/api/v0/id`, {}, { timeout: 2000 });
+    if (response.status === 200) return true;
+  } catch (error) {
+    return false;
+  }
+  return false;
+}
+
+async function getIPFSAvailabilityScoreLocally(ipfsUrl: string, cid: string): Promise<number> {
+  try {
+    const response = await axios.post(`${ipfsUrl}/api/v0/dht/findprovs?arg=${cid}`, {}, { timeout: 2000 });
+    const lines = response.data.split('\n').filter(Boolean);
+    let total = 0;
+
+    for (const line of lines) {
+      const obj = JSON.parse(line);
+      if (obj.Type === 4 && Array.isArray(obj.Responses)) {
+        total += obj.Responses.length;
+      }
+    }
+    return total;
+  } catch (error) {
+    return 0;
+  }
+}
+
+export async function fetchIPFSAvailability(ipfsUrl: string | undefined, cid: string): Promise<number | undefined> {
+  if (!ipfsUrl) {
+    return undefined;
+  }
+  if (await isIPFSRunningLocally(ipfsUrl)) {
+    const score = await getIPFSAvailabilityScoreLocally(ipfsUrl, cid);
+    return score;
+  } else {
+    console.error('Local IPFS node is not running. Cannot fetch availability score.');
+    return undefined;
+  }
+}
