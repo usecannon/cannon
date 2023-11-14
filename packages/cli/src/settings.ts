@@ -6,7 +6,6 @@ import {
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_PROVIDER_URL,
-  DEFAULT_REGISTRY_IPFS_ENDPOINT,
   CLI_SETTINGS_STORE,
 } from './constants';
 
@@ -108,7 +107,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     console.warn(
       `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/learn/technical-reference#setup for more information.`
     );
-    console.warn(`using default settings (${DEFAULT_REGISTRY_IPFS_ENDPOINT}, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
+    console.warn(`using default settings (cannon repo, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
   }
 
   const finalSettings = _.assign(

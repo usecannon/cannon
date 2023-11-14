@@ -1,14 +1,13 @@
-import _ from 'lodash';
+import { yellow } from 'chalk';
+import Debug from 'debug';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
+import _ from 'lodash';
 import { CannonWrapperGenericProvider } from './error/provider';
-import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
-import { yellow } from 'chalk';
-
-import Debug from 'debug';
-import { getExecutionSigner } from './util';
-import { CannonLoader, IPFSLoader, InMemoryLoader } from './loader';
+import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
+import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
+import { getExecutionSigner } from './util';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -40,7 +39,8 @@ export class CannonStorage extends EventEmitter {
       throw new Error('url not defined');
     }
 
-    const loaderScheme = url.split(':')[0];
+    const loaderScheme = url.includes(':') ? url.split(':')[0] : 'ipfs';
+
     if (!this.loaders[loaderScheme]) {
       throw new Error(`loader scheme not configured: ${loaderScheme}`);
     }
@@ -54,7 +54,7 @@ export class CannonStorage extends EventEmitter {
 
     if (loader instanceof IPFSLoader) {
       loaderLabel = loader.ipfsUrl;
-    } else if (loader instanceof InMemoryLoader) {
+    } else {
       loaderLabel = loader.getLabel();
     }
 
@@ -271,7 +271,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
-    newRuntime.on(Events.PostStepExecute, (t, n, o, c, ctx, d) => this.emit(Events.PostStepExecute, t, n, o, c, ctx, d + 1));
+    newRuntime.on(Events.PostStepExecute, (t, n, cfg, ctx, result, d) =>
+      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1)
+    );
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));

@@ -23,16 +23,15 @@ export interface State {
     buildState: BuildState;
   };
   settings: {
-    ipfsUrl: string;
+    ipfsApiUrl: string;
+    isIpfsGateway: boolean;
     stagingUrl: string;
     publishTags: string;
     preset: string;
     registryAddress: string;
-    registryProviderUrl: string;
     forkProviderUrl: string;
     customProviders: string[];
     pythUrl: string;
-    ipfsQueryUrl: string;
   };
 }
 
@@ -47,7 +46,7 @@ export interface Actions {
 
 export type Store = State & Actions;
 
-const initialState = {
+export const initialState = {
   currentSafe: null,
   safeAddresses: [],
   build: {
@@ -58,16 +57,15 @@ const initialState = {
     },
   },
   settings: {
-    ipfsUrl: '',
+    ipfsApiUrl: 'https://repo.usecannon.com/',
+    isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     publishTags: 'latest',
     preset: 'main',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    registryProviderUrl: 'https://ethereum.publicnode.com',
     forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
-    ipfsQueryUrl: 'https://ipfs.io/ipfs/',
   },
 } satisfies State;
 

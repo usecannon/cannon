@@ -8,8 +8,9 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
   .addOptionalParam('chainId', 'Chain ID of the variant to inspect')
   .addOptionalParam('preset', 'Preset of the variant to inspect')
   .addOptionalParam('writeDeployments', 'Path to write the deployments data (address and ABIs), like "./deployments"')
+  .addOptionalParam('sources', 'Show contract sources')
   .addFlag('json', 'Output as JSON')
-  .setAction(async ({ packageName, json, writeDeployments, chainId, preset }, hre) => {
+  .setAction(async ({ packageName, json, writeDeployments, chainId, preset, sources }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
@@ -33,5 +34,5 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
 
     const selectedPreset = packageSpec.preset || preset || 'main';
 
-    await inspect(packageRef, chainId, selectedPreset, json, writeDeployments);
+    await inspect(packageRef, chainId, selectedPreset, json, writeDeployments, sources);
   });

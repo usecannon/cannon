@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
   webpack: (config) => {
@@ -9,11 +8,8 @@ const nextConfig = {
     return config;
   },
   experimental: {
-    mdxRs: true,
     urlImports: ['https://unpkg.com'],
   },
 };
 
-const withMDX = require('@next/mdx')();
-
-module.exports = withMDX(nextConfig);
+module.exports = nextConfig;

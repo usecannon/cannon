@@ -1,41 +1,39 @@
+import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { spawn } from 'child_process';
-import { ethers } from 'ethers';
-import { Command } from 'commander';
 import {
+  CannonStorage,
   CannonWrapperGenericProvider,
+  ChainArtifacts,
+  ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  ChainBuilderRuntime,
-  ChainArtifacts,
-  CannonStorage,
 } from '@usecannon/builder';
-
-import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
-
+import { bold, gray, green, red, yellow } from 'chalk';
+import { Command } from 'commander';
+import Debug from 'debug';
+import { ethers } from 'ethers';
+import prompts from 'prompts';
 import pkg from '../package.json';
-import { PackageSpecification } from './types';
+import { interact } from './commands/interact';
+import commandsConfig from './commandsConfig';
+import { getFoundryArtifact } from './foundry';
+import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
+import { getMainLoader } from './loader';
+import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
+import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
-
+import { resolveCliSettings } from './settings';
+import { PackageSpecification } from './types';
+import { pickAnvilOptions } from './util/anvil';
+import { getContractsRecursive } from './util/contracts-recursive';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
+import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
 export * from './types';
 export * from './constants';
 export * from './util/params';
-
-import { interact } from './commands/interact';
-import { getContractsRecursive } from './util/contracts-recursive';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-import { resolveCliSettings } from './settings';
-
-import { installPlugin, removePlugin } from './plugins';
-import Debug from 'debug';
-import { writeModuleDeployments } from './util/write-deployments';
-import { getFoundryArtifact } from './foundry';
-import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
-import { getMainLoader } from './loader';
-import { bold, green, red, yellow, gray } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -50,17 +48,11 @@ export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
 export { runRpc, getProvider } from './rpc';
-
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
-
-import { listInstalledPlugins } from './plugins';
-import prompts from 'prompts';
-import { pickAnvilOptions } from './util/anvil';
-import commandsConfig from './commandsConfig';
 
 const program = new Command();
 
@@ -196,7 +188,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     node = await runRpc({
       ...pickAnvilOptions(opts),
       // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: 0,
+      port: opts.port || 0,
     });
 
     provider = getProvider(node);
@@ -207,6 +199,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       chainId = opts.chainId;
     }
+
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
@@ -234,7 +227,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       provider = p.provider;
 
-      getSigner = async (s) => {
+      getSigner = async (address) => {
+        const s = ethers.utils.getAddress(address);
+
         for (const signer of p.signers) {
           if ((await signer.getAddress()) === s) {
             return signer;
@@ -272,6 +267,8 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     publicSourceCode,
     providerUrl: cliSettings.providerUrl,
+    writeScript: opts.writeScript,
+    writeScriptFormat: opts.writeScriptFormat,
 
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
@@ -280,6 +277,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
 
   return [node, outputs];
 }
+
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
@@ -385,13 +383,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Please provide a Private Key',
+      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
       validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
     });
 
     if (!keyPrompt.value) {
-      console.log('Private Key is required.');
+      console.log('A valid private key is required.');
       process.exit(1);
     }
 
@@ -440,7 +438,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');
   resolveCliSettings(options);
-  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments, options.sources);
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
@@ -531,6 +529,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
+  opts.port = 8545;
   const [node, outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here

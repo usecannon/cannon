@@ -26,8 +26,9 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
         <Button
           variant="outline"
           color="gray.300"
-          borderColor="gray.500"
-          _hover={{ bg: 'gray.700' }}
+          borderColor="gray.600"
+          fontFamily={'mono'}
+          _hover={{ bg: 'gray.800' }}
           key={key}
           onClick={() => {
             const am: Record<string, object> = {};
@@ -39,7 +40,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
           mr={2}
           mb={2}
         >
-          {key}
+          [{name}.{key}]
         </Button>
       ))}
 

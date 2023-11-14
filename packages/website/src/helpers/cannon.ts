@@ -1,3 +1,5 @@
+import MulticallABI from '@/abi/Multicall.json';
+import * as git from '@/helpers/git';
 import toml from '@iarna/toml';
 import path from '@isomorphic-git/lightning-fs/src/path';
 import {
@@ -22,8 +24,6 @@ import CannonRegistryAbi from '@usecannon/builder/dist/abis/CannonRegistry';
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { Address, decodeAbiParameters, decodeFunctionData, Hex, parseAbiParameters, zeroAddress } from 'viem';
-import MulticallABI from '@/abi/Multicall.json';
-import * as git from '@/helpers/git';
 
 export type CannonTransaction = TransactionMap[keyof TransactionMap];
 
@@ -97,10 +97,13 @@ export async function build({
   const simulatedSteps: ChainArtifacts[] = [];
   const skippedSteps: StepExecutionError[] = [];
 
-  runtime.on(Events.PostStepExecute, (stepType: string, stepLabel: string, stepOutput: ChainArtifacts) => {
-    simulatedSteps.push(stepOutput);
-    onStepExecute(stepType, stepLabel, stepOutput);
-  });
+  runtime.on(
+    Events.PostStepExecute,
+    (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+      simulatedSteps.push(stepOutput);
+      onStepExecute(stepType, stepLabel, stepOutput);
+    }
+  );
 
   runtime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
     console.log(stepName, err);

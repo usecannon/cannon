@@ -11,12 +11,12 @@ import {
   FormHelperText,
   FormLabel,
   HStack,
+  Heading,
   Input,
   Select,
   Spinner,
   Text,
   Tooltip,
-  useColorMode,
   useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
@@ -55,18 +55,12 @@ import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import WithSafe from './WithSafe';
 
 export default function QueueFromGitOpsPage() {
-  return (
-    <WithSafe>
-      <QueueFromGitOps />
-    </WithSafe>
-  );
+  return <QueueFromGitOps />;
 }
 
 function QueueFromGitOps() {
-  const { colorMode } = useColorMode();
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
@@ -288,16 +282,14 @@ function QueueFromGitOps() {
     !prepareDeployOnchainStore.isError
   ) {
     return (
-      <Container maxWidth="container.md">
-        <Text mb="8">
-          If your protocol is managed using a GitOps repository (with
-          cannonfiles on GitHub), you can use this tool to queue transactions
-          that would be created by merging the branch you specify.
-        </Text>
+      <Container maxWidth="container.sm">
         <Box
-          p="6"
-          bg={colorMode === 'dark' ? 'blackAlpha.400' : 'blackAlpha.50'}
-          borderRadius="12px"
+          bg="blackAlpha.600"
+          border="1px solid"
+          borderColor="gray.900"
+          borderRadius="md"
+          p={6}
+          my={16}
         >
           <Text mb={4}>
             To use this tool, you need to deploy the on-chain store contract.
@@ -305,6 +297,7 @@ function QueueFromGitOps() {
             amount of gas.
           </Text>
           <Button
+            colorScheme="teal"
             w="100%"
             onClick={() =>
               deployOnChainStore.sendTransaction &&
@@ -319,161 +312,187 @@ function QueueFromGitOps() {
   }
 
   return (
-    <Container maxWidth="container.md" pb="12">
-      <FormControl mb="8">
-        <FormLabel>GitOps Repository</FormLabel>
-        <HStack>
+    <>
+      <Container maxWidth="container.md" py={8}>
+        <Box mb={6}>
+          <Heading size="md" mb={2}>
+            Queue Build
+          </Heading>
+          <Text fontSize="sm" color="gray.300">
+            Queue transactions based on a pull request that modifies a
+            cannonfile in a git repository. Optionally, you can provide partial
+            build information. (This is especially useful for builds that
+            involve contract deployments.) After the queued transactions are
+            executed, a resulting package can be published to the registry.
+          </Text>
+        </Box>
+        <FormControl mb="8">
+          <FormLabel>GitOps Repository</FormLabel>
+          <HStack>
+            <Input
+              type="text"
+              placeholder="https://github.com/myorg/myrepo"
+              value={gitUrl}
+              borderColor="whiteAlpha.400"
+              background="black"
+              onChange={(evt: any) => setGitUrl(evt.target.value)}
+            />
+            {gitUrl.length && (
+              <Flex height="40px">
+                {gitDirList.readdirQuery.isLoading ? (
+                  <Spinner my="auto" ml="2" />
+                ) : (
+                  <EditableAutocompleteInput
+                    minWidth="220px"
+                    editable
+                    color={'white'}
+                    placeholder="cannonfile.toml"
+                    items={(gitDirList.contents || []).map((d: any) => ({
+                      label: gitDir + d,
+                      secondary: '',
+                    }))}
+                    onFilterChange={(v) => setGitFile(v)}
+                    onChange={(v) => setGitFile(v)}
+                  />
+                )}
+              </Flex>
+            )}
+          </HStack>
+          <FormHelperText color="gray.300">
+            Enter a Git URL and then select the Cannonfile that was modified in
+            the branch chosen below.
+          </FormHelperText>
+        </FormControl>
+        <FormControl mb="8">
+          <FormLabel>Branch</FormLabel>
+          <HStack>
+            <Select
+              borderColor="whiteAlpha.400"
+              background="black"
+              value={gitBranch}
+              onChange={(evt: any) => setGitBranch(evt.target.value)}
+            >
+              {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
+                (r, i) => (
+                  <option key={i} value={r.ref}>
+                    {r.ref}
+                  </option>
+                )
+              )}
+            </Select>
+          </HStack>
+        </FormControl>
+        {/* TODO: insert/load override settings here */}
+        <FormControl mb="8">
+          <FormLabel>Partial Deployment Data (Optional)</FormLabel>
           <Input
+            placeholder="Qm..."
             type="text"
-            placeholder="https://github.com/myorg/myrepo"
-            value={gitUrl}
+            value={partialDeployIpfs}
             borderColor="whiteAlpha.400"
             background="black"
-            onChange={(evt: any) => setGitUrl(evt.target.value)}
+            onChange={
+              (evt: any) =>
+                setPartialDeployIpfs(
+                  evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                ) /** TODO: handle bafy hash or other hashes */
+            }
           />
-          <Flex height="40px">
-            {gitDirList.readdirQuery.isLoading ? (
-              <Spinner my="auto" ml="2" />
-            ) : (
-              <EditableAutocompleteInput
-                editable
-                color={'white'}
-                placeholder="cannonfile.toml"
-                items={(gitDirList.contents || []).map((d: any) => ({
-                  label: gitDir + d,
-                  secondary: '',
-                }))}
-                onFilterChange={(v) => setGitFile(v)}
-                onChange={(v) => setGitFile(v)}
-              />
+          <FormHelperText color="gray.300">
+            If this deployment requires transactions executed in other contexts
+            (e.g. contract deployments or function calls using other signers),
+            provide the IPFS hash generated from executing that partial
+            deployment using the build command in the CLI.
+          </FormHelperText>
+        </FormControl>
+        {buildInfo.buildStatus == '' && (
+          <>
+            {settings.isIpfsGateway && (
+              <Text mb={3}>
+                You cannot build transactions on an IPFS gateway, only read
+                operations can be done.
+              </Text>
             )}
-          </Flex>
-        </HStack>
-        <FormHelperText color="gray.300">
-          Enter a Git URL and then select the Cannonfile that was modified in
-          the branch chosen below.
-        </FormHelperText>
-      </FormControl>
-      <FormControl mb="8">
-        <FormLabel>Branch</FormLabel>
-        <HStack>
-          <Select
-            borderColor="whiteAlpha.400"
-            background="black"
-            value={gitBranch}
-            onChange={(evt: any) => setGitBranch(evt.target.value)}
-          >
-            {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
-              (r, i) => (
-                <option key={i} value={r.ref}>
-                  {r.ref}
-                </option>
-              )
-            )}
-          </Select>
-        </HStack>
-      </FormControl>
-      {/* TODO: insert/load override settings here */}
-      <FormControl mb="8">
-        <FormLabel>Partial Deployment Data (Optional)</FormLabel>
-        <Input
-          placeholder="Qm..."
-          type="text"
-          value={partialDeployIpfs}
-          borderColor="whiteAlpha.400"
-          background="black"
-          onChange={
-            (evt: any) =>
-              setPartialDeployIpfs(
-                evt.target.value.slice(evt.target.value.indexOf('Qm'))
-              ) /** TODO: handle bafy hash or other hashes */
-          }
-        />
-        <FormHelperText color="gray.300">
-          If this deployment requires transactions executed in other contexts
-          (e.g. contract deployments or function calls using other signers),
-          provide the IPFS hash generated from executing that partial deployment
-          using the build command in the CLI.
-        </FormHelperText>
-      </FormControl>
-      {buildInfo.buildStatus == '' && (
-        <Button
-          width="100%"
-          colorScheme="blue"
-          mb={6}
-          isDisabled={
-            cannonPkgVersionInfo.ipfsQuery.isFetching ||
-            cannonPkgLatestInfo.ipfsQuery.isFetching ||
-            cannonPkgVersionInfo.registryQuery.isFetching ||
-            cannonPkgLatestInfo.registryQuery.isFetching
-          }
-          onClick={() => buildTransactions()}
-        >
-          Preview Transactions to Queue
-        </Button>
-      )}
-      {buildInfo.buildStatus && (
-        <Alert mb="6" status="info">
-          <Spinner mr={3} boxSize={4} />
-          <strong>{buildInfo.buildStatus}</strong>
-        </Alert>
-      )}
-      {buildInfo.buildError && (
-        <Alert mb="6" status="error">
-          <AlertIcon mr={3} />
-          <strong>{buildInfo.buildError}</strong>
-        </Alert>
-      )}
-      {multicallTxn.data && stager.safeTxn && (
-        <TransactionDisplay
-          safe={currentSafe as any}
-          safeTxn={stager.safeTxn}
-        />
-      )}
-
-      {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-        <Box my="6">
-          <NoncePicker
+            <Button
+              width="100%"
+              colorScheme="teal"
+              mb={6}
+              isDisabled={
+                settings.isIpfsGateway ||
+                cannonPkgVersionInfo.ipfsQuery.isFetching ||
+                cannonPkgLatestInfo.ipfsQuery.isFetching ||
+                cannonPkgVersionInfo.registryQuery.isFetching ||
+                cannonPkgLatestInfo.registryQuery.isFetching
+              }
+              onClick={() => buildTransactions()}
+            >
+              Preview Transactions to Queue
+            </Button>
+          </>
+        )}
+        {buildInfo.buildStatus && (
+          <Alert mb="6" status="info">
+            <Spinner mr={3} boxSize={4} />
+            <strong>{buildInfo.buildStatus}</strong>
+          </Alert>
+        )}
+        {buildInfo.buildError && (
+          <Alert mb="6" status="error">
+            <AlertIcon mr={3} />
+            <strong>{buildInfo.buildError}</strong>
+          </Alert>
+        )}
+        {multicallTxn.data && stager.safeTxn && (
+          <TransactionDisplay
             safe={currentSafe as any}
-            onPickedNonce={setPickedNonce}
+            safeTxn={stager.safeTxn}
           />
-          <HStack gap="6">
-            {stager.execConditionFailed ? (
-              <Tooltip label={stager.signConditionFailed}>
+        )}
+
+        {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
+          <Box my="6">
+            <NoncePicker
+              safe={currentSafe as any}
+              onPickedNonce={setPickedNonce}
+            />
+            <HStack gap="6">
+              {stager.execConditionFailed ? (
+                <Tooltip label={stager.signConditionFailed}>
+                  <Button
+                    isDisabled={!!stager.signConditionFailed}
+                    size="lg"
+                    w="100%"
+                    onClick={() => stager.sign()}
+                  >
+                    Queue &amp; Sign
+                  </Button>
+                </Tooltip>
+              ) : null}
+              <Tooltip label={stager.execConditionFailed}>
                 <Button
-                  isDisabled={!!stager.signConditionFailed}
+                  isDisabled={!!stager.execConditionFailed}
                   size="lg"
                   w="100%"
-                  onClick={() => stager.sign()}
+                  onClick={async () => {
+                    if (execTxn.writeAsync) {
+                      await execTxn.writeAsync();
+                      router.push(links.DEPLOY);
+                      toast({
+                        title: 'You successfully executed the transaction.',
+                        status: 'success',
+                        duration: 5000,
+                        isClosable: true,
+                      });
+                    }
+                  }}
                 >
-                  Queue &amp; Sign
+                  Execute
                 </Button>
               </Tooltip>
-            ) : null}
-            <Tooltip label={stager.execConditionFailed}>
-              <Button
-                isDisabled={!!stager.execConditionFailed}
-                size="lg"
-                w="100%"
-                onClick={async () => {
-                  if (execTxn.writeAsync) {
-                    await execTxn.writeAsync();
-                    router.push(links.DEPLOY);
-                    toast({
-                      title: 'You successfully executed the transaction.',
-                      status: 'success',
-                      duration: 5000,
-                      isClosable: true,
-                    });
-                  }
-                }}
-              >
-                Execute
-              </Button>
-            </Tooltip>
-          </HStack>
-        </Box>
-      )}
-    </Container>
+            </HStack>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 }

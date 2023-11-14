@@ -1,31 +1,30 @@
-import _ from 'lodash';
-import { ethers } from 'ethers';
-import { bold, yellow, gray, yellowBright, green, cyanBright, magenta } from 'chalk';
 import {
+  build as cannonBuild,
   CANNON_CHAIN_ID,
+  CannonRegistry,
+  CannonWrapperGenericProvider,
+  ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
-  Events,
-  ChainBuilderRuntime,
-  build as cannonBuild,
   createInitialContext,
-  getOutputs,
   DeploymentInfo,
-  CannonWrapperGenericProvider,
+  Events,
+  getContractFromPath,
+  getOutputs,
 } from '@usecannon/builder';
+import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import { ethers } from 'ethers';
+import _ from 'lodash';
+import { table } from 'table';
+import pkg from '../../package.json';
 import { chains } from '../chains';
 import { readMetadataCache } from '../helpers';
-import { PackageSpecification } from '../types';
-import { CannonRegistry } from '@usecannon/builder';
-import { resolveCliSettings } from '../settings';
-import { createDefaultReadRegistry } from '../registry';
-
-import { listInstalledPlugins, loadPlugins } from '../plugins';
 import { getMainLoader } from '../loader';
-
-import pkg from '../../package.json';
-import { table } from 'table';
-import { ChainBuilderContext } from '@usecannon/builder/dist/types';
+import { listInstalledPlugins, loadPlugins } from '../plugins';
+import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
@@ -51,6 +50,8 @@ interface Params {
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;
+  writeScript?: string;
+  writeScriptFormat?: WriteScriptFormat;
 }
 
 export async function build({
@@ -73,6 +74,8 @@ export async function build({
   gasPrice,
   gasFee,
   priorityGasFee,
+  writeScript,
+  writeScriptFormat = 'ethers',
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -107,7 +110,7 @@ export async function build({
 
   const chainId = (await provider.getNetwork()).chainId;
   const chainName = chains.find((c) => c.chainId === chainId)?.name;
-  const nativeCurrencySymbol = chains.find((c) => c.chainId === chainId)?.nativeCurrency.symbol;
+  const nativeCurrencySymbol = chains.find((c) => c.chainId === chainId)?.nativeCurrency.symbol || 'ETH';
   let totalCost = ethers.BigNumber.from(0);
 
   const runtimeOptions = {
@@ -137,31 +140,9 @@ export async function build({
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
 
-  const runtime = new ChainBuilderRuntime(
-    runtimeOptions,
-    resolver,
-    getMainLoader(cliSettings),
-    cliSettings.ipfsUrl ? 'ipfs' : 'file'
-  );
+  const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
 
-  function getContractAddress(target: string, ctx: ChainBuilderContext): string | null {
-    function search(c: any): string | null {
-      for (const key in c) {
-        if (key === target && c[key].address) {
-          return c[key].address;
-        }
-        if (c[key].contracts) {
-          const nestedSearchResult = search(c[key].contracts);
-          if (nestedSearchResult) {
-            return nestedSearchResult;
-          }
-        }
-      }
-      return null;
-    }
-
-    return search(ctx.contracts);
-  }
+  const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
@@ -170,12 +151,14 @@ export async function build({
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     console.log(
-      `${'  '.repeat(d)}  \u26A0\uFE0F Skipped [${n}] (${
-        typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
-      })`
+      yellowBright(
+        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
+          typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
+        })`
+      )
     );
   });
-  runtime.on(Events.PostStepExecute, (t, n, o, c, ctx, d) => {
+  runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       console.log(
@@ -183,10 +166,10 @@ export async function build({
           ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
           .join(', ')})`
       );
-      if (txn.signer != defaultSigner) {
+      if (txn.signer != defaultSignerAddress) {
         console.log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
       }
-      const contractAddress = getContractAddress(c.target[0], ctx);
+      const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
       if (contractAddress) {
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
       }
@@ -233,7 +216,7 @@ export async function build({
     console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName}@${preset} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}\n`))
+    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
   );
 
   // Check for existing package
@@ -245,7 +228,7 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log(`${name}:${version}@${preset} (Chain ID: ${chainId}) found`);
+    console.log(`${name}:${version}@${preset ? preset : 'main'} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -301,7 +284,6 @@ export async function build({
   }
   console.log('');
 
-  const defaultSigner = await (await getDefaultSigner!()).getAddress();
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
   console.log(
     bold(
@@ -310,7 +292,24 @@ export async function build({
       }...`
     )
   );
-  console.log(`Using signer ${defaultSigner}`);
+
+  let defaultSignerAddress: string;
+  if (getDefaultSigner) {
+    const defaultSigner = await getDefaultSigner!();
+    if (defaultSigner) {
+      defaultSignerAddress = await defaultSigner.getAddress();
+      console.log(`Using ${defaultSignerAddress}`);
+    } else {
+      console.log();
+      console.log(bold(red('Signer not found.')));
+      console.log(
+        red(
+          'Provide a signer to execute this build. Add the --private-key option or set the env variable CANNON_PRIVATE_KEY.'
+        )
+      );
+      process.exit(1);
+    }
+  }
 
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log(gray('Overriding the default values for the cannonfile’s settings with the following:'));
@@ -353,6 +352,10 @@ export async function build({
   }
 
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+
+  if (writeScript) {
+    await dump!.end();
+  }
 
   const outputs = (await getOutputs(runtime, def, newState))!;
 
@@ -403,33 +406,34 @@ export async function build({
     }
 
     if (partialDeploy) {
-      // TODO: Fix me up too
       console.log(
-        yellow(
+        yellowBright(
           bold(
-            'WARNING: your deployment was not fully completed. Please inspect the issues listed above, and resolve as necessary.'
+            '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.'
           )
         )
       );
-
-      console.log(
-        yellow('Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.')
-      );
-
-      console.log(
-        yellow('To re-run executed steps, add the --wipe flag to the build command: ' + bold('cannon build --wipe'))
-      );
-
-      console.log(
-        yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
-      );
-
-      console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
-    } else {
-      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
-      console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
       console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       console.log('');
+      console.log(
+        '- Rerunning the same build command will attempt to execute skipped steps. It will not rerun executed steps. (To rerun executed steps, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
+      );
+      console.log(`- Your partial deployment has been stored to ${deployUrl}`);
+      console.log(
+        '- Run ' +
+          bold(`cannon publish ${deployUrl}`) +
+          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
+      );
+    } else {
+      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
+      if (chainId == 13370) {
+        console.log(bold(`💥 ${packageRef} built for Cannon (Chain ID: ${chainId})`));
+        console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
+      } else {
+        console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
+        console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+      }
+      console.log();
 
       console.log(
         `The following package data has been stored to ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}`
@@ -443,8 +447,11 @@ export async function build({
       );
       console.log(bold(`Publish ${bold(packageRef)}`));
       console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
-      if (chainId !== 13370) {
-        console.log('');
+      console.log('');
+      if (chainId == 13370) {
+        console.log(bold('Run this package'));
+        console.log(`> ${`cannon ${packageRef}`}`);
+      } else {
         console.log(bold('Verify contracts on Etherscan'));
         console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
       }
@@ -453,8 +460,9 @@ export async function build({
     console.log(
       bold(
         yellow(
-          `Chain state could not be saved via ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}
-Try a writable endpoint by setting ipfsUrl through \`npx @usecannon/cli setup\` or CANNON_IPFS_URL env var.`
+          `Chain state could not be saved via ${runtime.loaders[
+            runtime.defaultLoaderScheme
+          ].getLabel()}. Try a writable endpoint by setting ipfsUrl through \`cannon setup\`.`
         )
       )
     );

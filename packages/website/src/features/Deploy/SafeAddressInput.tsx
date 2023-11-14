@@ -1,13 +1,5 @@
 import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import {
-  Container,
-  FormControl,
-  FormLabel,
-  IconButton,
-  Link,
-  Spacer,
-  Text,
-} from '@chakra-ui/react';
+import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
@@ -18,7 +10,7 @@ import {
 import deepEqual from 'fast-deep-equal';
 import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useAccount, useSwitchNetwork } from 'wagmi';
+import { useSwitchNetwork } from 'wagmi';
 import {
   getSafeFromString,
   getSafeUrl,
@@ -49,7 +41,6 @@ export function SafeAddressInput() {
   const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
-  const { isConnected } = useAccount();
 
   const { switchNetwork } = useSwitchNetwork();
   const router = useRouter();
@@ -132,6 +123,8 @@ export function SafeAddressInput() {
     deleteSafe(parseSafe(safeString));
   }
 
+  const isEmpty = !currentSafe;
+
   const chakraStyles: ChakraStylesConfig<
     SafeOption,
     boolean,
@@ -139,8 +132,9 @@ export function SafeAddressInput() {
   > = {
     container: (provided) => ({
       ...provided,
-      borderColor: 'whiteAlpha.400',
+      borderColor: isEmpty ? 'teal.700' : 'gray.700',
       background: 'black',
+      cursor: 'pointer',
     }),
     menuList: (provided) => ({
       ...provided,
@@ -159,16 +153,23 @@ export function SafeAddressInput() {
       ...provided,
       background: 'black',
     }),
+    control: (provided) => ({
+      ...provided,
+      '& hr.chakra-divider': {
+        display: 'none',
+      },
+    }),
   };
 
   return (
-    <Container maxW="100%" w="container.md" pt="4" pb="4">
-      <FormControl mb="6">
-        <FormLabel>Safe</FormLabel>
+    <>
+      <FormControl>
         <CreatableSelect
+          instanceId={'safe-address-select'}
           chakraStyles={chakraStyles}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
+          placeholder="Select a Safe"
           noOptionsMessage={() =>
             'Add a safe in the format chainId:safeAddress'
           }
@@ -194,12 +195,6 @@ export function SafeAddressInput() {
           components={{ Option: DeletableOption }}
         />
       </FormControl>
-      {!currentSafe && (
-        <Alert status="info">
-          {isConnected ? 'S' : 'Connect a wallet and s'}elect a Safe from the
-          dropdown above.
-        </Alert>
-      )}
       {currentSafe && pendingServiceTransactions.count > 0 && (
         <Alert status="warning">
           There
@@ -218,7 +213,7 @@ export function SafeAddressInput() {
           override the ones on Safe.
         </Alert>
       )}
-    </Container>
+    </>
   );
 }
 

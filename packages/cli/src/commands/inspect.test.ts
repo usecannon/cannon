@@ -1,13 +1,20 @@
 import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
-import { getMainLoader, LocalLoader } from '../loader';
+import { getMainLoader, CliLoader, LocalLoader } from '../loader';
+import { ContractData } from '@usecannon/builder';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
 
 jest.mock('../registry');
 jest.mock('../settings');
 jest.mock('../loader');
 jest.mock('../helpers');
+jest.mock('@usecannon/builder/dist/ipfs');
+jest.mock('../settings', () => ({
+  resolveCliSettings: jest.fn().mockReturnValue({ ipfsUrl: 'ipfsUrl' }),
+}));
 
 describe('inspect', () => {
   const chainId = 123;
@@ -18,9 +25,12 @@ describe('inspect', () => {
   let testPkgData: any;
   let mockedFallBackRegistry: any;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
+  let ipfsLoader: CliLoader;
   let stdoutOutput: string[] = [];
   let writeSpy: jest.SpyInstance;
+  let contractsAndDetails: { [contractName: string]: ContractData };
+  let ipfsAvailabilityScore: number | undefined;
+  let localSource: string | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,10 +83,28 @@ describe('inspect', () => {
       getDeployUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
       getUrl: jest.fn().mockResolvedValue('file:/usecannon.com/url'),
       getMetaUrl: jest.fn().mockResolvedValue('file:/usecannon.com/meta'),
+      registries: [],
     };
 
+    contractsAndDetails = {
+      TokenContract: {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        abi: [],
+        deployTxnHash: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        contractName: 'TokenContract',
+        sourceName: 'TokenSource',
+        deployedOn: '2023-10-16',
+        highlight: true,
+        gasUsed: 1,
+        gasCost: '1',
+      },
+    };
+
+    ipfsAvailabilityScore = 10;
+    localSource = 'on chain 0x1AAAAAAAA';
+
     localLoader = new LocalLoader('path');
-    ipfsLoader = new IPFSLoader('ipfs');
+    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
 
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
@@ -84,10 +112,11 @@ describe('inspect', () => {
     });
 
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
+    jest.mocked(fetchIPFSAvailability).mockResolvedValue(Promise.resolve(ipfsAvailabilityScore));
 
-    jest.mock('../settings', () => ({
-      resolveCliSettings: jest.fn().mockReturnValue({}),
-    }));
+    jest.mocked(getContractsAndDetails).mockReturnValue(contractsAndDetails);
+    jest.mocked(getSourceFromRegistry).mockReturnValue(localSource);
+
     jest.spyOn(localLoader, 'read').mockResolvedValue(testPkgData);
     jest.spyOn(ipfsLoader, 'read').mockResolvedValue(testPkgData);
 
@@ -103,17 +132,21 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
-    const result = await inspect(packageName, chainId, preset, false, '');
+    const result = await inspect(packageName, chainId, preset, false, '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
     expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
+    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
+    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
+
     expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
   });
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
-    const result = await inspect(packageName, chainId, preset, false, writeDeployments);
+    const result = await inspect(packageName, chainId, preset, false, writeDeployments, false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
@@ -121,8 +154,21 @@ describe('inspect', () => {
     expect(fs.outputFile).toHaveBeenCalled();
   });
 
+  test('should call inspect with sources flag ', async () => {
+    const result = await inspect(packageName, chainId, preset, false, '', true);
+
+    expect(result).toEqual(testPkgData);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
+    expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
+    expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
+
+    expect(localLoader.read).toHaveBeenCalledWith('file:/usecannon.com/url');
+  });
+
   test('should call inspect with json flag ', async () => {
-    const result = await inspect(packageName, chainId, preset, true, '');
+    const result = await inspect(packageName, chainId, preset, true, '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
