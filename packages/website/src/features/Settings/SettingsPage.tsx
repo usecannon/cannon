@@ -75,11 +75,6 @@ const SETTINGS: Record<
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
   },
-  forkProviderUrl: {
-    title: 'RPC URL for Local Fork',
-    description:
-      'JSON RPC url to create the local fork where the build will be executed.',
-  },
 };
 
 export function useSettingsValidation() {

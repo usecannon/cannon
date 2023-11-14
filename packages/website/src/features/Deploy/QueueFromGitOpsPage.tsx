@@ -461,6 +461,7 @@ function QueueFromGitOps() {
               colorScheme="teal"
               mb={6}
               isDisabled={
+                chainId !== currentSafe.chainId ||
                 settings.isIpfsGateway ||
                 !cannonDefInfo.def ||
                 cannonPkgVersionInfo.ipfsQuery.isFetching ||
@@ -474,14 +475,22 @@ function QueueFromGitOps() {
             </Button>
           </>
         )}
+        {chainId !== currentSafe.chainId && (
+          <Alert mb="6" status="error" bg="red.700">
+            <AlertIcon mr={3} />
+            <strong>
+              Selected network and network of the selected safe are different
+            </strong>
+          </Alert>
+        )}
         {buildInfo.buildStatus && (
-          <Alert mb="6" status="info">
+          <Alert mb="6" status="info" bg="gray.800">
             <Spinner mr={3} boxSize={4} />
             <strong>{buildInfo.buildStatus}</strong>
           </Alert>
         )}
         {buildInfo.buildError && (
-          <Alert mb="6" status="error">
+          <Alert mb="6" status="error" bg="red.700">
             <AlertIcon mr={3} />
             <strong>{buildInfo.buildError}</strong>
           </Alert>

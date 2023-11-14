@@ -64,6 +64,8 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
 }
 
 export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo, enabled?: boolean) {
+  const { addLog } = useLogs();
+  const chainId = useChainId();
   const settings = useStore((s) => s.settings);
 
   const [buildStatus, setBuildStatus] = useState('');
@@ -85,7 +87,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     setBuildStatus('Creating fork...');
     const fork = await createFork({
-      url: settings.forkProviderUrl,
+      url: findChainUrl(chainId),
       chainId: safe.chainId,
       impersonate: [safe.address],
     }).catch((err) => {
@@ -102,7 +104,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     setBuildStatus('Loading deployment data...');
 
-    console.log('cannon.ts: upgrade from: ', prevDeploy);
+    addLog(`cannon.ts: upgrade from: ${prevDeploy?.def.name}:${prevDeploy?.def.version}`);
 
     const provider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(fork as any), false);
 
@@ -132,13 +134,14 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
+        addLog(`cannon.ts: on Events.PostStepExecute step ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`);
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      console.log(stepName, err);
+      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the step ${stepName}`);
       skippedSteps.push({ name: stepName, err });
     });
 
@@ -189,7 +192,6 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   };
 
   function doBuild() {
-    console.log('cannon.ts: do build called', currentRuntime);
     setBuildResult(null);
     setBuildError(null);
     buildFn()
@@ -197,7 +199,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
         setBuildResult(res);
       })
       .catch((err) => {
-        console.log('full build error', err);
+        addLog(`cannon.ts: full build error ${err.toString()}`);
         setBuildError(err.toString());
       })
       .finally(() => {
@@ -214,7 +216,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     if (enabled && def && buildStatus === '') {
       doBuild();
     } else if (currentRuntime) {
-      console.log('cannon.ts: cancel current build');
+      addLog('cannon.ts: cancel current build');
       currentRuntime.cancel();
     }
   }, [def && JSON.stringify(def.toJson()), JSON.stringify(prevDeploy), enabled, buildCount]);
