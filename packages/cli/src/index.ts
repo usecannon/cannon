@@ -401,21 +401,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   const overrides: ethers.PayableOverrides = {};
 
-  if (!options.chainId) {
-    throw new Error(
-      'Please provide a chainId using the format: --chain-id <number>. For example, 13370 is the chainId for a local build.'
-    );
-  }
-
   if (options.maxFeePerGas) {
     overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
-  }
-  if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
-  }
-
-  if (options.maxPriorityFeePerGas) {
-    overrides.maxPriorityFeePerGas = ethers.utils.parseUnits(options.maxPriorityFeePerGas, 'gwei');
   }
 
   if (options.gasLimit) {
@@ -433,18 +420,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
       " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
-  );
-  if (options.gasLimit) {
-    overrides.gasLimit = options.gasLimit;
-  }
-  console.log(
-    `Settings:\nMax Fee Per Gas: ${
-      overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
-    }\nMax Priority Fee Per Gas: ${
-      overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-    }\nGas Limit: ${
-      overrides.gasLimit ? overrides.gasLimit : 'default'
-    }\nTo alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.`
   );
 
   await publish({
@@ -553,7 +528,6 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   });
 });
 
-
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 8545;
   const [node, outputs] = await doBuild(cannonfile, [], opts);
@@ -563,6 +537,10 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
+
+  forgeCmd.stdout.on('data', (data: Buffer) => {
+    process.stdout.write(data);
+  });
 
   forgeCmd.stderr.on('data', (data: Buffer) => {
     process.stderr.write(data);
