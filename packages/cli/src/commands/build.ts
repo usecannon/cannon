@@ -26,7 +26,7 @@ import { getMainLoader } from '../loader';
 import pkg from '../../package.json';
 import { table } from 'table';
 import { ChainBuilderContext } from '@usecannon/builder/dist/types';
-import { checkIPFSWritability } from '@usecannon/builder/dist/ipfs';
+import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -363,7 +363,7 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
-  const isIPFSWritable = await checkIPFSWritability(cliSettings.ipfsUrl);
+  const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
   if (!isIPFSWritable) {
     console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
     process.exit(1);

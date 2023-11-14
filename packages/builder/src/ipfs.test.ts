@@ -1,4 +1,4 @@
-import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway, checkIPFSWritability } from './ipfs';
+import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway } from './ipfs';
 
 describe('ipfs.ts', () => {
   const IPFS_GATEWAY_URL = process.env.IPFS_GATEWAY_URL;
@@ -71,18 +71,6 @@ describe('ipfs.ts', () => {
       it('returns empty array when no pins are present', async () => {
         const url = await writeIpfs(IPFS_API_URL, { hello: 'world' });
         expect(await listPinsIpfs(IPFS_API_URL)).toContain(url);
-      });
-    }
-  });
-
-  describe('checkIPFSWritability', () => {
-    it('returns false if ipfsurl is undefined', async () => {
-      expect(await checkIPFSWritability(undefined)).toBe(false);
-    });
-
-    if (IPFS_API_URL) {
-      it('returns true when ipfs node is writable', async () => {
-        expect(await checkIPFSWritability(IPFS_API_URL)).toBe(true);
       });
     }
   });

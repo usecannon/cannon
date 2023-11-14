@@ -127,23 +127,3 @@ export async function listPinsIpfs(ipfsUrl: string, customHeaders: Headers = {})
     throw new Error('Failed to list ipfs artifacts' + err);
   }
 }
-
-export async function checkIPFSWritability(ipfsUrl: string | undefined, customHeaders: Headers = {}): Promise<boolean> {
-  if (ipfsUrl == undefined) {
-    debug('IPFS url is not set');
-    return false;
-  }
-
-  const testData = { test: 'writability' };
-  try {
-    const hash = await writeIpfs(ipfsUrl, testData, customHeaders);
-    if (hash) {
-      await deleteIpfs(ipfsUrl, hash, customHeaders);
-      return true;
-    }
-    return false;
-  } catch (error) {
-    debug('IPFS writability check failed:', error);
-    return false;
-  }
-}
