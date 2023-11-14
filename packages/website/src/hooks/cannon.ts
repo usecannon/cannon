@@ -252,8 +252,10 @@ export function useCannonWriteDeployToIpfs(
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
       const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
-      // TODO: Check if we need to provide preset
-      const variant = `${runtime.chainId}-main`;
+      // TODO: Get preset from the cannonfile once
+      // https://linear.app/usecannon/issue/CAN-121/folder-cache-should-be-saved-before-trying-ipfs-upload
+      // will be merged
+      const variant = `${runtime.chainId}-andromeda`;
 
       await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
 

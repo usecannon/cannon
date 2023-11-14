@@ -194,7 +194,7 @@ function QueueFromGitOps() {
         ctx
       )}`) ??
       '',
-    // Get preset from the cannonfile once
+    // TODO: Get preset from the cannonfile once
     // https://linear.app/usecannon/issue/CAN-121/folder-cache-should-be-saved-before-trying-ipfs-upload
     // will be merged
     `${chainId}-andromeda`
