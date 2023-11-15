@@ -9,22 +9,22 @@ jest.mock('./loader');
 describe('package.ts', () => {
   describe('PackageReference', () => {
     test.each([
-      ['package:2.2.2@main', ['package', '2.2.2', 'main', 'package:2.2.2']],
-      ['package', ['package', 'latest', undefined, 'package:latest']],
-      ['package001', ['package001', 'latest', undefined, 'package001:latest']],
-      ['001package', ['001package', 'latest', undefined, '001package:latest']],
-      ['package-hyphen', ['package-hyphen', 'latest', undefined, 'package-hyphen:latest']],
+      ['package:2.2.2@main', ['package', '2.2.2', 'main', 'package:2.2.2@main']],
+      ['package', ['package', 'latest', undefined, 'package:latest@main']],
+      ['package001', ['package001', undefined, undefined, 'package001:latest@main']],
+      ['001package', ['001package', undefined, undefined, '001package:latest@main']],
+      ['package-hyphen', ['package-hyphen', 'latest', undefined, 'package-hyphen:latest@main']],
       [
         'super-long-package-valid-nameee',
-        ['super-long-package-valid-nameee', 'latest', undefined, 'super-long-package-valid-nameee:latest'],
+        ['super-long-package-valid-nameee', 'latest', undefined, 'super-long-package-valid-nameee:latest@main'],
       ],
-    ])('correctly parses "%s"', (packageRef, [name, version, preset, basePackageRef]) => {
+    ])('correctly parses "%s"', (packageRef, [name, version, preset, fullPackageRef]) => {
       const ref = new PackageReference(packageRef);
 
       expect(ref).toHaveProperty('name', name);
-      expect(ref).toHaveProperty('version', version);
-      expect(ref).toHaveProperty('preset', preset);
-      expect(ref).toHaveProperty('basePackageRef', basePackageRef);
+      expect(ref).toHaveProperty('version', version || 'latest');
+      expect(ref).toHaveProperty('preset', preset || 'main');
+      expect(ref).toHaveProperty('fullPackageRef', fullPackageRef);
     });
 
     test.each([['a'], ['aa'], ['-aa'], ['some_package'], ['super-long-package-invalid-namee']])(

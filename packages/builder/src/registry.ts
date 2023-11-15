@@ -282,7 +282,7 @@ export class OnChainRegistry extends CannonRegistry {
     await this.checkSigner();
     const datas: string[] = [];
 
-    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
+    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     for (const registerPackages of _.values(
       _.groupBy(
         packagesNames.map((n) => n.split(':')),
