@@ -23,7 +23,7 @@
     "@safe-global/protocol-kit": "^1.2.0",
     "@tanstack/react-query": "^4.33.0",
     "@tanstack/react-table": "^8.9.3",
-    "@types/node": "20.3.2",
+    "@types/node": "20.9.0",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "@usecannon/builder": "^2.9.12",
