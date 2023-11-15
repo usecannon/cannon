@@ -35,6 +35,7 @@ export interface RunOptions {
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
+  nonInteractive?: boolean;
 }
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
@@ -215,64 +216,69 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   provider.on('block', debugTracing);
 
-  console.log();
+  if (options.nonInteractive) {
+    await new Promise(() => {
+      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+    });
+  } else {
+    console.log();
+    console.log(INITIAL_INSTRUCTIONS);
+    console.log(INSTRUCTIONS);
 
-  console.log(INITIAL_INSTRUCTIONS);
-  console.log(INSTRUCTIONS);
+    await onKeypress(async (evt, { pause, stop }) => {
+      if (evt.ctrl && evt.name === 'c') {
+        stop();
+        process.exit();
+      } else if (evt.name === 'a') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (nodeLogging.enabled()) {
+          console.log(gray('Paused anvil logs...'));
+          console.log(INSTRUCTIONS);
+          nodeLogging.disable();
+        } else {
+          console.log(gray('Unpaused anvil logs...'));
+          nodeLogging.enable();
+        }
+      } else if (evt.name === 'i') {
+        if (nodeLogging.enabled()) return;
 
-  await onKeypress(async (evt, { pause, stop }) => {
-    if (evt.ctrl && evt.name === 'c') {
-      stop();
-      process.exit();
-    } else if (evt.name === 'a') {
-      // Toggle showAnvilLogs when the user presses "a"
-      if (nodeLogging.enabled()) {
-        console.log(gray('Paused anvil logs...'));
-        console.log(INSTRUCTIONS);
-        nodeLogging.disable();
-      } else {
-        console.log(gray('Unpaused anvil logs...'));
-        nodeLogging.enable();
-      }
-    } else if (evt.name === 'i') {
-      if (nodeLogging.enabled()) return;
+        await pause(async () => {
+          const [signer] = signers;
 
-      await pause(async () => {
-        const [signer] = signers;
+          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
 
-        const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
-
-        await interact({
-          packages,
-          packagesArtifacts: buildOutputs.map((info) => info.outputs),
-          contracts,
-          signer,
-          provider,
+          await interact({
+            packages,
+            packagesArtifacts: buildOutputs.map((info) => info.outputs),
+            contracts,
+            signer,
+            provider,
+          });
         });
-      });
 
-      console.log(INITIAL_INSTRUCTIONS);
-      console.log(INSTRUCTIONS);
-    } else if (evt.name == 'v') {
-      // Toggle showAnvilLogs when the user presses "a"
-      if (traceLevel === 0) {
-        traceLevel = 1;
-        console.log(gray('Enabled display of console.log events from transactions...'));
-      } else if (traceLevel === 1) {
-        traceLevel = 2;
-        console.log(gray('Enabled display of full transaction logs...'));
-      } else {
-        traceLevel = 0;
-        console.log(gray('Disabled transaction tracing...'));
+        console.log(INITIAL_INSTRUCTIONS);
+        console.log(INSTRUCTIONS);
+      } else if (evt.name == 'v') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (traceLevel === 0) {
+          traceLevel = 1;
+          console.log(gray('Enabled display of console.log events from transactions...'));
+        } else if (traceLevel === 1) {
+          traceLevel = 2;
+          console.log(gray('Enabled display of full transaction logs...'));
+        } else {
+          traceLevel = 0;
+          console.log(gray('Disabled transaction tracing...'));
+        }
+      } else if (evt.name === 'h') {
+        if (nodeLogging.enabled()) return;
+
+        if (options.helpInformation) console.log('\n' + options.helpInformation);
+        console.log();
+        console.log(INSTRUCTIONS);
       }
-    } else if (evt.name === 'h') {
-      if (nodeLogging.enabled()) return;
-
-      if (options.helpInformation) console.log('\n' + options.helpInformation);
-      console.log();
-      console.log(INSTRUCTIONS);
-    }
-  });
+    });
+  }
 }
 
 async function createLoggingInterface(node: CannonRpcNode) {
