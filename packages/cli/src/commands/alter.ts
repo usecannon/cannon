@@ -31,7 +31,7 @@ export async function alter(
   // Handle deprecated preset specification
   const { name, version, preset } = new PackageReference(packageRef);
   if (presetArg) {
-    console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
   }
   const selectedPreset = presetArg || preset;
 

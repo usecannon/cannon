@@ -52,11 +52,10 @@ export async function publish({
   }
 
   // Handle deprecated preset specification
-  const { preset, fullPackageRef } = new PackageReference(packageRef);
   if (presetArg) {
-    console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
-  const selectedPreset = presetArg || preset;
 
   if (!quiet) {
     console.log(blueBright(`Publishing with ${await signer.getAddress()}`));

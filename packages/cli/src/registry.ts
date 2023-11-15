@@ -87,8 +87,12 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; variant: string }[]> {
-    const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
+    const match = packageRef.match(PKG_REG_EXP);
+    if (!match) {
+      throw new Error(`Invalid package reference: ${packageRef}`);
+    }
 
+    const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
     debug(`looking for ${packageRef}, ${chainId}`);
 
@@ -102,7 +106,7 @@ export class LocalRegistry extends CannonRegistry {
             return false;
           }
 
-          const { name: refName, version: refVersion, preset: refPreset } = packageRef.match(PKG_REG_EXP)?.groups!;
+          const { name: refName, version: refVersion, preset: refPreset } = match.groups!;
 
           // Package name must match, other properties must match if specified
           debug(`checking ${packageRef},${chainId} for a match with ${t}`);
