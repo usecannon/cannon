@@ -28,20 +28,12 @@ export async function alter(
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
+  // Handle deprecated preset specification
   const { preset, basePackageRef } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(
-          `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
-        )
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  if (presetArg) {
+    console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
   }
-
-  const selectedPreset = preset || presetArg || 'main';
+  const selectedPreset = presetArg || preset;
 
   const cliSettings = resolveCliSettings();
 

@@ -43,49 +43,44 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
+  // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
-
   if (!cliSettings.publishIpfsUrl) {
     throw new Error(
       `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
 
+  // Handle deprecated preset specification
   const { preset, basePackageRef } = new PackageReference(packageRef);
+  if (presetArg) {
+    console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
+  }
+  const selectedPreset = presetArg || preset;
 
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  if (!quiet) {
+    console.log(blueBright(`Publishing with ${await signer.getAddress()}`));
+    console.log();
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  // Generate CannonStorage to retrieve the local instance of the package
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
+  // Generate CannonStorage to publish ipfs remotely and write to the registry
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
     overrides,
   });
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-
-  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
   });
 
-  if (!quiet) {
-    console.log(blueBright('Publishing signer is', await signer.getAddress()));
-    console.log('');
-  }
-
   // get a list of all deployments the user is requesting
-
   let variantFilter = /.*/;
-  if (chainId && (preset || presetArg)) {
-    variantFilter = new RegExp(`^${chainId}-${preset || presetArg}$`);
+  if (chainId && selectedPreset) {
+    variantFilter = new RegExp(`^${chainId}-${selectedPreset}$`);
   } else if (chainId) {
     variantFilter = new RegExp(`^${chainId}-.*$`);
   } else if (selectedPreset) {
@@ -106,11 +101,9 @@ export async function publish({
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${packageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`
+      `Could not find any deployments for ${packageRef}. If you have the IPFS hash of the deployment data, use fetch command. Otherwise, rebuild the package.`
     );
-  }
-
-  if (!quiet) {
+  } else if (!quiet) {
     console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
   }
 

@@ -77,20 +77,20 @@ const provisionSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    // If both definitions of a preset exist, its a user error.
-    if (config.sourcePreset && packageRef.preset) {
+    if (config.sourcePreset) {
       console.warn(
         yellow(
           bold(
-            `Duplicate preset definitions in source name "${config.source}" and in sourcePreset definition "${config.sourcePreset}"`
+            `The sourcePreset option is deprecated. Using ${_.template(config.sourcePreset)(
+              ctx
+            )}. Reference presets in the source option like name@version:preset`
           )
         )
       );
-      console.warn(yellow(bold(`Defaulting to source name preset "${config.source}"...`)));
     }
 
     config.source = packageRef.basePackageRef;
-    config.sourcePreset = packageRef.preset || _.template(config.sourcePreset)(ctx) || 'main';
+    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {

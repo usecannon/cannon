@@ -36,7 +36,7 @@ export class PackageReference {
   /**
    * Anything after the @ is the package preset.
    */
-  preset?: string;
+  preset: string;
 
   /**
    * Convenience parameter for returning base package format without preset **[name]:[version]**
@@ -58,13 +58,13 @@ export class PackageReference {
       );
     }
 
-    const { name, version = 'latest', preset } = match.groups!;
+    const { name, version = 'latest', preset = 'main' } = match.groups!;
 
     this.name = name;
     this.version = version;
     this.preset = preset;
 
-    this.basePackageRef = `${this.name}:${this.version}`;
+    this.basePackageRef = `${this.name}:${this.version}@${this.preset}`;
   }
 }
 

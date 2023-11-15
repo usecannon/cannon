@@ -53,18 +53,20 @@ const importSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    // If both definitions of a preset exist, its a user error.
-    if (config.preset && packageRef.preset) {
+    if (config.preset) {
       console.warn(
         yellow(
-          bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`)
+          bold(
+            `The preset option is deprecated. Using ${_.template(config.preset)(
+              ctx
+            )}. Reference presets in the source option like name@version:preset`
+          )
         )
       );
-      console.warn(yellow(bold(`Defaulting to source name preset  "${config.source}"...`)));
     }
 
     config.source = packageRef.basePackageRef;
-    config.preset = packageRef.preset || _.template(config.preset)(ctx) || 'main';
+    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },
