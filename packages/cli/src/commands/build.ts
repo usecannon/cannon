@@ -89,14 +89,8 @@ export async function build({
   const { name, version, preset } = packageDefinition;
 
   if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(
-          `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
-        )
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(yellow(bold(`Duplicate preset definitions from cannonfile ${preset} and --preset ${presetArg}`)));
+    console.warn(yellow(bold(`The --preset option is deprecated. Using package reference "${preset}"...`)));
   }
 
   const selectedPreset = preset || presetArg || 'main';

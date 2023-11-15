@@ -246,7 +246,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version, def } = await loadCannonfile(cannonfilePath);
+  const { name, version, preset, def } = await loadCannonfile(cannonfilePath);
 
   const { outputs } = await build({
     provider,
@@ -254,6 +254,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     packageDefinition: {
       name,
       version,
+      preset,
       settings: parsedSettings,
     },
     pkgInfo: {},

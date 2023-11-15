@@ -182,8 +182,9 @@ export async function loadCannonfile(filepath: string) {
 
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
+  const preset = def.getPreset(ctx);
 
-  return { def, name, version, cannonfile: buf.toString() };
+  return { def, name, version, preset, cannonfile: buf.toString() };
 }
 
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
