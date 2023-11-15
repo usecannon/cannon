@@ -217,7 +217,9 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   provider.on('block', debugTracing);
 
   if (options.nonInteractive) {
-    await new Promise(() => {});
+    await new Promise(() => {
+      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+    });
   } else {
     console.log();
     console.log(INITIAL_INSTRUCTIONS);
