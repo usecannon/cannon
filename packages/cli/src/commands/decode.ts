@@ -18,7 +18,7 @@ export async function decode({
   presetArg: string;
   json: boolean;
 }) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
 
   if (!data[0].startsWith('0x')) {
     data[0] = '0x' + data[0];
@@ -35,7 +35,7 @@ export async function decode({
 
   const selectedPreset = preset || presetArg || 'main';
 
-  const deployInfos = await readDeployRecursive(basePackageRef, chainId, selectedPreset);
+  const deployInfos = await readDeployRecursive(`${name}:${version}`, chainId, selectedPreset);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);

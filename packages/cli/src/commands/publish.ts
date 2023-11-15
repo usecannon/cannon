@@ -52,7 +52,7 @@ export async function publish({
   }
 
   // Handle deprecated preset specification
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  const { preset, fullPackageRef } = new PackageReference(packageRef);
   if (presetArg) {
     console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
   }
@@ -62,11 +62,6 @@ export async function publish({
     console.log(blueBright(`Publishing with ${await signer.getAddress()}`));
     console.log();
   }
-
-  // Generate CannonStorage to retrieve the local instance of the package
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
-
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
@@ -77,27 +72,12 @@ export async function publish({
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
   });
 
-  // get a list of all deployments the user is requesting
-  let variantFilter = /.*/;
-  if (chainId && selectedPreset) {
-    variantFilter = new RegExp(`^${chainId}-${selectedPreset}$`);
-  } else if (chainId) {
-    variantFilter = new RegExp(`^${chainId}-.*$`);
-  } else if (selectedPreset) {
-    variantFilter = new RegExp(`^.*-${selectedPreset}$`);
-  }
+  // Generate CannonStorage to retrieve the local instance of the package
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
-  const [, version] = packageRef.split(':');
-
-  // if the package reference doesnt contain a version reference we still want to scan deploys without it.
-  // This works as a catch all to get any deployment stored locally.
-  // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
-  let deploys;
-  if (!version || version.length === 0) {
-    deploys = await localRegistry.scanDeploys(packageRef, variantFilter);
-  } else {
-    deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
-  }
+  // Check for deployments that are relevant to the provided packageRef
+  let deploys = await localRegistry.scanDeploys(packageRef, chainId);
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
@@ -108,14 +88,14 @@ export async function publish({
   }
 
   // Select screen for when a user is looking for all the local deploys
-  if (!skipConfirm && (!version || version.length === 0) && deploys.length > 1) {
+  if (!skipConfirm && deploys.length > 1) {
     const verification = await prompts({
       type: 'autocompleteMultiselect',
       message: 'Select the packages you want to publish:\n',
       name: 'values',
       choices: deploys.map((d) => {
         return {
-          title: `${d.name} (preset: ${d.variant.substring(d.variant.indexOf('-') + 1)})`,
+          title: `${d.name}@${d.variant.split('-')[1]} (Chain ID: ${d.variant.split('-')[0]})`,
           description: '',
           value: d,
         };
@@ -239,16 +219,16 @@ export async function publish({
     if (includeProvisioned) {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { basePackageRef } = new PackageReference(`${deploy.name}:${ver}`);
           const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
-          console.log(`- ${basePackageRef} (preset: ${preset})`);
+          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${preset}`);
+          console.log(`- ${fullPackageRef}`);
         });
       });
       subPackages!.forEach((pkg) => {
         pkg.packagesNames.forEach((pkgName) => {
-          const { basePackageRef } = new PackageReference(pkgName);
           const preset = pkg.variant.substring(pkg.variant.indexOf('-') + 1);
-          console.log(`- ${basePackageRef} (preset: ${preset})`);
+          const { fullPackageRef } = new PackageReference(`${pkgName}@${preset}`);
+          console.log(`- ${fullPackageRef}`);
         });
       });
     } else {

@@ -89,7 +89,7 @@ const provisionSpec = {
       );
     }
 
-    config.source = packageRef.basePackageRef;
+    config.source = packageRef.fullPackageRef;
     config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
@@ -138,7 +138,7 @@ const provisionSpec = {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.basePackageRef;
+    const source = packageRef.fullPackageRef;
     const sourcePreset = packageRef.preset || config.sourcePreset || 'main';
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
@@ -235,7 +235,7 @@ const provisionSpec = {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
-        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
+        [config.source.split('@')[0], ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
         (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''

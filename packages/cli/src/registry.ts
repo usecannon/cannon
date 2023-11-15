@@ -9,6 +9,7 @@ import { yellowBright } from 'chalk';
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { PKG_REG_EXP } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -85,30 +86,33 @@ export class LocalRegistry extends CannonRegistry {
     return [];
   }
 
-  async scanDeploys(packageName: RegExp | string, variant: RegExp | string): Promise<{ name: string; variant: string }[]> {
+  async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; variant: string }[]> {
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
 
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
-    debug(`looking for ${packageName}, ${variant}`);
+    debug(`looking for ${packageRef}, ${chainId}`);
 
     return allTags
       .filter((t) => {
-        const [name, version, tagVariant] = t.replace('.txt', '').split('_');
+        if (!t.endsWith('.meta')) {
+          const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
+          const [tagChainId, tagPreset] = tagVariant.split('-');
 
-        debug(`found deploy tags for ${name}, ${version}`);
+          if (!tagVariant) {
+            return false;
+          }
 
-        if (!tagVariant) {
-          return false;
+          const { name: refName, version: refVersion, preset: refPreset } = packageRef.match(PKG_REG_EXP)?.groups!;
+
+          // Package name must match, other properties must match if specified
+          debug(`checking ${packageRef},${chainId} for a match with ${t}`);
+          return (
+            tagName == refName &&
+            (!refVersion || tagVersion == refVersion) &&
+            (!refPreset || tagPreset == refPreset) &&
+            (!chainId || tagChainId == chainId.toString())
+          );
         }
-
-        let pkgName;
-        if (!version) {
-          pkgName = `${name}`;
-        } else {
-          pkgName = `${name}:${version}`;
-        }
-
-        return !t.endsWith('.meta') && pkgName!.match(packageName) && tagVariant!.match(variant);
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');

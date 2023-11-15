@@ -65,7 +65,7 @@ const importSpec = {
       );
     }
 
-    config.source = packageRef.basePackageRef;
+    config.source = packageRef.fullPackageRef;
     config.preset = _.template(config.preset)(ctx) || packageRef.preset;
 
     return config;
@@ -94,7 +94,7 @@ const importSpec = {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.basePackageRef;
+    const source = packageRef.fullPackageRef;
 
     const preset = packageRef.preset || config.preset || 'main';
     const chainId = config.chainId ?? runtime.chainId;

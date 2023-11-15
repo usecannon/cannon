@@ -18,7 +18,7 @@ export { handleTxnError } from './error';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
-export { publishPackage, PackageReference } from './package';
+export { publishPackage, PackageReference, PKG_REG_EXP } from './package';
 
 export { CANNON_CHAIN_ID } from './constants';
 

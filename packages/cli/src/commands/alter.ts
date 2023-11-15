@@ -29,7 +29,7 @@ export async function alter(
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
   // Handle deprecated preset specification
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
   if (presetArg) {
     console.warn(yellow(bold(`The --preset option is deprecated. Reference presets in the format name:version@preset`)));
   }
@@ -66,15 +66,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
-  const metaUrl = await resolver.getMetaUrl(basePackageRef, `${chainId}-${selectedPreset}`);
+  let startDeployInfo = await runtime.readDeploy(`${name}:${version}`, selectedPreset, chainId);
+  const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(basePackageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(`${name}:${version}`, 'main', CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${basePackageRef} (${variant})`);
+      throw new Error(`deployment not found: ${`${name}:${version}`} (${variant})`);
     }
   }
 
@@ -170,5 +170,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([basePackageRef], variant, newUrl, metaUrl || '');
+  await resolver.publish([`${name}:${version}`], variant, newUrl, metaUrl || '');
 }

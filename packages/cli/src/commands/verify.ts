@@ -14,7 +14,7 @@ import { bold, yellow } from 'chalk';
 const debug = Debug('cannon:cli:verify');
 
 export async function verify(packageRef: string, apiKey: string, presetArg: string, chainId: number) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  const { name, version, preset } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
@@ -147,11 +147,11 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     return {};
   };
 
-  const deployData = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
+  const deployData = await runtime.readDeploy(`${name}:${version}`, selectedPreset, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${basePackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${name}:${version}. please make sure it exists for the given preset and current network.`
     );
   }
 
