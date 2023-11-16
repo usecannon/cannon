@@ -37,11 +37,10 @@ const importSpec = {
     const cfg = this.configInject(ctx, config);
 
     const source = cfg.source;
-    const preset = cfg.preset;
     const chainId = cfg.chainId ?? runtime.chainId;
 
-    debug('resolved pkg', source, `${chainId}-${preset}`);
-    const url = await runtime.registry.getUrl(source, `${chainId}-${preset}`);
+    debug('resolved pkg', source, chainId);
+    const url = await runtime.registry.getUrl(source, chainId);
 
     return {
       url,
@@ -94,9 +93,8 @@ const importSpec = {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.fullPackageRef;
-
-    const preset = packageRef.preset || config.preset || 'main';
+    const source = config.source;
+    const preset =  config.preset || packageRef.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain
@@ -118,7 +116,7 @@ const importSpec = {
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.registry.getUrl(source, `${chainId}-${preset}`))!, // todo: duplication
+          url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

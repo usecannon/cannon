@@ -50,7 +50,6 @@ const provisionSpec = {
     const cfg = this.configInject(ctx, config, packageState);
 
     const source = cfg.source;
-    const sourcePreset = cfg.sourcePreset;
     const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
@@ -63,7 +62,8 @@ const provisionSpec = {
       }
     }
 
-    const srcUrl = await runtime.registry.getUrl(source, `${chainId}-${sourcePreset}`);
+    // todo: might be worth refactoring all these functions that take in package names to expect a preset in the ref
+    const srcUrl = await runtime.registry.getUrl(source, chainId);
 
     return {
       url: srcUrl,
@@ -139,7 +139,7 @@ const provisionSpec = {
 
     const packageRef = new PackageReference(config.source);
     const source = packageRef.fullPackageRef;
-    const sourcePreset = packageRef.preset || config.sourcePreset || 'main';
+    const sourcePreset = config.sourcePreset || packageRef.preset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
@@ -238,7 +238,7 @@ const provisionSpec = {
         [config.source.split('@')[0], ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         `${runtime.chainId}-${targetPreset}`,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || ''
       );
     }
 

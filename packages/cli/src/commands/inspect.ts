@@ -17,7 +17,7 @@ export async function inspect(
   writeDeployments: string,
   sources: boolean
 ) {
-  const { name, version, preset } = new PackageReference(packageRef);
+  const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
 
   if (presetArg && preset) {
     console.warn(
@@ -34,11 +34,11 @@ export async function inspect(
 
   const loader = getMainLoader(resolveCliSettings());
 
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+  const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
   if (!deployUrl) {
     throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
     );
   }
 
