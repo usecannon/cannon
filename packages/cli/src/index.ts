@@ -30,6 +30,7 @@ import { parsePackageArguments, parsePackagesArguments, parseSettings } from './
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { PackageReference } from '@usecannon/builder/src';
 
 export * from './types';
 export * from './constants';
@@ -587,9 +588,10 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const selectedPreset = packageDefinition.preset || opts.preset || 'main';
 
+  const {fullPackageRef} = new PackageReference(packageDefinition);
+
   const deployData = await runtime.readDeploy(
-    `${packageDefinition.name}:${packageDefinition.version}`,
-    selectedPreset,
+    fullPackageRef,
     runtime.chainId
   );
 

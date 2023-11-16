@@ -9,7 +9,7 @@ const debug = Debug('cannon:cli:publish');
 
 export type CopyPackageOpts = {
   packageRef: string;
-  variant: string;
+  chainId: number;
   tags: string[];
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
@@ -116,16 +116,17 @@ function _deployImports(deployInfo: DeploymentInfo) {
   return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
 }
 
-export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
-  const chainId = parseInt(variant.split('-')[0]);
+export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
+  const {preset, fullPackageRef} = new PackageReference(packageRef);
+  const variant = `${chainId}-${preset}`;
 
-  const uri = await storage.registry.getUrl(packageRef, variant);
+  const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 
   const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
 
   if (!deployInfo) {
     throw new Error(
-      `could not find deployment artifact for ${packageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
     );
   }
 
@@ -158,14 +159,15 @@ export async function getProvisionedPackages(packageRef: string, variant: string
 export async function publishPackage({
   packageRef,
   tags,
-  variant,
+  chainId,
   fromStorage,
   toStorage,
   includeProvisioned = false,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
-  const chainId = parseInt(variant.split('-')[0]);
+  const {preset, fullPackageRef} = new PackageReference(packageRef);
+  const variant = `${chainId}-${preset}`;
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
@@ -173,7 +175,7 @@ export async function publishPackage({
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -206,13 +208,11 @@ export async function publishPackage({
     };
   };
 
-  const preset = variant.substring(variant.indexOf('-') + 1);
-
-  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef}. Please double check your settings, and rebuild your package.`
     );
   }
 

@@ -38,7 +38,7 @@ export async function inspect(
 
   if (!deployUrl) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`
     );
   }
 
@@ -54,7 +54,7 @@ export async function inspect(
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
 
   if (!deployData) {
-    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`);
+    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);
@@ -80,14 +80,14 @@ export async function inspect(
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+    const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
     const ipfsUrl = resolveCliSettings().ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
 
-    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+    console.log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
     console.log();
     console.log(
       '   Deploy Status:',

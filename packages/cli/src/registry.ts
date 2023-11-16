@@ -10,6 +10,7 @@ import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { PKG_REG_EXP } from '@usecannon/builder';
+import { PackageReference } from '@usecannon/builder/src';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -28,16 +29,24 @@ export class LocalRegistry extends CannonRegistry {
     return 'local';
   }
 
-  getTagReferenceStorage(packageRef: string, variant: string): string {
-    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
+  getTagReferenceStorage(packageRef: string, chainId: number): string {
+    const {name, version, preset} = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
+
+    return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt`);
   }
 
-  getMetaTagReferenceStorage(packageRef: string, variant: string): string {
-    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt.meta`);
+  getMetaTagReferenceStorage(packageRef: string, chainId: number): string {
+    const {name, version, preset} = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
+
+    return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
   }
 
-  async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    const baseResolved = await super.getUrl(packageRef, variant);
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {name, version, preset, fullPackageRef} = new PackageReference(packageRef);
+
+    const baseResolved = await super.getUrl(fullPackageRef, chainId);
     if (baseResolved) {
       return baseResolved;
     }
@@ -45,39 +54,40 @@ export class LocalRegistry extends CannonRegistry {
     debug(
       'load local package link',
       packageRef,
-      variant,
       'at file',
-      this.getTagReferenceStorage(packageRef, variant).replace(os.homedir(), '')
+      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
     );
     try {
-      return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
+      return (await fs.readFile(this.getTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
     }
   }
 
-  async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {fullPackageRef} = new PackageReference(packageRef);
+
     try {
       debug(
         'load local meta package link',
-        packageName,
-        variant,
+        fullPackageRef,
         'at file',
-        this.getMetaTagReferenceStorage(packageName, variant)
+        this.getMetaTagReferenceStorage(packageRef, chainId)
       );
-      return (await fs.readFile(this.getMetaTagReferenceStorage(packageName, variant))).toString().trim();
+      return (await fs.readFile(this.getMetaTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
     }
   }
 
-  async publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]> {
+  async publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]> {
     for (const packageName of packagesNames) {
+      const {fullPackageRef} = new PackageReference(packageName);
       debug('package local link', packageName);
-      const file = this.getTagReferenceStorage(packageName, variant);
-      const metaFile = this.getMetaTagReferenceStorage(packageName, variant);
+      const file = this.getTagReferenceStorage(fullPackageRef, chainId);
+      const metaFile = this.getMetaTagReferenceStorage(fullPackageRef, chainId);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
       await fs.writeFile(metaFile, metaUrl);
@@ -124,11 +134,12 @@ export class LocalRegistry extends CannonRegistry {
       });
   }
 
-  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(filterPackage: string, chainId: number): Promise<Set<string>> {
     if (!filterPackage) {
       return new Set();
     }
-    const [name, version] = filterPackage.split(':');
+    const {name, version, preset} = new PackageReference(filterPackage);
+    const filterVariant = `${chainId}-${preset}`;
 
     const urls = (await fs.readdir(this.packagesDir))
       .filter((f) => f.match(new RegExp(`${name || '.*'}_${version || '.*'}_${filterVariant || '.*'}`)))
@@ -139,23 +150,23 @@ export class LocalRegistry extends CannonRegistry {
 }
 
 async function checkLocalRegistryOverride({
-  packageRef,
-  variant,
+  fullPackageRef,
+  chainId,
   result,
   registry,
   fallbackRegistry,
 }: {
-  packageRef: string;
-  variant: string;
+  fullPackageRef: string;
+  chainId: number;
   result: string;
   registry: OnChainRegistry | LocalRegistry;
   fallbackRegistry: FallbackRegistry;
 }) {
-  const localResult = await _.last(fallbackRegistry.registries).getUrl(packageRef, variant);
+  const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     console.log(
       yellowBright(
-        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
+        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
     );
   }

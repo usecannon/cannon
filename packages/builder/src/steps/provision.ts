@@ -144,7 +144,7 @@ const provisionSpec = {
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.readDeploy(source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
         `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
@@ -170,7 +170,7 @@ const provisionSpec = {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(source, runtime.chainId)) {
         console.warn(
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'

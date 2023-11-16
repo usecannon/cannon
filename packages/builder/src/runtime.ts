@@ -8,6 +8,7 @@ import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
+import { PackageReference } from '.';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -74,11 +75,13 @@ export class CannonStorage extends EventEmitter {
     }
   }
 
-  async readDeploy(packageName: string, preset: string, chainId: number): Promise<DeploymentInfo | null> {
+  async readDeploy(packageRef: string, chainId: number): Promise<DeploymentInfo | null> {
     const registryName = this.registry.getLabel();
-    this.emit(Events.ResolveDeploy, packageName, preset, chainId, registryName, 0);
+    const {preset, fullPackageRef} = new PackageReference(packageRef);
 
-    const uri = await this.registry.getUrl(packageName, `${chainId}-${preset}`);
+    this.emit(Events.ResolveDeploy, packageRef, preset, chainId, registryName, 0);
+
+    const uri = await this.registry.getUrl(fullPackageRef, chainId);
 
     if (!uri) return null;
 

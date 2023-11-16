@@ -29,15 +29,15 @@ export async function alter(
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
   // Handle deprecated preset specification
-  const { name, version, preset } = new PackageReference(packageRef);
+  let { name, version, fullPackageRef } = new PackageReference(packageRef);
+
+  // Once preset arg is removed from the cli args we can remove this logic
   if (presetArg) {
+    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`
     console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
   }
-  const selectedPreset = presetArg || preset;
 
   const cliSettings = resolveCliSettings();
-
-  const variant = `${chainId}-${selectedPreset}`;
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -66,15 +66,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(`${name}:${version}`, selectedPreset, chainId);
-  const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+  let startDeployInfo = await runtime.readDeploy(fullPackageRef, chainId);
+  const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(`${name}:${version}`, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(fullPackageRef, CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${`${name}:${version}`} (${variant})`);
+      throw new Error(`deployment not found: ${fullPackageRef} (${chainId})`);
     }
   }
 
@@ -118,8 +118,7 @@ export async function alter(
           const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
           const newNetworkDeployment = await runtime.readDeploy(
-            `${name}:${version}`,
-            thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
+            fullPackageRef,
             chainId
           );
 
@@ -170,5 +169,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([`${name}:${version}`], variant, newUrl, metaUrl || '');
+  await resolver.publish([fullPackageRef], chainId, newUrl, metaUrl || '');
 }

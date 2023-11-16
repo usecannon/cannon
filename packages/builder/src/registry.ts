@@ -29,16 +29,16 @@ export abstract class CannonRegistry {
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
-    if (fullPackageRef.startsWith('@')) {
-      return fullPackageRef.replace(':', '://').replace('@', '');
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    if (packageRef.startsWith('@')) {
+      return packageRef.replace(':', '://').replace('@', '');
     }
 
     return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getMetaUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
     return null;
   }
 
@@ -85,8 +85,8 @@ export class InMemoryRegistry extends CannonRegistry {
     return receipts;
   }
 
-  async getUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
-    const {preset} = new PackageReference(fullPackageRef);
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {preset, fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
     
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
@@ -97,7 +97,9 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.pkgs[fullPackageRef] ? this.pkgs[fullPackageRef][variant] : null;
   }
 
-  async getMetaUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {preset, fullPackageRef} = new PackageReference(packageRef);
+
     const variant = `${chainId}-${fullPackageRef.split('@')[1]}`;
     return this.metas[fullPackageRef] ? this.metas[fullPackageRef][variant] : null;
   }
@@ -122,8 +124,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return `${this.registries.map((r) => r.getLabel()).join(', ')}`;
   }
 
-  async getUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
-    const {preset} = new PackageReference(fullPackageRef);
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {preset, fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
     
     debug('resolving', fullPackageRef, variant);
@@ -151,8 +153,8 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return null;
   }
 
-  async getMetaUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
-    const {preset} = new PackageReference(fullPackageRef);
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {preset, fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
 
     for (const registry of this.registries) {
@@ -366,7 +368,8 @@ export class OnChainRegistry extends CannonRegistry {
     return [await this.doMulticall(datas)];
   }
 
-  async getUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${fullPackageRef.split('@')[1]}`;
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
@@ -384,8 +387,8 @@ export class OnChainRegistry extends CannonRegistry {
     return url === '' ? null : url;
   }
 
-  async getMetaUrl(fullPackageRef: string, chainId: number): Promise<string | null> {
-    const {name, version, preset} = new PackageReference(fullPackageRef);
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const {name, version, preset, fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);

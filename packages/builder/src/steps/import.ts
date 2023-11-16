@@ -99,7 +99,7 @@ const importSpec = {
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.readDeploy(source, preset, chainId);
+    const deployInfo = await runtime.readDeploy(source, chainId);
 
     if (!deployInfo) {
       throw new Error(
