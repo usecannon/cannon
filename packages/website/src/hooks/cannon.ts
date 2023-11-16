@@ -63,13 +63,12 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo, enabled?: boolean) {
+export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo) {
   const { addLog } = useLogs();
   const chainId = useChainId();
   const settings = useStore((s) => s.settings);
 
   const [buildStatus, setBuildStatus] = useState('');
-  const [buildCount, setBuildCount] = useState(0);
 
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
@@ -204,22 +203,8 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       })
       .finally(() => {
         setBuildStatus('');
-        if (currentRuntime?.isCancelled()) {
-          // adjust state to trigger a new immediate build
-          setBuildCount(buildCount + 1);
-        }
       });
   }
-
-  // stringify the def to make it easier to detect equality
-  useEffect(() => {
-    if (enabled && def && buildStatus === '') {
-      doBuild();
-    } else if (currentRuntime) {
-      addLog('cannon.ts: cancel current build');
-      currentRuntime.cancel();
-    }
-  }, [def && JSON.stringify(def.toJson()), JSON.stringify(prevDeploy), enabled, buildCount]);
 
   return {
     buildStatus,

@@ -213,8 +213,7 @@ function QueueFromGitOps() {
   const buildInfo = useCannonBuild(
     currentSafe as any,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    false
+    prevCannonDeployInfo.pkg as any
   );
 
   const buildTransactions = () => {
