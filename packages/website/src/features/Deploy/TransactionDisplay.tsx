@@ -28,6 +28,7 @@ import { createSimulationData } from '@/helpers/safe';
 import { Alert } from '@/components/Alert';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import PublishUtility from './PublishUtility';
+import { useEffect } from 'react';
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
@@ -97,9 +98,15 @@ export function TransactionDisplay(props: {
   const buildInfo = useCannonBuild(
     props.safe,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    props.verify &&
-      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)
+    prevCannonDeployInfo.pkg as any
+  );
+
+  useEffect(
+    () => buildInfo.doBuild(),
+    [
+      props.verify &&
+        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    ]
   );
 
   const stager = useTxnStager(props.safeTxn, { safe: props.safe });
