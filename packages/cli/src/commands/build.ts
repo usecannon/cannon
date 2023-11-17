@@ -367,7 +367,7 @@ export async function build({
   chainDef.version = pkgVersion;
 
   const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
-  if (!isIPFSWritable) {
+  if (cliSettings.ipfsUrl != undefined && !isIPFSWritable) {
     console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
     process.exit(1);
   }
