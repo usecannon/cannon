@@ -73,11 +73,12 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
     state: any;
-    skippedSteps: StepExecutionError[];
     steps: { name: string; gas: ethers.BigNumber; tx: BaseTransaction }[];
   } | null>(null);
 
   const [buildError, setBuildError] = useState<string | null>(null);
+
+  const [buildSkippedSteps, setBuildSkippedSteps] = useState<StepExecutionError[]>([]);
 
   const buildFn = async () => {
     if (settings.isIpfsGateway) {
@@ -152,16 +153,15 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
 
+    setBuildSkippedSteps(skippedSteps);
+
     const simulatedTxs = simulatedSteps
       .map((s) => !!s?.txns && Object.values(s.txns))
       .filter((tx) => !!tx)
       .flat();
 
     if (simulatedTxs.length === 0) {
-      throw new Error(
-        'There are no transactions that can be executed on Safe. Skipped Steps:\n' +
-          skippedSteps.map((s) => `${s.name}: ${s.err.toString()}`).join('\n')
-      );
+      throw new Error('There are no transactions that can be executed on Safe.');
     }
 
     const steps = await Promise.all(
@@ -186,13 +186,13 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       runtime: currentRuntime,
       state: newState,
       steps,
-      skippedSteps,
     };
   };
 
   function doBuild() {
     setBuildResult(null);
     setBuildError(null);
+    setBuildSkippedSteps([]);
     buildFn()
       .then((res) => {
         setBuildResult(res);
@@ -210,6 +210,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     buildStatus,
     buildResult,
     buildError,
+    buildSkippedSteps,
     doBuild,
   };
 }

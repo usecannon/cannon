@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -339,6 +340,11 @@ function QueueFromGitOps() {
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
 
+  const isPartialDataRequired =
+    buildInfo.buildSkippedSteps.filter(
+      (s) => s.name.includes('contract') || s.name.includes('router')
+    ).length > 0;
+
   if (
     prepareDeployOnchainStore.isFetched &&
     !prepareDeployOnchainStore.isError
@@ -494,7 +500,32 @@ function QueueFromGitOps() {
             <strong>{buildInfo.buildError}</strong>
           </Alert>
         )}
-        {multicallTxn.data && stager.safeTxn && (
+        {buildInfo.buildSkippedSteps.length > 0 && (
+          <Flex flexDir="column" mb="6">
+            <strong>
+              This safe will not be able to complete the following steps:
+            </strong>
+            {buildInfo.buildSkippedSteps.map((s, i) => (
+              <strong key={i}>{`${s.name}: ${s.err.toString()}`}</strong>
+            ))}
+          </Flex>
+        )}
+        {isPartialDataRequired && (
+          <Alert mb="6" status="error" bg="red.700">
+            <AlertIcon mr={3} />
+            <Flex flexDir="column" gap={5}>
+              <strong>
+                The web deployer is unable to compile and deploy contracts and
+                routers. Run the following command to generate partial deploy
+                data:
+              </strong>
+              <Code display="block">
+                {`cannon build ${gitFile} --upgrade-from ${previousPackageInput} --chain-id ${currentSafe.chainId}`}
+              </Code>
+            </Flex>
+          </Alert>
+        )}
+        {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
           <TransactionDisplay
             safe={currentSafe as any}
             safeTxn={stager.safeTxn}
