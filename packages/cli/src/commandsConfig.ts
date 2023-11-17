@@ -209,6 +209,10 @@ const commandsConfig = {
         flags: '--private-key [key]',
         description: 'Specify a comma separated list of private keys which may be needed to sign a transaction',
       },
+      {
+        flags: '--non-interactive',
+        description: 'Do not prompt for any user input. Useful for scripts and CI processes.',
+      },
     ],
   },
   build: {
@@ -469,6 +473,10 @@ const commandsConfig = {
       {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
+      },
+      {
+        flags: '-s --sources',
+        description: 'Show contract sources',
       },
     ],
   },

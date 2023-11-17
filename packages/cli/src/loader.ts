@@ -84,16 +84,19 @@ export class CliLoader implements CannonLoader {
   async put(misc: any): Promise<string> {
     const data = JSON.stringify(misc);
 
-    const url = this.ipfs
-      ? await this.ipfs.put(misc) // if configured, write to settings ipfs
-      : await getContentCID(Buffer.from(compress(data))); // if not, calculate CID to save to file;
+    const cid = await getContentCID(Buffer.from(compress(data)));
+    const url = IPFSLoader.PREFIX + cid;
 
     debug(`cli ipfs put ${url}`);
 
     await fs.mkdirp(this.dir);
     await fs.writeFile(this.getCacheFilePath(url), data);
 
-    return this.ipfs ? url : IPFSLoader.PREFIX + url;
+    if (this.ipfs) {
+      await this.ipfs.put(misc);
+    }
+
+    return url;
   }
 
   async read(url: string) {
