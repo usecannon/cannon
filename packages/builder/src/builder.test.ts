@@ -72,7 +72,7 @@ describe('builder.ts', () => {
   );
 
   const fakeDefinition: RawChainDefinition = {
-    name: 'superDuper',
+    name: 'super-duper',
     version: '0.1.0',
     setting: {
       foo: { defaultValue: 'bar' },
