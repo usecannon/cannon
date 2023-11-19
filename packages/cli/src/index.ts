@@ -143,7 +143,11 @@ function configureRun(program: Command) {
   });
 }
 
-async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+async function doBuild(
+  cannonfile: string,
+  settings: string[],
+  opts: any
+): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
   // set debug verbosity
   switch (true) {
     case opts.Vvvv:
@@ -248,14 +252,16 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const { build } = await import('./commands/build');
   const { name, version, def } = await loadCannonfile(cannonfilePath);
 
-  const { outputs } = await build({
+  const pkgSpec: PackageSpecification = {
+    name,
+    version,
+    settings: parsedSettings,
+  };
+
+  const { outputs, runtime } = await build({
     provider,
     def,
-    packageDefinition: {
-      name,
-      version,
-      settings: parsedSettings,
-    },
+    packageDefinition: pkgSpec,
     pkgInfo: {},
     getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
     getSigner,
@@ -275,7 +281,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     priorityGasFee: opts.maxPriorityGasFee,
   });
 
-  return [node, outputs];
+  return [node, pkgSpec, outputs, runtime];
 }
 
 applyCommandsConfig(program.command('build'), commandsConfig.build)
@@ -304,7 +310,22 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
-    const [node] = await doBuild(cannonfile, settings, opts);
+    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
+
+    if (opts.background) {
+      console.log(
+        `Built package RPC URL available at ${
+          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
+        }`
+      );
+      const { run } = await import('./commands/run');
+      await run([{ ...pkgSpec, settings: {} }], {
+        ...opts,
+        resolver: runtime.registry,
+        node,
+        helpInformation: program.helpInformation(),
+      });
+    }
 
     node?.kill();
   });
@@ -530,7 +551,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 8545;
-  const [node, outputs] = await doBuild(cannonfile, [], opts);
+  const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
