@@ -98,7 +98,10 @@ export async function publish({
   // This works as a catch all to get any deployment stored locally.
   // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
   let deploys;
-  if (!version || version.length === 0) {
+  console.log('package ref', packageRef);
+  if (packageRef.startsWith('@')) {
+    deploys = [{ name: packageRef, variant: '13370-main' }];
+  } else if (!version || version.length === 0) {
     deploys = await localRegistry.scanDeploys(packageRef, variantFilter);
   } else {
     deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);

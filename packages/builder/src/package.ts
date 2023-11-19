@@ -167,8 +167,14 @@ export async function publishPackage({
 
   const chainId = parseInt(variant.split('-')[0]);
 
+  const alreadyCopiedIpfs = new Map<string, any>();
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    if (alreadyCopiedIpfs.has(checkKey)) {
+      return alreadyCopiedIpfs.get(checkKey);
+    }
+
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
@@ -196,7 +202,7 @@ export async function publishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    return {
+    const returnVal = {
       packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
         (t) => `${def.getName(preCtx)}:${t}`
       ),
@@ -204,6 +210,8 @@ export async function publishPackage({
       url,
       metaUrl: newMetaUrl || '',
     };
+    alreadyCopiedIpfs.set(checkKey, returnVal);
+    return returnVal;
   };
 
   const preset = variant.substring(variant.indexOf('-') + 1);
