@@ -419,7 +419,7 @@ export async function build({
       console.log(`- Your partial deployment has been stored to ${deployUrl}`);
       console.log(
         '- Run ' +
-          bold(`cannon publish ${deployUrl}`) +
+          bold(`cannon pin ${deployUrl}`) +
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {

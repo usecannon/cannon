@@ -390,6 +390,15 @@ const commandsConfig = {
       },
     ],
   },
+  pin: {
+    description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
+    arguments: [
+      {
+        flags: '<ipfsHash>',
+        description: 'IPFS hash to write deployment data for',
+      },
+    ],
+  },
   publish: {
     description: 'Publish a Cannon package to the registry',
     arguments: [

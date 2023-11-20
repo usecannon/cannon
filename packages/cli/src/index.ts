@@ -7,6 +7,9 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
+  InMemoryRegistry,
+  IPFSLoader,
+  publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -368,6 +371,29 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   }
 
   await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
+});
+
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
+  const cliSettings = resolveCliSettings(options);
+
+  ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
+
+  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const toStorage = new CannonStorage(new InMemoryRegistry(), {
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+  });
+
+  console.log('Uploading package data for pinning...');
+
+  await publishPackage({
+    packageRef: '@ipfs:' + ipfsHash,
+    variant: '13370-main',
+    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
+    fromStorage,
+    toStorage,
+  });
+
+  console.log('Done!');
 });
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
