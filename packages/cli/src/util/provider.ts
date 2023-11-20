@@ -4,7 +4,6 @@ import Debug from 'debug';
 import provider from 'eth-provider';
 import { ethers } from 'ethers';
 import os from 'os';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
 import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
@@ -29,17 +28,6 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
 }
 
 export async function resolveRegistryProvider(settings: CliSettings) {
-  if (settings.registryProviderUrl!.split(',')[0] == 'frame' && !settings.quiet) {
-    console.warn(
-      `\nUsing Frame as the default registry provider. If you don't have Frame installed cannon defaults to: ${DEFAULT_REGISTRY_PROVIDER_URL} when publishing to the registry.`
-    );
-    console.warn(
-      `Set a custom registry provider url in your settings (run ${bold(
-        'cannon setup'
-      )}) or pass it as an env variable (${bold('CANNON_REGISTRY_PROVIDER_URL')}).\n\n`
-    );
-  }
-
   return resolveProviderAndSigners({
     chainId: settings.registryChainId,
     checkProviders: settings.registryProviderUrl?.split(','),
