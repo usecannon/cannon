@@ -188,6 +188,10 @@ export class ChainDefinition {
     return v;
   }
 
+  getPreset(ctx: ChainBuilderContext) {
+    return _.template(this.raw.preset)(ctx);
+  }
+
   getConfig(n: string, ctx: ChainBuilderContext) {
     if (_.sortedIndexOf(this.allActionNames, n) === -1) {
       throw new Error(`getConfig step name not found: ${n}`);

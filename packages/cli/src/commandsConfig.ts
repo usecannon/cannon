@@ -240,7 +240,8 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'The preset label for storing the build with the given settings',
+        description:
+          'DEPRECATED. The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
       },
       {
         flags: '--dry-run',
@@ -591,7 +592,6 @@ const commandsConfig = {
       {
         flags: '-p --preset <preset>',
         description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
       },
       {
         flags: '-j --json',

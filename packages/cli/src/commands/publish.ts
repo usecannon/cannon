@@ -6,7 +6,7 @@ import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
 
-import { bold, yellow } from 'chalk';
+import { bold, yellow, italic } from 'chalk';
 import prompts from 'prompts';
 
 interface Params {
@@ -24,12 +24,13 @@ interface Params {
 interface DeployList {
   name: string;
   versions: string[];
-  variant: string;
+  preset: string;
+  chainId: number;
 }
 
 interface SubPackage {
   packagesNames: string[];
-  variant: string;
+  chainId: number;
 }
 
 export async function publish({
@@ -43,56 +44,37 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
+  // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
-
   if (!cliSettings.publishIpfsUrl) {
     throw new Error(
       `In order to publish, a publishIpfsUrl setting must be set in your Cannon configuration. Use '${process.argv[0]} setup' to configure.`
     );
   }
 
-  const { preset, basePackageRef } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
-
+  if (!quiet) {
+    console.log(blueBright(`Publishing with ${await signer.getAddress()}`));
+    console.log();
+  }
+  // Generate CannonStorage to publish ipfs remotely and write to the registry
   const onChainRegistry = new OnChainRegistry({
     signerOrProvider: signer,
     address: cliSettings.registryAddress,
     overrides,
   });
-  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-
-  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
   const toStorage = new CannonStorage(onChainRegistry, {
-    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
   });
 
-  if (!quiet) {
-    console.log(blueBright('Publishing signer is', await signer.getAddress()));
-    console.log('');
-  }
-
-  // get a list of all deployments the user is requesting
-
-  let variantFilter = /.*/;
-  if (chainId && (preset || presetArg)) {
-    variantFilter = new RegExp(`^${chainId}-${preset || presetArg}$`);
-  } else if (chainId) {
-    variantFilter = new RegExp(`^${chainId}-.*$`);
-  } else if (selectedPreset) {
-    variantFilter = new RegExp(`^.*-${selectedPreset}$`);
-  }
-
-  const [, version] = packageRef.split(':');
+  // Generate CannonStorage to retrieve the local instance of the package
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+  const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
   // if the package reference doesnt contain a version reference we still want to scan deploys without it.
   // This works as a catch all to get any deployment stored locally.
@@ -100,32 +82,29 @@ export async function publish({
   let deploys;
   console.log('package ref', packageRef);
   if (packageRef.startsWith('@')) {
-    deploys = [{ name: packageRef, variant: '13370-main' }];
-  } else if (!version || version.length === 0) {
-    deploys = await localRegistry.scanDeploys(packageRef, variantFilter);
+    deploys = [{ name: packageRef, chainId: 13370 }];
   } else {
-    deploys = await localRegistry.scanDeploys(basePackageRef, variantFilter);
+    // Check for deployments that are relevant to the provided packageRef
+    deploys = await localRegistry.scanDeploys(packageRef, chainId);
   }
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${packageRef}, if you have the IPFS hash of the deployment data, run 'fetch ${basePackageRef} <ipfsHash>'. Otherwise rebuild the package and then re-publish`
+      `Could not find any deployments for ${packageRef}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
     );
   }
 
-  if (!quiet) {
-    console.log('Found deployment networks:', deploys.map((d) => d.variant).join(', '), '\n');
-  }
-
   // Select screen for when a user is looking for all the local deploys
-  if (!skipConfirm && (!version || version.length === 0) && deploys.length > 1) {
+  if (!skipConfirm && deploys.length > 1) {
     const verification = await prompts({
       type: 'autocompleteMultiselect',
       message: 'Select the packages you want to publish:\n',
       name: 'values',
       choices: deploys.map((d) => {
+        const { fullPackageRef } = new PackageReference(d.name);
+
         return {
-          title: `${d.name} (preset: ${d.variant.substring(d.variant.indexOf('-') + 1)})`,
+          title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
           description: '',
           value: d,
         };
@@ -142,22 +121,18 @@ export async function publish({
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
   const deployNames = deploys.map((deploy) => {
-    return { name: deploy.name.split(':')[0], version: deploy.name.split(':')[1], variant: deploy.variant };
+    const { name, version, preset } = new PackageReference(deploy.name);
+    return { name, version, preset, chainId: deploy.chainId };
   });
 
   // "dedupe" the deploys so that when we iterate we can go over every package deployment by version
   const parentPackages: DeployList[] = deployNames.reduce((result: DeployList[], item) => {
-    const matchingDeploys = result.find((i) => i.name === item.name && i.variant === item.variant);
-
-    if (item.version == 'latest' && deploys.length > 1) {
-      tags.push(item.version);
-      return result;
-    }
+    const matchingDeploys = result.find((i) => i.name === item.name && i.preset === item.preset);
 
     if (matchingDeploys) {
       matchingDeploys.versions.push(item.version);
     } else {
-      result.push({ name: item.name, versions: [item.version], variant: item.variant });
+      result.push({ name: item.name, versions: [item.version], chainId: item.chainId, preset: item.preset });
     }
     return result;
   }, []);
@@ -167,7 +142,7 @@ export async function publish({
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {
-          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.variant, tags, fromStorage);
+          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.chainId, tags, fromStorage);
           subPackages.push(...provisionedPackages);
         }
       }
@@ -175,8 +150,11 @@ export async function publish({
       // dedupe and reduce to subPackages
       subPackages = subPackages.reduce<SubPackage[]>((acc, curr) => {
         if (
-          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.variant === curr.variant) &&
-          !curr.packagesNames.some((r) => parentPackages.some((p) => r.includes(`${p.name}`)))
+          !acc.some((item) => item.packagesNames !== curr.packagesNames && item.chainId === curr.chainId) &&
+          !curr.packagesNames.some((r) => {
+            const { name } = new PackageReference(r);
+            parentPackages.some((p) => name === p.name);
+          })
         ) {
           acc.push(curr);
         }
@@ -184,27 +162,32 @@ export async function publish({
       }, []);
 
       parentPackages.forEach((deploy) => {
-        const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
         console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
-        deploy.versions.concat(tags).map((version) => console.log(`- ${version} (preset: ${preset})`));
+        deploy.versions.concat(tags).map((version) => {
+          console.log(`- ${version} (preset: ${deploy.preset})`);
+        });
       });
       console.log('\n');
 
-      subPackages!.forEach((pkg: SubPackage) => {
-        console.log(blueBright(`This will publish ${bold(pkg.packagesNames[0].split(':')[0])} to the registry:`));
+      subPackages!.forEach((pkg: SubPackage, index) => {
+        console.log(
+          blueBright(
+            `This will publish ${bold(pkg.packagesNames[index].split(':')[0])} ${bold(
+              italic('(Provisioned)')
+            )} to the registry:`
+          )
+        );
         pkg.packagesNames.forEach((pkgName) => {
-          const { version } = new PackageReference(pkgName);
-          const preset = pkg.variant.substring(pkg.variant.indexOf('-') + 1);
+          const { version, preset } = new PackageReference(pkgName);
           console.log(`- ${version} (preset: ${preset})`);
         });
       });
       console.log('\n');
     } else {
-      const pkgRef = new PackageReference(packageRef);
-      console.log(blueBright(`This will publish ${bold(pkgRef.name)} to the registry:`));
       parentPackages.forEach((deploy) => {
-        deploy.versions.concat(tags).forEach((tag) => {
-          console.log(`- ${tag} (preset: ${deploy.variant.substring(deploy.variant.indexOf('-') + 1)})`);
+        console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
+        deploy.versions.concat(tags).forEach((version) => {
+          console.log(`- ${version} (preset: ${deploy.preset})`);
         });
       });
       console.log('\n');
@@ -230,18 +213,19 @@ export async function publish({
   const registrationReceipts = [];
 
   for (const pkg of parentPackages) {
-    for (const version of pkg.versions) {
-      const newReceipts = await publishPackage({
-        packageRef: `${pkg.name}:${version}`,
-        variant: pkg.variant,
-        fromStorage,
-        toStorage,
-        tags,
-        includeProvisioned,
-      });
+    const publishTags: string[] = pkg.versions.concat(tags);
 
-      registrationReceipts.push(...newReceipts);
-    }
+    const newReceipts = await publishPackage({
+      packageRef: `${pkg.name}:${pkg.versions[0]}`,
+      chainId: deploys[0].chainId,
+      fromStorage,
+      toStorage,
+      tags: publishTags!,
+      preset: pkg.preset,
+      includeProvisioned,
+    });
+
+    registrationReceipts.push(...newReceipts);
   }
 
   if (!quiet) {
@@ -249,22 +233,21 @@ export async function publish({
     if (includeProvisioned) {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { basePackageRef } = new PackageReference(`${deploy.name}:${ver}`);
-          const preset = deploy.variant.substring(deploy.variant.indexOf('-') + 1);
-          console.log(`- ${basePackageRef} (preset: ${preset})`);
+          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          console.log(`- ${fullPackageRef}`);
         });
       });
       subPackages!.forEach((pkg) => {
         pkg.packagesNames.forEach((pkgName) => {
-          const { basePackageRef } = new PackageReference(pkgName);
-          const preset = pkg.variant.substring(pkg.variant.indexOf('-') + 1);
-          console.log(`- ${basePackageRef} (preset: ${preset})`);
+          const { fullPackageRef } = new PackageReference(pkgName);
+          console.log(`- ${fullPackageRef}`);
         });
       });
     } else {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          console.log(`  - ${deploy.name}:${ver}`);
+          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          console.log(`  - ${fullPackageRef}`);
         });
       });
     }

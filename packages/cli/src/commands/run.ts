@@ -21,6 +21,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
+import { PackageReference } from '@usecannon/builder';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -42,7 +43,7 @@ export interface RunOptions {
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
-  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
   )} to interact with contracts via the command line.\nPress ${bold(
     'v'
@@ -99,20 +100,16 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version, preset } = pkg;
+    const { name, version } = pkg;
+    let { preset } = pkg;
 
-    const selectedPreset = preset || options.presetArg || 'main';
-
-    if (options.presetArg && preset) {
-      console.warn(
-        yellow(
-          bold(
-            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.presetArg}"`
-          )
-        )
-      );
-      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    // Handle deprecated preset specification
+    if (options.presetArg) {
+      console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+      preset = options.presetArg;
     }
+
+    const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
@@ -120,7 +117,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: selectedPreset,
+        presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -128,20 +125,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(fullPackageRef, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
         );
       }
 
       const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
 
       if (!outputs) {
-        throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
-        );
+        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/${preset}. Did you mean to run instead?`);
       }
 
       buildOutputs.push({ pkg, outputs });

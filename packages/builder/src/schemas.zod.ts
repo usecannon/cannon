@@ -553,6 +553,16 @@ export const chainDefinitionSchema = z
         message: 'Version cannot contain any special characters',
       })
       .describe('Version of the package'),
+    /**
+     *  Preset of the package
+     */
+    preset: z
+      .string()
+      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
+        message: 'Preset cannot contain any special characters',
+      })
+      .describe('Preset of the package')
+      .optional(),
   })
   .merge(
     z

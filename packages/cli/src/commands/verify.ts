@@ -14,18 +14,13 @@ import { bold, yellow } from 'chalk';
 const debug = Debug('cannon:cli:verify');
 
 export async function verify(packageRef: string, apiKey: string, presetArg: string, chainId: number) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -147,11 +142,11 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     return {};
   };
 
-  const deployData = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
+  const deployData = await runtime.readDeploy(fullPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${basePackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
