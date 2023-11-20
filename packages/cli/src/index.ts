@@ -389,7 +389,10 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!options.privateKey && !process.env.PRIVATE_KEY) {
+  const cliSettings = resolveCliSettings(options);
+  let { signers } = await resolveRegistryProvider(cliSettings);
+
+  if (!signers.length) {
     const validatePrivateKey = (privateKey: string) => {
       if (ethers.utils.isHexString(privateKey)) {
         return true;
@@ -414,11 +417,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
+    const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
+    signers = p.signers;
   }
-
-  const cliSettings = resolveCliSettings(options);
-  const p = await resolveRegistryProvider(cliSettings);
 
   const overrides: ethers.PayableOverrides = {};
 
@@ -445,7 +446,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
-    signer: p.signers[0],
+    signer: signers[0],
     tags: options.tags ? options.tags.split(',') : [],
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,

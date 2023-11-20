@@ -1,5 +1,5 @@
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { bold } from 'chalk';
+import { bold, red } from 'chalk';
 import Debug from 'debug';
 import provider from 'eth-provider';
 import { ethers } from 'ethers';
@@ -54,31 +54,38 @@ export async function resolveProviderAndSigners({
 
   // ensure provider is enabled and on the chain we expect
   try {
-    await rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
+    rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
     console.error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
-  let ethersProvider;
+  let wrappedEthersProvider: CannonWrapperGenericProvider;
 
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
-  if (checkProviders[0].startsWith('http')) {
-    ethersProvider = new ethers.providers.JsonRpcProvider(checkProviders[0]);
-  } else {
-    // Use eth-provider wrapped in Web3Provider as default
-    ethersProvider = new ethers.providers.Web3Provider(rawProvider as any);
-  }
-
-  const wrappedEthersProvider = new CannonWrapperGenericProvider({}, ethersProvider, false);
-
   const signers = [];
+  if (checkProviders[0].startsWith('http')) {
+    debug('use explicit provider url', checkProviders);
+    wrappedEthersProvider = new CannonWrapperGenericProvider(
+      {},
+      new ethers.providers.JsonRpcProvider(checkProviders[0]),
+      false
+    );
 
-  // Use private key if provided
-  if (privateKey) {
-    signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));
+    if (privateKey) {
+      signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));
+    } else {
+      debug('no signer supplied for provider');
+    }
   } else {
+    debug('use frame eth provider');
+    // Use eth-provider wrapped in Web3Provider as default
+    wrappedEthersProvider = new CannonWrapperGenericProvider(
+      {},
+      new ethers.providers.Web3Provider(rawProvider as any),
+      false
+    );
     try {
       // Attempt to load from eth-provider
       await rawProvider.enable();
@@ -86,9 +93,33 @@ export async function resolveProviderAndSigners({
         signers.push(wrappedEthersProvider.getSigner(account));
       }
     } catch (err: any) {
-      debug('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), ''));
+      // try to do it with the next provider instead
+      try {
+        if (checkProviders.length <= 1) {
+          throw new Error('no more providers');
+        }
+
+        return await resolveProviderAndSigners({
+          chainId,
+          checkProviders: checkProviders.slice(1),
+          privateKey,
+        });
+      } catch (e: any) {
+        console.error(red('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), '')));
+        console.error();
+        console.error(
+          'Please ensure your wallet application is open, a wallet is selected, and the wallet is granting access to cannon.'
+        );
+        console.error();
+        console.error(
+          'Alternatively, you can supply a private key and RPC in the terminal by setting CANNON_PROVIDER_URL and CANNON_PRIVATE_KEY.'
+        );
+        process.exit(1);
+      }
     }
   }
+
+  debug(`returning ${signers.length && (await signers[0].getAddress())} signers`);
 
   return {
     provider: wrappedEthersProvider,
