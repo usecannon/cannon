@@ -43,7 +43,7 @@ export interface RunOptions {
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
-  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
   )} to interact with contracts via the command line.\nPress ${bold(
     'v'
