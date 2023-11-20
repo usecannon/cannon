@@ -6,9 +6,9 @@ import {
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
-  IPFSLoader,
-  InMemoryRegistry,
   getOutputs,
+  InMemoryRegistry,
+  IPFSLoader,
   publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
@@ -352,7 +352,7 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
 });
 
-applyCommandsConfig(program.command('deliver'), commandsConfig.deliver).action(async function (ipfsHash, options) {
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
   const cliSettings = resolveCliSettings(options);
 
   ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
@@ -367,7 +367,7 @@ applyCommandsConfig(program.command('deliver'), commandsConfig.deliver).action(a
   await publishPackage({
     packageRef: '@ipfs:' + ipfsHash,
     variant: '13370-main',
-    tags: [],
+    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
     fromStorage,
     toStorage,
   });

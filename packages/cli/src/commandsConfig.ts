@@ -385,7 +385,7 @@ const commandsConfig = {
       },
     ],
   },
-  deliver: {
+  pin: {
     description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
     arguments: [
       {
