@@ -17,18 +17,13 @@ export async function inspect(
   writeDeployments: string,
   sources: boolean
 ) {
-  const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
@@ -37,9 +32,7 @@ export async function inspect(
   const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
   if (!deployUrl) {
-    throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`
-    );
+    throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
   }
 
   if (!chainId) {

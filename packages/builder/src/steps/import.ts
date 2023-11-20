@@ -94,7 +94,7 @@ const importSpec = {
 
     const packageRef = new PackageReference(config.source);
     const source = config.source;
-    const preset =  config.preset || packageRef.preset;
+    const preset = config.preset || packageRef.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain

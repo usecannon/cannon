@@ -29,11 +29,11 @@ export async function alter(
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
   // Handle deprecated preset specification
-  let { name, version, fullPackageRef } = new PackageReference(packageRef);
+  let { fullPackageRef } = new PackageReference(packageRef);
 
   // Once preset arg is removed from the cli args we can remove this logic
   if (presetArg) {
-    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`
+    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`;
     console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
   }
 
@@ -115,12 +115,9 @@ export async function alter(
           const version = thisNetworkDefinition.getVersion(ctx);
 
           // TODO: we should store preset info in the destination output, not config
-          const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
+          // const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
-          const newNetworkDeployment = await runtime.readDeploy(
-            fullPackageRef,
-            chainId
-          );
+          const newNetworkDeployment = await runtime.readDeploy(fullPackageRef, chainId);
 
           if (!newNetworkDeployment) {
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);

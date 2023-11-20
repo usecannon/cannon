@@ -18,24 +18,19 @@ export async function decode({
   presetArg: string;
   json: boolean;
 }) {
-  const { name, version, preset } = new PackageReference(packageRef);
-
   if (!data[0].startsWith('0x')) {
     data[0] = '0x' + data[0];
   }
 
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const { name, version, preset } = new PackageReference(packageRef);
 
-  const deployInfos = await readDeployRecursive(`${name}:${version}`, chainId, selectedPreset);
+  const deployInfos = await readDeployRecursive(`${name}:${version}`, chainId, preset);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);

@@ -107,7 +107,11 @@ describe('registry.ts', () => {
             wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
           } as any);
 
-        const retValue = await registry.publish(['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'], 1, 'ipfs://Qmsomething');
+        const retValue = await registry.publish(
+          ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
+          1,
+          'ipfs://Qmsomething'
+        );
 
         // should only return the first receipt because its a multicall
         expect(retValue).toStrictEqual(['0x1234']);

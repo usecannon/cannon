@@ -100,22 +100,16 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version, preset } = pkg;
+    const { name, version } = pkg;
+    let { preset } = pkg;
 
-    const selectedPreset = preset || options.presetArg || 'main';
-
-    if (options.presetArg && preset) {
-      console.warn(
-        yellow(
-          bold(
-            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.presetArg}"`
-          )
-        )
-      );
-      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    // Handle deprecated preset specification
+    if (options.presetArg) {
+      console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+      preset = options.presetArg;
     }
 
-    const {fullPackageRef} = new PackageReference(`${pkg.name}:${pkg.version}@${pkg.preset || selectedPreset}`);
+    const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
@@ -123,7 +117,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: selectedPreset,
+        presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -142,9 +136,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
 
       if (!outputs) {
-        throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
-        );
+        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/${preset}. Did you mean to run instead?`);
       }
 
       buildOutputs.push({ pkg, outputs });

@@ -11,7 +11,7 @@ import fs, { Dirent } from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { publish } from '../commands/publish';
-import { CliLoader, LocalLoader } from '../loader';
+import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
 
 describe('publish command', () => {

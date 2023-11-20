@@ -259,6 +259,7 @@ async function doBuild(
   const pkgSpec: PackageSpecification = {
     name,
     version,
+    preset,
     settings: parsedSettings,
   };
 
@@ -633,28 +634,29 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     resolver,
     getMainLoader(cliSettings)
   );
+  const { name, version } = new PackageReference(packageDefinition);
+  let { preset } = new PackageReference(packageDefinition);
 
-  const selectedPreset = packageDefinition.preset || opts.preset || 'main';
+  // Handle deprecated preset specification
+  if (opts.preset) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    preset = opts.preset;
+  }
 
-  const {fullPackageRef} = new PackageReference(packageDefinition);
+  const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
-  const deployData = await runtime.readDeploy(
-    fullPackageRef,
-    runtime.chainId
-  );
+  const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${selectedPreset}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${preset}. please make sure it exists for the given preset and current network.`
     );
   }
 
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
-    throw new Error(
-      `no cannon build found for chain ${networkInfo.chainId}/${selectedPreset}. Did you mean to run instead?`
-    );
+    throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${preset}. Did you mean to run instead?`);
   }
 
   const contracts = [getContractsRecursive(outputs, p.provider)];

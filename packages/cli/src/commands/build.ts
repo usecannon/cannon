@@ -88,14 +88,19 @@ export async function build({
     );
   }
 
-  const { name, version, preset } = packageDefinition;
+  const { name, version } = packageDefinition;
+  let { preset } = packageDefinition;
 
-  if (presetArg && preset) {
-    console.warn(yellow(bold(`Duplicate preset definitions from cannonfile ${preset} and --preset ${presetArg}`)));
-    console.warn(yellow(bold(`The --preset option is deprecated. Using package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    preset = presetArg;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+
+  let pkgName = packageDefinition?.name;
+  let pkgVersion = packageDefinition?.version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -216,14 +221,14 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || new PackageReference(`${name}:${version}@${selectedPreset}`).fullPackageRef;
+  const prevPkg = upgradeFrom || fullPackageRef;
 
   console.log(bold('Checking for existing package...'));
   oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log(`${name}:${version}@${selectedPreset} (Chain ID: ${chainId}) found`);
+    console.log(`${fullPackageRef} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -236,10 +241,6 @@ export async function build({
       console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
     }
   }
-
-  let pkgName = packageDefinition?.name;
-  let pkgVersion = packageDefinition?.version;
-  let pkgPreset = packageDefinition?.preset;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
@@ -270,7 +271,7 @@ export async function build({
   }
   console.log('Name: ' + cyanBright(`${pkgName}`));
   console.log('Version: ' + cyanBright(`${pkgVersion}`));
-  console.log('Preset: ' + cyanBright(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   console.log('Chain ID: ' + cyanBright(`${chainId}`));
   if (upgradeFrom) {
     console.log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
@@ -385,11 +386,9 @@ export async function build({
 
     const metaUrl = await runtime.putBlob(metadata);
 
-    const {fullPackageRef} = new PackageReference(`${name}:${version}@${selectedPreset}`);
-
     // locally store cannon packages (version + latest)
     await resolver.publish(
-      [fullPackageRef, `${name}:latest@${selectedPreset}`],
+      [fullPackageRef, PackageReference.from(name, 'latest', preset).toString()],
       runtime.chainId,
       deployUrl!,
       metaUrl!

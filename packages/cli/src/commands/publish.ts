@@ -1,11 +1,13 @@
-import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
-import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
-import { blueBright, bold, gray, italic, yellow } from 'chalk';
-import { ethers, version } from 'ethers';
-import prompts from 'prompts';
-import { getMainLoader } from '../loader';
+import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
+import { blueBright, gray } from 'chalk';
+import { ethers } from 'ethers';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
+import { getMainLoader } from '../loader';
+import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
+
+import { bold, yellow, italic } from 'chalk';
+import prompts from 'prompts';
 
 interface Params {
   packageRef: string;
@@ -78,6 +80,7 @@ export async function publish({
   // This works as a catch all to get any deployment stored locally.
   // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
   let deploys;
+  console.log('package ref', packageRef);
   if (packageRef.startsWith('@')) {
     deploys = [{ name: packageRef, chainId: 13370 }];
   } else {
@@ -99,6 +102,7 @@ export async function publish({
       name: 'values',
       choices: deploys.map((d) => {
         const { fullPackageRef } = new PackageReference(d.name);
+
         return {
           title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
           description: '',

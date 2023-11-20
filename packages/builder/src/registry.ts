@@ -4,8 +4,6 @@ import EventEmitter from 'promise-events';
 
 import CannonRegistryAbi from './abis/CannonRegistry';
 
-import _ from 'lodash';
-
 import { bold, blueBright, yellow } from 'chalk';
 import { PackageReference } from './package';
 
@@ -68,7 +66,7 @@ export class InMemoryRegistry extends CannonRegistry {
   async publish(packagesNames: string[], chainId: number, url: string, meta?: string): Promise<string[]> {
     const receipts: string[] = [];
     for (const name of packagesNames) {
-      const {preset} = new PackageReference(name);
+      const { preset } = new PackageReference(name);
       const variant = `${chainId}-${preset}`;
 
       if (!this.pkgs[name]) {
@@ -89,9 +87,9 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {preset, fullPackageRef} = new PackageReference(packageRef);
+    const { preset, fullPackageRef } = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
-    
+
     const baseResolved = await super.getUrl(packageRef, chainId);
     if (baseResolved) {
       return baseResolved;
@@ -101,7 +99,7 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {preset, fullPackageRef} = new PackageReference(packageRef);
+    const { preset, fullPackageRef } = new PackageReference(packageRef);
 
     const variant = `${chainId}-${preset}`;
     return this.metas[fullPackageRef] ? this.metas[fullPackageRef][variant] : null;
@@ -128,7 +126,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {fullPackageRef} = new PackageReference(packageRef);
+    const { fullPackageRef } = new PackageReference(packageRef);
 
     debug('resolving', fullPackageRef, chainId);
     for (const registry of [this.memoryCacheRegistry, ...this.registries]) {
@@ -156,7 +154,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {fullPackageRef} = new PackageReference(packageRef);
+    const { fullPackageRef } = new PackageReference(packageRef);
 
     for (const registry of this.registries) {
       try {
@@ -181,7 +179,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
-    const {preset} = new PackageReference(filterPackageRef!);
+    const { preset } = new PackageReference(filterPackageRef!);
     const filterVariant = `${chainId}-${preset}`;
 
     const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackageRef, filterVariant)));
@@ -301,22 +299,20 @@ export class OnChainRegistry extends CannonRegistry {
 
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     for (const registerPackage of packagesNames) {
-      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1])
+      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
 
-      const {name, preset} = new PackageReference(registerPackage);
+      const { name, preset } = new PackageReference(registerPackage);
       const variant = `${chainId}-${preset}`;
 
       console.log(`Package: ${name}`);
-      console.log(
-        `Tags: ${versions}`
-      );
+      console.log(`Tags: ${versions}`);
       console.log(`Package URL: ${url}`);
 
-      if(!metaUrl) {
+      if (!metaUrl) {
         console.log(`Package Metadata URL: ${metaUrl}`);
-      };
+      }
 
-      console.log('\n')
+      console.log('\n');
 
       const tx = this.generatePublishTransactionData(
         name,
@@ -341,15 +337,13 @@ export class OnChainRegistry extends CannonRegistry {
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
       for (const registerPackage of pub.packagesNames) {
-        const versions = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1])
+        const versions = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
 
-        const {name, preset} = new PackageReference(registerPackage);
+        const { name, preset } = new PackageReference(registerPackage);
         const variant = `${pub.chainId}-${preset}`;
 
         console.log(`Package: ${name}`);
-        console.log(
-          `Tags: ${versions}`
-        );
+        console.log(`Tags: ${versions}`);
         console.log(`Package URL: ${pub.url}`);
         pub.metaUrl ? console.log(`Package Metadata URL: ${pub.metaUrl}`) : null;
 
@@ -388,7 +382,7 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {name, version, preset, fullPackageRef} = new PackageReference(packageRef);
+    const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
@@ -411,7 +405,7 @@ export class OnChainRegistry extends CannonRegistry {
       return new Set();
     }
 
-    const {name, version, preset} = new PackageReference(filterPackageRef!);
+    const { name, version, preset } = new PackageReference(filterPackageRef!);
     const filterVariant = `${chainId}-${preset}`;
 
     const filter = this.contract.filters.PackagePublish(
