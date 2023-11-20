@@ -7,7 +7,10 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  PackageReference
+  PackageReference,
+  InMemoryRegistry,
+  IPFSLoader,
+  publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -144,7 +147,11 @@ function configureRun(program: Command) {
   });
 }
 
-async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+async function doBuild(
+  cannonfile: string,
+  settings: string[],
+  opts: any
+): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
   // set debug verbosity
   switch (true) {
     case opts.Vvvv:
@@ -249,15 +256,16 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   const { build } = await import('./commands/build');
   const { name, version, preset, def } = await loadCannonfile(cannonfilePath);
 
-  const { outputs } = await build({
+  const pkgSpec: PackageSpecification = {
+    name,
+    version,
+    settings: parsedSettings,
+  };
+
+  const { outputs, runtime } = await build({
     provider,
     def,
-    packageDefinition: {
-      name,
-      version,
-      preset,
-      settings: parsedSettings,
-    },
+    packageDefinition: pkgSpec,
     pkgInfo: {},
     getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
     getSigner,
@@ -277,7 +285,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     priorityGasFee: opts.maxPriorityGasFee,
   });
 
-  return [node, outputs];
+  return [node, pkgSpec, outputs, runtime];
 }
 
 applyCommandsConfig(program.command('build'), commandsConfig.build)
@@ -306,7 +314,22 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
-    const [node] = await doBuild(cannonfile, settings, opts);
+    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
+
+    if (opts.keepAlive) {
+      console.log(
+        `Built package RPC URL available at ${
+          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
+        }`
+      );
+      const { run } = await import('./commands/run');
+      await run([{ ...pkgSpec, settings: {} }], {
+        ...opts,
+        resolver: runtime.registry,
+        node,
+        helpInformation: program.helpInformation(),
+      });
+    }
 
     node?.kill();
   });
@@ -351,6 +374,30 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
 });
 
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
+  const cliSettings = resolveCliSettings(options);
+
+  ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
+
+  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const toStorage = new CannonStorage(new InMemoryRegistry(), {
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+  });
+
+  console.log('Uploading package data for pinning...');
+
+  await publishPackage({
+    packageRef: '@ipfs:' + ipfsHash,
+    chainId: 13370,
+    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
+    preset: 'main',
+    fromStorage,
+    toStorage,
+  });
+
+  console.log('Done!');
+});
+
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
   const { publish } = await import('./commands/publish');
 
@@ -370,7 +417,10 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!options.privateKey && !process.env.PRIVATE_KEY) {
+  const cliSettings = resolveCliSettings(options);
+  let { signers } = await resolveRegistryProvider(cliSettings);
+
+  if (!signers.length) {
     const validatePrivateKey = (privateKey: string) => {
       if (ethers.utils.isHexString(privateKey)) {
         return true;
@@ -395,11 +445,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
+    const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
+    signers = p.signers;
   }
-
-  const cliSettings = resolveCliSettings(options);
-  const p = await resolveRegistryProvider(cliSettings);
 
   const overrides: ethers.PayableOverrides = {};
 
@@ -426,7 +474,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
-    signer: p.signers[0],
+    signer: signers[0],
     tags: options.tags ? options.tags.split(',') : [],
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
@@ -532,7 +580,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 8545;
-  const [node, outputs] = await doBuild(cannonfile, [], opts);
+  const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);

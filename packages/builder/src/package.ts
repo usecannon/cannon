@@ -14,7 +14,7 @@ export type CopyPackageOpts = {
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
-  preset?: string,
+  preset?: string;
   includeProvisioned?: boolean;
 };
 
@@ -118,7 +118,7 @@ function _deployImports(deployInfo: DeploymentInfo) {
 }
 
 export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
-  const {preset, fullPackageRef} = new PackageReference(packageRef);
+  const { preset, fullPackageRef } = new PackageReference(packageRef);
 
   const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 
@@ -168,8 +168,14 @@ export async function publishPackage({
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
   const { fullPackageRef } = new PackageReference(packageRef);
 
+  const alreadyCopiedIpfs = new Map<string, any>();
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    if (alreadyCopiedIpfs.has(checkKey)) {
+      return alreadyCopiedIpfs.get(checkKey);
+    }
+
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
@@ -197,7 +203,7 @@ export async function publishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    return {
+    const returnVal = {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
         (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
       ),
@@ -205,6 +211,8 @@ export async function publishPackage({
       url,
       metaUrl: newMetaUrl || '',
     };
+    alreadyCopiedIpfs.set(checkKey, returnVal);
+    return returnVal;
   };
 
   const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
@@ -215,7 +223,6 @@ export async function publishPackage({
     );
   }
 
-  
   if (includeProvisioned) {
     const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     debug('publishing with provisioned');

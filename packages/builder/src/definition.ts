@@ -25,6 +25,30 @@ export type StateLayers = {
   };
 };
 
+export function validatePackageName(n: string) {
+  if (n.length < 3) {
+    throw new Error('package name must be at least 3 characters long');
+  }
+
+  if (n.length > 31) {
+    throw new Error('package name must be at most 31 characters long');
+  }
+
+  if (_.last(n) == '-' || _.first(n) == '-') {
+    throw new Error('first and last character of package name must not be dash (-)');
+  }
+
+  if (!n.match(/^[0-9a-z-]*$/)) {
+    throw new Error('cannon packages can only have names connecting lowercase, alphanumeric characters, and dashes');
+  }
+}
+
+export function validatePackageVersion(v: string) {
+  if (v.length > 31) {
+    throw new Error('package version must be at most 31 characters long');
+  }
+}
+
 export class ChainDefinition {
   private raw: RawChainDefinition;
 
@@ -149,11 +173,19 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    return _.template(this.raw.name)(ctx);
+    const n = _.template(this.raw.name)(ctx);
+
+    validatePackageName(n);
+
+    return n;
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    return _.template(this.raw.version)(ctx);
+    const v = _.template(this.raw.version)(ctx);
+
+    validatePackageVersion(v);
+
+    return v;
   }
 
   getPreset(ctx: ChainBuilderContext) {

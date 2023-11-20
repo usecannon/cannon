@@ -26,6 +26,7 @@ import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 import { PackageReference } from '@usecannon/builder';
+import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -340,7 +341,7 @@ export async function build({
     }
     ctrlcs++;
   };
-  if (persist) {
+  if (persist && chainId != CANNON_CHAIN_ID) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -361,6 +362,12 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
+  const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
+  if (cliSettings.ipfsUrl != undefined && !isIPFSWritable) {
+    console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
+    process.exit(1);
+  }
+
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
@@ -379,23 +386,20 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     const {fullPackageRef} = new PackageReference(`${name}:${version}@${selectedPreset}`);
-    const variant = `${chainId}-${preset}`;
 
     // locally store cannon packages (version + latest)
-    if (persist) {
-      await resolver.publish(
-        [fullPackageRef, `${name}:latest@${selectedPreset}`],
-        runtime.chainId,
-        deployUrl!,
-        metaUrl!
-      );
+    await resolver.publish(
+      [fullPackageRef, `${name}:latest@${selectedPreset}`],
+      runtime.chainId,
+      deployUrl!,
+      metaUrl!
+    );
 
-      // detach the process handler
+    // detach the process handler
 
-      process.off('SIGINT', handler);
-      process.off('SIGTERM', handler);
-      process.off('SIGQUIT', handler);
-    }
+    process.off('SIGINT', handler);
+    process.off('SIGTERM', handler);
+    process.off('SIGQUIT', handler);
 
     if (partialDeploy) {
       console.log(
@@ -413,7 +417,7 @@ export async function build({
       console.log(`- Your partial deployment has been stored to ${deployUrl}`);
       console.log(
         '- Run ' +
-          bold(`cannon publish ${deployUrl}`) +
+          bold(`cannon pin ${deployUrl}`) +
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {
@@ -462,5 +466,5 @@ export async function build({
 
   provider.artifacts = outputs;
 
-  return { outputs, provider };
+  return { outputs, provider, runtime };
 }

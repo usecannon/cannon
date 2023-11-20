@@ -248,6 +248,11 @@ const commandsConfig = {
         description: 'Simulate building on a local fork rather than deploying on the real network',
       },
       {
+        flags: '--keep-alive',
+        description:
+          'After completing build, leave RPC open and switch into run mode. Has no effect on live network deployment.',
+      },
+      {
         flags: '--private-key [key]',
         description: 'Specify a comma separated list of private keys which may be needed to sign a transaction',
       },
@@ -383,6 +388,15 @@ const commandsConfig = {
       {
         flags: '--meta-hash <metaHash>',
         description: 'IPFS hash to fetch deployment metadata from',
+      },
+    ],
+  },
+  pin: {
+    description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
+    arguments: [
+      {
+        flags: '<ipfsHash>',
+        description: 'IPFS hash to write deployment data for',
       },
     ],
   },

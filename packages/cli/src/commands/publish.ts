@@ -76,8 +76,17 @@ export async function publish({
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const fromStorage = new CannonStorage(localRegistry, getMainLoader(cliSettings));
 
-  // Check for deployments that are relevant to the provided packageRef
-  let deploys = await localRegistry.scanDeploys(packageRef, chainId);
+  // if the package reference doesnt contain a version reference we still want to scan deploys without it.
+  // This works as a catch all to get any deployment stored locally.
+  // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
+  let deploys;
+  console.log('package ref', packageRef);
+  if (packageRef.startsWith('@')) {
+    deploys = [{ name: packageRef, chainId: 13370 }];
+  } else {
+    // Check for deployments that are relevant to the provided packageRef
+    deploys = await localRegistry.scanDeploys(packageRef, chainId);
+  }
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
