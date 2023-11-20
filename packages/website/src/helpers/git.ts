@@ -21,7 +21,7 @@ export async function init(repo: string, ref: string) {
     dir,
     url: repo,
     ref,
-    corsProxy: 'https://cors.isomorphic-git.org',
+    corsProxy: 'https://git-proxy.repo.usecannon.com',
   };
 
   if (!cloned) {
