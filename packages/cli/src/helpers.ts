@@ -22,6 +22,8 @@ import { isConnectedToInternet } from './util/is-connected-to-internet';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
+import semver from 'semver';
+
 export async function filterSettings(settings: any) {
   // Filter out private key for logging
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -133,7 +135,8 @@ export async function resolveCannonVersion(): Promise<string> {
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await resolveCannonVersion();
-  if (latestVersion && currentVersion !== latestVersion) {
+
+  if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
     console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
