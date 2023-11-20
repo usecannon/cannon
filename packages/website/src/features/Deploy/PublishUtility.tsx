@@ -36,6 +36,8 @@ export default function PublishUtility(props: {
     ipfsQuery: ipfsPkgQuery,
   } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
 
+  const [chainId, preset] = props.targetVariant.split('-');
+
   // then reverse check the package referenced by the
   const {
     pkgUrl: existingRegistryUrl,
@@ -72,8 +74,8 @@ export default function PublishUtility(props: {
       const fakeLocalRegistry = new InMemoryRegistry();
       // TODO: set meta url
       void fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}`],
-        props.targetVariant,
+        [`${resolvedName}:${resolvedVersion}@${preset}`],
+        Number.parseInt(chainId),
         props.deployUrl,
         ''
       );
@@ -94,9 +96,9 @@ export default function PublishUtility(props: {
       );
 
       await publishPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}`,
+        packageRef: `${resolvedName}:${resolvedVersion}@${preset}`,
         tags: settings.publishTags.split(','),
-        variant: props.targetVariant,
+        chainId: Number.parseInt(chainId),
         fromStorage,
         toStorage,
         includeProvisioned: true,

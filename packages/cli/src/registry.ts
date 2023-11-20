@@ -9,8 +9,7 @@ import { yellowBright } from 'chalk';
 import { CliSettings } from './settings';
 import { resolveRegistryProvider } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { PKG_REG_EXP } from '@usecannon/builder';
-import { PackageReference } from '@usecannon/builder/src';
+import { PKG_REG_EXP, PackageReference } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -44,7 +43,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {name, version, preset, fullPackageRef} = new PackageReference(packageRef);
+    const {fullPackageRef} = new PackageReference(packageRef);
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
     if (baseResolved) {
@@ -53,7 +52,7 @@ export class LocalRegistry extends CannonRegistry {
 
     debug(
       'load local package link',
-      packageRef,
+      fullPackageRef,
       'at file',
       this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
     );
@@ -96,8 +95,8 @@ export class LocalRegistry extends CannonRegistry {
     return [];
   }
 
-  async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; variant: string }[]> {
-    const match = packageRef.match(PKG_REG_EXP);
+  async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
+    const match = packageRef!.match(PKG_REG_EXP);
     if (!match) {
       throw new Error(`Invalid package reference: ${packageRef}`);
     }
@@ -130,7 +129,8 @@ export class LocalRegistry extends CannonRegistry {
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
-        return { name: `${name}:${version}`, variant: tagVariant };
+        const [chainId, preset] = tagVariant.split(/-(.*)/s);
+        return { name: `${name}:${version}@${preset}`, chainId: Number.parseInt(chainId) };
       });
   }
 

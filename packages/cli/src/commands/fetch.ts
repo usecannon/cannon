@@ -68,7 +68,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
 
-    const pkgName = `${name}:${def.getVersion(preCtx) || version}`;
+    const pkgName = `${name}:${def.getVersion(preCtx) || version}@${preset}`;
 
     if (!deployInfo || Object.keys(deployInfo).length === 0) {
       throw new Error(`could not find package data on IPFS using the hash: ${hash}`);
@@ -80,9 +80,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     debug('storing deploy info');
 
-    const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
-
-    const deployPath = localRegistry.getTagReferenceStorage(pkgName, variant);
+    const deployPath = localRegistry.getTagReferenceStorage(pkgName, deployInfo.chainId || chainId);
 
     await storeDeployReference(deployPath, ipfsUrl);
 
@@ -95,7 +93,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
       debug('reading metadata from ipfs');
 
-      const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, variant);
+      const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, chainId);
 
       await storeDeployReference(deployMetadataPath, ipfsUrl);
     }

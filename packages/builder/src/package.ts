@@ -14,6 +14,7 @@ export type CopyPackageOpts = {
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
+  preset?: string,
   includeProvisioned?: boolean;
 };
 
@@ -50,7 +51,7 @@ export class PackageReference {
   constructor(ref: string) {
     this.ref = ref;
 
-    const match = this.ref.match(PKG_REG_EXP);
+    const match = this.ref!.match(PKG_REG_EXP);
 
     if (!match) {
       throw new Error(
@@ -118,7 +119,6 @@ function _deployImports(deployInfo: DeploymentInfo) {
 
 export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
   const {preset, fullPackageRef} = new PackageReference(packageRef);
-  const variant = `${chainId}-${preset}`;
 
   const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 
@@ -142,10 +142,10 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
     debug('created initial ctx with deploy info');
 
     return {
-      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
-        (t) => `${def.getName(preCtx)}:${t}`
+      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
       ),
-      variant: context ? `${chainId}-${context.preset}` : variant,
+      chainId: chainId,
       url: context?.url,
     };
   };
@@ -162,12 +162,11 @@ export async function publishPackage({
   chainId,
   fromStorage,
   toStorage,
+  preset,
   includeProvisioned = false,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
-
-  const {preset, fullPackageRef} = new PackageReference(packageRef);
-  const variant = `${chainId}-${preset}`;
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
@@ -199,10 +198,10 @@ export async function publishPackage({
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
     return {
-      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
-        (t) => `${def.getName(preCtx)}:${t}`
+      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
       ),
-      variant: context ? `${chainId}-${context.preset}` : variant,
+      chainId: chainId,
       url,
       metaUrl: newMetaUrl || '',
     };
@@ -216,15 +215,15 @@ export async function publishPackage({
     );
   }
 
-  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
-
+  
   if (includeProvisioned) {
+    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     debug('publishing with provisioned');
     return toStorage.registry.publishMany(calls);
   } else {
     debug('publishing without provisioned');
-    const call = _.last(calls)!;
+    const call = await copyIpfs(deployData, null);
 
-    return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
+    return toStorage.registry.publish(call.packagesNames, call.chainId, call.url, call.metaUrl);
   }
 }

@@ -6,7 +6,7 @@ import {
   OnChainRegistry,
 } from '@usecannon/builder';
 import * as builder from '@usecannon/builder';
-import { LocalLoader } from '../loader';
+import { CliLoader, LocalLoader } from '../loader';
 import { publish } from '../commands/publish';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
@@ -40,16 +40,16 @@ describe('publish command', () => {
       },
     },
     status: 'complete',
-    miscUrl: 'file:/usecannon.com/misc',
+    miscUrl: 'file://usecannon.com/misc',
     meta: { itsMeta: 'data' },
     options: {},
   };
 
-  const testPkgDataIpfsUrl = 'ipfs:/test-ipfs-url';
-  const testPkgDataNewIpfsUrl = 'ipfs:/test-ipfs-new-url';
-  const testPkgMetaIpfsUrl = 'ipfs:/test-ipfs-meta-url';
-  const testPkgMiscIpfsUrl = 'ipfs:/test-ipfs-misc-url';
-  const testPkgNewMetaIpfsUrl = 'ipfs:/test-ipfs-new-meta-url';
+  const testPkgDataIpfsUrl = 'ipfs://test-ipfs-url';
+  const testPkgDataNewIpfsUrl = 'ipfs://test-ipfs-new-url';
+  const testPkgMetaIpfsUrl = 'ipfs://test-ipfs-meta-url';
+  const testPkgMiscIpfsUrl = 'ipfs://test-ipfs-misc-url';
+  const testPkgNewMetaIpfsUrl = 'ipfs://test-ipfs-new-meta-url';
 
   beforeAll(async () => {
     jest.resetAllMocks();
@@ -85,13 +85,23 @@ describe('publish command', () => {
 
     const cliSettings = resolveCliSettings();
 
+    jest.spyOn(CliLoader.prototype, 'read').mockImplementation(async (url) => {
+      switch (url) {
+        case testPkgDataIpfsUrl:
+          return Promise.resolve(testPkgData);
+        case testPkgMetaIpfsUrl:
+          return Promise.resolve(testPkgData.meta);
+      }
+      return Promise.resolve({});
+    });
+
     jest.spyOn(LocalLoader.prototype, 'read').mockImplementation(async (url) => {
       switch (url) {
-        case 'file:/usecannon.com/misc':
+        case 'file://usecannon.com/misc':
           return miscData;
-        case 'file:/usecannon.com/meta':
+        case 'file://usecannon.com/meta':
           return metaData;
-        case 'file:/usecannon.com':
+        case 'file://usecannon.com':
         case url:
           return testPkgData;
       }
@@ -137,7 +147,7 @@ describe('publish command', () => {
   it('should publish the package to the registry', async () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
-      packageRef: basePackageRef,
+      packageRef: packageRef,
       signer,
       tags,
       chainId,
@@ -158,7 +168,7 @@ describe('publish command', () => {
   it('should publish the package to the registry with no tags', async () => {
     tags = [];
     await publish({
-      packageRef: basePackageRef,
+      packageRef: packageRef,
       signer,
       tags,
       chainId,
@@ -211,7 +221,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
-        packageRef: basePackageRef,
+        packageRef: packageRef,
         signer,
         tags,
         chainId,
@@ -232,7 +242,7 @@ describe('publish command', () => {
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: basePackageRef,
+        packageRef: packageRef,
         signer,
         tags,
         chainId: 0,

@@ -20,6 +20,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
+import { PackageReference } from '@usecannon/builder';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -112,6 +113,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
     }
 
+    const {fullPackageRef} = new PackageReference(`${pkg.name}:${pkg.version}@${pkg.preset || selectedPreset}`);
+
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
         ...options,
@@ -126,11 +129,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(fullPackageRef, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
         );
       }
 

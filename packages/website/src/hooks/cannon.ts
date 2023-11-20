@@ -251,10 +251,14 @@ export function useCannonWriteDeployToIpfs(
       const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
-      const variant = `${runtime.chainId}-${settings.preset}`;
+      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}@${settings.preset}`;
 
-      await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
+      await runtime.registry.publish(
+        [packageRef],
+        runtime.chainId,
+        (await runtime.loaders.mem.put(deployInfo)) ?? '',
+        metaUrl
+      );
 
       const memoryRegistry = new InMemoryRegistry();
 
@@ -266,12 +270,12 @@ export function useCannonWriteDeployToIpfs(
           'ipfs'
         ),
         packageRef,
-        variant,
+        chainId: runtime.chainId,
         tags: ['latest'],
       });
 
       // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, variant);
+      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
 
       return {
         packageRef,
@@ -308,8 +312,8 @@ export function useCannonPackage(packageRef: string, variant = '') {
         address: settings.registryAddress,
       });
 
-      const url = await registry.getUrl(packageRef, variant);
-      const metaUrl = await registry.getMetaUrl(packageRef, variant);
+      const url = await registry.getUrl(packageRef, chainId);
+      const metaUrl = await registry.getMetaUrl(packageRef, chainId);
 
       if (url) {
         return { url, metaUrl };

@@ -7,6 +7,7 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
+  PackageReference
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -30,7 +31,6 @@ import { parsePackageArguments, parsePackagesArguments, parseSettings } from './
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
-import { PackageReference } from '@usecannon/builder/src';
 
 export * from './types';
 export * from './constants';

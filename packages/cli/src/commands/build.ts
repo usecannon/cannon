@@ -25,6 +25,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { PackageReference } from '@usecannon/builder';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -214,14 +215,14 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${name}:${version}`;
+  const prevPkg = upgradeFrom || new PackageReference(`${name}:${version}@${selectedPreset}`).fullPackageRef;
 
   console.log(bold('Checking for existing package...'));
-  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log(`${name}:${version}@${preset ? preset : 'main'} (Chain ID: ${chainId}) found`);
+    console.log(`${name}:${version}@${selectedPreset} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -229,14 +230,15 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`);
+      throw new Error(`${prevPkg} (Chain ID: ${chainId}) not found`);
     } else {
-      console.log(gray(`  ${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`));
+      console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
     }
   }
 
   let pkgName = packageDefinition?.name;
   let pkgVersion = packageDefinition?.version;
+  let pkgPreset = packageDefinition?.preset;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
@@ -376,11 +378,14 @@ export async function build({
 
     const metaUrl = await runtime.putBlob(metadata);
 
+    const {fullPackageRef} = new PackageReference(`${name}:${version}@${selectedPreset}`);
+    const variant = `${chainId}-${preset}`;
+
     // locally store cannon packages (version + latest)
     if (persist) {
       await resolver.publish(
-        [`${name}:${version}`, `${name}:latest`],
-        `${runtime.chainId}-${selectedPreset}`,
+        [fullPackageRef, `${name}:latest@${selectedPreset}`],
+        runtime.chainId,
         deployUrl!,
         metaUrl!
       );
@@ -412,12 +417,11 @@ export async function build({
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {
-      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
       if (chainId == 13370) {
-        console.log(bold(`💥 ${packageRef} built for Cannon (Chain ID: ${chainId})`));
+        console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
         console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
       } else {
-        console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
+        console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       }
       console.log();
@@ -432,15 +436,15 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(bold(`Publish ${bold(packageRef)}`));
-      console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
+      console.log(bold(`Publish ${bold(fullPackageRef)}`));
+      console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
       if (chainId == 13370) {
         console.log(bold('Run this package'));
-        console.log(`> ${`cannon ${packageRef}`}`);
+        console.log(`> ${`cannon ${fullPackageRef}`}`);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
-        console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
+        console.log(`> ${`cannon verify ${fullPackageRef} --chain-id ${chainId}`}`);
       }
     }
   } else {

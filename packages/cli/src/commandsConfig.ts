@@ -578,7 +578,6 @@ const commandsConfig = {
       {
         flags: '-p --preset <preset>',
         description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
       },
       {
         flags: '-j --json',

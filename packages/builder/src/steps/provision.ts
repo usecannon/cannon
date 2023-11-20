@@ -235,8 +235,8 @@ const provisionSpec = {
       console.warn('warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
-        [config.source.split('@')[0], ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
-        `${runtime.chainId}-${targetPreset}`,
+        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
+        runtime.chainId,
         newSubDeployUrl,
         (await runtime.registry.getMetaUrl(source, chainId)) || ''
       );

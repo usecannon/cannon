@@ -20,7 +20,7 @@ describe('registry.ts', () => {
       it('applies url alteration for "@ipfs" prefixed cannon packages', async () => {
         const registry = new FakeCannonRegistry();
 
-        const url = await registry.getUrl('@ipfs:Qmwohoo', '13370-main');
+        const url = await registry.getUrl('@ipfs:Qmwohoo', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
       });
@@ -28,7 +28,7 @@ describe('registry.ts', () => {
       it('just passes through for any non "@" prefixed cannon packages', async () => {
         const registry = new FakeCannonRegistry();
 
-        const url = await registry.getUrl('testing:3.0.0', '13370-main');
+        const url = await registry.getUrl('testing:3.0.0', 13370);
 
         expect(url).toBe(null);
       });
@@ -73,14 +73,14 @@ describe('registry.ts', () => {
     describe('publish()', () => {
       it('throws if signer is not specified', async () => {
         await expect(() =>
-          providerOnlyRegistry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')
+          providerOnlyRegistry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')
         ).rejects.toThrowError('Missing signer needed for publishing');
       });
 
       it('checks signer balance', async () => {
         jest.mocked(provider.getBalance).mockResolvedValue(ethers.BigNumber.from(0));
 
-        await expect(() => registry.publish(['dummyPackage:0.0.1'], '1-main', 'ipfs://Qmsomething')).rejects.toThrowError(
+        await expect(() => registry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
           /Signer at .* is not funded with ETH./
         );
       });
@@ -107,7 +107,7 @@ describe('registry.ts', () => {
             wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
           } as any);
 
-        const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], '1-main', 'ipfs://Qmsomething');
+        const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], 1, 'ipfs://Qmsomething');
 
         // should only return the first receipt because its a multicall
         expect(retValue).toStrictEqual(['0x1234']);
@@ -118,7 +118,7 @@ describe('registry.ts', () => {
 
     describe('getUrl()', () => {
       it('calls (and returns) from super first', async () => {
-        const url = await registry.getUrl('@ipfs:Qmwohoo', '13370-main');
+        const url = await registry.getUrl('@ipfs:Qmwohoo', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
       });
@@ -126,7 +126,7 @@ describe('registry.ts', () => {
       it('calls `getPackageUrl`', async () => {
         jest.mocked(provider.call).mockResolvedValue(ethers.utils.defaultAbiCoder.encode(['string'], ['ipfs://Qmwohoo']));
 
-        const url = await registry.getUrl('dummyPackage:0.0.1', '13370-main');
+        const url = await registry.getUrl('dummyPackage:0.0.1', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
 
