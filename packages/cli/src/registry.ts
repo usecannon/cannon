@@ -91,6 +91,7 @@ export class LocalRegistry extends CannonRegistry {
   async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
     const ref = new PackageReference(packageRef);
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
+
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
     debug(`looking for ${packageRef}, ${chainId}`);
 

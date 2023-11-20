@@ -3,12 +3,12 @@ import Debug from 'debug';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
+import { PackageReference } from './';
 import { CannonWrapperGenericProvider } from './error/provider';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
-import { PackageReference } from '.';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -77,7 +77,7 @@ export class CannonStorage extends EventEmitter {
 
   async readDeploy(packageRef: string, chainId: number): Promise<DeploymentInfo | null> {
     const registryName = this.registry.getLabel();
-    const {preset, fullPackageRef} = new PackageReference(packageRef);
+    const { preset, fullPackageRef } = new PackageReference(packageRef);
 
     this.emit(Events.ResolveDeploy, packageRef, preset, chainId, registryName, 0);
 

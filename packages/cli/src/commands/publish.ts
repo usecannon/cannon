@@ -208,13 +208,11 @@ export async function publish({
 
   const registrationReceipts = [];
 
-  console.log('PARENT PACKAGES ====> ', parentPackages);
-
   for (const pkg of parentPackages) {
     const publishTags: string[] = pkg.versions.concat(tags);
 
     const newReceipts = await publishPackage({
-      packageRef: `${pkg.name}`,
+      packageRef: `${pkg.name}:${pkg.versions[0]}`,
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
