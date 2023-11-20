@@ -62,7 +62,7 @@ describe('steps/provision.ts', () => {
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-      await registry.publish(['hello:1.0.0'], '13370-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 13370, 'https://something.com', '');
 
       const result = await action.getState(
         fakeRuntime,
@@ -79,7 +79,7 @@ describe('steps/provision.ts', () => {
     });
 
     it('resolves correct properties with maximal config', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-foobar', 'https://something-else.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something-else.com', '');
 
       const result = await action.getState(
         fakeRuntime,
@@ -109,7 +109,7 @@ describe('steps/provision.ts', () => {
     });
 
     it('returns partial deployment if runtime becomes cancelled', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',
@@ -165,7 +165,7 @@ describe('steps/provision.ts', () => {
     });
 
     it('works with complete deployment', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',

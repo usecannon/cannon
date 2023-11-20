@@ -18,7 +18,7 @@ export type CopyPackageOpts = {
   includeProvisioned?: boolean;
 };
 
-export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
 /**
  * Used to format any reference to a cannon package and split it into it's core parts

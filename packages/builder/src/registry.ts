@@ -92,7 +92,7 @@ export class InMemoryRegistry extends CannonRegistry {
     const {preset, fullPackageRef} = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
     
-    const baseResolved = await super.getUrl(fullPackageRef, chainId);
+    const baseResolved = await super.getUrl(packageRef, chainId);
     if (baseResolved) {
       return baseResolved;
     }
@@ -371,14 +371,12 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {fullPackageRef} = new PackageReference(packageRef);
-    const variant = `${chainId}-${fullPackageRef.split('@')[1]}`;
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
 
-    const baseResolved = await super.getUrl(fullPackageRef, chainId);
+    const baseResolved = await super.getUrl(packageRef, chainId);
 
     if (baseResolved) return baseResolved;
-
-    const [name, version ] = fullPackageRef.split(':');
 
     const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),

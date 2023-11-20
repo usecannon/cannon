@@ -45,7 +45,7 @@ describe('package.ts', () => {
     let toLoader: IPFSLoader;
     let toStorage: CannonStorage;
 
-    const testPkg = 'package:1.2.3';
+    const testPkg = 'package:1.2.3@main';
     const testPkgData: DeploymentInfo = {
       generator: 'cannon test',
       timestamp: 1234,
@@ -68,7 +68,7 @@ describe('package.ts', () => {
       meta: {},
       options: {},
     };
-    const nestedPkg = 'nested:2.34.5';
+    const nestedPkg = 'nested:2.34.5@main';
     const nestedPkgData: DeploymentInfo = {
       generator: 'cannon test',
       timestamp: 1234,
@@ -124,9 +124,10 @@ describe('package.ts', () => {
     it('fails when deployment info is not found', async () => {
       await expect(() =>
         publishPackage({
-          packageRef: 'fake-pkg:1.2.3',
+          packageRef: 'fake-pkg:1.2.3@main',
           chainId: 1,
           tags: [],
+          preset: 'main',
           fromStorage,
           toStorage,
         })
@@ -138,6 +139,7 @@ describe('package.ts', () => {
         packageRef: testPkg,
         chainId: 1,
         tags: [],
+        preset: 'main',
         fromStorage,
         toStorage,
       });
@@ -158,22 +160,24 @@ describe('package.ts', () => {
         chainId: 1,
         tags: ['tag1', 'tag2'],
         fromStorage,
+        preset: 'main',
         toStorage,
         includeProvisioned: true,
       });
 
       // the recursed package data should be pushed, and all the declared tags should have been honored
       expect(await toRegistry.getUrl(nestedPkg, 1)).toStrictEqual('https://usecannon.com/nested');
-      expect(await toRegistry.getUrl('nested:tag1', 1)).toStrictEqual('https://usecannon.com/nested');
-      expect(await toRegistry.getUrl('nested:tag2', 1)).toStrictEqual('https://usecannon.com/nested');
+      expect(await toRegistry.getUrl('nested:tag1@main', 1)).toStrictEqual('https://usecannon.com/nested');
+      expect(await toRegistry.getUrl('nested:tag2@main', 1)).toStrictEqual('https://usecannon.com/nested');
     });
 
     describe('recursive = true', () => {
       it('recurses with correct tags and name', async () => {
         await publishPackage({
-          packageRef: testPkg,
+          packageRef: nestedPkg,
           chainId: 1,
-          tags: [],
+          tags: ['tag3', 'tag4'],
+          preset: 'main',
           fromStorage,
           toStorage,
           includeProvisioned: true,
@@ -182,8 +186,8 @@ describe('package.ts', () => {
         // the recursed package data should be pushed, and all the declared tags should have been honored
         console.log(toRegistry.pkgs);
         expect(await toRegistry.getUrl(nestedPkg, 1)).toStrictEqual('https://usecannon.com/nested');
-        expect(await toRegistry.getUrl('nested:tag3', 1)).toStrictEqual('https://usecannon.com/nested');
-        expect(await toRegistry.getUrl('nested:tag4', 1)).toStrictEqual('https://usecannon.com/nested');
+        expect(await toRegistry.getUrl('nested:tag3@main', 1)).toStrictEqual('https://usecannon.com/nested');
+        expect(await toRegistry.getUrl('nested:tag4@main', 1)).toStrictEqual('https://usecannon.com/nested');
       });
     });
   });

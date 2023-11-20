@@ -107,7 +107,7 @@ describe('registry.ts', () => {
             wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
           } as any);
 
-        const retValue = await registry.publish(['dummyPackage:0.0.1', 'anotherPkg:1.2.3'], 1, 'ipfs://Qmsomething');
+        const retValue = await registry.publish(['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'], 1, 'ipfs://Qmsomething');
 
         // should only return the first receipt because its a multicall
         expect(retValue).toStrictEqual(['0x1234']);
@@ -126,7 +126,7 @@ describe('registry.ts', () => {
       it('calls `getPackageUrl`', async () => {
         jest.mocked(provider.call).mockResolvedValue(ethers.utils.defaultAbiCoder.encode(['string'], ['ipfs://Qmwohoo']));
 
-        const url = await registry.getUrl('dummyPackage:0.0.1', 13370);
+        const url = await registry.getUrl('dummyPackage:0.0.1@main', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
 

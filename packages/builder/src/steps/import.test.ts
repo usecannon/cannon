@@ -24,7 +24,7 @@ describe('steps/import.ts', () => {
       });
 
       expect(result).toStrictEqual({
-        source: 'abc:latest',
+        source: 'abc:latest@main',
         chainId: 1234,
         preset: 'c',
         depends: [],
@@ -34,7 +34,7 @@ describe('steps/import.ts', () => {
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
       const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' });
 
@@ -57,8 +57,8 @@ describe('steps/import.ts', () => {
     });
 
     it('works properly', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
-      await registry.publish(['hello:latest'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
+      await registry.publish(['hello:latest@main'], 1234, 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',
