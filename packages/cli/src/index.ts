@@ -312,7 +312,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
-    if (opts.background) {
+    if (opts.keepAlive) {
       console.log(
         `Built package RPC URL available at ${
           (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url

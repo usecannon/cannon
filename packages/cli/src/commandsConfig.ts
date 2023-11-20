@@ -247,7 +247,7 @@ const commandsConfig = {
         description: 'Simulate building on a local fork rather than deploying on the real network',
       },
       {
-        flags: '--background',
+        flags: '--keep-alive',
         description:
           'After completing build, leave RPC open and switch into run mode. Has no effect on live network deployment.',
       },
