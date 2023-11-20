@@ -25,6 +25,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -364,6 +365,12 @@ export async function build({
   const chainDef = def.toJson();
 
   chainDef.version = pkgVersion;
+
+  const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
+  if (cliSettings.ipfsUrl != undefined && !isIPFSWritable) {
+    console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
+    process.exit(1);
+  }
 
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
