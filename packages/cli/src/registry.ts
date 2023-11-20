@@ -1,15 +1,13 @@
-import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
-import _ from 'lodash';
-import path from 'path';
-import fs from 'fs-extra';
-import os from 'os';
-import Debug from 'debug';
+import os from 'node:os';
+import path from 'node:path';
+import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { yellowBright } from 'chalk';
-
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
 import { CliSettings } from './settings';
-import { resolveRegistryProvider } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { PKG_REG_EXP, PackageReference } from '@usecannon/builder';
+import { resolveRegistryProvider } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -29,21 +27,21 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   getTagReferenceStorage(packageRef: string, chainId: number): string {
-    const {name, version, preset} = new PackageReference(packageRef);
+    const { name, version, preset } = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
 
     return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt`);
   }
 
   getMetaTagReferenceStorage(packageRef: string, chainId: number): string {
-    const {name, version, preset} = new PackageReference(packageRef);
+    const { name, version, preset } = new PackageReference(packageRef);
     const variant = `${chainId}-${preset}`;
 
     return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {fullPackageRef} = new PackageReference(packageRef);
+    const { fullPackageRef } = new PackageReference(packageRef);
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
     if (baseResolved) {
@@ -65,15 +63,10 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const {fullPackageRef} = new PackageReference(packageRef);
+    const { fullPackageRef } = new PackageReference(packageRef);
 
     try {
-      debug(
-        'load local meta package link',
-        fullPackageRef,
-        'at file',
-        this.getMetaTagReferenceStorage(packageRef, chainId)
-      );
+      debug('load local meta package link', fullPackageRef, 'at file', this.getMetaTagReferenceStorage(packageRef, chainId));
       return (await fs.readFile(this.getMetaTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
@@ -83,7 +76,7 @@ export class LocalRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]> {
     for (const packageName of packagesNames) {
-      const {fullPackageRef} = new PackageReference(packageName);
+      const { fullPackageRef } = new PackageReference(packageName);
       debug('package local link', packageName);
       const file = this.getTagReferenceStorage(fullPackageRef, chainId);
       const metaFile = this.getMetaTagReferenceStorage(fullPackageRef, chainId);
@@ -96,11 +89,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
-    const match = packageRef!.match(PKG_REG_EXP);
-    if (!match) {
-      throw new Error(`Invalid package reference: ${packageRef}`);
-    }
-
+    const ref = new PackageReference(packageRef);
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
     debug(`looking for ${packageRef}, ${chainId}`);
@@ -108,23 +97,21 @@ export class LocalRegistry extends CannonRegistry {
     return allTags
       .filter((t) => {
         if (!t.endsWith('.meta')) {
-          const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
-          const [tagChainId, tagPreset] = tagVariant.split('-');
+          debug(`checking ${packageRef}, ${chainId} for a match with ${t}`);
 
-          if (!tagVariant) {
+          const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
+          const [tagChainId, tagPreset] = tagVariant.split(/-(.*)/s); // split on first ocurrance only (because the preset can have -)
+
+          if (chainId && tagChainId !== chainId.toString()) return false;
+
+          let tag: PackageReference;
+          try {
+            tag = PackageReference.from(tagName, tagVersion, tagPreset);
+          } catch (er) {
             return false;
           }
 
-          const { name: refName, version: refVersion, preset: refPreset } = match.groups!;
-
-          // Package name must match, other properties must match if specified
-          debug(`checking ${packageRef},${chainId} for a match with ${t}`);
-          return (
-            tagName == refName &&
-            (!refVersion || tagVersion == refVersion) &&
-            (!refPreset || tagPreset == refPreset) &&
-            (!chainId || tagChainId == chainId.toString())
-          );
+          return ref.toString() === tag.toString();
         }
       })
       .map((t) => {
@@ -138,7 +125,7 @@ export class LocalRegistry extends CannonRegistry {
     if (!filterPackage) {
       return new Set();
     }
-    const {name, version, preset} = new PackageReference(filterPackage);
+    const { name, version, preset } = new PackageReference(filterPackage);
     const filterVariant = `${chainId}-${preset}`;
 
     const urls = (await fs.readdir(this.packagesDir))

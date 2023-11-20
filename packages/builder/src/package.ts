@@ -1,9 +1,9 @@
 import Debug from 'debug';
 import _ from 'lodash';
-import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
-import { ChainDefinition } from './definition';
 import { createInitialContext, getArtifacts } from './builder';
+import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
+import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
 
 const debug = Debug('cannon:cli:publish');
 
@@ -48,6 +48,10 @@ export class PackageReference {
     return !!PKG_REG_EXP.test(ref);
   }
 
+  static from(name: string, version = 'latest', preset = 'main') {
+    return new PackageReference(`${name}:${version}@${preset}`);
+  }
+
   constructor(ref: string) {
     this.ref = ref;
 
@@ -66,6 +70,10 @@ export class PackageReference {
     this.preset = preset;
 
     this.fullPackageRef = `${this.name}:${this.version}@${this.preset}`;
+  }
+
+  toString() {
+    return this.fullPackageRef;
   }
 }
 

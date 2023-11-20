@@ -1,13 +1,11 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
-import { blueBright, gray } from 'chalk';
+import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
+import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
+import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import { ethers, version } from 'ethers';
+import prompts from 'prompts';
+import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getMainLoader } from '../loader';
-import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
-
-import { bold, yellow, italic } from 'chalk';
-import prompts from 'prompts';
 
 interface Params {
   packageRef: string;
@@ -80,7 +78,6 @@ export async function publish({
   // This works as a catch all to get any deployment stored locally.
   // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
   let deploys;
-  console.log('package ref', packageRef);
   if (packageRef.startsWith('@')) {
     deploys = [{ name: packageRef, chainId: 13370 }];
   } else {
@@ -101,8 +98,7 @@ export async function publish({
       message: 'Select the packages you want to publish:\n',
       name: 'values',
       choices: deploys.map((d) => {
-        const {fullPackageRef} = new PackageReference(d.name);
-
+        const { fullPackageRef } = new PackageReference(d.name);
         return {
           title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
           description: '',
@@ -118,7 +114,6 @@ export async function publish({
 
     deploys = verification.values as typeof deploys;
   }
-
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
   const deployNames = deploys.map((deploy) => {
@@ -153,8 +148,8 @@ export async function publish({
         if (
           !acc.some((item) => item.packagesNames !== curr.packagesNames && item.chainId === curr.chainId) &&
           !curr.packagesNames.some((r) => {
-            const { name } = new PackageReference(r)
-            parentPackages.some((p) => name === p.name)
+            const { name } = new PackageReference(r);
+            parentPackages.some((p) => name === p.name);
           })
         ) {
           acc.push(curr);
@@ -165,13 +160,19 @@ export async function publish({
       parentPackages.forEach((deploy) => {
         console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
         deploy.versions.concat(tags).map((version) => {
-          console.log(`- ${version} (preset: ${deploy.preset})`)
+          console.log(`- ${version} (preset: ${deploy.preset})`);
         });
       });
       console.log('\n');
 
       subPackages!.forEach((pkg: SubPackage, index) => {
-        console.log(blueBright(`This will publish ${bold(pkg.packagesNames[index].split(':')[0])} ${bold(italic('(Provisioned)'))} to the registry:`));
+        console.log(
+          blueBright(
+            `This will publish ${bold(pkg.packagesNames[index].split(':')[0])} ${bold(
+              italic('(Provisioned)')
+            )} to the registry:`
+          )
+        );
         pkg.packagesNames.forEach((pkgName) => {
           const { version, preset } = new PackageReference(pkgName);
           console.log(`- ${version} (preset: ${preset})`);
@@ -207,11 +208,11 @@ export async function publish({
 
   const registrationReceipts = [];
 
-  console.log("PARENT PACKAGES ====> ", parentPackages);
+  console.log('PARENT PACKAGES ====> ', parentPackages);
 
   for (const pkg of parentPackages) {
     const publishTags: string[] = pkg.versions.concat(tags);
-  
+
     const newReceipts = await publishPackage({
       packageRef: `${pkg.name}`,
       chainId: deploys[0].chainId,
@@ -222,7 +223,6 @@ export async function publish({
       includeProvisioned,
     });
 
-    
     registrationReceipts.push(...newReceipts);
   }
 

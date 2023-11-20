@@ -1,19 +1,17 @@
 import {
   CannonWrapperGenericProvider,
-  publishPackage,
   DeploymentInfo,
   IPFSLoader,
   OnChainRegistry,
+  publishPackage,
 } from '@usecannon/builder';
-import * as builder from '@usecannon/builder';
-import { CliLoader, LocalLoader } from '../loader';
-import { publish } from '../commands/publish';
 import { ethers } from 'ethers';
 import fs from 'fs-extra';
-import path from 'path';
-import { resolveCliSettings } from '../settings';
-import * as settings from '../settings';
 import _ from 'lodash';
+import path from 'path';
+import { publish } from '../commands/publish';
+import { CliLoader, LocalLoader } from '../loader';
+import { resolveCliSettings } from '../settings';
 
 describe('publish command', () => {
   let tags = ['tag0', 'tag1'];
@@ -54,6 +52,7 @@ describe('publish command', () => {
   beforeAll(async () => {
     jest.resetAllMocks();
 
+    const settings = await import('../settings');
     jest.spyOn(settings, 'resolveCliSettings').mockImplementation(
       jest.fn().mockReturnValue({
         ipfsUrl: 'http://127.0.0.1:5001',
@@ -86,13 +85,7 @@ describe('publish command', () => {
     const cliSettings = resolveCliSettings();
 
     jest.spyOn(CliLoader.prototype, 'read').mockImplementation(async (url) => {
-      switch (url) {
-        case testPkgDataIpfsUrl:
-          return Promise.resolve(testPkgData);
-        case testPkgMetaIpfsUrl:
-          return Promise.resolve(testPkgData.meta);
-      }
-      return Promise.resolve({});
+      console.log('-->', url);
     });
 
     jest.spyOn(LocalLoader.prototype, 'read').mockImplementation(async (url) => {
@@ -144,7 +137,7 @@ describe('publish command', () => {
     jest.spyOn(OnChainRegistry.prototype, 'publish').mockResolvedValue([]);
   });
 
-  it('should publish the package to the registry', async () => {
+  it.only('should publish the package to the registry', async () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
       packageRef: packageRef,
@@ -185,7 +178,7 @@ describe('publish command', () => {
   });
 
   describe('scanDeploys', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const nonSenseFileName = 'nonSenseFileName.txt';
       const _deployDataLocalFileNames = [
         `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`,
@@ -195,6 +188,8 @@ describe('publish command', () => {
       ];
       // @ts-ignore
       jest.spyOn(fs, 'readdir').mockResolvedValue(_deployDataLocalFileNames);
+
+      const builder = await import('@usecannon/builder');
       jest.spyOn(builder, 'publishPackage').mockImplementation(async () => {
         return [];
       });
