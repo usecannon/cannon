@@ -344,7 +344,7 @@ export async function build({
     }
     ctrlcs++;
   };
-  if (persist) {
+  if (persist && chainId != CANNON_CHAIN_ID) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -383,20 +383,18 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // locally store cannon packages (version + latest)
-    if (persist) {
-      await resolver.publish(
-        [`${name}:${version}`, `${name}:latest`],
-        `${runtime.chainId}-${selectedPreset}`,
-        deployUrl!,
-        metaUrl!
-      );
+    await resolver.publish(
+      [`${name}:${version}`, `${name}:latest`],
+      `${runtime.chainId}-${selectedPreset}`,
+      deployUrl!,
+      metaUrl!
+    );
 
-      // detach the process handler
+    // detach the process handler
 
-      process.off('SIGINT', handler);
-      process.off('SIGTERM', handler);
-      process.off('SIGQUIT', handler);
-    }
+    process.off('SIGINT', handler);
+    process.off('SIGTERM', handler);
+    process.off('SIGQUIT', handler);
 
     if (partialDeploy) {
       console.log(
@@ -464,5 +462,5 @@ export async function build({
 
   provider.artifacts = outputs;
 
-  return { outputs, provider };
+  return { outputs, provider, runtime };
 }

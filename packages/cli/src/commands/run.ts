@@ -3,6 +3,7 @@ import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
+  CannonRegistry,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -23,6 +24,7 @@ import { getMainLoader } from '../loader';
 
 export interface RunOptions {
   node: CannonRpcNode;
+  resolver?: CannonRegistry;
   logs?: boolean;
   pkgInfo: any;
   presetArg?: string;
@@ -64,7 +66,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const cliSettings = resolveCliSettings(options);
-  const resolver = await createDefaultReadRegistry(cliSettings);
+  const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
