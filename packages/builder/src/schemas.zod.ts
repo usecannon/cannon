@@ -537,6 +537,7 @@ export const chainDefinitionSchema = z
      */
     name: z
       .string()
+      .min(3)
       .max(31)
       .refine((val) => !!val.match(RegExp(/[a-zA-Z0-9-]+/, 'gm')), {
         message: 'Name cannot contain any special characters',
@@ -547,10 +548,21 @@ export const chainDefinitionSchema = z
      */
     version: z
       .string()
+      .max(31)
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
       .describe('Version of the package'),
+    /**
+     *  Preset of the package
+     */
+    preset: z
+      .string()
+      .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
+        message: 'Preset cannot contain any special characters',
+      })
+      .describe('Preset of the package')
+      .optional(),
   })
   .merge(
     z

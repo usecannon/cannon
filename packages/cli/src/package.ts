@@ -60,7 +60,7 @@ async function _getStore() {
 }
 
 async function _readDeploy(store: CannonStorage, packageName: string, chainId: number, preset: string) {
-  const deployInfo = await store.readDeploy(packageName, preset, chainId);
+  const deployInfo = await store.readDeploy(packageName, chainId);
 
   if (!deployInfo) {
     throw new Error(`deployment data could not be downloaded for ${packageName} at ${chainId}-${preset}`);

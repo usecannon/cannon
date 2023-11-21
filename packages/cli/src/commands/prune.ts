@@ -18,7 +18,7 @@ function normalizeMiscUrl(miscUrl: string): string {
 export async function prune(
   storage: CannonStorage,
   packageFilters: string[],
-  variantFilters: string[],
+  chainIds: number[],
   keepAge: number
 ): Promise<[string[], PruneStats]> {
   const loaderUrls = [];
@@ -30,11 +30,11 @@ export async function prune(
   const registryUrls: Set<string> = new Set();
   for (const packageFilter of packageFilters) {
     debug('load urls from registry', packageFilter);
-    if (!variantFilters.length) {
+    if (!chainIds.length) {
       (await storage.registry.getAllUrls(packageFilter)).forEach(registryUrls.add, registryUrls);
     } else {
-      for (const variantFilter of variantFilters) {
-        (await storage.registry.getAllUrls(packageFilter, variantFilter)).forEach(registryUrls.add, registryUrls);
+      for (const chainId of chainIds) {
+        (await storage.registry.getAllUrls(packageFilter, chainId)).forEach(registryUrls.add, registryUrls);
       }
     }
   }

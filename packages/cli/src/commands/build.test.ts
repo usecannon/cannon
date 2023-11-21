@@ -49,7 +49,7 @@ describe('build', () => {
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
-      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider });
+      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
     });
 

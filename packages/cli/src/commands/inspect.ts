@@ -17,29 +17,22 @@ export async function inspect(
   writeDeployments: string,
   sources: boolean
 ) {
-  const { name, version, preset } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const { fullPackageRef } = new PackageReference(packageRef);
 
   const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
   const loader = getMainLoader(resolveCliSettings());
 
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+  const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
   if (!deployUrl) {
-    throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
-    );
+    throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
   }
 
   if (!chainId) {
@@ -54,7 +47,7 @@ export async function inspect(
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
 
   if (!deployData) {
-    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`);
+    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);
@@ -80,14 +73,14 @@ export async function inspect(
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+    const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
     const ipfsUrl = resolveCliSettings().ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
 
-    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+    console.log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
     console.log();
     console.log(
       '   Deploy Status:',

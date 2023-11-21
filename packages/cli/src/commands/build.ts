@@ -25,6 +25,8 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { PackageReference } from '@usecannon/builder';
+import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -86,20 +88,19 @@ export async function build({
     );
   }
 
-  const { name, version, preset } = packageDefinition;
+  const { name, version } = packageDefinition;
+  let { preset } = packageDefinition;
 
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(
-          `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
-        )
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    preset = presetArg;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+
+  let pkgName = packageDefinition?.name;
+  let pkgVersion = packageDefinition?.version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -220,14 +221,14 @@ export async function build({
 
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || `${name}:${version}`;
+  const prevPkg = upgradeFrom || fullPackageRef;
 
   console.log(bold('Checking for existing package...'));
-  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
-    console.log(`${name}:${version}@${preset ? preset : 'main'} (Chain ID: ${chainId}) found`);
+    console.log(`${fullPackageRef} (Chain ID: ${chainId}) found`);
     await runtime.restoreMisc(oldDeployData.miscUrl);
 
     if (!pkgInfo) {
@@ -235,14 +236,11 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`);
+      throw new Error(`${prevPkg} (Chain ID: ${chainId}) not found`);
     } else {
-      console.log(gray(`  ${prevPkg}@${selectedPreset} (Chain ID: ${chainId}) not found`));
+      console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
     }
   }
-
-  let pkgName = packageDefinition?.name;
-  let pkgVersion = packageDefinition?.version;
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
 
@@ -273,7 +271,7 @@ export async function build({
   }
   console.log('Name: ' + cyanBright(`${pkgName}`));
   console.log('Version: ' + cyanBright(`${pkgVersion}`));
-  console.log('Preset: ' + cyanBright(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
   console.log('Chain ID: ' + cyanBright(`${chainId}`));
   if (upgradeFrom) {
     console.log(`Upgrading from: ${cyanBright(upgradeFrom)}`);
@@ -344,7 +342,7 @@ export async function build({
     }
     ctrlcs++;
   };
-  if (persist) {
+  if (persist && chainId != CANNON_CHAIN_ID) {
     process.on('SIGINT', handler);
     process.on('SIGTERM', handler);
     process.on('SIGQUIT', handler);
@@ -365,6 +363,12 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
+  const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
+  if (cliSettings.ipfsUrl != undefined && !isIPFSWritable) {
+    console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
+    process.exit(1);
+  }
+
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
@@ -383,20 +387,18 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // locally store cannon packages (version + latest)
-    if (persist) {
-      await resolver.publish(
-        [`${name}:${version}`, `${name}:latest`],
-        `${runtime.chainId}-${selectedPreset}`,
-        deployUrl!,
-        metaUrl!
-      );
+    await resolver.publish(
+      [fullPackageRef, PackageReference.from(name, 'latest', preset).toString()],
+      runtime.chainId,
+      deployUrl!,
+      metaUrl!
+    );
 
-      // detach the process handler
+    // detach the process handler
 
-      process.off('SIGINT', handler);
-      process.off('SIGTERM', handler);
-      process.off('SIGQUIT', handler);
-    }
+    process.off('SIGINT', handler);
+    process.off('SIGTERM', handler);
+    process.off('SIGQUIT', handler);
 
     if (partialDeploy) {
       console.log(
@@ -414,16 +416,15 @@ export async function build({
       console.log(`- Your partial deployment has been stored to ${deployUrl}`);
       console.log(
         '- Run ' +
-          bold(`cannon publish ${deployUrl}`) +
+          bold(`cannon pin ${deployUrl}`) +
           ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped steps in the partial deployment package.'
       );
     } else {
-      const packageRef = `${name}:${version}${selectedPreset != 'main' ? '@' + selectedPreset : ''}`;
       if (chainId == 13370) {
-        console.log(bold(`💥 ${packageRef} built for Cannon (Chain ID: ${chainId})`));
+        console.log(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
         console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
       } else {
-        console.log(bold(`💥 ${packageRef} built on ${chainName} (Chain ID: ${chainId})`));
+        console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
         console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       }
       console.log();
@@ -438,15 +439,15 @@ export async function build({
           ['Metadata', metaUrl],
         ])
       );
-      console.log(bold(`Publish ${bold(packageRef)}`));
-      console.log(`> ${`cannon publish ${packageRef} --chain-id ${chainId}`}`);
+      console.log(bold(`Publish ${bold(fullPackageRef)}`));
+      console.log(`> ${`cannon publish ${fullPackageRef} --chain-id ${chainId}`}`);
       console.log('');
       if (chainId == 13370) {
         console.log(bold('Run this package'));
-        console.log(`> ${`cannon ${packageRef}`}`);
+        console.log(`> ${`cannon ${fullPackageRef}`}`);
       } else {
         console.log(bold('Verify contracts on Etherscan'));
-        console.log(`> ${`cannon verify ${packageRef} --chain-id ${chainId}`}`);
+        console.log(`> ${`cannon verify ${fullPackageRef} --chain-id ${chainId}`}`);
       }
     }
   } else {
@@ -464,5 +465,5 @@ export async function build({
 
   provider.artifacts = outputs;
 
-  return { outputs, provider };
+  return { outputs, provider, runtime };
 }

@@ -135,8 +135,8 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, false, '', false);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
-    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
@@ -149,8 +149,8 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, false, writeDeployments, false);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
-    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(fs.outputFile).toHaveBeenCalled();
   });
 
@@ -158,8 +158,8 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, false, '', true);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
-    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
+    expect(mockedFallBackRegistry.getMetaUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(getSourceFromRegistry).toHaveBeenCalledWith(mockedFallBackRegistry.registries);
     expect(fetchIPFSAvailability).toHaveBeenCalledWith('ipfsUrl', 'file:/usecannon.com/url');
     expect(getContractsAndDetails).toHaveBeenCalledWith(testPkgData.state);
@@ -171,7 +171,7 @@ describe('inspect', () => {
     const result = await inspect(packageName, chainId, preset, true, '', false);
 
     expect(result).toEqual(testPkgData);
-    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(`${basePkgName}`, `${chainId}-${preset}`);
+    expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
     expect(mockedFallBackRegistry.getMetaUrl).not.toHaveBeenCalled();
     expect(stdoutOutput.join('')).toEqual(JSON.stringify(testPkgData, null, 2));
   });

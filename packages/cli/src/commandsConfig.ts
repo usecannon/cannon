@@ -240,11 +240,17 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'The preset label for storing the build with the given settings',
+        description:
+          'DEPRECATED. The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
       },
       {
         flags: '--dry-run',
         description: 'Simulate building on a local fork rather than deploying on the real network',
+      },
+      {
+        flags: '--keep-alive',
+        description:
+          'After completing build, leave RPC open and switch into run mode. Has no effect on live network deployment.',
       },
       {
         flags: '--private-key [key]',
@@ -382,6 +388,15 @@ const commandsConfig = {
       {
         flags: '--meta-hash <metaHash>',
         description: 'IPFS hash to fetch deployment metadata from',
+      },
+    ],
+  },
+  pin: {
+    description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
+    arguments: [
+      {
+        flags: '<ipfsHash>',
+        description: 'IPFS hash to write deployment data for',
       },
     ],
   },
@@ -577,7 +592,6 @@ const commandsConfig = {
       {
         flags: '-p --preset <preset>',
         description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
       },
       {
         flags: '-j --json',
