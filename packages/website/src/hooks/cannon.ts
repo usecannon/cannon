@@ -239,13 +239,14 @@ export function useCannonWriteDeployToIpfs(
       const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
-      // TODO: Get preset from the cannonfile once
-      // https://linear.app/usecannon/issue/CAN-121/folder-cache-should-be-saved-before-trying-ipfs-upload
-      // will be merged
-      const variant = `${runtime.chainId}-andromeda`;
+      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}@${def.getPreset(ctx)}`;
 
-      await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
+      await runtime.registry.publish(
+        [packageRef],
+        runtime.chainId,
+        (await runtime.loaders.mem.put(deployInfo)) ?? '',
+        metaUrl
+      );
 
       const memoryRegistry = new InMemoryRegistry();
 
@@ -257,12 +258,12 @@ export function useCannonWriteDeployToIpfs(
           'ipfs'
         ),
         packageRef,
-        variant,
+        chainId: runtime.chainId,
         tags: ['latest'],
       });
 
       // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, variant);
+      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
 
       return {
         packageRef,
@@ -278,17 +279,15 @@ export function useCannonWriteDeployToIpfs(
   };
 }
 
-export function useCannonPackage(packageRef: string, variant = '') {
-  const chainId = useChainId();
+export function useCannonPackage(packageRef: string, chainId?: number) {
+  const connectedChainId = useChainId();
   const { addLog } = useLogs();
 
-  if (!variant) {
-    variant = `${chainId}-main`;
-  }
+  const packageChainId = chainId ?? connectedChainId;
 
   const settings = useStore((s) => s.settings);
 
-  const registryQuery = useQuery(['cannon', 'registry', packageRef, variant], {
+  const registryQuery = useQuery(['cannon', 'registry', packageRef, packageChainId], {
     queryFn: async () => {
       if (!packageRef || packageRef.length < 3) {
         return null;
@@ -299,13 +298,13 @@ export function useCannonPackage(packageRef: string, variant = '') {
         address: settings.registryAddress,
       });
 
-      const url = await registry.getUrl(packageRef, variant);
-      const metaUrl = await registry.getMetaUrl(packageRef, variant);
+      const url = await registry.getUrl(packageRef, packageChainId);
+      const metaUrl = await registry.getMetaUrl(packageRef, packageChainId);
 
       if (url) {
         return { url, metaUrl };
       } else {
-        throw new Error(`package not found: ${packageRef} (${variant})`);
+        throw new Error(`package not found: ${packageRef} (${packageChainId})`);
       }
     },
     refetchOnWindowFocus: false,
@@ -330,10 +329,11 @@ export function useCannonPackage(packageRef: string, variant = '') {
 
         const resolvedName = def.getName(ctx);
         const resolvedVersion = def.getVersion(ctx);
+        const resolvedPreset = def.getPreset(ctx);
 
         if (deployInfo) {
           addLog('LOADED');
-          return { deployInfo, ctx, resolvedName, resolvedVersion };
+          return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset };
         } else {
           throw new Error('failed to download package data');
         }
@@ -353,6 +353,7 @@ export function useCannonPackage(packageRef: string, variant = '') {
     pkg: ipfsQuery.data?.deployInfo,
     resolvedName: ipfsQuery.data?.resolvedName,
     resolvedVersion: ipfsQuery.data?.resolvedVersion,
+    resolvedPreset: ipfsQuery.data?.resolvedPreset,
   };
 }
 
@@ -378,8 +379,8 @@ export function getContractsRecursive(
   return contracts;
 }
 
-export function useCannonPackageContracts(packageRef: string, variant = '') {
-  const pkg = useCannonPackage(packageRef, variant);
+export function useCannonPackageContracts(packageRef: string, chainId?: number) {
+  const pkg = useCannonPackage(packageRef, chainId);
   const [contracts, setContracts] = useState<ContractInfo | null>(null);
   const settings = useStore((s) => s.settings);
 

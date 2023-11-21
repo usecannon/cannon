@@ -66,20 +66,7 @@ function QueueTransactions() {
 
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  let packageRef;
-  let preset;
-  if (target.includes('@')) {
-    packageRef = target.split('@')[0];
-    preset = target.split('@')[1];
-  } else {
-    packageRef = target;
-    preset = 'main';
-  }
-
-  const cannonInfo = useCannonPackageContracts(
-    packageRef,
-    `${currentSafe?.chainId}-${preset}`
-  );
+  const cannonInfo = useCannonPackageContracts(target, currentSafe?.chainId);
 
   const queuedTxns = queuedIdentifiableTxns.map((item) => item.txn);
 

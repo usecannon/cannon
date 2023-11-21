@@ -119,7 +119,7 @@ const TransactionDetailsPage: FC<{
 
   const reverseLookupCannonPackage = useCannonPackage(
     cannonPackage.resolvedName
-      ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}`
+      ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`
       : ''
   );
 
@@ -247,7 +247,8 @@ const TransactionDetailsPage: FC<{
                             <WarningIcon color="red" />
                           )}
                           &nbsp;{cannonPackage.resolvedName}:
-                          {cannonPackage.resolvedVersion}
+                          {cannonPackage.resolvedVersion}@
+                          {cannonPackage.resolvedPreset}
                         </Link>
                         &nbsp;(
                         <Link

@@ -186,19 +186,18 @@ function QueueFromGitOps() {
   }, [previousPackageInput]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
-    (cannonDefInfo.def && `${previousName}:${previousVersion}`) ?? '',
-    `${chainId}-${previousPreset}`
+    (cannonDefInfo.def &&
+      `${previousName}:${previousVersion}@${previousPreset}`) ??
+      '',
+    chainId
   );
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
       `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
         ctx
-      )}`) ??
+      )}@${cannonDefInfo.def.getPreset(ctx)}`) ??
       '',
-    // TODO: Get preset from the cannonfile once
-    // https://linear.app/usecannon/issue/CAN-121/folder-cache-should-be-saved-before-trying-ipfs-upload
-    // will be merged
-    `${chainId}-andromeda`
+    chainId
   );
 
   const prevDeployLocation =

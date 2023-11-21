@@ -318,8 +318,7 @@ export function TransactionDisplay(props: {
             </Heading>
             <PublishUtility
               deployUrl={hintData.cannonPackage}
-              // TODO: Check if we need to provide preset
-              targetVariant={`${props.safe.chainId}-main`}
+              targetChainId={props.safe.chainId}
             />
           </Box>
         )
