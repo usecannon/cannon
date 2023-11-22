@@ -48,7 +48,9 @@ export class PackageReference {
     return !!PKG_REG_EXP.test(ref);
   }
 
-  static from(name: string, version = 'latest', preset = 'main') {
+  static from(name: string, version?: string, preset?: string) {
+    version = version || 'latest';
+    preset = preset || 'main';
     return new PackageReference(`${name}:${version}@${preset}`);
   }
 
