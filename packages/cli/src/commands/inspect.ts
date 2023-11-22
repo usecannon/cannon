@@ -1,11 +1,13 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
 import { bold, cyan, green, yellow } from 'chalk';
 import { PackageReference } from '@usecannon/builder/dist/package';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
 import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
+import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 
 export async function inspect(
   packageRef: string,
@@ -13,33 +15,25 @@ export async function inspect(
   presetArg: string,
   json: boolean,
   writeDeployments: string,
-  registryPriority?: 'local' | 'onchain'
+  sources: boolean,
+  registryPriority?: 'local' | 'onchain',
 ) {
-  const { name, version, preset } = new PackageReference(packageRef);
-
-  if (presetArg && preset) {
-    console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
-      )
-    );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+  // Handle deprecated preset specification
+  if (presetArg) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
+  const { fullPackageRef } = new PackageReference(packageRef);
 
-  const cliSettings = resolveCliSettings({ registryPriority });
+  const resolver = await createDefaultReadRegistry(resolveCliSettings());
 
-  const resolver = await createDefaultReadRegistry(cliSettings);
+  const loader = getMainLoader(resolveCliSettings());
 
-  const loader = getMainLoader(cliSettings);
-
-  const deployUrl = await resolver.getUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+  const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
   if (!deployUrl) {
-    throw new Error(
-      `deployment not found: ${`${name}:${version}`}. please make sure it exists for the variant ${chainId}-${selectedPreset}.`
-    );
+    throw new Error(`deployment not found: ${fullPackageRef}. please make sure it exists for chain ID "${chainId}".`);
   }
 
   if (!chainId) {
@@ -54,7 +48,7 @@ export async function inspect(
   const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
 
   if (!deployData) {
-    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${`${name}:${version}`}.`);
+    throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);
   }
 
   const chainDefinition = new ChainDefinition(deployData.def);
@@ -80,9 +74,14 @@ export async function inspect(
       process.stdout.write(toOutput.slice(i, i + chunkSize));
     }
   } else {
-    const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
+    const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
+    const packageOwner = deployData.def.setting?.owner?.defaultValue;
+    const localSource = getSourceFromRegistry(resolver.registries);
+    const ipfsUrl = resolveCliSettings().ipfsUrl;
+    const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
+    const contractsAndDetails = getContractsAndDetails(deployData.state);
 
-    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+    console.log(green(bold(`\n=============== ${fullPackageRef} ===============`)));
     console.log();
     console.log(
       '   Deploy Status:',
@@ -94,9 +93,45 @@ export async function inspect(
         .map((o) => `${o[0]}=${o[1]}`)
         .join(' ') || '(none)'
     );
+    packageOwner
+      ? console.log('           Owner:', packageOwner)
+      : console.log('          Source:', localSource || '(none)');
     console.log('     Package URL:', deployUrl);
     console.log('        Misc URL:', deployData.miscUrl);
-    console.log('Package Info URL:', metaUrl);
+    console.log('Package Info URL:', metaUrl || '(none)');
+    console.log('Cannon generator:', deployData.generator);
+    console.log('       timestamp:', deployData.timestamp);
+    console.log();
+    console.log('IPFS Availability Score(# of nodes): ', ipfsAvailabilityScore || 'Run IPFS Locally to get this score');
+    console.log();
+    console.log(yellow(bold('Smart Contracts')));
+    console.log(`Note: Any ${bold('contract name')} that is bolded is highlighted and marked as important.`);
+    console.log('Contract Addresses:');
+    console.log('-------------------');
+    for (const contractName in contractsAndDetails) {
+      const { address, highlight } = contractsAndDetails[contractName];
+      const displayName = highlight ? bold(contractName) : contractName;
+      console.log(`${displayName}: ${address}`);
+    }
+    console.log('-------------------');
+    console.log();
+    if (sources) {
+      console.log('Contract Sources:');
+      console.log('-------------------');
+      for (const contractName in contractsAndDetails) {
+        const { sourceName, highlight } = contractsAndDetails[contractName];
+        if (sourceName) {
+          const displayName = highlight ? bold(contractName) : contractName;
+          console.log(`${displayName}: ${sourceName}`);
+        }
+      }
+      console.log('-------------------');
+    } else {
+      const hasContractSources = Object.values(contractsAndDetails).some((contract) => 'sourceName' in contract);
+      if (hasContractSources) {
+        console.log('Contract sources are available. Run inspect command with --sources flag to display');
+      }
+    }
     console.log();
     console.log(cyan(bold('Cannonfile Topology')));
     console.log(cyan(chainDefinition.printTopology().join('\n')));

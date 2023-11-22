@@ -34,10 +34,12 @@ import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
+import { CommandPreview } from '@/components/CommandPreview';
 
 export const DeploymentExplorer: FC<{
+  pkgName: string;
   variant: any;
-}> = ({ variant }) => {
+}> = ({ pkgName, variant }) => {
   const deploymentData = useQueryIpfsData(
     variant?.deploy_url,
     !!variant?.deploy_url
@@ -209,7 +211,7 @@ export const DeploymentExplorer: FC<{
                 'PPPppp'
               ).toLowerCase()}`}
           </Text>
-          <Box mb={8}>
+          <Box mb={6}>
             {deploymentInfo?.status == 'complete' && (
               <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
                 <Badge opacity={0.8} colorScheme="green">
@@ -225,6 +227,36 @@ export const DeploymentExplorer: FC<{
               </Tooltip>
             )}
           </Box>
+          {variant.chain_id == 13370 && (
+            <Box
+              bg="blackAlpha.600"
+              border="1px solid"
+              borderColor="gray.900"
+              borderRadius="md"
+              p={6}
+              mb={6}
+            >
+              <Box mb={4}>
+                <Heading size="md" mb={2}>
+                  Run Package
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  <Link as={NextLink} href="/learn/cli/">
+                    Install the CLI
+                  </Link>{' '}
+                  and then use the following command to run a local node for
+                  development with this package:
+                </Text>
+              </Box>
+              <CommandPreview
+                command={`cannon ${pkgName}${
+                  variant?.tag?.name !== 'latest'
+                    ? `:${variant?.tag?.name}`
+                    : ''
+                }${variant?.preset !== 'main' ? `@${variant?.preset}` : ''}`}
+              />
+            </Box>
+          )}
           <Box
             bg="blackAlpha.600"
             border="1px solid"

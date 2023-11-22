@@ -49,7 +49,7 @@ describe('build', () => {
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
       provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
-      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider });
+      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
     });
 
@@ -109,7 +109,7 @@ describe('build', () => {
 
       // Create rpc node with default options
       expect(rpcModule.runRpc).toBeCalledTimes(1);
-      expect(rpcModule.runRpc).toBeCalledWith({ port: 0 });
+      expect(rpcModule.runRpc).toBeCalledWith({ port: '8545' });
 
       // create provider with rpc node
       expect(rpcModule.getProvider).toBeCalledTimes(1);

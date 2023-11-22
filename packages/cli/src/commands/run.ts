@@ -3,6 +3,7 @@ import { greenBright, green, bold, gray, yellow } from 'chalk';
 import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
+  CannonRegistry,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -20,9 +21,11 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
+import { PackageReference } from '@usecannon/builder';
 
 export interface RunOptions {
   node: CannonRpcNode;
+  resolver?: CannonRegistry;
   logs?: boolean;
   pkgInfo: any;
   presetArg?: string;
@@ -35,11 +38,12 @@ export interface RunOptions {
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
+  nonInteractive?: boolean;
 }
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
-  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
   )} to interact with contracts via the command line.\nPress ${bold(
     'v'
@@ -63,7 +67,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const cliSettings = resolveCliSettings(options);
-  const resolver = await createDefaultReadRegistry(cliSettings);
+  const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
@@ -96,20 +100,16 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version, preset } = pkg;
+    const { name, version } = pkg;
+    let { preset } = pkg;
 
-    const selectedPreset = preset || options.presetArg || 'main';
-
-    if (options.presetArg && preset) {
-      console.warn(
-        yellow(
-          bold(
-            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.presetArg}"`
-          )
-        )
-      );
-      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    // Handle deprecated preset specification
+    if (options.presetArg) {
+      console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+      preset = options.presetArg;
     }
+
+    const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
     if (options.build || Object.keys(pkg.settings).length) {
       const { outputs } = await build({
@@ -117,7 +117,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: selectedPreset,
+        presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -125,20 +125,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(fullPackageRef, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
         );
       }
 
       const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
 
       if (!outputs) {
-        throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
-        );
+        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/${preset}. Did you mean to run instead?`);
       }
 
       buildOutputs.push({ pkg, outputs });
@@ -215,64 +213,69 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   provider.on('block', debugTracing);
 
-  console.log();
+  if (options.nonInteractive) {
+    await new Promise(() => {
+      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+    });
+  } else {
+    console.log();
+    console.log(INITIAL_INSTRUCTIONS);
+    console.log(INSTRUCTIONS);
 
-  console.log(INITIAL_INSTRUCTIONS);
-  console.log(INSTRUCTIONS);
+    await onKeypress(async (evt, { pause, stop }) => {
+      if (evt.ctrl && evt.name === 'c') {
+        stop();
+        process.exit();
+      } else if (evt.name === 'a') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (nodeLogging.enabled()) {
+          console.log(gray('Paused anvil logs...'));
+          console.log(INSTRUCTIONS);
+          nodeLogging.disable();
+        } else {
+          console.log(gray('Unpaused anvil logs...'));
+          nodeLogging.enable();
+        }
+      } else if (evt.name === 'i') {
+        if (nodeLogging.enabled()) return;
 
-  await onKeypress(async (evt, { pause, stop }) => {
-    if (evt.ctrl && evt.name === 'c') {
-      stop();
-      process.exit();
-    } else if (evt.name === 'a') {
-      // Toggle showAnvilLogs when the user presses "a"
-      if (nodeLogging.enabled()) {
-        console.log(gray('Paused anvil logs...'));
-        console.log(INSTRUCTIONS);
-        nodeLogging.disable();
-      } else {
-        console.log(gray('Unpaused anvil logs...'));
-        nodeLogging.enable();
-      }
-    } else if (evt.name === 'i') {
-      if (nodeLogging.enabled()) return;
+        await pause(async () => {
+          const [signer] = signers;
 
-      await pause(async () => {
-        const [signer] = signers;
+          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
 
-        const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
-
-        await interact({
-          packages,
-          packagesArtifacts: buildOutputs.map((info) => info.outputs),
-          contracts,
-          signer,
-          provider,
+          await interact({
+            packages,
+            packagesArtifacts: buildOutputs.map((info) => info.outputs),
+            contracts,
+            signer,
+            provider,
+          });
         });
-      });
 
-      console.log(INITIAL_INSTRUCTIONS);
-      console.log(INSTRUCTIONS);
-    } else if (evt.name == 'v') {
-      // Toggle showAnvilLogs when the user presses "a"
-      if (traceLevel === 0) {
-        traceLevel = 1;
-        console.log(gray('Enabled display of console.log events from transactions...'));
-      } else if (traceLevel === 1) {
-        traceLevel = 2;
-        console.log(gray('Enabled display of full transaction logs...'));
-      } else {
-        traceLevel = 0;
-        console.log(gray('Disabled transaction tracing...'));
+        console.log(INITIAL_INSTRUCTIONS);
+        console.log(INSTRUCTIONS);
+      } else if (evt.name == 'v') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (traceLevel === 0) {
+          traceLevel = 1;
+          console.log(gray('Enabled display of console.log events from transactions...'));
+        } else if (traceLevel === 1) {
+          traceLevel = 2;
+          console.log(gray('Enabled display of full transaction logs...'));
+        } else {
+          traceLevel = 0;
+          console.log(gray('Disabled transaction tracing...'));
+        }
+      } else if (evt.name === 'h') {
+        if (nodeLogging.enabled()) return;
+
+        if (options.helpInformation) console.log('\n' + options.helpInformation);
+        console.log();
+        console.log(INSTRUCTIONS);
       }
-    } else if (evt.name === 'h') {
-      if (nodeLogging.enabled()) return;
-
-      if (options.helpInformation) console.log('\n' + options.helpInformation);
-      console.log();
-      console.log(INSTRUCTIONS);
-    }
-  });
+    });
+  }
 }
 
 async function createLoggingInterface(node: CannonRpcNode) {

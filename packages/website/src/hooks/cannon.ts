@@ -79,6 +79,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const [buildError, setBuildError] = useState<string | null>(null);
 
   const buildFn = async () => {
+    if (settings.isIpfsGateway) {
+      throw new Error('You cannot build on an IPFS gateway, only read operations can be done');
+    }
+
     setBuildStatus('Creating fork...');
     const fork = await createFork({
       url: settings.forkProviderUrl,
@@ -94,7 +98,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       address: settings.registryAddress,
     });
 
-    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl);
+    const ipfsLoader = new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/');
 
     setBuildStatus('Loading deployment data...');
 
@@ -240,26 +244,38 @@ export function useCannonWriteDeployToIpfs(
   const writeToIpfsMutation = useMutation<IPFSPackageWriteResult>({
     ...mutationOptions,
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
+      }
+
       const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
-      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}`;
-      const variant = `${runtime.chainId}-${settings.preset}`;
+      const packageRef = `${def.getName(ctx)}:${def.getVersion(ctx)}@${settings.preset}`;
 
-      await runtime.registry.publish([packageRef], variant, (await runtime.loaders.mem.put(deployInfo)) ?? '', metaUrl);
+      await runtime.registry.publish(
+        [packageRef],
+        runtime.chainId,
+        (await runtime.loaders.mem.put(deployInfo)) ?? '',
+        metaUrl
+      );
 
       const memoryRegistry = new InMemoryRegistry();
 
       const publishTxns = await publishPackage({
         fromStorage: runtime,
-        toStorage: new CannonStorage(memoryRegistry, { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl) }, 'ipfs'),
+        toStorage: new CannonStorage(
+          memoryRegistry,
+          { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
+          'ipfs'
+        ),
         packageRef,
-        variant,
+        chainId: runtime.chainId,
         tags: ['latest'],
       });
 
       // load the new ipfs url
-      const mainUrl = await memoryRegistry.getUrl(packageRef, variant);
+      const mainUrl = await memoryRegistry.getUrl(packageRef, runtime.chainId);
 
       return {
         packageRef,
@@ -296,8 +312,8 @@ export function useCannonPackage(packageRef: string, variant = '') {
         address: settings.registryAddress,
       });
 
-      const url = await registry.getUrl(packageRef, variant);
-      const metaUrl = await registry.getMetaUrl(packageRef, variant);
+      const url = await registry.getUrl(packageRef, chainId);
+      const metaUrl = await registry.getMetaUrl(packageRef, chainId);
 
       if (url) {
         return { url, metaUrl };
@@ -403,12 +419,16 @@ export function useCannonPackageContracts(packageRef: string, variant = '') {
 
         if (outputs) {
           setContracts(getContractsRecursive(outputs, null as any));
+        } else {
+          setContracts(null);
         }
+      } else {
+        setContracts(null);
       }
     };
 
     void getContracts();
-  }, [pkg.pkg]);
+  }, [pkg.pkg, packageRef]);
 
   return { contracts, ...pkg };
 }

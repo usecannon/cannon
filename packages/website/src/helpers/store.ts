@@ -24,6 +24,7 @@ export interface State {
   };
   settings: {
     ipfsApiUrl: string;
+    isIpfsGateway: boolean;
     stagingUrl: string;
     publishTags: string;
     preset: string;
@@ -57,6 +58,7 @@ export const initialState = {
   },
   settings: {
     ipfsApiUrl: 'https://repo.usecannon.com/',
+    isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     publishTags: 'latest',
     preset: 'main',

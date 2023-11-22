@@ -50,7 +50,6 @@ const provisionSpec = {
     const cfg = this.configInject(ctx, config, packageState);
 
     const source = cfg.source;
-    const sourcePreset = cfg.sourcePreset;
     const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
@@ -63,7 +62,8 @@ const provisionSpec = {
       }
     }
 
-    const srcUrl = await runtime.registry.getUrl(source, `${chainId}-${sourcePreset}`);
+    // todo: might be worth refactoring all these functions that take in package names to expect a preset in the ref
+    const srcUrl = await runtime.registry.getUrl(source, chainId);
 
     return {
       url: srcUrl,
@@ -77,20 +77,20 @@ const provisionSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    // If both definitions of a preset exist, its a user error.
-    if (config.sourcePreset && packageRef.preset) {
+    if (config.sourcePreset) {
       console.warn(
         yellow(
           bold(
-            `Duplicate preset definitions in source name "${config.source}" and in sourcePreset definition "${config.sourcePreset}"`
+            `The sourcePreset option is deprecated. Using ${_.template(config.sourcePreset)(
+              ctx
+            )}. Reference presets in the source option like name@version:preset`
           )
         )
       );
-      console.warn(yellow(bold(`Defaulting to source name preset "${config.source}"...`)));
     }
 
-    config.source = packageRef.basePackageRef;
-    config.sourcePreset = packageRef.preset || _.template(config.sourcePreset)(ctx) || 'main';
+    config.source = packageRef.fullPackageRef;
+    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -138,13 +138,13 @@ const provisionSpec = {
     debug('exec', config);
 
     const packageRef = new PackageReference(config.source);
-    const source = packageRef.basePackageRef;
-    const sourcePreset = packageRef.preset || config.sourcePreset || 'main';
+    const source = packageRef.fullPackageRef;
+    const sourcePreset = config.sourcePreset || packageRef.preset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.readDeploy(source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
         `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
@@ -170,7 +170,7 @@ const provisionSpec = {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(source, runtime.chainId)) {
         console.warn(
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
@@ -236,9 +236,9 @@ const provisionSpec = {
     } else {
       await runtime.registry.publish(
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
-        `${runtime.chainId}-${targetPreset}`,
+        runtime.chainId,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || ''
       );
     }
 

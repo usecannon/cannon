@@ -27,7 +27,7 @@ describe('readDeploy', () => {
 
     const result = await readDeploy(packageName, chainId, preset);
 
-    expect(CannonStorage.prototype.readDeploy).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy).toHaveBeenCalledWith(packageName, chainId);
     expect(result).toEqual(deployInfo);
   });
 });

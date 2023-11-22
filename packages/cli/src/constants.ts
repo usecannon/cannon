@@ -19,9 +19,9 @@ export function getCannonRepoRegistryUrl() {
   debug(`timezone for repo resolve is ${tz}`);
 
   let region = 'us-east';
-  if (tz.startsWith('Asia/')) {
+  if (tz?.startsWith('Asia/')) {
     region = 'sg';
-  } else if (tz.startsWith('Australia/')) {
+  } else if (tz?.startsWith('Australia/')) {
     region = 'au-east';
   } else if (shHistoricalOffset >= 360) {
     // there are a lot of america timezones, so we just check if its mountain time or later
