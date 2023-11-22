@@ -39,10 +39,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     'writeScriptFormat',
     '(Experimental) Format in which to write the actions script (Options: json, ethers)'
   )
-  .addOptionalParam(
-    'skipReference',
-    '(Optional) Skip checking the name/version package being built on the remote registry'
-  )
+  .addOptionalParam('skipReference', '(Optional) Skip checking the name/version package being built on the remote registry')
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
     async (
@@ -60,7 +57,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         impersonate,
         writeScript,
         writeScriptFormat,
-        skipReference
+        skipReference,
       },
       hre
     ) => {
@@ -195,7 +192,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         publicSourceCode: hre.config.cannon.publicSourceCode,
         writeScript,
         writeScriptFormat,
-        skipReference
+        skipReference,
       } as const;
 
       const { outputs } = await build(params);
