@@ -146,17 +146,6 @@ function QueueFromGitOps() {
   const settings = useStore((s) => s.settings);
   const chainId = useChainId();
 
-  useEffect(() => {
-    if (cannonDefInfo.def) {
-      const name = cannonDefInfo.def.getName(ctx);
-      const version = 'latest';
-      const preset = 'main';
-      setPreviousPackageInput(`${name}:${version}@${preset}`);
-    } else {
-      setPreviousPackageInput('');
-    }
-  }, [cannonDefInfo.def]);
-
   const previousName = useMemo(() => {
     if (previousPackageInput) {
       return previousPackageInput.split(':')[0];
@@ -187,15 +176,18 @@ function QueueFromGitOps() {
 
   const cannonPkgPreviousInfo = useCannonPackage(
     (cannonDefInfo.def &&
-      `${previousName}:${previousVersion}@${previousPreset}`) ??
+      `${previousName}:${previousVersion}${
+        previousPreset ? '@' + previousPreset : ''
+      }`) ??
       '',
     chainId
   );
+  const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
-        ctx
-      )}@${cannonDefInfo.def.getPreset(ctx)}`) ??
+      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
+        preset ? '@' + preset : ''
+      }`) ??
       '',
     chainId
   );
@@ -208,6 +200,33 @@ function QueueFromGitOps() {
   const prevCannonDeployInfo = useCannonPackage(
     prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
   );
+
+  const partialDeployInfo = useCannonPackage(
+    partialDeployIpfs ? '@ipfs:' + partialDeployIpfs : ''
+  );
+
+  useEffect(() => {
+    if (cannonDefInfo.def) {
+      if (partialDeployInfo.pkg) {
+        setPreviousPackageInput(
+          `${partialDeployInfo.resolvedName}:${
+            partialDeployInfo.resolvedVersion
+          }${
+            partialDeployInfo.resolvedPreset
+              ? '@' + partialDeployInfo.resolvedPreset
+              : ''
+          }`
+        );
+      } else {
+        const name = cannonDefInfo.def.getName(ctx);
+        const version = 'latest';
+        const preset = 'main';
+        setPreviousPackageInput(`${name}:${version}@${preset}`);
+      }
+    } else {
+      setPreviousPackageInput('');
+    }
+  }, [cannonDefInfo.def, partialDeployInfo.pkg]);
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
@@ -418,6 +437,7 @@ function QueueFromGitOps() {
             borderColor="whiteAlpha.400"
             background="black"
             onChange={(evt: any) => setPreviousPackageInput(evt.target.value)}
+            disabled={!!partialDeployInfo.pkg}
           />
           <FormHelperText color="gray.300">
             <strong>Optional.</strong> Enter the name of the package this
