@@ -52,6 +52,7 @@ interface Params {
   priorityGasFee?: string;
   writeScript?: string;
   writeScriptFormat?: WriteScriptFormat;
+  skipReference: boolean;
 }
 
 export async function build({
@@ -76,6 +77,7 @@ export async function build({
   priorityGasFee,
   writeScript,
   writeScriptFormat = 'ethers',
+  skipReference = false
 }: Params) {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
@@ -147,6 +149,11 @@ export async function build({
   };
 
   const resolver = overrideResolver || (await createDefaultReadRegistry(cliSettings));
+
+  const uri = await resolver.getUrl(fullPackageRef, chainId);
+  if (uri != null && !skipReference) {
+    throw new Error(`Package name ${name} with version ${version} already exists on remote registry\n You can surpass this by using the --skip-reference flag`);
+  }
 
   const runtime = new ChainBuilderRuntime(runtimeOptions, resolver, getMainLoader(cliSettings), 'ipfs');
 

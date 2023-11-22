@@ -294,6 +294,10 @@ const commandsConfig = {
         defaultValue: 'ethers',
       },
       {
+        flags: '-sr --skip-reference',
+        description: 'Skip checking the name/version package being built on the remote registry'
+      },
+      {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
