@@ -115,7 +115,7 @@ function configureRun(program: Command) {
   ) {
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port) || 8545;
+    options.port = Number.parseInt(options.port);
 
     let node: CannonRpcNode;
     if (options.chainId) {
@@ -195,8 +195,6 @@ async function doBuild(
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       ...pickAnvilOptions(opts),
-      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: opts.port || 0,
     });
 
     provider = getProvider(node);
@@ -215,8 +213,6 @@ async function doBuild(
         {
           ...pickAnvilOptions(opts),
           chainId,
-          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-          port: 0,
         },
         {
           forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
@@ -580,7 +576,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  opts.port = 8545;
+  opts.port = 0;
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here

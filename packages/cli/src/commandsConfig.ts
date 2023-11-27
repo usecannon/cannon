@@ -2,7 +2,7 @@ const anvilOptions = [
   {
     flags: '-p --port <number>',
     description: 'Port which the JSON-RPC server will be exposed.',
-    defaultValue: '8545',
+    defaultValue: '0', // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
   },
   {
     flags: '-c --chain-id <number>',
