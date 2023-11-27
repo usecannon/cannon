@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { readIpfs, writeIpfs, deleteIpfs, listPinsIpfs, isIpfsGateway, fetchIPFSAvailability } from './ipfs';
+import { deleteIpfs, fetchIPFSAvailability, isIpfsGateway, listPinsIpfs, readIpfs, writeIpfs } from './ipfs';
 
 jest.mock('axios');
 
@@ -39,10 +39,16 @@ describe('ipfs.ts', () => {
   });
 
   describe('writeIpfs()', () => {
+    const mockedPost = axios.post as jest.MockedFunction<typeof axios.post>;
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('returns custom local content hash', async () => {
-      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, true)).toEqual(
-        'QmP4iRbwrrP4DjRXsxh6uxnMfwhsHpCfX1THt2nR9RYP9M'
-      );
+      const result = { statusText: 'Success', data: { Hash: 'QmP4iRbwrrP4DjRXsxh6uxnMfwhsHpCfX1THt2nR9RYP9M' } };
+      mockedPost.mockResolvedValueOnce(result);
+      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, false)).toEqual(result.data.Hash);
     });
 
     if (IPFS_API_URL) {
