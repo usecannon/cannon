@@ -12,7 +12,7 @@ export function useGitRefsList(url: string) {
       if (url) {
         return listServerRefs({
           http,
-          corsProxy: 'https://cors.isomorphic-git.org',
+          corsProxy: 'https://git-proxy.repo.usecannon.com',
           url,
           protocolVersion: 1, // reccomended when not filtering prefix
         });

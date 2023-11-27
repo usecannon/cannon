@@ -22,7 +22,7 @@ import { useStore } from '@/helpers/store';
 
 export default function PublishUtility(props: {
   deployUrl: string;
-  targetVariant: string;
+  targetChainId: number;
 }) {
   const settings = useStore((s) => s.settings);
 
@@ -33,10 +33,9 @@ export default function PublishUtility(props: {
   const {
     resolvedName,
     resolvedVersion,
+    resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
   } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
-
-  const [chainId, preset] = props.targetVariant.split('-');
 
   // then reverse check the package referenced by the
   const {
@@ -44,8 +43,8 @@ export default function PublishUtility(props: {
     registryQuery,
     ipfsQuery: ipfsChkQuery,
   } = useCannonPackage(
-    `${resolvedName}:${resolvedVersion}`,
-    props.targetVariant
+    `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+    props.targetChainId
   );
 
   const publishMutation = useMutation({
@@ -61,7 +60,8 @@ export default function PublishUtility(props: {
         wc,
         resolvedName,
         resolvedVersion,
-        props.targetVariant
+        resolvedPreset,
+        props.targetChainId
       );
 
       const targetRegistry = new OnChainRegistry({
@@ -74,8 +74,8 @@ export default function PublishUtility(props: {
       const fakeLocalRegistry = new InMemoryRegistry();
       // TODO: set meta url
       void fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}@${preset}`],
-        Number.parseInt(chainId),
+        [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
+        props.targetChainId,
         props.deployUrl,
         ''
       );
@@ -96,9 +96,10 @@ export default function PublishUtility(props: {
       );
 
       await publishPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}@${preset}`,
-        tags: settings.publishTags.split(','),
-        chainId: Number.parseInt(chainId),
+        packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+        // TODO: Check if we need to provide tags
+        tags: ['latest'],
+        chainId: props.targetChainId,
         fromStorage,
         toStorage,
         includeProvisioned: true,

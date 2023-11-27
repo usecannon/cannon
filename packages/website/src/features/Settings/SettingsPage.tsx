@@ -28,7 +28,6 @@ import {
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
-import { validatePreset } from '@/helpers/cannon';
 import axios, { AxiosError } from 'axios';
 
 export async function isIpfsGateway(ipfsUrl: string) {
@@ -72,29 +71,9 @@ const SETTINGS: Record<
     description:
       'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
   },
-  publishTags: {
-    title: 'Package Tags',
-    description:
-      'Custom tags to add to the published Cannon package. Should be a string separated by commas.',
-  },
-  preset: {
-    title: 'Package Preset',
-    placeholder: 'main',
-    description: 'Select the preset that will be used to build the package.',
-    validate: (val: any) => {
-      if (val && !validatePreset(val)) {
-        return 'Invalid preset. Should only include lowercase letters.';
-      }
-    },
-  },
   registryAddress: {
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
-  },
-  forkProviderUrl: {
-    title: 'RPC URL for Local Fork',
-    description:
-      'JSON RPC url to create the local fork where the build will be executed.',
   },
 };
 
