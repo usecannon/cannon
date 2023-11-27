@@ -109,7 +109,7 @@ export async function writeIpfs(
 
   if (isGateway) {
     throw new Error(
-      'the IPFS url you specified is read-only, but writing to IPFS requires a full API. If the URL you specified is actually an API, please change the scheme of your url in configuration to be `https+ipfs://`.'
+      'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
     );
   }
 
