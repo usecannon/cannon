@@ -120,19 +120,21 @@ export async function writeIpfs(
   // But, for node we still wanna keep using Buffer
   const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
   formData.append('data', content);
+
+  let result: AxiosResponse<any, any>;
   try {
-    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
-
-    debug('upload', result.statusText, result.data.Hash);
-
-    if (cid !== result.data.Hash) {
-      throw new Error('Invalid CID generated locally');
-    }
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
   } catch (err) {
     throw new Error(
       'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
         err
     );
+  }
+
+  debug('upload', result.statusText, result.data.Hash);
+
+  if (cid !== result.data.Hash) {
+    throw new Error('Invalid CID generated locally');
   }
 
   return cid;
