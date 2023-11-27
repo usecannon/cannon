@@ -170,9 +170,7 @@ function QueueTransactions() {
           data: err,
         });
 
-        return `failure in contract ${contract}: ${
-          parsedError.errorName
-        }(${parsedError.args?.join(', ')})`;
+        return `${parsedError.errorName}(${parsedError.args?.join(', ')})`;
       } catch (err) {
         // ignore
       }
@@ -183,8 +181,6 @@ function QueueTransactions() {
 
   const disableExecute =
     !multisendTxn || txnHasError || !!stager.execConditionFailed;
-
-  console.log('xxx cannonInfo: ', cannonInfo);
 
   useEffect(() => {
     if (!cannonInfo.contracts) {
