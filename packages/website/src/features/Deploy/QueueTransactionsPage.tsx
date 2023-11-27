@@ -66,11 +66,7 @@ function QueueTransactions() {
 
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  const settings = useStore((s) => s.settings);
-  const cannonInfo = useCannonPackageContracts(
-    target,
-    `${currentSafe?.chainId}-${settings.preset}`
-  );
+  const cannonInfo = useCannonPackageContracts(target, currentSafe?.chainId);
 
   const queuedTxns = queuedIdentifiableTxns.map((item) => item.txn);
 
