@@ -42,6 +42,7 @@ import { useContractWrite } from 'wagmi';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
 import 'react-diff-view/style/index.css';
+import { SafeTransaction } from '@/types/SafeTransaction';
 
 type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -71,7 +72,7 @@ function QueueTransactions() {
     .map((item) => item.txn)
     .filter((txn) => !!txn);
 
-  const targetTxn =
+  const targetTxn: Partial<SafeTransaction> =
     queuedTxns.length > 0
       ? makeMultisend([
           {
