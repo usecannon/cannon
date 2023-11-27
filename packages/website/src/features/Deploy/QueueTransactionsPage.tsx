@@ -72,7 +72,7 @@ function QueueTransactions() {
     .filter((txn) => !!txn);
 
   const targetTxn =
-    queuedTxns.length > 1
+    queuedTxns.length > 0
       ? makeMultisend([
           {
             to: zeroAddress,
@@ -83,7 +83,7 @@ function QueueTransactions() {
           } as Partial<TransactionRequestBase>,
           ...queuedTxns,
         ])
-      : queuedTxns[0];
+      : {};
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
