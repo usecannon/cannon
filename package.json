@@ -24,7 +24,7 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
-    "@types/mock-fs": "^4.13.2",
+    "@types/mock-fs": "^4.13.4",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^8.10.0",
