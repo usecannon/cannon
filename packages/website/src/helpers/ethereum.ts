@@ -16,10 +16,9 @@ function makeMulticall(txns: Partial<TransactionRequestBase>[]): {
   value: bigint;
   data: Hex;
 } {
-  let totalValue = BigInt(0);
-  for (const txn of txns) {
-    totalValue = totalValue + (txn.value || BigInt(0));
-  }
+  const totalValue = txns.reduce((val, txn) => {
+    return val + (txn.value || BigInt(0));
+  }, BigInt(0));
 
   return {
     operation: '1', // multicall is a DELEGATECALL

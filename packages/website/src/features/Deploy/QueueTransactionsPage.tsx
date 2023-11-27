@@ -1,6 +1,12 @@
 'use client';
 
-import { AddIcon } from '@chakra-ui/icons';
+import { links } from '@/constants/links';
+import { makeMultisend } from '@/helpers/multisend';
+import { useStore } from '@/helpers/store';
+import { useTxnStager } from '@/hooks/backend';
+import { useCannonPackageContracts } from '@/hooks/cannon';
+import { useSimulatedTxns } from '@/hooks/fork';
+import { AddIcon, CloseIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -9,21 +15,20 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
-  HStack,
   Heading,
+  HStack,
+  IconButton,
   Input,
+  Text,
   Tooltip,
   useToast,
-  Text,
-  IconButton,
-  Flex,
 } from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   Abi,
   decodeErrorResult,
@@ -34,15 +39,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useContractWrite } from 'wagmi';
-import 'react-diff-view/style/index.css';
-import { links } from '@/constants/links';
-import { useTxnStager } from '@/hooks/backend';
-import { useCannonPackageContracts } from '@/hooks/cannon';
-import { useSimulatedTxns } from '@/hooks/fork';
-import { useStore } from '@/helpers/store';
-import { makeMultisend } from '@/helpers/multisend';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
+import 'react-diff-view/style/index.css';
+import { SafeTransaction } from '@/types/SafeTransaction';
 
 type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -68,22 +68,23 @@ function QueueTransactions() {
 
   const cannonInfo = useCannonPackageContracts(target, currentSafe?.chainId);
 
-  const queuedTxns = queuedIdentifiableTxns.map((item) => item.txn);
+  const queuedTxns = queuedIdentifiableTxns
+    .map((item) => item.txn)
+    .filter((txn) => !!txn);
 
-  const multisendTxn =
-    queuedTxns.indexOf(null as any) === -1
-      ? makeMultisend(
-          [
-            {
-              to: zeroAddress,
-              data: encodeAbiParameters(
-                [{ type: 'string[]' }],
-                [['invoke', cannonInfo.pkgUrl || '']]
-              ),
-            } as Partial<TransactionRequestBase>,
-          ].concat(queuedTxns)
-        )
-      : null;
+  const targetTxn: Partial<SafeTransaction> =
+    queuedTxns.length > 0
+      ? makeMultisend([
+          {
+            to: zeroAddress,
+            data: encodeAbiParameters(
+              [{ type: 'string[]' }],
+              [['invoke', cannonInfo.pkgUrl || '']]
+            ),
+          } as Partial<TransactionRequestBase>,
+          ...queuedTxns,
+        ])
+      : {};
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
@@ -92,13 +93,12 @@ function QueueTransactions() {
 
   const toast = useToast();
 
-  // TODO: check types
   const stager = useTxnStager(
-    (multisendTxn
+    targetTxn
       ? {
-          to: multisendTxn.to,
-          value: multisendTxn.value.toString(),
-          data: multisendTxn.data,
+          to: targetTxn.to as `0x${string}`,
+          value: targetTxn.value ? targetTxn.value.toString() : undefined,
+          data: targetTxn.data,
           safeTxGas: txnInfo.txnResults.length
             ? txnInfo.txnResults
                 .reduce((prev, cur) => ({
@@ -109,9 +109,9 @@ function QueueTransactions() {
                 ?.gasUsed.toString()
             : undefined,
           operation: '1',
-          _nonce: pickedNonce,
+          _nonce: pickedNonce === null ? undefined : pickedNonce,
         }
-      : {}) as any,
+      : {},
     {
       onSignComplete() {
         console.log('signing is complete, redirect');
@@ -125,6 +125,8 @@ function QueueTransactions() {
       },
     }
   );
+
+  console.log('final tx:', stager.executeTxnConfig);
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
 
@@ -182,7 +184,7 @@ function QueueTransactions() {
   }
 
   const disableExecute =
-    !multisendTxn || txnHasError || !!stager.execConditionFailed;
+    !targetTxn || txnHasError || !!stager.execConditionFailed;
 
   console.log('xxx cannonInfo: ', cannonInfo);
 
@@ -338,7 +340,7 @@ function QueueTransactions() {
                   colorScheme="teal"
                   w="100%"
                   isDisabled={
-                    !multisendTxn || txnHasError || !!stager.signConditionFailed
+                    !targetTxn || txnHasError || !!stager.signConditionFailed
                   }
                   onClick={() => stager.sign()}
                 >
