@@ -299,7 +299,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     for (const registerPackage of packagesNames) {
-      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
+      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) =>  new PackageReference(p).version);
 
       const { name, preset } = new PackageReference(registerPackage);
       const variant = `${chainId}-${preset}`;
@@ -337,7 +337,7 @@ export class OnChainRegistry extends CannonRegistry {
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
       for (const registerPackage of pub.packagesNames) {
-        const versions = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
+        const versions = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
 
         const { name, preset } = new PackageReference(registerPackage);
         const variant = `${pub.chainId}-${preset}`;
