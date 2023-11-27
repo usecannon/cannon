@@ -107,28 +107,32 @@ export async function writeIpfs(
   const buf = compress(data);
   const cid = await getContentCID(Buffer.from(buf));
 
-  if (!isGateway) {
-    debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
-    const formData = new FormData();
+  if (isGateway) {
+    throw new Error(
+      'the IPFS url you specified is read-only, but writing to IPFS requires a full API. If the URL you specified is actually an API, please change the scheme of your url in configuration to be `https+ipfs://`.'
+    );
+  }
 
-    // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-    // But, for node we still wanna keep using Buffer
-    const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
-    formData.append('data', content);
-    try {
-      const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
+  debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
+  const formData = new FormData();
 
-      debug('upload', result.statusText, result.data.Hash);
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  formData.append('data', content);
+  try {
+    const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
 
-      if (cid !== result.data.Hash) {
-        throw new Error('Invalid CID generated locally');
-      }
-    } catch (err) {
-      throw new Error(
-        'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
-          err
-      );
+    debug('upload', result.statusText, result.data.Hash);
+
+    if (cid !== result.data.Hash) {
+      throw new Error('Invalid CID generated locally');
     }
+  } catch (err) {
+    throw new Error(
+      'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
+        err
+    );
   }
 
   return cid;
