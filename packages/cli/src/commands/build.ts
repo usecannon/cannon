@@ -11,7 +11,9 @@ import {
   Events,
   getContractFromPath,
   getOutputs,
+  PackageReference,
 } from '@usecannon/builder';
+import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import _ from 'lodash';
@@ -25,8 +27,6 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { PackageReference } from '@usecannon/builder';
-import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -212,7 +212,7 @@ export async function build({
     console.log();
   });
 
-  runtime.on(Events.ResolveDeploy, (packageName, chainId, registry, d) =>
+  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
     console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>

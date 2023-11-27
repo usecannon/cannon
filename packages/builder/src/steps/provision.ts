@@ -1,23 +1,21 @@
-import _ from 'lodash';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { yellow, bold } from 'chalk';
-
+import _ from 'lodash';
 import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { build, createInitialContext, getOutputs } from '../builder';
+import { CANNON_CHAIN_ID } from '../constants';
+import { ChainDefinition } from '../definition';
+import { PackageReference } from '../package';
+import { ChainBuilderRuntime, Events } from '../runtime';
 import { provisionSchema } from '../schemas.zod';
-
 import {
-  ChainBuilderContext,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderContextWithHelpers,
   DeploymentState,
   PackageState,
 } from '../types';
-import { build, createInitialContext, getOutputs } from '../builder';
-import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime, Events } from '../runtime';
-import { CANNON_CHAIN_ID } from '../constants';
-import { computeTemplateAccesses } from '../access-recorder';
-import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
 
@@ -77,7 +75,7 @@ const provisionSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    if (config.sourcePreset) {
+    if (config.sourcePreset && config.sourcePreset !== 'main') {
       console.warn(
         yellow(
           bold(
