@@ -8,6 +8,7 @@ import { ChainBuilderContext, PreChainBuilderContext } from './types';
 import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
 import { chainDefinitionSchema } from './schemas.zod';
 import { ChainBuilderRuntime } from './runtime';
+import { PackageReference } from './package';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -288,6 +289,9 @@ export class ChainDefinition {
   getRequiredImports(ctx: ChainBuilderContext) {
     if (!this.raw.import) return [];
 
+    const source = !this.raw.import.source.source ? new PackageReference(this.raw.import.source.source).fullPackageRef : this.raw.import.source.source
+    const preset = !this.raw.import.preset.preset ? new PackageReference(this.raw.import.source.source).preset : this.raw.import.preset.preset
+
     // we have to apply templating here, only to the `source`
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
@@ -295,7 +299,7 @@ export class ChainDefinition {
       Object.values(this.raw.import).map((d) => ({
         source: _.template(d.source)(ctx),
         chainId: d.chainId || ctx.chainId,
-        preset: _.template(d.preset || 'main')(ctx),
+        preset: _.template(d.preset || preset)(ctx),
       }))
     );
   }
