@@ -241,7 +241,7 @@ const commandsConfig = {
       {
         flags: '-p --preset <preset>',
         description:
-          'DEPRECATED. The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
+          '(DEPRECATED) The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
       },
       {
         flags: '--dry-run',
@@ -336,7 +336,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the deployment to verify',
+        description: '(DEPRECATED) Preset of the deployment to verify',
       },
     ],
   },
@@ -364,7 +364,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the deployment to alter',
+        description: '(DEPRECATED) Preset of the deployment to alter',
       },
     ],
   },
@@ -475,7 +475,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-j --json',
@@ -562,8 +562,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-n --provider-url [url]',
@@ -595,7 +594,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-j --json',
@@ -628,8 +627,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'The preset label for storing the build with the given settings',
-        defaultValue: 'main',
+        description: '(DEPRECATED) The preset label for storing the build with the given settings',
       },
       {
         flags: '--wipe',
@@ -665,8 +663,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Load an alternate setting preset',
-        defaultValue: 'main',
+        description: '(DEPRECATED) Load an alternate setting preset',
       },
       {
         flags: '--mnemonic <phrase>',
