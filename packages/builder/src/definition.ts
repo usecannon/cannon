@@ -297,7 +297,7 @@ export class ChainDefinition {
     // can do about this right now
     return _.uniq(
       Object.values(this.raw.import).map((d) => ({
-        source: _.template(d.source)(ctx),
+        source: _.template(source)(ctx),
         chainId: d.chainId || ctx.chainId,
         preset: _.template(d.preset || preset)(ctx),
       }))

@@ -176,7 +176,10 @@ export async function publishPackage({
   includeProvisioned = false,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
-  const { fullPackageRef } = new PackageReference(packageRef);
+  
+  // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
+  // it's own function to handle the pinning of IPFS urls.
+  const fullPackageRef = !packageRef.startsWith('@') ? new PackageReference(packageRef).fullPackageRef : packageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
 
@@ -191,7 +194,7 @@ export async function publishPackage({
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, chainId);
+    const metaUrl = await fromStorage.registry.getMetaUrl(fullPackageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
