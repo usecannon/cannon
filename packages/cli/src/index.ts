@@ -606,7 +606,10 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   });
 });
 
-applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageDefinition: PackageSpecification, opts) {
+applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
+  packageDefinition: PackageSpecification,
+  opts
+) {
   const cliSettings = resolveCliSettings(opts);
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
@@ -615,7 +618,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const [ name, version ] = [packageDefinition.name, packageDefinition.version]
+  const [name, version] = [packageDefinition.name, packageDefinition.version];
   let preset = packageDefinition.preset;
 
   // Handle deprecated preset specification
@@ -657,7 +660,9 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
-    throw new Error(`no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`);
+    throw new Error(
+      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+    );
   }
 
   const contracts = [getContractsRecursive(outputs, p.provider)];
