@@ -239,13 +239,14 @@ export async function publishPackage({
     );
   }
 
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  
   if (includeProvisioned) {
-    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     debug('publishing with provisioned');
     return toStorage.registry.publishMany(calls);
   } else {
     debug('publishing without provisioned');
-    const call = await copyIpfs(deployData, null);
+    const call = _.last(calls)!;
 
     return toStorage.registry.publish(call.packagesNames, call.chainId, call.url, call.metaUrl);
   }
