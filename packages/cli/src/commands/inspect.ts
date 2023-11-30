@@ -15,19 +15,24 @@ export async function inspect(
   presetArg: string,
   json: boolean,
   writeDeployments: string,
-  sources: boolean
+  sources: boolean,
+  registryPriority?: 'local' | 'onchain'
 ) {
+  
+
   // Handle deprecated preset specification
   if (presetArg) {
     console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
+  const cliSettings = resolveCliSettings({ registryPriority });
+
   const { fullPackageRef } = new PackageReference(packageRef);
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings());
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const loader = getMainLoader(resolveCliSettings());
+  const loader = getMainLoader(cliSettings);
 
   const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
@@ -76,7 +81,7 @@ export async function inspect(
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
-    const ipfsUrl = resolveCliSettings().ipfsUrl;
+    const ipfsUrl = cliSettings.ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
 

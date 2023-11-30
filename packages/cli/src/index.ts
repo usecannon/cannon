@@ -489,7 +489,15 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');
   resolveCliSettings(options);
-  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments, options.sources);
+  await inspect(
+    packageName,
+    options.chainId,
+    options.preset,
+    options.json,
+    options.writeDeployments,
+    options.sources,
+    options.registryPriority
+  );
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {

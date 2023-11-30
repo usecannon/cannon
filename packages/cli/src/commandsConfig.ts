@@ -493,6 +493,10 @@ const commandsConfig = {
         flags: '-s --sources',
         description: 'Show contract sources',
       },
+      {
+        flags: '--registry-priority <registry>',
+        description: 'Change the default registry to read from first. Default: onchain',
+      },
     ],
   },
   prune: {
