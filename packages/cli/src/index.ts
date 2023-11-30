@@ -606,7 +606,10 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   });
 });
 
-applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageDefinition, opts) {
+applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
+  packageDefinition: PackageSpecification,
+  opts
+) {
   const cliSettings = resolveCliSettings(opts);
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
@@ -614,6 +617,17 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const networkInfo = await p.provider.getNetwork();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
+
+  const [name, version] = [packageDefinition.name, packageDefinition.version];
+  let preset = packageDefinition.preset;
+
+  // Handle deprecated preset specification
+  if (opts.preset) {
+    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    preset = opts.preset;
+  }
+
+  const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
   const runtime = new ChainBuilderRuntime(
     {
@@ -634,29 +648,21 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     resolver,
     getMainLoader(cliSettings)
   );
-  const { name, version } = new PackageReference(packageDefinition);
-  let { preset } = new PackageReference(packageDefinition);
-
-  // Handle deprecated preset specification
-  if (opts.preset) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
-    preset = opts.preset;
-  }
-
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
   const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${preset}. please make sure it exists for the given preset and current network.`
+      `deployment not found for package: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
-    throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${preset}. Did you mean to run instead?`);
+    throw new Error(
+      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+    );
   }
 
   const contracts = [getContractsRecursive(outputs, p.provider)];

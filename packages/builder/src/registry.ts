@@ -28,8 +28,10 @@ export abstract class CannonRegistry {
   // ex @ipfs:Qm... is ipfs://Qm...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
+    // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
     if (serviceRef.startsWith('@')) {
-      return serviceRef.replace(':', '://').replace('@', '');
+      const result = serviceRef.replace(':', '://').replace('@', '');
+      return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;
     }
 
     return null;
@@ -131,7 +133,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     for (const registry of [this.memoryCacheRegistry, ...this.registries]) {
       debug('trying registry', registry.getLabel());
       try {
-        const result = await registry.getUrl(fullPackageRef, chainId);
+        const result = await registry.getUrl(packageRef, chainId);
 
         if (result) {
           debug('fallback registry: loaded from registry', registry.getLabel());
