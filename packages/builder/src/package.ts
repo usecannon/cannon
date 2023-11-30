@@ -239,6 +239,7 @@ export async function publishPackage({
     );
   }
 
+  // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
   const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
   if (includeProvisioned) {
