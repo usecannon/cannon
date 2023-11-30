@@ -238,7 +238,7 @@ export async function publishPackage({
       `could not find deployment artifact for ${fullPackageRef}. Please double check your settings, and rebuild your package.`
     );
   }
-  
+
   const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
   if (includeProvisioned) {
