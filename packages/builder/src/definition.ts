@@ -289,18 +289,30 @@ export class ChainDefinition {
   getRequiredImports(ctx: ChainBuilderContext) {
     if (!this.raw.import) return [];
 
-    const source = !this.raw.import.source.source ? new PackageReference(this.raw.import.source.source).fullPackageRef : this.raw.import.source.source
-    const preset = !this.raw.import.preset.preset ? new PackageReference(this.raw.import.source.source).preset : this.raw.import.preset.preset
-
     // we have to apply templating here, only to the `source`
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import).map((d) => ({
-        source: _.template(source)(ctx),
-        chainId: d.chainId || ctx.chainId,
-        preset: _.template(d.preset || preset)(ctx),
-      }))
+      Object.values(this.raw.import).map((d) => {
+        const source = _.template(d.source)(ctx);
+
+        // if source is not a package ref it is a cannonfile step
+        const isCannonfileStep = !PackageReference.isValid(source);
+
+        let fullSource;
+        if (!isCannonfileStep) {
+          fullSource = new PackageReference(source);
+        }
+
+        d.source = isCannonfileStep ? source : fullSource?.fullPackageRef!;
+        d.preset = d.preset ? _.template(d.preset)(ctx) : fullSource?.preset;
+
+        return {
+          source: d.source,
+          chainId: d.chainId || ctx.chainId,
+          preset: d.preset,
+        };
+      })
     );
   }
 

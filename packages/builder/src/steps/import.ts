@@ -56,9 +56,9 @@ const importSpec = {
       console.warn(
         yellow(
           bold(
-            `The preset option is deprecated. Using ${_.template(config.preset)(
+            `The preset option will be deprecated soon. Using ${_.template(config.preset)(
               ctx
-            )}. Reference presets in the source option like name@version:preset`
+            )}. Reference presets in the "source" option like so: name@version:preset`
           )
         )
       );
@@ -92,9 +92,8 @@ const importSpec = {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
     const source = config.source;
-    const preset = config.preset || packageRef.preset;
+    const preset = config.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain

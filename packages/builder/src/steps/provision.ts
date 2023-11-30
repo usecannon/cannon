@@ -60,7 +60,6 @@ const provisionSpec = {
       }
     }
 
-    // todo: might be worth refactoring all these functions that take in package names to expect a preset in the ref
     const srcUrl = await runtime.registry.getUrl(source, chainId);
 
     return {
@@ -75,13 +74,13 @@ const provisionSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    if (config.sourcePreset && config.sourcePreset !== 'main') {
+    if (config.sourcePreset) {
       console.warn(
         yellow(
           bold(
-            `The sourcePreset option is deprecated. Using ${_.template(config.sourcePreset)(
+            `The sourcePreset option will be deprecated soon. Using ${_.template(config.sourcePreset)(
               ctx
-            )}. Reference presets in the source option like name@version:preset`
+            )}. Reference presets in the "source" option like so: name@version:preset`
           )
         )
       );
@@ -135,10 +134,9 @@ const provisionSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
-    const source = packageRef.fullPackageRef;
-    const sourcePreset = config.sourcePreset || packageRef.preset;
-    const targetPreset = config.targetPreset ?? 'main';
+    const source = config.source;
+    const sourcePreset = config.sourcePreset;
+    const targetPreset = config.targetPreset;
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use

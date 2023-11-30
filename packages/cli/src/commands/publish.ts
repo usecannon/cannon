@@ -44,6 +44,7 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
+  const {preset, fullPackageRef} = new PackageReference(packageRef);
   // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
   if (!cliSettings.publishIpfsUrl) {
@@ -84,12 +85,12 @@ export async function publish({
     deploys = [{ name: packageRef, chainId: 13370 }];
   } else {
     // Check for deployments that are relevant to the provided packageRef
-    deploys = await localRegistry.scanDeploys(packageRef, chainId);
+    deploys = await localRegistry.scanDeploys(fullPackageRef, chainId);
   }
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${packageRef}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
     );
   }
 
