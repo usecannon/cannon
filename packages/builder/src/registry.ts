@@ -27,22 +27,23 @@ export abstract class CannonRegistry {
   // that is a direct service resolve
   // ex @ipfs:Qm... is ipfs://Qm...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    if (packageRef.startsWith('@')) {
-      return packageRef.replace(':', '://').replace('@', '');
+  async getUrl(serviceRef: string, chainId: number): Promise<string | null> {
+    if (serviceRef.startsWith('@')) {
+      return serviceRef.replace(':', '://').replace('@', '');
     }
 
     return null;
   }
 
+  // TODO: why is this empty?
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+  async getMetaUrl(serviceRef: string, chainId: number): Promise<string | null> {
     return null;
   }
 
   // used to clean up unused resources on a loader
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(_filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
+  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
     return new Set();
   }
 
@@ -86,14 +87,12 @@ export class InMemoryRegistry extends CannonRegistry {
     return receipts;
   }
 
-  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
+  async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
+    if (baseResolved) return baseResolved;
 
-    const baseResolved = await super.getUrl(packageRef, chainId);
-    if (baseResolved) {
-      return baseResolved;
-    }
+    const { preset, fullPackageRef } = new PackageReference(packageOrServiceRef);
+    const variant = `${chainId}-${preset}`;
 
     return this.pkgs[fullPackageRef] ? this.pkgs[fullPackageRef][variant] : null;
   }
@@ -106,7 +105,7 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(_filterPackage?: string, chainId?: number): Promise<Set<string>> {
+  async getAllUrls(filterPackage?: string, chainId?: number): Promise<Set<string>> {
     return new Set();
   }
 }
@@ -366,13 +365,12 @@ export class OnChainRegistry extends CannonRegistry {
     return [await this.doMulticall(datas)];
   }
 
-  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { name, version, preset } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
-
-    const baseResolved = await super.getUrl(packageRef, chainId);
-
+  async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
+
+    const { name, version, preset } = new PackageReference(packageOrServiceRef);
+    const variant = `${chainId}-${preset}`;
 
     const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),
@@ -380,16 +378,15 @@ export class OnChainRegistry extends CannonRegistry {
       ethers.utils.formatBytes32String(variant)
     );
 
-    return url === '' ? null : url;
+    return url || null;
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
-
-    const baseResolved = await super.getUrl(fullPackageRef, chainId);
-
+  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
+
+    const { name, version, preset } = new PackageReference(packageOrServiceRef);
+    const variant = `${chainId}-${preset}`;
 
     const url = await this.contract.getPackageMeta(
       ethers.utils.formatBytes32String(name),
@@ -397,14 +394,14 @@ export class OnChainRegistry extends CannonRegistry {
       ethers.utils.formatBytes32String(variant)
     );
 
-    return url === '' ? null : url;
+    return url || null;
   }
 
   async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
     if (!filterPackageRef) {
       // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
       // in the future we might have a way to give the urls to search for and then limit
-      return new Set();
+      return super.getAllUrls(filterPackageRef, chainId);
     }
 
     const { name, version, preset } = new PackageReference(filterPackageRef!);
