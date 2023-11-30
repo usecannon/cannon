@@ -77,7 +77,7 @@ export class CannonStorage extends EventEmitter {
 
   async readDeploy(packageRef: string, chainId: number): Promise<DeploymentInfo | null> {
     const registryName = this.registry.getLabel();
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
+    const { preset } = new PackageReference(packageRef);
 
     this.emit(Events.ResolveDeploy, packageRef, preset, chainId, registryName, 0);
 
