@@ -6,7 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
-import { AddIcon, CloseIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -15,13 +15,11 @@ import {
   Box,
   Button,
   Container,
-  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
   Heading,
   HStack,
-  IconButton,
   Input,
   Text,
   Tooltip,
@@ -30,8 +28,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
-  Abi,
-  decodeErrorResult,
   encodeAbiParameters,
   Hex,
   isAddress,
@@ -39,10 +35,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useContractWrite } from 'wagmi';
-import { DisplayedTransaction } from './DisplayedTransaction';
 import NoncePicker from './NoncePicker';
 import 'react-diff-view/style/index.css';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { QueueTransaction } from './QueueTransaction';
 
 type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -164,23 +160,6 @@ function QueueTransactions() {
   console.log('TXN HAS ERROR', txnHasError);
   console.log('sign status', stager);
 
-  function decodeError(err: Hex) {
-    for (const contract in cannonInfo.contracts) {
-      try {
-        const parsedError = decodeErrorResult({
-          abi: cannonInfo.contracts[contract].abi as Abi,
-          data: err,
-        });
-
-        return `${parsedError.errorName}(${parsedError.args?.join(', ')})`;
-      } catch (err) {
-        // ignore
-      }
-    }
-
-    return 'unknown error';
-  }
-
   const disableExecute =
     !targetTxn || txnHasError || !!stager.execConditionFailed;
 
@@ -232,39 +211,13 @@ function QueueTransactions() {
         <FormControl mb="8">
           <FormLabel>Transactions</FormLabel>
           {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
-            <Flex key={queuedIdentifiableTxn.id} mb={3} direction="column">
-              <Flex>
-                <DisplayedTransaction
-                  editable
-                  contracts={cannonInfo.contracts as any}
-                  txn={queuedIdentifiableTxn.txn}
-                  onTxn={(txn) => updateQueuedTxn(i, txn as any)}
-                />
-                {queuedIdentifiableTxns.length > 1 && (
-                  <Box ml="3">
-                    <IconButton
-                      colorScheme="blackAlpha"
-                      background="transparent"
-                      icon={<CloseIcon opacity="0.5" />}
-                      aria-label={'Remove provider'}
-                      onClick={() => removeQueuedTxn(i)}
-                    />
-                  </Box>
-                )}
-              </Flex>
-              {txnInfo.txnResults &&
-                txnInfo.txnResults.length === queuedIdentifiableTxns.length &&
-                txnInfo.txnResults[i] &&
-                txnInfo.txnResults[i]?.error && (
-                  <Alert bg="gray.800" status="error" mt="6">
-                    <AlertIcon />
-                    Transaction Error:{' '}
-                    {txnInfo.txnResults[i]?.callResult
-                      ? decodeError(txnInfo.txnResults[i]?.callResult as any)
-                      : txnInfo.txnResults[i]?.error}
-                  </Alert>
-                )}
-            </Flex>
+            <QueueTransaction
+              key={queuedIdentifiableTxn.id}
+              contracts={(cannonInfo.contracts ?? {}) as any}
+              onChange={(txn) => updateQueuedTxn(i, txn as any)}
+              isDeletable={queuedIdentifiableTxns.length > 1}
+              onDelete={() => removeQueuedTxn(i)}
+            />
           ))}
           <HStack my="3">
             <Button
