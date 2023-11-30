@@ -63,7 +63,7 @@ export function useCannonfileSpecs() {
 
       const result = new Map<string, CannonfileSpec>();
 
-      const metadataKeys = ['name', 'version', 'description', 'keywords'];
+      const metadataKeys = ['name', 'preset', 'version', 'description', 'keywords'];
       const metadataSpecs: Spec[] = [];
       for (const key of metadataKeys) {
         metadataSpecs.push(await getSpec(chainDefinitionJsonSchema, key));
