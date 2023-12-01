@@ -136,7 +136,7 @@ const provisionSpec = {
 
     const source = config.source;
     const sourcePreset = config.sourcePreset;
-    const targetPreset = config.targetPreset;
+    const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
