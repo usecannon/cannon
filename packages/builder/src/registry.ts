@@ -28,8 +28,11 @@ export abstract class CannonRegistry {
   // ex @ipfs:Qm... is ipfs://Qm...
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
     if (packageRef.startsWith('@')) {
-      return packageRef.replace(':', '://').replace('@', '');
+      const result = packageRef.replace(':', '://').replace('@', '');
+
+      return result.indexOf('@', 1) !== -1 ? result.slice(0, result.indexOf('@', 1)) : result;
     }
 
     return null;
@@ -87,13 +90,13 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
-
     const baseResolved = await super.getUrl(packageRef, chainId);
     if (baseResolved) {
       return baseResolved;
     }
+
+    const { preset, fullPackageRef } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
 
     return this.pkgs[fullPackageRef] ? this.pkgs[fullPackageRef][variant] : null;
   }
@@ -132,7 +135,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     for (const registry of [this.memoryCacheRegistry, ...this.registries]) {
       debug('trying registry', registry.getLabel());
       try {
-        const result = await registry.getUrl(fullPackageRef, chainId);
+        const result = await registry.getUrl(packageRef, chainId);
 
         if (result) {
           debug('fallback registry: loaded from registry', registry.getLabel());
@@ -299,7 +302,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
     for (const registerPackage of packagesNames) {
-      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
+      const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
 
       const { name, preset } = new PackageReference(registerPackage);
       const variant = `${chainId}-${preset}`;
@@ -337,7 +340,9 @@ export class OnChainRegistry extends CannonRegistry {
     console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
     for (const pub of toPublish) {
       for (const registerPackage of pub.packagesNames) {
-        const versions = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => p.split(':')[1]);
+        const versions = pub.packagesNames
+          .filter((pkg) => pkg === registerPackage)
+          .map((p) => new PackageReference(p).version);
 
         const { name, preset } = new PackageReference(registerPackage);
         const variant = `${pub.chainId}-${preset}`;
@@ -365,12 +370,12 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async getUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { name, version, preset } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
-
     const baseResolved = await super.getUrl(packageRef, chainId);
 
     if (baseResolved) return baseResolved;
+
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
 
     const url = await this.contract.getPackageUrl(
       ethers.utils.formatBytes32String(name),
@@ -382,12 +387,12 @@ export class OnChainRegistry extends CannonRegistry {
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { name, version, preset, fullPackageRef } = new PackageReference(packageRef);
-    const variant = `${chainId}-${preset}`;
-
-    const baseResolved = await super.getUrl(fullPackageRef, chainId);
+    const baseResolved = await super.getUrl(packageRef, chainId);
 
     if (baseResolved) return baseResolved;
+
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
 
     const url = await this.contract.getPackageMeta(
       ethers.utils.formatBytes32String(name),

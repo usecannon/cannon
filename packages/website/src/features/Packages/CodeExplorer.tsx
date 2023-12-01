@@ -108,11 +108,11 @@ export const CodeExplorer: FC<{
           <Flex
             flexDirection="column"
             overflowY="auto"
-            maxWidth={['100%', '100%', '300px']}
+            maxWidth={['100%', '100%', '320px']}
             borderRight={isSmall ? 'none' : '1px solid'}
             borderBottom={isSmall ? '1px solid' : 'none'}
             borderColor={isSmall ? 'gray.600' : 'gray.700'}
-            width={['100%', '100%', '300px']}
+            width={['100%', '100%', '320px']}
             maxHeight={['140px', '140px', 'calc(100vh - 236px)']}
           >
             <Box px={3} pb={2}>

@@ -80,7 +80,6 @@ export async function publish({
   // This works as a catch all to get any deployment stored locally.
   // However if a version is passed, we use the basePackageRef to extrapolate and remove any potential preset in the reference.
   let deploys;
-  console.log('package ref', packageRef);
   if (packageRef.startsWith('@')) {
     deploys = [{ name: packageRef, chainId: 13370 }];
   } else {

@@ -176,7 +176,10 @@ export async function publishPackage({
   includeProvisioned = false,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
-  const { fullPackageRef } = new PackageReference(packageRef);
+
+  // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
+  // it's own function to handle the pinning of IPFS urls.
+  const fullPackageRef = !packageRef.startsWith('@') ? new PackageReference(packageRef).fullPackageRef : packageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
 
@@ -236,13 +239,15 @@ export async function publishPackage({
     );
   }
 
+  // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
+  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+
   if (includeProvisioned) {
-    const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
     debug('publishing with provisioned');
     return toStorage.registry.publishMany(calls);
   } else {
     debug('publishing without provisioned');
-    const call = await copyIpfs(deployData, null);
+    const call = _.last(calls)!;
 
     return toStorage.registry.publish(call.packagesNames, call.chainId, call.url, call.metaUrl);
   }
