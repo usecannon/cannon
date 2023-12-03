@@ -6,7 +6,6 @@ import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
-import { AddIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -75,7 +74,7 @@ function QueueTransactions() {
             to: zeroAddress,
             data: encodeAbiParameters(
               [{ type: 'string[]' }],
-              [['invoke', cannonInfo.pkgUrl || '']]
+              [['invoke', cannonInfo.pkgUrl || '']],
             ),
           } as Partial<TransactionRequestBase>,
           ...queuedTxns,
@@ -119,7 +118,7 @@ function QueueTransactions() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   console.log('final tx:', stager.executeTxnConfig);
@@ -130,7 +129,7 @@ function QueueTransactions() {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>
+    txn: Omit<TransactionRequestBase, 'from'>,
   ) {
     setQueuedIdentifiableTxns((prev) => {
       const result = [...prev];
@@ -183,7 +182,7 @@ function QueueTransactions() {
           execution.
         </Text>
       </Box>
-      <FormControl mb="8">
+      <FormControl mb={6}>
         <FormLabel>Cannon Package or Contract Address</FormLabel>
         <Input
           type="text"
@@ -211,13 +210,24 @@ function QueueTransactions() {
         <FormControl mb="8">
           <FormLabel>Transactions</FormLabel>
           {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
-            <QueueTransaction
-              key={queuedIdentifiableTxn.id}
-              contracts={(cannonInfo.contracts ?? {}) as any}
-              onChange={(txn) => updateQueuedTxn(i, txn as any)}
-              isDeletable={queuedIdentifiableTxns.length > 1}
-              onDelete={() => removeQueuedTxn(i)}
-            />
+            <Box
+              mb={6}
+              p={6}
+              bg="gray.800"
+              display="block"
+              borderWidth="1px"
+              borderStyle="solid"
+              borderColor="gray.600"
+              borderRadius="4px"
+            >
+              <QueueTransaction
+                key={queuedIdentifiableTxn.id}
+                contracts={(cannonInfo.contracts ?? {}) as any}
+                onChange={(txn) => updateQueuedTxn(i, txn as any)}
+                isDeletable={queuedIdentifiableTxns.length > 1}
+                onDelete={() => removeQueuedTxn(i)}
+              />
+            </Box>
           ))}
           <HStack my="3">
             <Button
@@ -227,7 +237,6 @@ function QueueTransactions() {
               color="green.400"
               borderColor="green.400"
               _hover={{ bg: 'green.900' }}
-              leftIcon={<AddIcon />}
               onClick={() => addQueuedTxn()}
             >
               Add Transaction

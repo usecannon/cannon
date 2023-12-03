@@ -9,6 +9,10 @@ import {
   FormLabel,
   IconButton,
   Text,
+  FormControl,
+  AlertTitle,
+  AlertDescription,
+  Button,
 } from '@chakra-ui/react';
 import {
   ChakraStylesConfig,
@@ -159,7 +163,7 @@ export function QueueTransaction({
   const txnInfo = useSimulatedTxns(currentSafe as any, txn ? [txn] : []);
 
   return (
-    <Flex mb={10} direction="column">
+    <Flex direction="column">
       <Flex alignItems="center">
         <Flex
           flexDirection="column"
@@ -167,116 +171,144 @@ export function QueueTransaction({
           w={['100%', '100%', '50%']}
           gap="10px"
         >
-          <Select
-            instanceId={'contract-name'}
-            chakraStyles={chakraStyles}
-            isClearable
-            value={
-              selectedContractName
-                ? {
-                    value: selectedContractName,
-                    label: selectedContractName,
-                    secondary: contracts[selectedContractName].address,
-                  }
-                : null
-            }
-            placeholder="Contract"
-            options={Object.entries(contracts).map(([name, contract]) => ({
-              value: name,
-              label: name,
-              secondary: contract.address,
-            }))}
-            onChange={(selected: any) =>
-              setSelectedContractName(selected?.value || null)
-            }
-            components={{ Option: Option }}
-          ></Select>
-          {selectedContractName && (
+          <FormControl mb={2}>
+            <FormLabel>Contract</FormLabel>
             <Select
-              instanceId={'function-name'}
+              instanceId={'contract-name'}
               chakraStyles={chakraStyles}
               isClearable
               value={
-                selectedFunction
+                selectedContractName
                   ? {
-                      value: selectedFunction,
-                      label: selectedFunction.name,
-                      secondary: getFunctionSelector(selectedFunction),
+                      value: selectedContractName,
+                      label: selectedContractName,
+                      secondary: contracts[selectedContractName].address,
                     }
                   : null
               }
-              placeholder="Function"
-              options={contracts[selectedContractName].abi
-                .filter(
-                  (abi) =>
-                    abi.type === 'function' && abi.stateMutability !== 'view'
-                )
-                .map((abi) => ({
-                  value: abi,
-                  label: abi.name,
-                  secondary: getFunctionSelector(abi),
-                }))}
+              placeholder="Choose a contract..."
+              options={Object.entries(contracts).map(([name, contract]) => ({
+                value: name,
+                label: name,
+                secondary: contract.address,
+              }))}
               onChange={(selected: any) =>
-                setSelectedFunction(selected?.value || null)
+                setSelectedContractName(selected?.value || null)
               }
               components={{ Option: Option }}
             ></Select>
+          </FormControl>
+          {selectedContractName && (
+            <FormControl mb={2}>
+              <FormLabel>Function</FormLabel>
+              <Select
+                instanceId={'function-name'}
+                chakraStyles={chakraStyles}
+                isClearable
+                value={
+                  selectedFunction
+                    ? {
+                        value: selectedFunction,
+                        label: selectedFunction.name,
+                        secondary: getFunctionSelector(selectedFunction),
+                      }
+                    : null
+                }
+                placeholder="Choose a function..."
+                options={contracts[selectedContractName].abi
+                  .filter(
+                    (abi) =>
+                      abi.type === 'function' && abi.stateMutability !== 'view',
+                  )
+                  .map((abi) => ({
+                    value: abi,
+                    label: abi.name,
+                    secondary: getFunctionSelector(abi),
+                  }))}
+                onChange={(selected: any) =>
+                  setSelectedFunction(selected?.value || null)
+                }
+                components={{ Option: Option }}
+              ></Select>
+            </FormControl>
           )}
-          {selectedFunction &&
-            selectedFunction.inputs.map((input, index) => (
-              <Box key={JSON.stringify(input)}>
-                <FormLabel fontSize="sm" mb={1}>
-                  {input.name && <Text display="inline">{input.name}</Text>}
-                  {input.type && (
-                    <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                      {' '}
-                      {input.type}
-                    </Text>
-                  )}
-                </FormLabel>
-                <FunctionInput
-                  key={JSON.stringify(input)}
-                  input={input}
-                  valueUpdated={(value) => {
-                    const params = [...selectedParams];
-                    params[index] = value;
-                    setSelectedParams(params);
-                  }}
-                />
-              </Box>
-            ))}
+          {!!selectedFunction?.inputs?.length && (
+            <FormControl mb={2}>
+              <FormLabel>Parameters</FormLabel>
+              {selectedFunction.inputs.map((input, index) => (
+                <Box key={JSON.stringify(input)} mb={2}>
+                  <FormLabel fontSize="sm" mb={1}>
+                    {input.name && <Text display="inline">{input.name}</Text>}
+                    {input.type && (
+                      <Text
+                        fontSize="xs"
+                        color="whiteAlpha.700"
+                        display="inline"
+                      >
+                        {' '}
+                        {input.type}
+                      </Text>
+                    )}
+                  </FormLabel>
+                  <FunctionInput
+                    key={JSON.stringify(input)}
+                    input={input}
+                    valueUpdated={(value) => {
+                      const params = [...selectedParams];
+                      params[index] = value;
+                      setSelectedParams(params);
+                    }}
+                  />
+                </Box>
+              ))}
+            </FormControl>
+          )}
           {paramsEncodeError && (
-            <Alert bg="gray.800" status="error" mt="6">
+            <Alert bg="gray.900" status="error">
               <AlertIcon />
-              {paramsEncodeError}
+              <Box>
+                <AlertTitle>Transaction Simulation Error</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {paramsEncodeError}
+                </AlertDescription>
+              </Box>
             </Alert>
           )}
           {txnInfo.txnResults &&
             txnInfo.txnResults[0] &&
             txnInfo.txnResults[0]?.error && (
-              <Alert bg="gray.800" status="error" mt="6">
+              <Alert bg="gray.900" status="error">
                 <AlertIcon />
-                Transaction Error:{' '}
-                {txnInfo.txnResults[0]?.callResult
-                  ? decodeError(
-                      txnInfo.txnResults[0]?.callResult as any,
-                      contracts[selectedContractName!].abi
-                    )
-                  : txnInfo.txnResults[0]?.error}
+                <Box>
+                  <AlertTitle>Transaction Simulation Error</AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    {txnInfo.txnResults[0]?.callResult
+                      ? decodeError(
+                          txnInfo.txnResults[0]?.callResult as any,
+                          contracts[selectedContractName!].abi,
+                        )
+                      : txnInfo.txnResults[0]?.error}
+                  </AlertDescription>
+                </Box>
               </Alert>
             )}
+          {isDeletable && (
+            <Box>
+              <Button
+                mt="3"
+                variant="outline"
+                size="xs"
+                colorScheme="red"
+                color="red.400"
+                borderColor="red.400"
+                _hover={{ bg: 'red.900' }}
+                onClick={onDelete}
+              >
+                Remove Transaction
+              </Button>
+            </Box>
+          )}
         </Flex>
-        {isDeletable && (
-          <Box ml="3">
-            <IconButton
-              colorScheme="blackAlpha"
-              background="transparent"
-              icon={<CloseIcon opacity="0.5" />}
-              aria-label={'Remove provider'}
-              onClick={onDelete}
-            />
-          </Box>
-        )}
       </Flex>
     </Flex>
   );
