@@ -1,13 +1,11 @@
 import { useStore } from '@/helpers/store';
 import { useSimulatedTxns } from '@/hooks/fork';
-import { CloseIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertIcon,
   Box,
   Flex,
   FormLabel,
-  IconButton,
   Text,
   FormControl,
   AlertTitle,
@@ -218,7 +216,7 @@ export function QueueTransaction({
                 options={contracts[selectedContractName].abi
                   .filter(
                     (abi) =>
-                      abi.type === 'function' && abi.stateMutability !== 'view',
+                      abi.type === 'function' && abi.stateMutability !== 'view'
                   )
                   .map((abi) => ({
                     value: abi,
@@ -285,7 +283,7 @@ export function QueueTransaction({
                     {txnInfo.txnResults[0]?.callResult
                       ? decodeError(
                           txnInfo.txnResults[0]?.callResult as any,
-                          contracts[selectedContractName!].abi,
+                          contracts[selectedContractName!].abi
                         )
                       : txnInfo.txnResults[0]?.error}
                   </AlertDescription>

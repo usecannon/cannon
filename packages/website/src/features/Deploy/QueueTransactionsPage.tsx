@@ -74,7 +74,7 @@ function QueueTransactions() {
             to: zeroAddress,
             data: encodeAbiParameters(
               [{ type: 'string[]' }],
-              [['invoke', cannonInfo.pkgUrl || '']],
+              [['invoke', cannonInfo.pkgUrl || '']]
             ),
           } as Partial<TransactionRequestBase>,
           ...queuedTxns,
@@ -118,7 +118,7 @@ function QueueTransactions() {
           isClosable: true,
         });
       },
-    },
+    }
   );
 
   console.log('final tx:', stager.executeTxnConfig);
@@ -129,7 +129,7 @@ function QueueTransactions() {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>,
+    txn: Omit<TransactionRequestBase, 'from'>
   ) {
     setQueuedIdentifiableTxns((prev) => {
       const result = [...prev];
@@ -211,6 +211,7 @@ function QueueTransactions() {
           <FormLabel>Transactions</FormLabel>
           {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
             <Box
+              key={i}
               mb={6}
               p={6}
               bg="gray.800"
@@ -286,6 +287,28 @@ function QueueTransactions() {
 
       {(cannonInfo.contracts || isAddress(target)) && (
         <Box mb="6">
+          {stager.signConditionFailed && (
+            <Alert bg="gray.800" status="error" mb={4}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Can’t Sign</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {stager.signConditionFailed}
+                </AlertDescription>
+              </Box>
+            </Alert>
+          )}
+          {stager.execConditionFailed && (
+            <Alert bg="gray.800" status="error" mb={4}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Can’t Execute</AlertTitle>
+                <AlertDescription fontSize="sm">
+                  {stager.execConditionFailed}
+                </AlertDescription>
+              </Box>
+            </Alert>
+          )}
           <NoncePicker
             safe={currentSafe as any}
             onPickedNonce={setPickedNonce}
