@@ -4,6 +4,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase
     target-branch: "main"
+    ignore:
+      update-types: ["version-update:semver-major"]
