@@ -33,7 +33,8 @@ export async function isIpfsGateway(ipfsUrl: string) {
     if (
       err instanceof AxiosError &&
       err.response?.status === 400 &&
-      err.response?.data.includes('argument "ipfs-path" is required')
+      typeof err.response?.data === 'string' &&
+      err.response.data.includes('argument "ipfs-path" is required')
     ) {
       isGateway = false;
     }
