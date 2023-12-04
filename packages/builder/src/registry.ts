@@ -1,10 +1,8 @@
-import { BigNumber, ethers, PayableOverrides } from 'ethers';
+import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
+import { BigNumber, ethers, PayableOverrides } from 'ethers';
 import EventEmitter from 'promise-events';
-
 import CannonRegistryAbi from './abis/CannonRegistry';
-
-import { bold, blueBright, yellow } from 'chalk';
 import { PackageReference } from './package';
 
 const debug = Debug('cannon:builder:registry');
@@ -37,7 +35,6 @@ export abstract class CannonRegistry {
     return null;
   }
 
-  // TODO: why is this empty?
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getMetaUrl(serviceRef: string, chainId: number): Promise<string | null> {
     return null;
