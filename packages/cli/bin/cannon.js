@@ -10,7 +10,8 @@ cli.default
   })
   .catch((err) => {
     if (err.message && process.env.TRACE !== 'true') {
-      console.error(red('Error: ' + err.message));
+      err.message = red(err.message);
+      console.error(err);
     } else {
       console.error(err);
     }
