@@ -6,24 +6,45 @@ updates:
     schedule:
       interval: "monthly"
     versioning-strategy: increase
-    target-branch: "main"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
     ignore:
-      update-types: ["version-update:semver-major"]
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]
       
   - package-ecosystem: "npm"
     directory: "/packages/cli"
     schedule:
       interval: "monthly"
     versioning-strategy: increase
-    target-branch: "main"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
     ignore:
-      update-types: ["version-update:semver-major"]
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "npm"
     directory: "/packages/hardhat-cannon"
     schedule:
       interval: "monthly"
     versioning-strategy: increase
-    target-branch: "main"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
     ignore:
-      update-types: ["version-update:semver-major"]
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]
