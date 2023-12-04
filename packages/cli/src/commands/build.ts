@@ -88,19 +88,21 @@ export async function build({
     );
   }
 
-  const { name, version } = packageDefinition;
-  let { preset } = packageDefinition;
+  const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset)
+
+  const { name, version } = packageRef;
+  let { preset } = packageRef;
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
     preset = presetArg;
   }
 
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+  const fullPackageRef = packageRef.toString();
 
-  let pkgName = packageDefinition?.name;
-  let pkgVersion = packageDefinition?.version;
+  let pkgName = name;
+  let pkgVersion = version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -212,7 +214,7 @@ export async function build({
     console.log();
   });
 
-  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+  runtime.on(Events.ResolveDeploy, (packageName, chainId, registry, d) =>
     console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
@@ -363,12 +365,6 @@ export async function build({
 
   chainDef.version = pkgVersion;
 
-  const isIPFSWritable = !isIpfsGateway(cliSettings.ipfsUrl || '');
-  if (cliSettings.ipfsUrl != undefined && !isIPFSWritable) {
-    console.error('Error: IPFS endpoint is not writable. Please check your IPFS configuration.');
-    process.exit(1);
-  }
-
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
@@ -388,7 +384,7 @@ export async function build({
 
     // locally store cannon packages (version + latest)
     await resolver.publish(
-      [fullPackageRef, PackageReference.from(name, 'latest', preset).toString()],
+      [fullPackageRef, `${name}:latest@${preset}`],
       runtime.chainId,
       deployUrl!,
       metaUrl!
