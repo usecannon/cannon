@@ -141,10 +141,10 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       buildOutputs.push({ pkg, outputs });
     }
-
+    
     console.log(
       greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + node.port)}`
+        `${bold(`${name}:${version}`)} has been deployed to a local node.`
       )
     );
 

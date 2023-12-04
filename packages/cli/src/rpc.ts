@@ -7,6 +7,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
+import axios from 'axios';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -122,7 +123,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         if (m) {
           const host = 'http://' + m[1];
           state = 'listening';
-          //console.log('anvil spawned at', host);
+          console.log('Anvil instance running on:', host);
           anvilProvider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host));
           resolve(anvilInstance!);
         }
