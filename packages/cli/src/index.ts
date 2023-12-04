@@ -7,9 +7,9 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  PackageReference,
   InMemoryRegistry,
   IPFSLoader,
+  PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
