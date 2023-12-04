@@ -24,12 +24,12 @@ export default function Interact({
 }) {
   return (
     <NoSSR
-      name={params.name}
-      tag={params.tag}
-      variant={params.variant}
-      moduleName={params.moduleName}
-      contractName={params.contractName}
-      contractAddress={params.contractAddress}
+      name={decodeURIComponent(params.name)}
+      tag={decodeURIComponent(params.tag)}
+      variant={decodeURIComponent(params.variant)}
+      moduleName={decodeURIComponent(params.moduleName)}
+      contractName={decodeURIComponent(params.contractName)}
+      contractAddress={decodeURIComponent(params.contractAddress)}
     />
   );
 }
