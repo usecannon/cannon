@@ -7,21 +7,22 @@ import { getMainLoader } from './loader';
 
 const debug = Debug('cannon:cli:package');
 
-export async function readDeploy(packageName: string, chainId: number, preset: string) {
-  debug('readDeploy', packageName, chainId, preset);
+export async function readDeploy(packageRef: string, chainId: number) {
+  debug('readDeploy', packageRef, chainId);
   const store = await _getStore();
-  return await _readDeploy(store, packageName, chainId, preset);
+
+  return await _readDeploy(store, packageRef, chainId);
 }
 
 /**
  * Get a list of all the deployments recursively that are imported by the given deployment. Keep in mind
  * that it will only return unique builds, not necessarily one per import/provision.
  */
-export async function readDeployRecursive(packageName: string, chainId: number, preset: string) {
-  debug('readDeployTree', packageName, chainId, preset);
+export async function readDeployRecursive(packageRef: string, chainId: number) {
+  debug('readDeployTree', packageRef, chainId);
 
   const store = await _getStore();
-  const deployInfo = await _readDeploy(store, packageName, chainId, preset);
+  const deployInfo = await _readDeploy(store, packageRef, chainId);
 
   const result = new Map<string, DeploymentInfo | null>();
 
@@ -59,11 +60,10 @@ async function _getStore() {
   return new CannonStorage(registry, loaders);
 }
 
-async function _readDeploy(store: CannonStorage, packageName: string, chainId: number, preset: string) {
-  const deployInfo = await store.readDeploy(packageName, chainId);
-
+async function _readDeploy(store: CannonStorage, packageRef: string, chainId: number) {
+  const deployInfo = await store.readDeploy(packageRef, chainId);
   if (!deployInfo) {
-    throw new Error(`deployment data could not be downloaded for ${packageName} at ${chainId}-${preset}`);
+    throw new Error(`deployment data could not be downloaded for ${packageRef} at ${chainId}`);
   }
 
   return deployInfo;

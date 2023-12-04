@@ -8,7 +8,6 @@ import { ChainBuilderContext, PreChainBuilderContext } from './types';
 import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
 import { chainDefinitionSchema } from './schemas.zod';
 import { ChainBuilderRuntime } from './runtime';
-import { PackageReference } from './package';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -293,26 +292,11 @@ export class ChainDefinition {
     // it would be best if the dep was downloaded when it was discovered to be needed, but there is not a lot we
     // can do about this right now
     return _.uniq(
-      Object.values(this.raw.import).map((d) => {
-        const source = _.template(d.source)(ctx);
-
-        // if source is not a package ref it is a cannonfile step
-        const isCannonfileStep = !PackageReference.isValid(source);
-
-        let fullSource;
-        if (!isCannonfileStep) {
-          fullSource = new PackageReference(source);
-        }
-
-        d.source = isCannonfileStep ? source : fullSource?.fullPackageRef!;
-        d.preset = d.preset ? _.template(d.preset)(ctx) : fullSource?.preset;
-
-        return {
-          source: d.source,
-          chainId: d.chainId || ctx.chainId,
-          preset: d.preset,
-        };
-      })
+      Object.values(this.raw.import).map((d) => ({
+        source: _.template(d.source)(ctx),
+        chainId: d.chainId || ctx.chainId,
+        preset: _.template(d.preset || 'main')(ctx),
+      }))
     );
   }
 

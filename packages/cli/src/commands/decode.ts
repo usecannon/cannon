@@ -3,8 +3,6 @@ import { ethers } from 'ethers';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
 
-import { PackageReference } from '@usecannon/builder/dist/package';
-
 export async function decode({
   packageRef,
   data,
@@ -28,9 +26,7 @@ export async function decode({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const { name, version, preset } = new PackageReference(packageRef);
-
-  const deployInfos = await readDeployRecursive(`${name}:${version}`, chainId, preset);
+  const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);

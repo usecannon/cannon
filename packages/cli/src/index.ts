@@ -550,11 +550,11 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
   }
 });
 
-applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageName, data, options) {
+applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
   await trace({
-    packageName,
+    packageRef,
     data,
     chainId: options.chainId,
     preset: options.preset,

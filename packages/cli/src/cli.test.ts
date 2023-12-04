@@ -13,6 +13,6 @@ describe('cli test', () => {
     cli.exitOverride((err) => {
       throw err;
     });
-    expect(() => cli.parse([])).toThrow("error: missing required argument 'packageNames'");
+    expect(() => cli.parse([])).toThrow("error: missing required argument 'packageRefs'");
   });
 });
