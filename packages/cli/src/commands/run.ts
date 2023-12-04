@@ -52,9 +52,7 @@ const INSTRUCTIONS = green(
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
-
-  console.log(bold('Starting local node...\n'));
-
+  
   // Start the rpc server
   const node = options.node;
   const provider = getProvider(node);

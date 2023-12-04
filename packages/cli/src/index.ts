@@ -113,6 +113,8 @@ function configureRun(program: Command) {
     options,
     program
   ) {
+    console.log(bold('Starting local node...\n'));
+
     const { run } = await import('./commands/run');
 
     options.port = Number.parseInt(options.port);
