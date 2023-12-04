@@ -23,10 +23,10 @@ updates:
       interval: "monthly"
     versioning-strategy: increase
     groups:
-    prod-deps:
-      dependency-type: "production"
-    dev-deps:
-      dependency-type: "development"
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
     ignore:
       - dependency-name: 'prod-deps'
         update-types: ["version-update:semver-major"]
@@ -38,10 +38,11 @@ updates:
     schedule:
       interval: "monthly"
     versioning-strategy: increase
-    prod-deps:
-      dependency-type: "production"
-    dev-deps:
-      dependency-type: "development"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
     ignore:
       - dependency-name: 'prod-deps'
         update-types: ["version-update:semver-major"]
