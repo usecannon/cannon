@@ -34,7 +34,13 @@ export async function alter(
   // Once preset arg is removed from the cli args we can remove this logic
   if (presetArg) {
     fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`;
-    console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
   }
 
   const cliSettings = resolveCliSettings();

@@ -28,7 +28,13 @@ task(TASK_INSPECT, 'Inspect the details of a Cannon package')
 
     // Handle deprecated preset specification
     if (presetArg) {
-      console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
+      console.warn(
+        yellow(
+          bold(
+            'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+          )
+        )
+      );
     }
 
     preset = presetArg || packageSpec.preset;

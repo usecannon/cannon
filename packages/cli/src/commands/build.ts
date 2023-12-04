@@ -13,7 +13,6 @@ import {
   getOutputs,
   PackageReference,
 } from '@usecannon/builder';
-import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import _ from 'lodash';
@@ -88,14 +87,20 @@ export async function build({
     );
   }
 
-  const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset)
+  const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
 
   const { name, version } = packageRef;
   let { preset } = packageRef;
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
     preset = presetArg;
   }
 
@@ -383,12 +388,7 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // locally store cannon packages (version + latest)
-    await resolver.publish(
-      [fullPackageRef, `${name}:latest@${preset}`],
-      runtime.chainId,
-      deployUrl!,
-      metaUrl!
-    );
+    await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
 

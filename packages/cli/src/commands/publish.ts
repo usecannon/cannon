@@ -55,7 +55,13 @@ export async function publish({
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 

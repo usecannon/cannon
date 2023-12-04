@@ -623,7 +623,13 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   // Handle deprecated preset specification
   if (opts.preset) {
-    console.warn(yellow(bold('The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
     preset = opts.preset;
   }
 
