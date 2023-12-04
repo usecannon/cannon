@@ -195,17 +195,58 @@ function QueueTransactions() {
           connected wallet.
         </FormHelperText>
       </FormControl>
-      {!isAddress(target) && cannonInfo.pkgUrl && !cannonInfo.contracts && (
-        <Alert bg="gray.800" status="info">
-          <AlertIcon />
-          <Box>
-            <AlertTitle>Cannon Package Detected</AlertTitle>
-            <AlertDescription fontSize="sm">
-              Downloading {cannonInfo.pkgUrl}
-            </AlertDescription>
-          </Box>
-        </Alert>
-      )}
+      {!isAddress(target) &&
+        target.length >= 3 &&
+        cannonInfo.registryQuery.status === 'loading' && (
+          <Alert bg="gray.800" status="info">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Searching</AlertTitle>
+              <AlertDescription fontSize="sm">
+                {`Searching "${target}" package`}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      {!isAddress(target) &&
+        target.length >= 3 &&
+        cannonInfo.registryQuery.status === 'error' && (
+          <Alert bg="gray.800" status="error">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Searching</AlertTitle>
+              <AlertDescription fontSize="sm">
+                {`Failed to find "${target}" package`}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'loading' && (
+          <Alert bg="gray.800" status="info">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Downloading {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'error' && (
+          <Alert bg="gray.800" status="error">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Failed to load {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
       {!isAddress(target) && cannonInfo.contracts && (
         <FormControl mb="8">
           <FormLabel>Transactions</FormLabel>
