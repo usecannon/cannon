@@ -97,11 +97,11 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
+  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const { preset, packageRef } = new PackageReference(packageOrServiceRef);
 
     const variant = `${chainId}-${preset}`;
-    return this.metas[fullPackageRef] ? this.metas[fullPackageRef][variant] : null;
+    return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -152,15 +152,15 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     return null;
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { fullPackageRef } = new PackageReference(packageRef);
+  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const { preset, fullPackageRef } = new PackageReference(packageOrServiceRef);
 
     for (const registry of this.registries) {
       try {
         const result = await registry.getMetaUrl(fullPackageRef, chainId);
 
         if (result) {
-          await this.emit('getMetaUrl', { fullPackageRef, chainId, result, registry });
+          await this.emit('getMetaUrl', { fullPackageRef, preset, chainId, result, registry });
           return result;
         }
       } catch (err: any) {

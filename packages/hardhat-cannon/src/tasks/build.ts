@@ -104,7 +104,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         const node = dryRun
           ? await runRpc(
               {
-                port:hre.config.networks.cannon.port || anvilOpts.port,
+                port: hre.config.networks.cannon.port || anvilOpts.port,
                 chainId: (await hre.ethers.provider.getNetwork()).chainId,
                 accounts: anvilOpts.accounts || 10,
                 ...anvilOpts,
@@ -113,7 +113,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
                 forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
               }
             )
-          : await runRpc({ port: hre.config.networks.cannon.port  || anvilOpts.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
+          : await runRpc({
+              port: hre.config.networks.cannon.port || anvilOpts.port,
+              accounts: anvilOpts.accounts || 10,
+              ...anvilOpts,
+            });
 
         provider = getProvider(node);
       }
