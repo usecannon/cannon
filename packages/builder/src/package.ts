@@ -194,7 +194,7 @@ export async function publishPackage({
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, chainId);
+    const metaUrl = await fromStorage.registry.getMetaUrl(fullPackageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {

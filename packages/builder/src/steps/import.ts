@@ -1,16 +1,14 @@
-import _ from 'lodash';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { yellow, bold } from 'chalk';
-
+import _ from 'lodash';
 import { z } from 'zod';
-import { importSchema } from '../schemas.zod';
-
-import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { computeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime } from '../runtime';
-import { computeTemplateAccesses } from '../access-recorder';
 import { PackageReference } from '../package';
+import { ChainBuilderRuntime } from '../runtime';
+import { importSchema } from '../schemas.zod';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
 const debug = Debug('cannon:builder:import');
 
@@ -56,9 +54,9 @@ const importSpec = {
       console.warn(
         yellow(
           bold(
-            `The preset option is deprecated. Using ${_.template(config.preset)(
+            `The preset option will be deprecated soon. Using ${_.template(config.preset)(
               ctx
-            )}. Reference presets in the source option like name@version:preset`
+            )}. Reference presets in the "source" option like so: name@version:preset`
           )
         )
       );
@@ -92,9 +90,8 @@ const importSpec = {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
     const source = config.source;
-    const preset = config.preset || packageRef.preset;
+    const preset = config.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain

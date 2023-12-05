@@ -1,7 +1,9 @@
-node_modules
+.next
 artifacts
 cache
 coverage*
-gasReporterOutput.json
 dist
-.next
+gasReporterOutput.json
+next.lock
+node_modules
+typechain-types
