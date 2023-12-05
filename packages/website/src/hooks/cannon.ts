@@ -125,7 +125,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
         publicSourceCode: true,
       },
       fallbackRegistry,
-      loaders,
+      loaders
     );
 
     const simulatedSteps: ChainArtifacts[] = [];
@@ -137,7 +137,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
         addLog(`cannon.ts: on Events.PostStepExecute step ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`);
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
-      },
+      }
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
@@ -177,7 +177,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
             data: tx.data,
           } as BaseTransaction,
         };
-      }),
+      })
     );
 
     if (fork) await fork.disconnect();
@@ -225,7 +225,7 @@ export function useCannonWriteDeployToIpfs(
   runtime: ChainBuilderRuntime,
   deployInfo: DeploymentInfo,
   metaUrl: string,
-  mutationOptions: Partial<UseMutationOptions> = {},
+  mutationOptions: Partial<UseMutationOptions> = {}
 ) {
   const settings = useStore((s) => s.settings);
 
@@ -246,7 +246,7 @@ export function useCannonWriteDeployToIpfs(
         [packageRef],
         runtime.chainId,
         (await runtime.loaders.mem.put(deployInfo)) ?? '',
-        metaUrl,
+        metaUrl
       );
 
       const memoryRegistry = new InMemoryRegistry();
@@ -256,7 +256,7 @@ export function useCannonWriteDeployToIpfs(
         toStorage: new CannonStorage(
           memoryRegistry,
           { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || 'https://repo.usecannon.com/') },
-          'ipfs',
+          'ipfs'
         ),
         packageRef,
         chainId: runtime.chainId,
@@ -366,7 +366,7 @@ type ContractInfo = {
 export function getContractsRecursive(
   outputs: ChainArtifacts,
   signerOrProvider: ethers.Signer | ethers.providers.Provider,
-  prefix?: string,
+  prefix?: string
 ): ContractInfo {
   let contracts = _.mapValues(outputs.contracts, (ci) => {
     return { address: ci.address as Address, abi: ci.abi };
@@ -403,7 +403,7 @@ export function useCannonPackageContracts(packageRef: string, chainId?: number) 
             allowPartialDeploy: false,
           },
           null as any,
-          { ipfs: loader },
+          { ipfs: loader }
         );
 
         const outputs = await getOutputs(readRuntime, new ChainDefinition(info.def), info.state);
