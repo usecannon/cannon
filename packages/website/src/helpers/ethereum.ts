@@ -22,7 +22,7 @@ function makeMulticall(txns: Partial<TransactionRequestBase>[]): {
 
   return {
     operation: '1', // multicall is a DELEGATECALL
-    to: '0xae788aaf52780741e12bf79ad684b91bb0ef4d92',
+    to: '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e',
     value: totalValue,
     data: encodeFunctionData({
       abi: MulticallABI,
@@ -32,7 +32,7 @@ function makeMulticall(txns: Partial<TransactionRequestBase>[]): {
           target: txn.to || zeroAddress,
           callData: txn.data || '0x',
           value: txn.value || '0',
-          allowFailure: false,
+          requireSuccess: true,
         })),
       ],
     }),
@@ -45,7 +45,7 @@ export async function contractCall(
   params: any,
   abi: Abi,
   publicClient: PublicClient,
-  pythUrl: string
+  pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -94,7 +94,7 @@ export async function contractTransaction(
   abi: Abi,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  pythUrl: string
+  pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
