@@ -341,7 +341,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         }
       } catch (err) {
         addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
-        return null;
+        throw err;
       }
     },
     enabled: !!pkgUrl,
