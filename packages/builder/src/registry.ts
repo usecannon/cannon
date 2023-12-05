@@ -65,20 +65,21 @@ export class InMemoryRegistry extends CannonRegistry {
 
   async publish(packagesNames: string[], chainId: number, url: string, meta?: string): Promise<string[]> {
     const receipts: string[] = [];
-    for (const name of packagesNames) {
-      const { preset } = new PackageReference(name);
+    for (const rawName of packagesNames) {
+      const { preset, packageRef } = new PackageReference(rawName);
       const variant = `${chainId}-${preset}`;
+      debug('in memory publish', preset, packageRef, variant, rawName);
 
-      if (!this.pkgs[name]) {
-        this.pkgs[name] = {};
+      if (!this.pkgs[packageRef]) {
+        this.pkgs[packageRef] = {};
       }
-      if (!this.metas[name]) {
-        this.metas[name] = {};
+      if (!this.metas[packageRef]) {
+        this.metas[packageRef] = {};
       }
 
-      this.pkgs[name][variant] = url;
+      this.pkgs[packageRef][variant] = url;
       if (meta) {
-        this.metas[name][variant] = meta;
+        this.metas[packageRef][variant] = meta;
       }
       receipts.push((++this.count).toString());
     }
@@ -90,10 +91,10 @@ export class InMemoryRegistry extends CannonRegistry {
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
 
-    const { preset, fullPackageRef } = new PackageReference(packageOrServiceRef);
+    const { preset, packageRef } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    return this.pkgs[fullPackageRef] ? this.pkgs[fullPackageRef][variant] : null;
+    return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
   }
 
   async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {

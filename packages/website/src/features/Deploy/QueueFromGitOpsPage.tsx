@@ -66,7 +66,7 @@ function QueueFromGitOps() {
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
-    onchainStore.deployTxn as any
+    onchainStore.deployTxn as any,
   );
   const deployOnChainStore = useSendTransaction({
     ...prepareDeployOnchainStore.config,
@@ -86,7 +86,7 @@ function QueueFromGitOps() {
       cannonfileUrlInput.includes('/blob/')
         ? cannonfileUrlInput.split('/blob/')[0]
         : '',
-    [cannonfileUrlInput]
+    [cannonfileUrlInput],
   );
 
   const gitBranch = useMemo(() => {
@@ -180,7 +180,7 @@ function QueueFromGitOps() {
         previousPreset ? '@' + previousPreset : ''
       }`) ??
       '',
-    chainId
+    chainId,
   );
   const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
   const cannonPkgVersionInfo = useCannonPackage(
@@ -189,7 +189,7 @@ function QueueFromGitOps() {
         preset ? '@' + preset : ''
       }`) ??
       '',
-    chainId
+    chainId,
   );
 
   const prevDeployLocation =
@@ -198,11 +198,11 @@ function QueueFromGitOps() {
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
-    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
+    prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : '',
   );
 
   const partialDeployInfo = useCannonPackage(
-    partialDeployIpfs ? '@ipfs:' + partialDeployIpfs : ''
+    partialDeployIpfs ? '@ipfs:' + partialDeployIpfs : '',
   );
 
   useEffect(() => {
@@ -215,7 +215,7 @@ function QueueFromGitOps() {
             partialDeployInfo.resolvedPreset
               ? '@' + partialDeployInfo.resolvedPreset
               : ''
-          }`
+          }`,
         );
       } else {
         const name = cannonDefInfo.def.getName(ctx);
@@ -232,7 +232,7 @@ function QueueFromGitOps() {
   const buildInfo = useCannonBuild(
     currentSafe as any,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any
+    prevCannonDeployInfo.pkg as any,
   );
 
   const buildTransactions = () => {
@@ -248,7 +248,7 @@ function QueueFromGitOps() {
       meta: prevCannonDeployInfo.pkg?.meta,
       miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
     } as any,
-    prevCannonDeployInfo.metaUrl as any
+    prevCannonDeployInfo.metaUrl as any,
   );
 
   useEffect(() => {
@@ -262,7 +262,7 @@ function QueueFromGitOps() {
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
-    gitUrl + ':' + gitFile
+    gitUrl + ':' + gitFile,
   );
 
   console.log('the prev info query data is', prevInfoQuery.data);
@@ -289,7 +289,7 @@ function QueueFromGitOps() {
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
                   ],
-                ]
+                ],
               ),
             } as Partial<TransactionRequestBase>,
             // write data needed for the subsequent deployment to chain
@@ -317,9 +317,9 @@ function QueueFromGitOps() {
             } as Partial<TransactionRequestBase>,
           ].concat(
             buildInfo.buildResult.steps.map(
-              (s) => s.tx as unknown as Partial<TransactionRequestBase>
-            )
-          )
+              (s) => s.tx as unknown as Partial<TransactionRequestBase>,
+            ),
+          ),
         )
       : { value: BigInt(0) };
 
@@ -353,14 +353,14 @@ function QueueFromGitOps() {
           isClosable: true,
         });
       },
-    }
+    },
   );
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
 
   const isPartialDataRequired =
     buildInfo.buildSkippedSteps.filter(
-      (s) => s.name.includes('contract') || s.name.includes('router')
+      (s) => s.name.includes('contract') || s.name.includes('router'),
     ).length > 0;
 
   if (
@@ -460,7 +460,7 @@ function QueueFromGitOps() {
             onChange={
               (evt: any) =>
                 setPartialDeployIpfs(
-                  evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                  evt.target.value.slice(evt.target.value.indexOf('Qm')),
                 ) /** TODO: handle bafy hash or other hashes */
             }
           />
@@ -551,6 +551,15 @@ function QueueFromGitOps() {
           />
         )}
 
+        {!uploadToPublishIpfs.deployedIpfsHash && (
+          <Text>Uploading build result to IPFS...</Text>
+        )}
+        {uploadToPublishIpfs.writeToIpfsMutation.error && (
+          <Text>
+            Failed to upload staged transaction to IPFS:{' '}
+            {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
+          </Text>
+        )}
         {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
           <Box my="6">
             <NoncePicker
