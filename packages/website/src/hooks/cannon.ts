@@ -261,6 +261,7 @@ export function useCannonWriteDeployToIpfs(
         packageRef,
         chainId: runtime.chainId,
         tags: ['latest'],
+        includeProvisioned: true,
       });
 
       // load the new ipfs url
@@ -340,7 +341,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         }
       } catch (err) {
         addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
-        return null;
+        throw err;
       }
     },
     enabled: !!pkgUrl,

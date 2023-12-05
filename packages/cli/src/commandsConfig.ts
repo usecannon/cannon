@@ -162,7 +162,7 @@ const commandsConfig = {
     usage: '[global options] ...[<name>[:<semver>] ...[<key>=<value>]]',
     arguments: [
       {
-        flags: '<packageNames...>',
+        flags: '<packageRefs...>',
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
@@ -320,8 +320,8 @@ const commandsConfig = {
     description: 'Verify a package on Etherscan',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the Cannon package to verify',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to verify (name:version@preset)',
       },
     ],
     options: [
@@ -344,8 +344,8 @@ const commandsConfig = {
     description: 'Change a cannon package outside of the regular build process.',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the Cannon package to alter',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to alter (name:version@preset)',
       },
       {
         flags: '<command>',
@@ -372,8 +372,8 @@ const commandsConfig = {
     description: 'Fetch cannon package data from an IPFS hash and store it in the local registry.',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name of the package to fetch data for',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to fetch from (name:version@preset)',
       },
       {
         flags: '<ipfsHash>',
@@ -404,8 +404,8 @@ const commandsConfig = {
     description: 'Publish a Cannon package to the registry',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the package to publish',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
       },
     ],
     options: [
@@ -463,8 +463,8 @@ const commandsConfig = {
     description: 'Inspect the details of a Cannon package',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to inspect',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to inspect (name:version@preset)',
       },
     ],
     options: [
@@ -499,7 +499,7 @@ const commandsConfig = {
     description: 'Clean cannon storage of excessive/transient build files older than a certain age',
     options: [
       {
-        flags: '--filter-package <packageName>',
+        flags: '--filter-package <packageRef>',
         description: 'Only keep deployments in local storage which match the given package name. Default: do not filter',
       },
       {
@@ -525,8 +525,8 @@ const commandsConfig = {
     description: 'Get a full stack trace for a transaction hash or explicit transaction call',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to use',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the package to trace (name:version@preset)',
       },
       {
         flags: '<transactionHash OR bytes32Data>',
@@ -574,8 +574,8 @@ const commandsConfig = {
     description: 'decode transaction data using the ABIs of the given Cannon package',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to use',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
         flags: '<bytes32Data...>',
@@ -643,8 +643,8 @@ const commandsConfig = {
     description: 'Start an interactive terminal against a set of active cannon deployments',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Package to deploy, optionally with custom settings',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to interact with (name:version@preset)',
       },
     ],
     options: [

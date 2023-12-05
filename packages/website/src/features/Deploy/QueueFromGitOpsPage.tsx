@@ -551,6 +551,15 @@ function QueueFromGitOps() {
           />
         )}
 
+        {!uploadToPublishIpfs.deployedIpfsHash && (
+          <Text>Uploading build result to IPFS...</Text>
+        )}
+        {uploadToPublishIpfs.writeToIpfsMutation.error && (
+          <Text>
+            Failed to upload staged transaction to IPFS:{' '}
+            {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
+          </Text>
+        )}
         {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
           <Box my="6">
             <NoncePicker

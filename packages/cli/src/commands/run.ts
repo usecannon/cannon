@@ -103,19 +103,25 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     // Handle deprecated preset specification
     if (options.presetArg) {
-      console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+      console.warn(
+        yellow(
+          bold(
+            'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+          )
+        )
+      );
       preset = options.presetArg;
+      pkg.preset = preset;
     }
 
     const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
-    if (options.build || Object.keys(pkg.settings).length) {
+    if (options.build || (pkg.settings && Object.keys(pkg.settings).length > 0)) {
       const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });

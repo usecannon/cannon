@@ -7,9 +7,9 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  PackageReference,
   InMemoryRegistry,
   IPFSLoader,
+  PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
@@ -81,9 +81,9 @@ function applyCommandsConfig(command: Command, config: any) {
   }
   if (config.arguments) {
     config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageNames...>') {
+      if (argument.flags === '<packageRefs...>') {
         command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageName>') {
+      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
         command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
       } else {
         command.argument(argument.flags, argument.description, argument.defaultValue);
@@ -548,11 +548,11 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
   }
 });
 
-applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageName, data, options) {
+applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
   await trace({
-    packageName,
+    packageRef,
     data,
     chainId: options.chainId,
     preset: options.preset,
@@ -621,7 +621,13 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   // Handle deprecated preset specification
   if (opts.preset) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
     preset = opts.preset;
   }
 

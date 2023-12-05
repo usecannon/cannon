@@ -42,7 +42,13 @@ export class PackageReference {
   /**
    * Convenience parameter for returning packageRef with interpolated version and preset like name:version@preset
    */
-  fullPackageRef: string;
+  get fullPackageRef() {
+    return `${this.name}:${this.version}@${this.preset}`;
+  }
+
+  get packageRef() {
+    return `${this.name}:${this.version}`;
+  }
 
   static isValid(ref: string) {
     return !!PKG_REG_EXP.test(ref);
@@ -70,8 +76,6 @@ export class PackageReference {
     this.name = name;
     this.version = version;
     this.preset = preset;
-
-    this.fullPackageRef = `${this.name}:${this.version}@${this.preset}`;
   }
 
   toString() {
@@ -194,7 +198,7 @@ export async function publishPackage({
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, chainId);
+    const metaUrl = await fromStorage.registry.getMetaUrl(fullPackageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -219,7 +223,7 @@ export async function publishPackage({
 
     const returnVal = {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
+        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
       ),
       chainId: chainId,
       url,

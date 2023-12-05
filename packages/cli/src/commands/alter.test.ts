@@ -1,10 +1,11 @@
-import { ethers } from 'ethers';
-import { alter } from './alter';
-import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { CliLoader, getMainLoader, LocalLoader } from '../loader';
+import { ethers } from 'ethers';
 import _ from 'lodash';
+import { dirSync } from 'tmp-promise';
 import cli from '../index';
+import { CliLoader, getMainLoader, LocalLoader } from '../loader';
+import { createDefaultReadRegistry } from '../registry';
+import { alter } from './alter';
 
 function generatePrivateKey(): string {
   const randomWallet = ethers.Wallet.createRandom();
@@ -17,6 +18,7 @@ jest.mock('../settings', () => ({
     registryProviderUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
     privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
+    cannonDirectory: dirSync().name,
     // Add other properties as needed
   }),
 }));

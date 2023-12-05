@@ -19,5 +19,11 @@ export default function Code({
 }: {
   params: { name: string; tag: string; variant: string };
 }) {
-  return <NoSSR name={params.name} tag={params.tag} variant={params.variant} />;
+  return (
+    <NoSSR
+      name={decodeURIComponent(params.name)}
+      tag={decodeURIComponent(params.tag)}
+      variant={decodeURIComponent(params.variant)}
+    />
+  );
 }

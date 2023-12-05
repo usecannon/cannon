@@ -13,7 +13,6 @@ import {
   getOutputs,
   PackageReference,
 } from '@usecannon/builder';
-import { isIpfsGateway } from '@usecannon/builder/dist/ipfs';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import _ from 'lodash';
@@ -88,19 +87,27 @@ export async function build({
     );
   }
 
-  const { name, version } = packageDefinition;
-  let { preset } = packageDefinition;
+  const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
+
+  const { name, version } = packageRef;
+  let { preset } = packageRef;
 
   // Handle deprecated preset specification
   if (presetArg) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
     preset = presetArg;
   }
 
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+  const fullPackageRef = packageRef.toString();
 
-  let pkgName = packageDefinition?.name;
-  let pkgVersion = packageDefinition?.version;
+  let pkgName = name;
+  let pkgVersion = version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -212,7 +219,7 @@ export async function build({
     console.log();
   });
 
-  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+  runtime.on(Events.ResolveDeploy, (packageName, chainId, registry, d) =>
     console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
@@ -381,12 +388,7 @@ export async function build({
     const metaUrl = await runtime.putBlob(metadata);
 
     // locally store cannon packages (version + latest)
-    await resolver.publish(
-      [fullPackageRef, PackageReference.from(name, 'latest', preset).toString()],
-      runtime.chainId,
-      deployUrl!,
-      metaUrl!
-    );
+    await resolver.publish([fullPackageRef, `${name}:latest@${preset}`], runtime.chainId, deployUrl!, metaUrl!);
 
     // detach the process handler
 
