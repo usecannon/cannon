@@ -45,7 +45,7 @@ export async function contractCall(
   params: any,
   abi: Abi,
   publicClient: PublicClient,
-  pythUrl: string,
+  pythUrl: string
 ) {
   const data = encodeFunctionData({
     abi,
@@ -94,7 +94,7 @@ export async function contractTransaction(
   abi: Abi,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  pythUrl: string,
+  pythUrl: string
 ) {
   const data = encodeFunctionData({
     abi,
