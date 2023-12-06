@@ -391,7 +391,6 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     packageRef: '@ipfs:' + ipfsHash,
     chainId: 13370,
     tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    preset: 'main',
     fromStorage,
     toStorage,
   });

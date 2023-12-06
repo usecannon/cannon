@@ -107,14 +107,14 @@ export async function publish({
       message: 'Select the package you want to publish:\n',
       name: 'value',
       choices: deploys.map((d) => {
-          const { fullPackageRef } = new PackageReference(d.name);
+        const { fullPackageRef } = new PackageReference(d.name);
 
-          return {
-            title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
-            description: '',
-            value: d,
-          };
-        }),
+        return {
+          title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
+          description: '',
+          value: d,
+        };
+      }),
     });
 
     if (!prompt.value) {
@@ -122,7 +122,7 @@ export async function publish({
       process.exit(1);
     }
 
-    tags = tags.filter((t) => t !== new PackageReference(prompt.value.name).version)
+    tags = tags.filter((t) => t !== new PackageReference(prompt.value.name).version);
 
     deploys = [prompt.value] as typeof deploys;
   }
@@ -229,11 +229,10 @@ export async function publish({
     const publishTags: string[] = pkg.versions.concat(tags);
 
     const newReceipts = await publishPackage({
-      packageRef: `${pkg.name}:${pkg.versions[0]}`,
+      packageRef: PackageReference.from(pkg.name, pkg.versions[0], pkg.preset).fullPackageRef,
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
-      preset: pkg.preset,
       tags: publishTags!,
       includeProvisioned,
     });
