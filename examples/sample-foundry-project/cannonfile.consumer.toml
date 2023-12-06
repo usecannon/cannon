@@ -9,6 +9,9 @@ defaultValue = "new greeting!"
 [import.greeters]
 source = "greeter-foundry"
 
+[provision.greeter-foundry]
+source = "greeter-foundry:latest@random"
+
 [import.more_greeters]
 source = "greeter-foundry"
 options.salt = "second"

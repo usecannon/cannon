@@ -50,6 +50,21 @@ export class PackageReference {
     return `${this.name}:${this.version}`;
   }
 
+  /**
+   * Parse package reference without normalizing it
+   */
+  static parse(ref: string){
+    const match = ref.match(PKG_REG_EXP);
+
+    if (!match) {
+      throw new Error(
+        `Invalid package name "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+      );
+    }
+
+    return { ...match.groups };
+  }
+
   static isValid(ref: string) {
     return !!PKG_REG_EXP.test(ref);
   }
@@ -140,7 +155,7 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
   if (!deployInfo) {
     throw new Error(
-      `could not find deployment artifact for ${fullPackageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}" while checking for provisioned packages. Please double check your settings, and rebuild your package.`
     );
   }
 
@@ -239,7 +254,7 @@ export async function publishPackage({
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${fullPackageRef}. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
     );
   }
 

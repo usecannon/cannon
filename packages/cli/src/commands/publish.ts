@@ -44,6 +44,7 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
+  console.log(packageRef);
   const { fullPackageRef } = new PackageReference(packageRef);
   // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
@@ -91,12 +92,12 @@ export async function publish({
     deploys = [{ name: packageRef, chainId: 13370 }];
   } else {
     // Check for deployments that are relevant to the provided packageRef
-    deploys = await localRegistry.scanDeploys(fullPackageRef, chainId);
+    deploys = await localRegistry.scanDeploys(packageRef, chainId);
   }
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
     );
   }
 
@@ -148,7 +149,7 @@ export async function publish({
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {
-          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.chainId, tags, fromStorage);
+          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}@${pkg.preset}`, pkg.chainId, tags, fromStorage);
           subPackages.push(...provisionedPackages);
         }
       }
@@ -210,24 +211,24 @@ export async function publish({
       console.log('Cancelled');
       process.exit(1);
     }
-
-    console.log(bold('Publishing package...'));
-    console.log(gray('This may take a few minutes.'));
-    console.log();
   }
+
+  console.log(bold('Publishing package...'));
+  console.log(gray('This may take a few minutes.'));
+  console.log();
 
   const registrationReceipts = [];
 
   for (const pkg of parentPackages) {
     const publishTags: string[] = pkg.versions.concat(tags);
 
+    console.log(`${pkg.name}:${pkg.versions[0]}`);
     const newReceipts = await publishPackage({
-      packageRef: `${pkg.name}:${pkg.versions[0]}`,
+      packageRef: `${pkg.name}:${pkg.versions[0]}@${pkg.preset}`,
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
       tags: publishTags!,
-      preset: pkg.preset,
       includeProvisioned,
     });
 

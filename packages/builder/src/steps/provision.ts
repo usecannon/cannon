@@ -87,7 +87,7 @@ const provisionSpec = {
     }
 
     config.source = packageRef.fullPackageRef;
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
+    config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
