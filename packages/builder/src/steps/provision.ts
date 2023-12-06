@@ -87,7 +87,7 @@ const provisionSpec = {
         )
       );
 
-      config.source = ref.packageRef + config.sourcePreset;
+      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).toString();
     }
 
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
