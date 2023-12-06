@@ -36,7 +36,7 @@ interface SubPackage {
 export async function publish({
   packageRef,
   signer,
-  tags,
+  tags = ['latest'],
   chainId,
   presetArg,
   quiet = false,
@@ -102,12 +102,16 @@ export async function publish({
   }
 
   // Select screen for when a user is looking for all the local deploys
-  if (!skipConfirm && deploys.length > 1) {
+  if (!skipConfirm) {
     const verification = await prompts({
-      type: 'autocompleteMultiselect',
-      message: 'Select the packages you want to publish:\n',
-      name: 'values',
-      choices: deploys.map((d) => {
+      type: 'select',
+      message: 'Select the package you want to publish:\n',
+      name: 'value',
+      choices: deploys.filter((d) => {
+        const { version } = new PackageReference(d.name);
+
+        return version !== 'latest';
+      }).map((d) => {
         const { fullPackageRef } = new PackageReference(d.name);
 
         return {
@@ -118,12 +122,12 @@ export async function publish({
       }),
     });
 
-    if (!verification.values || verification.values.length == 0) {
+    if (!verification.value) {
       console.log('You must select a package to publish');
       process.exit(1);
     }
 
-    deploys = verification.values as typeof deploys;
+    deploys = [verification.value] as typeof deploys;
   }
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
