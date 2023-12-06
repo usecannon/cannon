@@ -53,7 +53,7 @@ export class PackageReference {
   /**
    * Parse package reference without normalizing it
    */
-  static parse(ref: string){
+  static parse(ref: string) {
     const match = ref.match(PKG_REG_EXP);
 
     if (!match) {

@@ -106,19 +106,21 @@ export async function publish({
       type: 'select',
       message: 'Select the package you want to publish:\n',
       name: 'value',
-      choices: deploys.filter((d) => {
-        const { version } = new PackageReference(d.name);
+      choices: deploys
+        .filter((d) => {
+          const { version } = new PackageReference(d.name);
 
-        return version !== 'latest';
-      }).map((d) => {
-        const { fullPackageRef } = new PackageReference(d.name);
+          return version !== 'latest';
+        })
+        .map((d) => {
+          const { fullPackageRef } = new PackageReference(d.name);
 
-        return {
-          title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
-          description: '',
-          value: d,
-        };
-      }),
+          return {
+            title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
+            description: '',
+            value: d,
+          };
+        }),
     });
 
     if (!verification.value) {
@@ -152,7 +154,12 @@ export async function publish({
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {
-          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}@${pkg.preset}`, pkg.chainId, tags, fromStorage);
+          const provisionedPackages = await getProvisionedPackages(
+            `${pkg.name}:${version}@${pkg.preset}`,
+            pkg.chainId,
+            tags,
+            fromStorage
+          );
           subPackages.push(...provisionedPackages);
         }
       }
