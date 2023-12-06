@@ -249,7 +249,7 @@ export async function publish({
     if (includeProvisioned) {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          const fullPackageRef = PackageReference.from(deploy.name, ver, deploy.preset).toString();
           console.log(`- ${fullPackageRef}`);
         });
       });
@@ -262,7 +262,7 @@ export async function publish({
     } else {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          const fullPackageRef = PackageReference.from(deploy.name, ver, deploy.preset).toString();
           console.log(`  - ${fullPackageRef}`);
         });
       });
