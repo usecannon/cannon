@@ -72,7 +72,9 @@ const provisionSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(_.template(config.source)(ctx));
+
+    config.source = ref.fullPackageRef;
 
     if (config.sourcePreset) {
       console.warn(
@@ -84,9 +86,10 @@ const provisionSpec = {
           )
         )
       );
+
+      config.source = ref.packageRef + config.sourcePreset;
     }
 
-    config.source = packageRef.fullPackageRef;
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
