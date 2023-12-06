@@ -171,7 +171,7 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
     return {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : (preset || 'main')}`
       ),
       chainId: chainId,
       url: context?.url,
@@ -197,6 +197,7 @@ export async function publishPackage({
 
   // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
   // it's own function to handle the pinning of IPFS urls.
+  const presetRef = !packageRef.startsWith('@') ? new PackageReference(packageRef).preset : null;
   const fullPackageRef = !packageRef.startsWith('@') ? new PackageReference(packageRef).fullPackageRef : packageRef;
 
   const alreadyCopiedIpfs = new Map<string, any>();
@@ -237,7 +238,7 @@ export async function publishPackage({
 
     const returnVal = {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || presetRef || 'main'}`
       ),
       chainId: chainId,
       url,

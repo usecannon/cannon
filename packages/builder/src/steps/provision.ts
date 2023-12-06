@@ -137,7 +137,8 @@ const provisionSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const source = config.source;
+    const sourceRef = new PackageReference(config.source);
+    const source = sourceRef.fullPackageRef;
     const sourcePreset = config.sourcePreset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
@@ -146,7 +147,7 @@ const provisionSpec = {
     const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset || sourceRef.preset} and network ${chainId}.`
       );
     }
 

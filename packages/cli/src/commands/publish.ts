@@ -5,6 +5,7 @@ import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
 import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
+import _ from 'lodash';
 
 import { bold, yellow, italic } from 'chalk';
 import prompts from 'prompts';
@@ -102,17 +103,11 @@ export async function publish({
 
   // Select screen for when a user is looking for all the local deploys
   if (!skipConfirm) {
-    const verification = await prompts({
+    const prompt = await prompts({
       type: 'select',
       message: 'Select the package you want to publish:\n',
       name: 'value',
-      choices: deploys
-        .filter((d) => {
-          const { version } = new PackageReference(d.name);
-
-          return version !== 'latest';
-        })
-        .map((d) => {
+      choices: deploys.map((d) => {
           const { fullPackageRef } = new PackageReference(d.name);
 
           return {
@@ -123,12 +118,14 @@ export async function publish({
         }),
     });
 
-    if (!verification.value) {
+    if (!prompt.value) {
       console.log('You must select a package to publish');
       process.exit(1);
     }
 
-    deploys = [verification.value] as typeof deploys;
+    tags = tags.filter((t) => t !== new PackageReference(prompt.value.name).version)
+
+    deploys = [prompt.value] as typeof deploys;
   }
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
@@ -233,10 +230,11 @@ export async function publish({
     const publishTags: string[] = pkg.versions.concat(tags);
 
     const newReceipts = await publishPackage({
-      packageRef: `${pkg.name}:${pkg.versions[0]}@${pkg.preset}`,
+      packageRef: `${pkg.name}:${pkg.versions[0]}`,
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
+      preset: pkg.preset,
       tags: publishTags!,
       includeProvisioned,
     });
