@@ -3,9 +3,15 @@ import _ from 'lodash';
 import { createInitialContext, getArtifacts } from './builder';
 import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
-import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
+import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 const debug = Debug('cannon:cli:publish');
+
+interface RefValues {
+  name: string;
+  version: string;
+  preset: string;
+}
 
 export type CopyPackageOpts = {
   packageRef: string;
@@ -62,7 +68,7 @@ export class PackageReference {
       );
     }
 
-    return { ...match.groups };
+    return { ...((match as any).groups as Partial<RefValues> & { name: string }) };
   }
 
   static isValid(ref: string) {
@@ -78,15 +84,8 @@ export class PackageReference {
   constructor(ref: string) {
     this.ref = ref;
 
-    const match = this.ref!.match(PKG_REG_EXP);
-
-    if (!match) {
-      throw new Error(
-        `Invalid package name "${this.ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
-      );
-    }
-
-    const { name, version = 'latest', preset = 'main' } = match.groups!;
+    const match = PackageReference.parse(ref);
+    const { name, version = 'latest', preset = 'main' } = match;
 
     this.name = name;
     this.version = version;
@@ -143,7 +142,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
 
 function _deployImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
+  return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }
 
 export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
@@ -172,7 +171,7 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
     return {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset}`
       ),
       chainId: chainId,
       url: context?.url,
@@ -238,7 +237,7 @@ export async function publishPackage({
 
     const returnVal = {
       packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
       ),
       chainId: chainId,
       url,
