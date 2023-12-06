@@ -476,7 +476,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   await publish({
     packageRef,
     signer: signers[0],
-    tags: options.tags ? options.tags.split(',') : [],
+    tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,

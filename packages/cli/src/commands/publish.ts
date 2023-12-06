@@ -44,7 +44,6 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
-  console.log(packageRef);
   const { fullPackageRef } = new PackageReference(packageRef);
   // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
