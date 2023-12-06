@@ -30,7 +30,6 @@ export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?
  * Used to format any reference to a cannon package and split it into it's core parts
  */
 export class PackageReference {
-  private ref: string;
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
@@ -82,8 +81,6 @@ export class PackageReference {
   }
 
   constructor(ref: string) {
-    this.ref = ref;
-
     const match = PackageReference.parse(ref);
     const { name, version = 'latest', preset = 'main' } = match;
 

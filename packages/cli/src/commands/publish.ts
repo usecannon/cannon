@@ -1,14 +1,11 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
-import { blueBright, gray } from 'chalk';
+import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
+import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
+import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import { ethers } from 'ethers';
+import prompts from 'prompts';
+import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getMainLoader } from '../loader';
-import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
-import _ from 'lodash';
-
-import { bold, yellow, italic } from 'chalk';
-import prompts from 'prompts';
 
 interface Params {
   packageRef: string;
@@ -46,6 +43,7 @@ export async function publish({
   overrides,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
+
   // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
   if (!cliSettings.publishIpfsUrl) {
@@ -55,7 +53,7 @@ export async function publish({
   }
 
   // Handle deprecated preset specification
-  if (presetArg) {
+  if (presetArg && !packageRef.startsWith('@')) {
     console.warn(
       yellow(
         bold(
@@ -63,6 +61,7 @@ export async function publish({
         )
       )
     );
+
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
