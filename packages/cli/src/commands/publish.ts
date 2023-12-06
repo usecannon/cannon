@@ -225,7 +225,6 @@ export async function publish({
   for (const pkg of parentPackages) {
     const publishTags: string[] = pkg.versions.concat(tags);
 
-    console.log(`${pkg.name}:${pkg.versions[0]}`);
     const newReceipts = await publishPackage({
       packageRef: `${pkg.name}:${pkg.versions[0]}@${pkg.preset}`,
       chainId: deploys[0].chainId,
