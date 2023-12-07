@@ -97,10 +97,6 @@ export class PackageReference {
     this.version = version;
     this.preset = preset;
   }
-
-  toString() {
-    return this.fullPackageRef;
-  }
 }
 
 /**
