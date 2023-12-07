@@ -18,10 +18,10 @@ describe('publish command', () => {
   let tags = ['tag0', 'tag1'];
   const chainId = 123;
   const otherChainId = 1234;
-  const preset = 'your-preset';
-  const packageRef = `package:1.2.3@${preset}`;
+  const preset = 'main';
+  const fullPackageRef = `package:1.2.3@${preset}`;
   const basePackageRef = 'package:1.2.3';
-  const otherPreset = 'other-preset';
+  const otherPreset = 'other';
   let signer: ethers.Signer;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const deployDataLocalFileNameLatest = `package_latest_${chainId}-${preset}.txt`;
@@ -146,7 +146,7 @@ describe('publish command', () => {
   it('should publish the package to the registry', async () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
-      packageRef: packageRef,
+      packageRef: fullPackageRef,
       signer,
       tags,
       chainId,
@@ -157,17 +157,17 @@ describe('publish command', () => {
 
     expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
     expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledWith(
-      [packageRef, ...tags.map((tag) => `package:${tag}@${preset}`)],
+      [fullPackageRef, ...tags.map((tag) => `package:${tag}@${preset}`)],
       chainId,
       testPkgDataNewIpfsUrl,
-      ''
+      testPkgNewMetaIpfsUrl
     );
   });
 
   it('should publish the package to the registry with no tags', async () => {
     tags = [];
     await publish({
-      packageRef: packageRef,
+      packageRef: fullPackageRef,
       signer,
       tags,
       chainId,
@@ -180,7 +180,7 @@ describe('publish command', () => {
     expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
     // the first call to publishMany first argument has a property packagesNames which is an array of strings
     // the first element is the package name and the rest are the tags
-    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([packageRef]);
+    expect((OnChainRegistry.prototype.publishMany as jest.Mock).mock.calls[0][0][0].packagesNames).toEqual([fullPackageRef]);
   });
 
   describe('scanDeploys', () => {
@@ -201,7 +201,7 @@ describe('publish command', () => {
 
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
-        packageRef: packageRef,
+        packageRef: fullPackageRef,
         signer,
         tags,
         chainId,
@@ -212,16 +212,15 @@ describe('publish command', () => {
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
       expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].preset).toEqual(preset);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on preset is empty
     // But it's the current implementation
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
-        packageRef: packageRef,
+        packageRef: fullPackageRef,
         signer,
         tags,
         chainId,
@@ -232,16 +231,15 @@ describe('publish command', () => {
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
       expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].preset).toEqual(preset);
     });
 
     // Not sure if it's the expected behavior to match multiple deploy files on chainId is zero
     // But it's the current implementation
     it('should find multiple deploy files on preset set', async () => {
       await publish({
-        packageRef: packageRef,
+        packageRef: fullPackageRef,
         signer,
         tags,
         chainId: 0,
@@ -252,9 +250,8 @@ describe('publish command', () => {
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(basePackageRef);
+      expect((publishPackage as jest.Mock).mock.calls[0][0].packageRef).toEqual(fullPackageRef);
       expect((publishPackage as jest.Mock).mock.calls[0][0].chainId).toEqual(chainId);
-      expect((publishPackage as jest.Mock).mock.calls[0][0].preset).toEqual(preset);
     });
   });
 });
