@@ -37,6 +37,12 @@ export abstract class CannonRegistry {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getMetaUrl(serviceRef: string, chainId: number): Promise<string | null> {
+    // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
+    if (serviceRef.startsWith('@')) {
+      const result = serviceRef.replace(':', '://').replace('@', '');
+      return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;
+    }
+
     return null;
   }
 
@@ -97,11 +103,11 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
+  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const { preset, packageRef } = new PackageReference(packageOrServiceRef);
 
     const variant = `${chainId}-${preset}`;
-    return this.metas[fullPackageRef] ? this.metas[fullPackageRef][variant] : null;
+    return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
