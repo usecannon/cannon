@@ -37,12 +37,6 @@ export abstract class CannonRegistry {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getMetaUrl(serviceRef: string, chainId: number): Promise<string | null> {
-    // Check if its an ipfs hash / url, if so we make sure to remove any incorrectly appended presets (like @main);
-    if (serviceRef.startsWith('@')) {
-      const result = serviceRef.replace(':', '://').replace('@', '');
-      return result.indexOf('@') !== -1 ? result.slice(0, result.indexOf('@')) : result;
-    }
-
     return null;
   }
 

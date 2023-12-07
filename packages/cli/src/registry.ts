@@ -88,7 +88,6 @@ export class LocalRegistry extends CannonRegistry {
     return [];
   }
 
-  //
   async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
     const ref = PackageReference.parse(packageRef);
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
