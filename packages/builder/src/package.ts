@@ -7,10 +7,10 @@ import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './type
 
 const debug = Debug('cannon:cli:publish');
 
-interface RefValues {
+interface PartialRefValues {
   name: string;
-  version: string;
-  preset: string;
+  version?: string;
+  preset?: string;
 }
 
 export type CopyPackageOpts = {
@@ -48,11 +48,15 @@ export class PackageReference {
    * Convenience parameter for returning packageRef with interpolated version and preset like name:version@preset
    */
   get fullPackageRef() {
-    return `${this.name}:${this.version}@${this.preset}`;
+    const res = `${this.name}:${this.version}@${this.preset}`;
+    if (!PackageReference.isValid(res)) throw new Error(`Invalid package reference "${res}"`);
+    return res;
   }
 
   get packageRef() {
-    return `${this.name}:${this.version}`;
+    const res = `${this.name}:${this.version}`;
+    if (!PackageReference.isValid(res)) throw new Error(`Invalid package reference "${res}"`);
+    return res;
   }
 
   /**
@@ -61,13 +65,18 @@ export class PackageReference {
   static parse(ref: string) {
     const match = ref.match(PKG_REG_EXP);
 
-    if (!match) {
+    if (!match || !match.groups?.name) {
       throw new Error(
         `Invalid package name "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
       );
     }
 
-    return { ...((match as any).groups as Partial<RefValues> & { name: string }) };
+    const res: PartialRefValues = { name: match.groups.name };
+
+    if (match.groups.version) res.version = match.groups.version;
+    if (match.groups.preset) res.preset = match.groups.preset;
+
+    return res;
   }
 
   static isValid(ref: string) {
@@ -81,8 +90,8 @@ export class PackageReference {
   }
 
   constructor(ref: string) {
-    const match = PackageReference.parse(ref);
-    const { name, version = 'latest', preset = 'main' } = match;
+    const parsed = PackageReference.parse(ref);
+    const { name, version = 'latest', preset = 'main' } = parsed;
 
     this.name = name;
     this.version = version;

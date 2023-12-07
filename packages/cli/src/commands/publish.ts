@@ -245,7 +245,7 @@ export async function publish({
     if (includeProvisioned) {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const fullPackageRef = PackageReference.from(deploy.name, ver, deploy.preset).toString();
+          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
           console.log(`- ${fullPackageRef}`);
         });
       });
@@ -258,7 +258,7 @@ export async function publish({
     } else {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const fullPackageRef = PackageReference.from(deploy.name, ver, deploy.preset).toString();
+          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
           console.log(`  - ${fullPackageRef}`);
         });
       });

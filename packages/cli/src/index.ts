@@ -632,7 +632,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     preset = opts.preset;
   }
 
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+  const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 
   const runtime = new ChainBuilderRuntime(
     {

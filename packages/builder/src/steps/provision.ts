@@ -87,7 +87,7 @@ const provisionSpec = {
         )
       );
 
-      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).toString();
+      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
@@ -147,7 +147,9 @@ const provisionSpec = {
     const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset || sourceRef.preset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${
+          sourcePreset || sourceRef.preset
+        } and network ${chainId}.`
       );
     }
 

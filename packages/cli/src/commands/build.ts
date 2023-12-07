@@ -104,7 +104,7 @@ export async function build({
     preset = presetArg;
   }
 
-  const fullPackageRef = packageRef.toString();
+  const { fullPackageRef } = packageRef;
 
   let pkgName = name;
   let pkgVersion = version;
