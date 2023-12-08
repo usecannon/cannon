@@ -63,7 +63,7 @@ const importSpec = {
     }
 
     config.source = packageRef.fullPackageRef;
-    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
+    config.preset = _.template(config.preset)(ctx);
 
     return config;
   },

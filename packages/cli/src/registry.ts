@@ -89,7 +89,7 @@ export class LocalRegistry extends CannonRegistry {
   }
 
   async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
-    const ref = new PackageReference(packageRef);
+    const ref = PackageReference.parse(packageRef);
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
 
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
@@ -97,7 +97,7 @@ export class LocalRegistry extends CannonRegistry {
 
     return allTags
       .filter((t) => {
-        if (!t.endsWith('.meta')) {
+        if (t.endsWith('.txt')) {
           debug(`checking ${packageRef}, ${chainId} for a match with ${t}`);
 
           const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
@@ -112,7 +112,13 @@ export class LocalRegistry extends CannonRegistry {
             return false;
           }
 
-          return ref.toString() === tag.toString();
+          if (ref.name && ref.version && ref.preset) {
+            return ref.name === tag.name && ref.version === tag.version && ref.preset === tag.preset;
+          } else if (ref.name && ref.version) {
+            return ref.name === tag.name && ref.version === tag.version;
+          } else {
+            return ref.name === tag.name;
+          }
         }
       })
       .map((t) => {

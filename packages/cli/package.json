@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.10.5",
+  "version": "2.10.6-alpha.4",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -55,7 +55,7 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
-    "@usecannon/builder": "^2.10.5",
+    "@usecannon/builder": "^2.10.6-alpha.4",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
     "debug": "^4.3.4",

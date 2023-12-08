@@ -300,10 +300,11 @@ export class OnChainRegistry extends CannonRegistry {
     for (const registerPackage of packagesNames) {
       const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
 
+      const ref = new PackageReference(registerPackage);
       const { name, preset } = new PackageReference(registerPackage);
       const variant = `${chainId}-${preset}`;
 
-      console.log(`Package: ${name}`);
+      console.log(`Package: ${ref.fullPackageRef}`);
       console.log(`Tags: ${versions}`);
       console.log(`Package URL: ${url}`);
 

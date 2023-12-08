@@ -72,7 +72,9 @@ const provisionSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(_.template(config.source)(ctx));
+
+    config.source = ref.fullPackageRef;
 
     if (config.sourcePreset) {
       console.warn(
@@ -84,10 +86,11 @@ const provisionSpec = {
           )
         )
       );
+
+      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.source = packageRef.fullPackageRef;
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
+    config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -134,7 +137,8 @@ const provisionSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const source = config.source;
+    const sourceRef = new PackageReference(config.source);
+    const source = sourceRef.fullPackageRef;
     const sourcePreset = config.sourcePreset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
@@ -143,7 +147,9 @@ const provisionSpec = {
     const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${
+          sourcePreset || sourceRef.preset
+        } and network ${chainId}.`
       );
     }
 

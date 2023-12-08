@@ -2,9 +2,6 @@ import { chainDefinitionSchema } from '@usecannon/builder/src/schemas.zod';
 import { runSchema } from '@usecannon/cli/src/schemas.zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { compile } from 'json-schema-to-typescript';
-import prettierPluginTypescript from 'prettier/plugins/typescript';
-import prettierPluginEstree from 'prettier/plugins/estree';
-import prettier from 'prettier/standalone';
 import { useEffect, useState } from 'react';
 
 interface CannonfileSpec {
@@ -34,10 +31,21 @@ const getJsonSchemaPropType = async (prop: any) => {
     format: false,
     bannerComment: '',
   });
+
+  // @ts-ignore-next-line Import module
+  await import('https://unpkg.com/prettier@3.1.0/standalone.js');
+  // @ts-ignore-next-line Import module
+  await import('https://unpkg.com/prettier@3.1.0/plugins/typescript.js');
+  // @ts-ignore-next-line Import module
+  await import('https://unpkg.com/prettier@3.1.0/plugins/estree.js');
+
+  const prettier = (window as any).prettier;
+  const prettierPlugins = (window as any).prettierPlugins;
+
   let result = (
     await prettier.format(source, {
       parser: 'typescript',
-      plugins: [prettierPluginTypescript, prettierPluginEstree],
+      plugins: [prettierPlugins.typescript, prettierPlugins.estree],
     })
   ).trim();
 
