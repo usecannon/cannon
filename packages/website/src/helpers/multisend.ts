@@ -1,7 +1,7 @@
 import { Address, encodeFunctionData, Hex, TransactionRequestBase, zeroAddress } from 'viem';
 import MulticallABI from '@/abi/Multicall.json';
 
-const MULTICALL_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
+const MULTICALL_ADDRESS = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e';
 
 export function makeMultisend(txns: Partial<TransactionRequestBase>[]): {
   operation: string;
@@ -25,7 +25,7 @@ export function makeMultisend(txns: Partial<TransactionRequestBase>[]): {
           target: txn.to || zeroAddress,
           callData: txn.data || '0x',
           value: txn.value || '0',
-          allowFailure: false,
+          requireSuccess: true,
         })),
       ],
     }),

@@ -97,11 +97,11 @@ export class InMemoryRegistry extends CannonRegistry {
     return this.pkgs[packageRef] ? this.pkgs[packageRef][variant] : null;
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
-    const { preset, fullPackageRef } = new PackageReference(packageRef);
+  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    const { preset, packageRef } = new PackageReference(packageOrServiceRef);
 
     const variant = `${chainId}-${preset}`;
-    return this.metas[fullPackageRef] ? this.metas[fullPackageRef][variant] : null;
+    return this.metas[packageRef] ? this.metas[packageRef][variant] : null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -300,10 +300,11 @@ export class OnChainRegistry extends CannonRegistry {
     for (const registerPackage of packagesNames) {
       const versions = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
 
+      const ref = new PackageReference(registerPackage);
       const { name, preset } = new PackageReference(registerPackage);
       const variant = `${chainId}-${preset}`;
 
-      console.log(`Package: ${name}`);
+      console.log(`Package: ${ref.fullPackageRef}`);
       console.log(`Tags: ${versions}`);
       console.log(`Package URL: ${url}`);
 

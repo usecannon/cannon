@@ -391,7 +391,6 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     packageRef: '@ipfs:' + ipfsHash,
     chainId: 13370,
     tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    preset: 'main',
     fromStorage,
     toStorage,
   });
@@ -476,7 +475,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   await publish({
     packageRef,
     signer: signers[0],
-    tags: options.tags ? options.tags.split(',') : [],
+    tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
@@ -633,7 +632,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     preset = opts.preset;
   }
 
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
+  const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 
   const runtime = new ChainBuilderRuntime(
     {

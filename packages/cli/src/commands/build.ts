@@ -104,7 +104,7 @@ export async function build({
     preset = presetArg;
   }
 
-  const fullPackageRef = packageRef.toString();
+  const { fullPackageRef } = packageRef;
 
   let pkgName = name;
   let pkgVersion = version;
@@ -219,7 +219,7 @@ export async function build({
     console.log();
   });
 
-  runtime.on(Events.ResolveDeploy, (packageName, chainId, registry, d) =>
+  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
     console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
