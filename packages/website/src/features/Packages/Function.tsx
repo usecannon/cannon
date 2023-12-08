@@ -40,7 +40,6 @@ export const Function: FC<{
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
-  const [simulatedResult, setSimulatedResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
   const { isConnected, address: from } = useAccount();
@@ -85,15 +84,9 @@ export const Function: FC<{
       readOnly
         ? readContractResult
         : simulated
-        ? simulatedResult
+        ? readContractResult
         : writeContractResult,
-    [
-      readOnly,
-      simulated,
-      simulatedResult,
-      readContractResult,
-      writeContractResult,
-    ]
+    [readOnly, simulated, readContractResult, writeContractResult]
   );
 
   // useEffect(() => {
@@ -128,18 +121,8 @@ export const Function: FC<{
           if (newChain?.id != chainId) return;
         }
 
-        const _params = Array.isArray(params) ? params : [params];
-
         if (simulate) {
-          const { result } = await publicClient.simulateContract({
-            address: address as Address,
-            abi,
-            functionName: f.name,
-            args: _params,
-            account: walletClient?.account || undefined,
-          });
-
-          setSimulatedResult(result);
+          await fetchReadContractResult();
         } else {
           await fetchWriteContractResult();
         }
