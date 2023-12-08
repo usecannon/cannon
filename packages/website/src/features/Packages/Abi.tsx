@@ -44,15 +44,13 @@ export const Abi: FC<{
   useEffect(() => {
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
-      if (hash && containerRef.current) {
-        const section = containerRef.current.querySelector(
+      if (hash) {
+        const section = document.querySelector(
           `#${hash}`
         ) as HTMLElement | null;
         if (section) {
           // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-          window.scrollTo(0, 999999999999999999999);
-          containerRef.current.scrollTop =
-            section.offsetTop - containerRef.current.offsetTop;
+          window.scrollTo(0, section.offsetTop - 80);
         }
       }
     }
@@ -78,19 +76,26 @@ export const Abi: FC<{
   }
 
   return (
-    <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
+    <Flex flex="1" direction="column" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
         <Flex
           flexDirection="column"
-          overflowY="auto"
           maxWidth={['100%', '100%', '320px']}
           borderRight={isSmall ? 'none' : '1px solid'}
           borderBottom={isSmall ? '1px solid' : 'none'}
           borderColor={isSmall ? 'gray.600' : 'gray.700'}
           width={['100%', '100%', '320px']}
-          maxHeight={['140px', '140px', 'calc(100vh - 185px)']}
+          maxHeight={['190px', '190px', 'none']}
+          top="0"
         >
-          <Box px={3} pb={2}>
+          <Box
+            px={3}
+            pb={2}
+            position={{ md: 'sticky' }}
+            top="81"
+            maxHeight={{ base: '100%', md: 'calc(100vh - 81px)' }}
+            overflowY="auto"
+          >
             <Box mt={4}>
               <Flex flexDirection="row" px="2" alignItems="center" mb="1.5">
                 <Heading
@@ -177,13 +182,7 @@ export const Abi: FC<{
           </Box>
         </Flex>
 
-        <Box
-          flex="1"
-          overflowY="auto"
-          maxHeight={['none', 'none', 'calc(100vh - 185px)']}
-          background="black"
-          ref={containerRef}
-        >
+        <Box background="black" ref={containerRef} w="100%">
           <Alert status="warning" bg="gray.900" borderRadius="sm">
             <AlertIcon />
             <Text fontWeight="bold">
@@ -191,7 +190,6 @@ export const Abi: FC<{
               prior to execution.
             </Text>
           </Alert>
-
           {functions?.map((f, index) => (
             <Function
               key={index}

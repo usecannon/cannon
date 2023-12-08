@@ -117,6 +117,9 @@ export const Interact: FC<{
       ) : (
         <>
           <Flex
+            position={{ md: 'sticky' }}
+            top="0"
+            zIndex={3}
             bg="gray.800"
             p={2}
             flexDirection={['column', 'column', 'row']}
@@ -176,7 +179,6 @@ export const Interact: FC<{
               </Flex>
             </Box>
           </Flex>
-
           <Abi
             abi={contract?.abi as any}
             address={contractAddress}
