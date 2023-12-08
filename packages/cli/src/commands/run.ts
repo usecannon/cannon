@@ -1,6 +1,3 @@
-import _ from 'lodash';
-import { greenBright, green, bold, gray, yellow } from 'chalk';
-import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
   CannonRegistry,
@@ -9,19 +6,22 @@ import {
   ChainDefinition,
   ContractArtifact,
   getOutputs,
+  PackageReference,
   renderTrace,
 } from '@usecannon/builder';
-import { PackageSpecification } from '../types';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from './interact';
-import onKeypress from '../util/on-keypress';
-import { build } from './build';
-import { getContractsRecursive } from '../util/contracts-recursive';
-import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
+import { ethers } from 'ethers';
+import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder';
+import { createDefaultReadRegistry } from '../registry';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { getContractsRecursive } from '../util/contracts-recursive';
+import onKeypress from '../util/on-keypress';
+import { build } from './build';
+import { interact } from './interact';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -116,7 +116,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       pkg.preset = preset;
     }
 
-    const fullPackageRef = PackageReference.from(name, version, preset).toString();
+    const { fullPackageRef } = PackageReference.from(name, version, preset);
 
     if (options.build || (pkg.settings && Object.keys(pkg.settings).length > 0)) {
       const { outputs } = await build({
