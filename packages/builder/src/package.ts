@@ -199,7 +199,7 @@ export async function publishPackage({
   // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
   // it's own function to handle the pinning of IPFS urls.
   const packageReference = PackageReference.isValid(packageRef) ? new PackageReference(packageRef) : null;
-  
+
   const presetRef = packageReference ? packageReference.preset : 'main';
   const fullPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
 
