@@ -281,7 +281,12 @@ export const Function: FC<{
 
             {error && (
               <Alert mt="2" status="error" bg="red.700">
-                {error}
+                {`${
+                  error.includes('Encoded error signature') &&
+                  error.includes('not found on ABI')
+                    ? 'Error emitted during ERC-7412 orchestration: '
+                    : ''
+                }${error}`}
               </Alert>
             )}
           </Box>
