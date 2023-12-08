@@ -24,7 +24,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address } from 'viem';
+import { Address, zeroAddress } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -105,7 +105,7 @@ export const Function: FC<{
 
     try {
       if (readOnly) {
-        await fetchReadContractResult();
+        await fetchReadContractResult(zeroAddress);
       } else {
         if (!isConnected) {
           try {
@@ -122,7 +122,7 @@ export const Function: FC<{
         }
 
         if (simulate) {
-          await fetchReadContractResult();
+          await fetchReadContractResult(from);
         } else {
           await fetchWriteContractResult();
         }
