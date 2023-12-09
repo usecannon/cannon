@@ -80,6 +80,10 @@ const runAction = {
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
+      if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
+        throw new Error(`Invalid element in "modified" for "run" step. Path ${pathToScan} not found.`);
+      }
+
       try {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
@@ -151,6 +155,10 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    if (!fs.statSync(config.exec).isFile()) {
+      throw new Error(`Invalid "exec" value for "run" step. Path "${config.exec}" not found.`);
+    }
 
     const runfile = await importFrom(process.cwd(), config.exec);
 

@@ -1,29 +1,34 @@
-import { greenBright, green, bold, gray, yellow } from 'chalk';
-import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
+  CannonRegistry,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
   getOutputs,
+  PackageReference,
+  renderTrace,
 } from '@usecannon/builder';
-import { PackageSpecification } from '../types';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from './interact';
-import onKeypress from '../util/on-keypress';
-import { build } from './build';
-import { getContractsRecursive } from '../util/contracts-recursive';
-import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
+import { ethers } from 'ethers';
+import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
+import { createDefaultReadRegistry } from '../registry';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { getContractsRecursive } from '../util/contracts-recursive';
+import onKeypress from '../util/on-keypress';
+import { build } from './build';
+import { interact } from './interact';
 
 export interface RunOptions {
   node: CannonRpcNode;
+  resolver?: CannonRegistry;
   logs?: boolean;
   pkgInfo: any;
-  preset: string;
+  presetArg?: string;
   impersonate: string;
   mnemonic?: string;
   privateKey?: string;
@@ -33,13 +38,16 @@ export interface RunOptions {
   fundAddresses?: string[];
   helpInformation?: string;
   build?: boolean;
+  nonInteractive?: boolean;
 }
 
 const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
 const INSTRUCTIONS = green(
   `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
     'i'
-  )} to interact with contracts via the command line.`
+  )} to interact with contracts via the command line.\nPress ${bold(
+    'v'
+  )} to toggle display verbosity of transaction traces as they run.`
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
@@ -59,7 +67,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const cliSettings = resolveCliSettings(options);
-  const resolver = await createDefaultReadRegistry(cliSettings);
+  const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
@@ -92,28 +100,30 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   );
 
   for (const pkg of packages) {
-    const { name, version, preset = 'main' } = pkg;
+    const { name, version } = pkg;
+    let { preset } = pkg;
 
-    if (options.preset && preset) {
+    // Handle deprecated preset specification
+    if (options.presetArg) {
       console.warn(
         yellow(
           bold(
-            `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.preset}"`
+            'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
           )
         )
       );
-      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+      preset = options.presetArg;
+      pkg.preset = preset;
     }
 
-    const selectedPreset = preset || options.preset || 'main';
+    const { fullPackageRef } = PackageReference.from(name, version, preset);
 
-    if (options.build || Object.keys(pkg.settings).length) {
+    if (options.build || (pkg.settings && Object.keys(pkg.settings).length > 0)) {
       const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: selectedPreset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -121,20 +131,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     } else {
       // just get outputs
-      const deployData = await basicRuntime.readDeploy(`${pkg.name}:${pkg.version}`, selectedPreset, basicRuntime.chainId);
+      const deployData = await basicRuntime.readDeploy(fullPackageRef, basicRuntime.chainId);
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${name}:${version}. please make sure it exists for the ${selectedPreset} preset and network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
         );
       }
 
       const outputs = await getOutputs(basicRuntime, new ChainDefinition(deployData.def), deployData.state);
 
       if (!outputs) {
-        throw new Error(
-          `no cannon build found for chain ${basicRuntime.chainId}/${selectedPreset}. Did you mean to run instead?`
-        );
+        throw new Error(`no cannon build found for chain ${basicRuntime.chainId}/${preset}. Did you mean to run instead?`);
       }
 
       buildOutputs.push({ pkg, outputs });
@@ -168,52 +176,112 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     };
   }
 
-  console.log();
+  const mergedOutputs =
+    buildOutputs.length == 1
+      ? buildOutputs[0].outputs
+      : ({
+          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+        } as ChainArtifacts);
 
-  console.log(INITIAL_INSTRUCTIONS);
-  console.log(INSTRUCTIONS);
+  let traceLevel = 0;
 
-  await onKeypress(async (evt, { pause, stop }) => {
-    if (evt.ctrl && evt.name === 'c') {
-      stop();
-      process.exit();
-    } else if (evt.name === 'a') {
-      // Toggle showAnvilLogs when the user presses "a"
-      if (nodeLogging.enabled()) {
-        console.log(gray('Paused anvil logs...'));
-        console.log(INSTRUCTIONS);
-        nodeLogging.disable();
-      } else {
-        console.log(gray('Unpaused anvil logs...'));
-        nodeLogging.enable();
-      }
-    } else if (evt.name === 'i') {
-      if (nodeLogging.enabled()) return;
-
-      await pause(async () => {
-        const [signer] = signers;
-
-        const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
-
-        await interact({
-          packages,
-          packagesArtifacts: buildOutputs.map((info) => info.outputs),
-          contracts,
-          signer,
-          provider,
-        });
-      });
-
-      console.log(INITIAL_INSTRUCTIONS);
-      console.log(INSTRUCTIONS);
-    } else if (evt.name === 'h') {
-      if (nodeLogging.enabled()) return;
-
-      if (options.helpInformation) console.log('\n' + options.helpInformation);
-      console.log();
-      console.log(INSTRUCTIONS);
+  async function debugTracing(blockNumber: number) {
+    if (traceLevel == 0) {
+      return;
     }
-  });
+    const bwt = await provider.getBlockWithTransactions(blockNumber);
+
+    for (const txn of bwt.transactions) {
+      try {
+        const traces = await provider.send('trace_transaction', [txn.hash]);
+
+        let renderedTrace = renderTrace(mergedOutputs, traces);
+
+        if (traceLevel === 1) {
+          // only show lines containing `console.log`s, and prettify
+          renderedTrace = renderedTrace
+            .split('\n')
+            .filter((l) => l.includes('console.log('))
+            .map((l) => l.trim())
+            .join('\n');
+        }
+
+        if (renderedTrace) {
+          console.log(`trace: ${txn.hash}`);
+          console.log(renderedTrace);
+          console.log();
+        }
+      } catch (err) {
+        console.log('could not render trace for transaction:', err);
+      }
+    }
+  }
+
+  provider.on('block', debugTracing);
+
+  if (options.nonInteractive) {
+    await new Promise(() => {
+      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+    });
+  } else {
+    console.log();
+    console.log(INITIAL_INSTRUCTIONS);
+    console.log(INSTRUCTIONS);
+
+    await onKeypress(async (evt, { pause, stop }) => {
+      if (evt.ctrl && evt.name === 'c') {
+        stop();
+        process.exit();
+      } else if (evt.name === 'a') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (nodeLogging.enabled()) {
+          console.log(gray('Paused anvil logs...'));
+          console.log(INSTRUCTIONS);
+          nodeLogging.disable();
+        } else {
+          console.log(gray('Unpaused anvil logs...'));
+          nodeLogging.enable();
+        }
+      } else if (evt.name === 'i') {
+        if (nodeLogging.enabled()) return;
+
+        await pause(async () => {
+          const [signer] = signers;
+
+          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
+
+          await interact({
+            packages,
+            packagesArtifacts: buildOutputs.map((info) => info.outputs),
+            contracts,
+            signer,
+            provider,
+          });
+        });
+
+        console.log(INITIAL_INSTRUCTIONS);
+        console.log(INSTRUCTIONS);
+      } else if (evt.name == 'v') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (traceLevel === 0) {
+          traceLevel = 1;
+          console.log(gray('Enabled display of console.log events from transactions...'));
+        } else if (traceLevel === 1) {
+          traceLevel = 2;
+          console.log(gray('Enabled display of full transaction logs...'));
+        } else {
+          traceLevel = 0;
+          console.log(gray('Disabled transaction tracing...'));
+        }
+      } else if (evt.name === 'h') {
+        if (nodeLogging.enabled()) return;
+
+        if (options.helpInformation) console.log('\n' + options.helpInformation);
+        console.log();
+        console.log(INSTRUCTIONS);
+      }
+    });
+  }
 }
 
 async function createLoggingInterface(node: CannonRpcNode) {

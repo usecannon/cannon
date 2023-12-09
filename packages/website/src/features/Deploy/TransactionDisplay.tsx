@@ -21,13 +21,14 @@ import {
 } from '@/hooks/cannon';
 import { useGitDiff } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
-import { SafeDefinition, useStore } from '@/helpers/store';
+import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { createSimulationData } from '@/helpers/safe';
 import { Alert } from '@/components/Alert';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import PublishUtility from './PublishUtility';
+import { useEffect } from 'react';
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
@@ -37,7 +38,6 @@ export function TransactionDisplay(props: {
 }) {
   const account = useAccount();
 
-  const settings = useStore((s) => s.settings);
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(
@@ -98,9 +98,15 @@ export function TransactionDisplay(props: {
   const buildInfo = useCannonBuild(
     props.safe,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    props.verify &&
-      (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)
+    prevCannonDeployInfo.pkg as any
+  );
+
+  useEffect(
+    () => buildInfo.doBuild(),
+    [
+      props.verify &&
+        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    ]
   );
 
   const stager = useTxnStager(props.safeTxn, { safe: props.safe });
@@ -312,7 +318,7 @@ export function TransactionDisplay(props: {
             </Heading>
             <PublishUtility
               deployUrl={hintData.cannonPackage}
-              targetVariant={`${props.safe.chainId}-${settings.preset}`}
+              targetChainId={props.safe.chainId}
             />
           </Box>
         )

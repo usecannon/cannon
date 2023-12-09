@@ -21,5 +21,5 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
       - run: |
           npm ci
-          npx lerna run build
-      - run: npx lerna run test 
+          npm run build
+      - run: npx lerna run test

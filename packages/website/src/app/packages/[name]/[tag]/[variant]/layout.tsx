@@ -19,6 +19,12 @@ export default function PackageLayout({
   children: ReactNode;
   params: { name: string; tag: string; variant: string };
 }) {
+  params = {
+    name: decodeURIComponent(params.name),
+    tag: decodeURIComponent(params.tag),
+    variant: decodeURIComponent(params.variant),
+  };
+
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name: params.name },
   });

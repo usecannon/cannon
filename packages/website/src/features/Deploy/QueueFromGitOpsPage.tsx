@@ -11,17 +11,18 @@ import {
   FormHelperText,
   FormLabel,
   HStack,
+  Heading,
   Input,
-  Select,
+  Link,
+  Code,
   Spinner,
   Text,
   Tooltip,
-  useColorMode,
   useToast,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   encodeAbiParameters,
@@ -39,7 +40,6 @@ import {
   useSendTransaction,
 } from 'wagmi';
 import 'react-diff-view/style/index.css';
-import { EditableAutocompleteInput } from '@/components/EditableAutocompleteInput';
 import { links } from '@/constants/links';
 import { useTxnStager } from '@/hooks/backend';
 import {
@@ -48,25 +48,21 @@ import {
   useCannonWriteDeployToIpfs,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
-import { useGitFilesList, useGitRefsList } from '@/hooks/git';
+import { useGitRefsList } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { useStore } from '@/helpers/store';
 import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
-import WithSafe from './WithSafe';
+import NextLink from 'next/link';
 
 export default function QueueFromGitOpsPage() {
-  return (
-    <WithSafe>
-      <QueueFromGitOps />
-    </WithSafe>
-  );
+  return <QueueFromGitOps />;
 }
 
 function QueueFromGitOps() {
-  const { colorMode } = useColorMode();
+  const router = useRouter();
   const currentSafe = useStore((s: any) => s.currentSafe);
 
   const prepareDeployOnchainStore = usePrepareSendTransaction(
@@ -80,32 +76,51 @@ function QueueFromGitOps() {
     },
   });
 
-  const [gitUrl, setGitUrl] = useState('');
-  const [gitFile, setGitFile] = useState('');
-  const [gitBranch, setGitBranch] = useState('');
+  const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
+  const [previousPackageInput, setPreviousPackageInput] = useState('');
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  const gitDir = gitFile.includes('/')
-    ? gitFile.slice(gitFile.lastIndexOf('/'))[0]
-    : '';
+  const gitUrl = useMemo(
+    () =>
+      cannonfileUrlInput.includes('/blob/')
+        ? cannonfileUrlInput.split('/blob/')[0]
+        : '',
+    [cannonfileUrlInput]
+  );
 
-  const refsInfo = useGitRefsList(gitUrl);
-
-  const router = useRouter();
-
-  if (refsInfo.refs && !gitBranch) {
-    const headCommit = refsInfo.refs.find((r) => r.ref === 'HEAD');
-    const headBranch = refsInfo.refs.find(
-      (r) => r.oid === headCommit?.oid && r !== headCommit
-    );
-
-    if (headBranch) {
-      setGitBranch(headBranch.ref);
+  const gitBranch = useMemo(() => {
+    if (!cannonfileUrlInput.includes('/blob/')) {
+      return '';
     }
-  }
 
-  const gitDirList = useGitFilesList(gitUrl, gitBranch, gitDir);
+    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
+    if (!branchAndFile) {
+      return '';
+    }
+
+    const branchName = branchAndFile.split('/')[0];
+    if (!branchName) {
+      return '';
+    }
+
+    return `refs/heads/${branchName}`;
+  }, [cannonfileUrlInput]);
+
+  const gitFile = useMemo(() => {
+    if (!cannonfileUrlInput.includes('/blob/')) {
+      return '';
+    }
+
+    const branchAndFile = cannonfileUrlInput.split('/blob/')[1];
+    if (!branchAndFile) {
+      return '';
+    }
+
+    const urlComponents = branchAndFile.split('/');
+    urlComponents.shift();
+    return urlComponents.join('/');
+  }, [cannonfileUrlInput]);
 
   const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
 
@@ -131,34 +146,93 @@ function QueueFromGitOps() {
   const settings = useStore((s) => s.settings);
   const chainId = useChainId();
 
-  const cannonPkgLatestInfo = useCannonPackage(
-    (cannonDefInfo.def && `${cannonDefInfo.def.getName(ctx)}:latest`) ?? '',
-    `${chainId}-${settings.preset}`
+  const previousName = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split(':')[0];
+    }
+
+    if (cannonDefInfo.def) {
+      return cannonDefInfo.def.getName(ctx);
+    }
+
+    return '';
+  }, [previousPackageInput, cannonDefInfo.def]);
+
+  const previousVersion = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split('@')[0]?.split(':')[1];
+    }
+
+    return 'latest';
+  }, [previousPackageInput]);
+
+  const previousPreset = useMemo(() => {
+    if (previousPackageInput) {
+      return previousPackageInput.split('@')[1];
+    }
+
+    return 'main';
+  }, [previousPackageInput]);
+
+  const cannonPkgPreviousInfo = useCannonPackage(
+    (cannonDefInfo.def &&
+      `${previousName}:${previousVersion}${
+        previousPreset ? '@' + previousPreset : ''
+      }`) ??
+      '',
+    chainId
   );
+  const preset = cannonDefInfo.def && cannonDefInfo.def.getPreset(ctx);
   const cannonPkgVersionInfo = useCannonPackage(
     (cannonDefInfo.def &&
-      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(
-        ctx
-      )}`) ??
+      `${cannonDefInfo.def.getName(ctx)}:${cannonDefInfo.def.getVersion(ctx)}${
+        preset ? '@' + preset : ''
+      }`) ??
       '',
-    `${chainId}-${settings.preset}`
+    chainId
   );
 
   const prevDeployLocation =
     (partialDeployIpfs ? 'ipfs://' + partialDeployIpfs : null) ||
-    cannonPkgLatestInfo.pkgUrl ||
+    cannonPkgPreviousInfo.pkgUrl ||
     cannonPkgVersionInfo.pkgUrl;
 
   const prevCannonDeployInfo = useCannonPackage(
     prevDeployLocation ? `@ipfs:${_.last(prevDeployLocation.split('/'))}` : ''
   );
 
+  const partialDeployInfo = useCannonPackage(
+    partialDeployIpfs ? '@ipfs:' + partialDeployIpfs : ''
+  );
+
+  useEffect(() => {
+    if (cannonDefInfo.def) {
+      if (partialDeployInfo.pkg) {
+        setPreviousPackageInput(
+          `${partialDeployInfo.resolvedName}:${
+            partialDeployInfo.resolvedVersion
+          }${
+            partialDeployInfo.resolvedPreset
+              ? '@' + partialDeployInfo.resolvedPreset
+              : ''
+          }`
+        );
+      } else {
+        const name = cannonDefInfo.def.getName(ctx);
+        const version = 'latest';
+        const preset = 'main';
+        setPreviousPackageInput(`${name}:${version}@${preset}`);
+      }
+    } else {
+      setPreviousPackageInput('');
+    }
+  }, [cannonDefInfo.def, partialDeployInfo.pkg]);
+
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
     currentSafe as any,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    false
+    prevCannonDeployInfo.pkg as any
   );
 
   const buildTransactions = () => {
@@ -183,6 +257,7 @@ function QueueFromGitOps() {
     }
   }, [buildInfo.buildResult?.steps]);
 
+  const refsInfo = useGitRefsList(gitUrl);
   const gitHash = refsInfo.refs?.find((r) => r.ref === gitBranch)?.oid;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
@@ -190,7 +265,7 @@ function QueueFromGitOps() {
     gitUrl + ':' + gitFile
   );
 
-  console.log(' the prev info query data is', prevInfoQuery.data);
+  console.log('the prev info query data is', prevInfoQuery.data);
 
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
@@ -283,21 +358,24 @@ function QueueFromGitOps() {
 
   const execTxn = useContractWrite(stager.executeTxnConfig);
 
+  const isPartialDataRequired =
+    buildInfo.buildSkippedSteps.filter(
+      (s) => s.name.includes('contract') || s.name.includes('router')
+    ).length > 0;
+
   if (
     prepareDeployOnchainStore.isFetched &&
     !prepareDeployOnchainStore.isError
   ) {
     return (
-      <Container maxWidth="container.md">
-        <Text mb="8">
-          If your protocol is managed using a GitOps repository (with
-          cannonfiles on GitHub), you can use this tool to queue transactions
-          that would be created by merging the branch you specify.
-        </Text>
+      <Container maxWidth="container.sm">
         <Box
-          p="6"
-          bg={colorMode === 'dark' ? 'blackAlpha.400' : 'blackAlpha.50'}
-          borderRadius="12px"
+          bg="blackAlpha.600"
+          border="1px solid"
+          borderColor="gray.900"
+          borderRadius="md"
+          p={6}
+          my={16}
         >
           <Text mb={4}>
             To use this tool, you need to deploy the on-chain store contract.
@@ -305,6 +383,7 @@ function QueueFromGitOps() {
             amount of gas.
           </Text>
           <Button
+            colorScheme="teal"
             w="100%"
             onClick={() =>
               deployOnChainStore.sendTransaction &&
@@ -319,161 +398,212 @@ function QueueFromGitOps() {
   }
 
   return (
-    <Container maxWidth="container.md" pb="12">
-      <FormControl mb="8">
-        <FormLabel>GitOps Repository</FormLabel>
-        <HStack>
+    <>
+      <Container maxWidth="container.md" py={8}>
+        <Box mb={6}>
+          <Heading size="md" mb={2}>
+            Queue Build
+          </Heading>
+          <Text fontSize="sm" color="gray.300">
+            Queue transactions based on a pull request that modifies a
+            cannonfile in a git repository. Optionally, you can provide partial
+            build information. (This is especially useful for builds that
+            involve contract deployments.) After the queued transactions are
+            executed, a resulting package can be published to the registry.
+          </Text>
+        </Box>
+        <FormControl mb="8">
+          <FormLabel>Cannonfile</FormLabel>
+          <HStack>
+            <Input
+              type="text"
+              placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
+              value={cannonfileUrlInput}
+              borderColor="whiteAlpha.400"
+              background="black"
+              onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
+            />
+          </HStack>
+          <FormHelperText color="gray.300">
+            Enter a Git or GitHub URL for the cannonfile you’d like to build.
+          </FormHelperText>
+        </FormControl>
+        <FormControl mb="8">
+          <FormLabel>Previous Package</FormLabel>
           <Input
+            placeholder="package:latest@main"
             type="text"
-            placeholder="https://github.com/myorg/myrepo"
-            value={gitUrl}
+            value={previousPackageInput}
             borderColor="whiteAlpha.400"
             background="black"
-            onChange={(evt: any) => setGitUrl(evt.target.value)}
+            onChange={(evt: any) => setPreviousPackageInput(evt.target.value)}
+            disabled={!!partialDeployInfo.pkg}
           />
-          <Flex height="40px">
-            {gitDirList.readdirQuery.isLoading ? (
-              <Spinner my="auto" ml="2" />
-            ) : (
-              <EditableAutocompleteInput
-                editable
-                color={'white'}
-                placeholder="cannonfile.toml"
-                items={(gitDirList.contents || []).map((d: any) => ({
-                  label: gitDir + d,
-                  secondary: '',
-                }))}
-                onFilterChange={(v) => setGitFile(v)}
-                onChange={(v) => setGitFile(v)}
-              />
+          <FormHelperText color="gray.300">
+            <strong>Optional.</strong> Enter the name of the package this
+            cannonfile is upgrading from. See{' '}
+            <Link as={NextLink} href="/learn/cli#build">
+              <Code>--upgrade-from</Code>
+            </Link>
+            .
+          </FormHelperText>
+        </FormControl>
+        {/* TODO: insert/load override settings here */}
+        <FormControl mb="8">
+          <FormLabel>Partial Deployment Data</FormLabel>
+          <Input
+            placeholder="Qm..."
+            type="text"
+            value={partialDeployIpfs}
+            borderColor="whiteAlpha.400"
+            background="black"
+            onChange={
+              (evt: any) =>
+                setPartialDeployIpfs(
+                  evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                ) /** TODO: handle bafy hash or other hashes */
+            }
+          />
+          <FormHelperText color="gray.300">
+            <strong>Optional.</strong> If this deployment requires transactions
+            executed in other contexts (e.g. contract deployments or function
+            calls using other signers), provide the IPFS hash generated from
+            executing that partial deployment using the build command in the
+            CLI.
+          </FormHelperText>
+        </FormControl>
+        {buildInfo.buildStatus == '' && (
+          <>
+            {settings.isIpfsGateway && (
+              <Text mb={3}>
+                You cannot build transactions on an IPFS gateway, only read
+                operations can be done.
+              </Text>
             )}
+            <Button
+              width="100%"
+              colorScheme="teal"
+              mb={6}
+              isDisabled={
+                chainId !== currentSafe.chainId ||
+                settings.isIpfsGateway ||
+                !cannonDefInfo.def ||
+                cannonPkgVersionInfo.ipfsQuery.isFetching ||
+                cannonPkgPreviousInfo.ipfsQuery.isFetching ||
+                cannonPkgVersionInfo.registryQuery.isFetching ||
+                cannonPkgPreviousInfo.registryQuery.isFetching
+              }
+              onClick={() => buildTransactions()}
+            >
+              Preview Transactions to Queue
+            </Button>
+          </>
+        )}
+        {chainId !== currentSafe.chainId && (
+          <Alert mb="6" status="error" bg="red.700">
+            <AlertIcon mr={3} />
+            <strong>
+              Selected network and network of the selected safe are different
+            </strong>
+          </Alert>
+        )}
+        {buildInfo.buildStatus && (
+          <Alert mb="6" status="info" bg="gray.800">
+            <Spinner mr={3} boxSize={4} />
+            <strong>{buildInfo.buildStatus}</strong>
+          </Alert>
+        )}
+        {buildInfo.buildError && (
+          <Alert mb="6" status="error" bg="red.700">
+            <AlertIcon mr={3} />
+            <strong>{buildInfo.buildError}</strong>
+          </Alert>
+        )}
+        {buildInfo.buildSkippedSteps.length > 0 && (
+          <Flex flexDir="column" mb="6">
+            <strong>
+              This safe will not be able to complete the following steps:
+            </strong>
+            {buildInfo.buildSkippedSteps.map((s, i) => (
+              <strong key={i}>{`${s.name}: ${s.err.toString()}`}</strong>
+            ))}
           </Flex>
-        </HStack>
-        <FormHelperText color="gray.300">
-          Enter a Git URL and then select the Cannonfile that was modified in
-          the branch chosen below.
-        </FormHelperText>
-      </FormControl>
-      <FormControl mb="8">
-        <FormLabel>Branch</FormLabel>
-        <HStack>
-          <Select
-            borderColor="whiteAlpha.400"
-            background="black"
-            value={gitBranch}
-            onChange={(evt: any) => setGitBranch(evt.target.value)}
-          >
-            {(refsInfo.refs?.filter((r) => r.ref !== 'HEAD') || []).map(
-              (r, i) => (
-                <option key={i} value={r.ref}>
-                  {r.ref}
-                </option>
-              )
-            )}
-          </Select>
-        </HStack>
-      </FormControl>
-      {/* TODO: insert/load override settings here */}
-      <FormControl mb="8">
-        <FormLabel>Partial Deployment Data (Optional)</FormLabel>
-        <Input
-          placeholder="Qm..."
-          type="text"
-          value={partialDeployIpfs}
-          borderColor="whiteAlpha.400"
-          background="black"
-          onChange={
-            (evt: any) =>
-              setPartialDeployIpfs(
-                evt.target.value.slice(evt.target.value.indexOf('Qm'))
-              ) /** TODO: handle bafy hash or other hashes */
-          }
-        />
-        <FormHelperText color="gray.300">
-          If this deployment requires transactions executed in other contexts
-          (e.g. contract deployments or function calls using other signers),
-          provide the IPFS hash generated from executing that partial deployment
-          using the build command in the CLI.
-        </FormHelperText>
-      </FormControl>
-      {buildInfo.buildStatus == '' && (
-        <Button
-          width="100%"
-          colorScheme="blue"
-          mb={6}
-          isDisabled={
-            cannonPkgVersionInfo.ipfsQuery.isFetching ||
-            cannonPkgLatestInfo.ipfsQuery.isFetching ||
-            cannonPkgVersionInfo.registryQuery.isFetching ||
-            cannonPkgLatestInfo.registryQuery.isFetching
-          }
-          onClick={() => buildTransactions()}
-        >
-          Preview Transactions to Queue
-        </Button>
-      )}
-      {buildInfo.buildStatus && (
-        <Alert mb="6" status="info">
-          <Spinner mr={3} boxSize={4} />
-          <strong>{buildInfo.buildStatus}</strong>
-        </Alert>
-      )}
-      {buildInfo.buildError && (
-        <Alert mb="6" status="error">
-          <AlertIcon mr={3} />
-          <strong>{buildInfo.buildError}</strong>
-        </Alert>
-      )}
-      {multicallTxn.data && stager.safeTxn && (
-        <TransactionDisplay
-          safe={currentSafe as any}
-          safeTxn={stager.safeTxn}
-        />
-      )}
-
-      {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-        <Box my="6">
-          <NoncePicker
+        )}
+        {isPartialDataRequired && (
+          <Alert mb="6" status="error" bg="red.700">
+            <AlertIcon mr={3} />
+            <Flex flexDir="column" gap={5}>
+              <strong>
+                The web deployer is unable to compile and deploy contracts and
+                routers. Run the following command to generate partial deploy
+                data:
+              </strong>
+              <Code display="block">
+                {`cannon build ${gitFile} --upgrade-from ${previousPackageInput} --chain-id ${currentSafe.chainId}`}
+              </Code>
+            </Flex>
+          </Alert>
+        )}
+        {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
+          <TransactionDisplay
             safe={currentSafe as any}
-            onPickedNonce={setPickedNonce}
+            safeTxn={stager.safeTxn}
           />
-          <HStack gap="6">
-            {stager.execConditionFailed ? (
-              <Tooltip label={stager.signConditionFailed}>
+        )}
+
+        {!uploadToPublishIpfs.deployedIpfsHash && (
+          <Text>Uploading build result to IPFS...</Text>
+        )}
+        {uploadToPublishIpfs.writeToIpfsMutation.error && (
+          <Text>
+            Failed to upload staged transaction to IPFS:{' '}
+            {uploadToPublishIpfs.writeToIpfsMutation.error.toString()}
+          </Text>
+        )}
+        {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
+          <Box my="6">
+            <NoncePicker
+              safe={currentSafe as any}
+              onPickedNonce={setPickedNonce}
+            />
+            <HStack gap="6">
+              {stager.execConditionFailed ? (
+                <Tooltip label={stager.signConditionFailed}>
+                  <Button
+                    isDisabled={!!stager.signConditionFailed}
+                    size="lg"
+                    w="100%"
+                    onClick={() => stager.sign()}
+                  >
+                    Queue &amp; Sign
+                  </Button>
+                </Tooltip>
+              ) : null}
+              <Tooltip label={stager.execConditionFailed}>
                 <Button
-                  isDisabled={!!stager.signConditionFailed}
+                  isDisabled={!!stager.execConditionFailed}
                   size="lg"
                   w="100%"
-                  onClick={() => stager.sign()}
+                  onClick={async () => {
+                    if (execTxn.writeAsync) {
+                      await execTxn.writeAsync();
+                      router.push(links.DEPLOY);
+                      toast({
+                        title: 'You successfully executed the transaction.',
+                        status: 'success',
+                        duration: 5000,
+                        isClosable: true,
+                      });
+                    }
+                  }}
                 >
-                  Queue &amp; Sign
+                  Execute
                 </Button>
               </Tooltip>
-            ) : null}
-            <Tooltip label={stager.execConditionFailed}>
-              <Button
-                isDisabled={!!stager.execConditionFailed}
-                size="lg"
-                w="100%"
-                onClick={async () => {
-                  if (execTxn.writeAsync) {
-                    await execTxn.writeAsync();
-                    router.push(links.DEPLOY);
-                    toast({
-                      title: 'You successfully executed the transaction.',
-                      status: 'success',
-                      duration: 5000,
-                      isClosable: true,
-                    });
-                  }
-                }}
-              >
-                Execute
-              </Button>
-            </Tooltip>
-          </HStack>
-        </Box>
-      )}
-    </Container>
+            </HStack>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 }

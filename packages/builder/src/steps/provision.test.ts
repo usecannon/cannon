@@ -35,6 +35,8 @@ describe('steps/provision.ts', () => {
           contractName: 'Woot',
           sourceName: 'Woot.sol',
           deployedOn: 'contract.Woot',
+          gasCost: '0',
+          gasUsed: 0,
         },
       },
     });
@@ -51,8 +53,8 @@ describe('steps/provision.ts', () => {
       );
 
       expect(result).toStrictEqual({
-        source: 'abc:latest',
-        sourcePreset: 'main',
+        source: 'abc:latest@main',
+        sourcePreset: '',
         targetPreset: 'with-who',
       });
     });
@@ -60,7 +62,7 @@ describe('steps/provision.ts', () => {
 
   describe('getState()', () => {
     it('resolves correct properties with minimal config', async () => {
-      await registry.publish(['hello:1.0.0'], '13370-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 13370, 'https://something.com', '');
 
       const result = await action.getState(
         fakeRuntime,
@@ -77,12 +79,12 @@ describe('steps/provision.ts', () => {
     });
 
     it('resolves correct properties with maximal config', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-foobar', 'https://something-else.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something-else.com', '');
 
       const result = await action.getState(
         fakeRuntime,
         fakeCtx,
-        { source: 'hello:1.0.0', sourcePreset: 'foobar', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } },
+        { source: 'hello:1.0.0', sourcePreset: 'main', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } },
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
 
@@ -107,7 +109,7 @@ describe('steps/provision.ts', () => {
     });
 
     it('returns partial deployment if runtime becomes cancelled', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',
@@ -125,6 +127,8 @@ describe('steps/provision.ts', () => {
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
                   deployedOn: 'contract.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
                 },
               },
             },
@@ -149,7 +153,7 @@ describe('steps/provision.ts', () => {
       const result = await action.exec(
         fakeRuntime,
         fakeCtx,
-        { source: 'hello:1.0.0' },
+        { source: 'hello:1.0.0@main' },
         { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
       );
 
@@ -161,7 +165,7 @@ describe('steps/provision.ts', () => {
     });
 
     it('works with complete deployment', async () => {
-      await registry.publish(['hello:1.0.0'], '1234-main', 'https://something.com', '');
+      await registry.publish(['hello:1.0.0@main'], 1234, 'https://something.com', '');
 
       jest.mocked(fakeRuntime.readDeploy).mockResolvedValue({
         generator: 'cannon test',
@@ -179,6 +183,8 @@ describe('steps/provision.ts', () => {
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
                   deployedOn: 'contract.Woot',
+                  gasCost: '0',
+                  gasUsed: 0,
                 },
               },
             },
@@ -219,6 +225,8 @@ describe('steps/provision.ts', () => {
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
                 deployedOn: 'contract.Woot',
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },

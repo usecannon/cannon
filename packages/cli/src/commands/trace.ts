@@ -13,10 +13,9 @@ import Debug from 'debug';
 const debug = Debug('cannon:cli:trace');
 
 export async function trace({
-  packageName,
+  packageRef,
   data,
   chainId,
-  preset,
   providerUrl,
   from,
   to,
@@ -24,7 +23,7 @@ export async function trace({
   block,
   json = false,
 }: {
-  packageName: string;
+  packageRef: string;
   data: string;
   chainId: number;
   preset: string;
@@ -45,7 +44,8 @@ export async function trace({
   // in any case, cannon will run the transaction in anvil. afterwards, it
   // will call `trace_transaction`, and decode as much data from the trace
   // as possible, the same way that an error occurs
-  const deployInfos = await readDeployRecursive(packageName, chainId, preset);
+
+  const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const artifacts: ChainArtifacts = {};
 

@@ -180,6 +180,8 @@ describe('steps/contract.ts', () => {
               contractName: undefined,
               deployTxnHash: '',
               deployedOn: 'contract.Woot',
+              gasCost: '0',
+              gasUsed: 0,
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
@@ -226,6 +228,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });
@@ -274,6 +278,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: true,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });
@@ -317,6 +323,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });
@@ -351,6 +359,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });

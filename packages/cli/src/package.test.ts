@@ -9,9 +9,8 @@ jest.mock('./loader');
 
 describe('readDeploy', () => {
   it('should call the _readDeploy function', async () => {
-    const packageName = 'packageName';
+    const packageRef = 'name:version@preset';
     const chainId = 1;
-    const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
       generator: 'cannon test',
@@ -25,18 +24,17 @@ describe('readDeploy', () => {
 
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValueOnce(deployInfo);
 
-    const result = await readDeploy(packageName, chainId, preset);
+    const result = await readDeploy(packageRef, chainId);
 
-    expect(CannonStorage.prototype.readDeploy).toHaveBeenCalledWith(packageName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy).toHaveBeenCalledWith(packageRef, chainId);
     expect(result).toEqual(deployInfo);
   });
 });
 
 describe('readDeployRecursive', () => {
   it('should return a list of deployments', async () => {
-    const packageName = 'packageName';
+    const packageRef = 'name:version@preset';
     const chainId = 1;
-    const preset = 'preset';
 
     const deployInfo: DeploymentInfo = {
       generator: 'cannon test',
@@ -52,7 +50,7 @@ describe('readDeployRecursive', () => {
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValueOnce(deployInfo);
     jest.spyOn(Promise, 'all').mockResolvedValueOnce([]);
 
-    const result = await readDeployRecursive(packageName, chainId, preset);
+    const result = await readDeployRecursive(packageRef, chainId);
 
     expect(result).toContain(deployInfo);
   });

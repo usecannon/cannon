@@ -1,6 +1,6 @@
 import LightningFS from '@isomorphic-git/lightning-fs';
 import md5 from 'crypto-js/md5';
-import { checkout, clone, fastForward, fetch, findRoot } from 'isomorphic-git';
+import { checkout, clone, fetch, findRoot } from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
 import { memoize } from 'lodash';
 
@@ -21,7 +21,7 @@ export async function init(repo: string, ref: string) {
     dir,
     url: repo,
     ref,
-    corsProxy: 'https://cors.isomorphic-git.org',
+    corsProxy: 'https://git-proxy.repo.usecannon.com',
   };
 
   if (!cloned) {
@@ -29,7 +29,6 @@ export async function init(repo: string, ref: string) {
   } else {
     await fetch({ ...baseOpts, singleBranch: true, depth: 1 });
     await checkout({ fs, dir, ref });
-    await fastForward({ ...baseOpts, singleBranch: true });
   }
 }
 

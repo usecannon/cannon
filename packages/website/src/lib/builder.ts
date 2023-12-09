@@ -1,7 +1,18 @@
 // Extracted builder getOutput from ipfs logic
 
-import { ChainArtifacts, ChainDefinition } from '@usecannon/builder';
+import { ChainArtifacts, ChainDefinition, registerAction } from '@usecannon/builder';
 import _ from 'lodash';
+import { z } from 'zod';
+
+registerAction({
+  label: 'run',
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  configInject: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  getState: () => {},
+  exec: async () => ({ imports: {}, contracts: {}, txns: {}, extras: {} }),
+  validate: z.any(),
+});
 
 export const getOutput = (ipfs: { state: any; def: any }): ChainArtifacts => {
   const { state } = ipfs;

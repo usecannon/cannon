@@ -1,23 +1,21 @@
-import _ from 'lodash';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { yellow, bold } from 'chalk';
-
+import _ from 'lodash';
 import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { build, createInitialContext, getOutputs } from '../builder';
+import { CANNON_CHAIN_ID } from '../constants';
+import { ChainDefinition } from '../definition';
+import { PackageReference } from '../package';
+import { ChainBuilderRuntime, Events } from '../runtime';
 import { provisionSchema } from '../schemas.zod';
-
 import {
-  ChainBuilderContext,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderContextWithHelpers,
   DeploymentState,
   PackageState,
 } from '../types';
-import { build, createInitialContext, getOutputs } from '../builder';
-import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime, Events } from '../runtime';
-import { CANNON_CHAIN_ID } from '../constants';
-import { computeTemplateAccesses } from '../access-recorder';
-import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
 
@@ -50,7 +48,6 @@ const provisionSpec = {
     const cfg = this.configInject(ctx, config, packageState);
 
     const source = cfg.source;
-    const sourcePreset = cfg.sourcePreset;
     const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
 
     if (ctx.imports[importLabel]?.url) {
@@ -63,7 +60,7 @@ const provisionSpec = {
       }
     }
 
-    const srcUrl = await runtime.registry.getUrl(source, `${chainId}-${sourcePreset}`);
+    const srcUrl = await runtime.registry.getUrl(source, chainId);
 
     return {
       url: srcUrl,
@@ -75,22 +72,25 @@ const provisionSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(_.template(config.source)(ctx));
 
-    // If both definitions of a preset exist, its a user error.
-    if (config.sourcePreset && packageRef.preset) {
+    config.source = ref.fullPackageRef;
+
+    if (config.sourcePreset) {
       console.warn(
         yellow(
           bold(
-            `Duplicate preset definitions in source name "${config.source}" and in sourcePreset definition "${config.sourcePreset}"`
+            `The sourcePreset option will be deprecated soon. Using ${_.template(config.sourcePreset)(
+              ctx
+            )}. Reference presets in the "source" option like so: name@version:preset`
           )
         )
       );
-      console.warn(yellow(bold(`Defaulting to source name preset "${config.source}"...`)));
+
+      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.source = packageRef.basePackageRef;
-    config.sourcePreset = packageRef.preset || _.template(config.sourcePreset)(ctx) || 'main';
+    config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -137,17 +137,19 @@ const provisionSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
-    const source = packageRef.basePackageRef;
-    const sourcePreset = packageRef.preset || config.sourcePreset || 'main';
+    const sourceRef = new PackageReference(config.source);
+    const source = sourceRef.fullPackageRef;
+    const sourcePreset = config.sourcePreset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
-    const deployInfo = await runtime.readDeploy(source, sourcePreset, chainId);
+    const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${
+          sourcePreset || sourceRef.preset
+        } and network ${chainId}.`
       );
     }
 
@@ -170,10 +172,10 @@ const provisionSpec = {
     } else {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
-      if (await runtime.readDeploy(source, targetPreset, runtime.chainId)) {
+      if (await runtime.readDeploy(source, runtime.chainId)) {
         console.warn(
           yellow(
-            '\nwarn: there is a preexisting deployment for this preset/chainId. this build will overwrite. did you mean `import`? \n'
+            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
         );
       }
@@ -236,9 +238,9 @@ const provisionSpec = {
     } else {
       await runtime.registry.publish(
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
-        `${runtime.chainId}-${targetPreset}`,
+        runtime.chainId,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, `${chainId}-${config.sourcePreset}`)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || ''
       );
     }
 

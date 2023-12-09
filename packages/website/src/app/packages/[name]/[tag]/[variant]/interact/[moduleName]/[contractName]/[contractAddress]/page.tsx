@@ -17,15 +17,19 @@ export default function Interact({
     name: string;
     tag: string;
     variant: string;
+    moduleName: string;
+    contractName: string;
     contractAddress: string;
   };
 }) {
   return (
     <NoSSR
-      name={params.name}
-      tag={params.tag}
-      variant={params.variant}
-      contractAddress={params.contractAddress}
+      name={decodeURIComponent(params.name)}
+      tag={decodeURIComponent(params.tag)}
+      variant={decodeURIComponent(params.variant)}
+      moduleName={decodeURIComponent(params.moduleName)}
+      contractName={decodeURIComponent(params.contractName)}
+      contractAddress={decodeURIComponent(params.contractAddress)}
     />
   );
 }

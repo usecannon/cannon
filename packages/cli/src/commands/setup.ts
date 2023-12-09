@@ -47,7 +47,7 @@ export async function setup() {
       type: 'text',
       name: 'publishIpfsUrl',
       message:
-        'What IPFS endpoint would you like to use when publishing packages? (This may start with https+ipfs://) Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
+        'What IPFS endpoint would you like to use when publishing packages? Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
       initial: fileSettings.publishIpfsUrl,
     },
     {

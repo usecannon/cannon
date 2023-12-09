@@ -14,7 +14,7 @@ export async function handleTxnError(
   provider: ethers.providers.Provider,
   err: any
 ): Promise<any> {
-  if (err instanceof CannonTraceError || (err.toString() as string).includes('CannonTraceError')) {
+  if (err instanceof CannonTraceError || (err?.toString() as string).includes('CannonTraceError')) {
     // error already parsed
     debug('skipping trace of error because already processed', err.toString());
     throw err;

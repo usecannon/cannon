@@ -1,22 +1,23 @@
-import _ from 'lodash';
 import Debug from 'debug';
-
-import { z } from 'zod';
-import { invokeSchema } from '../schemas.zod';
-
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntimeInfo,
-  ChainArtifacts,
-  TransactionMap,
-  ChainBuilderContextWithHelpers,
-  PackageState,
-} from '../types';
-import { computeTemplateAccesses } from '../access-recorder';
-import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
-
-import { getAllContractPaths } from '../util';
+import _ from 'lodash';
+import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { invokeSchema } from '../schemas.zod';
+import {
+  ChainArtifacts,
+  ChainBuilderContext,
+  ChainBuilderContextWithHelpers,
+  ChainBuilderRuntimeInfo,
+  PackageState,
+  TransactionMap,
+} from '../types';
+import {
+  getAllContractPaths,
+  getContractDefinitionFromPath,
+  getContractFromPath,
+  getMergedAbiFromContractPaths,
+} from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -226,7 +227,15 @@ async function importTxnData(
         sourceName: sourceName,
         contractName: contractName,
         deployedOn: packageState.currentLabel,
+
+        // contract was deployed as part of another transaction that was alreayd counted for gas usage, so we mark gas cost/usage as 0 here
+        gasUsed: 0,
+        gasCost: '0',
       };
+
+      if (factoryInfo.highlight) {
+        contracts[k].highlight = true;
+      }
     }
   }
 
@@ -459,6 +468,9 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: receipt.transactionHash,
         events: txnEvents,
         deployedOn: packageState.currentLabel,
+        gasUsed: receipt.gasUsed.toNumber(),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: receipt.from,
       };
     }
 
@@ -510,6 +522,9 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: key,
         events: txnEvents as EncodedTxnEvents,
         deployedOn: packageState.currentLabel,
+        gasUsed: receipt.gasUsed.toNumber(),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: receipt.from,
       };
     }
 

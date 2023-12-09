@@ -3,8 +3,6 @@ import { ethers } from 'ethers';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
 
-import { PackageReference } from '@usecannon/builder/dist/package';
-
 export async function decode({
   packageRef,
   data,
@@ -18,24 +16,23 @@ export async function decode({
   presetArg: string;
   json: boolean;
 }) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
-
   if (!data[0].startsWith('0x')) {
     data[0] = '0x' + data[0];
   }
 
-  if (presetArg && preset) {
+  // Handle deprecated preset specification
+  if (presetArg) {
     console.warn(
       yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
-  const selectedPreset = preset || presetArg || 'main';
-
-  const deployInfos = await readDeployRecursive(basePackageRef, chainId, selectedPreset);
+  const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
   const tx = _parseData(abis, data);

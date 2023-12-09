@@ -13,7 +13,7 @@ import {
   FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
-  copyPackage,
+  publishPackage,
 } from '@usecannon/builder';
 import { CheckIcon } from '@chakra-ui/icons';
 import { useCannonPackage } from '@/hooks/cannon';
@@ -22,7 +22,7 @@ import { useStore } from '@/helpers/store';
 
 export default function PublishUtility(props: {
   deployUrl: string;
-  targetVariant: string;
+  targetChainId: number;
 }) {
   const settings = useStore((s) => s.settings);
 
@@ -33,6 +33,7 @@ export default function PublishUtility(props: {
   const {
     resolvedName,
     resolvedVersion,
+    resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
   } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
 
@@ -42,18 +43,25 @@ export default function PublishUtility(props: {
     registryQuery,
     ipfsQuery: ipfsChkQuery,
   } = useCannonPackage(
-    `${resolvedName}:${resolvedVersion}`,
-    props.targetVariant
+    `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+    props.targetChainId
   );
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error(
+          'You cannot publish on an IPFS gateway, only read operations can be done'
+        );
+      }
+
       console.log(
         'publish triggered',
         wc,
         resolvedName,
         resolvedVersion,
-        props.targetVariant
+        resolvedPreset,
+        props.targetChainId
       );
 
       const targetRegistry = new OnChainRegistry({
@@ -66,14 +74,14 @@ export default function PublishUtility(props: {
       const fakeLocalRegistry = new InMemoryRegistry();
       // TODO: set meta url
       void fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}`],
-        props.targetVariant,
+        [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
+        props.targetChainId,
         props.deployUrl,
         ''
       );
 
       const loader = new IPFSBrowserLoader(
-        settings.ipfsUrl || 'https://ipfs.io/ipfs/'
+        settings.ipfsApiUrl || 'https://repo.usecannon.com/'
       );
 
       const fromStorage = new CannonStorage(
@@ -87,13 +95,14 @@ export default function PublishUtility(props: {
         'ipfs'
       );
 
-      await copyPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}`,
-        tags: settings.publishTags.split(','),
-        variant: props.targetVariant,
+      await publishPackage({
+        packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+        // TODO: Check if we need to provide tags
+        tags: ['latest'],
+        chainId: props.targetChainId,
         fromStorage,
         toStorage,
-        recursive: true,
+        includeProvisioned: true,
       });
     },
     onSuccess() {
@@ -122,8 +131,18 @@ export default function PublishUtility(props: {
             matching name and version.
           </Text>
         )}
+        {settings.isIpfsGateway && (
+          <Text mb={3}>
+            You cannot publish on an IPFS gateway, only read operations can be
+            done.
+          </Text>
+        )}
         <Button
-          isDisabled={wc.data?.chain?.id !== 1 || publishMutation.isLoading}
+          isDisabled={
+            settings.isIpfsGateway ||
+            wc.data?.chain?.id !== 1 ||
+            publishMutation.isLoading
+          }
           onClick={() => publishMutation.mutate()}
         >
           {publishMutation.isLoading

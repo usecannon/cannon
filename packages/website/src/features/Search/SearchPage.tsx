@@ -126,10 +126,10 @@ export const SearchPage = () => {
         <Flex
           flexDirection="column"
           overflowY="auto"
-          maxWidth={['100%', '100%', '300px']}
+          maxWidth={['100%', '100%', '320px']}
           borderRight={isSmall ? 'none' : '1px solid'}
           borderColor="gray.700"
-          width={['100%', '100%', '300px']}
+          width={['100%', '100%', '320px']}
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >
           <Box p={[4, 4, 8]} pb={[0, 0, 8]}>
@@ -191,11 +191,7 @@ export const SearchPage = () => {
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCardExpandable
-                      maxHeight="186px"
-                      pkg={pkg}
-                      key={pkg.name}
-                    />
+                    <PackageCardExpandable pkg={pkg} key={pkg.name} />
                   </Box>
                 ))}
               </Container>

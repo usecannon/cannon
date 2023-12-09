@@ -1,8 +1,13 @@
-import { getChainId, getChainDataFromId, getChainName } from './helpers';
+import { InMemoryRegistry } from '@usecannon/builder/src';
+import { getChainId, getChainDataFromId, getChainName, getContractsAndDetails, getSourceFromRegistry } from './helpers';
+import { LocalRegistry } from './registry';
+import { FallbackRegistry } from '@usecannon/builder';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);
 describe('getChainDataFromId', getChainDataFromIdTestCases);
+describe('getContractsAndDetails', getContractsAndDetailsTestCases);
+describe('getSourceFromLocalRegistry', getSourceFromLocalRegistryTestCases);
 
 function getChainIdTestCases() {
   it('should return the chainId for a valid chain name', () => {
@@ -58,5 +63,69 @@ function getChainNameTestCases() {
   it('should return null for an invalid chainId', () => {
     expect(getChainName(999999)).toBe('unknown');
     expect(getChainName(0)).toBe('unknown');
+  });
+}
+
+function getContractsAndDetailsTestCases() {
+  it('should extract contracts and details from the state', () => {
+    const state = {
+      'contract.myContract1': {
+        artifacts: {
+          contracts: {
+            Contract1: {
+              address: 'address1',
+              abi: [],
+              deployTxnHash: 'hash1',
+              contractName: 'Contract1',
+              sourceName: 'Source1',
+              deployedOn: 'date1',
+              gasUsed: 1,
+              gasCost: '1',
+            },
+          },
+        },
+      },
+    };
+    const result = getContractsAndDetails(state);
+    expect(result).toEqual({
+      Contract1: {
+        address: 'address1',
+        abi: [],
+        deployTxnHash: 'hash1',
+        contractName: 'Contract1',
+        sourceName: 'Source1',
+        deployedOn: 'date1',
+        gasUsed: 1,
+        gasCost: '1',
+      },
+    });
+  });
+
+  it('should return an empty object if there are no contract artifacts', () => {
+    const state = {};
+    const result = getContractsAndDetails(state);
+    expect(result).toEqual({});
+  });
+}
+
+function getSourceFromLocalRegistryTestCases() {
+  it('should return the source if registry present', () => {
+    const mockSource = 'local';
+    const localRegistryInstance = new LocalRegistry('mockPackageDir');
+    const registries = [localRegistryInstance];
+    const result = getSourceFromRegistry(registries);
+
+    expect(result).toBe(mockSource);
+  });
+
+  it('should return the source of registry in use when mixed with other registries', () => {
+    const mockSource = 'memory';
+    const localRegistryInstance = new LocalRegistry('mockPackageDir');
+    const fallbackRegistryInstance1 = new FallbackRegistry([new InMemoryRegistry()]);
+    const fallbackRegistryInstance2 = new FallbackRegistry([]);
+    const registries = [fallbackRegistryInstance1, localRegistryInstance, fallbackRegistryInstance2];
+    const result = getSourceFromRegistry(registries);
+
+    expect(result).toBe(mockSource);
   });
 }

@@ -9,11 +9,8 @@ type SimulatedTransactionResult = {
   error?: string;
 };
 
-// TODO: this probably shuoldn't be global, but it probably also shouldn't be state.
-// its a risk if 2 `useSimulatedTxns` are in use at the same time
-let node: any = null;
-
 export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRequestBase, 'from'> | null)[]) {
+  const [node, setNode] = useState<any>(null);
   const [txnResults, setTxnResults] = useState<(SimulatedTransactionResult | null)[]>([]);
   const [cleanStateSnapshot, setCleanStateSnapshot] = useState<string | null>(null);
   const [computedTxns, setComputedTxns] = useState<string | null>(null);
@@ -65,8 +62,9 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
 
   useEffect(() => {
     async function load() {
-      node = await createFork({ chainId: safe.chainId, impersonate: [safe.address] });
-      setCleanStateSnapshot((await node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
+      const _node = await createFork({ chainId: safe.chainId, impersonate: [safe.address] });
+      setNode(_node);
+      setCleanStateSnapshot((await _node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
       console.log('finished creating fork');
     }
 

@@ -12,10 +12,10 @@
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
     "test-all": "lerna run test",
-    "build": "lerna run build",
+    "build": "lerna run build --ignore cannon-website",
     "publish": "lerna publish",
+    "test": "lerna run test",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
-    "docgen": "npm run docgen-md && rm ./docs/actions/core-actions.md && mv ./docs/actions/modules/* ./docs/actions/ && concat-md --hide-anchor-links ./docs/actions/ > ./packages/website/content/docs-configuration.md",
     "website-dev": "npm run dev --workspace=packages/website",
     "website": "npm run start --workspace=packages/website"
   },
@@ -25,6 +25,7 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
+    "@types/mock-fs": "^4.13.4",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^8.10.0",
@@ -44,6 +45,7 @@
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
+    "@changesets/cli": "^2.26.2",
     "concat-md": "^0.5.1"
   }
 }
