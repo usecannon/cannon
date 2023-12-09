@@ -497,13 +497,29 @@ ${getAllContractPaths(ctx).join('\n')}`);
             : getContractDefinitionFromPath(ctx, config.abi)?.abi
           : null;
 
-      const contract = new ethers.Contract(ethers.constants.AddressZero, customAbi);
-      const receipt = await runtime.provider.getTransactionReceipt(key);
+      debug('resolved contract abi for txn decode', customAbi, config);
+
+      let contract: ethers.Contract | null;
+      if (ethers.utils.isAddress(config.target[i])) {
+        if (!customAbi) {
+          throw new Error('abi must be defined if addresses is used for target');
+        }
+
+        contract = new ethers.Contract(config.target[i], customAbi);
+      } else {
+        contract = getContractFromPath(ctx, config.target[i], customAbi);
+      }
+
+      if (!contract) {
+        throw new Error('target contract not found');
+      }
+
+      const receipt = await runtime.provider.passThroughProvider.getTransactionReceipt(key);
 
       const txnEvents = _.groupBy(
         _.filter(
           receipt.logs?.map((l) => {
-            const e = contract.interface.parseLog(l);
+            const e = contract!.interface.parseLog(l);
             if (!e.name || !e.args) {
               return null;
             }

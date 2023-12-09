@@ -348,9 +348,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
 ) {
   const { alter } = await import('./commands/alter');
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
-    getArtifact: getFoundryArtifact,
-  });
+  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {});
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {

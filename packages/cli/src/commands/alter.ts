@@ -14,9 +14,9 @@ import {
 } from '@usecannon/builder';
 import { ActionKinds } from '@usecannon/builder/dist/actions';
 import { resolveCliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
+import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -48,10 +48,12 @@ export async function alter(
 
   // create temporary provider
   // todo: really shouldn't be necessary
-  const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000),
-  });
-  const provider = getProvider(node);
+  // const node = await runRpc({
+  //   port: 30000 + Math.floor(Math.random() * 30000),
+  // });
+  // const provider = getProvider(node);
+
+  const { provider } = await resolveWriteProvider(cliSettings, chainId as number);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -161,6 +163,8 @@ export async function alter(
         const def = new ChainDefinition(deployInfo.def);
         const config = def.getConfig(stepName, ctx);
 
+        // some steps may require access to misc artifacts
+        await runtime.restoreMisc(deployInfo.miscUrl);
         deployInfo.state[stepName].artifacts = await stepAction.importExisting(
           runtime,
           ctx,
