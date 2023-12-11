@@ -551,7 +551,7 @@ function QueueFromGitOps() {
           />
         )}
 
-        {!uploadToPublishIpfs.deployedIpfsHash && (
+        {uploadToPublishIpfs.writeToIpfsMutation.isLoading && (
           <Text>Uploading build result to IPFS...</Text>
         )}
         {uploadToPublishIpfs.writeToIpfsMutation.error && (
