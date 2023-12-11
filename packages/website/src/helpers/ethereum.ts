@@ -5,41 +5,53 @@ import { EIP7412 } from 'erc7412';
 import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
 import MulticallABI from '@/abi/Multicall.json';
 
-async function generate7412CompatibleCall(client: PublicClient, txn: Partial<TransactionRequestBase>, pythUrl: string) {
-  const converter = new EIP7412([new PythAdapter(pythUrl)], makeMulticall);
+async function generate7412CompatibleCall(
+  client: PublicClient,
+  from: Address,
+  txn: Partial<TransactionRequestBase>,
+  pythUrl: string
+) {
+  const converter = new EIP7412([new PythAdapter(pythUrl)], createMakeMulticall(from));
   return await converter.enableERC7412(client as any, txn);
 }
 
-function makeMulticall(txns: Partial<TransactionRequestBase>[]): {
-  operation: string;
-  to: Address;
-  value: bigint;
-  data: Hex;
-} {
-  const totalValue = txns.reduce((val, txn) => {
-    return val + (txn.value || BigInt(0));
-  }, BigInt(0));
+function createMakeMulticall(from: Address) {
+  return (
+    txns: Partial<TransactionRequestBase>[]
+  ): {
+    operation: string;
+    account: Address;
+    to: Address;
+    value: bigint;
+    data: Hex;
+  } => {
+    const totalValue = txns.reduce((val, txn) => {
+      return val + (txn.value || BigInt(0));
+    }, BigInt(0));
 
-  return {
-    operation: '1', // multicall is a DELEGATECALL
-    to: '0xae788aaf52780741e12bf79ad684b91bb0ef4d92',
-    value: totalValue,
-    data: encodeFunctionData({
-      abi: MulticallABI,
-      functionName: 'aggregate3Value',
-      args: [
-        txns.map((txn) => ({
-          target: txn.to || zeroAddress,
-          callData: txn.data || '0x',
-          value: txn.value || '0',
-          allowFailure: false,
-        })),
-      ],
-    }),
+    return {
+      operation: '1', // multicall is a DELEGATECALL
+      account: from,
+      to: '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e',
+      value: totalValue,
+      data: encodeFunctionData({
+        abi: MulticallABI,
+        functionName: 'aggregate3Value',
+        args: [
+          txns.map((txn) => ({
+            target: txn.to || zeroAddress,
+            callData: txn.data || '0x',
+            value: txn.value || '0',
+            requireSuccess: true,
+          })),
+        ],
+      }),
+    };
   };
 }
 
 export async function contractCall(
+  from: Address,
   to: Address,
   functionName: string,
   params: any,
@@ -53,11 +65,12 @@ export async function contractCall(
     args: Array.isArray(params) ? params : [params],
   });
   const txn = {
+    account: from,
     to,
     data,
   };
-  const call = await generate7412CompatibleCall(publicClient, txn, pythUrl);
-  const res = await publicClient.call({ ...call, account: zeroAddress });
+  const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+  const res = await publicClient.call({ ...call, account: from });
   try {
     const multicallValue: any = decodeFunctionResult({
       abi: MulticallABI,
@@ -106,7 +119,7 @@ export async function contractTransaction(
     to,
     data,
   };
-  const call = await generate7412CompatibleCall(publicClient, txn, pythUrl);
+  const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
   const hash = await walletClient.sendTransaction({
     account: from,
     to: call.to,

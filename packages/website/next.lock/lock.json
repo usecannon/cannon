@@ -1,4 +1,7 @@
 {
   "https://unpkg.com/ganache@7.9.1": { "resolved": "https://unpkg.com/ganache@7.9.1/dist/web/ganache.min.js", "integrity": "sha512-EEPqnww9PBMaZrA9EveFQklKCHQVcxWD1wdG+9Qynsdb2Idg2TRD2iriqdTkQxIGSnGzu/1lRshLXilk4DxEvw==", "contentType": "application/javascript; charset=utf-8" },
+  "https://unpkg.com/prettier@3.1.0/plugins/estree.js": { "integrity": "sha512-CnYwqDDtbn+DkzB9ktIjdLKMrI2/elwdb9RM1j9O2xwk30ODr8kUN3JsbSw6nwXgkPttP7R8/7gWJkOEr0oSIg==", "contentType": "application/javascript; charset=utf-8" },
+  "https://unpkg.com/prettier@3.1.0/plugins/typescript.js": { "integrity": "sha512-dQxTDRBAeFTFoKJCSpb+6pDi+BtseftO0yYBsL3bs2sAv2+8pxgzmVDIlrwpAEcoeqaXbFwIYG5gdA803A9L5A==", "contentType": "application/javascript; charset=utf-8" },
+  "https://unpkg.com/prettier@3.1.0/standalone.js": { "integrity": "sha512-NxKph0IRi3eHX5rVnI+GX8Mq0PQOFxAhjvOZqYXkw01i+H6XmBjlQUDHe6dx0HhwrCzkKnUxGDvmmUTR6Sj8hw==", "contentType": "application/javascript; charset=utf-8" },
   "version": 1
 }

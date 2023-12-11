@@ -24,7 +24,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address } from 'viem';
+import { Address, zeroAddress } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -40,7 +40,6 @@ export const Function: FC<{
 }> = ({ f, abi, cannonOutputs, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
-  const [simulatedResult, setSimulatedResult] = useState<any>(null);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
   const { isConnected, address: from } = useAccount();
@@ -85,15 +84,9 @@ export const Function: FC<{
       readOnly
         ? readContractResult
         : simulated
-        ? simulatedResult
+        ? readContractResult
         : writeContractResult,
-    [
-      readOnly,
-      simulated,
-      simulatedResult,
-      readContractResult,
-      writeContractResult,
-    ]
+    [readOnly, simulated, readContractResult, writeContractResult]
   );
 
   // useEffect(() => {
@@ -112,7 +105,7 @@ export const Function: FC<{
 
     try {
       if (readOnly) {
-        await fetchReadContractResult();
+        await fetchReadContractResult(zeroAddress);
       } else {
         if (!isConnected) {
           try {
@@ -128,18 +121,8 @@ export const Function: FC<{
           if (newChain?.id != chainId) return;
         }
 
-        const _params = Array.isArray(params) ? params : [params];
-
         if (simulate) {
-          const { result } = await publicClient.simulateContract({
-            address: address as Address,
-            abi,
-            functionName: f.name,
-            args: _params,
-            account: walletClient?.account || undefined,
-          });
-
-          setSimulatedResult(result);
+          await fetchReadContractResult(from);
         } else {
           await fetchWriteContractResult();
         }
@@ -298,7 +281,12 @@ export const Function: FC<{
 
             {error && (
               <Alert mt="2" status="error" bg="red.700">
-                {error}
+                {`${
+                  error.includes('Encoded error signature') &&
+                  error.includes('not found on ABI')
+                    ? 'Error emitted during ERC-7412 orchestration: '
+                    : ''
+                }${error}`}
               </Alert>
             )}
           </Box>
