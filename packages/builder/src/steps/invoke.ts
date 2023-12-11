@@ -377,9 +377,10 @@ const invokeSpec = {
         if (!customAbi) {
           throw new Error('abi must be defined if addresses is used for target');
         }
-
+        
         contract = new ethers.Contract(t, customAbi);
       } else {
+        console.log(t)
         contract = getContractFromPath(ctx, t, customAbi);
       }
 
