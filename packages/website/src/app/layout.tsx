@@ -7,7 +7,10 @@ import { Header } from '@/features/Header/Header';
 import { Footer } from '@/features/Footer/Footer';
 import { Console } from '@/features/Console/Console';
 import { Analytics } from '@vercel/analytics/react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
+import axios, { AxiosError } from 'axios';
+import { createIpfsUrl } from '@/helpers/ipfs';
+import { useStore } from '@/helpers/store';
 
 const miriam = Miriam_Libre({
   subsets: ['latin'],
@@ -25,7 +28,42 @@ const mono = Roboto_Mono({
   display: 'swap',
 });
 
+async function isIpfsGateway(ipfsUrl: string) {
+  let isGateway = true;
+  try {
+    ipfsUrl = ipfsUrl.endsWith('/') ? ipfsUrl : ipfsUrl + '/';
+    const { url, headers } = createIpfsUrl(ipfsUrl + 'api/v0/cat');
+    await axios.post(url, null, { timeout: 15 * 1000, headers });
+  } catch (err: unknown) {
+    if (
+      err instanceof AxiosError &&
+      err.response?.status === 400 &&
+      typeof err.response?.data === 'string' &&
+      err.response.data.includes('argument "ipfs-path" is required')
+    ) {
+      isGateway = false;
+    }
+  }
+
+  return isGateway;
+}
+
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const settings = useStore((s) => s.settings);
+  const setSettings = useStore((s) => s.setSettings);
+
+  useEffect(() => {
+    console.log('xxx settings.ipfsApiUrl: ', settings.ipfsApiUrl);
+
+    async function fetch() {
+      setSettings({
+        isIpfsGateway: await isIpfsGateway(settings.ipfsApiUrl),
+      });
+    }
+
+    void fetch();
+  }, [settings.ipfsApiUrl]);
+
   return (
     <html lang="en">
       <style jsx global>
