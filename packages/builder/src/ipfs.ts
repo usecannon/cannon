@@ -23,12 +23,12 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
   return Hash.of(value);
 }
 
-export async function isIpfsGateway(ipfsUrl: string) {
+export async function isIpfsGateway(ipfsUrl: string, customHeaders: Headers = {}) {
   debug(`is-gateway ${ipfsUrl}`);
 
   let isGateway = true;
   try {
-    await axios.post(ipfsUrl + '/api/v0/cat', null, { timeout: 15 * 1000 });
+    await axios.post(ipfsUrl + '/api/v0/cat', null, { headers: customHeaders, timeout: 15 * 1000 });
   } catch (err: unknown) {
     if (
       err instanceof AxiosError &&
