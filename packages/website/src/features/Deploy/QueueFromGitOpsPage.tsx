@@ -481,6 +481,12 @@ function QueueFromGitOps() {
                 IPFS gateway, only read operations can be done.
               </Text>
             )}
+            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+              <Text mb={3} color={'red'}>
+                Cannot build deployment: You cannot build transactions on an
+                repo endpoint, only read operations can be done.
+              </Text>
+            )}
             {chainId !== currentSafe.chainId && (
               <Text mb={3}>
                 Cannot build deployment: the connected wallet network does not
@@ -505,6 +511,7 @@ function QueueFromGitOps() {
               isDisabled={
                 chainId !== currentSafe.chainId ||
                 settings.isIpfsGateway ||
+                settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
                 !cannonDefInfo.def ||
                 cannonPkgVersionInfo.ipfsQuery.isFetching ||
                 cannonPkgPreviousInfo.ipfsQuery.isFetching ||

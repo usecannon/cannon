@@ -285,6 +285,12 @@ export default function SettingsPage() {
                 limited capabilities.
               </Text>
             )}
+            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+              <Text color="red">
+                NOTE: you appear to have supplied an repo endpoint, which has
+                limited capabilities.
+              </Text>
+            )}
             <FormHelperText color="gray.300">
               This is an{' '}
               <Link
