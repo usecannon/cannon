@@ -4,7 +4,7 @@ import pako from 'pako';
 import { useStore } from '@/helpers/store';
 import { useLogs } from '@/providers/logsProvider';
 
-import { create as createUrl, parse as parseUrl } from 'simple-url';
+import { parse as parseUrl } from 'simple-url';
 
 export function useQueryIpfsData(url?: string, enabled?: boolean) {
   const settings = useStore((s) => s.settings);
