@@ -343,6 +343,7 @@ function QueueFromGitOps() {
         }
       : {}) as any,
     {
+      safe: currentSafe,
       onSignComplete() {
         console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
@@ -475,10 +476,27 @@ function QueueFromGitOps() {
         {buildInfo.buildStatus == '' && (
           <>
             {settings.isIpfsGateway && (
-              <Text mb={3}>
-                You cannot build transactions on an IPFS gateway, only read
-                operations can be done.
+              <Text mb={3} color={'red'}>
+                Cannot build deployment: You cannot build transactions on an
+                IPFS gateway, only read operations can be done.
               </Text>
+            )}
+            {chainId !== currentSafe.chainId && (
+              <Text mb={3}>
+                Cannot build deployment: the connected wallet network does not
+                match safe network.
+              </Text>
+            )}
+            {!cannonDefInfo.def && (
+              <Text mb={3}>
+                Cannot build deployment: Required info info not set
+              </Text>
+            )}
+            {(cannonPkgVersionInfo.ipfsQuery.isFetching ||
+              cannonPkgPreviousInfo.ipfsQuery.isFetching ||
+              cannonPkgVersionInfo.registryQuery.isFetching ||
+              cannonPkgPreviousInfo.registryQuery.isFetching) && (
+              <Text mb={3}>Fetching cannon package info...</Text>
             )}
             <Button
               width="100%"

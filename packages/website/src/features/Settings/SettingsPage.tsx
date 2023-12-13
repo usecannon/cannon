@@ -30,11 +30,24 @@ import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
 import axios, { AxiosError } from 'axios';
 
+import { parse as parseUrl } from 'simple-url';
+
 export async function isIpfsGateway(ipfsUrl: string) {
   let isGateway = true;
   try {
     ipfsUrl = ipfsUrl.endsWith('/') ? ipfsUrl : ipfsUrl + '/';
-    await axios.post(ipfsUrl + 'api/v0/cat', null, { timeout: 15 * 1000 });
+    const parsedUrl = parseUrl(ipfsUrl);
+    const headers: { [k: string]: string } = {};
+
+    if (parsedUrl.auth) {
+      console.log('Detected basic auth in url');
+      const [username, password] = parsedUrl.auth.split(':');
+      headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
+    }
+    await axios.post(ipfsUrl + 'api/v0/cat', null, {
+      headers,
+      timeout: 15 * 1000,
+    });
   } catch (err: unknown) {
     if (
       err instanceof AxiosError &&
@@ -301,6 +314,12 @@ export default function SettingsPage() {
                 });
               }}
             />
+            {settings.isIpfsGateway && (
+              <Text color="red">
+                NOTE: you appear to have supplied an IPFS gateway, which has
+                limited capabilities.
+              </Text>
+            )}
             <FormHelperText color="gray.300">
               This is an{' '}
               <Link
