@@ -108,6 +108,7 @@ function QueueTransactions() {
         }
       : {},
     {
+      safe: currentSafe!,
       onSignComplete() {
         console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
