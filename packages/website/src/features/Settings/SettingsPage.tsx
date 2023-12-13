@@ -28,38 +28,6 @@ import {
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
-import axios, { AxiosError } from 'axios';
-
-import { parse as parseUrl } from 'simple-url';
-
-export async function isIpfsGateway(ipfsUrl: string) {
-  let isGateway = true;
-  try {
-    ipfsUrl = ipfsUrl.endsWith('/') ? ipfsUrl : ipfsUrl + '/';
-    const parsedUrl = parseUrl(ipfsUrl);
-    const headers: { [k: string]: string } = {};
-
-    if (parsedUrl.auth) {
-      console.log('Detected basic auth in url');
-      const [username, password] = parsedUrl.auth.split(':');
-      headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
-    }
-    await axios.post(ipfsUrl + 'api/v0/cat', null, {
-      headers,
-      timeout: 15 * 1000,
-    });
-  } catch (err: unknown) {
-    if (
-      err instanceof AxiosError &&
-      err.response?.status === 400 &&
-      err.response?.data.includes('argument "ipfs-path" is required')
-    ) {
-      isGateway = false;
-    }
-  }
-
-  return isGateway;
-}
 
 type Setting = {
   title: string;
@@ -309,9 +277,6 @@ export default function SettingsPage() {
               name={'ipfsApiUrl'}
               onChange={async (evt) => {
                 setSettings({ ipfsApiUrl: evt.target.value });
-                setSettings({
-                  isIpfsGateway: await isIpfsGateway(evt.target.value),
-                });
               }}
             />
             {settings.isIpfsGateway && (
