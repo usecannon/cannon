@@ -44,6 +44,18 @@ export const chains = [
     serviceUrl: '',
   },
   {
+    id: 8453,
+    name: 'Base',
+    shortName: 'base',
+    serviceUrl: '',
+  },
+  {
+    id: 84531,
+    name: 'Base Goerli Testnet',
+    shortName: 'gbase',
+    serviceUrl: '',
+  },
+  {
     id: 42161,
     name: 'Arbitrum',
     shortName: 'arb1',
