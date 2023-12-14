@@ -1,10 +1,9 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonJsonRpcProvider, CannonWrapperGenericProvider } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import { bold, yellow, yellowBright } from 'chalk';
-import { ethers } from 'ethers';
 import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
@@ -14,6 +13,7 @@ import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 
+import type { ethers } from 'ethers';
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
@@ -76,7 +76,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       let anvilOpts;
       if (anvilOptions) {
         if ((anvilOptions as string).endsWith('.json')) {
-          anvilOpts = JSON.parse(await fs.readFileSync(anvilOptions, 'utf8'));
+          anvilOpts = JSON.parse(await fs.readFile(anvilOptions, 'utf8'));
         } else {
           anvilOpts = JSON.parse(anvilOptions);
         }
@@ -87,7 +87,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
-      const forkProvider = new hre.ethers.providers.JsonRpcProvider(providerUrl);
+      const forkProvider = new (hre as any).ethers.providers.JsonRpcProvider(providerUrl);
 
       let provider = new CannonWrapperGenericProvider({}, forkProvider);
 
@@ -99,7 +99,9 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         // hardhat network is "special" in that it looks like its a jsonrpc provider,
         // but really you can't use it like that.
         console.log('using hardhat network provider');
-        provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
+        provider = new CannonWrapperGenericProvider({}, (hre as any).ethers.provider, false);
+      } else {
+        provider = new CannonJsonRpcProvider({}, providerUrl);
       }
 
       if (dryRun) {
@@ -116,7 +118,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         const chainId =
           hre.network.name === 'cannon'
             ? CANNON_CHAIN_ID
-            : anvilOpts.chainId || (await hre.ethers.provider.getNetwork()).chainId;
+            : anvilOpts.chainId || (await (hre as any).ethers.provider.getNetwork()).chainId;
 
         const node = dryRun
           ? await runRpc(
@@ -136,7 +138,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const signers = await getHardhatSigners(hre, provider);
 
       const getSigner = async (address: string) => {
-        const addr = ethers.utils.getAddress(address);
+        const addr: string = (hre as any).ethers.utils.getAddress(address);
         for (const signer of signers) {
           const signerAddr = await signer.getAddress();
           if (addr === signerAddr) return signer;

@@ -1,0 +1,16 @@
+name = "sample-hardhat-toolbox"
+version = "<%= package.version %>"
+description = "Simple project to verify the functionality of Cannon using Hardhat with @nomicfoundation/hardhat-toolbox"
+keywords = ["sample", "hardhat", "toolbox"]
+
+[setting.salt]
+defaultValue = "sample-hardhat-toolbox"
+
+[setting.unlockTime]
+defaultValue = "604800" # 1 week in seconds
+
+[contract.Lock]
+artifact = "Lock"
+args = ["<%= settings.unlockTime %>"]
+value = "100000000000000000" # 0.1 ETH
+salt = "<%= settings.salt %>"
