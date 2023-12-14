@@ -72,30 +72,38 @@ export async function contractCall(
   const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
   const res = await publicClient.call({ ...call, account: from });
   try {
-    const multicallValue: any = decodeFunctionResult({
-      abi: MulticallABI,
-      functionName: 'aggregate3Value',
-      data: (res as any).data as any,
-    });
+    const multicallValue: any = (res as any).data
+      ? decodeFunctionResult({
+          abi: MulticallABI,
+          functionName: 'aggregate3Value',
+          data: (res as any).data as any,
+        })
+      : (res as any).data;
     if (Array.isArray(multicallValue) && multicallValue[multicallValue.length - 1].success) {
-      return decodeFunctionResult({
-        abi,
-        functionName,
-        data: multicallValue[multicallValue.length - 1].returnData as any,
-      });
+      return (res as any).data
+        ? decodeFunctionResult({
+            abi,
+            functionName,
+            data: multicallValue[multicallValue.length - 1].returnData as any,
+          })
+        : (res as any).data;
     } else {
-      return decodeFunctionResult({
-        abi,
-        functionName,
-        data: (res as any).data as any,
-      });
+      return (res as any).data
+        ? decodeFunctionResult({
+            abi,
+            functionName,
+            data: (res as any).data as any,
+          })
+        : (res as any).data;
     }
   } catch {
-    return decodeFunctionResult({
-      abi,
-      functionName,
-      data: (res as any).data as any,
-    });
+    return (res as any).data
+      ? decodeFunctionResult({
+          abi,
+          functionName,
+          data: (res as any).data as any,
+        })
+      : (res as any).data;
   }
 }
 
