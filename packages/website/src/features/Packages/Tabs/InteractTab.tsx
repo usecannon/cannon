@@ -147,20 +147,13 @@ export const InteractTab: FC<{
         (contract) => contract.contractAddress === uniqueAddress
       );
       excessContracts.sort((a, b) => {
-        const aDeepLevel = a.moduleName
-          .split('')
-          .reduce(
-            (acc: number, cur: string) => (cur === '.' ? acc + cur : acc),
-            0
-          );
-        const bDeepLevel = b.moduleName
-          .split('')
-          .reduce(
-            (acc: number, cur: string) => (cur === '.' ? acc + cur : acc),
-            0
-          );
-
-        return bDeepLevel - aDeepLevel;
+        const accumulateDeepLevel = (acc: number, cur: string) =>
+          cur === '.' ? acc + 1 : acc;
+        const getModuleNameDeepLevel = (moduleName: string) =>
+          moduleName.split('').reduce(accumulateDeepLevel, 0);
+        const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
+        const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
+        return aDeepLevel - bDeepLevel;
       });
       excessContracts.shift();
       highlightedData = highlightedData.filter(
