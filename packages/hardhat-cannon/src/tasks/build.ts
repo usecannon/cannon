@@ -117,14 +117,13 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider = getProvider(node);
       }
 
-      const signers = getHardhatSigners(hre, provider);
+      const signers = await getHardhatSigners(hre, provider);
 
       const getSigner = async (address: string) => {
         const addr = ethers.utils.getAddress(address);
         for (const signer of signers) {
-          if (addr === (await signer.getAddress())) {
-            return signer.connect(provider);
-          }
+          const signerAddr = await signer.getAddress();
+          if (addr === signerAddr) return signer;
         }
       };
 
@@ -140,7 +139,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             signers.push(defaultSigner);
           }
         } else {
-          defaultSigner = signers[0].connect(provider);
+          defaultSigner = signers[0];
         }
       }
 
@@ -168,7 +167,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             // return the actual signer with private key
             const signer = await getSigner(addr);
             if (signer) return signer;
-
             throw new Error(
               `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
             );
