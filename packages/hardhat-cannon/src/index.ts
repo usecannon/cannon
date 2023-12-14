@@ -1,18 +1,15 @@
-import path from 'path';
-import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
-import '@nomiclabs/hardhat-ethers';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
+import path from 'path';
 import { augmentProvider } from './internal/augment-provider';
-
+import '@nomiclabs/hardhat-ethers';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
 import './tasks/run';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
-import './subtasks/load-deploy';
-import './subtasks/rpc';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
