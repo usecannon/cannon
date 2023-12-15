@@ -50,7 +50,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
       </Flex>
 
       <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
-        <PackageTable pkg={pkg} />
+        <PackageTable latestOnly={false} pkg={pkg} />
       </Box>
     </Box>
   );
