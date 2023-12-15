@@ -268,7 +268,7 @@ export default function SettingsPage() {
             IPFS
           </Heading>
           <Text fontSize="md" mb={4}>
-            Cannon work with an{' '}
+            Cannon works with an{' '}
             <Link
               isExternal
               href="https://docs.ipfs.tech/reference/http/gateway/"

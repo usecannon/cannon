@@ -47,7 +47,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             href={links.QUEUEFROMGITOPS}
             isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
           >
-            {isMobile ? 'Build' : 'Queue Build'}
+            {isMobile ? 'Build' : 'Queue Cannonfile'}
           </NavLink>
         </Flex>
       </Box>
