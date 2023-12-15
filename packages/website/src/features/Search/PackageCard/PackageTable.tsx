@@ -67,7 +67,7 @@ const PackageTable: FC<{
       const matchingChain = Object.values(chains).find((chain) => {
         return chain.id === row.chain;
       });
-      return matchingChain && !matchingChain.testnet;
+      return matchingChain && !(matchingChain as any).testnet;
     });
   }
 
