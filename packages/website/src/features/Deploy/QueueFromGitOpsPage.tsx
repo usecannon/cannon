@@ -81,6 +81,10 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
+  // eslint-disable-next-line no-useless-escape
+  const regex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
+  const validCannonfileUrl = regex.test(cannonfileUrlInput);
+
   const gitUrl = useMemo(
     () =>
       cannonfileUrlInput.includes('/blob/')
@@ -364,6 +368,20 @@ function QueueFromGitOps() {
       (s) => s.name.includes('contract') || s.name.includes('router')
     ).length > 0;
 
+  let alertMessage;
+  if (chainId !== currentSafe.chainId) {
+    alertMessage =
+      'Your wallet must be connected to the same network as the selected Safe.';
+  } else if (settings.isIpfsGateway) {
+    alertMessage =
+      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
+  } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+    alertMessage =
+      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
+  } else if (!cannonDefInfo.def) {
+    alertMessage = 'Unable to parse cannonfile.';
+  }
+
   if (
     prepareDeployOnchainStore.isFetched &&
     !prepareDeployOnchainStore.isError
@@ -406,9 +424,9 @@ function QueueFromGitOps() {
             Queue Cannonfile
           </Heading>
           <Text color="gray.300">
-            Queue transactions based on a pull request that modifies a
-            cannonfile in a git repository. After the queued transactions are
-            executed, a resulting package can be published to the registry.
+            Queue transactions from a cannonfile in a git repository. After the
+            transactions are executed, the resulting package can be published to
+            the registry.
           </Text>
         </Box>
 
@@ -422,14 +440,21 @@ function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <FormControl mb="6">
+          <FormControl
+            mb="6"
+            isInvalid={!!cannonfileUrlInput.length && !validCannonfileUrl}
+          >
             <FormLabel>Cannonfile</FormLabel>
             <HStack>
               <Input
                 type="text"
                 placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
                 value={cannonfileUrlInput}
-                borderColor="whiteAlpha.400"
+                borderColor={
+                  !cannonfileUrlInput.length || validCannonfileUrl
+                    ? 'whiteAlpha.400'
+                    : 'red.500'
+                }
                 background="black"
                 onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
               />
@@ -438,10 +463,11 @@ function QueueFromGitOps() {
               Enter a Git or GitHub URL for the cannonfile you’d like to build.
             </FormHelperText>
           </FormControl>
+
           <FormControl mb="6">
             <FormLabel>Previous Package</FormLabel>
             <Input
-              placeholder="package:latest@main"
+              placeholder="name:version@preset"
               type="text"
               value={previousPackageInput}
               borderColor="whiteAlpha.400"
@@ -451,7 +477,7 @@ function QueueFromGitOps() {
             />
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> Enter the name of the package this
-              cannonfile is upgrading from. See{' '}
+              cannonfile is extending. See{' '}
               <Link as={NextLink} href="/learn/cli#build">
                 <Code>--upgrade-from</Code>
               </Link>
@@ -482,64 +508,44 @@ function QueueFromGitOps() {
               command in the CLI.
             </FormHelperText>
           </FormControl>
-          {buildInfo.buildStatus == '' && (
-            <>
-              {settings.isIpfsGateway && (
-                <Text mb={3} color={'red'}>
-                  Cannot build deployment: You cannot build transactions on an
-                  IPFS gateway, only read operations can be done.
-                </Text>
-              )}
-              {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-                <Text mb={3} color={'red'}>
-                  Cannot build deployment: You cannot build transactions on an
-                  repo endpoint, only read operations can be done.
-                </Text>
-              )}
-              {chainId !== currentSafe.chainId && (
-                <Text mb={3}>
-                  Cannot build deployment: the connected wallet network does not
-                  match safe network.
-                </Text>
-              )}
-              {!cannonDefInfo.def && (
-                <Text mb={3}>
-                  Cannot build deployment: Required info info not set
-                </Text>
-              )}
-              {(cannonPkgVersionInfo.ipfsQuery.isFetching ||
-                cannonPkgPreviousInfo.ipfsQuery.isFetching ||
-                cannonPkgVersionInfo.registryQuery.isFetching ||
-                cannonPkgPreviousInfo.registryQuery.isFetching) && (
-                <Text mb={3}>Fetching cannon package info...</Text>
-              )}
-              <Button
-                width="100%"
-                colorScheme="teal"
-                isDisabled={
-                  chainId !== currentSafe.chainId ||
-                  settings.isIpfsGateway ||
-                  settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-                  !cannonDefInfo.def ||
-                  cannonPkgVersionInfo.ipfsQuery.isFetching ||
+          {!!cannonfileUrlInput.length &&
+            validCannonfileUrl &&
+            buildInfo.buildStatus == '' && (
+              <>
+                {(cannonPkgVersionInfo.ipfsQuery.isFetching ||
                   cannonPkgPreviousInfo.ipfsQuery.isFetching ||
                   cannonPkgVersionInfo.registryQuery.isFetching ||
-                  cannonPkgPreviousInfo.registryQuery.isFetching
-                }
-                onClick={() => buildTransactions()}
-              >
-                Preview Transactions to Queue
-              </Button>
-            </>
-          )}
-          {chainId !== currentSafe.chainId && (
-            <Alert mt="6" status="error" bg="red.700">
-              <AlertIcon mr={3} />
-              <strong>
-                Selected network and network of the selected safe are different
-              </strong>
-            </Alert>
-          )}
+                  cannonPkgPreviousInfo.registryQuery.isFetching) && (
+                  <Alert mb="6" status="info" bg="gray.700">
+                    <Spinner mr={3} />
+                    <Text>Fetching {previousPackageInput}...</Text>
+                  </Alert>
+                )}
+                {alertMessage && (
+                  <Alert mb="6" status="warning" bg="gray.700">
+                    <AlertIcon mr={3} />
+                    <Text>{alertMessage}</Text>
+                  </Alert>
+                )}
+              </>
+            )}
+          <Button
+            width="100%"
+            colorScheme="teal"
+            isDisabled={
+              chainId !== currentSafe.chainId ||
+              settings.isIpfsGateway ||
+              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
+              !cannonDefInfo.def ||
+              cannonPkgVersionInfo.ipfsQuery.isFetching ||
+              cannonPkgPreviousInfo.ipfsQuery.isFetching ||
+              cannonPkgVersionInfo.registryQuery.isFetching ||
+              cannonPkgPreviousInfo.registryQuery.isFetching
+            }
+            onClick={() => buildTransactions()}
+          >
+            Preview Transactions to Queue
+          </Button>
           {buildInfo.buildStatus && (
             <Alert mt="6" status="info" bg="gray.800">
               <Spinner mr={3} boxSize={4} />
