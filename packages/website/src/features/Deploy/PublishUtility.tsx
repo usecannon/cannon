@@ -55,6 +55,12 @@ export default function PublishUtility(props: {
         );
       }
 
+      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+        throw new Error(
+          'You cannot publish on an repo endpoint, only read operations can be done'
+        );
+      }
+
       console.log(
         'publish triggered',
         wc,
@@ -137,9 +143,16 @@ export default function PublishUtility(props: {
             done.
           </Text>
         )}
+        {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+          <Text mb={3}>
+            You cannot publish on an repo endpoint, only read operations can be
+            done.
+          </Text>
+        )}
         <Button
           isDisabled={
             settings.isIpfsGateway ||
+            settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
             wc.data?.chain?.id !== 1 ||
             publishMutation.isLoading
           }

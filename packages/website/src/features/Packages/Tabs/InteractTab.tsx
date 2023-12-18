@@ -92,7 +92,6 @@ export const InteractTab: FC<{
       return;
     }
 
-    let highlightedData: any[] = [];
     let allContracts: any[] = [];
 
     const processContracts = (contracts: any, moduleName: string) => {
@@ -129,12 +128,37 @@ export const InteractTab: FC<{
       contract.contractName.toLowerCase().includes('proxy')
     );
 
+    let highlightedData: any[] = [];
     if (highlightedContracts.length > 0) {
       highlightedData = highlightedContracts;
     } else if (proxyContracts.length > 0) {
       highlightedData = proxyContracts;
     } else {
       highlightedData = allContracts;
+    }
+
+    const uniqueAddresses = new Set();
+    for (const contractData of highlightedData) {
+      uniqueAddresses.add(contractData.contractAddress);
+    }
+
+    for (const uniqueAddress of uniqueAddresses) {
+      const excessContracts = highlightedData.filter(
+        (contract) => contract.contractAddress === uniqueAddress
+      );
+      excessContracts.sort((a, b) => {
+        const accumulateDeepLevel = (acc: number, cur: string) =>
+          cur === '.' ? acc + 1 : acc;
+        const getModuleNameDeepLevel = (moduleName: string) =>
+          moduleName.split('').reduce(accumulateDeepLevel, 0);
+        const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
+        const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
+        return aDeepLevel - bDeepLevel;
+      });
+      excessContracts.shift();
+      highlightedData = highlightedData.filter(
+        (contract) => !excessContracts.includes(contract)
+      );
     }
 
     setHighlightedOptions(highlightedData);
@@ -155,7 +179,7 @@ export const InteractTab: FC<{
 
   return (
     <>
-      {highlightedOptions?.length > 1 && (
+      {(otherOptions.length > 0 || highlightedOptions.length > 1) && (
         <Flex
           overflowX="scroll"
           maxW="100%"

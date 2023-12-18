@@ -1,16 +1,6 @@
-import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
-import {
-  chakraComponents,
-  ChakraStylesConfig,
-  CreatableSelect,
-  GroupBase,
-  OptionProps,
-} from 'chakra-react-select';
-import deepEqual from 'fast-deep-equal';
-import { useEffect } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useSwitchNetwork } from 'wagmi';
+import { Alert } from '@/components/Alert';
+import { includes } from '@/helpers/array';
+import { State, useStore } from '@/helpers/store';
 import {
   getSafeFromString,
   getSafeUrl,
@@ -22,9 +12,19 @@ import {
   usePendingTransactions,
   useWalletPublicSafes,
 } from '@/hooks/safe';
-import { State, useStore } from '@/helpers/store';
-import { includes } from '@/helpers/array';
-import { Alert } from '@/components/Alert';
+import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
+import {
+  chakraComponents,
+  ChakraStylesConfig,
+  CreatableSelect,
+  GroupBase,
+  OptionProps,
+} from 'chakra-react-select';
+import deepEqual from 'fast-deep-equal';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useSwitchNetwork } from 'wagmi';
 
 type SafeOption = {
   value: SafeString;
