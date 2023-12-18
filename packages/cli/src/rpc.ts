@@ -182,7 +182,9 @@ export function createProviderProxy(provider: ethers.providers.JsonRpcProvider):
     });
 
     server.on('listening', () => {
-      const addrInfo = server.address() as { address: string; family: 'IPv4' | 'IPv6'; port: number };
+      const address = server.address();
+      const addrInfo = address as { address: string; family: 'IPv4' | 'IPv6'; port: number };
+      debug(`Proxied server listening on: ${addrInfo.address}:${addrInfo.port} (${addrInfo.family})`)
       resolve(`http://127.0.0.1:${addrInfo.port}`);
     });
 

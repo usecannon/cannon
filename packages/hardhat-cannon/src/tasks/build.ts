@@ -3,7 +3,7 @@ import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
-import { yellow } from 'chalk';
+import { yellow, yellowBright, bold } from 'chalk';
 import { ethers } from 'ethers';
 import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
@@ -21,7 +21,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
   .addOptionalParam(
     'anvilOptions',
-    '(Optional) Custom anvil options json file to configure when running on the cannon network or a local forked node'
+    '(Optional) Custom anvil options json file or string to configure when running on the cannon network or a local forked node'
   )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
@@ -86,7 +86,9 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
-      let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
+      const forkProvider = new hre.ethers.providers.JsonRpcProvider(providerUrl);
+
+      let provider = new CannonWrapperGenericProvider({}, forkProvider);
 
       if (hre.network.name === 'hardhat') {
         if (dryRun) {
@@ -99,20 +101,26 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
       }
 
+      if (dryRun) {
+        console.log(
+          yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+        );
+      }
+
       if (dryRun || hre.network.name === 'cannon') {
+        const port = anvilOpts.port || hre.config.networks.cannon.port;
+        const chainId = anvilOpts.chainId || 13370
+        const accounts = anvilOpts.accounts || Number.parseInt(hre.config.networks.cannon.accounts.toString()) || 10;
         const node = dryRun
           ? await runRpc(
               {
-                port: hre.config.networks.cannon.port,
-                chainId: (await hre.ethers.provider.getNetwork()).chainId,
-                accounts: anvilOpts.accounts || 10,
+                port,
+                chainId,
+                accounts,
                 ...anvilOpts,
               },
-              {
-                forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
-              }
             )
-          : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
+          : await runRpc({ port: anvilOpts.port || hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
 
         provider = getProvider(node);
       }

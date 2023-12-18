@@ -166,6 +166,13 @@ async function checkLocalRegistryOverride({
   }
 }
 
+/**
+ * Sets the CLI's default read registry, In memory always has first priority. 
+ * Local and OnChain registries are prioritized based on connectivity and user setting.
+ * @param settings Local custom CLI user settings
+ * @param additionalRegistries Additional registries (will take first priority)
+ * @returns 
+ */
 export async function createDefaultReadRegistry(
   settings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
@@ -174,18 +181,19 @@ export async function createDefaultReadRegistry(
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
+  const inMemoryRegistry = new InMemoryRegistry();
 
   if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
-    return new FallbackRegistry([...additionalRegistries, localRegistry]);
+    return new FallbackRegistry([...additionalRegistries, inMemoryRegistry, localRegistry]);
   } else if (settings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
-    return new FallbackRegistry([...additionalRegistries, localRegistry, onChainRegistry]);
+    return new FallbackRegistry([...additionalRegistries, inMemoryRegistry, localRegistry, onChainRegistry]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, onChainRegistry, localRegistry]);
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, inMemoryRegistry, onChainRegistry, localRegistry]);
 
     if (!settings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {

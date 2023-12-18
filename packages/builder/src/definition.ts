@@ -313,7 +313,7 @@ export class ChainDefinition {
         stepList.push(dep)
       });
 
-      throw new Error(`Dependency not found: ${node}. Available "${stepName}" steps:
+      throw new Error(`invalid dependency: ${node}. Available "${stepName}" steps:
         ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
       `);
     }
