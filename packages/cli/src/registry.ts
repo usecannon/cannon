@@ -167,11 +167,11 @@ async function checkLocalRegistryOverride({
 }
 
 /**
- * Sets the CLI's default read registry, In memory always has first priority. 
+ * Sets the CLI's default read registry, In memory always has first priority.
  * Local and OnChain registries are prioritized based on connectivity and user setting.
  * @param settings Local custom CLI user settings
  * @param additionalRegistries Additional registries (will take first priority)
- * @returns 
+ * @returns
  */
 export async function createDefaultReadRegistry(
   settings: CliSettings,
@@ -193,7 +193,12 @@ export async function createDefaultReadRegistry(
     return new FallbackRegistry([...additionalRegistries, inMemoryRegistry, localRegistry, onChainRegistry]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, inMemoryRegistry, onChainRegistry, localRegistry]);
+    const fallbackRegistry = new FallbackRegistry([
+      ...additionalRegistries,
+      inMemoryRegistry,
+      onChainRegistry,
+      localRegistry,
+    ]);
 
     if (!settings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {

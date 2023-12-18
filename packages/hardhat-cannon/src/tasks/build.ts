@@ -104,23 +104,23 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (dryRun) {
         console.log(
-          yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+          yellowBright(
+            bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n')
+          )
         );
       }
 
       if (dryRun || hre.network.name === 'cannon') {
         const port = anvilOpts.port || hre.config.networks.cannon.port;
-        const chainId = anvilOpts.chainId || 13370
+        const chainId = anvilOpts.chainId || 13370;
         const accounts = anvilOpts.accounts || Number.parseInt(hre.config.networks.cannon.accounts.toString()) || 10;
         const node = dryRun
-          ? await runRpc(
-              {
-                port,
-                chainId,
-                accounts,
-                ...anvilOpts,
-              },
-            )
+          ? await runRpc({
+              port,
+              chainId,
+              accounts,
+              ...anvilOpts,
+            })
           : await runRpc({ port, accounts, ...anvilOpts });
 
         provider = getProvider(node);

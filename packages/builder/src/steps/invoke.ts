@@ -95,12 +95,11 @@ async function runTxn(
     overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
-
   // Attempt to encode data so that if any arguments have any type mismatches, we can catch them and present them to the user.
   try {
     contract.interface.encodeFunctionData(config.func, config.args);
   } catch (error: any) {
-    throw new Error (`Invalid arguments for function "${config.func}": \n\n ${error}`);
+    throw new Error(`Invalid arguments for function "${config.func}": \n\n ${error}`);
   }
 
   if (config.fromCall && config.fromCall.func) {
@@ -383,12 +382,12 @@ const invokeSpec = {
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
 
-      debug('get contract for target: ', t)
+      debug('get contract for target: ', t);
       if (ethers.utils.isAddress(t)) {
         if (!customAbi) {
           throw new Error('abi must be defined if addresses is used for target');
         }
-        
+
         contract = new ethers.Contract(t, customAbi);
       } else {
         contract = getContractFromPath(ctx, t, customAbi);

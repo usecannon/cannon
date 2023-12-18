@@ -310,7 +310,7 @@ export class ChainDefinition {
       const stepName = node.split('.')[0];
       const stepList: string[] = [];
       Object.keys(_.get(this.raw, stepName)).forEach((dep) => {
-        stepList.push(dep)
+        stepList.push(dep);
       });
 
       throw new Error(`invalid dependency: ${node}. Available "${stepName}" steps:
