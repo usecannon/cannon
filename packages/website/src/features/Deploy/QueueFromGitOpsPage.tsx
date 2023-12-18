@@ -19,6 +19,8 @@ import {
   Text,
   Tooltip,
   useToast,
+  InputGroup,
+  InputRightElement,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
@@ -56,6 +58,7 @@ import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import NextLink from 'next/link';
+import { CheckIcon } from '@chakra-ui/icons';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -446,18 +449,25 @@ function QueueFromGitOps() {
           >
             <FormLabel>Cannonfile</FormLabel>
             <HStack>
-              <Input
-                type="text"
-                placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
-                value={cannonfileUrlInput}
-                borderColor={
-                  !cannonfileUrlInput.length || validCannonfileUrl
-                    ? 'whiteAlpha.400'
-                    : 'red.500'
-                }
-                background="black"
-                onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
-              />
+              <InputGroup>
+                <Input
+                  type="text"
+                  placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
+                  value={cannonfileUrlInput}
+                  borderColor={
+                    !cannonfileUrlInput.length || validCannonfileUrl
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setCannonfileUrlInput(evt.target.value)
+                  }
+                />
+                <InputRightElement>
+                  <CheckIcon color="green.500" />
+                </InputRightElement>
+              </InputGroup>
             </HStack>
             <FormHelperText color="gray.300">
               Enter a Git or GitHub URL for the cannonfile you’d like to build.
@@ -466,15 +476,22 @@ function QueueFromGitOps() {
 
           <FormControl mb="6">
             <FormLabel>Previous Package</FormLabel>
-            <Input
-              placeholder="name:version@preset"
-              type="text"
-              value={previousPackageInput}
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={(evt: any) => setPreviousPackageInput(evt.target.value)}
-              disabled={!!partialDeployInfo.pkg}
-            />
+            <InputGroup>
+              <Input
+                placeholder="name:version@preset"
+                type="text"
+                value={previousPackageInput}
+                borderColor="whiteAlpha.400"
+                background="black"
+                onChange={(evt: any) =>
+                  setPreviousPackageInput(evt.target.value)
+                }
+                disabled={!!partialDeployInfo.pkg}
+              />
+              <InputRightElement>
+                <Spinner />
+              </InputRightElement>
+            </InputGroup>
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> Enter the name of the package this
               cannonfile is extending. See{' '}
@@ -487,19 +504,21 @@ function QueueFromGitOps() {
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">
             <FormLabel>Partial Deployment Data</FormLabel>
-            <Input
-              placeholder="Qm..."
-              type="text"
-              value={partialDeployIpfs}
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={
-                (evt: any) =>
-                  setPartialDeployIpfs(
-                    evt.target.value.slice(evt.target.value.indexOf('Qm'))
-                  ) /** TODO: handle bafy hash or other hashes */
-              }
-            />
+            <InputGroup>
+              <Input
+                placeholder="Qm..."
+                type="text"
+                value={partialDeployIpfs}
+                borderColor="whiteAlpha.400"
+                background="black"
+                onChange={
+                  (evt: any) =>
+                    setPartialDeployIpfs(
+                      evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                    ) /** TODO: handle bafy hash or other hashes */
+                }
+              />
+            </InputGroup>
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> If this deployment requires
               transactions executed in other contexts (e.g. contract deployments
