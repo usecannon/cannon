@@ -68,6 +68,10 @@ export function SafeAddressInput() {
         if (!includes(safeAddresses, newSafe)) {
           prependSafeAddress(newSafe);
         }
+
+        if (switchNetwork) {
+          switchNetwork(newSafe.chainId);
+        }
       } else {
         const newSearchParams = new URLSearchParams(
           Array.from(searchParams.entries())
@@ -136,6 +140,20 @@ export function SafeAddressInput() {
     const newSafe = getSafeFromString(newSafeAddress);
     if (newSafe) {
       prependSafeAddress(newSafe);
+      setState({ currentSafe: newSafe });
+
+      const newSearchParams = new URLSearchParams(
+        Array.from(searchParams.entries())
+      );
+      newSearchParams.set('chainId', newSafe.chainId.toString());
+      newSearchParams.set('address', newSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router.push(`${pathname}${query}`);
+
+      if (switchNetwork) {
+        switchNetwork(newSafe.chainId);
+      }
     }
   }
 
