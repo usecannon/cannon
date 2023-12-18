@@ -87,6 +87,7 @@ export async function build({
     );
   }
 
+  let stepsExecuted = false;
   const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
 
   const { name, version } = packageRef;
@@ -215,6 +216,7 @@ export async function build({
     for (const extra in o.extras) {
       console.log(gray(`${'  '.repeat(d)}  Stored Event Data: ${extra} = ${o.extras[extra]}`));
     }
+    stepsExecuted = true;
 
     console.log();
   });
@@ -460,6 +462,11 @@ export async function build({
       )
     );
   }
+
+  if (!stepsExecuted) {
+    console.log(bold('No steps were executed during the build.'));
+  }
+
   console.log('');
 
   provider.artifacts = outputs;
