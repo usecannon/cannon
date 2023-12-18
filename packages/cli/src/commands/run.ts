@@ -53,8 +53,6 @@ const INSTRUCTIONS = green(
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
 
-  console.log(bold('Starting local node...\n'));
-
   // Start the rpc server
   const node = options.node;
   const provider = getProvider(node);
@@ -148,11 +146,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    console.log(
-      greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + node.port)}`
-      )
-    );
+    console.log(greenBright(`${bold(`${name}:${version}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
       console.log(gray('Running from fork provider'));

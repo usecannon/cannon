@@ -72,6 +72,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const parsedSettings = parseSettings(settings);
 
+      // This allows users to pass in a json file or simply add the anvil options as a list of arguments
       let anvilOpts;
       if (anvilOptions) {
         if ((anvilOptions as string).endsWith('.json')) {
@@ -103,7 +104,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         const node = dryRun
           ? await runRpc(
               {
-                port: hre.config.networks.cannon.port,
+                port: hre.config.networks.cannon.port || anvilOpts.port,
                 chainId: (await hre.ethers.provider.getNetwork()).chainId,
                 accounts: anvilOpts.accounts || 10,
                 ...anvilOpts,
@@ -112,7 +113,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
                 forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
               }
             )
-          : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
+          : await runRpc({
+              port: hre.config.networks.cannon.port || anvilOpts.port,
+              accounts: anvilOpts.accounts || 10,
+              ...anvilOpts,
+            });
 
         provider = getProvider(node);
       }
