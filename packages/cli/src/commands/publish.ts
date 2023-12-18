@@ -1,13 +1,11 @@
-import { IPFSLoader, OnChainRegistry, CannonStorage, publishPackage } from '@usecannon/builder';
-import { blueBright, gray } from 'chalk';
+import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
+import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
+import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import { ethers } from 'ethers';
+import prompts from 'prompts';
+import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
-import { getMainLoader } from '../loader';
-import { PackageReference, getProvisionedPackages } from '@usecannon/builder/dist/package';
-
-import { bold, yellow, italic } from 'chalk';
-import prompts from 'prompts';
 
 interface Params {
   packageRef: string;
@@ -36,7 +34,7 @@ interface SubPackage {
 export async function publish({
   packageRef,
   signer,
-  tags,
+  tags = ['latest'],
   chainId,
   presetArg,
   quiet = false,
@@ -44,6 +42,8 @@ export async function publish({
   skipConfirm = false,
   overrides,
 }: Params) {
+  const { fullPackageRef } = new PackageReference(packageRef);
+
   // Ensure publish ipfs url is set
   const cliSettings = resolveCliSettings();
   if (!cliSettings.publishIpfsUrl) {
@@ -53,8 +53,15 @@ export async function publish({
   }
 
   // Handle deprecated preset specification
-  if (presetArg) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+  if (presetArg && !packageRef.startsWith('@')) {
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
+
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
@@ -89,16 +96,16 @@ export async function publish({
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${packageRef}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
     );
   }
 
   // Select screen for when a user is looking for all the local deploys
-  if (!skipConfirm && deploys.length > 1) {
-    const verification = await prompts({
-      type: 'autocompleteMultiselect',
-      message: 'Select the packages you want to publish:\n',
-      name: 'values',
+  if (!skipConfirm) {
+    const prompt = await prompts({
+      type: 'select',
+      message: 'Select the package you want to publish:\n',
+      name: 'value',
       choices: deploys.map((d) => {
         const { fullPackageRef } = new PackageReference(d.name);
 
@@ -110,12 +117,14 @@ export async function publish({
       }),
     });
 
-    if (!verification.values || verification.values.length == 0) {
+    if (!prompt.value) {
       console.log('You must select a package to publish');
       process.exit(1);
     }
 
-    deploys = verification.values as typeof deploys;
+    tags = tags.filter((t) => t !== new PackageReference(prompt.value.name).version);
+
+    deploys = [prompt.value] as typeof deploys;
   }
 
   // Doing some filtering on deploys list so that we can iterate over every "duplicate" package which has more than one version being deployed.
@@ -141,7 +150,12 @@ export async function publish({
     if (includeProvisioned) {
       for (const pkg of parentPackages) {
         for (const version of pkg.versions) {
-          const provisionedPackages = await getProvisionedPackages(`${pkg.name}:${version}`, pkg.chainId, tags, fromStorage);
+          const provisionedPackages = await getProvisionedPackages(
+            `${pkg.name}:${version}@${pkg.preset}`,
+            pkg.chainId,
+            tags,
+            fromStorage
+          );
           subPackages.push(...provisionedPackages);
         }
       }
@@ -203,11 +217,11 @@ export async function publish({
       console.log('Cancelled');
       process.exit(1);
     }
-
-    console.log(bold('Publishing package...'));
-    console.log(gray('This may take a few minutes.'));
-    console.log();
   }
+
+  console.log(bold('Publishing package...'));
+  console.log(gray('This may take a few minutes.'));
+  console.log();
 
   const registrationReceipts = [];
 
@@ -215,12 +229,11 @@ export async function publish({
     const publishTags: string[] = pkg.versions.concat(tags);
 
     const newReceipts = await publishPackage({
-      packageRef: `${pkg.name}:${pkg.versions[0]}`,
+      packageRef: PackageReference.from(pkg.name, pkg.versions[0], pkg.preset).fullPackageRef,
       chainId: deploys[0].chainId,
       fromStorage,
       toStorage,
       tags: publishTags!,
-      preset: pkg.preset,
       includeProvisioned,
     });
 
@@ -232,7 +245,7 @@ export async function publish({
     if (includeProvisioned) {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
           console.log(`- ${fullPackageRef}`);
         });
       });
@@ -245,7 +258,7 @@ export async function publish({
     } else {
       parentPackages.forEach((deploy) => {
         deploy.versions.concat(tags).forEach((ver) => {
-          const { fullPackageRef } = new PackageReference(`${deploy.name}:${ver}@${deploy.preset}`);
+          const { fullPackageRef } = PackageReference.from(deploy.name, ver, deploy.preset);
           console.log(`  - ${fullPackageRef}`);
         });
       });

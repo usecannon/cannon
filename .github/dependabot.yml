@@ -2,8 +2,49 @@ version: 2
 
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/packages/builder"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase
-    target-branch: "main"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
+    ignore:
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]
+      
+  - package-ecosystem: "npm"
+    directory: "/packages/cli"
+    schedule:
+      interval: "monthly"
+    versioning-strategy: increase
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
+    ignore:
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/packages/hardhat-cannon"
+    schedule:
+      interval: "monthly"
+    versioning-strategy: increase
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
+    ignore:
+      - dependency-name: 'prod-deps'
+        update-types: ["version-update:semver-major"]
+      - dependency-name: 'dev-deps'
+        update-types: ["version-update:semver-major"]

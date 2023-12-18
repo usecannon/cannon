@@ -85,6 +85,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       throw new Error('You cannot build on an IPFS gateway, only read operations can be done');
     }
 
+    if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+    }
+
     setBuildStatus('Creating fork...');
     const fork = await createFork({
       url: findChainUrl(chainId),
@@ -236,6 +240,10 @@ export function useCannonWriteDeployToIpfs(
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
       }
 
+      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+        throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+      }
+
       const def = new ChainDefinition(deployInfo.def);
       const ctx = await createInitialContext(def, deployInfo.meta, runtime.chainId, deployInfo.options);
 
@@ -261,6 +269,7 @@ export function useCannonWriteDeployToIpfs(
         packageRef,
         chainId: runtime.chainId,
         tags: ['latest'],
+        includeProvisioned: true,
       });
 
       // load the new ipfs url
@@ -340,7 +349,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         }
       } catch (err) {
         addLog(`IPFS Error: ${(err as any)?.message ?? 'unknown error'}`);
-        return null;
+        throw err;
       }
     },
     enabled: !!pkgUrl,

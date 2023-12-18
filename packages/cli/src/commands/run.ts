@@ -1,6 +1,3 @@
-import _ from 'lodash';
-import { greenBright, green, bold, gray, yellow } from 'chalk';
-import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
   CannonRegistry,
@@ -9,19 +6,22 @@ import {
   ChainDefinition,
   ContractArtifact,
   getOutputs,
+  PackageReference,
   renderTrace,
 } from '@usecannon/builder';
-import { PackageSpecification } from '../types';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from './interact';
-import onKeypress from '../util/on-keypress';
-import { build } from './build';
-import { getContractsRecursive } from '../util/contracts-recursive';
-import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
+import { ethers } from 'ethers';
+import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder';
+import { createDefaultReadRegistry } from '../registry';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
+import { getContractsRecursive } from '../util/contracts-recursive';
+import onKeypress from '../util/on-keypress';
+import { build } from './build';
+import { interact } from './interact';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -52,8 +52,6 @@ const INSTRUCTIONS = green(
 
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
-
-  console.log(bold('Starting local node...\n'));
 
   // Start the rpc server
   const node = options.node;
@@ -105,19 +103,25 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     // Handle deprecated preset specification
     if (options.presetArg) {
-      console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
+      console.warn(
+        yellow(
+          bold(
+            'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+          )
+        )
+      );
       preset = options.presetArg;
+      pkg.preset = preset;
     }
 
-    const fullPackageRef = PackageReference.from(name, version, preset).toString();
+    const { fullPackageRef } = PackageReference.from(name, version, preset);
 
-    if (options.build || Object.keys(pkg.settings).length) {
+    if (options.build || (pkg.settings && Object.keys(pkg.settings).length > 0)) {
       const { outputs } = await build({
         ...options,
         packageDefinition: pkg,
         provider,
         overrideResolver: resolver,
-        presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
       });
@@ -142,11 +146,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    console.log(
-      greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + node.port)}`
-      )
-    );
+    console.log(greenBright(`${bold(`${name}:${version}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
       console.log(gray('Running from fork provider'));

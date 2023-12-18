@@ -14,5 +14,13 @@ export default function InteractLayout({
     variant: string;
   };
 }) {
-  return <InteractTab {...params}>{children}</InteractTab>;
+  return (
+    <InteractTab
+      name={decodeURIComponent(params.name)}
+      tag={decodeURIComponent(params.tag)}
+      variant={decodeURIComponent(params.variant)}
+    >
+      {children}
+    </InteractTab>
+  );
 }
