@@ -84,19 +84,27 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  // eslint-disable-next-line no-useless-escape
-  const regex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
-  const validCannonfileUrl = regex.test(cannonfileUrlInput);
+  const cannonfileUrlRegex =
+    // eslint-disable-next-line no-useless-escape
+    /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
 
-  const gitUrl = useMemo(
-    () =>
-      cannonfileUrlInput.includes('/blob/')
-        ? cannonfileUrlInput.split('/blob/')[0]
-        : '',
-    [cannonfileUrlInput]
-  );
+  const gitUrl = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
+    if (!cannonfileUrlInput.includes('/blob/')) {
+      return '';
+    }
+
+    return cannonfileUrlInput.split('/blob/')[0];
+  }, [cannonfileUrlInput]);
 
   const gitBranch = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
     if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
@@ -115,6 +123,10 @@ function QueueFromGitOps() {
   }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
     if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
@@ -381,8 +393,6 @@ function QueueFromGitOps() {
   } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
     alertMessage =
       'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
-  } else if (!cannonDefInfo.def) {
-    alertMessage = 'Unable to parse cannonfile.';
   }
 
   if (
@@ -443,10 +453,7 @@ function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <FormControl
-            mb="6"
-            isInvalid={!!cannonfileUrlInput.length && !validCannonfileUrl}
-          >
+          <FormControl mb="6">
             <FormLabel>Cannonfile</FormLabel>
             <HStack>
               <InputGroup>
@@ -455,7 +462,9 @@ function QueueFromGitOps() {
                   placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
                   value={cannonfileUrlInput}
                   borderColor={
-                    !cannonfileUrlInput.length || validCannonfileUrl
+                    !cannonfileUrlInput.length ||
+                    cannonDefInfo.isFetching ||
+                    cannonDefInfo.def
                       ? 'whiteAlpha.400'
                       : 'red.500'
                   }
@@ -465,7 +474,8 @@ function QueueFromGitOps() {
                   }
                 />
                 <InputRightElement>
-                  <CheckIcon color="green.500" />
+                  {cannonDefInfo.isFetching && <Spinner />}
+                  {cannonDefInfo.def && <CheckIcon color="green.500" />}
                 </InputRightElement>
               </InputGroup>
             </HStack>
@@ -481,7 +491,13 @@ function QueueFromGitOps() {
                 placeholder="name:version@preset"
                 type="text"
                 value={previousPackageInput}
-                borderColor="whiteAlpha.400"
+                borderColor={
+                  !previousPackageInput.length ||
+                  cannonPkgPreviousInfo.isFetching ||
+                  cannonPkgPreviousInfo.pkg
+                    ? 'whiteAlpha.400'
+                    : 'red.500'
+                }
                 background="black"
                 onChange={(evt: any) =>
                   setPreviousPackageInput(evt.target.value)
@@ -489,7 +505,8 @@ function QueueFromGitOps() {
                 disabled={!!partialDeployInfo.pkg}
               />
               <InputRightElement>
-                <Spinner />
+                {cannonPkgPreviousInfo.isFetching && <Spinner />}
+                {cannonPkgPreviousInfo.pkg && <CheckIcon color="green.500" />}
               </InputRightElement>
             </InputGroup>
             <FormHelperText color="gray.300">
@@ -509,7 +526,13 @@ function QueueFromGitOps() {
                 placeholder="Qm..."
                 type="text"
                 value={partialDeployIpfs}
-                borderColor="whiteAlpha.400"
+                borderColor={
+                  !partialDeployIpfs.length ||
+                  partialDeployInfo.isFetching ||
+                  partialDeployInfo.pkg
+                    ? 'whiteAlpha.400'
+                    : 'red.500'
+                }
                 background="black"
                 onChange={
                   (evt: any) =>
@@ -518,6 +541,10 @@ function QueueFromGitOps() {
                     ) /** TODO: handle bafy hash or other hashes */
                 }
               />
+              <InputRightElement>
+                {partialDeployInfo.isFetching && <Spinner />}
+                {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
+              </InputRightElement>
             </InputGroup>
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> If this deployment requires
@@ -527,27 +554,12 @@ function QueueFromGitOps() {
               command in the CLI.
             </FormHelperText>
           </FormControl>
-          {!!cannonfileUrlInput.length &&
-            validCannonfileUrl &&
-            buildInfo.buildStatus == '' && (
-              <>
-                {(cannonPkgVersionInfo.ipfsQuery.isFetching ||
-                  cannonPkgPreviousInfo.ipfsQuery.isFetching ||
-                  cannonPkgVersionInfo.registryQuery.isFetching ||
-                  cannonPkgPreviousInfo.registryQuery.isFetching) && (
-                  <Alert mb="6" status="info" bg="gray.700">
-                    <Spinner mr={3} />
-                    <Text>Fetching {previousPackageInput}...</Text>
-                  </Alert>
-                )}
-                {alertMessage && (
-                  <Alert mb="6" status="warning" bg="gray.700">
-                    <AlertIcon mr={3} />
-                    <Text>{alertMessage}</Text>
-                  </Alert>
-                )}
-              </>
-            )}
+          {alertMessage && (
+            <Alert mb="6" status="warning" bg="gray.700">
+              <AlertIcon mr={3} />
+              <Text>{alertMessage}</Text>
+            </Alert>
+          )}
           <Button
             width="100%"
             colorScheme="teal"
@@ -556,10 +568,8 @@ function QueueFromGitOps() {
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               !cannonDefInfo.def ||
-              cannonPkgVersionInfo.ipfsQuery.isFetching ||
-              cannonPkgPreviousInfo.ipfsQuery.isFetching ||
-              cannonPkgVersionInfo.registryQuery.isFetching ||
-              cannonPkgPreviousInfo.registryQuery.isFetching
+              cannonPkgPreviousInfo.isFetching ||
+              cannonPkgVersionInfo.isFetching
             }
             onClick={() => buildTransactions()}
           >
