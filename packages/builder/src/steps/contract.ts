@@ -115,7 +115,7 @@ function generateOutputs(
         deployedOn: currentLabel!,
         highlight: config.highlight,
         gasUsed: deployTxn?.gasUsed.toNumber() || 0,
-        gasCost: deployTxn?.effectiveGasPrice.toString() || '',
+        gasCost: deployTxn?.effectiveGasPrice.toString() || '0',
       },
     },
   };
