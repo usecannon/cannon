@@ -26,6 +26,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { Terminal } from '../terminal';
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -152,10 +153,68 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
+  // Check for existing package
+  let oldDeployData: DeploymentInfo | null = null;
+  const prevPkg = upgradeFrom || fullPackageRef;
+
+  console.log(bold('Checking for existing package...'));
+  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
+
+  // Update pkgInfo (package.json) with information from existing package, if present
+  if (oldDeployData && !wipe) {
+    console.log(`${fullPackageRef} (Chain ID: ${chainId}) found`);
+    await runtime.restoreMisc(oldDeployData.miscUrl);
+
+    if (!pkgInfo) {
+      pkgInfo = oldDeployData.meta;
+    }
+  } else {
+    if (upgradeFrom) {
+      throw new Error(`${prevPkg} (Chain ID: ${chainId}) not found`);
+    } else {
+      console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
+    }
+  }
+
+  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
+
+  if (!def) {
+    throw new Error('no deployment definition to build');
+  }
+
+  const terminal = new Terminal(process.stdin);
+  terminal.cursorRelativeReset();
+  terminal.clearBottom();
+
   let partialDeploy = false;
-  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
-    console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
-  );
+  let executeStep = '';
+
+  function writeCurrentStepInfo(t: string, n: string) {
+    terminal.newline();
+
+    if (partialDeploy) {
+      terminal.write(yellowBright('Deployment status: PARTIAL'));
+      terminal.newline();
+    }
+    const curStepIdx = def!.topologicalActions.indexOf(executeStep);
+    //console.log(def!.topologicalActions, executeStep);
+    terminal.write(cyanBright(`Step ${curStepIdx + 1} / ${def!.topologicalActions.length}`));
+    terminal.newline();
+    terminal.write(cyanBright(`Executing ${`[${t}.${n}]`}...`));
+    terminal.newline();
+    terminal.newline();
+  }
+
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) => {
+    terminal.cursorRelativeReset();
+    terminal.clearBottom();
+
+    if (d == 0) {
+      executeStep = `${t}.${n}`;
+    }
+
+    writeCurrentStepInfo(t, n);
+  });
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     console.log(
@@ -167,6 +226,8 @@ export async function build({
     );
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
+    terminal.cursorRelativeReset();
+    terminal.clearBottom();
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       console.log(
@@ -191,6 +252,7 @@ export async function build({
           )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
         )
       );
+      console.log();
     }
     for (const contractKey in o.contracts) {
       const contract = o.contracts[contractKey];
@@ -212,52 +274,28 @@ export async function build({
           )
         );
       }
+      console.log();
     }
     for (const extra in o.extras) {
       console.log(gray(`${'  '.repeat(d)}  Stored Event Data: ${extra} = ${o.extras[extra]}`));
     }
     stepsExecuted = true;
 
-    console.log();
+    if (terminal.isTTY()) {
+      writeCurrentStepInfo(t, n);
+    }
   });
 
-  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-    console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
-  );
-  runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
-  );
-
-  // Check for existing package
-  let oldDeployData: DeploymentInfo | null = null;
-  const prevPkg = upgradeFrom || fullPackageRef;
-
-  console.log(bold('Checking for existing package...'));
-  oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
-
-  // Update pkgInfo (package.json) with information from existing package, if present
-  if (oldDeployData && !wipe) {
-    console.log(`${fullPackageRef} (Chain ID: ${chainId}) found`);
-    await runtime.restoreMisc(oldDeployData.miscUrl);
-
-    if (!pkgInfo) {
-      pkgInfo = oldDeployData.meta;
-    }
-  } else {
-    if (upgradeFrom) {
-      throw new Error(`${prevPkg} (Chain ID: ${chainId}) not found`);
-    } else {
-      console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
-    }
-  }
+  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) => {
+    terminal.write(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`));
+    terminal.newline();
+  });
+  runtime.on(Events.DownloadDeploy, (hash, gateway, d) => {
+    terminal.write(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`));
+    terminal.newline();
+  });
 
   const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
-
-  def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
-
-  if (!def) {
-    throw new Error('no deployment definition to build');
-  }
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
@@ -358,6 +396,8 @@ export async function build({
   }
 
   const newState = await cannonBuild(runtime, def, oldDeployData && !wipe ? oldDeployData.state : {}, initialCtx);
+  terminal.cursorRelativeReset();
+  terminal.clearBottom();
 
   if (writeScript) {
     await dump!.end();
