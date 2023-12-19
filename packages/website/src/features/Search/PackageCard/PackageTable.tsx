@@ -5,10 +5,13 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
+import * as chains from 'wagmi/chains';
+import { Box } from '@chakra-ui/react';
 
 const PackageTable: FC<{
   pkg: Package;
-}> = ({ pkg }) => {
+  latestOnly: boolean;
+}> = ({ pkg, latestOnly }) => {
   type VariantRow = {
     chain: number;
     tag: string;
@@ -18,7 +21,7 @@ const PackageTable: FC<{
     arrow?: string;
   };
 
-  const data: VariantRow[] = pkg.variants.map((v: Variant) => {
+  let data: VariantRow[] = pkg.variants.map((v: Variant) => {
     return {
       tag: v.tag.name,
       chain: v.chain_id,
@@ -33,15 +36,15 @@ const PackageTable: FC<{
   const columns = [
     columnHelper.accessor('tag', {
       cell: (info) => info.getValue(),
-      header: 'Tag',
-    }),
-    columnHelper.accessor('chain', {
-      cell: (info) => info.getValue(),
-      header: 'Chain',
+      header: 'Version',
     }),
     columnHelper.accessor('preset', {
       cell: (info) => info.getValue(),
       header: 'Preset',
+    }),
+    columnHelper.accessor('chain', {
+      cell: (info) => info.getValue(),
+      header: 'Chain',
     }),
     columnHelper.accessor('deploymentData', {
       cell: (info) => info.getValue(),
@@ -57,7 +60,24 @@ const PackageTable: FC<{
     }),
   ];
 
-  return <DataTable packageName={pkg.name} columns={columns} data={data} />;
+  if (latestOnly) {
+    data = data.filter((row) => row.tag === 'latest');
+
+    data = data.filter((row) => {
+      const matchingChain = Object.values(chains).find((chain) => {
+        return chain.id === row.chain;
+      });
+      return matchingChain && !(matchingChain as any).testnet;
+    });
+  }
+
+  return data.length ? (
+    <Box borderTop="1px solid" borderColor="gray.600">
+      <DataTable packageName={pkg.name} columns={columns} data={data} />
+    </Box>
+  ) : (
+    <></>
+  );
 };
 
 export default PackageTable;

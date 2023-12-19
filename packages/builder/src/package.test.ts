@@ -127,7 +127,6 @@ describe('package.ts', () => {
           packageRef: 'fake-pkg:1.2.3@main',
           chainId: 1,
           tags: [],
-          preset: 'main',
           fromStorage,
           toStorage,
         })
@@ -139,7 +138,6 @@ describe('package.ts', () => {
         packageRef: testPkg,
         chainId: 1,
         tags: [],
-        preset: 'main',
         fromStorage,
         toStorage,
       });

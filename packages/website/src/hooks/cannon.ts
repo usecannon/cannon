@@ -85,6 +85,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
       throw new Error('You cannot build on an IPFS gateway, only read operations can be done');
     }
 
+    if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+    }
+
     setBuildStatus('Creating fork...');
     const fork = await createFork({
       url: findChainUrl(chainId),
@@ -234,6 +238,10 @@ export function useCannonWriteDeployToIpfs(
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
         throw new Error('You cannot write on an IPFS gateway, only read operations can be done');
+      }
+
+      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+        throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
       }
 
       const def = new ChainDefinition(deployInfo.def);

@@ -34,7 +34,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
         pointerEvents: 'none',
       }}
     >
-      <Flex bg="gray.800" p={2} borderBottom="1px solid" borderColor="gray.600">
+      <Flex bg="gray.800" p={2}>
         <Heading as="h4" p={1} size="sm">
           {pkg.name}
         </Heading>
@@ -50,7 +50,7 @@ export const PackageCard: FC<IPackageCardProps> = ({ pkg, maxHeight }) => {
       </Flex>
 
       <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>
-        <PackageTable pkg={pkg} />
+        <PackageTable latestOnly={false} pkg={pkg} />
       </Box>
     </Box>
   );
