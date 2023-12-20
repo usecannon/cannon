@@ -5,8 +5,16 @@ import {
   Flex,
   Heading,
   ListItem,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   OrderedList,
   Text,
+  useDisclosure,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { Diff, parseDiff } from 'react-diff-view';
@@ -29,6 +37,7 @@ import { Alert } from '@/components/Alert';
 import { DisplayedTransaction } from './DisplayedTransaction';
 import PublishUtility from './PublishUtility';
 import { useEffect } from 'react';
+import { CustomSpinner } from '@/components/CustomSpinner';
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
@@ -36,6 +45,7 @@ export function TransactionDisplay(props: {
   verify?: boolean;
   allowPublishing?: boolean;
 }) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const account = useAccount();
 
   const hintData = parseHintedMulticall(props.safeTxn?.data);
@@ -112,7 +122,19 @@ export function TransactionDisplay(props: {
   const stager = useTxnStager(props.safeTxn, { safe: props.safe });
 
   if (hintData?.cannonPackage && !cannonInfo.contracts) {
-    return <Alert status="info">Parsing transaction data...</Alert>;
+    return (
+      <Box
+        py="20"
+        alignItems="center"
+        justifyContent="center"
+        textAlign="center"
+      >
+        <CustomSpinner mx="auto" mb="2" />
+        <Text fontSize="sm" color="gray.400">
+          Parsing transaction data...
+        </Text>
+      </Box>
+    );
   }
 
   // compare proposed build info with expected transaction batch
@@ -155,61 +177,7 @@ export function TransactionDisplay(props: {
 
   return (
     <Box>
-      {hintData.gitRepoUrl && (
-        <Box mb="6">
-          <Heading size="md" mb={1}>
-            Git Target
-          </Heading>
-          {hintData.gitRepoUrl}@{hintData.gitRepoHash}
-        </Box>
-      )}
-
-      <Box mb="8">
-        {patches.map((p) => {
-          if (!p) {
-            return [];
-          }
-
-          try {
-            const { oldRevision, newRevision, type, hunks } = parseDiff(p)[0];
-            return (
-              <Box
-                bg="gray.900"
-                borderRadius="sm"
-                overflow="hidden"
-                fontSize="xs"
-                mb={4}
-              >
-                <Flex
-                  bg="blackAlpha.300"
-                  direction="row"
-                  py="1"
-                  fontWeight="semibold"
-                >
-                  <Box w="50%" px={2} py={1}>
-                    {parseDiffFileNames(p)[0]}
-                  </Box>
-                  <Box w="50%" px={2} py={1}>
-                    {parseDiffFileNames(p)[1]}
-                  </Box>
-                </Flex>
-                <Diff
-                  key={oldRevision + '-' + newRevision}
-                  viewType="split"
-                  diffType={type}
-                  hunks={hunks}
-                />
-              </Box>
-            );
-          } catch (err) {
-            console.debug('diff didnt work:', err);
-
-            return [];
-          }
-        })}
-      </Box>
       <Box mb="6">
-        <Heading size="md">Transactions</Heading>
         <Box maxW="100%" overflowX="scroll">
           {hintData.txns.map((txn, i) => (
             <DisplayedTransaction
@@ -220,6 +188,63 @@ export function TransactionDisplay(props: {
           ))}
         </Box>
       </Box>
+
+      <Button size="xs" onClick={onOpen}>
+        Review Git Diff
+      </Button>
+
+      <Modal size="full" isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalCloseButton />
+          <ModalBody>
+            {patches.map((p) => {
+              if (!p) {
+                return [];
+              }
+
+              try {
+                const { oldRevision, newRevision, type, hunks } =
+                  parseDiff(p)[0];
+                return (
+                  <Box
+                    bg="gray.900"
+                    borderRadius="sm"
+                    overflow="hidden"
+                    fontSize="xs"
+                    mb={2}
+                  >
+                    <Flex
+                      bg="blackAlpha.300"
+                      direction="row"
+                      py="1"
+                      fontWeight="semibold"
+                    >
+                      <Box w="50%" px={2} py={1}>
+                        {parseDiffFileNames(p)[0]}
+                      </Box>
+                      <Box w="50%" px={2} py={1}>
+                        {parseDiffFileNames(p)[1]}
+                      </Box>
+                    </Flex>
+                    <Diff
+                      key={oldRevision + '-' + newRevision}
+                      viewType="split"
+                      diffType={type}
+                      hunks={hunks}
+                    />
+                  </Box>
+                );
+              } catch (err) {
+                console.debug('diff didnt work:', err);
+
+                return [];
+              }
+            })}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
       {props.verify && hintData.type === 'deploy' && (
         <Box mb="4">
           <Heading size="md" mb="3">
@@ -312,7 +337,14 @@ export function TransactionDisplay(props: {
       ) : (
         hintData.type === 'deploy' &&
         props.allowPublishing && (
-          <Box>
+          <Box
+            bg="blackAlpha.600"
+            border="1px solid"
+            borderColor="gray.900"
+            borderRadius="md"
+            p={6}
+            mb={6}
+          >
             <Heading size="md" mb="1.5">
               Cannon Package
             </Heading>

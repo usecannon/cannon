@@ -476,8 +476,8 @@ function QueueFromGitOps() {
               disabled={!!partialDeployInfo.pkg}
             />
             <FormHelperText color="gray.300">
-              <strong>Optional.</strong> Enter the name of the package this
-              cannonfile is extending. See{' '}
+              <strong>Optional.</strong> Specify the package this cannonfile is
+              extending. See{' '}
               <Link as={NextLink} href="/learn/cli#build">
                 <Code>--upgrade-from</Code>
               </Link>
