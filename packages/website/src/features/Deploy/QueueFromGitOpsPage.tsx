@@ -388,11 +388,19 @@ function QueueFromGitOps() {
     alertMessage =
       'Your wallet must be connected to the same network as the selected Safe.';
   } else if (settings.isIpfsGateway) {
-    alertMessage =
-      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
+    alertMessage = (
+      <>
+        Update your IPFS URL to an API endpoint where you can pin files in{' '}
+        <Link href="/settings">settings</Link>.
+      </>
+    );
   } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-    alertMessage =
-      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
+    alertMessage = (
+      <>
+        Update your IPFS URL to an API endpoint where you can pin files in{' '}
+        <Link href="/settings">settings</Link>.
+      </>
+    );
   }
 
   if (
@@ -515,7 +523,6 @@ function QueueFromGitOps() {
               <Link as={NextLink} href="/learn/cli#build">
                 <Code>--upgrade-from</Code>
               </Link>
-              .
             </FormHelperText>
           </FormControl>
           {/* TODO: insert/load override settings here */}
