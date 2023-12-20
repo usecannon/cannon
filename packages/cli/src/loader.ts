@@ -78,7 +78,7 @@ export class CliLoader implements CannonLoader {
   }
 
   getCacheFilePath(url: string) {
-    return path.join(this.dir, `${CliLoader.getCacheHash(url)}.json`);
+    return path.join(this.dir, `qmhash-${CliLoader.getCacheHash(url)}.json`);
   }
 
   async put(misc: any): Promise<string> {
