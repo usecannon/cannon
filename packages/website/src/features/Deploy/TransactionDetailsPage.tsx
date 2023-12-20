@@ -147,6 +147,10 @@ const TransactionDetailsPage: FC<{
     return '';
   };
 
+  const packageName = cannonPackage?.resolvedName?.length
+    ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`
+    : undefined;
+
   return (
     <>
       {!hintData && (
@@ -171,15 +175,27 @@ const TransactionDetailsPage: FC<{
             borderBottom="1px solid"
             borderColor="gray.700"
           >
-            <Container maxW="container.md">
-              <Heading size="lg" mb={3}>
-                Transaction #{nonce}
-              </Heading>
-              <TransactionStepper />
+            <Container maxW="container.lg">
+              <Heading size="lg">Transaction #{nonce}</Heading>
+              {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
+                <Box mt={3}>
+                  <TransactionStepper
+                    packageRef={packageName}
+                    queuedTime={1703093248}
+                    signers={[
+                      '0x000000000000000000000000000000000000dead',
+                      '0x000000000000000000000000000000000000dead',
+                    ]}
+                    threshold={5}
+                    transactionHash={safeTxn?.transactionHash}
+                    packagePublished
+                  />
+                </Box>
+              )}
             </Container>
           </Box>
 
-          <Container maxW="container.md">
+          <Container maxW="container.md" mt={8}>
             <TransactionDisplay
               safe={safe}
               safeTxn={safeTxn as any}

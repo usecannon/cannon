@@ -1,5 +1,11 @@
+import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Box,
+  Link,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
   Step,
   StepDescription,
   StepIcon,
@@ -9,57 +15,54 @@ import {
   StepStatus,
   StepTitle,
   Stepper,
+  useBreakpointValue,
   useSteps,
 } from '@chakra-ui/react';
+import { formatDistanceToNow } from 'date-fns';
 import _ from 'lodash';
+import { useMemo } from 'react';
 
-const steps = [
-  { title: 'Queue', description: 'added 1/2/32 23:23' },
-  { title: 'Sign', description: '2 of 3' },
-  { title: 'Execute', description: 'Transaction Hash' },
-  { title: 'Publish', description: 'Package Name' },
-];
+export function TransactionStepper(props: {
+  queuedTime: number;
+  signers: string[];
+  threshold: number;
+  transactionHash: string | undefined;
+  packageRef: string | undefined;
+  packagePublished: boolean;
+}) {
+  let step = 1;
+  if (props.packagePublished) {
+    step = 4;
+  } else if (props.transactionHash) {
+    step = 3;
+  } else if (props.signers.length >= props.threshold) {
+    step = 2;
+  }
 
-export function TransactionStepper(props: {}) {
   const { activeStep } = useSteps({
-    index: 1,
-    count: steps.length,
+    index: step,
+    count: !!props.packageRef ? 4 : 3,
   });
+
+  const orientation = useBreakpointValue({
+    base: 'vertical' as OrientationType,
+    md: 'horizontal' as OrientationType,
+  });
+
+  const queuedTimeAgo = useMemo(
+    () =>
+      formatDistanceToNow(new Date(props.queuedTime * 1000), {
+        addSuffix: true,
+      }),
+    [props.queuedTime]
+  );
+
+  let packageName, version, chainId, preset;
 
   return (
     <>
       {/*
       <Box display="none">
-        {hintData && (
-          <Box borderRadius="lg" bg="blackAlpha.300" ml="6" py="4" px="6">
-            <FormControl>
-              {hintData.type === 'deploy' && (
-                <Tooltip label="Added using 'Queue From GitOps'">
-                  <Tag textTransform="uppercase" size="md">
-                    <Text as="b">GitOps</Text>
-                  </Tag>
-                </Tooltip>
-              )}
-
-              {hintData.type === 'invoke' && (
-                <Tooltip label="Added using 'Queue Transactions'">
-                  <Tag textTransform="uppercase" size="md">
-                    <Text as="b">Deployer</Text>
-                  </Tag>
-                </Tooltip>
-              )}
-
-              {hintData.type !== 'deploy' && hintData.type !== 'invoke' && (
-                <Tooltip label="Added using the Safe{Wallet} UI">
-                  <Tag textTransform="uppercase" size="md">
-                    <Text as="b">External</Text>
-                  </Tag>
-                </Tooltip>
-              )}
-            </FormControl>
-          </Box>
-        )}
-
         {hintData.gitRepoUrl && (
           <Box>
             {hintData.gitRepoUrl}@{hintData.gitRepoHash}
@@ -114,20 +117,155 @@ export function TransactionStepper(props: {}) {
             </FormControl>
           </Box>
         )}
-
-        <Badge
-          opacity={0.8}
-          colorScheme={status == 'executed' ? 'green' : 'blue'}
-        >
-          {status}
-        </Badge>
       </Box>
               */}
 
-      <Stepper size="sm" index={activeStep}>
-        {steps.map((step, index) => (
-          <Step key={index}>
-            <StepIndicator>
+      <Stepper
+        size="sm"
+        index={activeStep}
+        orientation={orientation}
+        colorScheme="teal"
+      >
+        <Step key={1}>
+          <StepIndicator
+            borderWidth="1px !important"
+            borderColor={activeStep >= 1 ? 'teal.500' : 'gray.200'}
+          >
+            <StepStatus
+              complete={<StepIcon />}
+              incomplete={<StepNumber />}
+              active={<StepNumber />}
+            />
+          </StepIndicator>
+
+          <Box flexShrink="0">
+            <StepTitle
+              textTransform={'uppercase'}
+              letterSpacing={'1px'}
+              fontFamily={'var(--font-miriam)'}
+              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+            >
+              Queue
+            </StepTitle>
+            <StepDescription color="gray.300">
+              added {queuedTimeAgo}
+            </StepDescription>
+          </Box>
+
+          <StepSeparator
+            height={orientation == 'horizontal' ? '1px !important' : undefined}
+            width={orientation == 'vertical' ? '1px !important' : undefined}
+          />
+        </Step>
+        <Step key={2}>
+          <StepIndicator
+            borderWidth="1px !important"
+            borderColor={activeStep >= 2 ? 'teal.500' : 'gray.200'}
+          >
+            <StepStatus
+              complete={<StepIcon />}
+              incomplete={<StepNumber />}
+              active={<StepNumber />}
+            />
+          </StepIndicator>
+
+          <Box flexShrink="0">
+            <StepTitle
+              textTransform={'uppercase'}
+              letterSpacing={'1px'}
+              fontFamily={'var(--font-miriam)'}
+              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+            >
+              Sign
+            </StepTitle>
+            <StepDescription color="gray.300">
+              {props.signers?.length || 0} of {props.threshold || 0} signed
+              {props.signers?.length > 0 && (
+                <Popover trigger="hover">
+                  <PopoverTrigger>
+                    <InfoOutlineIcon ml={1} transform="translateY(-0.5px)" />
+                  </PopoverTrigger>
+                  <PopoverContent
+                    overflowY={'auto'}
+                    overflowX={'hidden'}
+                    width="auto"
+                    bg="gray.900"
+                    borderColor="gray.700"
+                  >
+                    <PopoverBody pb={1}>
+                      {props.signers.map((s) => (
+                        <Box key={s} mb={1}>
+                          {s}
+                        </Box>
+                      ))}
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </StepDescription>
+          </Box>
+
+          <StepSeparator
+            opacity={activeStep >= 2 ? 1 : 0.2}
+            height={orientation == 'horizontal' ? '1px !important' : undefined}
+            width={orientation == 'vertical' ? '1px !important' : undefined}
+          />
+        </Step>
+        <Step key={3}>
+          <StepIndicator
+            borderWidth="1px !important"
+            borderColor={activeStep >= 3 ? 'teal.500' : 'gray.200'}
+          >
+            <StepStatus
+              complete={<StepIcon />}
+              incomplete={<StepNumber />}
+              active={<StepNumber />}
+            />
+          </StepIndicator>
+
+          <Box flexShrink="0">
+            <StepTitle
+              textTransform={'uppercase'}
+              letterSpacing={'1px'}
+              fontFamily={'var(--font-miriam)'}
+              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+            >
+              Execute
+            </StepTitle>
+            <StepDescription color="gray.300">
+              {props.transactionHash ? (
+                <>
+                  {`${props.transactionHash.substring(
+                    0,
+                    6
+                  )}...${props.transactionHash.slice(-4)}`}
+                  <Link
+                    isExternal
+                    styleConfig={{ 'text-decoration': 'none' }}
+                    href={`https://etherscan.io/address/${'x'}`}
+                    ml={1}
+                  >
+                    <ExternalLinkIcon transform="translateY(-0.5px)" />
+                  </Link>
+                </>
+              ) : (
+                <>Pending</>
+              )}
+            </StepDescription>
+          </Box>
+
+          <StepSeparator
+            opacity={activeStep >= 3 ? 1 : 0.2}
+            height={orientation == 'horizontal' ? '1px !important' : undefined}
+            width={orientation == 'vertical' ? '1px !important' : undefined}
+          />
+        </Step>
+        {!!props.packageRef && (
+          <Step key={4}>
+            <StepIndicator
+              borderWidth="1px !important"
+              borderColor={activeStep >= 4 ? 'teal.500' : 'gray.200'}
+            >
               <StepStatus
                 complete={<StepIcon />}
                 incomplete={<StepNumber />}
@@ -142,16 +280,32 @@ export function TransactionStepper(props: {}) {
                 fontFamily={'var(--font-miriam)'}
                 textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
               >
-                {step.title}
+                Publish
               </StepTitle>
               <StepDescription color="gray.300">
-                {step.description}
+                {props.packageRef}
+                {props.packagePublished && (
+                  <Link
+                    isExternal
+                    styleConfig={{ 'text-decoration': 'none' }}
+                    href={`/packages/${packageName}/${version}/${chainId}-${preset}`}
+                    ml={1}
+                  >
+                    <ExternalLinkIcon transform="translateY(-0.5px)" />
+                  </Link>
+                )}
               </StepDescription>
             </Box>
 
-            <StepSeparator />
+            <StepSeparator
+              opacity={activeStep >= 4 ? 1 : 0.2}
+              height={
+                orientation == 'horizontal' ? '1px !important' : undefined
+              }
+              width={orientation == 'vertical' ? '1px !important' : undefined}
+            />
           </Step>
-        ))}
+        )}
       </Stepper>
     </>
   );
