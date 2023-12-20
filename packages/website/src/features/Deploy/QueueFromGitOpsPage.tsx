@@ -19,6 +19,8 @@ import {
   Text,
   Tooltip,
   useToast,
+  InputGroup,
+  InputRightElement,
 } from '@chakra-ui/react';
 import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
@@ -56,6 +58,7 @@ import * as onchainStore from '@/helpers/onchain-store';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import NextLink from 'next/link';
+import { CheckIcon } from '@chakra-ui/icons';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -81,19 +84,27 @@ function QueueFromGitOps() {
   const [partialDeployIpfs, setPartialDeployIpfs] = useState('');
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
-  // eslint-disable-next-line no-useless-escape
-  const regex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
-  const validCannonfileUrl = regex.test(cannonfileUrlInput);
+  const cannonfileUrlRegex =
+    // eslint-disable-next-line no-useless-escape
+    /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?\.toml$/i;
 
-  const gitUrl = useMemo(
-    () =>
-      cannonfileUrlInput.includes('/blob/')
-        ? cannonfileUrlInput.split('/blob/')[0]
-        : '',
-    [cannonfileUrlInput]
-  );
+  const gitUrl = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
+    if (!cannonfileUrlInput.includes('/blob/')) {
+      return '';
+    }
+
+    return cannonfileUrlInput.split('/blob/')[0];
+  }, [cannonfileUrlInput]);
 
   const gitBranch = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
     if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
@@ -112,6 +123,10 @@ function QueueFromGitOps() {
   }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
+    if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
+      return '';
+    }
+
     if (!cannonfileUrlInput.includes('/blob/')) {
       return '';
     }
@@ -373,13 +388,19 @@ function QueueFromGitOps() {
     alertMessage =
       'Your wallet must be connected to the same network as the selected Safe.';
   } else if (settings.isIpfsGateway) {
-    alertMessage =
-      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
+    alertMessage = (
+      <>
+        Update your IPFS URL to an API endpoint where you can pin files in{' '}
+        <Link href="/settings">settings</Link>.
+      </>
+    );
   } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-    alertMessage =
-      'Update your IPFS URL to an API endpoint where you can pin files in Settings.';
-  } else if (!cannonDefInfo.def) {
-    alertMessage = 'Unable to parse cannonfile.';
+    alertMessage = (
+      <>
+        Update your IPFS URL to an API endpoint where you can pin files in{' '}
+        <Link href="/settings">settings</Link>.
+      </>
+    );
   }
 
   if (
@@ -440,24 +461,31 @@ function QueueFromGitOps() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <FormControl
-            mb="6"
-            isInvalid={!!cannonfileUrlInput.length && !validCannonfileUrl}
-          >
+          <FormControl mb="6">
             <FormLabel>Cannonfile</FormLabel>
             <HStack>
-              <Input
-                type="text"
-                placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
-                value={cannonfileUrlInput}
-                borderColor={
-                  !cannonfileUrlInput.length || validCannonfileUrl
-                    ? 'whiteAlpha.400'
-                    : 'red.500'
-                }
-                background="black"
-                onChange={(evt: any) => setCannonfileUrlInput(evt.target.value)}
-              />
+              <InputGroup>
+                <Input
+                  type="text"
+                  placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
+                  value={cannonfileUrlInput}
+                  borderColor={
+                    !cannonfileUrlInput.length ||
+                    cannonDefInfo.isFetching ||
+                    cannonDefInfo.def
+                      ? 'whiteAlpha.400'
+                      : 'red.500'
+                  }
+                  background="black"
+                  onChange={(evt: any) =>
+                    setCannonfileUrlInput(evt.target.value)
+                  }
+                />
+                <InputRightElement>
+                  {cannonDefInfo.isFetching && <Spinner />}
+                  {cannonDefInfo.def && <CheckIcon color="green.500" />}
+                </InputRightElement>
+              </InputGroup>
             </HStack>
             <FormHelperText color="gray.300">
               Enter a Git or GitHub URL for the cannonfile you’d like to build.
@@ -466,40 +494,65 @@ function QueueFromGitOps() {
 
           <FormControl mb="6">
             <FormLabel>Previous Package</FormLabel>
-            <Input
-              placeholder="name:version@preset"
-              type="text"
-              value={previousPackageInput}
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={(evt: any) => setPreviousPackageInput(evt.target.value)}
-              disabled={!!partialDeployInfo.pkg}
-            />
+            <InputGroup>
+              <Input
+                placeholder="name:version@preset"
+                type="text"
+                value={previousPackageInput}
+                borderColor={
+                  !previousPackageInput.length ||
+                  cannonPkgPreviousInfo.isFetching ||
+                  cannonPkgPreviousInfo.pkg
+                    ? 'whiteAlpha.400'
+                    : 'red.500'
+                }
+                background="black"
+                onChange={(evt: any) =>
+                  setPreviousPackageInput(evt.target.value)
+                }
+                disabled={!!partialDeployInfo.pkg}
+              />
+              <InputRightElement>
+                {cannonPkgPreviousInfo.isFetching && <Spinner />}
+                {cannonPkgPreviousInfo.pkg && <CheckIcon color="green.500" />}
+              </InputRightElement>
+            </InputGroup>
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> Enter the name of the package this
               cannonfile is extending. See{' '}
               <Link as={NextLink} href="/learn/cli#build">
                 <Code>--upgrade-from</Code>
               </Link>
-              .
             </FormHelperText>
           </FormControl>
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">
             <FormLabel>Partial Deployment Data</FormLabel>
-            <Input
-              placeholder="Qm..."
-              type="text"
-              value={partialDeployIpfs}
-              borderColor="whiteAlpha.400"
-              background="black"
-              onChange={
-                (evt: any) =>
-                  setPartialDeployIpfs(
-                    evt.target.value.slice(evt.target.value.indexOf('Qm'))
-                  ) /** TODO: handle bafy hash or other hashes */
-              }
-            />
+            <InputGroup>
+              <Input
+                placeholder="Qm..."
+                type="text"
+                value={partialDeployIpfs}
+                borderColor={
+                  !partialDeployIpfs.length ||
+                  partialDeployInfo.isFetching ||
+                  partialDeployInfo.pkg
+                    ? 'whiteAlpha.400'
+                    : 'red.500'
+                }
+                background="black"
+                onChange={
+                  (evt: any) =>
+                    setPartialDeployIpfs(
+                      evt.target.value.slice(evt.target.value.indexOf('Qm'))
+                    ) /** TODO: handle bafy hash or other hashes */
+                }
+              />
+              <InputRightElement>
+                {partialDeployInfo.isFetching && <Spinner />}
+                {partialDeployInfo.pkg && <CheckIcon color="green.500" />}
+              </InputRightElement>
+            </InputGroup>
             <FormHelperText color="gray.300">
               <strong>Optional.</strong> If this deployment requires
               transactions executed in other contexts (e.g. contract deployments
@@ -508,27 +561,12 @@ function QueueFromGitOps() {
               command in the CLI.
             </FormHelperText>
           </FormControl>
-          {!!cannonfileUrlInput.length &&
-            validCannonfileUrl &&
-            buildInfo.buildStatus == '' && (
-              <>
-                {(cannonPkgVersionInfo.ipfsQuery.isFetching ||
-                  cannonPkgPreviousInfo.ipfsQuery.isFetching ||
-                  cannonPkgVersionInfo.registryQuery.isFetching ||
-                  cannonPkgPreviousInfo.registryQuery.isFetching) && (
-                  <Alert mb="6" status="info" bg="gray.700">
-                    <Spinner mr={3} />
-                    <Text>Fetching {previousPackageInput}...</Text>
-                  </Alert>
-                )}
-                {alertMessage && (
-                  <Alert mb="6" status="warning" bg="gray.700">
-                    <AlertIcon mr={3} />
-                    <Text>{alertMessage}</Text>
-                  </Alert>
-                )}
-              </>
-            )}
+          {alertMessage && (
+            <Alert mb="6" status="warning" bg="gray.700">
+              <AlertIcon mr={3} />
+              <Text>{alertMessage}</Text>
+            </Alert>
+          )}
           <Button
             width="100%"
             colorScheme="teal"
@@ -537,10 +575,8 @@ function QueueFromGitOps() {
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               !cannonDefInfo.def ||
-              cannonPkgVersionInfo.ipfsQuery.isFetching ||
-              cannonPkgPreviousInfo.ipfsQuery.isFetching ||
-              cannonPkgVersionInfo.registryQuery.isFetching ||
-              cannonPkgPreviousInfo.registryQuery.isFetching
+              cannonPkgPreviousInfo.isFetching ||
+              cannonPkgVersionInfo.isFetching
             }
             onClick={() => buildTransactions()}
           >
