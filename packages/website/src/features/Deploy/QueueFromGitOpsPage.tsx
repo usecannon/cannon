@@ -620,10 +620,12 @@ function QueueFromGitOps() {
             </Alert>
           )}
           {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
-            <TransactionDisplay
-              safe={currentSafe as any}
-              safeTxn={stager.safeTxn}
-            />
+            <Box mt="6">
+              <TransactionDisplay
+                safe={currentSafe as any}
+                safeTxn={stager.safeTxn}
+              />
+            </Box>
           )}
 
           {uploadToPublishIpfs.writeToIpfsMutation.isLoading && (

@@ -2,7 +2,6 @@
 
 import { FC } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ExternalLinkIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
@@ -22,7 +21,6 @@ import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { parseIpfsHash } from '@/helpers/ipfs';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
@@ -113,39 +111,6 @@ const TransactionDetailsPage: FC<{
       ? `@ipfs:${_.last(hintData?.cannonPackage.split('/'))}`
       : ''
   );
-
-  const reverseLookupCannonPackage = useCannonPackage(
-    cannonPackage.resolvedName
-      ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`
-      : ''
-  );
-
-  const executed = Number(safeNonce) > Number(nonce);
-  const awaitingExecution = !safeTxn || !stager.execConditionFailed;
-  let status = 'awaiting signatures';
-
-  if (awaitingExecution) {
-    status = 'awaiting execution';
-  } else if (executed) {
-    status = 'executed';
-  }
-
-  const formatHash = (hash: string): string => {
-    const id = parseIpfsHash(hash);
-    return id
-      ? `ipfs://${id.substring(0, 4)}...${id.substring(id.length - 4)}`
-      : hash;
-  };
-
-  // Function to create IPLD link
-  const createIPLDLink = (hash: string): string => {
-    if (hash.startsWith('ipfs://')) {
-      const parts = hash.split('/');
-      const id = parts[2];
-      return `https://explore.ipld.io/#/explore/${id}`;
-    }
-    return '';
-  };
 
   const packageName = cannonPackage?.resolvedName?.length
     ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`
