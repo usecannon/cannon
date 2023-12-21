@@ -36,14 +36,12 @@
     "typedoc": "^0.24.8",
     "typedoc-plugin-zod": "^1.0.2"
   },
-  "peerDependencies": {
-    "ethers": ">=5.6.0 < 6.0.0"
-  },
   "dependencies": {
     "@synthetixio/router": "^3.3.0",
     "axios": "^1.6.2",
     "buffer": "^6.0.3",
     "debug": "^4.3.4",
+    "ethers": "^5.6.0",
     "form-data": "^4.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
