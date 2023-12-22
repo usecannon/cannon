@@ -307,7 +307,7 @@ async function doBuild(
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
     priorityGasFee: opts.maxPriorityGasFee,
-    skipReference: opts.skipReference,
+    ignorePkgrefCheck: opts.ignorePkgrefCheck,
   });
 
   return [node, pkgSpec, outputs, runtime];

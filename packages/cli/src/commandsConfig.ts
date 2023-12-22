@@ -294,7 +294,7 @@ const commandsConfig = {
         defaultValue: 'ethers',
       },
       {
-        flags: '-sr --skip-reference',
+        flags: '-igc --ignore-pkgref-check',
         description: 'Skip checking the name/version package being built on the remote registry',
       },
       {
