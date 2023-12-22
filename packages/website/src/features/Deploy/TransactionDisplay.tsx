@@ -178,11 +178,13 @@ export function TransactionDisplay(props: {
       <Box mb="6">
         <Box maxW="100%" overflowX="scroll">
           {hintData.txns.map((txn, i) => (
-            <DisplayedTransaction
-              key={`tx-${i}`}
-              contracts={cannonInfo.contracts as any}
-              txn={txn}
-            />
+            <Box mb={8}>
+              <DisplayedTransaction
+                key={`tx-${i}`}
+                contracts={cannonInfo.contracts as any}
+                txn={txn}
+              />
+            </Box>
           ))}
         </Box>
       </Box>
