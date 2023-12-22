@@ -65,8 +65,16 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .hook('preAction', async function () {
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
+  .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
+    setDebugLevel(thisCommand.opts());
   });
 
 configureRun(program);
@@ -105,6 +113,23 @@ function applyCommandsConfig(command: Command, config: any) {
     });
   }
   return command;
+}
+
+function setDebugLevel(opts: any) {
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
 }
 
 function configureRun(program: Command) {
