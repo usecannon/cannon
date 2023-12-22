@@ -1,5 +1,4 @@
 import { loadCannonfile, PackageSpecification, parsePackagesArguments, run, runRpc } from '@usecannon/cli';
-import { ethers } from 'ethers';
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
 import path from 'path';
@@ -54,7 +53,7 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
                 port: Number.parseInt(port) || hre.config.networks.cannon.port,
                 chainId: networkConfig.chainId,
               },
-              { forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url) }
+              { forkProvider: new (hre as any).ethers.providers.JsonRpcProvider(networkConfig.url) }
             );
 
       let toImpersonate: string[] = [];

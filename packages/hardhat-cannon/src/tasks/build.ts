@@ -4,7 +4,6 @@ import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliS
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import { yellow } from 'chalk';
-import { ethers } from 'ethers';
 import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
@@ -13,6 +12,8 @@ import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
+
+import type { ethers } from 'ethers';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -86,7 +87,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
-      let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
+      let provider = new CannonWrapperGenericProvider({}, new (hre as any).ethers.providers.JsonRpcProvider(providerUrl));
 
       if (hre.network.name === 'hardhat') {
         if (dryRun) {
@@ -109,7 +110,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
                 ...anvilOpts,
               },
               {
-                forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
+                forkProvider: new (hre as any).ethers.providers.JsonRpcProvider(providerUrl),
               }
             )
           : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
@@ -120,7 +121,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const signers = await getHardhatSigners(hre, provider);
 
       const getSigner = async (address: string) => {
-        const addr = ethers.utils.getAddress(address);
+        const addr: string = (hre as any).ethers.utils.getAddress(address);
         for (const signer of signers) {
           const signerAddr = await signer.getAddress();
           if (addr === signerAddr) return signer;
