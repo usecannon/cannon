@@ -96,7 +96,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         // hardhat network is "special" in that it looks like its a jsonrpc provider,
         // but really you can't use it like that.
         console.log('using hardhat network provider');
-        provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
+        provider = new CannonWrapperGenericProvider({}, (hre as any).ethers.provider, false);
       }
 
       if (dryRun || hre.network.name === 'cannon') {
@@ -104,7 +104,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           ? await runRpc(
               {
                 port: hre.config.networks.cannon.port,
-                chainId: (await hre.ethers.provider.getNetwork()).chainId,
+                chainId: (await (hre as any).ethers.provider.getNetwork()).chainId,
                 accounts: anvilOpts.accounts || 10,
                 ...anvilOpts,
               },
