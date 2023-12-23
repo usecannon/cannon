@@ -106,16 +106,20 @@ export class CliLoader implements CannonLoader {
 
     // Check if we already have the file cached locally
     if (isFile(cacheFile)) {
-      return fs.readJson(cacheFile);
+      const ipfsData = fs.readJson(cacheFile);
+      debug('cli ipfs loaded from cache');
+      return ipfsData;
     }
 
     // If its configured, try to get it from the settings ipfs
-    if (this.ipfs) {
-      return this.ipfs.read(url);
-    }
+    const ipfsData = await (this.ipfs || this.repo).read(url);
+    await fs.mkdirp(this.dir);
+    // NOTE: would be nice if we could just get the raw data here so we dont have to restringify
+    const rawIpfsData = JSON.stringify(ipfsData);
+    await fs.writeFile(this.getCacheFilePath(url), rawIpfsData);
+    debug('wrote cache ipfs data', rawIpfsData.length);
 
-    // Lastly, default to the Cannon repo ipfs
-    return this.repo.read(url);
+    return ipfsData;
   }
 
   async remove(url: string) {
