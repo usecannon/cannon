@@ -19,11 +19,10 @@ import {
   useSteps,
 } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
-import _ from 'lodash';
 import { useMemo } from 'react';
 
 export function TransactionStepper(props: {
-  queuedTime: number;
+  queuedDate: string;
   signers: string[];
   threshold: number;
   transactionHash: string | undefined;
@@ -51,10 +50,10 @@ export function TransactionStepper(props: {
 
   const queuedTimeAgo = useMemo(
     () =>
-      formatDistanceToNow(new Date(props.queuedTime * 1000), {
+      formatDistanceToNow(new Date(Date.parse(props.queuedDate)), {
         addSuffix: true,
       }),
-    [props.queuedTime]
+    [props.queuedDate]
   );
 
   let packageName, version, chainId, preset;

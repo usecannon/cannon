@@ -146,14 +146,11 @@ const TransactionDetailsPage: FC<{
                 <Box mt={3}>
                   <TransactionStepper
                     packageRef={packageName}
-                    queuedTime={1703093248}
-                    signers={[
-                      '0x000000000000000000000000000000000000dead',
-                      '0x000000000000000000000000000000000000dead',
-                    ]}
-                    threshold={5}
+                    queuedDate={safeTxn?.submissionDate ?? '0'}
+                    signers={safeTxn?.confirmedSigners ?? []}
+                    threshold={safeTxn?.confirmationsRequired ?? 0}
                     transactionHash={safeTxn?.transactionHash}
-                    packagePublished
+                    packagePublished={!!cannonPackage.pkgUrl}
                   />
                 </Box>
               )}
