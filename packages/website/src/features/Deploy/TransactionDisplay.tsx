@@ -188,7 +188,7 @@ export function TransactionDisplay(props: {
         </Box>
       </Box>
 
-      <Button size="xs" onClick={onOpen}>
+      <Button mb="6" size="xs" onClick={onOpen}>
         Review Git Diff
       </Button>
 

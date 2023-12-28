@@ -127,27 +127,27 @@ export default function PublishUtility(props: {
     return (
       <FormControl>
         {!existingRegistryUrl ? (
-          <>
+          <Text>
             The package resulting from this deployment has not been published to
             the registry.
-          </>
+          </Text>
         ) : (
-          <>
+          <Text>
             A different package has been published to the registry with a
             matching name and version.
-          </>
+          </Text>
         )}
         {settings.isIpfsGateway && (
-          <>
+          <Text>
             You cannot publish on an IPFS gateway, only read operations can be
             done.
-          </>
+          </Text>
         )}
         {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-          <>
+          <Text>
             You cannot publish on an repo endpoint, only read operations can be
             done.
-          </>
+          </Text>
         )}
         <Button
           isDisabled={
@@ -157,7 +157,7 @@ export default function PublishUtility(props: {
             publishMutation.isLoading
           }
           onClick={() => publishMutation.mutate()}
-          mt={2}
+          mt={4}
         >
           {publishMutation.isLoading
             ? [<Spinner key={0} />, ' Publish in Progress...']

@@ -112,10 +112,6 @@ const TransactionDetailsPage: FC<{
       : ''
   );
 
-  const packageName = cannonPackage?.resolvedName?.length
-    ? `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`
-    : undefined;
-
   return (
     <>
       {!hintData && (
@@ -133,7 +129,7 @@ const TransactionDetailsPage: FC<{
         </Container>
       )}
       {hintData && (safeTxn || !stagedQuery.isFetched) && (
-        <Box maxWidth="100%">
+        <Box maxWidth="100%" mb="6">
           <Box
             bg="black"
             py={12}
@@ -145,12 +141,9 @@ const TransactionDetailsPage: FC<{
               {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
                 <Box mt={3}>
                   <TransactionStepper
-                    packageRef={packageName}
-                    queuedDate={safeTxn?.submissionDate ?? '0'}
-                    signers={safeTxn?.confirmedSigners ?? []}
-                    threshold={safeTxn?.confirmationsRequired ?? 0}
-                    transactionHash={safeTxn?.transactionHash}
-                    packagePublished={!!cannonPackage.pkgUrl}
+                    chainId={parsedChainId}
+                    cannonPackage={cannonPackage}
+                    safeTxn={safeTxn}
                   />
                 </Box>
               )}

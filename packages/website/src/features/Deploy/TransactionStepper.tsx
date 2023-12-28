@@ -19,8 +19,10 @@ import {
   useSteps,
   chakra,
 } from '@chakra-ui/react';
+import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
+import * as Chains from 'wagmi/chains';
 
 type Orientation = 'horizontal' | 'vertical';
 
@@ -42,25 +44,37 @@ const StepDescription = chakra(BaseStepDescription, {
 const StepSeparator = chakra(BaseStepSeparator);
 
 export function TransactionStepper(props: {
-  queuedDate: string;
-  signers: string[];
-  threshold: number;
-  transactionHash: string | undefined;
-  packageRef: string | undefined;
-  packagePublished: boolean;
+  chainId: number;
+  cannonPackage: any;
+  safeTxn: SafeTransaction | null;
 }) {
+  const packagePublished = !!props.cannonPackage.pkgUrl;
+  const transactionHash = props.safeTxn?.transactionHash;
+  const signers = props.safeTxn?.confirmedSigners ?? [];
+  const threshold = props.safeTxn?.confirmationsRequired ?? 0;
+
   let step = 1;
-  if (props.packagePublished) {
+  if (packagePublished) {
     step = 4;
-  } else if (props.transactionHash) {
+  } else if (transactionHash) {
     step = 3;
-  } else if (props.signers.length >= props.threshold) {
+  } else if (signers.length >= threshold) {
     step = 2;
   }
 
+  const packageRef = props.cannonPackage?.resolvedName?.length
+    ? `${props.cannonPackage.resolvedName}:${
+        props.cannonPackage.resolvedVersion
+      }${
+        props.cannonPackage.resolvedPreset
+          ? '@' + props.cannonPackage.resolvedPreset
+          : ''
+      }`
+    : undefined;
+
   const { activeStep } = useSteps({
     index: step,
-    count: props.packageRef ? 4 : 3,
+    count: packageRef ? 4 : 3,
   });
 
   const orientation = useBreakpointValue({
@@ -68,15 +82,22 @@ export function TransactionStepper(props: {
     md: 'horizontal' as Orientation,
   });
 
+  const queuedDate = props.safeTxn?.submissionDate ?? '0';
   const queuedTimeAgo = useMemo(
     () =>
-      formatDistanceToNow(new Date(Date.parse(props.queuedDate)), {
+      formatDistanceToNow(new Date(Date.parse(queuedDate)), {
         addSuffix: true,
       }),
-    [props.queuedDate]
+    [queuedDate]
   );
 
-  let packageName, version, chainId, preset;
+  const etherscanUrl =
+    (Object.values(Chains).find((chain) => chain.id === props.chainId) as any)
+      ?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+
+  const packageName = props.cannonPackage.resolvedName;
+  const version = props.cannonPackage.resolvedVersion || 'latest';
+  const preset = props.cannonPackage.resolvedPreset || 'main';
 
   return (
     <>
@@ -182,8 +203,8 @@ export function TransactionStepper(props: {
           <Box flexShrink="0">
             <StepTitle>Sign</StepTitle>
             <StepDescription>
-              {props.signers?.length || 0} of {props.threshold || 0} signed
-              {props.signers?.length > 0 && (
+              {signers?.length || 0} of {threshold || 0} signed
+              {signers?.length > 0 && (
                 <Popover trigger="hover">
                   <PopoverTrigger>
                     <InfoOutlineIcon ml={1} transform="translateY(-0.5px)" />
@@ -196,7 +217,7 @@ export function TransactionStepper(props: {
                     borderColor="gray.700"
                   >
                     <PopoverBody pb={1}>
-                      {props.signers.map((s) => (
+                      {signers.map((s) => (
                         <Box key={s} mb={1}>
                           {s}
                         </Box>
@@ -229,16 +250,16 @@ export function TransactionStepper(props: {
           <Box flexShrink="0">
             <StepTitle>Execute</StepTitle>
             <StepDescription>
-              {props.transactionHash ? (
+              {transactionHash ? (
                 <>
-                  {`${props.transactionHash.substring(
+                  {`${transactionHash.substring(
                     0,
                     6
-                  )}...${props.transactionHash.slice(-4)}`}
+                  )}...${transactionHash.slice(-4)}`}
                   <Link
                     isExternal
                     styleConfig={{ 'text-decoration': 'none' }}
-                    href={`https://etherscan.io/address/${'x'}`}
+                    href={`${etherscanUrl}/tx/${transactionHash}`}
                     ml={1}
                   >
                     <ExternalLinkIcon transform="translateY(-0.5px)" />
@@ -256,7 +277,7 @@ export function TransactionStepper(props: {
             width={orientation == 'vertical' ? '1px !important' : undefined}
           />
         </Step>
-        {!!props.packageRef && (
+        {!!packageRef && (
           <Step key={4}>
             <StepIndicator
               borderWidth="1px !important"
@@ -272,12 +293,12 @@ export function TransactionStepper(props: {
             <Box flexShrink="0">
               <StepTitle>Publish</StepTitle>
               <StepDescription>
-                {props.packageRef}
-                {props.packagePublished && (
+                {packageRef}
+                {packagePublished && (
                   <Link
                     isExternal
                     styleConfig={{ 'text-decoration': 'none' }}
-                    href={`/packages/${packageName}/${version}/${chainId}-${preset}`}
+                    href={`/packages/${packageName}/${version}/${props.chainId}-${preset}`}
                     ml={1}
                   >
                     <ExternalLinkIcon transform="translateY(-0.5px)" />
