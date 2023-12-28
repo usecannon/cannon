@@ -255,7 +255,7 @@ function QueueTransactions() {
           </Alert>
         )}
       {!isAddress(target) && cannonInfo.contracts && (
-        <Box mt={6} display="block">
+        <Box mt={6} mb={6} display="block">
           <Heading size="md" mb={3}>
             Transactions
           </Heading>
@@ -293,7 +293,7 @@ function QueueTransactions() {
           </Button>
         </Box>
       )}
-      {isAddress(target) && (
+      {(isAddress(target) || cannonInfo.contracts) && (
         <Box
           mb={8}
           p={6}
@@ -304,44 +304,48 @@ function QueueTransactions() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          {funcIsPayable && (
-            <FormControl>
-              <FormLabel>Value</FormLabel>
-              <Input
-                type="text"
-                borderColor="whiteAlpha.400"
-                background="black"
-                onChange={(event: any) =>
-                  updateQueuedTxn(0, {
-                    ...queuedTxns[0],
-                    value: BigInt(event.target.value),
-                  })
-                }
-              />
-              <FormHelperText>
-                Amount of ETH to send as part of transaction
-              </FormHelperText>
-            </FormControl>
-          )}
+          {isAddress(target) && (
+            <Box mb="6">
+              {funcIsPayable && (
+                <FormControl>
+                  <FormLabel>Value</FormLabel>
+                  <Input
+                    type="text"
+                    borderColor="whiteAlpha.400"
+                    background="black"
+                    onChange={(event: any) =>
+                      updateQueuedTxn(0, {
+                        ...queuedTxns[0],
+                        value: BigInt(event.target.value),
+                      })
+                    }
+                  />
+                  <FormHelperText>
+                    Amount of ETH to send as part of transaction
+                  </FormHelperText>
+                </FormControl>
+              )}
 
-          <FormControl mb="4">
-            <FormLabel>Transaction Data</FormLabel>
-            <Input
-              type="text"
-              borderColor="whiteAlpha.400"
-              background="black"
-              placeholder="0x"
-              onChange={(event: any) =>
-                updateQueuedTxn(0, {
-                  ...queuedTxns[0],
-                  data: (event.target.value as Hex) || '0x',
-                })
-              }
-            />
-            <FormHelperText>
-              0x prefixed hex code data to send with transaction
-            </FormHelperText>
-          </FormControl>
+              <FormControl mb="4">
+                <FormLabel>Transaction Data</FormLabel>
+                <Input
+                  type="text"
+                  borderColor="whiteAlpha.400"
+                  background="black"
+                  placeholder="0x"
+                  onChange={(event: any) =>
+                    updateQueuedTxn(0, {
+                      ...queuedTxns[0],
+                      data: (event.target.value as Hex) || '0x',
+                    })
+                  }
+                />
+                <FormHelperText>
+                  0x prefixed hex code data to send with transaction
+                </FormHelperText>
+              </FormControl>
+            </Box>
+          )}
 
           {cannonInfo.contracts && (
             <Box mb="6">
