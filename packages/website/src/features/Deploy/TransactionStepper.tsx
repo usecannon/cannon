@@ -7,19 +7,39 @@ import {
   PopoverContent,
   PopoverTrigger,
   Step,
-  StepDescription,
+  StepDescription as BaseStepDescription,
   StepIcon,
   StepIndicator,
   StepNumber,
-  StepSeparator,
+  StepSeparator as BaseStepSeparator,
   StepStatus,
-  StepTitle,
+  StepTitle as BaseStepTitle,
   Stepper,
   useBreakpointValue,
   useSteps,
+  chakra,
 } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
+
+type Orientation = 'horizontal' | 'vertical';
+
+const StepTitle = chakra(BaseStepTitle, {
+  baseStyle: {
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    fontFamily: 'var(--font-miriam)',
+    textShadow: '0px 0px 4px rgba(255, 255, 255, 0.33)',
+  },
+});
+
+const StepDescription = chakra(BaseStepDescription, {
+  baseStyle: {
+    color: 'gray.300',
+  },
+});
+
+const StepSeparator = chakra(BaseStepSeparator);
 
 export function TransactionStepper(props: {
   queuedDate: string;
@@ -40,12 +60,12 @@ export function TransactionStepper(props: {
 
   const { activeStep } = useSteps({
     index: step,
-    count: !!props.packageRef ? 4 : 3,
+    count: props.packageRef ? 4 : 3,
   });
 
   const orientation = useBreakpointValue({
-    base: 'vertical' as OrientationType,
-    md: 'horizontal' as OrientationType,
+    base: 'vertical' as Orientation,
+    md: 'horizontal' as Orientation,
   });
 
   const queuedTimeAgo = useMemo(
@@ -138,17 +158,8 @@ export function TransactionStepper(props: {
           </StepIndicator>
 
           <Box flexShrink="0">
-            <StepTitle
-              textTransform={'uppercase'}
-              letterSpacing={'1px'}
-              fontFamily={'var(--font-miriam)'}
-              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-            >
-              Queue
-            </StepTitle>
-            <StepDescription color="gray.300">
-              added {queuedTimeAgo}
-            </StepDescription>
+            <StepTitle>Queue</StepTitle>
+            <StepDescription>added {queuedTimeAgo}</StepDescription>
           </Box>
 
           <StepSeparator
@@ -169,15 +180,8 @@ export function TransactionStepper(props: {
           </StepIndicator>
 
           <Box flexShrink="0">
-            <StepTitle
-              textTransform={'uppercase'}
-              letterSpacing={'1px'}
-              fontFamily={'var(--font-miriam)'}
-              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-            >
-              Sign
-            </StepTitle>
-            <StepDescription color="gray.300">
+            <StepTitle>Sign</StepTitle>
+            <StepDescription>
               {props.signers?.length || 0} of {props.threshold || 0} signed
               {props.signers?.length > 0 && (
                 <Popover trigger="hover">
@@ -223,15 +227,8 @@ export function TransactionStepper(props: {
           </StepIndicator>
 
           <Box flexShrink="0">
-            <StepTitle
-              textTransform={'uppercase'}
-              letterSpacing={'1px'}
-              fontFamily={'var(--font-miriam)'}
-              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-            >
-              Execute
-            </StepTitle>
-            <StepDescription color="gray.300">
+            <StepTitle>Execute</StepTitle>
+            <StepDescription>
               {props.transactionHash ? (
                 <>
                   {`${props.transactionHash.substring(
@@ -273,15 +270,8 @@ export function TransactionStepper(props: {
             </StepIndicator>
 
             <Box flexShrink="0">
-              <StepTitle
-                textTransform={'uppercase'}
-                letterSpacing={'1px'}
-                fontFamily={'var(--font-miriam)'}
-                textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-              >
-                Publish
-              </StepTitle>
-              <StepDescription color="gray.300">
+              <StepTitle>Publish</StepTitle>
+              <StepDescription>
                 {props.packageRef}
                 {props.packagePublished && (
                   <Link
