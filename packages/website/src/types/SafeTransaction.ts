@@ -13,7 +13,7 @@ export type SafeTransaction = {
   _nonce: number;
   transactionHash?: string;
   safeTxHash?: string;
-  submissionDate: string;
-  confirmationsRequired: number;
-  confirmedSigners: Address[];
+  submissionDate?: string;
+  confirmationsRequired?: number;
+  confirmedSigners?: Address[];
 };
