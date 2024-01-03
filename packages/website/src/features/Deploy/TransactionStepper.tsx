@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as Chains from 'wagmi/chains';
 
 type Orientation = 'horizontal' | 'vertical';
@@ -47,21 +47,13 @@ export function TransactionStepper(props: {
   chainId: number;
   cannonPackage: any;
   safeTxn: SafeTransaction | null;
+  published: boolean;
+  publishable: boolean;
 }) {
-  const packagePublished = !!props.cannonPackage.pkgUrl;
+  const packagePublished = props.published;
   const transactionHash = props.safeTxn?.transactionHash;
   const signers = props.safeTxn?.confirmedSigners ?? [];
   const threshold = props.safeTxn?.confirmationsRequired ?? 0;
-
-  let step = 1;
-  if (packagePublished) {
-    step = 4;
-  } else if (transactionHash) {
-    step = 3;
-  } else if (signers.length >= threshold) {
-    step = 2;
-  }
-
   const packageRef = props.cannonPackage?.resolvedName?.length
     ? `${props.cannonPackage.resolvedName}:${
         props.cannonPackage.resolvedVersion
@@ -72,10 +64,23 @@ export function TransactionStepper(props: {
       }`
     : undefined;
 
-  const { activeStep } = useSteps({
-    index: step,
-    count: packageRef ? 4 : 3,
+  const { activeStep, setActiveStep } = useSteps({
+    index: 1,
+    count: props.publishable ? 4 : 3,
   });
+
+  let step = 1;
+  if (packagePublished) {
+    step = 4;
+  } else if (transactionHash) {
+    step = 3;
+  } else if (signers.length >= threshold) {
+    step = 2;
+  }
+  
+  useEffect(() => {
+    setActiveStep(step)
+  }, [step]);
 
   const orientation = useBreakpointValue({
     base: 'vertical' as Orientation,
@@ -277,7 +282,7 @@ export function TransactionStepper(props: {
             width={orientation == 'vertical' ? '1px !important' : undefined}
           />
         </Step>
-        {!!packageRef && (
+        {props.publishable && (
           <Step key={4}>
             <StepIndicator
               borderWidth="1px !important"

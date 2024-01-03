@@ -112,6 +112,14 @@ const TransactionDetailsPage: FC<{
       : ''
   );
 
+  // then reverse check the package referenced by the
+  const {
+    pkgUrl: existingRegistryUrl
+  } = useCannonPackage(
+    `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`,
+    parsedChainId
+  );
+
   return (
     <>
       {!hintData && (
@@ -144,6 +152,8 @@ const TransactionDetailsPage: FC<{
                     chainId={parsedChainId}
                     cannonPackage={cannonPackage}
                     safeTxn={safeTxn}
+                    published={existingRegistryUrl == hintData?.cannonPackage}
+                    publishable={hintData.type == 'deploy'}
                   />
                 </Box>
               )}
@@ -155,7 +165,7 @@ const TransactionDetailsPage: FC<{
               safe={safe}
               safeTxn={safeTxn as any}
               verify={parsedNonce >= safeNonce}
-              allowPublishing
+              allowPublishing={hintData.type == 'deploy'}
             />
             {stager.alreadySigned && (
               <Alert status="success">Transaction successfully signed!</Alert>

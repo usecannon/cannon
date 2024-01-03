@@ -294,16 +294,7 @@ function QueueTransactions() {
         </Box>
       )}
       {(isAddress(target) || cannonInfo.contracts) && (
-        <Box
-          mb={8}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
+        <Box>
           {isAddress(target) && (
             <Box mb="6">
               {funcIsPayable && (

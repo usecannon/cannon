@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import {
-  Box,
   Button,
   FormControl,
   FormHelperText,
@@ -15,7 +14,6 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { CheckIcon } from '@chakra-ui/icons';
 import { useCannonPackage } from '@/hooks/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useStore } from '@/helpers/store';
@@ -120,7 +118,7 @@ export default function PublishUtility(props: {
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text opacity={0.8}>
-        <Spinner boxSize={3} mr={1} /> Loading
+        <Spinner boxSize={3} mx='auto' />
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
@@ -173,28 +171,14 @@ export default function PublishUtility(props: {
     );
   } else {
     return (
-      <Box
-        display="inline-block"
-        borderRadius="lg"
-        bg="blackAlpha.300"
-        px={4}
-        py={3}
-      >
-        <Box
-          backgroundColor="green"
-          borderRadius="full"
-          display="inline-flex"
-          alignItems="center"
-          justifyContent="center"
-          boxSize={5}
-          mr={2.5}
-        >
-          <CheckIcon color="white" boxSize={2.5} />
-        </Box>
-        <Text fontWeight="bold" display="inline">
-          Published to Registry
-        </Text>
-      </Box>
+      <Button
+      w="100%"
+      isDisabled
+      colorScheme='teal'
+      mt={4}
+    >
+      Packaged Published
+    </Button>
     );
   }
 }

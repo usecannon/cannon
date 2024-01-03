@@ -176,6 +176,12 @@ export function TransactionDisplay(props: {
   return (
     <Box>
       <Box mb="6">
+
+      {props.allowPublishing && 
+      <Button mb="6" size="xs" onClick={onOpen}>
+        Review Git Diff
+      </Button>}
+
         <Box maxW="100%" overflowX="scroll">
           {hintData.txns.map((txn, i) => (
             <Box key={`tx-${i}`} mb={8}>
@@ -188,13 +194,9 @@ export function TransactionDisplay(props: {
         </Box>
       </Box>
 
-      <Button mb="6" size="xs" onClick={onOpen}>
-        Review Git Diff
-      </Button>
-
       <Modal size="full" isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent background="gray.900">
           <ModalCloseButton />
           <ModalBody>
             {patches.map((p) => {
@@ -334,24 +336,11 @@ export function TransactionDisplay(props: {
           </OrderedList>
         </Box>
       ) : (
-        hintData.type === 'deploy' &&
         props.allowPublishing && (
-          <Box
-            bg="blackAlpha.600"
-            border="1px solid"
-            borderColor="gray.900"
-            borderRadius="md"
-            p={6}
-            mb={6}
-          >
-            <Heading size="md" mb="1.5">
-              Cannon Package
-            </Heading>
             <PublishUtility
               deployUrl={hintData.cannonPackage}
               targetChainId={props.safe.chainId}
             />
-          </Box>
         )
       )}
     </Box>
