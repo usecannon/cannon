@@ -621,7 +621,9 @@ function QueueFromGitOps() {
           )}
           {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
             <Box mt="8">
-              <Heading size="md" mb={2}>Transactions</Heading>
+              <Heading size="md" mb={2}>
+                Transactions
+              </Heading>
               <TransactionDisplay
                 safe={currentSafe as any}
                 safeTxn={stager.safeTxn}
