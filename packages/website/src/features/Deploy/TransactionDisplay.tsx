@@ -16,11 +16,14 @@ import {
   AlertTitle,
   Alert as ChakraAlert,
   Grid,
+  HStack,
+  Tooltip,
+  useToast,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import { Diff, parseDiff } from 'react-diff-view';
 import { hexToString, TransactionRequestBase } from 'viem';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId, useContractWrite } from 'wagmi';
 import { useTxnStager } from '@/hooks/backend';
 import {
   useCannonBuild,
@@ -41,16 +44,20 @@ import { useEffect } from 'react';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { GitHub } from 'react-feather';
 import * as Chains from 'wagmi/chains';
+import { links } from '@/constants/links';
+import { useRouter } from 'next/navigation';
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
   safe: SafeDefinition;
-  verify?: boolean;
   allowPublishing?: boolean;
+  parsedNonce: number;
+  safeNonce: number;
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const account = useAccount();
-
+  const walletChainId = useChainId();
+  const verify = props.parsedNonce >= props.safeNonce;
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(
@@ -116,13 +123,13 @@ export function TransactionDisplay(props: {
 
   useEffect(
     () => buildInfo.doBuild(),
-    [
-      props.verify &&
-        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-    ]
+    [verify && (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)]
   );
 
   const stager = useTxnStager(props.safeTxn, { safe: props.safe });
+  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const router = useRouter();
+  const toast = useToast();
 
   if (hintData?.cannonPackage && !cannonInfo.contracts) {
     return (
@@ -166,21 +173,13 @@ export function TransactionDisplay(props: {
     return fileNames;
   };
 
-  function generateSignerLabel(s: string) {
-    if (s === account.address) {
-      return 'you';
-    }
-
-    return null;
-  }
-
   if (!hintData) {
     return <Alert status="info">Could not parse the transaction.</Alert>;
   }
 
   const remainingSignatures =
     Number(stager.requiredSigners) - stager.existingSigners.length;
-  const signers = props.verify
+  const signers = verify
     ? stager.existingSigners
     : props.safeTxn?.confirmedSigners;
   const etherscanUrl =
@@ -297,7 +296,7 @@ export function TransactionDisplay(props: {
       </Box>
       <Box position="relative">
         <Box position="sticky" top={8}>
-          {props.verify && hintData.type === 'deploy' && (
+          {verify && hintData.type === 'deploy' && (
             <Box
               background="gray.800"
               p={4}
@@ -398,12 +397,72 @@ export function TransactionDisplay(props: {
               </Box>
             ))}
 
-            {props.verify && remainingSignatures > 0 && (
+            {verify && remainingSignatures > 0 && (
               <Text mt="2">
                 {remainingSignatures} more{' '}
                 {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
                 required.
               </Text>
+            )}
+
+            {stager.alreadySigned && (
+              <Box mt={4}>
+                <Alert status="success">Transaction signed</Alert>
+              </Box>
+            )}
+            {!stager.alreadySigned && props.parsedNonce >= props.safeNonce && (
+              <Box>
+                {account.isConnected && walletChainId === props.safe.chainId ? (
+                  <HStack
+                    gap="6"
+                    mt={4}
+                    marginLeft={'auto'}
+                    marginRight={'auto'}
+                  >
+                    <Tooltip label={stager.signConditionFailed}>
+                      <Button
+                        size="lg"
+                        w="100%"
+                        isDisabled={
+                          (props.safeTxn && !!stager.signConditionFailed) as any
+                        }
+                        onClick={() => stager.sign()}
+                      >
+                        Sign
+                      </Button>
+                    </Tooltip>
+                    <Tooltip label={stager.execConditionFailed}>
+                      <Button
+                        size="lg"
+                        w="100%"
+                        isDisabled={
+                          (props.safeTxn && !!stager.execConditionFailed) as any
+                        }
+                        onClick={async () => {
+                          if (execTxn.writeAsync) {
+                            await execTxn.writeAsync();
+                            router.push(links.DEPLOY);
+                            toast({
+                              title:
+                                'You successfully executed the transaction.',
+                              status: 'success',
+                              duration: 5000,
+                              isClosable: true,
+                            });
+                          }
+                        }}
+                      >
+                        Execute
+                      </Button>
+                    </Tooltip>
+                  </HStack>
+                ) : (
+                  <Text align={'center'}>
+                    Please connect a wallet and ensure its connected to the
+                    correct network to sign!
+                  </Text>
+                )}
+              </Box>
             )}
           </Box>
         </Box>

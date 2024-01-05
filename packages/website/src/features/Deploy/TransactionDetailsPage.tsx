@@ -1,31 +1,17 @@
 'use client';
 
 import { FC } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  Box,
-  Button,
-  Container,
-  Heading,
-  HStack,
-  Text,
-  Tooltip,
-  useToast,
-  Spinner,
-} from '@chakra-ui/react';
+import { Box, Container, Heading, Text, Spinner } from '@chakra-ui/react';
 import _ from 'lodash';
 import { Address, isAddress, zeroAddress } from 'viem';
-import { useAccount, useChainId, useContractWrite } from 'wagmi';
 import 'react-diff-view/style/index.css';
-import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
+import { useSafeTransactions } from '@/hooks/backend';
 import { useCannonPackage } from '@/hooks/cannon';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { parseHintedMulticall } from '@/helpers/cannon';
 import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { Alert } from '@/components/Alert';
-import { links } from '@/constants/links';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 
@@ -44,11 +30,6 @@ const TransactionDetailsPage: FC<{
   } catch (e) {
     // nothing
   }
-
-  const walletChainId = useChainId();
-  const account = useAccount();
-
-  const router = useRouter();
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
@@ -84,25 +65,6 @@ const TransactionDetailsPage: FC<{
           (!sigHash || sigHash === getSafeTransactionHash(safe, s.txn))
       )?.txn || null;
   }
-
-  const toast = useToast();
-
-  const stager = useTxnStager(safeTxn || {}, {
-    safe: {
-      chainId: parseInt(chainId ?? '') as any,
-      address: safeAddress as Address,
-    },
-    onSignComplete: () => {
-      router.push(links.DEPLOY);
-      toast({
-        title: 'You successfully signed the transaction.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
-  const execTxn = useContractWrite(stager.executeTxnConfig);
 
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
@@ -162,66 +124,10 @@ const TransactionDetailsPage: FC<{
             <TransactionDisplay
               safe={safe}
               safeTxn={safeTxn as any}
-              verify={parsedNonce >= safeNonce}
+              parsedNonce={parsedNonce}
+              safeNonce={Number(safeNonce)}
               allowPublishing={hintData.type == 'deploy'}
             />
-            {stager.alreadySigned && (
-              <Alert status="success">Transaction successfully signed!</Alert>
-            )}
-            {!stager.alreadySigned && parsedNonce >= safeNonce && (
-              <Box>
-                {account.isConnected && walletChainId === parsedChainId ? (
-                  <HStack
-                    gap="6"
-                    marginTop="20px"
-                    marginLeft={'auto'}
-                    marginRight={'auto'}
-                  >
-                    <Tooltip label={stager.signConditionFailed}>
-                      <Button
-                        size="lg"
-                        w="100%"
-                        isDisabled={
-                          (safeTxn && !!stager.signConditionFailed) as any
-                        }
-                        onClick={() => stager.sign()}
-                      >
-                        Sign
-                      </Button>
-                    </Tooltip>
-                    <Tooltip label={stager.execConditionFailed}>
-                      <Button
-                        size="lg"
-                        w="100%"
-                        isDisabled={
-                          (safeTxn && !!stager.execConditionFailed) as any
-                        }
-                        onClick={async () => {
-                          if (execTxn.writeAsync) {
-                            await execTxn.writeAsync();
-                            router.push(links.DEPLOY);
-                            toast({
-                              title:
-                                'You successfully executed the transaction.',
-                              status: 'success',
-                              duration: 5000,
-                              isClosable: true,
-                            });
-                          }
-                        }}
-                      >
-                        Execute
-                      </Button>
-                    </Tooltip>
-                  </HStack>
-                ) : (
-                  <Text align={'center'}>
-                    Please connect a wallet and ensure its connected to the
-                    correct network to sign!
-                  </Text>
-                )}
-              </Box>
-            )}
           </Container>
         </Box>
       )}
