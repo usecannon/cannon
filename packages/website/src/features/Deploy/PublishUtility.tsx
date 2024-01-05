@@ -118,7 +118,7 @@ export default function PublishUtility(props: {
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text opacity={0.8}>
-        <Spinner boxSize={3} mx='auto' />
+        <Spinner boxSize={3} mx="auto" />
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
@@ -170,8 +170,6 @@ export default function PublishUtility(props: {
       </FormControl>
     );
   } else {
-    return (
-      <></>
-    );
+    return <></>;
   }
 }

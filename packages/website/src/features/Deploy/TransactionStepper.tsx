@@ -78,9 +78,9 @@ export function TransactionStepper(props: {
   } else if (signers.length >= threshold) {
     step = 2;
   }
-  
+
   useEffect(() => {
-    setActiveStep(step)
+    setActiveStep(step);
   }, [step]);
 
   const orientation = useBreakpointValue({
@@ -299,19 +299,23 @@ export function TransactionStepper(props: {
             <Box flexShrink="0">
               <StepTitle>Publish</StepTitle>
               <StepDescription>
-                {packageRef ? <>
-                {packageRef}
-                {packagePublished && (
-                  <Link
-                    isExternal
-                    styleConfig={{ 'text-decoration': 'none' }}
-                    href={`/packages/${packageName}/${version}/${props.chainId}-${preset}`}
-                    ml={1}
-                  >
-                    <ExternalLinkIcon transform="translateY(-0.5px)" />
-                  </Link>
+                {packageRef ? (
+                  <>
+                    {packageRef}
+                    {packagePublished && (
+                      <Link
+                        isExternal
+                        styleConfig={{ 'text-decoration': 'none' }}
+                        href={`/packages/${packageName}/${version}/${props.chainId}-${preset}`}
+                        ml={1}
+                      >
+                        <ExternalLinkIcon transform="translateY(-0.5px)" />
+                      </Link>
+                    )}
+                  </>
+                ) : (
+                  <Spinner size="xs" />
                 )}
-                </> : <Spinner size="xs" />}
               </StepDescription>
             </Box>
 

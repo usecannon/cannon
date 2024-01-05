@@ -113,9 +113,7 @@ const TransactionDetailsPage: FC<{
   );
 
   // then reverse check the package referenced by the
-  const {
-    pkgUrl: existingRegistryUrl
-  } = useCannonPackage(
+  const { pkgUrl: existingRegistryUrl } = useCannonPackage(
     `${cannonPackage.resolvedName}:${cannonPackage.resolvedVersion}@${cannonPackage.resolvedPreset}`,
     parsedChainId
   );
