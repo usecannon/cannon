@@ -171,14 +171,7 @@ export default function PublishUtility(props: {
     );
   } else {
     return (
-      <Button
-      w="100%"
-      isDisabled
-      colorScheme='teal'
-      mt={4}
-    >
-      Packaged Published
-    </Button>
+      <></>
     );
   }
 }

@@ -18,6 +18,7 @@ import {
   useBreakpointValue,
   useSteps,
   chakra,
+  Spinner,
 } from '@chakra-ui/react';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
@@ -298,6 +299,7 @@ export function TransactionStepper(props: {
             <Box flexShrink="0">
               <StepTitle>Publish</StepTitle>
               <StepDescription>
+                {packageRef ? <>
                 {packageRef}
                 {packagePublished && (
                   <Link
@@ -309,6 +311,7 @@ export function TransactionStepper(props: {
                     <ExternalLinkIcon transform="translateY(-0.5px)" />
                   </Link>
                 )}
+                </> : <Spinner size="xs" />}
               </StepDescription>
             </Box>
 
