@@ -3,6 +3,7 @@ import {
   Button,
   FormControl,
   FormHelperText,
+  Link,
   Spinner,
   Text,
 } from '@chakra-ui/react';
@@ -17,6 +18,7 @@ import {
 import { useCannonPackage } from '@/hooks/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useStore } from '@/helpers/store';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -44,6 +46,13 @@ export default function PublishUtility(props: {
     `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
     props.targetChainId
   );
+
+  const packageUrl = `/packages/${resolvedName}/${
+    resolvedVersion || 'latest'
+  }/${props.targetChainId}-${resolvedPreset || 'main'}`;
+  const packageDisplay = `${resolvedName}${
+    resolvedVersion ? ':' + resolvedVersion : ''
+  }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const publishMutation = useMutation({
     mutationFn: async () => {
@@ -170,6 +179,15 @@ export default function PublishUtility(props: {
       </FormControl>
     );
   } else {
-    return <></>;
+    return (
+      <>
+        <Text fontSize="xs">
+          <Link href={packageUrl}>
+            {packageDisplay}
+            <ExternalLinkIcon ml={1} transform="translateY(-0.5px)" />
+          </Link>
+        </Text>
+      </>
+    );
   }
 }

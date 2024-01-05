@@ -158,7 +158,7 @@ const TransactionDetailsPage: FC<{
             </Container>
           </Box>
 
-          <Container maxW="container.md" mt={8}>
+          <Container maxW="container.lg" mt={8}>
             <TransactionDisplay
               safe={safe}
               safeTxn={safeTxn as any}
