@@ -13,9 +13,9 @@ function clean_env () {
   fi
 }
 
-for f in e2e/*; do
+for f in test/e2e/*; do
   clean_env
   echo -e "${BOLD}TEST $f${NC}"
   bash $f 
-  rm -rf $HOME/.local/share/cannon
+  rm -rf $HOME/.local/share/cannon-untest
 done
