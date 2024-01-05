@@ -339,7 +339,7 @@ function QueueTransactions() {
           )}
 
           {cannonInfo.contracts && (
-            <Box mb="6">
+            <Box>
               {stager.signConditionFailed && (
                 <Alert bg="gray.800" status="error" mb={4}>
                   <AlertIcon />

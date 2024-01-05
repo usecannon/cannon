@@ -620,7 +620,8 @@ function QueueFromGitOps() {
             </Alert>
           )}
           {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
-            <Box mt="6">
+            <Box mt="8">
+              <Heading size="md" mb={2}>Transactions</Heading>
               <TransactionDisplay
                 safe={currentSafe as any}
                 safeTxn={stager.safeTxn}
@@ -638,7 +639,7 @@ function QueueFromGitOps() {
             </Text>
           )}
           {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-            <Box my="6">
+            <Box>
               <NoncePicker
                 safe={currentSafe as any}
                 onPickedNonce={setPickedNonce}
