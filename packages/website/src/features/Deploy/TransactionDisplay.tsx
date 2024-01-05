@@ -1,21 +1,20 @@
-import { CheckIcon, ExternalLinkIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Box,
-  Button,
   Flex,
-  Heading,
-  ListItem,
-  OrderedList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
   Text,
+  Link,
+  useDisclosure,
+  AlertDescription,
+  AlertTitle,
+  Alert as ChakraAlert,
 } from '@chakra-ui/react';
-import _ from 'lodash';
 import { Diff, parseDiff } from 'react-diff-view';
-import { hexToString, TransactionRequestBase } from 'viem';
-import { useAccount } from 'wagmi';
-import { useTxnStager } from '@/hooks/backend';
 import {
-  useCannonBuild,
-  useCannonPackage,
   useCannonPackageContracts,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
@@ -24,20 +23,17 @@ import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { createSimulationData } from '@/helpers/safe';
 import { Alert } from '@/components/Alert';
 import { DisplayedTransaction } from './DisplayedTransaction';
-import PublishUtility from './PublishUtility';
-import { useEffect } from 'react';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { GitHub } from 'react-feather';
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
   safe: SafeDefinition;
-  verify?: boolean;
   allowPublishing?: boolean;
 }) {
-  const account = useAccount();
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const hintData = parseHintedMulticall(props.safeTxn?.data);
 
   const cannonInfo = useCannonPackageContracts(
@@ -68,20 +64,6 @@ export function TransactionDisplay(props: {
         : hintData?.gitRepoHash;
   }
 
-  const prevDeployPackageUrl = prevDeployHashQuery.data
-    ? hexToString(prevDeployHashQuery.data[1].result || ('' as any))
-    : '';
-
-  const prevCannonDeployInfo = useCannonPackage(
-    (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl
-      ? `@ipfs:${_.last(
-          (hintData?.cannonUpgradeFromPackage || prevDeployPackageUrl).split(
-            '/'
-          )
-        )}`
-      : null) || ''
-  );
-
   const cannonDefInfo = useLoadCannonDefinition(
     gitUrl ?? '',
     hintData?.gitRepoHash ?? '',
@@ -95,42 +77,6 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
-  const buildInfo = useCannonBuild(
-    props.safe,
-    cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any
-  );
-
-  useEffect(
-    () => buildInfo.doBuild(),
-    [
-      props.verify &&
-        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
-    ]
-  );
-
-  const stager = useTxnStager(props.safeTxn, { safe: props.safe });
-
-  if (hintData?.cannonPackage && !cannonInfo.contracts) {
-    return <Alert status="info">Parsing transaction data...</Alert>;
-  }
-
-  // compare proposed build info with expected transaction batch
-  const expectedTxns = buildInfo.buildResult?.steps?.map(
-    (s) => s.tx as unknown as Partial<TransactionRequestBase>
-  );
-
-  const unequalTransaction =
-    expectedTxns &&
-    (hintData?.txns.length !== expectedTxns.length ||
-      hintData?.txns.find((t, i) => {
-        return (
-          t.to.toLowerCase() !== expectedTxns[i].to?.toLowerCase() ||
-          t.data !== expectedTxns[i].data ||
-          t.value.toString() !== expectedTxns[i].value?.toString()
-        );
-      }));
-
   const parseDiffFileNames = (diffString: string): string[] => {
     const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
     let match;
@@ -141,12 +87,20 @@ export function TransactionDisplay(props: {
     return fileNames;
   };
 
-  function generateSignerLabel(s: string) {
-    if (s === account.address) {
-      return 'you';
-    }
-
-    return null;
+  if (hintData?.cannonPackage && !cannonInfo.contracts) {
+    return (
+      <Box
+        py="20"
+        alignItems="center"
+        justifyContent="center"
+        textAlign="center"
+      >
+        <CustomSpinner mx="auto" mb="2" />
+        <Text fontSize="sm" color="gray.400">
+          Parsing transaction data...
+        </Text>
+      </Box>
+    );
   }
 
   if (!hintData) {
@@ -155,174 +109,106 @@ export function TransactionDisplay(props: {
 
   return (
     <Box>
-      {hintData.gitRepoUrl && (
-        <Box mb="6">
-          <Heading size="md" mb={1}>
-            Git Target
-          </Heading>
-          {hintData.gitRepoUrl}@{hintData.gitRepoHash}
-        </Box>
-      )}
+      {props.allowPublishing && (
+        <>
+          <ChakraAlert
+            bg="gray.800"
+            border="1px solid"
+            borderColor="gray.700"
+            mb={8}
+          >
+            <GitHub strokeWidth={1.5} />
+            <Box ml={2.5}>
+              <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
+                GitOps Deployment
+              </AlertTitle>
+              <AlertDescription display="block" lineHeight={1} fontSize="sm">
+                These transactions were generated by{' '}
+                <Link onClick={onOpen}>
+                  modifying {Array.from(cannonDefInfo?.filesList || [])?.length}{' '}
+                  cannonfiles
+                </Link>{' '}
+                in{' '}
+                <Link isExternal href={gitUrl}>
+                  this repository
+                </Link>
+                .
+              </AlertDescription>
+            </Box>
+          </ChakraAlert>
 
-      <Box mb="8">
-        {patches.map((p) => {
-          if (!p) {
-            return [];
-          }
-
-          try {
-            const { oldRevision, newRevision, type, hunks } = parseDiff(p)[0];
-            return (
-              <Box
-                bg="gray.900"
-                borderRadius="sm"
-                overflow="hidden"
-                fontSize="xs"
-                mb={4}
-              >
-                <Flex
-                  bg="blackAlpha.300"
-                  direction="row"
-                  py="1"
-                  fontWeight="semibold"
-                >
-                  <Box w="50%" px={2} py={1}>
-                    {parseDiffFileNames(p)[0]}
+          <Modal size="full" isOpen={isOpen} onClose={onClose}>
+            <ModalOverlay />
+            <ModalContent background="gray.900">
+              <ModalCloseButton />
+              <ModalBody>
+                <Flex>
+                  <Box w="50%" px={2} py={1} fontWeight="semibold">
+                    {prevDeployGitHash}
                   </Box>
-                  <Box w="50%" px={2} py={1}>
-                    {parseDiffFileNames(p)[1]}
+                  <Box w="50%" px={2} py={1} fontWeight="semibold">
+                    {hintData?.gitRepoHash}
                   </Box>
                 </Flex>
-                <Diff
-                  key={oldRevision + '-' + newRevision}
-                  viewType="split"
-                  diffType={type}
-                  hunks={hunks}
-                />
-              </Box>
-            );
-          } catch (err) {
-            console.debug('diff didnt work:', err);
+                {patches.map((p) => {
+                  if (!p) {
+                    return [];
+                  }
 
-            return [];
-          }
-        })}
-      </Box>
-      <Box mb="6">
-        <Heading size="md">Transactions</Heading>
-        <Box maxW="100%" overflowX="scroll">
-          {hintData.txns.map((txn, i) => (
+                  try {
+                    const { oldRevision, newRevision, type, hunks } =
+                      parseDiff(p)[0];
+                    return (
+                      <Box
+                        bg="gray.900"
+                        borderRadius="sm"
+                        overflow="hidden"
+                        fontSize="xs"
+                        mb={2}
+                      >
+                        <Flex
+                          bg="blackAlpha.300"
+                          direction="row"
+                          py="1"
+                          fontWeight="semibold"
+                        >
+                          <Box w="50%" px={2} py={1}>
+                            {parseDiffFileNames(p)[0]}
+                          </Box>
+                          <Box w="50%" px={2} py={1}>
+                            {parseDiffFileNames(p)[1]}
+                          </Box>
+                        </Flex>
+                        <Diff
+                          key={oldRevision + '-' + newRevision}
+                          viewType="split"
+                          diffType={type}
+                          hunks={hunks}
+                        />
+                      </Box>
+                    );
+                  } catch (err) {
+                    console.debug('diff didnt work:', err);
+
+                    return [];
+                  }
+                })}
+              </ModalBody>
+            </ModalContent>
+          </Modal>
+        </>
+      )}
+
+      <Box maxW="100%" overflowX="scroll">
+        {hintData.txns.map((txn, i) => (
+          <Box key={`tx-${i}`} mb={8}>
             <DisplayedTransaction
-              key={`tx-${i}`}
               contracts={cannonInfo.contracts as any}
               txn={txn}
             />
-          ))}
-        </Box>
-      </Box>
-      {props.verify && hintData.type === 'deploy' && (
-        <Box mb="4">
-          <Heading size="md" mb="3">
-            Verify Queued Transactions
-          </Heading>
-          {buildInfo.buildStatus && (
-            <Alert status="info">
-              <strong>{buildInfo.buildStatus}</strong>
-            </Alert>
-          )}
-          {buildInfo.buildError && (
-            <Alert status="error">
-              <strong>{buildInfo.buildError}</strong>
-            </Alert>
-          )}
-          {buildInfo.buildResult && !unequalTransaction && (
-            <Box
-              display="inline-block"
-              borderRadius="lg"
-              bg="blackAlpha.300"
-              px={4}
-              py={3}
-            >
-              <Box
-                backgroundColor="green"
-                borderRadius="full"
-                display="inline-flex"
-                alignItems="center"
-                justifyContent="center"
-                boxSize={5}
-                mr={2.5}
-              >
-                <CheckIcon color="white" boxSize={2.5} />
-              </Box>
-              <Text fontWeight="bold" display="inline">
-                The transactions queued to the Safe match the Git Target
-              </Text>
-            </Box>
-          )}
-          {buildInfo.buildResult && unequalTransaction && (
-            <Text color="red" as="b">
-              <WarningIcon />
-              &nbsp;Proposed Transactions Do not Match Git Diff. Could be an
-              attack.
-            </Text>
-          )}
-          {prevDeployPackageUrl &&
-            hintData.cannonUpgradeFromPackage !== prevDeployPackageUrl && (
-              <Text color="orange">
-                <WarningIcon />
-                &nbsp;Previous Deploy Hash does not derive from on-chain record
-              </Text>
-            )}
-        </Box>
-      )}
-      {props.verify ? (
-        <Box mb={8}>
-          <Button
-            size="xs"
-            as="a"
-            mb={8}
-            href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-              props.safe.address
-            }&gas=${8000000}&gasPrice=0&value=${
-              props.safeTxn?.value
-            }&contractAddress=${
-              props.safe?.address
-            }&rawFunctionInput=${createSimulationData(props.safeTxn)}&network=${
-              props.safe.chainId
-            }&headerBlockNumber=&headerTimestamp=`}
-            colorScheme="purple"
-            rightIcon={<ExternalLinkIcon />}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Simulate on Tenderly
-          </Button>
-          <Heading size="md" mb="2">
-            Signatures ({stager.existingSigners.length}/
-            {Number(stager.requiredSigners)})
-          </Heading>
-          <OrderedList fontSize="lg">
-            {stager.existingSigners.map((s, index) => (
-              <ListItem key={index} mb={1}>
-                {generateSignerLabel(s) && `(${generateSignerLabel(s)})`} {s}
-              </ListItem>
-            ))}
-          </OrderedList>
-        </Box>
-      ) : (
-        hintData.type === 'deploy' &&
-        props.allowPublishing && (
-          <Box>
-            <Heading size="md" mb="1.5">
-              Cannon Package
-            </Heading>
-            <PublishUtility
-              deployUrl={hintData.cannonPackage}
-              targetChainId={props.safe.chainId}
-            />
           </Box>
-        )
-      )}
+        ))}
+      </Box>
     </Box>
   );
 }

@@ -112,6 +112,9 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
           _nonce: tx.nonce,
           transactionHash: tx.transactionHash,
           safeTxHash: tx.safeTxHash,
+          submissionDate: tx.submissionDate,
+          confirmationsRequired: tx.confirmationsRequired,
+          confirmedSigners: tx.confirmations?.map((confirmation) => confirmation.owner),
         })) as unknown as SafeTransaction[],
     };
   });
