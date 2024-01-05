@@ -26,7 +26,7 @@ export class IPFSLoader implements CannonLoader {
 
   async checkGateway() {
     if (this.gatewayChecked) return;
-    this.isGateway = await isIpfsGateway(this.ipfsUrl);
+    this.isGateway = await isIpfsGateway(this.ipfsUrl, this.customHeaders);
     this.gatewayChecked = true;
   }
 

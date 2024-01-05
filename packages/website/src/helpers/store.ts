@@ -107,11 +107,12 @@ const useStore = create<Store>()(
         }));
       },
     }),
-    // Persist only settings and safe addresses on local storage
+    // Persist only settings, current safe and safe addresses on local storage
     {
       name: 'cannon-state',
       partialize: (state) => ({
         settings: state.settings,
+        currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
       }),
       merge: (persisted, initial) => deepmerge(initial, persisted) as Store,
