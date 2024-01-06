@@ -30,14 +30,14 @@ export const ChainFilter: FC<ChainFilterProps> = ({
       display="flex"
       alignItems="center"
       borderWidth="1px"
-      borderColor={isSelected ? 'gray.600' : 'gray.700'}
+      borderColor={isSelected ? 'gray.700' : 'gray.700'}
       bg={isSelected ? 'gray.700' : ''}
       key={id}
       mb={2}
       px={2}
       py={1}
       borderRadius="md"
-      _hover={{ background: isSelected ? 'whiteAlpha.200' : 'blackAlpha.200' }}
+      _hover={{ background: isSelected ? 'whiteAlpha.200' : 'blackAlpha.400' }}
       onClick={() => toggleSelection(id)}
     >
       <Chain id={id} />
