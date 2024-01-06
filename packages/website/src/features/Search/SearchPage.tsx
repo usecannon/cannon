@@ -12,6 +12,11 @@ import {
   Container,
   Image,
   Link,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
 } from '@chakra-ui/react';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import {
@@ -29,9 +34,19 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { debounce } from 'lodash';
+import { ChainFilter } from './ChainFilter';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedChains, setSelectedChains] = useState<number[]>([]);
+
+  const toggleChainSelection = (id: number) => {
+    setSelectedChains((prevSelectedChains) =>
+      prevSelectedChains.includes(id)
+        ? prevSelectedChains.filter((chainId) => chainId !== id)
+        : [...prevSelectedChains, id]
+    );
+  };
 
   const { data: totalPackages, loading: totalLoading } =
     useQueryCannonSubgraphData<
@@ -120,6 +135,9 @@ export const SearchPage = () => {
     md: false,
   });
 
+  const mainnetChainIds = [13370, 1, 10, 8453];
+  const testnetChainIds = [5, 84531];
+
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
@@ -129,16 +147,78 @@ export const SearchPage = () => {
           maxWidth={['100%', '100%', '320px']}
           borderRight={isSmall ? 'none' : '1px solid'}
           borderColor="gray.700"
-          width={['100%', '100%', '320px']}
+          width={['100%', '100%', '310px']}
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >
-          <Box p={[4, 4, 8]} pb={[0, 0, 8]}>
-            <InputGroup borderColor="gray.600">
+          <Box
+            p={[4, 4, 8]}
+            pb={[0, 0, 8]}
+            maxHeight={{ base: '210px', md: 'none' }}
+            overflowY="scroll"
+            position="relative" // Added to position the pseudo-element
+            sx={{
+              '&::after': {
+                content: '""', // Necessary for the pseudo-element to work
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '12px', // Height of the shadow
+                background:
+                  'linear-gradient(to bottom, rgba(0, 0, 0, 0), #000000)', // Gradient shadow
+                display: { base: 'block', md: 'none' }, // Only show on base breakpoint
+              },
+            }}
+          >
+            <InputGroup borderColor="gray.600" mb={6}>
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.500" />
               </InputLeftElement>
               <Input onChange={(e) => debouncedHandleSearch(e.target.value)} />
             </InputGroup>
+
+            <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>
+              Filter by Chain
+            </Text>
+            {mainnetChainIds.map((id) => (
+              <ChainFilter
+                key={id}
+                id={id}
+                isSelected={selectedChains.includes(id)}
+                toggleSelection={toggleChainSelection}
+              />
+            ))}
+
+            <Accordion allowToggle>
+              <AccordionItem border="none">
+                <AccordionButton px={0} pb={0}>
+                  <Text
+                    fontWeight={500}
+                    textTransform="uppercase"
+                    letterSpacing="1px"
+                    fontFamily="var(--font-miriam)"
+                    fontSize="12px"
+                    color="gray.300"
+                    mr={0.5}
+                  >
+                    Testnets
+                  </Text>
+                  <Box transform="translateY(-0.1rem)">
+                    <AccordionIcon color="gray.300" />
+                  </Box>
+                </AccordionButton>
+                <AccordionPanel px={0} pb={0}>
+                  {testnetChainIds.map((id) => (
+                    <ChainFilter
+                      key={id}
+                      id={id}
+                      isSelected={selectedChains.includes(id)}
+                      toggleSelection={toggleChainSelection}
+                    />
+                  ))}
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
           </Box>
           <Box
             px={3}
