@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import {
+  GET_PACKAGES,
   TOTAL_PACKAGES,
   FILTERED_PACKAGES_AND_VARIANTS,
 } from '@/graphql/queries';
@@ -29,12 +30,15 @@ import {
   GetFilteredPackagesAndVariantsQuery,
   GetFilteredPackagesAndVariantsQueryVariables,
   Package,
+  GetPackagesQuery,
+  GetPackagesQueryVariables,
 } from '@/types/graphql/graphql';
 import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { debounce } from 'lodash';
 import { ChainFilter } from './ChainFilter';
+import * as chains from 'wagmi/chains';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -85,7 +89,7 @@ export const SearchPage = () => {
     const mergeResults = (
       data: GetFilteredPackagesAndVariantsQuery
     ): Package[] => {
-      const packageMap: { [key: string]: Package } = {};
+      let packageMap: { [key: string]: Package } = {};
 
       data?.packages?.forEach((pkg: any) => {
         packageMap[pkg.id] = { ...pkg };
@@ -108,6 +112,30 @@ export const SearchPage = () => {
         }
       });
 
+      const filterPackageMap = (
+        packageMap: { [key: string]: Package },
+        selectedChains: number[]
+      ): { [key: string]: Package } => {
+        const filteredMap: { [key: string]: Package } = {};
+
+        for (const [key, pkg] of Object.entries(packageMap)) {
+          // Check if any variant's chain_id matches any number in selectedChains
+          if (
+            pkg.variants.some((variant) =>
+              selectedChains.includes(variant.chain_id)
+            )
+          ) {
+            filteredMap[key] = pkg;
+          }
+        }
+
+        return filteredMap;
+      };
+
+      if (selectedChains?.length > 0) {
+        packageMap = filterPackageMap(packageMap, selectedChains);
+      }
+
       const sortedPackages = Object.values(packageMap).sort((a, b) => {
         const latestUpdatedA = a.variants.reduce(
           (maxTimestamp, variant) =>
@@ -127,7 +155,7 @@ export const SearchPage = () => {
     };
 
     setResults(data ? mergeResults(data) : []);
-  }, [loading, error, data]);
+  }, [loading, error, data, selectedChains]);
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -135,8 +163,63 @@ export const SearchPage = () => {
     md: false,
   });
 
-  const mainnetChainIds = [13370, 1, 10, 8453];
-  const testnetChainIds = [5, 84531];
+  // Chain filter stuff
+  const { data: allPackages } = useQueryCannonSubgraphData<
+    GetPackagesQuery,
+    GetPackagesQueryVariables
+  >(GET_PACKAGES, {
+    variables: {
+      first: 1000,
+      skip: 0,
+      query: searchTerm,
+    },
+  });
+
+  const getAllChainIds = (
+    packagesData: Package[]
+  ): { mainnet: number[]; testnet: number[] } => {
+    const mainnetChainIds = new Set<number>();
+    const testnetChainIds = new Set<number>();
+
+    packagesData?.forEach((packageItem) => {
+      packageItem.tags.forEach((tag) => {
+        tag.variants.forEach((variant) => {
+          if (variant.chain_id) {
+            // Check if the chain_id exists in the chains object and if it's a testnet
+            const chain = Object.values(chains).find(
+              (chain) => chain.id === variant.chain_id
+            );
+            if ((chain as any)?.testnet) {
+              testnetChainIds.add(variant.chain_id);
+            } else {
+              mainnetChainIds.add(variant.chain_id);
+            }
+          }
+        });
+      });
+    });
+
+    return {
+      mainnet: Array.from(mainnetChainIds),
+      testnet: Array.from(testnetChainIds),
+    };
+  };
+
+  // Get all chain IDs using the function
+  const { mainnet, testnet } = getAllChainIds(
+    (allPackages?.packages || []) as Package[]
+  );
+
+  // Sort the arrays in ascending order
+  const sortedMainnetChainIds = mainnet.sort((a, b) => a - b);
+  const sortedTestnetChainIds = testnet.sort((a, b) => a - b);
+
+  // Ensure 13370 is at the front of the mainnetChainIds array
+  const index13370 = sortedMainnetChainIds.indexOf(13370);
+  if (index13370 > -1) {
+    sortedMainnetChainIds.splice(index13370, 1);
+    sortedMainnetChainIds.unshift(13370);
+  }
 
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
@@ -159,7 +242,7 @@ export const SearchPage = () => {
             sx={{
               '&::after': {
                 content: '""', // Necessary for the pseudo-element to work
-                position: 'absolute',
+                position: 'sticky',
                 bottom: 0,
                 left: 0,
                 right: 0,
@@ -180,7 +263,7 @@ export const SearchPage = () => {
             <Text mb={1.5} color="gray.200" fontSize="sm" fontWeight={500}>
               Filter by Chain
             </Text>
-            {mainnetChainIds.map((id) => (
+            {sortedMainnetChainIds.map((id) => (
               <ChainFilter
                 key={id}
                 id={id}
@@ -208,7 +291,7 @@ export const SearchPage = () => {
                   </Box>
                 </AccordionButton>
                 <AccordionPanel px={0} pb={0}>
-                  {testnetChainIds.map((id) => (
+                  {sortedTestnetChainIds.map((id) => (
                     <ChainFilter
                       key={id}
                       id={id}
