@@ -59,7 +59,7 @@ export default function HomePage() {
         paths,
         {
           stroke: '#1ad6ff',
-          opacity: '0.8',
+          opacity: '1',
           duration: randomDuration,
         },
         0
@@ -72,7 +72,7 @@ export default function HomePage() {
         paths,
         {
           stroke: '#7E858F',
-          opacity: '0.4',
+          opacity: '0.75',
           duration: randomDuration,
         },
         `>-${randomDuration()}`
