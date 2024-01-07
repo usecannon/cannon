@@ -37,13 +37,6 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           >
             Upload
           </NavLink>
-          <NavLink
-            isSmall
-            href={links.IPFS_HISTORY}
-            isActive={pathname.startsWith(links.IPFS_HISTORY)}
-          >
-            History
-          </NavLink>
         </Flex>
       </Box>
       {children}

@@ -21,7 +21,7 @@ const StyledHighlighter = styled(SyntaxHighlighter)`
 
 interface ICodePreviewProps {
   code: string | string[];
-  language: string;
+  language?: string;
 }
 
 const SIZE_LIMIT = 500000; // 0.5MB
