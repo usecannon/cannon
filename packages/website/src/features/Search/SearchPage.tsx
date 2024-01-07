@@ -234,8 +234,9 @@ export const SearchPage = () => {
           maxHeight={['none', 'none', 'calc(100vh - 100px)']}
         >
           <Box
-            p={[4, 4, 8]}
-            pb={[0, 0, 8]}
+            py={[4, 4, 8]}
+            px={4}
+            pb={[0, 0, 4]}
             maxHeight={{ base: '210px', md: 'none' }}
             overflowY="scroll"
             position="relative" // Added to position the pseudo-element
@@ -253,7 +254,7 @@ export const SearchPage = () => {
               },
             }}
           >
-            <InputGroup borderColor="gray.600" mb={6}>
+            <InputGroup borderColor="gray.600" mb={[4, 4, 8]}>
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.500" />
               </InputLeftElement>
