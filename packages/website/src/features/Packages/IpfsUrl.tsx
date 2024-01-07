@@ -6,7 +6,7 @@ export const IpfsUrl: FC<{
   title?: string;
   url: string;
 }> = ({ title, url }) => {
-  const externalUrl = `https://ipfs.usecannon.com/${url?.replace(
+  const externalUrl = `/ipfs?cid=${url?.replace(
     'ipfs://',
     ''
   )}`;
