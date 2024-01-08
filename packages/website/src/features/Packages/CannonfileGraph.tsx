@@ -33,6 +33,13 @@ const GlobalStyles = createGlobalStyle`
   .node-text {
     
   }
+
+  .node-background {
+    fill: #0E1116;
+    stroke: #171B21;
+    rx: 2px;
+    ry: 2px;
+  }
 `;
 
 export const CannonfileGraph: FC<{
@@ -58,7 +65,7 @@ export const CannonfileGraph: FC<{
     // Select the SVG element and clear it
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
-    
+
     const width = svg.node().getBoundingClientRect().width;
     const height = svg.node().getBoundingClientRect().height;
 
@@ -67,8 +74,8 @@ export const CannonfileGraph: FC<{
       .forceSimulation(nodes)
       .force('link', d3.forceLink(links).id(d => d.id).strength(0.1))
       .force('charge', d3.forceManyBody().strength(-100))
-      .force('center', d3.forceCenter(width/2, height/2));
-    
+      .force('center', d3.forceCenter(width / 2, height / 2));
+
     // Create a group element for all graph elements
     const wrapper = svg.append('g');
 
@@ -79,42 +86,42 @@ export const CannonfileGraph: FC<{
     svg.call(zoom);
 
     // Define the drag behavior
-const drag = d3.drag()
-.on("start", dragstarted)
-.on("drag", dragged)
-.on("end", dragended);
+    const drag = d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended);
 
-function dragstarted(event, d) {
-if (!event.active) simulation.alphaTarget(0.3).restart();
-d.fx = d.x;
-d.fy = d.y;
-}
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
 
-function dragged(event, d) {
-d.fx = event.x;
-d.fy = event.y;
-}
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
 
-function dragended(event, d) {
-if (!event.active) simulation.alphaTarget(0);
-d.fx = null;
-d.fy = null;
-}
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
 
     // Draw lines for the links
     svg
-      .append('defs')
-      .append('marker')
-      .attr('id', 'arrow')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 25) // Adjust this depending on your node size
-      .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('class', 'arrowHead');
+    .append('defs')
+    .append('marker')
+    .attr('id', 'arrow')
+    .attr('viewBox', '0 -5 10 10') // This might need adjustment
+    .attr('refX', 5) // Adjust this depending on the new size
+    .attr('refY', 0)
+    .attr('markerWidth', 8) // Increased size
+    .attr('markerHeight', 8) // Increased size
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,-5L10,0L0,5') // Path for the arrow shape
+    .attr('class', 'arrowHead');
 
     // Append lines for links and use the arrow marker
     const link = wrapper
@@ -140,13 +147,35 @@ d.fy = null;
       .append('g')
       .attr('class', 'node');
 
-    // Append text to the node group
-    node
+    // Append text to the node group first
+    const nodeText = node
       .append('text')
       .text((d) => `[${d.id}]`)
       .attr('class', 'node-text')
       .attr('text-anchor', 'middle')
-      .attr('alignment-baseline', 'middle');
+      .attr('alignment-baseline', 'middle').on('click', function(event, d) {
+        alert(`[${d.id}]`);
+      });
+
+    // Append a rect to each node for the background
+    node.insert('rect', 'text')
+      .attr('class', 'node-background')
+      .attr('width', function () {
+        const bbox = this.nextSibling.getBBox();
+        return bbox.width + 10; // Adjust 10 to change the padding
+      })
+      .attr('height', function () {
+        const bbox = this.nextSibling.getBBox();
+        return bbox.height + 10; // Adjust 10 to change the padding
+      })
+      .attr('x', function () {
+        const bbox = this.nextSibling.getBBox();
+        return bbox.x - 5; // Half of the padding to center the background
+      })
+      .attr('y', function () {
+        const bbox = this.nextSibling.getBBox();
+        return bbox.y - 5; // Half of the padding to center the background
+      });
 
     node.call(drag);
 
@@ -161,14 +190,13 @@ d.fy = null;
       // Update the overlay lines for the arrowheads
       arrowLines.attr("x1", d => d.source.x)
         .attr("y1", d => d.source.y)
-        .attr("x2", d => d.source.x + (d.target.x - d.source.x) * 0.5) // Midpoint x
-        .attr("y2", d => d.source.y + (d.target.y - d.source.y) * 0.5); // Midpoint y
+        .attr("x2", d => d.source.x + (d.target.x - d.source.x) * 0.5) // Corrected midpoint x
+        .attr("y2", d => d.source.y + (d.target.y - d.source.y) * 0.5); // Corrected midpoint y
 
       // Update node and text positions
       node.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
     });
 
-    
     function zoomToFit() {
       const bounds = wrapper.node().getBBox();
       const dx = bounds.width;
