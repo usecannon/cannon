@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 // Create a new context
 const StepModalContext = React.createContext();
@@ -10,7 +10,11 @@ export const StepModalProvider = ({ children }) => {
   // The shared state and its updater function
   const value = { activeModule, setActiveModule };
 
-  return <StepModalContext.Provider value={value}>{children}</StepModalContext.Provider>;
+  return (
+    <StepModalContext.Provider value={value}>
+      {children}
+    </StepModalContext.Provider>
+  );
 };
 
 // Custom hook to use the context
