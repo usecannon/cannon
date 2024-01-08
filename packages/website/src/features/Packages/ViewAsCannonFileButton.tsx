@@ -34,6 +34,13 @@ export const ViewAsCannonFileButton: FC<{
   deploymentInfo: any;
 }> = ({ deploymentInfo }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  // Deep clone the deploymentInfo.def object
+  const clonedDeploymentInfoDef = deploymentInfo?.def ? JSON.parse(JSON.stringify(deploymentInfo.def)) : null;
+
+  // Apply the omitEmptyObjects function to the cloned object
+  const processedDeploymentInfo = clonedDeploymentInfoDef ? omitEmptyObjects(clonedDeploymentInfoDef) : null;
+
 
   return (
     <>
@@ -59,7 +66,7 @@ export const ViewAsCannonFileButton: FC<{
           <Box my={12}>
             <ModalCloseButton />
             <CodePreview
-              code={stringify({ ...deploymentInfo?.def })}
+              code={stringify(processedDeploymentInfo)}
               language="toml"
             />
           </Box>

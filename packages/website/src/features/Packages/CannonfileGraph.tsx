@@ -82,7 +82,10 @@ export const CannonfileGraph: FC<{
           .strength(0.1)
       )
       .force('charge', d3.forceManyBody().strength(-100))
-      .force('center', d3.forceCenter(width && width / 2, height && height / 2));
+      .force(
+        'center',
+        d3.forceCenter(width && width / 2, height && height / 2)
+      );
 
     // Create a group element for all graph elements
     const wrapper = svg.append('g');
