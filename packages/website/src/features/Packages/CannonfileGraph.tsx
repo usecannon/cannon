@@ -68,7 +68,6 @@ export const CannonfileGraph: FC<{
       .force('link', d3.forceLink(links).id(d => d.id).strength(0.1))
       .force('charge', d3.forceManyBody().strength(-100))
       .force('center', d3.forceCenter(width/2, height/2));
-
     
     // Create a group element for all graph elements
     const wrapper = svg.append('g');
@@ -79,6 +78,28 @@ export const CannonfileGraph: FC<{
       .on('zoom', (event) => wrapper.attr('transform', event.transform));
     svg.call(zoom);
 
+    // Define the drag behavior
+const drag = d3.drag()
+.on("start", dragstarted)
+.on("drag", dragged)
+.on("end", dragended);
+
+function dragstarted(event, d) {
+if (!event.active) simulation.alphaTarget(0.3).restart();
+d.fx = d.x;
+d.fy = d.y;
+}
+
+function dragged(event, d) {
+d.fx = event.x;
+d.fy = event.y;
+}
+
+function dragended(event, d) {
+if (!event.active) simulation.alphaTarget(0);
+d.fx = null;
+d.fy = null;
+}
 
     // Draw lines for the links
     svg
@@ -126,6 +147,8 @@ export const CannonfileGraph: FC<{
       .attr('class', 'node-text')
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle');
+
+    node.call(drag);
 
     // Update positions on each tick
     simulation.on('tick', () => {
