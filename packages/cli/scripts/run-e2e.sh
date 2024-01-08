@@ -5,17 +5,22 @@ set -e
 BOLD='\033[0;37;1m' # Bold white
 NC='\033[0m' # No Color
 
-export CANNON="node bin/cannon.js"
+onlyFile=$1
+
+export CANNON_DIR="$(git rev-parse --show-toplevel)"
+export CANNON="node $CANNON_DIR/packages/cli/bin/cannon.js"
 
 function clean_env () {
-  if [ -e $HOME/.local/share/cannon ]; then
-    mv $HOME/.local/share/cannon $HOME/.local/share/cannon-untest
-  fi
+  export WORKDIR="$(mktemp -d)"
+  export CANNON_DIRECTORY="$WORKDIR/cannondir"
+  cd $WORKDIR
 }
 
-for f in e2e/*; do
+for f in e2e/${onlyFile:-*}; do
   clean_env
   echo -e "${BOLD}TEST $f${NC}"
-  bash $f 
-  rm -rf $HOME/.local/share/cannon
+  bash -x $CANNON_DIR/packages/cli/$f
+  rm -rf $WORKDIR
 done
+
+echo "Executed Tests Passed."
