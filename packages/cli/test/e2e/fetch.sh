@@ -1,0 +1,1 @@
+$CANNON fetch synthetix:latest@main QmZgfumxm1yt3nteVeUqF42Gi2GzcKNwe1cz1DMtMrSQnb

@@ -1,0 +1,1 @@
+$CANNON verify greeter-foundry 

@@ -320,7 +320,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     console.log(bold('Building the foundry project...'));
     if (!opts.skipCompile) {
-      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
+      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory, shell: true });
       await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {

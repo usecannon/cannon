@@ -9,3 +9,12 @@
 [submodule "packages/contracts/lib/openzeppelin-contracts"]
 	path = packages/contracts/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "packages/cli/test/bats"]
+	path = packages/cli/test/bats
+	url = https://github.com/bats-core/bats-core.git
+[submodule "packages/cli/test/test_helper/bats-support"]
+	path = packages/cli/test/test_helper/bats-support
+	url = https://github.com/bats-core/bats-support.git
+[submodule "packages/cli/test/test_helper/bats-assert"]
+	path = packages/cli/test/test_helper/bats-assert
+	url = https://github.com/bats-core/bats-assert.git

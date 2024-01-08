@@ -1,1 +1,3 @@
-cd examples/sample-foundry-project && yarn hardhat cannon:build --chain-id 13370 
+cd ../../examples/sample-hardhat-project;
+npx hardhat cannon:build;
+cd -

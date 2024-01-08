@@ -8,7 +8,7 @@
     "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "test-e2e": "./scripts/run-e2e.sh",
+    "test-e2e": "./test/bats/bin/bats test/e2e/e2e-tests.bats",
     "start": "node bin/cannon.js",
     "docgen": "typedoc"
   },
