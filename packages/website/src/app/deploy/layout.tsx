@@ -31,7 +31,10 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <NavLink
             isSmall
             href={links.DEPLOY}
-            isActive={links.DEPLOY == pathname}
+            isActive={
+              links.DEPLOY == pathname ||
+              pathname.startsWith(links.DEPLOY + '/txn')
+            }
           >
             {isMobile ? 'Sign' : 'Sign & Execute'}
           </NavLink>

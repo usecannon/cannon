@@ -13,4 +13,6 @@ export const links = {
   DEBUG: '/learn/guides/debug',
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',
+  DOCS_CLI_RUN: '/learn/cli#run',
+  DOCS_CANNONFILE_PROVISION: '/learn/cannonfile#provision',
 };

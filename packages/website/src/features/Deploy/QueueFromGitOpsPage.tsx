@@ -518,8 +518,8 @@ function QueueFromGitOps() {
               </InputRightElement>
             </InputGroup>
             <FormHelperText color="gray.300">
-              <strong>Optional.</strong> Enter the name of the package this
-              cannonfile is extending. See{' '}
+              <strong>Optional.</strong> Specify the package this cannonfile is
+              extending. See{' '}
               <Link as={NextLink} href="/learn/cli#build">
                 <Code>--upgrade-from</Code>
               </Link>
@@ -620,10 +620,15 @@ function QueueFromGitOps() {
             </Alert>
           )}
           {!isPartialDataRequired && multicallTxn.data && stager.safeTxn && (
-            <TransactionDisplay
-              safe={currentSafe as any}
-              safeTxn={stager.safeTxn}
-            />
+            <Box mt="8">
+              <Heading size="md" mb={2}>
+                Transactions
+              </Heading>
+              <TransactionDisplay
+                safe={currentSafe as any}
+                safeTxn={stager.safeTxn}
+              />
+            </Box>
           )}
 
           {uploadToPublishIpfs.writeToIpfsMutation.isLoading && (
@@ -636,7 +641,7 @@ function QueueFromGitOps() {
             </Text>
           )}
           {uploadToPublishIpfs.deployedIpfsHash && multicallTxn.data && (
-            <Box my="6">
+            <Box>
               <NoncePicker
                 safe={currentSafe as any}
                 onPickedNonce={setPickedNonce}
