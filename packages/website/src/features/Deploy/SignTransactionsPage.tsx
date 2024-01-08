@@ -6,11 +6,9 @@ import {
   Checkbox,
   Container,
   Flex,
-  FormLabel,
   Heading,
   Text,
 } from '@chakra-ui/react';
-import { Alert } from '@/components/Alert';
 import { useSafeTransactions } from '@/hooks/backend';
 import { useExecutedTransactions } from '@/hooks/safe';
 import { useStore } from '@/helpers/store';
@@ -33,17 +31,28 @@ function SignTransactions() {
   return (
     <Container maxW="container.md" py={8}>
       <Box mb={6}>
-        <Heading size="md" mb={2}>
+        <Heading size="lg" mb={2}>
           Sign & Execute Transactions
         </Heading>
-        <Text fontSize="sm" color="gray.300">
+        <Text color="gray.300">
           Make sure you’re using the same Safe Signature Collection Service as
           other signers.
         </Text>
       </Box>
 
-      <Box mb="10">
-        <FormLabel mb="3">Queued Transactions</FormLabel>
+      <Box
+        mb={8}
+        p={6}
+        bg="gray.800"
+        display="block"
+        borderWidth="1px"
+        borderStyle="solid"
+        borderColor="gray.600"
+        borderRadius="4px"
+      >
+        <Heading size="md" mb={3}>
+          Queued Transactions
+        </Heading>
         {currentSafe &&
           staged.map((tx) => (
             <Transaction
@@ -54,15 +63,26 @@ function SignTransactions() {
             />
           ))}
         {currentSafe && staged.length === 0 && (
-          <Alert status="info">
-            There are no transactions queued on the selected safe
-          </Alert>
+          <Text color="gray.300">
+            There are no transactions queued on the selected safe.
+          </Text>
         )}
       </Box>
       {currentSafe && (history.count ?? 0) > 0 && (
-        <Box mb="6">
-          <Flex mb="3">
-            <FormLabel mb={0}>Executed Transactions</FormLabel>
+        <Box
+          mb={8}
+          p={6}
+          bg="gray.800"
+          display="block"
+          borderWidth="1px"
+          borderStyle="solid"
+          borderColor="gray.600"
+          borderRadius="4px"
+        >
+          <Flex mb="4">
+            <Heading size="md" mb={0}>
+              Executed Transactions
+            </Heading>
             <Checkbox
               size="sm"
               borderColor="gray.200"

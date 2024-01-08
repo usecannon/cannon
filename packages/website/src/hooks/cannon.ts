@@ -57,7 +57,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   });
 
   return {
-    loadDefinitionQuery,
+    isFetching: loadGitRepoQuery.isFetching || loadDefinitionQuery.isFetching,
     def: loadDefinitionQuery.data?.def,
     filesList: loadDefinitionQuery.data?.filesList,
   };
@@ -356,6 +356,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   });
 
   return {
+    isFetching: registryQuery.isFetching || ipfsQuery.isFetching,
     registryQuery,
     ipfsQuery,
     pkgUrl,

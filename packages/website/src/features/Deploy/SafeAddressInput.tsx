@@ -1,4 +1,5 @@
 import { Alert } from '@/components/Alert';
+import { links } from '@/constants/links';
 import { includes } from '@/helpers/array';
 import { State, useStore } from '@/helpers/store';
 import {
@@ -67,6 +68,10 @@ export function SafeAddressInput() {
         if (!includes(safeAddresses, newSafe)) {
           prependSafeAddress(newSafe);
         }
+
+        if (switchNetwork) {
+          switchNetwork(newSafe.chainId);
+        }
       } else {
         const newSearchParams = new URLSearchParams(
           Array.from(searchParams.entries())
@@ -79,6 +84,25 @@ export function SafeAddressInput() {
       }
     }
   }, []);
+
+  // Keep the current safe in the url params
+  useEffect(() => {
+    if (
+      pathname.startsWith(links.DEPLOY) &&
+      currentSafe &&
+      !searchParams.has('address') &&
+      !searchParams.has('chainId')
+    ) {
+      const newSearchParams = new URLSearchParams(
+        Array.from(searchParams.entries())
+      );
+      newSearchParams.set('chainId', currentSafe.chainId.toString());
+      newSearchParams.set('address', currentSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router.push(`${pathname}${query}`);
+    }
+  }, [pathname]);
 
   // If the user puts a correct address in the input, update the url
   function handleSafeChange(safeString: SafeString) {
@@ -116,6 +140,20 @@ export function SafeAddressInput() {
     const newSafe = getSafeFromString(newSafeAddress);
     if (newSafe) {
       prependSafeAddress(newSafe);
+      setState({ currentSafe: newSafe });
+
+      const newSearchParams = new URLSearchParams(
+        Array.from(searchParams.entries())
+      );
+      newSearchParams.set('chainId', newSafe.chainId.toString());
+      newSearchParams.set('address', newSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router.push(`${pathname}${query}`);
+
+      if (switchNetwork) {
+        switchNetwork(newSafe.chainId);
+      }
     }
   }
 

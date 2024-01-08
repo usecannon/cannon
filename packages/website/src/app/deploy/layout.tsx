@@ -31,23 +31,26 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <NavLink
             isSmall
             href={links.DEPLOY}
-            isActive={links.DEPLOY == pathname}
+            isActive={
+              links.DEPLOY == pathname ||
+              pathname.startsWith(links.DEPLOY + '/txn')
+            }
           >
             {isMobile ? 'Sign' : 'Sign & Execute'}
-          </NavLink>
-          <NavLink
-            isSmall
-            href={links.QUEUETXS}
-            isActive={pathname.startsWith(links.QUEUETXS)}
-          >
-            {isMobile ? 'Queue' : 'Queue Transactions'}
           </NavLink>
           <NavLink
             isSmall
             href={links.QUEUEFROMGITOPS}
             isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
           >
-            {isMobile ? 'Build' : 'Queue Build'}
+            {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
+          </NavLink>
+          <NavLink
+            isSmall
+            href={links.QUEUETXS}
+            isActive={pathname.startsWith(links.QUEUETXS)}
+          >
+            {isMobile ? 'Transactions' : 'Queue Transactions'}
           </NavLink>
         </Flex>
       </Box>

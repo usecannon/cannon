@@ -65,8 +65,16 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .hook('preAction', async function () {
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
+  .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
+    setDebugLevel(thisCommand.opts());
   });
 
 configureRun(program);
@@ -107,15 +115,34 @@ function applyCommandsConfig(command: Command, config: any) {
   return command;
 }
 
+function setDebugLevel(opts: any) {
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
+}
+
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
     program
   ) {
+    console.log(bold('Starting local node...\n'));
+
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port) || 8545;
+    options.port = Number.parseInt(options.port);
 
     let node: CannonRpcNode;
     if (options.chainId) {
@@ -195,8 +222,6 @@ async function doBuild(
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       ...pickAnvilOptions(opts),
-      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: opts.port || 0,
     });
 
     provider = getProvider(node);
@@ -215,8 +240,6 @@ async function doBuild(
         {
           ...pickAnvilOptions(opts),
           chainId,
-          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-          port: 0,
         },
         {
           forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
@@ -579,7 +602,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  opts.port = 8545;
+  opts.port = 0;
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here

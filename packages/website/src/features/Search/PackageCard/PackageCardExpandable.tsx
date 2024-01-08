@@ -35,14 +35,8 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
       transition="all 0.12s"
       overflow="hidden"
     >
-      <Flex
-        bg="gray.800"
-        flexDirection={['column', 'column', 'row']}
-        alignItems={['flex-start', 'flex-start', 'center']}
-        px={3}
-        py={2}
-      >
-        <Box>
+      <Flex bg="gray.800" flexDirection="row" alignItems="center" p={2}>
+        <Box px={1}>
           <Heading display="inline-block" as="h4" size="sm">
             {pkg.name}
           </Heading>
@@ -51,33 +45,31 @@ export const PackageCardExpandable: FC<IPackageCardProps> = ({
             href={'/packages/' + pkg.name}
             display="inline-block"
             ml={1.5}
-            transform="translateY(-2px)"
+            transform="translateY(-1px)"
           >
             <LinkIcon boxSize="3" />
           </Link>
         </Box>
-        <Box ml={[0, 0, 'auto']}>
-          <Flex justifyContent={['flex-start', 'flex-start', 'flex-end']}>
-            <Button
-              size="xs"
-              variant="outline"
-              colorScheme="black"
-              fontWeight={500}
-              textTransform="uppercase"
-              letterSpacing="1px"
-              fontFamily="var(--font-miriam)"
-              textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
-              fontSize="12px"
-              background="gray.900"
-              borderColor="gray.500"
-              _hover={{
-                background: 'gray.800',
-              }}
-              onClick={onToggle}
-            >
-              {isOpen ? 'Show Less' : 'Show More'}
-            </Button>
-          </Flex>
+        <Box ml="auto">
+          <Button
+            size="xs"
+            variant="outline"
+            colorScheme="black"
+            fontWeight={500}
+            textTransform="uppercase"
+            letterSpacing="1px"
+            fontFamily="var(--font-miriam)"
+            textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+            fontSize="12px"
+            background="gray.900"
+            borderColor="gray.500"
+            _hover={{
+              background: 'gray.800',
+            }}
+            onClick={onToggle}
+          >
+            {isOpen ? 'Show Less' : 'Show More'}
+          </Button>
         </Box>
       </Flex>
       <Box verticalAlign="middle" overflow="auto" maxHeight={maxHeight}>

@@ -2,7 +2,7 @@ const anvilOptions = [
   {
     flags: '-p --port <number>',
     description: 'Port which the JSON-RPC server will be exposed.',
-    defaultValue: '8545',
+    defaultValue: '0', // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
   },
   {
     flags: '-c --chain-id <number>',
@@ -296,23 +296,6 @@ const commandsConfig = {
       {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
-      },
-      {
-        flags: '-v',
-        description: 'print logs for builder,equivalent to DEBUG=cannon:builder',
-      },
-      {
-        flags: '-vv',
-        description:
-          'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition',
-      },
-      {
-        flags: '-vvv',
-        description: 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*',
-      },
-      {
-        flags: '-vvvv',
-        description: 'print all cannon logs,equivalent to DEBUG=cannon:*',
       },
     ],
   },

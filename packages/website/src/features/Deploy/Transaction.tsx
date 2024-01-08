@@ -41,13 +41,13 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
       mb="4"
       p="5"
       border="1px solid"
-      bg="blackAlpha.300"
+      bg="blackAlpha.500"
       borderColor={isLink ? 'gray.600' : 'gray.700'}
       borderRadius="md"
       alignItems="center"
       shadow={isLink ? 'lg' : ''}
       transition="all 0.2s"
-      _hover={isLink ? { shadow: 'xl', bg: 'blackAlpha.400' } : {}}
+      _hover={isLink ? { shadow: 'xl', bg: 'blackAlpha.600' } : {}}
       minHeight="74px"
     >
       <Box alignContent={'center'} minWidth={0}>
