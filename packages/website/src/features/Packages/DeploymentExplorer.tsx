@@ -35,7 +35,7 @@ import { IpfsUrl } from './IpfsUrl';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
 import { format } from 'date-fns';
-import { InfoIcon, DownloadIcon, ViewIcon } from '@chakra-ui/icons';
+import { InfoIcon, DownloadIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
@@ -275,200 +275,203 @@ export const DeploymentExplorer: FC<{
             mb={6}
           >
             <StepModalProvider>
-            <Box mb={3}>
-              <Heading size="md" mb={2}>
-                Chain Definition
-              </Heading>
-              <Text fontSize="sm" color="gray.300">
-                The chain definition describes the desired state of the
-                blockchain based on a cannonfile.
-              </Text>
-            </Box>
-            <CannonfileGraph deploymentInfo={deploymentInfo} />
+              <Box mb={3}>
+                <Heading size="md" mb={2}>
+                  Chain Definition
+                </Heading>
+                <Text fontSize="sm" color="gray.300">
+                  The chain definition describes the desired state of the
+                  blockchain based on a cannonfile.
+                </Text>
+              </Box>
+              <CannonfileGraph deploymentInfo={deploymentInfo} />
 
-            <Accordion allowToggle>
-              <AccordionItem border="none">
-                <AccordionButton px={0} pb={0}>
-                  <Flex alignItems='center' flex="1">
-                  <Text
-                    fontWeight={500}
-                    textTransform="uppercase"
-                    letterSpacing="1px"
-                    fontFamily="var(--font-miriam)"
-                    fontSize="12px"
-                    color="gray.300"
-                    mr={0.5}
-                  >
-                    Show Actions
-                  </Text>
-                  <Box display="inline-block" transform="translateY(-0.1rem)">
-                    <AccordionIcon color="gray.300" />
-                  </Box>
-                  </Flex>
-                  <Box>
-                    <ViewAsCannonFileButton deploymentInfo={deploymentInfo} />
-                  </Box>
-                </AccordionButton>
-                <AccordionPanel px={0} pb={0}>
-                  {Object.entries(settings).length > 0 && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={2}>
-                        Settings
-                      </Heading>
-                      <Box overflowX="auto" mb={6}>
-                        <Table variant="simple" size="sm">
-                          <Thead>
-                            <Tr>
-                              <Th
-                                color="gray.300"
-                                pl={0}
-                                borderColor="gray.500"
-                              >
-                                Setting
-                              </Th>
-                              <Th color="gray.300" borderColor="gray.500">
-                                Value
-                              </Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody fontFamily={'mono'}>
-                            {Object.entries(settings).map(([key, value]) => (
-                              <Tr key={key}>
-                                <Td pl={0} borderColor="gray.500">
-                                  <Tooltip label={value.description}>
-                                    {key?.toString()}
-                                  </Tooltip>
-                                </Td>
-                                <Td borderColor="gray.500">
-                                  {value.option ? (
-                                    <>
-                                      {value.option}{' '}
-                                      <Text
-                                        color="gray.500"
-                                        textDecoration="line-through"
-                                        display="inline"
-                                      >
-                                        {value.defaultValue}
-                                      </Text>
-                                    </>
-                                  ) : (
-                                    <>{value.defaultValue}</>
-                                  )}
-                                </Td>
-                              </Tr>
-                            ))}
-                          </Tbody>
-                        </Table>
-
-                        {!isEmpty(deploymentInfo?.meta) && (
-                          <>
-                            <Box mt={1.5}>
-                              <Link
-                                isExternal
-                                styleConfig={{ 'text-decoration': 'none' }}
-                                borderBottom="1px dotted"
-                                borderBottomColor="gray.300"
-                                onClick={openPackageJsonModal}
-                                color="gray.300"
-                                fontSize="xs"
-                                fontFamily="mono"
-                                cursor={'pointer'}
-                              >
-                                package.json
-                              </Link>{' '}
-                              <Tooltip
-                                label="Cannon includes a project's package.json in the Cannonfile context."
-                                placement="right"
-                                hasArrow
-                              >
-                                <InfoIcon
-                                  color="gray.400"
-                                  boxSize={3}
-                                  ml={0.5}
-                                />
-                              </Tooltip>
-                            </Box>
-                            <Modal
-                              isOpen={isPackageJsonModalOpen}
-                              onClose={closePackageJsonModal}
-                              size="6xl"
-                            >
-                              <ModalOverlay />
-                              <ModalContent>
-                                <ModalCloseButton />
-                                <CodePreview
-                                  code={JSON.stringify(
-                                    deploymentInfo?.meta,
-                                    null,
-                                    2
-                                  )}
-                                  language="json"
-                                />
-                              </ModalContent>
-                            </Modal>
-                          </>
-                        )}
+              <Accordion allowToggle>
+                <AccordionItem border="none">
+                  <AccordionButton px={0} pb={0}>
+                    <Flex alignItems="center" flex="1">
+                      <Text
+                        fontWeight={500}
+                        textTransform="uppercase"
+                        letterSpacing="1px"
+                        fontFamily="var(--font-miriam)"
+                        fontSize="12px"
+                        color="gray.300"
+                        mr={0.5}
+                      >
+                        Show Actions
+                      </Text>
+                      <Box
+                        display="inline-block"
+                        transform="translateY(-0.1rem)"
+                      >
+                        <AccordionIcon color="gray.300" />
                       </Box>
+                    </Flex>
+                    <Box>
+                      <ViewAsCannonFileButton deploymentInfo={deploymentInfo} />
                     </Box>
-                  )}
-                  {deploymentInfo?.def?.import && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={3}>
-                        Package Data Imports
-                      </Heading>
-                      <ChainDefinitionSteps
-                        name="import"
-                        modules={deploymentInfo.def.import}
-                      />
-                    </Box>
-                  )}
-                  {deploymentInfo?.def?.provision && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={3}>
-                        Package Provisioning
-                      </Heading>
-                      <ChainDefinitionSteps
-                        name="provision"
-                        modules={deploymentInfo.def.provision}
-                      />
-                    </Box>
-                  )}
-                  {deploymentInfo?.def?.router && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={3}>
-                        Router Generation
-                      </Heading>
-                      <ChainDefinitionSteps
-                        name="router"
-                        modules={deploymentInfo.def.router}
-                      />
-                    </Box>
-                  )}
-                  {deploymentInfo?.def?.contract && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={3}>
-                        Contract Deployments
-                      </Heading>
-                      <ChainDefinitionSteps
-                        name="contract"
-                        modules={deploymentInfo.def.contract}
-                      />
-                    </Box>
-                  )}
-                  {deploymentInfo?.def?.invoke && (
-                    <Box mt={4}>
-                      <Heading size="sm" mb={3}>
-                        Function Calls
-                      </Heading>
-                      <ChainDefinitionSteps
-                        name="invoke"
-                        modules={deploymentInfo.def.invoke}
-                      />
-                    </Box>
-                  )}
-                </AccordionPanel>
-              </AccordionItem>
-            </Accordion>
+                  </AccordionButton>
+                  <AccordionPanel px={0} pb={0}>
+                    {Object.entries(settings).length > 0 && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={2}>
+                          Settings
+                        </Heading>
+                        <Box overflowX="auto" mb={6}>
+                          <Table variant="simple" size="sm">
+                            <Thead>
+                              <Tr>
+                                <Th
+                                  color="gray.300"
+                                  pl={0}
+                                  borderColor="gray.500"
+                                >
+                                  Setting
+                                </Th>
+                                <Th color="gray.300" borderColor="gray.500">
+                                  Value
+                                </Th>
+                              </Tr>
+                            </Thead>
+                            <Tbody fontFamily={'mono'}>
+                              {Object.entries(settings).map(([key, value]) => (
+                                <Tr key={key}>
+                                  <Td pl={0} borderColor="gray.500">
+                                    <Tooltip label={value.description}>
+                                      {key?.toString()}
+                                    </Tooltip>
+                                  </Td>
+                                  <Td borderColor="gray.500">
+                                    {value.option ? (
+                                      <>
+                                        {value.option}{' '}
+                                        <Text
+                                          color="gray.500"
+                                          textDecoration="line-through"
+                                          display="inline"
+                                        >
+                                          {value.defaultValue}
+                                        </Text>
+                                      </>
+                                    ) : (
+                                      <>{value.defaultValue}</>
+                                    )}
+                                  </Td>
+                                </Tr>
+                              ))}
+                            </Tbody>
+                          </Table>
+
+                          {!isEmpty(deploymentInfo?.meta) && (
+                            <>
+                              <Box mt={1.5}>
+                                <Link
+                                  isExternal
+                                  styleConfig={{ 'text-decoration': 'none' }}
+                                  borderBottom="1px dotted"
+                                  borderBottomColor="gray.300"
+                                  onClick={openPackageJsonModal}
+                                  color="gray.300"
+                                  fontSize="xs"
+                                  fontFamily="mono"
+                                  cursor={'pointer'}
+                                >
+                                  package.json
+                                </Link>{' '}
+                                <Tooltip
+                                  label="Cannon includes a project's package.json in the Cannonfile context."
+                                  placement="right"
+                                  hasArrow
+                                >
+                                  <InfoIcon
+                                    color="gray.400"
+                                    boxSize={3}
+                                    ml={0.5}
+                                  />
+                                </Tooltip>
+                              </Box>
+                              <Modal
+                                isOpen={isPackageJsonModalOpen}
+                                onClose={closePackageJsonModal}
+                                size="6xl"
+                              >
+                                <ModalOverlay />
+                                <ModalContent>
+                                  <ModalCloseButton />
+                                  <CodePreview
+                                    code={JSON.stringify(
+                                      deploymentInfo?.meta,
+                                      null,
+                                      2
+                                    )}
+                                    language="json"
+                                  />
+                                </ModalContent>
+                              </Modal>
+                            </>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.import && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Package Data Imports
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="import"
+                          modules={deploymentInfo.def.import}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.provision && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Package Provisioning
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="provision"
+                          modules={deploymentInfo.def.provision}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.router && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Router Generation
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="router"
+                          modules={deploymentInfo.def.router}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.contract && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Contract Deployments
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="contract"
+                          modules={deploymentInfo.def.contract}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.invoke && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Function Calls
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="invoke"
+                          modules={deploymentInfo.def.invoke}
+                        />
+                      </Box>
+                    )}
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
             </StepModalProvider>
           </Box>
           <Box

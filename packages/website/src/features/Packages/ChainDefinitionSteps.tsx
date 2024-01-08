@@ -20,7 +20,10 @@ interface Props {
 const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activeModule, setActiveModule } = useStepModalContext();
-  const [activeModuleData, setActiveModuleData] = useState<Record<string, object> | null>(null);
+  const [activeModuleData, setActiveModuleData] = useState<Record<
+    string,
+    object
+  > | null>(null);
 
   useEffect(() => {
     if (name === activeModule?.split('.')[0]) {
@@ -34,8 +37,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
 
   return (
     <Box>
-
-{Object.keys(modules).map((key) => (
+      {Object.keys(modules).map((key) => (
         <Button
           variant="outline"
           color="gray.300"
@@ -53,16 +55,18 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
           [{name}.{key}]
         </Button>
       ))}
-      
+
       {activeModuleData && (
         <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
-          <ModalContent>
-            <ModalCloseButton />
-            <CodePreview
-              code={stringify({ ...activeModuleData })}
-              language="toml"
-            />
+          <ModalContent background="none">
+            <Box py={12}>
+              <ModalCloseButton />
+              <CodePreview
+                code={stringify({ ...activeModuleData })}
+                language="toml"
+              />
+            </Box>
           </ModalContent>
         </Modal>
       )}
