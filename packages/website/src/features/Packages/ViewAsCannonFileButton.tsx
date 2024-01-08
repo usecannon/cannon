@@ -34,7 +34,6 @@ export const ViewAsCannonFileButton: FC<{
   deploymentInfo: any;
 }> = ({ deploymentInfo }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const displayInfo = omitEmptyObjects({ ...deploymentInfo?.def });
 
   return (
     <>
@@ -46,7 +45,10 @@ export const ViewAsCannonFileButton: FC<{
         borderColor="gray.500"
         _hover={{ bg: 'gray.700' }}
         leftIcon={<ViewIcon />}
-        onClick={onOpen}
+        onClick={(e) => {
+          e.preventDefault();
+          onOpen();
+        }}
       >
         View as Cannonfile
       </Button>
@@ -54,9 +56,12 @@ export const ViewAsCannonFileButton: FC<{
       <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent background="none">
-          <Box py={12}>
+          <Box my={12}>
             <ModalCloseButton />
-            <CodePreview code={stringify(displayInfo)} language="toml" />
+            <CodePreview
+              code={stringify({ ...deploymentInfo?.def })}
+              language="toml"
+            />
           </Box>
         </ModalContent>
       </Modal>

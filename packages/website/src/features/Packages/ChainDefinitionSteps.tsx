@@ -60,7 +60,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
         <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
           <ModalContent background="none">
-            <Box py={12}>
+            <Box my={12}>
               <ModalCloseButton />
               <CodePreview
                 code={stringify({ ...activeModuleData })}
