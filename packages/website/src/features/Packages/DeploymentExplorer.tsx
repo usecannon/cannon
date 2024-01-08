@@ -2,6 +2,11 @@ import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Badge,
   Box,
   Button,
@@ -35,6 +40,7 @@ import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
+import { CannonfileGraph } from './CannonfileGraph';
 
 export const DeploymentExplorer: FC<{
   pkgName: string;
@@ -274,7 +280,31 @@ export const DeploymentExplorer: FC<{
                 blockchain based on a Cannonfile.
               </Text>
             </Box>
-            {Object.entries(settings).length > 0 && (
+            <CannonfileGraph deploymentInfo={deploymentInfo} />
+
+
+
+            <Accordion allowToggle>
+              <AccordionItem border="none">
+                <AccordionButton px={0} pb={0}>
+                  <Text
+                    fontWeight={500}
+                    textTransform="uppercase"
+                    letterSpacing="1px"
+                    fontFamily="var(--font-miriam)"
+                    fontSize="12px"
+                    color="gray.300"
+                    mr={0.5}
+                  >
+                    View all steps
+                  </Text>
+                  <Box transform="translateY(-0.1rem)">
+                    <AccordionIcon color="gray.300" />
+                  </Box>
+                  <Box ml="auto">View Cannonfile</Box>
+                </AccordionButton>
+                <AccordionPanel px={0} pb={0}>
+                {Object.entries(settings).length > 0 && (
               <Box mt={4}>
                 <Heading size="sm" mb={2}>
                   Settings
@@ -418,6 +448,9 @@ export const DeploymentExplorer: FC<{
                 />
               </Box>
             )}
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
           </Box>
           <Box
             bg="blackAlpha.600"
