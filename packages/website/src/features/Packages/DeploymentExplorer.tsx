@@ -11,6 +11,7 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   Heading,
   Link,
   Modal,
@@ -41,6 +42,7 @@ import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
 import { CannonfileGraph } from './CannonfileGraph';
+import { ViewAsCannonFileButton } from './ViewAsCannonFileButton';
 import { StepModalProvider } from '@/providers/stepModalProvider';
 
 export const DeploymentExplorer: FC<{
@@ -279,7 +281,7 @@ export const DeploymentExplorer: FC<{
               </Heading>
               <Text fontSize="sm" color="gray.300">
                 The chain definition describes the desired state of the
-                blockchain based on a Cannonfile.
+                blockchain based on a cannonfile.
               </Text>
             </Box>
             <CannonfileGraph deploymentInfo={deploymentInfo} />
@@ -287,6 +289,7 @@ export const DeploymentExplorer: FC<{
             <Accordion allowToggle>
               <AccordionItem border="none">
                 <AccordionButton px={0} pb={0}>
+                  <Flex alignItems='center' flex="1">
                   <Text
                     fontWeight={500}
                     textTransform="uppercase"
@@ -298,22 +301,12 @@ export const DeploymentExplorer: FC<{
                   >
                     Show Actions
                   </Text>
-                  <Box transform="translateY(-0.1rem)">
+                  <Box display="inline-block" transform="translateY(-0.1rem)">
                     <AccordionIcon color="gray.300" />
                   </Box>
-                  <Box ml="auto">
-                    <Button
-                      variant="outline"
-                      colorScheme="white"
-                      size="xs"
-                      color="gray.300"
-                      borderColor="gray.500"
-                      _hover={{ bg: 'gray.700' }}
-                      leftIcon={<ViewIcon />}
-                      onClick={handleDownload}
-                    >
-                      View as Cannonfile
-                    </Button>
+                  </Flex>
+                  <Box>
+                    <ViewAsCannonFileButton deploymentInfo={deploymentInfo} />
                   </Box>
                 </AccordionButton>
                 <AccordionPanel px={0} pb={0}>
