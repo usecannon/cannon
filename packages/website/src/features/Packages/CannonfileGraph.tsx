@@ -55,19 +55,30 @@ export const CannonfileGraph: FC<{
   const svgRef = useRef();
 
   useEffect(() => {
-    // Set up the simulation
-    const simulation = d3
-      .forceSimulation(nodes)
-      .force(
-        'link',
-        d3.forceLink(links).id((d) => d.id)
-      )
-      .force('charge', d3.forceManyBody().strength(-250))
-      .force('center', d3.forceCenter(400, 200));
-
     // Select the SVG element and clear it
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
+    
+    const width = svg.node().getBoundingClientRect().width;
+    const height = svg.node().getBoundingClientRect().height;
+
+    // Set up the simulation
+    const simulation = d3
+      .forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id).strength(0.1))
+      .force('charge', d3.forceManyBody().strength(-100))
+      .force('center', d3.forceCenter(width/2, height/2));
+
+    
+    // Create a group element for all graph elements
+    const wrapper = svg.append('g');
+
+    // Initialize zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => wrapper.attr('transform', event.transform));
+    svg.call(zoom);
+
 
     // Draw lines for the links
     svg
@@ -85,14 +96,14 @@ export const CannonfileGraph: FC<{
       .attr('class', 'arrowHead');
 
     // Append lines for links and use the arrow marker
-    const link = svg
+    const link = wrapper
       .selectAll('.link')
       .data(links)
       .enter()
       .append('line')
       .attr('class', 'link')
 
-    const arrowLines = svg.selectAll(".arrow-line")
+    const arrowLines = wrapper.selectAll(".arrow-line")
       .data(links)
       .enter()
       .append("line")
@@ -101,7 +112,7 @@ export const CannonfileGraph: FC<{
       .attr("marker-end", "url(#arrow)"); // Attach the arrowhead marker
 
     // Append rect elements for each node
-    const node = svg
+    const node = wrapper
       .selectAll('.node')
       .data(nodes)
       .enter()
@@ -133,6 +144,28 @@ export const CannonfileGraph: FC<{
       // Update node and text positions
       node.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
     });
+
+    
+    function zoomToFit() {
+      const bounds = wrapper.node().getBBox();
+      const dx = bounds.width;
+      const dy = bounds.height;
+      const x = bounds.x + dx / 2;
+      const y = bounds.y + dy / 2;
+
+      const scale = Math.min(0.9 / Math.max(dx / width, dy / height), 4);
+      const translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+      svg.transition()
+        .duration(1000)
+        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+    }
+
+    // Call zoomToFit to fit graph after initial rendering
+    setTimeout(() => {
+      zoomToFit();
+    }, 1000);
+
   }, [nodes, links]);
 
   return (
