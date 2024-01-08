@@ -8,8 +8,9 @@ import {
   useDisclosure,
   Box,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { stringify } from '@iarna/toml';
+import { useStepModalContext } from '@/providers/stepModalProvider';
 
 interface Props {
   name: string;
@@ -18,11 +19,23 @@ interface Props {
 
 const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [activeModule, setActiveModule] = useState<object | null>(null);
+  const { activeModule, setActiveModule } = useStepModalContext();
+  const [activeModuleData, setActiveModuleData] = useState<Record<string, object> | null>(null);
+
+  useEffect(() => {
+    if (name === activeModule?.split('.')[0]) {
+      const moduleName = activeModule.split('.')[1];
+      if (modules[moduleName]) {
+        setActiveModuleData({ [activeModule]: modules[moduleName] });
+        onOpen();
+      }
+    }
+  }, [activeModule, modules, name, onOpen]);
 
   return (
     <Box>
-      {Object.keys(modules).map((key) => (
+
+{Object.keys(modules).map((key) => (
         <Button
           variant="outline"
           color="gray.300"
@@ -31,10 +44,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
           _hover={{ bg: 'gray.800' }}
           key={key}
           onClick={() => {
-            const am: Record<string, object> = {};
-            am[`${name}.${key}`] = modules[key];
-            setActiveModule(am);
-            onOpen();
+            setActiveModule(`${name}.${key}`);
           }}
           size="xs"
           mr={2}
@@ -43,14 +53,14 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
           [{name}.{key}]
         </Button>
       ))}
-
-      {activeModule && (
+      
+      {activeModuleData && (
         <Modal size="4xl" isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
           <ModalContent>
             <ModalCloseButton />
             <CodePreview
-              code={stringify({ ...activeModule })}
+              code={stringify({ ...activeModuleData })}
               language="toml"
             />
           </ModalContent>

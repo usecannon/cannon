@@ -4,6 +4,7 @@ import React from 'react';
 import * as d3 from 'd3';
 import { createGlobalStyle } from 'styled-components';
 import { Box } from '@chakra-ui/react';
+import { useStepModalContext } from '@/providers/stepModalProvider';
 
 
 // Define global styles
@@ -60,6 +61,8 @@ export const CannonfileGraph: FC<{
   }
 
   const svgRef = useRef();
+
+  const { setActiveModule } = useStepModalContext();
 
   useEffect(() => {
     // Select the SVG element and clear it
@@ -148,13 +151,13 @@ export const CannonfileGraph: FC<{
       .attr('class', 'node');
 
     // Append text to the node group first
-    const nodeText = node
+    node
       .append('text')
       .text((d) => `[${d.id}]`)
       .attr('class', 'node-text')
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle').on('click', function(event, d) {
-        alert(`[${d.id}]`);
+        setActiveModule(d.id);
       });
 
     // Append a rect to each node for the background

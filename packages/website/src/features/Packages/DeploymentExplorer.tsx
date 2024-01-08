@@ -41,6 +41,7 @@ import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
 import { CannonfileGraph } from './CannonfileGraph';
+import { StepModalProvider } from '@/providers/stepModalProvider';
 
 export const DeploymentExplorer: FC<{
   pkgName: string;
@@ -271,6 +272,7 @@ export const DeploymentExplorer: FC<{
             p={6}
             mb={6}
           >
+            <StepModalProvider>
             <Box mb={3}>
               <Heading size="md" mb={2}>
                 Chain Definition
@@ -310,7 +312,7 @@ export const DeploymentExplorer: FC<{
                       leftIcon={<ViewIcon />}
                       onClick={handleDownload}
                     >
-                      View Cannonfile
+                      View as Cannonfile
                     </Button>
                   </Box>
                 </AccordionButton>
@@ -474,6 +476,7 @@ export const DeploymentExplorer: FC<{
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
+            </StepModalProvider>
           </Box>
           <Box
             bg="blackAlpha.600"
