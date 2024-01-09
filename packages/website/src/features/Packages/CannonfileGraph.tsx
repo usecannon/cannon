@@ -42,11 +42,15 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
+interface ExtendedSimulationNodeDatum extends d3.SimulationNodeDatum {
+  id: string;
+}
+
 export const CannonfileGraph: FC<{
   deploymentInfo: any;
 }> = ({ deploymentInfo }) => {
-  const nodes: d3.SimulationNodeDatum[] = [];
-  const links: d3.SimulationLinkDatum<d3.SimulationNodeDatum>[] = [];
+  const nodes: ExtendedSimulationNodeDatum[] = [];
+  const links: d3.SimulationLinkDatum<ExtendedSimulationNodeDatum>[] = [];
 
   const chainDefinition = new ChainDefinition(deploymentInfo.def);
 
@@ -64,7 +68,6 @@ export const CannonfileGraph: FC<{
   const { setActiveModule } = useStepModalContext();
 
   useEffect(() => {
-
     // Select the SVG element and clear it
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
@@ -79,7 +82,7 @@ export const CannonfileGraph: FC<{
         'link',
         d3
           .forceLink(links)
-          .id((d) => d.id)
+          .id((d) => (d as ExtendedSimulationNodeDatum).id)
           .strength(0.1)
       )
       .force('charge', d3.forceManyBody().strength(-100))
@@ -96,27 +99,48 @@ export const CannonfileGraph: FC<{
       .zoom()
       .scaleExtent([0.1, 4])
       .on('zoom', (event) => wrapper.attr('transform', event.transform));
-    svg.call(zoom);
+    svg.call(zoom as any);
 
     // Define the drag behavior
     const drag = d3
-      .drag()
+      .drag<SVGCircleElement, ExtendedSimulationNodeDatum>()
       .on('start', dragstarted)
       .on('drag', dragged)
       .on('end', dragended);
 
-    function dragstarted(event, d) {
+    function dragstarted(
+      event: d3.D3DragEvent<
+        SVGCircleElement,
+        ExtendedSimulationNodeDatum,
+        unknown
+      >,
+      d: ExtendedSimulationNodeDatum
+    ) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
-    }
-
-    function dragged(event, d) {
       d.fx = event.x;
       d.fy = event.y;
     }
 
-    function dragended(event, d) {
+    function dragged(
+      event: d3.D3DragEvent<
+        SVGCircleElement,
+        ExtendedSimulationNodeDatum,
+        unknown
+      >,
+      d: ExtendedSimulationNodeDatum
+    ) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(
+      event: d3.D3DragEvent<
+        SVGCircleElement,
+        ExtendedSimulationNodeDatum,
+        unknown
+      >,
+      d: ExtendedSimulationNodeDatum
+    ) {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
@@ -177,40 +201,43 @@ export const CannonfileGraph: FC<{
     node
       .insert('rect', 'text')
       .attr('class', 'node-background')
-      .attr('width', function () {
-        const bbox = this.nextSibling.getBBox();
-        return bbox.width + 10; // Adjust 10 to change the padding
+      .attr('width', function (d, i, nodes) {
+        const bbox = (nodes[i] as SVGGraphicsElement).getBBox();
+        return bbox.width + 10;
       })
-      .attr('height', function () {
-        const bbox = this.nextSibling.getBBox();
-        return bbox.height + 10; // Adjust 10 to change the padding
+      .attr('height', function (d, i, nodes) {
+        const bbox = ((nodes[i] as SVGGElement)
+          .nextSibling as SVGGraphicsElement)!.getBBox();
+        return bbox.height + 10;
       })
-      .attr('x', function () {
-        const bbox = this.nextSibling.getBBox();
-        return bbox.x - 5; // Half of the padding to center the background
+      .attr('x', function (d, i, nodes) {
+        const bbox = ((nodes[i] as SVGGElement)
+          .nextSibling as SVGGraphicsElement)!.getBBox();
+        return bbox.x - 5;
       })
-      .attr('y', function () {
-        const bbox = this.nextSibling.getBBox();
-        return bbox.y - 5; // Half of the padding to center the background
+      .attr('y', function (d, i, nodes) {
+        const bbox = ((nodes[i] as SVGGElement)
+          .nextSibling as SVGGraphicsElement)!.getBBox();
+        return bbox.y - 5;
       });
 
-    node.call(drag);
+    node.call(drag as any);
 
     // Update positions on each tick
     simulation.on('tick', () => {
       // Update link positions
       link
-        .attr('x1', (d) => d.source.x)
-        .attr('y1', (d) => d.source.y)
-        .attr('x2', (d) => d.target.x)
-        .attr('y2', (d) => d.target.y);
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y);
 
       // Update the overlay lines for the arrowheads
       arrowLines
-        .attr('x1', (d) => d.source.x)
-        .attr('y1', (d) => d.source.y)
-        .attr('x2', (d) => d.source.x + (d.target.x - d.source.x) * 0.5) // Corrected midpoint x
-        .attr('y2', (d) => d.source.y + (d.target.y - d.source.y) * 0.5); // Corrected midpoint y
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.source.x + (d.target.x - d.source.x) * 0.5) // Corrected midpoint x
+        .attr('y2', (d: any) => d.source.y + (d.target.y - d.source.y) * 0.5); // Corrected midpoint y
 
       // Update node and text positions
       node.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
@@ -220,17 +247,17 @@ export const CannonfileGraph: FC<{
       const bounds = wrapper?.node()?.getBBox();
       const dx = bounds?.width;
       const dy = bounds?.height;
-      const x = bounds?.x + dx / 2;
-      const y = bounds?.y + dy / 2;
+      const x = bounds!.x + dx! / 2;
+      const y = bounds!.y + dy! / 2;
 
-      const scale = Math.min(0.9 / Math.max(dx / width, dy / height), 4);
-      const translate = [width / 2 - scale * x, height / 2 - scale * y];
+      const scale = Math.min(0.9 / Math.max(dx! / width!, dy! / height!), 4);
+      const translate = [width! / 2 - scale * x, height! / 2 - scale * y];
 
       svg
         .transition()
         .duration(1000)
         .call(
-          zoom.transform,
+          zoom.transform as any,
           d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
         );
     }

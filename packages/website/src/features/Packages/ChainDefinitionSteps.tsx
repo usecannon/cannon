@@ -63,7 +63,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
             <Box my={12}>
               <ModalCloseButton />
               <CodePreview
-                code={stringify({ ...activeModuleData })}
+                code={stringify({ ...activeModuleData } as any)}
                 language="toml"
               />
             </Box>

@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode, Context, useContext } from 'react';
 
-// Create a new context
-const StepModalContext = React.createContext();
+type StepModalContextType = {
+  activeModule: string | null;
+  setActiveModule: React.Dispatch<React.SetStateAction<string | null>>;
+};
 
-// This component will wrap your app or components that need to share state
-export const StepModalProvider = ({ children }) => {
-  const [activeModule, setActiveModule] = useState(null);
+const StepModalContext: Context<StepModalContextType | undefined> =
+  React.createContext<StepModalContextType | undefined>(undefined);
 
-  // The shared state and its updater function
+type StepModalProviderProps = {
+  children: ReactNode;
+};
+
+export const StepModalProvider: React.FC<StepModalProviderProps> = ({
+  children,
+}) => {
+  const [activeModule, setActiveModule] = useState<string | null>(null);
+
   const value = { activeModule, setActiveModule };
 
   return (
@@ -17,7 +26,12 @@ export const StepModalProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the context
-export const useStepModalContext = () => {
-  return React.useContext(StepModalContext);
+export const useStepModalContext = (): StepModalContextType => {
+  const context = useContext(StepModalContext);
+  if (context === undefined) {
+    throw new Error(
+      'useStepModalContext must be used within a StepModalProvider'
+    );
+  }
+  return context;
 };

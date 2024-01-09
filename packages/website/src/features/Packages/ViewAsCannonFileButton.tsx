@@ -12,7 +12,7 @@ import {
 import { FC } from 'react';
 import { stringify } from '@iarna/toml';
 
-function omitEmptyObjects(config) {
+function omitEmptyObjects(config: { [x: string]: any }) {
   for (const key in config) {
     if (Object.prototype.hasOwnProperty.call(config, key)) {
       const value = config[key];
@@ -34,13 +34,16 @@ export const ViewAsCannonFileButton: FC<{
   deploymentInfo: any;
 }> = ({ deploymentInfo }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+
   // Deep clone the deploymentInfo.def object
-  const clonedDeploymentInfoDef = deploymentInfo?.def ? JSON.parse(JSON.stringify(deploymentInfo.def)) : null;
+  const clonedDeploymentInfoDef = deploymentInfo?.def
+    ? JSON.parse(JSON.stringify(deploymentInfo.def))
+    : null;
 
   // Apply the omitEmptyObjects function to the cloned object
-  const processedDeploymentInfo = clonedDeploymentInfoDef ? omitEmptyObjects(clonedDeploymentInfoDef) : null;
-
+  const processedDeploymentInfo = clonedDeploymentInfoDef
+    ? omitEmptyObjects(clonedDeploymentInfoDef)
+    : null;
 
   return (
     <>
@@ -66,7 +69,7 @@ export const ViewAsCannonFileButton: FC<{
           <Box my={12}>
             <ModalCloseButton />
             <CodePreview
-              code={stringify(processedDeploymentInfo)}
+              code={stringify(processedDeploymentInfo as any)}
               language="toml"
             />
           </Box>
