@@ -10,6 +10,7 @@ import { ethers } from 'ethers';
 import fs, { Dirent } from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
+import { dirSync } from 'tmp-promise';
 import { publish } from '../commands/publish';
 import { LocalLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
@@ -62,7 +63,7 @@ describe('publish command', () => {
         registryProviderUrl: 'http://localhost:3000',
         registryAddress: ethers.constants.AddressZero,
         registryChainId: '123', // or whatever value is appropriate in your case
-        cannonDirectory: '/cannon/directory/',
+        cannonDirectory: dirSync().name,
         // Add other properties as needed
       })
     );
