@@ -14,5 +14,7 @@ export const links = {
   CLI: '/learn/cli',
   CANNONFILE: '/learn/cannonfile',
   IPFS_DOWNLOAD: '/ipfs',
-  IPFS_UPLOAD: '/ipfs/upload'
+  IPFS_UPLOAD: '/ipfs/upload',
+  DOCS_CLI_RUN: '/learn/cli#run',
+  DOCS_CANNONFILE_PROVISION: '/learn/cannonfile#provision',
 };
