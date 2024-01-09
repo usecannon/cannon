@@ -1084,6 +1084,34 @@ const chains = [
     faucets: ['https://www.coinbase.com/faucets/base-ethereum-goerli-faucet'],
     infoURL: 'https://base.org/',
   },
+  {
+    name: 'Scroll Sepolia Testnet',
+    chainId: 534351,
+    shortName: 'scroll-sepolia',
+    chain: '',
+    network: 'mainnet',
+    networkId: 534351,
+    nativeCurrency: { name: 'Sepolia Ether', symbol: 'sETH', decimals: 18 },
+    rpc: ['https://rpc.scroll.io'],
+    etherscanApi: 'https://api-sepolia.scrollscan.io/api',
+    etherscanUrl: 'https://sepolia.scrollscan.io',
+    faucets: [],
+    infoURL: 'https://scroll.io',
+  },
+  {
+    name: 'Scroll',
+    chainId: 534352,
+    shortName: 'scroll',
+    chain: '',
+    network: 'mainnet',
+    networkId: 534352,
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpc: ['https://rpc.scroll.io'],
+    etherscanApi: 'https://api.scrollscan.io/api',
+    etherscanUrl: 'https://scrollscan.io',
+    faucets: [],
+    infoURL: 'https://scroll.io',
+  },
 ];
 
 let CHAIN_DATA: Record<number, { name: string; color?: string }> = [];
@@ -1150,6 +1178,14 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   84531: {
     name: 'base goerli',
     color: 'blue',
+  },
+  534351: {
+    name: 'scroll sepolia',
+    color: 'yellow',
+  },
+  534532: {
+    name: 'scroll',
+    color: 'gold',
   },
 });
 
