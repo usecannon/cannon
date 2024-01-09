@@ -202,7 +202,8 @@ export const CannonfileGraph: FC<{
       .insert('rect', 'text')
       .attr('class', 'node-background')
       .attr('width', function (d, i, nodes) {
-        const bbox = (nodes[i] as SVGGraphicsElement).getBBox();
+        const bbox = ((nodes[i] as SVGGElement)
+          .nextSibling as SVGGraphicsElement)!.getBBox();
         return bbox.width + 10;
       })
       .attr('height', function (d, i, nodes) {
