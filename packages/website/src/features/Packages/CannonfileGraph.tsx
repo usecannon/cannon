@@ -64,6 +64,7 @@ export const CannonfileGraph: FC<{
   const { setActiveModule } = useStepModalContext();
 
   useEffect(() => {
+
     // Select the SVG element and clear it
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
@@ -238,7 +239,7 @@ export const CannonfileGraph: FC<{
     setTimeout(() => {
       zoomToFit();
     }, 1000);
-  }, [nodes, links]);
+  }, [deploymentInfo]);
 
   return (
     <>
