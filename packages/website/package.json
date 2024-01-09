@@ -1,6 +1,6 @@
 {
   "name": "cannon-website",
-  "version": "0.1.4",
+  "version": "0.1.5-alpha.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -27,8 +27,8 @@
     "@types/node": "20.3.2",
     "@types/react": "18.2.37",
     "@types/react-dom": "18.2.6",
-    "@usecannon/builder": "^2.10.7-alpha.0",
-    "@usecannon/cli": "^2.10.7-alpha.0",
+    "@usecannon/builder": "^2.10.7-alpha.1",
+    "@usecannon/cli": "^2.10.7-alpha.1",
     "@vercel/analytics": "^1.1.1",
     "axios": "^1.6.2",
     "chakra-react-select": "^4.7.0",

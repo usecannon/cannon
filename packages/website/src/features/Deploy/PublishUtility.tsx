@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 import {
-  Box,
   Button,
   FormControl,
   FormHelperText,
+  Link,
   Spinner,
   Text,
 } from '@chakra-ui/react';
@@ -15,10 +15,10 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { CheckIcon } from '@chakra-ui/icons';
 import { useCannonPackage } from '@/hooks/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useStore } from '@/helpers/store';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -46,6 +46,13 @@ export default function PublishUtility(props: {
     `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
     props.targetChainId
   );
+
+  const packageUrl = `/packages/${resolvedName}/${
+    resolvedVersion || 'latest'
+  }/${props.targetChainId}-${resolvedPreset || 'main'}`;
+  const packageDisplay = `${resolvedName}${
+    resolvedVersion ? ':' + resolvedVersion : ''
+  }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const publishMutation = useMutation({
     mutationFn: async () => {
@@ -120,31 +127,31 @@ export default function PublishUtility(props: {
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text opacity={0.8}>
-        <Spinner boxSize={3} mr={1} /> Loading
+        <Spinner boxSize={3} mx="auto" />
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     return (
-      <FormControl mb="8">
+      <FormControl>
         {!existingRegistryUrl ? (
-          <Text mb={3}>
+          <Text>
             The package resulting from this deployment has not been published to
             the registry.
           </Text>
         ) : (
-          <Text mb={3}>
+          <Text>
             A different package has been published to the registry with a
             matching name and version.
           </Text>
         )}
         {settings.isIpfsGateway && (
-          <Text mb={3}>
+          <Text>
             You cannot publish on an IPFS gateway, only read operations can be
             done.
           </Text>
         )}
         {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-          <Text mb={3}>
+          <Text>
             You cannot publish on an repo endpoint, only read operations can be
             done.
           </Text>
@@ -157,6 +164,7 @@ export default function PublishUtility(props: {
             publishMutation.isLoading
           }
           onClick={() => publishMutation.mutate()}
+          mt={4}
         >
           {publishMutation.isLoading
             ? [<Spinner key={0} />, ' Publish in Progress...']
@@ -172,28 +180,14 @@ export default function PublishUtility(props: {
     );
   } else {
     return (
-      <Box
-        display="inline-block"
-        borderRadius="lg"
-        bg="blackAlpha.300"
-        px={4}
-        py={3}
-      >
-        <Box
-          backgroundColor="green"
-          borderRadius="full"
-          display="inline-flex"
-          alignItems="center"
-          justifyContent="center"
-          boxSize={5}
-          mr={2.5}
-        >
-          <CheckIcon color="white" boxSize={2.5} />
-        </Box>
-        <Text fontWeight="bold" display="inline">
-          Published to Registry
+      <>
+        <Text fontSize="xs">
+          <Link href={packageUrl}>
+            {packageDisplay}
+            <ExternalLinkIcon ml={1} transform="translateY(-0.5px)" />
+          </Link>
         </Text>
-      </Box>
+      </>
     );
   }
 }

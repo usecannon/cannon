@@ -221,7 +221,7 @@ export const DeploymentExplorer: FC<{
             )}
             {deploymentInfo?.status == 'partial' && (
               <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
-                <Badge ml={3} opacity={0.8} colorScheme="yellow">
+                <Badge opacity={0.8} colorScheme="yellow">
                   Partial
                 </Badge>
               </Tooltip>
@@ -265,21 +265,21 @@ export const DeploymentExplorer: FC<{
             p={6}
             mb={6}
           >
-            <Box mb={3}>
-              <Box mb={4}>
-                <Heading size="md" mb={2}>
-                  Chain Definition
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  The chain definition describes the desired state of the
-                  blockchain based on a Cannonfile.
-                </Text>
-              </Box>
-              <Box mb={6}>
+            <Box>
+              <Heading size="md" mb={2}>
+                Chain Definition
+              </Heading>
+              <Text fontSize="sm" color="gray.300">
+                The chain definition describes the desired state of the
+                blockchain based on a Cannonfile.
+              </Text>
+            </Box>
+            {Object.entries(settings).length > 0 && (
+              <Box mt={4}>
                 <Heading size="sm" mb={2}>
                   Settings
                 </Heading>
-                <Box overflowX="auto">
+                <Box overflowX="auto" mb={6}>
                   <Table variant="simple" size="sm">
                     <Thead>
                       <Tr>
@@ -319,52 +319,52 @@ export const DeploymentExplorer: FC<{
                       ))}
                     </Tbody>
                   </Table>
-                </Box>
 
-                {!isEmpty(deploymentInfo?.meta) && (
-                  <>
-                    <Box mt={1.5}>
-                      <Link
-                        isExternal
-                        styleConfig={{ 'text-decoration': 'none' }}
-                        borderBottom="1px dotted"
-                        borderBottomColor="gray.300"
-                        onClick={openPackageJsonModal}
-                        color="gray.300"
-                        fontSize="xs"
-                        fontFamily="mono"
-                        cursor={'pointer'}
+                  {!isEmpty(deploymentInfo?.meta) && (
+                    <>
+                      <Box mt={1.5}>
+                        <Link
+                          isExternal
+                          styleConfig={{ 'text-decoration': 'none' }}
+                          borderBottom="1px dotted"
+                          borderBottomColor="gray.300"
+                          onClick={openPackageJsonModal}
+                          color="gray.300"
+                          fontSize="xs"
+                          fontFamily="mono"
+                          cursor={'pointer'}
+                        >
+                          package.json
+                        </Link>{' '}
+                        <Tooltip
+                          label="Cannon includes a project's package.json in the Cannonfile context."
+                          placement="right"
+                          hasArrow
+                        >
+                          <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
+                        </Tooltip>
+                      </Box>
+                      <Modal
+                        isOpen={isPackageJsonModalOpen}
+                        onClose={closePackageJsonModal}
+                        size="6xl"
                       >
-                        package.json
-                      </Link>{' '}
-                      <Tooltip
-                        label="Cannon includes a project's package.json in the Cannonfile context."
-                        placement="right"
-                        hasArrow
-                      >
-                        <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
-                      </Tooltip>
-                    </Box>
-                    <Modal
-                      isOpen={isPackageJsonModalOpen}
-                      onClose={closePackageJsonModal}
-                      size="6xl"
-                    >
-                      <ModalOverlay />
-                      <ModalContent>
-                        <ModalCloseButton />
-                        <CodePreview
-                          code={JSON.stringify(deploymentInfo?.meta, null, 2)}
-                          language="json"
-                        />
-                      </ModalContent>
-                    </Modal>
-                  </>
-                )}
+                        <ModalOverlay />
+                        <ModalContent>
+                          <ModalCloseButton />
+                          <CodePreview
+                            code={JSON.stringify(deploymentInfo?.meta, null, 2)}
+                            language="json"
+                          />
+                        </ModalContent>
+                      </Modal>
+                    </>
+                  )}
+                </Box>
               </Box>
-            </Box>
+            )}
             {deploymentInfo?.def?.import && (
-              <Box mb={4}>
+              <Box mt={4}>
                 <Heading size="sm" mb={3}>
                   Package Data Imports
                 </Heading>
@@ -375,7 +375,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.provision && (
-              <Box mb={4}>
+              <Box mt={4}>
                 <Heading size="sm" mb={3}>
                   Package Provisioning
                 </Heading>
@@ -386,7 +386,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.router && (
-              <Box mb={4}>
+              <Box mt={4}>
                 <Heading size="sm" mb={3}>
                   Router Generation
                 </Heading>
@@ -397,7 +397,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.contract && (
-              <Box mb={4}>
+              <Box mt={4}>
                 <Heading size="sm" mb={3}>
                   Contract Deployments
                 </Heading>
@@ -408,7 +408,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {deploymentInfo?.def?.invoke && (
-              <Box mb={4}>
+              <Box mt={4}>
                 <Heading size="sm" mb={3}>
                   Function Calls
                 </Heading>
@@ -442,7 +442,6 @@ export const DeploymentExplorer: FC<{
               <Button
                 variant="outline"
                 colorScheme="white"
-                mb={4}
                 size="xs"
                 color="gray.300"
                 borderColor="gray.500"
@@ -455,7 +454,7 @@ export const DeploymentExplorer: FC<{
               {!isEmpty(contractState) && (
                 <>
                   {Object.entries(contractState).length > 0 && (
-                    <Box overflowX="auto" mb={4}>
+                    <Box overflowX="auto" mt={6}>
                       <Table variant="simple" size="sm">
                         <Thead>
                           <Tr>
@@ -490,11 +489,11 @@ export const DeploymentExplorer: FC<{
               )}
             </Box>
             {!isEmpty(invokeState) && (
-              <Box mb={4}>
+              <Box mt={6}>
                 <Heading size="sm" mb={2}>
                   Function Calls
                 </Heading>
-                <Box overflowX="auto" mb={6}>
+                <Box overflowX="auto">
                   <Table variant="simple" size="sm">
                     <Thead>
                       <Tr>
@@ -521,7 +520,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {!isEmpty(mergedExtras) && (
-              <Box>
+              <Box mt={6}>
                 <Heading size="sm" mb={2}>
                   Event Data{' '}
                   <Tooltip
@@ -537,7 +536,7 @@ export const DeploymentExplorer: FC<{
                     />
                   </Tooltip>
                 </Heading>
-                <Box overflowX="auto" mb={6}>
+                <Box overflowX="auto">
                   <Table variant="simple" size="sm">
                     <Thead>
                       <Tr>

@@ -20,9 +20,12 @@ import {
   Heading,
   HStack,
   Input,
+  InputGroup,
+  InputRightElement,
   Text,
   Tooltip,
   useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -195,88 +198,71 @@ function QueueTransactions() {
       >
         <FormControl>
           <FormLabel>Cannon Package or Contract Address</FormLabel>
-          <Input
-            type="text"
-            borderColor="whiteAlpha.400"
-            background="black"
-            onChange={(event: any) => setTarget(event.target.value)}
-          />
-          <FormHelperText color="gray.300">
-            A package must have deployment data for the same network as your
-            connected wallet.
-          </FormHelperText>
+          <InputGroup>
+            <Input
+              type="text"
+              borderColor="whiteAlpha.400"
+              background="black"
+              onChange={(event: any) => setTarget(event.target.value)}
+            />
+            {!isAddress(target) &&
+              target.length >= 3 &&
+              cannonInfo.registryQuery.status === 'loading' && (
+                <InputRightElement>
+                  <Spinner />
+                </InputRightElement>
+              )}
+          </InputGroup>
+
+          {!isAddress(target) &&
+          target.length >= 3 &&
+          cannonInfo.registryQuery.status === 'error' ? (
+            <FormHelperText color="red.500">
+              Failed to find this package on the registry.
+            </FormHelperText>
+          ) : (
+            <FormHelperText color="gray.300">
+              A package must have deployment data for the same network as your
+              connected wallet.
+            </FormHelperText>
+          )}
         </FormControl>
-        {!isAddress(target) &&
-          target.length >= 3 &&
-          cannonInfo.registryQuery.status === 'loading' && (
-            <Alert bg="gray.800" status="info" mt={6}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Searching</AlertTitle>
-                <AlertDescription fontSize="sm">
-                  {`Searching "${target}" package`}
-                </AlertDescription>
-              </Box>
-            </Alert>
-          )}
-        {!isAddress(target) &&
-          target.length >= 3 &&
-          cannonInfo.registryQuery.status === 'error' && (
-            <Alert bg="gray.800" status="error" mt={6}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Searching</AlertTitle>
-                <AlertDescription fontSize="sm">
-                  {`Failed to find "${target}" package`}
-                </AlertDescription>
-              </Box>
-            </Alert>
-          )}
-        {!isAddress(target) &&
-          cannonInfo.pkgUrl &&
-          cannonInfo.ipfsQuery.status === 'loading' && (
-            <Alert bg="gray.800" status="info" mt={6}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Cannon Package Detected</AlertTitle>
-                <AlertDescription fontSize="sm">
-                  Downloading {cannonInfo.pkgUrl}
-                </AlertDescription>
-              </Box>
-            </Alert>
-          )}
-        {!isAddress(target) &&
-          cannonInfo.pkgUrl &&
-          cannonInfo.ipfsQuery.status === 'error' && (
-            <Alert bg="gray.800" status="error" mt={6}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Cannon Package Detected</AlertTitle>
-                <AlertDescription fontSize="sm">
-                  Failed to load {cannonInfo.pkgUrl}
-                </AlertDescription>
-              </Box>
-            </Alert>
-          )}
       </Box>
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'loading' && (
+          <Alert bg="gray.800" status="info" mt={6}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Downloading {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'error' && (
+          <Alert bg="gray.800" status="error" mt={6}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Failed to load {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
       {!isAddress(target) && cannonInfo.contracts && (
-        <Box
-          mb={8}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
+        <Box mt={6} mb={6} display="block">
           <Heading size="md" mb={3}>
             Transactions
           </Heading>
           {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
             <Box
               key={i}
-              mb={6}
+              mb={8}
               p={6}
               bg="gray.800"
               display="block"
@@ -294,73 +280,66 @@ function QueueTransactions() {
               />
             </Box>
           ))}
-          <HStack mt="3">
-            <Button
-              variant="outline"
-              size="xs"
-              colorScheme="green"
-              color="green.400"
-              borderColor="green.400"
-              _hover={{ bg: 'green.900' }}
-              onClick={() => addQueuedTxn()}
-            >
-              Add Transaction
-            </Button>
-          </HStack>
+          <Button
+            variant="outline"
+            size="xs"
+            colorScheme="green"
+            color="green.400"
+            borderColor="green.400"
+            _hover={{ bg: 'green.900' }}
+            onClick={() => addQueuedTxn()}
+          >
+            Add Transaction
+          </Button>
         </Box>
       )}
-      {isAddress(target) && (
-        <Box
-          mb={8}
-          p={6}
-          bg="gray.800"
-          display="block"
-          borderWidth="1px"
-          borderStyle="solid"
-          borderColor="gray.600"
-          borderRadius="4px"
-        >
-          {funcIsPayable && (
-            <FormControl>
-              <FormLabel>Value</FormLabel>
-              <Input
-                type="text"
-                borderColor="whiteAlpha.400"
-                background="black"
-                onChange={(event: any) =>
-                  updateQueuedTxn(0, {
-                    ...queuedTxns[0],
-                    value: BigInt(event.target.value),
-                  })
-                }
-              />
-              <FormHelperText>
-                Amount of ETH to send as part of transaction
-              </FormHelperText>
-            </FormControl>
+      {(isAddress(target) || cannonInfo.contracts) && (
+        <Box>
+          {isAddress(target) && (
+            <Box mb="6">
+              {funcIsPayable && (
+                <FormControl>
+                  <FormLabel>Value</FormLabel>
+                  <Input
+                    type="text"
+                    borderColor="whiteAlpha.400"
+                    background="black"
+                    onChange={(event: any) =>
+                      updateQueuedTxn(0, {
+                        ...queuedTxns[0],
+                        value: BigInt(event.target.value),
+                      })
+                    }
+                  />
+                  <FormHelperText>
+                    Amount of ETH to send as part of transaction
+                  </FormHelperText>
+                </FormControl>
+              )}
+
+              <FormControl mb="4">
+                <FormLabel>Transaction Data</FormLabel>
+                <Input
+                  type="text"
+                  borderColor="whiteAlpha.400"
+                  background="black"
+                  placeholder="0x"
+                  onChange={(event: any) =>
+                    updateQueuedTxn(0, {
+                      ...queuedTxns[0],
+                      data: (event.target.value as Hex) || '0x',
+                    })
+                  }
+                />
+                <FormHelperText>
+                  0x prefixed hex code data to send with transaction
+                </FormHelperText>
+              </FormControl>
+            </Box>
           )}
 
-          <FormControl mb="4">
-            <FormLabel>Transaction Data</FormLabel>
-            <Input
-              type="text"
-              borderColor="whiteAlpha.400"
-              background="black"
-              placeholder="0x"
-              onChange={(event: any) =>
-                updateQueuedTxn(0, {
-                  ...queuedTxns[0],
-                  data: (event.target.value as Hex) || '0x',
-                })
-              }
-            />
-            <FormHelperText>
-              0x prefixed hex code data to send with transaction
-            </FormHelperText>
-          </FormControl>
-
           {cannonInfo.contracts && (
-            <Box mb="6">
+            <Box>
               {stager.signConditionFailed && (
                 <Alert bg="gray.800" status="error" mb={4}>
                   <AlertIcon />

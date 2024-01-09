@@ -2,6 +2,7 @@ import { find, merge } from 'lodash';
 import { FC, useMemo } from 'react';
 import { Flex, Box, Text } from '@chakra-ui/react';
 import * as chains from 'wagmi/chains';
+import { Image } from '@chakra-ui/react';
 //import chainsData from '@/constants/chainsData';
 
 type ChainData = {
@@ -66,7 +67,19 @@ const Chain: FC<{
   const color = chain?.color || 'gray.600';
   return (
     <Flex gap={1.5} alignItems="baseline">
-      <Box h="0.66rem" w="0.66rem" borderRadius={999} bg={color} />
+      {id === 13370 ? (
+        <Image
+          display="block"
+          src="/images/logomark.svg"
+          alt="Cannon"
+          h="0.66rem"
+          w="0.66rem"
+          transform="scale(2.1) translateY(-0.01rem)"
+          objectFit="cover"
+        />
+      ) : (
+        <Box h="0.66rem" w="0.66rem" borderRadius={999} bg={color} />
+      )}
       {!isSmall && (
         <>
           {name}

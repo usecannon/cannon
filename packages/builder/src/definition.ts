@@ -189,7 +189,7 @@ export class ChainDefinition {
   }
 
   getPreset(ctx: ChainBuilderContext) {
-    return _.template(this.raw.preset)(ctx);
+    return _.template(this.raw.preset)(ctx) || 'main';
   }
 
   getConfig(n: string, ctx: ChainBuilderContext) {
