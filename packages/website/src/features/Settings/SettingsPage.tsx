@@ -131,7 +131,10 @@ export default function SettingsPage() {
               </Link>{' '}
               endpoints) added below if available for the target chain.
               Otherwise, it will use a{' '}
-              <Link isExternal href="https://github.com/wevm/viem/tree/main/src/chains/definitions">
+              <Link
+                isExternal
+                href="https://github.com/wevm/viem/tree/main/src/chains/definitions"
+              >
                 default RPC url
               </Link>
               .
