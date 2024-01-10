@@ -72,6 +72,8 @@ export async function contractCall(
   const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
   const res = await publicClient.call({ ...call, account: from });
   try {
+    // Attempt to decode the multicall response such that we can return the last return value
+    // ERC-7412 is causing there to be items prepended to the list from the oracle contract calls
     const multicallValue: any = (res as any).data
       ? decodeFunctionResult({
           abi: MulticallABI,
@@ -96,7 +98,8 @@ export async function contractCall(
           })
         : (res as any).data;
     }
-  } catch {
+  } catch (e) {
+    // We land here if the call is not a multicall
     return (res as any).data
       ? decodeFunctionResult({
           abi,

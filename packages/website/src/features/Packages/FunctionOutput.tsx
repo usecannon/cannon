@@ -17,7 +17,6 @@ export const FunctionOutput: FC<{
   const objectOutput: AbiParameter | undefined = isObject(output)
     ? (output as AbiParameter)
     : undefined;
-
   return (
     <>
       {(output as Array<any>).length == 0 && (
@@ -112,10 +111,10 @@ export const FunctionOutput: FC<{
                   <>
                     {(isArray(result) ? result[index] : result) === null ? (
                       <Text color="gray.500">—</Text>
+                    ) : (output as Array<any>)[index].type.endsWith('[]') ? (
+                      String(result)
                     ) : (
-                      <Text>
-                        {String(isArray(result) ? result[index] : result)}
-                      </Text>
+                      String(isArray(result) ? result[index] : result)
                     )}
                   </>
                 ) : null}
