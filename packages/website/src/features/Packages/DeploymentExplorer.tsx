@@ -2,10 +2,16 @@ import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Badge,
   Box,
   Button,
   Container,
+  Flex,
   Heading,
   Link,
   Modal,
@@ -35,6 +41,9 @@ import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
+import { CannonfileGraph } from './CannonfileGraph';
+import { ViewAsCannonFileButton } from './ViewAsCannonFileButton';
+import { StepModalProvider } from '@/providers/stepModalProvider';
 
 export const DeploymentExplorer: FC<{
   pkgName: string;
@@ -221,7 +230,7 @@ export const DeploymentExplorer: FC<{
             )}
             {deploymentInfo?.status == 'partial' && (
               <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
-                <Badge ml={3} opacity={0.8} colorScheme="yellow">
+                <Badge opacity={0.8} colorScheme="yellow">
                   Partial
                 </Badge>
               </Tooltip>
@@ -265,159 +274,205 @@ export const DeploymentExplorer: FC<{
             p={6}
             mb={6}
           >
-            <Box mb={3}>
-              <Box mb={4}>
+            <StepModalProvider>
+              <Box mb={3}>
                 <Heading size="md" mb={2}>
                   Chain Definition
                 </Heading>
                 <Text fontSize="sm" color="gray.300">
                   The chain definition describes the desired state of the
-                  blockchain based on a Cannonfile.
+                  blockchain based on a cannonfile.
                 </Text>
               </Box>
-              <Box mb={6}>
-                <Heading size="sm" mb={2}>
-                  Settings
-                </Heading>
-                <Box overflowX="auto">
-                  <Table variant="simple" size="sm">
-                    <Thead>
-                      <Tr>
-                        <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Setting
-                        </Th>
-                        <Th color="gray.300" borderColor="gray.500">
-                          Value
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody fontFamily={'mono'}>
-                      {Object.entries(settings).map(([key, value]) => (
-                        <Tr key={key}>
-                          <Td pl={0} borderColor="gray.500">
-                            <Tooltip label={value.description}>
-                              {key?.toString()}
-                            </Tooltip>
-                          </Td>
-                          <Td borderColor="gray.500">
-                            {value.option ? (
-                              <>
-                                {value.option}{' '}
-                                <Text
-                                  color="gray.500"
-                                  textDecoration="line-through"
-                                  display="inline"
-                                >
-                                  {value.defaultValue}
-                                </Text>
-                              </>
-                            ) : (
-                              <>{value.defaultValue}</>
-                            )}
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
+              <CannonfileGraph deploymentInfo={deploymentInfo} />
 
-                {!isEmpty(deploymentInfo?.meta) && (
-                  <>
-                    <Box mt={1.5}>
-                      <Link
-                        isExternal
-                        styleConfig={{ 'text-decoration': 'none' }}
-                        borderBottom="1px dotted"
-                        borderBottomColor="gray.300"
-                        onClick={openPackageJsonModal}
+              <Accordion allowToggle>
+                <AccordionItem border="none">
+                  <AccordionButton px={0} pb={0}>
+                    <Flex alignItems="center" flex="1">
+                      <Text
+                        fontWeight={500}
+                        textTransform="uppercase"
+                        letterSpacing="1px"
+                        fontFamily="var(--font-miriam)"
+                        fontSize="12px"
                         color="gray.300"
-                        fontSize="xs"
-                        fontFamily="mono"
-                        cursor={'pointer'}
+                        mr={0.5}
                       >
-                        package.json
-                      </Link>{' '}
-                      <Tooltip
-                        label="Cannon includes a project's package.json in the Cannonfile context."
-                        placement="right"
-                        hasArrow
+                        Show Actions
+                      </Text>
+                      <Box
+                        display="inline-block"
+                        transform="translateY(-0.1rem)"
                       >
-                        <InfoIcon color="gray.400" boxSize={3} ml={0.5} />
-                      </Tooltip>
+                        <AccordionIcon color="gray.300" />
+                      </Box>
+                    </Flex>
+                    <Box>
+                      <ViewAsCannonFileButton deploymentInfo={deploymentInfo} />
                     </Box>
-                    <Modal
-                      isOpen={isPackageJsonModalOpen}
-                      onClose={closePackageJsonModal}
-                      size="6xl"
-                    >
-                      <ModalOverlay />
-                      <ModalContent>
-                        <ModalCloseButton />
-                        <CodePreview
-                          code={JSON.stringify(deploymentInfo?.meta, null, 2)}
-                          language="json"
+                  </AccordionButton>
+                  <AccordionPanel px={0} pb={0}>
+                    {Object.entries(settings).length > 0 && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={2}>
+                          Settings
+                        </Heading>
+                        <Box overflowX="auto" mb={6}>
+                          <Table variant="simple" size="sm">
+                            <Thead>
+                              <Tr>
+                                <Th
+                                  color="gray.300"
+                                  pl={0}
+                                  borderColor="gray.500"
+                                >
+                                  Setting
+                                </Th>
+                                <Th color="gray.300" borderColor="gray.500">
+                                  Value
+                                </Th>
+                              </Tr>
+                            </Thead>
+                            <Tbody fontFamily={'mono'}>
+                              {Object.entries(settings).map(([key, value]) => (
+                                <Tr key={key}>
+                                  <Td pl={0} borderColor="gray.500">
+                                    <Tooltip label={value.description}>
+                                      {key?.toString()}
+                                    </Tooltip>
+                                  </Td>
+                                  <Td borderColor="gray.500">
+                                    {value.option ? (
+                                      <>
+                                        {value.option}{' '}
+                                        <Text
+                                          color="gray.500"
+                                          textDecoration="line-through"
+                                          display="inline"
+                                        >
+                                          {value.defaultValue}
+                                        </Text>
+                                      </>
+                                    ) : (
+                                      <>{value.defaultValue}</>
+                                    )}
+                                  </Td>
+                                </Tr>
+                              ))}
+                            </Tbody>
+                          </Table>
+
+                          {!isEmpty(deploymentInfo?.meta) && (
+                            <>
+                              <Box mt={1.5}>
+                                <Link
+                                  isExternal
+                                  styleConfig={{ 'text-decoration': 'none' }}
+                                  borderBottom="1px dotted"
+                                  borderBottomColor="gray.300"
+                                  onClick={openPackageJsonModal}
+                                  color="gray.300"
+                                  fontSize="xs"
+                                  fontFamily="mono"
+                                  cursor={'pointer'}
+                                >
+                                  package.json
+                                </Link>{' '}
+                                <Tooltip
+                                  label="Cannon includes a project's package.json in the Cannonfile context."
+                                  placement="right"
+                                  hasArrow
+                                >
+                                  <InfoIcon
+                                    color="gray.400"
+                                    boxSize={3}
+                                    ml={0.5}
+                                  />
+                                </Tooltip>
+                              </Box>
+                              <Modal
+                                isOpen={isPackageJsonModalOpen}
+                                onClose={closePackageJsonModal}
+                                size="6xl"
+                              >
+                                <ModalOverlay />
+                                <ModalContent>
+                                  <ModalCloseButton />
+                                  <CodePreview
+                                    code={JSON.stringify(
+                                      deploymentInfo?.meta,
+                                      null,
+                                      2
+                                    )}
+                                    language="json"
+                                  />
+                                </ModalContent>
+                              </Modal>
+                            </>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.import && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Package Data Imports
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="import"
+                          modules={deploymentInfo.def.import}
                         />
-                      </ModalContent>
-                    </Modal>
-                  </>
-                )}
-              </Box>
-            </Box>
-            {deploymentInfo?.def?.import && (
-              <Box mb={4}>
-                <Heading size="sm" mb={3}>
-                  Package Data Imports
-                </Heading>
-                <ChainDefinitionSteps
-                  name="import"
-                  modules={deploymentInfo.def.import}
-                />
-              </Box>
-            )}
-            {deploymentInfo?.def?.provision && (
-              <Box mb={4}>
-                <Heading size="sm" mb={3}>
-                  Package Provisioning
-                </Heading>
-                <ChainDefinitionSteps
-                  name="provision"
-                  modules={deploymentInfo.def.provision}
-                />
-              </Box>
-            )}
-            {deploymentInfo?.def?.router && (
-              <Box mb={4}>
-                <Heading size="sm" mb={3}>
-                  Router Generation
-                </Heading>
-                <ChainDefinitionSteps
-                  name="router"
-                  modules={deploymentInfo.def.router}
-                />
-              </Box>
-            )}
-            {deploymentInfo?.def?.contract && (
-              <Box mb={4}>
-                <Heading size="sm" mb={3}>
-                  Contract Deployments
-                </Heading>
-                <ChainDefinitionSteps
-                  name="contract"
-                  modules={deploymentInfo.def.contract}
-                />
-              </Box>
-            )}
-            {deploymentInfo?.def?.invoke && (
-              <Box mb={4}>
-                <Heading size="sm" mb={3}>
-                  Function Calls
-                </Heading>
-                <ChainDefinitionSteps
-                  name="invoke"
-                  modules={deploymentInfo.def.invoke}
-                />
-              </Box>
-            )}
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.provision && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Package Provisioning
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="provision"
+                          modules={deploymentInfo.def.provision}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.router && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Router Generation
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="router"
+                          modules={deploymentInfo.def.router}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.contract && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Contract Deployments
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="contract"
+                          modules={deploymentInfo.def.contract}
+                        />
+                      </Box>
+                    )}
+                    {deploymentInfo?.def?.invoke && (
+                      <Box mt={4}>
+                        <Heading size="sm" mb={3}>
+                          Function Calls
+                        </Heading>
+                        <ChainDefinitionSteps
+                          name="invoke"
+                          modules={deploymentInfo.def.invoke}
+                        />
+                      </Box>
+                    )}
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
+            </StepModalProvider>
           </Box>
           <Box
             bg="blackAlpha.600"
@@ -442,7 +497,6 @@ export const DeploymentExplorer: FC<{
               <Button
                 variant="outline"
                 colorScheme="white"
-                mb={4}
                 size="xs"
                 color="gray.300"
                 borderColor="gray.500"
@@ -455,7 +509,7 @@ export const DeploymentExplorer: FC<{
               {!isEmpty(contractState) && (
                 <>
                   {Object.entries(contractState).length > 0 && (
-                    <Box overflowX="auto" mb={4}>
+                    <Box overflowX="auto" mt={6}>
                       <Table variant="simple" size="sm">
                         <Thead>
                           <Tr>
@@ -490,11 +544,11 @@ export const DeploymentExplorer: FC<{
               )}
             </Box>
             {!isEmpty(invokeState) && (
-              <Box mb={4}>
+              <Box mt={6}>
                 <Heading size="sm" mb={2}>
                   Function Calls
                 </Heading>
-                <Box overflowX="auto" mb={6}>
+                <Box overflowX="auto">
                   <Table variant="simple" size="sm">
                     <Thead>
                       <Tr>
@@ -521,7 +575,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
             {!isEmpty(mergedExtras) && (
-              <Box>
+              <Box mt={6}>
                 <Heading size="sm" mb={2}>
                   Event Data{' '}
                   <Tooltip
@@ -537,7 +591,7 @@ export const DeploymentExplorer: FC<{
                     />
                   </Tooltip>
                 </Heading>
-                <Box overflowX="auto" mb={6}>
+                <Box overflowX="auto">
                   <Table variant="simple" size="sm">
                     <Thead>
                       <Tr>

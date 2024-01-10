@@ -55,21 +55,6 @@ export default function WithSafe({ children }: { children: ReactNode }) {
           </Box>
         </Flex>
       </Flex>
-      <Box
-        bg="gray.700"
-        color="gray.300"
-        border="1px solid"
-        borderColor="gray.900"
-        py={1}
-        px={2}
-        fontSize="xs"
-        letterSpacing="0.2px"
-        w="100%"
-        textAlign="center"
-      >
-        🚧&nbsp;&nbsp;The web deployer is currently under
-        construction&nbsp;&nbsp;🚧
-      </Box>
       {currentSafe ? (
         children
       ) : (

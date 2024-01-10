@@ -1,15 +1,14 @@
+import Debug from 'debug';
 import fs from 'fs-extra';
-import path from 'path';
 import _ from 'lodash';
+import path from 'path';
 import untildify from 'untildify';
 import {
+  CLI_SETTINGS_STORE,
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_REGISTRY_PROVIDER_URL,
-  CLI_SETTINGS_STORE,
 } from './constants';
-
-import Debug from 'debug';
 import { filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');

@@ -124,7 +124,7 @@ export async function writeIpfs(
 
   let result: AxiosResponse<any, any>;
   try {
-    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true', formData, { headers: customHeaders });
   } catch (err) {
     throw new Error(
       'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
