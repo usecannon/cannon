@@ -130,9 +130,9 @@ export default function SettingsPage() {
                 Infura
               </Link>{' '}
               endpoints) added below if available for the target chain.
-              Otherwise, it will use{' '}
-              <Link isExternal href="https://www.publicnode.com/">
-                PublicNode
+              Otherwise, it will use a{' '}
+              <Link isExternal href="https://github.com/wevm/viem/tree/main/src/chains/definitions">
+                default RPC url
               </Link>
               .
             </Text>
