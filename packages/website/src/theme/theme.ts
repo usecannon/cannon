@@ -54,6 +54,18 @@ export const theme = extendTheme({
         backgroundColor: 'gray.800',
       },
     },
+    Checkbox: {
+      baseStyle: {
+        control: {
+          border: '1.5px solid',
+          borderColor: 'gray.300',
+          _checked: {
+            bg: 'teal.500',
+            borderColor: 'teal.500',
+          },
+        },
+      },
+    },
   },
   styles: {
     global: {

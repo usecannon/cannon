@@ -132,7 +132,10 @@ export default function SettingsPage() {
               </Link>{' '}
               endpoints) added below if available for the target chain.
               Otherwise, it will use a{' '}
-              <Link isExternal href="https://github.com/wevm/viem/tree/main/src/chains/definitions">
+              <Link
+                isExternal
+                href="https://github.com/wevm/viem/tree/main/src/chains/definitions"
+              >
                 default RPC url
               </Link>
               .
@@ -174,13 +177,6 @@ export default function SettingsPage() {
               Add Provider
             </Button>
           </Box>
-          {/* <Box mb="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
-            <InfoIcon mr={1} mt={-1} d="inline" /> Provider detected in
-            connected wallet:{' '}
-            <Text fontFamily="mono" display="inline">
-              https://asdf.com
-            </Text>
-          </Box> */}
           <Heading size="sm" fontWeight={600} mb={1}>
             Oracle Multicalls
           </Heading>
@@ -313,19 +309,20 @@ export default function SettingsPage() {
             )}
           </FormControl>
           {settings.ipfsApiUrl.length ? (
-          <Button
-            as={Link}
-            textDecoration="none"
-            variant="outline"
-            size="xs"
-            colorScheme="blue"
-            color="blue.400"
-            borderColor="blue.400"
-            _hover={{ bg: 'blue.800', textDecoration: 'none' }}
-            href={links.IPFS_DOWNLOAD}
-          >
-            Test IPFS Endpoint
-          </Button>) : null}
+            <Button
+              as={Link}
+              textDecoration="none"
+              variant="outline"
+              size="xs"
+              colorScheme="blue"
+              color="blue.400"
+              borderColor="blue.400"
+              _hover={{ bg: 'blue.800', textDecoration: 'none' }}
+              href={links.IPFS_DOWNLOAD}
+            >
+              Test IPFS Endpoint
+            </Button>
+          ) : null}
         </Box>
         <Box
           mb={6}

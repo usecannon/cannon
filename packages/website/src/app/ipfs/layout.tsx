@@ -24,9 +24,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <NavLink
             isSmall
             href={links.IPFS_DOWNLOAD}
-            isActive={
-              pathname == links.IPFS_DOWNLOAD
-            }
+            isActive={pathname == links.IPFS_DOWNLOAD}
           >
             Download
           </NavLink>

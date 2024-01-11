@@ -6,10 +6,7 @@ export const IpfsUrl: FC<{
   title?: string;
   url: string;
 }> = ({ title, url }) => {
-  const externalUrl = `/ipfs?cid=${url?.replace(
-    'ipfs://',
-    ''
-  )}`;
+  const externalUrl = `/ipfs?cid=${url?.replace('ipfs://', '')}`;
 
   return (
     <>
