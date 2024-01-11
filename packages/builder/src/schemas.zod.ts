@@ -138,7 +138,7 @@ export const contractSchema = z
          */
         value: z
           .string()
-          .refine((val) => !!ethers.utils.parseEther(val), {
+          .refine((val) => val.startsWith('<%') || !!ethers.utils.parseEther(val), {
             message: 'Field value must be of numeric value',
           })
           .describe('Native currency value to send in the transaction'),
