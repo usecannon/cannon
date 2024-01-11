@@ -102,13 +102,6 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
-  /*if (!Object.values(fileSettings).length) {
-    console.warn(
-      `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/learn/technical-reference#setup for more information.`
-    );
-    console.warn(`using default settings (cannon repo, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
-  }*/
-
   const finalSettings = _.assign(
     {
       cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
