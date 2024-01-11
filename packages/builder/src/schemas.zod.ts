@@ -138,7 +138,7 @@ export const contractSchema = z
          */
         value: z
           .string()
-          .refine((val) => val.startsWith('<%') || !!ethers.utils.parseEther(val), {
+          .refine((val) => !!val.match(interpolatedRegex) || !!ethers.utils.parseEther(val), {
             message: 'Field value must be of numeric value',
           })
           .describe('Native currency value to send in the transaction'),
@@ -289,7 +289,7 @@ export const invokeSchema = z
          */
         value: z
           .string()
-          .refine((val) => !!ethers.utils.parseEther(val), {
+          .refine((val) => !!val.match(interpolatedRegex) || !!ethers.utils.parseEther(val), {
             message: 'Field must be of numeric value',
           })
           .describe('The amount of ether/wei to send in the transaction.'),
