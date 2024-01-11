@@ -28,6 +28,8 @@ import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
 import { Terminal } from '../terminal';
 
+import Debug from 'debug';
+
 interface Params {
   provider: CannonWrapperGenericProvider;
   def?: ChainDefinition;
@@ -182,7 +184,8 @@ export async function build({
     throw new Error('no deployment definition to build');
   }
 
-  const terminal = new Terminal(process.stdin);
+  console.log('debug enabled?', Debug.names);
+  const terminal = new Terminal(process.stdin, !Debug.names.length);
   terminal.cursorRelativeReset();
   terminal.clearBottom();
 
@@ -197,12 +200,15 @@ export async function build({
       terminal.newline();
     }
     const curStepIdx = def!.topologicalActions.indexOf(executeStep);
-    //console.log(def!.topologicalActions, executeStep);
-    terminal.write(cyanBright(`Step ${curStepIdx + 1} / ${def!.topologicalActions.length}`));
-    terminal.newline();
-    terminal.write(cyanBright(`Executing ${`[${t}.${n}]`}...`));
-    terminal.newline();
-    terminal.newline();
+    if (terminal.enableRl) {
+      terminal.write(cyanBright(`Step ${curStepIdx + 1} / ${def!.topologicalActions.length}`));
+      terminal.newline();
+      terminal.write(cyanBright(`Executing ${`[${t}.${n}]`}...`));
+      terminal.newline();
+      terminal.newline();
+    } else {
+      console.log(cyanBright(`Executing ${`[${t}.${n}]`}...`));
+    }
   }
 
   runtime.on(Events.PreStepExecute, (t, n, _c, d) => {
@@ -228,6 +234,10 @@ export async function build({
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     terminal.cursorRelativeReset();
     terminal.clearBottom();
+
+    if (terminal.enableRl) {
+      console.log(cyanBright(`Executing ${`[${t}.${n}]`}...`));
+    }
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       console.log(

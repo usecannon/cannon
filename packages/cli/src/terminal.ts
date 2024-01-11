@@ -4,10 +4,12 @@ import readline from 'readline';
 // Copied and adapted from: https://github.com/npkgz/cli-progress/blob/e2347a35a6c0922cfb0a077cf5ed21696fba46da/lib/terminal.js
 export class Terminal {
   stream: typeof process.stdin;
+  enableRl: boolean;
   linewrap: boolean;
   dy: number;
-  constructor(outputStream: typeof process.stdin) {
+  constructor(outputStream: typeof process.stdin, enableRl = true) {
     this.stream = outputStream;
+    this.enableRl = this.stream.isTTY && enableRl;
 
     // default: line wrapping enabled
     this.linewrap = true;
@@ -18,7 +20,7 @@ export class Terminal {
 
   // save cursor position + settings
   cursorSave() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -28,7 +30,7 @@ export class Terminal {
 
   // restore last cursor position + settings
   cursorRestore() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -38,7 +40,7 @@ export class Terminal {
 
   // show/hide cursor
   cursor(enabled: boolean) {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -51,7 +53,7 @@ export class Terminal {
 
   // change cursor positionn
   cursorTo(x = 0, y = 0) {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -61,7 +63,7 @@ export class Terminal {
 
   // change relative cursor position
   cursorRelative(dx = 0, dy = 0) {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -74,7 +76,7 @@ export class Terminal {
 
   // relative reset
   cursorRelativeReset() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -90,7 +92,7 @@ export class Terminal {
 
   // clear to the right from cursor
   clearRight() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -99,7 +101,7 @@ export class Terminal {
 
   // clear the full line
   clearLine() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -108,7 +110,7 @@ export class Terminal {
 
   // clear everyting beyond the current line
   clearBottom() {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -137,7 +139,7 @@ export class Terminal {
 
   // control line wrapping
   lineWrapping(enabled: boolean) {
-    if (!this.stream.isTTY) {
+    if (!this.enableRl) {
       return;
     }
 
@@ -158,6 +160,6 @@ export class Terminal {
   // get terminal width
   getWidth() {
     // set max width to 80 in tty-mode and 200 in notty-mode
-    return (this.stream as any).columns || (this.stream.isTTY ? 80 : 200);
+    return (this.stream as any).columns || (this.enableRl ? 80 : 200);
   }
 }
