@@ -71,7 +71,7 @@ export const chains = [
     id: 11155111,
     name: 'Sepolia',
     shortName: 'sepolia',
-    serviceUrl: '',
+    serviceUrl: 'https://safe-transaction-sepolia.safe.global',
   },
   {
     id: 1313161554,

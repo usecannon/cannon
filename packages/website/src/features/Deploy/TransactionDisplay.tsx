@@ -59,6 +59,7 @@ export function TransactionDisplay(props: {
   } else {
     prevDeployGitHash =
       prevDeployHashQuery.data &&
+      prevDeployHashQuery.data[0].result &&
       ((prevDeployHashQuery.data[0].result as any).length as number) > 2
         ? ((prevDeployHashQuery.data[0].result as any).slice(2) as any)
         : hintData?.gitRepoHash;
