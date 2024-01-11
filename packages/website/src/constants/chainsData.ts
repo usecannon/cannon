@@ -1067,6 +1067,24 @@ const chains = [
     infoURL: 'https://community.optimism.io/docs/',
   },
   {
+    name: 'Base Sepolia Testnet',
+    chainId: 84532,
+    shortName: 'base-sepolia',
+    chain: 'ETH',
+    network: 'testnet',
+    networkId: 84532,
+    nativeCurrency: {
+      name: 'Sepolia Ether',
+      symbol: 'sETH',
+      decimals: 18,
+    },
+    rpc: ['https://sepolia.base.org'],
+    etherscanApi: 'https://api-sepolia.basescan.org/api',
+    etherscanUrl: 'https://sepolia.basescan.org/',
+    faucets: ['https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet'],
+    infoURL: 'https://base.org/',
+  },
+  {
     name: 'Base Goerli Testnet',
     chainId: 84531,
     shortName: 'basegor',
@@ -1177,6 +1195,10 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   },
   84531: {
     name: 'base goerli',
+    color: 'blue',
+  },
+  84532: {
+    name: 'base sepolia',
     color: 'blue',
   },
   534351: {
