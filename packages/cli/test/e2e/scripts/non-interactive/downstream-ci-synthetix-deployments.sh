@@ -1,10 +1,13 @@
 #!/bin/bash
 
-git clone --depth=1 https://github.com/Synthetixio/synthetix-deployments
-cd synthetix-deployments
-yarn
-yarn link --all $CANNON_DIR 
+if [ ! -d 'synthetix-deployments']; then
+  git clone --depth=1 https://github.com/Synthetixio/synthetix-deployments
+  cd synthetix-deployments
+  yarn
+  yarn link --all $CANNON_DIR 
+fi
 
+cd synthetix-deployments
 
 yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --port 8545 \

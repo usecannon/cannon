@@ -18,3 +18,6 @@
 [submodule "packages/cli/test/test_helper/bats-assert"]
 	path = packages/cli/test/e2e/helpers/bats-assert
 	url = https://github.com/bats-core/bats-assert.git
+[submodule "packages/cli/test/e2e/helpers/bats-file"]
+	path = packages/cli/test/e2e/helpers/bats-file
+	url = https://github.com/bats-core/bats-file.git
