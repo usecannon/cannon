@@ -50,11 +50,11 @@ export function TransactionStepper(props: {
   safeTxn: SafeTransaction | null;
   published: boolean;
   publishable: boolean;
+  signers: string[];
+  threshold: number;
 }) {
   const packagePublished = props.published;
   const transactionHash = props.safeTxn?.transactionHash;
-  const signers = props.safeTxn?.confirmedSigners ?? [];
-  const threshold = props.safeTxn?.confirmationsRequired ?? 0;
   const packageRef = props.cannonPackage?.resolvedName?.length
     ? `${props.cannonPackage.resolvedName}:${
         props.cannonPackage.resolvedVersion
@@ -71,11 +71,11 @@ export function TransactionStepper(props: {
   });
 
   let step = 1;
-  if (packagePublished) {
+  if (packagePublished && transactionHash) {
     step = 4;
   } else if (transactionHash) {
     step = 3;
-  } else if (signers.length >= threshold) {
+  } else if (props.signers.length >= props.threshold) {
     step = 2;
   }
 
@@ -88,13 +88,17 @@ export function TransactionStepper(props: {
     md: 'horizontal' as Orientation,
   });
 
-  const queuedDate = props.safeTxn?.submissionDate ?? '0';
   const queuedTimeAgo = useMemo(
     () =>
-      formatDistanceToNow(new Date(Date.parse(queuedDate)), {
-        addSuffix: true,
-      }),
-    [queuedDate]
+      props.safeTxn?.submissionDate
+        ? formatDistanceToNow(
+            new Date(Date.parse(props.safeTxn.submissionDate)),
+            {
+              addSuffix: true,
+            }
+          )
+        : 'successfully',
+    [props.safeTxn]
   );
 
   const etherscanUrl =
@@ -209,8 +213,8 @@ export function TransactionStepper(props: {
           <Box flexShrink="0">
             <StepTitle>Sign</StepTitle>
             <StepDescription>
-              {signers?.length || 0} of {threshold || 0} signed
-              {signers?.length > 0 && (
+              {props.signers?.length || 0} of {props.threshold || 0} signed
+              {props.signers?.length > 0 && (
                 <Popover trigger="hover">
                   <PopoverTrigger>
                     <InfoOutlineIcon ml={1} transform="translateY(-0.5px)" />
@@ -223,7 +227,7 @@ export function TransactionStepper(props: {
                     borderColor="gray.700"
                   >
                     <PopoverBody pb={1}>
-                      {signers.map((s) => (
+                      {props.signers.map((s) => (
                         <Box key={s} mb={1}>
                           {s}
                         </Box>
