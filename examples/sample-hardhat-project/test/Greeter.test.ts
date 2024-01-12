@@ -7,7 +7,7 @@ describe('Greeter', function () {
   let Greeter: Greeter;
 
   before('load', async function () {
-    const { outputs, signers } = await hre.run('cannon:build --ignore-pkgref-check');
+    const { outputs, signers } = await hre.run('cannon:build', { ignorePkgrefCheck: "true" });
     const { address, abi } = outputs.contracts.Greeter;
     Greeter = new Contract(address, abi, signers[0]) as Greeter;
   });
