@@ -4,6 +4,14 @@ setup_file() {
   export CANNON_DIR="$(git rev-parse --show-toplevel)"
   export CANNON="node $CANNON_DIR/packages/cli/bin/cannon.js"
 
+  # get the containing directory of this file
+  # use $BATS_TEST_FILENAME instead of ${BASH_SOURCE[0]} or $0,
+  # as those will point to the bats executable's location or the preprocessed file respectively
+  DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )"
+
+  # make executables in scripts/ visible to PATH so tests can run files without relative path
+  PATH="$DIR/scripts/non-interactive:$DIR/scripts/interactive:$DIR/scripts/:$PATH"
+
   # Create temporary directory for tests
   export WORKDIR="$(mktemp -d)"
   export CANNON_DIRECTORY="$WORKDIR/cannondir"
@@ -66,6 +74,7 @@ log() {
   run build-foundry.sh
   echo $output
   assert_success
+  assert_exists "$CANNON_DIRECTORY/tags/greeter-foundry_2.4.21_13370-main.txt"
 }
 
 @test "Build - building hardhat example" {
@@ -86,33 +95,35 @@ log() {
   assert_success
 }
 
-@test "fetch: fetch package" {
+@test "Fetch - Fetch synthetix:latest@main package" {
   run fetch.sh
   echo $output
   assert_success
+  assert_exists "$CANNON_DIRECTORY/tags/synthetix_latest_13370-main.txt"
 }
 
-@test "run: run package" {
+@test "Run - Run package" {
   run run.sh
   echo $output
   assert_success
 }
 
-@test "verify: verify package" {
+@test "Verify - Verify package" {
   run verify.sh
   echo $output
   assert_success
 }
 
-@test "Build Synthetix V3 contracts" {
+@test "Synthetix CI - Build Synthetix V3 contracts" {
   run downstream-ci-synthetix-v3.sh
   echo $output
   assert_success
 }
 
-@test "Build Synthetix Deployments contracts" {
+@test "Synthetix CI - Build Synthetix Deployments contracts" {
   run downstream-ci-synthetix-deployments.sh
   echo $output
   assert_output --partial 'synthetix-omnibus:3.3.5@andromeda built on Base Mainnet (Chain ID: 8453)'
   assert_success
+  assert_exists "$CANNON_DIRECTORY/tags/synthetix-omnibus_3.3.5_8543-andromeda.txt"
 }
