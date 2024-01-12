@@ -29,6 +29,7 @@ export async function init(repo: string, ref: string) {
   } else {
     await fetch({ ...baseOpts, singleBranch: true, depth: 1 });
     await checkout({ fs, dir, ref });
+    await fetch({ ...baseOpts, singleBranch: true, depth: 1 });
   }
 }
 
