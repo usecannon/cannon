@@ -7,9 +7,13 @@ setup_file() {
   # Create temporary directory for tests
   export WORKDIR="$(mktemp -d)"
   export CANNON_DIRECTORY="$WORKDIR/cannondir"
+
+  #Creating cannon directory structure
+  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
+  echo {} >> "$CANNON_DIRECTORY/settings.json"
 }
 
-setup(){
+setup() {
   load './helpers/bats-support/load'
   load './helpers/bats-assert/load'
   load './helpers/bats-file/load'
@@ -17,10 +21,20 @@ setup(){
   # get the containing directory of this file
   # use $BATS_TEST_FILENAME instead of ${BASH_SOURCE[0]} or $0,
   # as those will point to the bats executable's location or the preprocessed file respectively
-  DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )"
+  DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
 
   # make executables in scripts/ visible to PATH so tests can run files without relative path
   PATH="$DIR/scripts/non-interactive:$DIR/scripts/interactive:$DIR/scripts/:$PATH"
+}
+
+# Copy local network config over to temp dir
+setup_config_local() {
+  cp "$DIR/config/local-settings.json" "$CANNON_DIRECTORY/settings.json"
+}
+
+# Copy remote network config over to temp dir
+setup_config_remote() {
+  cp "$DIR/config/remote-settings.json" "$CANNON_DIRECTORY/settings.json"
 }
 
 # Test post-hook
@@ -31,75 +45,74 @@ teardown_file() {
 }
 
 log() {
-  local -r log="log-${BATS_TEST_FILENAME##*/}"
   echo "$@" >&3
 }
 
-@test "publish-interactive: publishing package to a local network" {
-   run script.exp
-   echo $output
-   assert_success
+@test "Alter - Import contract " {
+  run alter-import-contract.sh
+  echo $output
+  assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
+  assert_success
 }
 
-@test "alter: import contract" {
-   run alter-import-contract.sh
-   echo $output
-   assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
-   assert_success
+@test "Alter - Import invoke" {
+  run alter-import-invoke.sh
+  echo $output
+  assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
+  assert_success
 }
 
-@test "alter: import invoke" {
-   run alter-import-invoke.sh
-   echo $output
-   assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
-   assert_success
+@test "Build - building foundry example" {
+  run build-foundry.sh
+  echo $output
+  assert_success
 }
 
-@test "build: building with foundry" {
-   run build-foundry.sh
-   echo $output
-   assert_success
+@test "Build - building hardhat example" {
+  run build-hardhat.sh
+  echo $output
+  assert_success
 }
 
-@test "build: building with hardhat" {
-   run build-hardhat.sh
-   echo $output
-   assert_success
+@test "Publish - publishing package to cannon network" {
+  run publish-cannon.sh
+  echo $output
+  assert_success
 }
 
-@test "publish: publishing package to a local network" {
-   run publish.sh
-   echo $output
-   assert_success
+@test "Publish - publishing package to a remote network" {
+  run publish-remote.sh
+  echo $output
+  assert_success
 }
 
 @test "fetch: fetch package" {
-   run fetch.sh
-   echo $output
-   assert_success
+  run fetch.sh
+  echo $output
+  assert_success
 }
 
 @test "run: run package" {
-   run run.sh
-   echo $output
-   assert_success
+  run run.sh
+  echo $output
+  assert_success
 }
 
 @test "verify: verify package" {
-   run verify-build.sh
-   echo $output
-   assert_success
+  run verify.sh
+  echo $output
+  assert_success
 }
 
 @test "Build Synthetix V3 contracts" {
-   run downstream-ci-synthetix-v3.sh
-   echo $output
-   assert_success
+  run downstream-ci-synthetix-v3.sh
+  echo $output
+  assert_success
 }
 
 @test "Build Synthetix Deployments contracts" {
-   run downstream-ci-synthetix-deployments.sh
-   echo $output
-   assert_output --partial 'synthetix-omnibus:3.3.5@andromeda built on Base Mainnet (Chain ID: 8453)'
-   assert_success
+  run downstream-ci-synthetix-deployments.sh
+  echo $output
+  assert_output --partial 'synthetix-omnibus:3.3.5@andromeda built on Base Mainnet (Chain ID: 8453)'
+  assert_success
 }
