@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { CliSettings } from './settings';
+import { DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_PROVIDER_URL } from './constants';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -50,3 +52,44 @@ export const runSchema = z
       })
       .partial()
   );
+
+/// ================================ ENVIRONMENT VARIABLES SCHEMA ================================ \\\
+
+/**
+ * Environment variables that are used by the CLI
+ */
+
+export const cannonSettingsSchema = (fileSettings: Omit<CliSettings, 'cannonDirectory'>) => ({
+  CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
+  CANNON_SETTINGS: z.string().optional(),
+  CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
+  CANNON_PRIVATE_KEY: z
+    .string()
+    .length(64)
+    .optional()
+    .default(fileSettings.privateKey as string),
+  CANNON_IPFS_URL: z
+    .string()
+    .url()
+    .optional()
+    .default(fileSettings.ipfsUrl as string),
+  CANNON_PUBLISH_IPFS_URL: z
+    .string()
+    .url()
+    .optional()
+    .default(fileSettings.publishIpfsUrl as string),
+  CANNON_REGISTRY_PROVIDER_URL: z
+    .string()
+    .default(fileSettings.registryProviderUrl || `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`),
+  CANNON_REGISTRY_CHAIN_ID: z.string().default(fileSettings.registryChainId || '1'),
+  CANNON_REGISTRY_ADDRESS: z
+    .string()
+    .startsWith('0x')
+    .length(42)
+    .default(fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS),
+  CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
+  CANNON_ETHERSCAN_API_URL: z.string().url().optional().default(fileSettings.etherscanApiUrl),
+  CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
+  CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
+  TRACE: z.boolean().default(false),
+});

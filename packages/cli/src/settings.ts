@@ -1,16 +1,11 @@
 import Debug from 'debug';
-import { z } from 'zod';
 import { parseEnv } from 'znv';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import untildify from 'untildify';
-import {
-  CLI_SETTINGS_STORE,
-  DEFAULT_CANNON_DIRECTORY,
-  DEFAULT_REGISTRY_ADDRESS,
-  DEFAULT_REGISTRY_PROVIDER_URL,
-} from './constants';
+import { cannonSettingsSchema } from './schemas.zod';
+import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_PROVIDER_URL } from './constants';
 import { filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
@@ -136,40 +131,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_ETHERSCAN_API_KEY,
     CANNON_QUIET,
     TRACE,
-  } = parseEnv(process.env, {
-    CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
-    CANNON_SETTINGS: z.string().optional(),
-    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
-    CANNON_PRIVATE_KEY: z
-      .string()
-      .length(64)
-      .optional()
-      .default(fileSettings.privateKey as string),
-    CANNON_IPFS_URL: z
-      .string()
-      .url()
-      .optional()
-      .default(fileSettings.ipfsUrl as string),
-    CANNON_PUBLISH_IPFS_URL: z
-      .string()
-      .url()
-      .optional()
-      .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z
-      .string()
-      .default(fileSettings.registryProviderUrl || `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`),
-    CANNON_REGISTRY_CHAIN_ID: z.string().default(fileSettings.registryChainId || '1'),
-    CANNON_REGISTRY_ADDRESS: z
-      .string()
-      .startsWith('0x')
-      .length(42)
-      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS),
-    CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
-    CANNON_ETHERSCAN_API_URL: z.string().url().optional().default(fileSettings.etherscanApiUrl),
-    CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
-    CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
-    TRACE: z.boolean().default(false),
-  });
+  } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
 
   const finalSettings = _.assign(
     {
