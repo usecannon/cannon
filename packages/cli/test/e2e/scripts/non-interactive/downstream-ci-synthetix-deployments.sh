@@ -12,6 +12,3 @@ yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --chain-id 8453 \
   --provider-url https://base.publicnode.com
 
-
-cd ..
-rm -rf synthetix-deployments

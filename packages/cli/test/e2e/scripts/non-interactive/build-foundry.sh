@@ -1,2 +1,1 @@
-$CANNON build ../../examples/sample-foundry-project/cannonfile.toml
-$CANNON build ../../examples/sample-foundry-project/cannonfile.consumer.toml
+$CANNON build $CANNON_DIR/examples/sample-foundry-project/cannonfile.toml --chain-id 5

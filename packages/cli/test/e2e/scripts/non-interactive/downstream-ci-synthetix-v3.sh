@@ -6,6 +6,3 @@ yarn
 yarn link --all $CANNON_DIR 
 
 yarn build
-
-cd ..
-rm -rf ./synthetix-v3
