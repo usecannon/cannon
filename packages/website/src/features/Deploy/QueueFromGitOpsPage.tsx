@@ -490,6 +490,12 @@ function QueueFromGitOps() {
             <FormHelperText color="gray.300">
               Enter a Git or GitHub URL for the cannonfile you’d like to build.
             </FormHelperText>
+            {cannonDefInfo.error ? (
+              <Alert mt="6" status="error" bg="red.700">
+                <AlertIcon mr={3} />
+                <strong>{cannonDefInfo.error.toString()}</strong>
+              </Alert>
+            ) : undefined}
           </FormControl>
 
           <FormControl mb="6">
