@@ -10,7 +10,6 @@ import {
   Alert,
   Button,
   Grid,
-  HStack,
   Link,
   Tooltip,
   useToast,
@@ -176,7 +175,8 @@ const TransactionDetailsPage: FC<{
   const buildInfo = useCannonBuild(
     safe,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any
+    prevCannonDeployInfo.pkg as any,
+    Number(chainId)
   );
 
   useEffect(
@@ -393,15 +393,10 @@ const TransactionDetailsPage: FC<{
                       <Box>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
-                          <HStack
-                            gap="6"
-                            mt={4}
-                            marginLeft={'auto'}
-                            marginRight={'auto'}
-                          >
+                          <>
                             <Tooltip label={stager.signConditionFailed}>
                               <Button
-                                size="lg"
+                                mb={3}
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -414,7 +409,6 @@ const TransactionDetailsPage: FC<{
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
                               <Button
-                                size="lg"
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -437,9 +431,9 @@ const TransactionDetailsPage: FC<{
                                 Execute
                               </Button>
                             </Tooltip>
-                          </HStack>
+                          </>
                         ) : (
-                          <Text fontSize="xs" fontWeight="medium" mt={4}>
+                          <Text fontSize="xs" fontWeight="medium" mt={3}>
                             <InfoOutlineIcon
                               transform="translateY(-1.5px)"
                               mr={1.5}
@@ -451,26 +445,25 @@ const TransactionDetailsPage: FC<{
                       </Box>
                     )}
                   </Box>
+                  {allowPublishing && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={8}
+                    >
+                      <Heading size="sm" mb="2">
+                        Cannon Package
+                      </Heading>
+
+                      <PublishUtility
+                        deployUrl={hintData.cannonPackage}
+                        targetChainId={safe.chainId}
+                      />
+                    </Box>
+                  )}
                 </Box>
-
-                {allowPublishing && (
-                  <Box
-                    background="gray.800"
-                    p={4}
-                    borderWidth="1px"
-                    borderColor="gray.700"
-                    mb={8}
-                  >
-                    <Heading size="xs" mb="1">
-                      Cannon Package
-                    </Heading>
-
-                    <PublishUtility
-                      deployUrl={hintData.cannonPackage}
-                      targetChainId={safe.chainId}
-                    />
-                  </Box>
-                )}
               </Box>
             </Grid>
           </Container>
