@@ -190,8 +190,8 @@ function QueueFromGitOps() {
       return previousPackageInput.split('@')[1];
     }
 
-    return 'main';
-  }, [previousPackageInput]);
+    return cannonDefInfo.def?.getPreset(ctx) || 'main';
+  }, [previousPackageInput, cannonDefInfo.def?.getPreset(ctx)]);
 
   const cannonPkgPreviousInfo = useCannonPackage(
     (cannonDefInfo.def &&
@@ -239,7 +239,7 @@ function QueueFromGitOps() {
       } else {
         const name = cannonDefInfo.def.getName(ctx);
         const version = 'latest';
-        const preset = 'main';
+        const preset = cannonDefInfo.def.getPreset(ctx);
         setPreviousPackageInput(`${name}:${version}@${preset}`);
       }
     } else {
