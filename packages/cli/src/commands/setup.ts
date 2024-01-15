@@ -3,12 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import untildify from 'untildify';
 import prompts from 'prompts';
-import {
-  DEFAULT_CANNON_DIRECTORY,
-  CLI_SETTINGS_STORE,
-  DEFAULT_REGISTRY_PROVIDER_URL,
-  DEFAULT_REGISTRY_ADDRESS,
-} from '../constants';
+import { CLI_SETTINGS_STORE, DEFAULT_REGISTRY_PROVIDER_URL, DEFAULT_REGISTRY_ADDRESS } from '../constants';
 import { resolveCliSettings } from '../settings';
 import _ from 'lodash';
 import { bold, italic, yellow } from 'chalk';
