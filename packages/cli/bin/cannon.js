@@ -2,7 +2,6 @@
 
 const { red } = require('chalk');
 const cli = require('../dist/src');
-const { resolveCliSettings } = require('../dist/src/settings');
 
 cli.default
   .parseAsync()
@@ -10,13 +9,11 @@ cli.default
     process.exit(0);
   })
   .catch((err) => {
-    const settings = resolveCliSettings();
-
-    if (err.message && settings.trace) {
+    if (err.message) {
       err.message = red(err.message);
-      console.error(err);
-    } else {
-      console.error(err);
     }
+
+    console.error(err);
+
     process.exit(1);
   });
