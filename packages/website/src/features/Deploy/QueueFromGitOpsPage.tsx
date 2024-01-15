@@ -143,6 +143,11 @@ function QueueFromGitOps() {
 
   const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
 
+  const cannonDefInfoError: string = gitUrl
+    ? (cannonDefInfo.error as any)?.toString()
+    : cannonfileUrlInput &&
+      'The format of your URL appears incorrect. Please double check and try again.';
+
   // TODO: is there any way to make a better ocntext? maybe this means we should get rid of name using context?
   const ctx: ChainBuilderContext = {
     chainId: 0,
@@ -405,8 +410,10 @@ function QueueFromGitOps() {
 
   if (
     prepareDeployOnchainStore.isFetched &&
+    !prepareDeployOnchainStore.isFetching &&
     !prepareDeployOnchainStore.isError
   ) {
+    console.log('prepare deploy onchain', prepareDeployOnchainStore);
     return (
       <Container maxWidth="container.sm">
         <Box
@@ -470,11 +477,7 @@ function QueueFromGitOps() {
                   placeholder="https://github.com/myorg/myrepo/blob/main/cannonfile.toml"
                   value={cannonfileUrlInput}
                   borderColor={
-                    !cannonfileUrlInput.length ||
-                    cannonDefInfo.isFetching ||
-                    cannonDefInfo.def
-                      ? 'whiteAlpha.400'
-                      : 'red.500'
+                    !cannonDefInfoError ? 'whiteAlpha.400' : 'red.500'
                   }
                   background="black"
                   onChange={(evt: any) =>
@@ -490,10 +493,10 @@ function QueueFromGitOps() {
             <FormHelperText color="gray.300">
               Enter a Git or GitHub URL for the cannonfile you’d like to build.
             </FormHelperText>
-            {cannonDefInfo.error ? (
+            {cannonDefInfoError ? (
               <Alert mt="6" status="error" bg="red.700">
                 <AlertIcon mr={3} />
-                <strong>{cannonDefInfo.error.toString()}</strong>
+                <strong>{cannonDefInfoError.toString()}</strong>
               </Alert>
             ) : undefined}
           </FormControl>
@@ -506,9 +509,7 @@ function QueueFromGitOps() {
                 type="text"
                 value={previousPackageInput}
                 borderColor={
-                  !previousPackageInput.length ||
-                  cannonPkgPreviousInfo.isFetching ||
-                  cannonPkgPreviousInfo.pkg
+                  !previousPackageInput.length || !cannonPkgPreviousInfo.error
                     ? 'whiteAlpha.400'
                     : 'red.500'
                 }
@@ -530,6 +531,12 @@ function QueueFromGitOps() {
                 <Code>--upgrade-from</Code>
               </Link>
             </FormHelperText>
+            {cannonPkgPreviousInfo.error ? (
+              <Alert mt="6" status="error" bg="red.700">
+                <AlertIcon mr={3} />
+                <strong>{cannonPkgPreviousInfo.error.toString()}</strong>
+              </Alert>
+            ) : undefined}
           </FormControl>
           {/* TODO: insert/load override settings here */}
           <FormControl mb="6">

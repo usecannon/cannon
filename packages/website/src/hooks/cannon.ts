@@ -359,6 +359,8 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
 
   return {
     isFetching: registryQuery.isFetching || ipfsQuery.isFetching,
+    isError: registryQuery.isError || ipfsQuery.isError,
+    error: registryQuery.error || registryQuery.error,
     registryQuery,
     ipfsQuery,
     pkgUrl,
