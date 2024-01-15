@@ -63,6 +63,7 @@ function getMainLoaderTestCases() {
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
       quiet: true,
+      trace: false,
     };
     const loaders = getMainLoader(settings);
     expect(loaders).toHaveProperty('ipfs');
@@ -82,6 +83,7 @@ function getMainLoaderTestCases() {
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
       quiet: true,
+      trace: false,
     };
     const loaders = getMainLoader(settings);
     expect(loaders.ipfs).toBeInstanceOf(CliLoader); // Changed this line
