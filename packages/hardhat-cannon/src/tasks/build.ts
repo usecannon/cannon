@@ -13,7 +13,6 @@ import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
-import commandsConfig from '@usecannon/cli/src';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -122,7 +121,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
               accounts,
               ...anvilOpts,
             },
-            { forkProvider: new ethers.providers.JsonRpcProvider(providerUrl) }
+            (hre.network.name === 'cannon' && !anvilOpts.forkUrl) ? {} : { forkProvider }
             )
           : await runRpc({ port, accounts, ...anvilOpts });
 

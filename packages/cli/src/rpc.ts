@@ -21,7 +21,6 @@ const ANVIL_OP_TIMEOUT = 10000;
 
 export type CannonRpcNode = ChildProcess &
   RpcOptions & {
-    host: string;
     port: number;
     chainId: number;
   };
@@ -126,7 +125,6 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           state = 'listening';
           console.log(gray('Anvil instance running on:', host, '\n'));
           anvilProvider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host));
-          anvilInstance!.host = host;
           resolve(anvilInstance!);
         }
 
