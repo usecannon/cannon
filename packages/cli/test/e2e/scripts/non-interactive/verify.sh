@@ -1,1 +1,1 @@
-$CANNON verify greeter-foundry --chain-id 5
+$CANNON verify greeter-foundry --chain-id 1

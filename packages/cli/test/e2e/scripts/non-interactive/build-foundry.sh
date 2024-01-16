@@ -1,1 +1,1 @@
-$CANNON build $CANNON_DIR/examples/sample-foundry-project/cannonfile.toml --chain-id 5
+$CANNON build $CANNON_DIR/examples/sample-foundry-project/cannonfile.toml --chain-id 1 --port 9545
