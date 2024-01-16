@@ -15,6 +15,18 @@ setup() {
   _setup;
 }
 
+# File post-run hook
+teardown_file() {
+  load helpers/bats-helpers.sh
+  _teardown_file
+}
+
+# Test post-hook
+teardown() {
+  load helpers/bats-helpers.sh
+  _teardown
+}
+
 @test "Alter - Import contract " {
   run alter-import-contract.sh
   echo $output
