@@ -115,13 +115,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         const chainId = anvilOpts.chainId || 13370;
         const accounts = anvilOpts.accounts || Number.parseInt(hre.config.networks.cannon.accounts.toString()) || 10;
         const node = dryRun
-          ? await runRpc({
-              port,
-              chainId,
-              accounts,
-              ...anvilOpts,
-            },
-            (hre.network.name === 'cannon' && !anvilOpts.forkUrl) ? {} : { forkProvider }
+          ? await runRpc(
+              {
+                port,
+                chainId,
+                accounts,
+                ...anvilOpts,
+              },
+              hre.network.name === 'cannon' && !anvilOpts.forkUrl ? {} : { forkProvider }
             )
           : await runRpc({ port, accounts, ...anvilOpts });
 
