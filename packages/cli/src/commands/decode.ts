@@ -1,5 +1,6 @@
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import { ethers } from 'ethers';
+import { resolveCliSettings } from '../../src/settings';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
 
@@ -113,7 +114,8 @@ function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNu
       try {
         return ethers.utils.parseBytes32String(value as string);
       } catch (err) {
-        if (process.env.TRACE === 'true') {
+        const settings = resolveCliSettings();
+        if (settings.trace) {
           console.error(err);
         }
       }

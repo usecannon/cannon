@@ -63,9 +63,8 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo) {
+export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo, chainId: number) {
   const { addLog } = useLogs();
-  const chainId = useChainId();
   const settings = useStore((s) => s.settings);
 
   const [buildStatus, setBuildStatus] = useState('');

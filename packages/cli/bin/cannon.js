@@ -9,11 +9,11 @@ cli.default
     process.exit(0);
   })
   .catch((err) => {
-    if (err.message && process.env.TRACE !== 'true') {
+    if (err.message) {
       err.message = red(err.message);
-      console.error(err);
-    } else {
-      console.error(err);
     }
+
+    console.error(err);
+
     process.exit(1);
   });

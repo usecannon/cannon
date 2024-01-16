@@ -10,7 +10,6 @@ import {
   Alert,
   Button,
   Grid,
-  HStack,
   Link,
   Tooltip,
   useToast,
@@ -41,7 +40,12 @@ import { SafeTransaction } from '@/types/SafeTransaction';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import { links } from '@/constants/links';
-import { WarningIcon, ExternalLinkIcon, CheckIcon } from '@chakra-ui/icons';
+import {
+  WarningIcon,
+  ExternalLinkIcon,
+  CheckIcon,
+  InfoOutlineIcon,
+} from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
 import { useContractWrite } from 'wagmi';
 import * as chains from '@wagmi/core/chains';
@@ -142,6 +146,7 @@ const TransactionDetailsPage: FC<{
   } else {
     prevDeployGitHash =
       prevDeployHashQuery.data &&
+      prevDeployHashQuery.data[0].result &&
       ((prevDeployHashQuery.data[0].result as any).length as number) > 2
         ? ((prevDeployHashQuery.data[0].result as any).slice(2) as any)
         : hintData?.gitRepoHash;
@@ -170,7 +175,8 @@ const TransactionDetailsPage: FC<{
   const buildInfo = useCannonBuild(
     safe,
     cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any
+    prevCannonDeployInfo.pkg as any,
+    Number(chainId)
   );
 
   useEffect(
@@ -194,12 +200,18 @@ const TransactionDetailsPage: FC<{
         );
       }));
 
-  const remainingSignatures =
-    Number(stager.requiredSigners) - stager.existingSigners.length;
-  const signers = verify ? stager.existingSigners : safeTxn?.confirmedSigners;
   const etherscanUrl =
     (Object.values(chains).find((chain) => chain.id === safe.chainId) as any)
       ?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+
+  const signers: Array<string> = stager.existingSigners.length
+    ? stager.existingSigners
+    : safeTxn?.confirmedSigners || [];
+
+  const threshold: number =
+    Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
+
+  const remainingSignatures = threshold - signers.length;
 
   return (
     <>
@@ -235,6 +247,8 @@ const TransactionDetailsPage: FC<{
                     safeTxn={safeTxn}
                     published={existingRegistryUrl == hintData?.cannonPackage}
                     publishable={allowPublishing}
+                    signers={signers}
+                    threshold={threshold}
                   />
                 </Box>
               )}
@@ -331,10 +345,12 @@ const TransactionDetailsPage: FC<{
                     borderColor="gray.700"
                     mb={8}
                   >
-                    <Heading size="xs">Signatures</Heading>
+                    <Heading size="sm" mb="3">
+                      Signatures
+                    </Heading>
 
                     {signers?.map((s, index) => (
-                      <Box mt={2} key={index}>
+                      <Box mt={2.5} key={index}>
                         <Box
                           backgroundColor="teal.500"
                           borderRadius="full"
@@ -361,7 +377,7 @@ const TransactionDetailsPage: FC<{
                     ))}
 
                     {verify && remainingSignatures > 0 && (
-                      <Text mt="2">
+                      <Text mt="3">
                         {remainingSignatures} more{' '}
                         {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
                         required.
@@ -377,15 +393,10 @@ const TransactionDetailsPage: FC<{
                       <Box>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
-                          <HStack
-                            gap="6"
-                            mt={4}
-                            marginLeft={'auto'}
-                            marginRight={'auto'}
-                          >
+                          <>
                             <Tooltip label={stager.signConditionFailed}>
                               <Button
-                                size="lg"
+                                mb={3}
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -398,7 +409,6 @@ const TransactionDetailsPage: FC<{
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
                               <Button
-                                size="lg"
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -421,36 +431,39 @@ const TransactionDetailsPage: FC<{
                                 Execute
                               </Button>
                             </Tooltip>
-                          </HStack>
+                          </>
                         ) : (
-                          <Text align={'center'}>
-                            Please connect a wallet and ensure its connected to
-                            the correct network to sign!
+                          <Text fontSize="xs" fontWeight="medium" mt={3}>
+                            <InfoOutlineIcon
+                              transform="translateY(-1.5px)"
+                              mr={1.5}
+                            />
+                            Connect a wallet using chain ID {safe.chainId} to
+                            sign
                           </Text>
                         )}
                       </Box>
                     )}
                   </Box>
+                  {allowPublishing && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={8}
+                    >
+                      <Heading size="sm" mb="2">
+                        Cannon Package
+                      </Heading>
+
+                      <PublishUtility
+                        deployUrl={hintData.cannonPackage}
+                        targetChainId={safe.chainId}
+                      />
+                    </Box>
+                  )}
                 </Box>
-
-                {allowPublishing && (
-                  <Box
-                    background="gray.800"
-                    p={4}
-                    borderWidth="1px"
-                    borderColor="gray.700"
-                    mb={8}
-                  >
-                    <Heading size="xs" mb="1">
-                      Cannon Package
-                    </Heading>
-
-                    <PublishUtility
-                      deployUrl={hintData.cannonPackage}
-                      targetChainId={safe.chainId}
-                    />
-                  </Box>
-                )}
               </Box>
             </Grid>
           </Container>
