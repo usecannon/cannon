@@ -92,6 +92,12 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
   const txsQuery = useQuery(['safe-service', 'all-txns', safe?.chainId, safe?.address], async () => {
     if (!safe) return null;
     const safeService = _createSafeApiKit(safe.chainId);
+
+    if (!safeService) {
+      console.warn('safe service not initializable for network', safe.chainId);
+      return { count: 0, next: null, previous: null, results: [] };
+    }
+
     const res = await safeService?.getMultisigTransactions(safe.address);
     return {
       count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,

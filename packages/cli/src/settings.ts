@@ -1,12 +1,14 @@
 import Debug from 'debug';
+import { z } from 'zod';
+import { parseEnv } from 'znv';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import untildify from 'untildify';
 import {
   CLI_SETTINGS_STORE,
-  DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_PROVIDER_URL,
 } from './constants';
 import { filterSettings } from './helpers';
@@ -63,6 +65,11 @@ export type CliSettings = {
   cannonDirectory: string;
 
   /**
+   * Settings file to load configurations from
+   */
+  cannonSettings?: string;
+
+  /**
    * URL of etherscan API for verification
    */
   etherscanApiUrl: string;
@@ -78,6 +85,11 @@ export type CliSettings = {
   quiet: boolean;
 
   /**
+   * Enable/disable tracing
+   */
+  trace: boolean;
+
+  /**
    * Gas price to use for transactions
    */
   gasPrice?: string;
@@ -88,6 +100,48 @@ export type CliSettings = {
   gasFee?: string;
   priorityGasFee?: string;
 };
+
+/**
+ * Settings zod schema.
+ * Check env vars and set default values if needed
+ */
+
+function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>) {
+  return {
+    CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
+    CANNON_SETTINGS: z.string().optional(),
+    CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
+    CANNON_PRIVATE_KEY: z
+      .string()
+      .length(64)
+      .optional()
+      .default(fileSettings.privateKey as string),
+    CANNON_IPFS_URL: z
+      .string()
+      .url()
+      .optional()
+      .default(fileSettings.ipfsUrl as string),
+    CANNON_PUBLISH_IPFS_URL: z
+      .string()
+      .url()
+      .optional()
+      .default(fileSettings.publishIpfsUrl as string),
+    CANNON_REGISTRY_PROVIDER_URL: z
+      .string()
+      .default(fileSettings.registryProviderUrl || `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`),
+    CANNON_REGISTRY_CHAIN_ID: z.string().default(fileSettings.registryChainId || '1'),
+    CANNON_REGISTRY_ADDRESS: z
+      .string()
+      .startsWith('0x')
+      .length(42)
+      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS),
+    CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
+    CANNON_ETHERSCAN_API_URL: z.string().url().optional().default(fileSettings.etherscanApiUrl),
+    CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
+    CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
+    TRACE: z.boolean().default(false),
+  };
+}
 
 // TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
@@ -102,25 +156,39 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
   }
 
+  const {
+    CANNON_DIRECTORY,
+    CANNON_SETTINGS,
+    CANNON_PROVIDER_URL,
+    CANNON_PRIVATE_KEY,
+    CANNON_IPFS_URL,
+    CANNON_PUBLISH_IPFS_URL,
+    CANNON_REGISTRY_PROVIDER_URL,
+    CANNON_REGISTRY_CHAIN_ID,
+    CANNON_REGISTRY_ADDRESS,
+    CANNON_REGISTRY_PRIORITY,
+    CANNON_ETHERSCAN_API_URL,
+    CANNON_ETHERSCAN_API_KEY,
+    CANNON_QUIET,
+    TRACE,
+  } = parseEnv(process.env, cannonSettingsSchema(fileSettings));
+
   const finalSettings = _.assign(
     {
-      cannonDirectory: untildify(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY),
-      providerUrl: process.env.CANNON_PROVIDER_URL || fileSettings.providerUrl || 'frame,direct',
-      privateKey: (process.env.CANNON_PRIVATE_KEY || fileSettings.privateKey) as string,
-      ipfsUrl: process.env.CANNON_IPFS_URL || fileSettings.ipfsUrl,
-      publishIpfsUrl: process.env.CANNON_PUBLISH_IPFS_URL || fileSettings.publishIpfsUrl,
-      registryProviderUrl:
-        process.env.CANNON_REGISTRY_PROVIDER_URL ||
-        fileSettings.registryProviderUrl ||
-        `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`,
-      registryChainId: process.env.CANNON_REGISTRY_CHAIN_ID || fileSettings.registryChainId || '1',
-      registryAddress: process.env.CANNON_REGISTRY_ADDRESS || fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS,
-      registryPriority: (process.env.CANNON_REGISTRY_PRIORITY ||
-        fileSettings.registryPriority ||
-        'onchain') as CliSettings['registryPriority'],
-      etherscanApiUrl: process.env.CANNON_ETHERSCAN_API_URL || fileSettings.etherscanApiUrl || '',
-      etherscanApiKey: process.env.CANNON_ETHERSCAN_API_KEY || fileSettings.etherscanApiKey || '',
-      quiet: process.env.CANNON_QUIET === 'true' || fileSettings.quiet || false,
+      cannonDirectory: untildify(CANNON_DIRECTORY),
+      cannonSettings: CANNON_SETTINGS,
+      providerUrl: CANNON_PROVIDER_URL,
+      privateKey: CANNON_PRIVATE_KEY,
+      ipfsUrl: CANNON_IPFS_URL,
+      publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
+      registryProviderUrl: CANNON_REGISTRY_PROVIDER_URL,
+      registryChainId: CANNON_REGISTRY_CHAIN_ID,
+      registryAddress: CANNON_REGISTRY_ADDRESS,
+      registryPriority: CANNON_REGISTRY_PRIORITY,
+      etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
+      etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
+      quiet: CANNON_QUIET,
+      trace: TRACE,
     },
     _.pickBy(overrides)
   );

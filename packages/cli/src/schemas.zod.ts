@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
 // Different regular expressions used to validate formats like

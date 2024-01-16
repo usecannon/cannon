@@ -1,12 +1,5 @@
 import { ethers } from 'ethers';
-import {
-  Button,
-  FormControl,
-  FormHelperText,
-  Link,
-  Spinner,
-  Text,
-} from '@chakra-ui/react';
+import { Button, Link, Spinner, Text } from '@chakra-ui/react';
 import { useAccount, useMutation, useWalletClient } from 'wagmi';
 import {
   CannonStorage,
@@ -18,7 +11,7 @@ import {
 import { useCannonPackage } from '@/hooks/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useStore } from '@/helpers/store';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -132,51 +125,52 @@ export default function PublishUtility(props: {
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     return (
-      <FormControl>
+      <>
         {!existingRegistryUrl ? (
-          <Text>
+          <Text fontSize="sm" mb={2}>
             The package resulting from this deployment has not been published to
             the registry.
           </Text>
         ) : (
-          <Text>
+          <Text fontSize="sm" mb={2}>
             A different package has been published to the registry with a
             matching name and version.
           </Text>
         )}
         {settings.isIpfsGateway && (
-          <Text>
+          <Text fontSize="sm" mb={2}>
             You cannot publish on an IPFS gateway, only read operations can be
             done.
           </Text>
         )}
         {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-          <Text>
+          <Text fontSize="sm" mb={2}>
             You cannot publish on an repo endpoint, only read operations can be
             done.
           </Text>
         )}
-        <Button
-          isDisabled={
-            settings.isIpfsGateway ||
-            settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-            wc.data?.chain?.id !== 1 ||
-            publishMutation.isLoading
-          }
-          onClick={() => publishMutation.mutate()}
-          mt={4}
-        >
-          {publishMutation.isLoading
-            ? [<Spinner key={0} />, ' Publish in Progress...']
-            : 'Publish to Registry'}
-        </Button>
-        {wc.data?.chain?.id !== 1 && (
-          <FormHelperText>
-            You must set your wallet to Ethereum Mainnet to publish this
-            package.
-          </FormHelperText>
+
+        {wc.data?.chain?.id === 1 ? (
+          <Button
+            isDisabled={
+              settings.isIpfsGateway ||
+              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
+              wc.data?.chain?.id !== 1 ||
+              publishMutation.isLoading
+            }
+            onClick={() => publishMutation.mutate()}
+          >
+            {publishMutation.isLoading
+              ? [<Spinner key={0} />, ' Publish in Progress...']
+              : 'Publish to Registry'}
+          </Button>
+        ) : (
+          <Text fontSize="xs" fontWeight="medium">
+            <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
+            Connect a wallet using chain ID 1 to publish
+          </Text>
         )}
-      </FormControl>
+      </>
     );
   } else {
     return (
