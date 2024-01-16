@@ -115,7 +115,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         const accounts = anvilOpts.accounts || 1; // reduce image size by not creating unnecessary accounts
         const chainId =
           hre.network.name === 'cannon'
-            ? anvilOpts.chainId || settings.CANNON_CHAIN_ID
+            ? CANNON_CHAIN_ID
             : anvilOpts.chainId || (await hre.ethers.provider.getNetwork()).chainId;
 
         const node = dryRun
