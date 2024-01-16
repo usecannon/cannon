@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# DEFAULT BATS FUNCTIONS
+
 _setup_file() {
   export CANNON_DIR="$(git rev-parse --show-toplevel)"
   export CANNON="node $CANNON_DIR/packages/cli/bin/cannon.js"
@@ -29,18 +31,6 @@ _setup() {
   PATH="$DIR/scripts/non-interactive:$DIR/scripts/interactive:$DIR/scripts/:$PATH"
 }
 
-# Copy remote network config over to temp dir
-set_config_remote() {
-  touch "$CANNON_DIRECTORY/settings.json"
-  cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
-}
-
-# This function is used to log output during test execution
-# Bats by default hides output during each test.
-log() {
-  echo "$@" >&3
-}
-
 # File post-run hook
 _teardown_file() {
   if [ -e $WORKDIR]; then
@@ -54,3 +44,19 @@ _teardown() {
     rm "$CANNON_DIRECTORY/settings.json"
   fi
 }
+
+
+# CUSTOM FUNCTIONS
+
+# Copy remote network config over to temp dir
+set_config_remote() {
+  touch "$CANNON_DIRECTORY/settings.json"
+  cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
+}
+
+# This function is used to log output during test execution
+# Bats by default hides output during each test.
+log() {
+  echo "$@" >&3
+}
+
