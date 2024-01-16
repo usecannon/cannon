@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CannonWrapperGenericProvider, CANNON_CHAIN_ID } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
@@ -112,8 +112,12 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       if (dryRun || hre.network.name === 'cannon') {
         const port = anvilOpts.port || hre.config.networks.cannon.port;
-        const chainId = anvilOpts.chainId || 13370;
-        const accounts = anvilOpts.accounts || Number.parseInt(hre.config.networks.cannon.accounts.toString()) || 10;
+        const accounts = anvilOpts.accounts || 1; // reduce image size by not creating unnecessary accounts
+        const chainId =
+          hre.network.name === 'cannon'
+            ? anvilOpts.chainId || settings.CANNON_CHAIN_ID
+            : anvilOpts.chainId || (await hre.ethers.provider.getNetwork()).chainId;
+
         const node = dryRun
           ? await runRpc(
               {
