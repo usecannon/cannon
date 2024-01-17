@@ -240,7 +240,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
 
   // @title Function that enables calling multiple methods of the system in a single transaction.
   // @dev Implementation adapted from https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/Multicall.sol
-  function multicall(bytes[] calldata data) public payable returns (bytes[] memory results) {
+  function multicall(bytes[] calldata data) public returns (bytes[] memory results) {
     results = new bytes[](data.length);
 
     for (uint256 i = 0; i < data.length; i++) {

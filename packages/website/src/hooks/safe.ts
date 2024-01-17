@@ -1,14 +1,14 @@
+import { chains } from '@/constants/deployChains';
+import * as onchainStore from '@/helpers/onchain-store';
+import { findChainUrl } from '@/helpers/rpc';
+import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
+import { supportedChains } from '@/providers/walletProvider';
+import { SafeTransaction } from '@/types/SafeTransaction';
 import SafeApiKit from '@safe-global/api-kit';
 import { EthersAdapter } from '@safe-global/protocol-kit';
 import { ethers } from 'ethers';
 import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
-import { mainnet, useAccount, useChainId, useContractReads, useQuery } from 'wagmi';
-import { chains } from '@/constants/deployChains';
-import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
-import { SafeTransaction } from '@/types/SafeTransaction';
-import * as onchainStore from '@/helpers/onchain-store';
-import { supportedChains } from '@/providers/walletProvider';
-import { findChainUrl } from '@/helpers/rpc';
+import { mainnet, useAccount, useContractReads, useQuery } from 'wagmi';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -92,6 +92,12 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
   const txsQuery = useQuery(['safe-service', 'all-txns', safe?.chainId, safe?.address], async () => {
     if (!safe) return null;
     const safeService = _createSafeApiKit(safe.chainId);
+
+    if (!safeService) {
+      console.warn('safe service not initializable for network', safe.chainId);
+      return { count: 0, next: null, previous: null, results: [] };
+    }
+
     const res = await safeService?.getMultisigTransactions(safe.address);
     return {
       count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,
@@ -112,6 +118,9 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
           _nonce: tx.nonce,
           transactionHash: tx.transactionHash,
           safeTxHash: tx.safeTxHash,
+          submissionDate: tx.submissionDate,
+          confirmationsRequired: tx.confirmationsRequired,
+          confirmedSigners: tx.confirmations?.map((confirmation) => confirmation.owner),
         })) as unknown as SafeTransaction[],
     };
   });
@@ -153,8 +162,7 @@ export function useWalletPublicSafes() {
 }
 
 export function useSafeAddress() {
-  const chainId = useChainId();
-  return useStore((s) => s.safeAddresses.find((s) => s.chainId === chainId)?.address || null);
+  return useStore((s) => s.currentSafe?.address || null);
 }
 
 export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: string) {

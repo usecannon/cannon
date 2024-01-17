@@ -2,7 +2,7 @@ const anvilOptions = [
   {
     flags: '-p --port <number>',
     description: 'Port which the JSON-RPC server will be exposed.',
-    defaultValue: '8545',
+    defaultValue: '0', // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
   },
   {
     flags: '-c --chain-id <number>',
@@ -162,7 +162,7 @@ const commandsConfig = {
     usage: '[global options] ...[<name>[:<semver>] ...[<key>=<value>]]',
     arguments: [
       {
-        flags: '<packageNames...>',
+        flags: '<packageRefs...>',
         description: 'List of packages to load, optionally with custom settings for each one',
       },
     ],
@@ -209,6 +209,10 @@ const commandsConfig = {
         flags: '--private-key [key]',
         description: 'Specify a comma separated list of private keys which may be needed to sign a transaction',
       },
+      {
+        flags: '--non-interactive',
+        description: 'Do not prompt for any user input. Useful for scripts and CI processes.',
+      },
     ],
   },
   build: {
@@ -236,11 +240,17 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'The preset label for storing the build with the given settings',
+        description:
+          '(DEPRECATED) The preset label for storing the build with the given settings. Declare a preset in your cannonfile instead.',
       },
       {
         flags: '--dry-run',
         description: 'Simulate building on a local fork rather than deploying on the real network',
+      },
+      {
+        flags: '--keep-alive',
+        description:
+          'After completing build, leave RPC open and switch into run mode. Has no effect on live network deployment.',
       },
       {
         flags: '--private-key [key]',
@@ -275,25 +285,17 @@ const commandsConfig = {
         description: 'Skip the compilation step and use the existing artifacts',
       },
       {
+        flags: '--write-script <writeScript>',
+        description: '(Experimental) Path to write all the actions taken as a script that can be later executed',
+      },
+      {
+        flags: '--write-script-format <writeScriptFormat>',
+        description: '(Experimental) Format in which to write the actions script (Options: json, ethers)',
+        defaultValue: 'ethers',
+      },
+      {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
-      },
-      {
-        flags: '-v',
-        description: 'print logs for builder,equivalent to DEBUG=cannon:builder',
-      },
-      {
-        flags: '-vv',
-        description:
-          'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition',
-      },
-      {
-        flags: '-vvv',
-        description: 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*',
-      },
-      {
-        flags: '-vvvv',
-        description: 'print all cannon logs,equivalent to DEBUG=cannon:*',
       },
     ],
   },
@@ -301,8 +303,8 @@ const commandsConfig = {
     description: 'Verify a package on Etherscan',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the Cannon package to verify',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to verify (name:version@preset)',
       },
     ],
     options: [
@@ -317,7 +319,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the deployment to verify',
+        description: '(DEPRECATED) Preset of the deployment to verify',
       },
     ],
   },
@@ -325,8 +327,8 @@ const commandsConfig = {
     description: 'Change a cannon package outside of the regular build process.',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the Cannon package to alter',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to alter (name:version@preset)',
       },
       {
         flags: '<command>',
@@ -345,7 +347,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the deployment to alter',
+        description: '(DEPRECATED) Preset of the deployment to alter',
       },
     ],
   },
@@ -353,8 +355,8 @@ const commandsConfig = {
     description: 'Fetch cannon package data from an IPFS hash and store it in the local registry.',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name of the package to fetch data for',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to fetch from (name:version@preset)',
       },
       {
         flags: '<ipfsHash>',
@@ -372,12 +374,21 @@ const commandsConfig = {
       },
     ],
   },
+  pin: {
+    description: 'Upload cannon pacakge data to a remote registry by IPFS hash',
+    arguments: [
+      {
+        flags: '<ipfsHash>',
+        description: 'IPFS hash to write deployment data for',
+      },
+    ],
+  },
   publish: {
     description: 'Publish a Cannon package to the registry',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the package to publish',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
       },
     ],
     options: [
@@ -435,8 +446,8 @@ const commandsConfig = {
     description: 'Inspect the details of a Cannon package',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to inspect',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to inspect (name:version@preset)',
       },
     ],
     options: [
@@ -447,7 +458,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-j --json',
@@ -461,13 +472,17 @@ const commandsConfig = {
         flags: '-q --quiet',
         description: 'Suppress extra logging',
       },
+      {
+        flags: '-s --sources',
+        description: 'Show contract sources',
+      },
     ],
   },
   prune: {
     description: 'Clean cannon storage of excessive/transient build files older than a certain age',
     options: [
       {
-        flags: '--filter-package <packageName>',
+        flags: '--filter-package <packageRef>',
         description: 'Only keep deployments in local storage which match the given package name. Default: do not filter',
       },
       {
@@ -493,8 +508,8 @@ const commandsConfig = {
     description: 'Get a full stack trace for a transaction hash or explicit transaction call',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to use',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the package to trace (name:version@preset)',
       },
       {
         flags: '<transactionHash OR bytes32Data>',
@@ -526,8 +541,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-n --provider-url [url]',
@@ -543,8 +557,8 @@ const commandsConfig = {
     description: 'decode transaction data using the ABIs of the given Cannon package',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Name and version of the cannon package to use',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the package to decode from (name:version@preset)',
       },
       {
         flags: '<bytes32Data...>',
@@ -559,8 +573,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Preset of the variant to inspect',
-        defaultValue: 'main',
+        description: '(DEPRECATED) Preset of the variant to inspect',
       },
       {
         flags: '-j --json',
@@ -593,8 +606,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'The preset label for storing the build with the given settings',
-        defaultValue: 'main',
+        description: '(DEPRECATED) The preset label for storing the build with the given settings',
       },
       {
         flags: '--wipe',
@@ -614,8 +626,8 @@ const commandsConfig = {
     description: 'Start an interactive terminal against a set of active cannon deployments',
     arguments: [
       {
-        flags: '<packageName>',
-        description: 'Package to deploy, optionally with custom settings',
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to interact with (name:version@preset)',
       },
     ],
     options: [
@@ -630,8 +642,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: 'Load an alternate setting preset',
-        defaultValue: 'main',
+        description: '(DEPRECATED) Load an alternate setting preset',
       },
       {
         flags: '--mnemonic <phrase>',

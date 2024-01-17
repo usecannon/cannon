@@ -1,29 +1,35 @@
 import Debug from 'debug';
 import _ from 'lodash';
-import { BundledOutput, ChainArtifacts, DeploymentInfo } from './types';
-import { ChainDefinition } from './definition';
 import { createInitialContext, getArtifacts } from './builder';
+import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
+import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
 const debug = Debug('cannon:cli:publish');
 
+interface PartialRefValues {
+  name: string;
+  version?: string;
+  preset?: string;
+}
+
 export type CopyPackageOpts = {
   packageRef: string;
-  variant: string;
+  chainId: number;
   tags: string[];
   fromStorage: CannonStorage;
   toStorage: CannonStorage;
   recursive?: boolean;
+  preset?: string;
   includeProvisioned?: boolean;
 };
 
-const PKG_REG_EXP = /^(?<name>@?[a-z0-9][a-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
 
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
 export class PackageReference {
-  private ref: string;
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
@@ -36,35 +42,60 @@ export class PackageReference {
   /**
    * Anything after the @ is the package preset.
    */
-  preset?: string;
+  preset: string;
 
   /**
-   * Convenience parameter for returning base package format without preset **[name]:[version]**
+   * Convenience parameter for returning packageRef with interpolated version and preset like name:version@preset
    */
-  basePackageRef: string;
+  get fullPackageRef() {
+    const res = `${this.name}:${this.version}@${this.preset}`;
+    if (!PackageReference.isValid(res)) throw new Error(`Invalid package reference "${res}"`);
+    return res;
+  }
+
+  get packageRef() {
+    const res = `${this.name}:${this.version}`;
+    if (!PackageReference.isValid(res)) throw new Error(`Invalid package reference "${res}"`);
+    return res;
+  }
+
+  /**
+   * Parse package reference without normalizing it
+   */
+  static parse(ref: string) {
+    const match = ref.match(PKG_REG_EXP);
+
+    if (!match || !match.groups?.name) {
+      throw new Error(
+        `Invalid package name "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+      );
+    }
+
+    const res: PartialRefValues = { name: match.groups.name };
+
+    if (match.groups.version) res.version = match.groups.version;
+    if (match.groups.preset) res.preset = match.groups.preset;
+
+    return res;
+  }
 
   static isValid(ref: string) {
     return !!PKG_REG_EXP.test(ref);
   }
 
+  static from(name: string, version?: string, preset?: string) {
+    version = version || 'latest';
+    preset = preset || 'main';
+    return new PackageReference(`${name}:${version}@${preset}`);
+  }
+
   constructor(ref: string) {
-    this.ref = ref;
-
-    const match = this.ref.match(PKG_REG_EXP);
-
-    if (!match) {
-      throw new Error(
-        `Invalid package name "${this.ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
-      );
-    }
-
-    const { name, version = 'latest', preset } = match.groups!;
+    const parsed = PackageReference.parse(ref);
+    const { name, version = 'latest', preset = 'main' } = parsed;
 
     this.name = name;
     this.version = version;
     this.preset = preset;
-
-    this.basePackageRef = `${this.name}:${this.version}`;
   }
 }
 
@@ -113,19 +144,19 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
 
 function _deployImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return Object.values(deployInfo.state).flatMap((state) => Object.values(state.artifacts.imports || {}));
+  return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }
 
-export async function getProvisionedPackages(packageRef: string, variant: string, tags: string[], storage: CannonStorage) {
-  const chainId = parseInt(variant.split('-')[0]);
+export async function getProvisionedPackages(packageRef: string, chainId: number, tags: string[], storage: CannonStorage) {
+  const { preset, fullPackageRef } = new PackageReference(packageRef);
 
-  const uri = await storage.registry.getUrl(packageRef, variant);
+  const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 
   const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
 
   if (!deployInfo) {
     throw new Error(
-      `could not find deployment artifact for ${packageRef} while checking for provisioned packages. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}" while checking for provisioned packages. Please double check your settings, and rebuild your package.`
     );
   }
 
@@ -141,10 +172,10 @@ export async function getProvisionedPackages(packageRef: string, variant: string
     debug('created initial ctx with deploy info');
 
     return {
-      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
-        (t) => `${def.getName(preCtx)}:${t}`
+      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : preset || 'main'}`
       ),
-      variant: context ? `${chainId}-${context.preset}` : variant,
+      chainId: chainId,
       url: context?.url,
     };
   };
@@ -158,22 +189,34 @@ export async function getProvisionedPackages(packageRef: string, variant: string
 export async function publishPackage({
   packageRef,
   tags,
-  variant,
+  chainId,
   fromStorage,
   toStorage,
   includeProvisioned = false,
 }: CopyPackageOpts) {
   debug(`copy package ${packageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`);
 
-  const chainId = parseInt(variant.split('-')[0]);
+  // TODO: packageRef in this case can be a package name or an IPFS hash (@ipfs://Qm...) for the pin command, however, this functionality should have
+  // it's own function to handle the pinning of IPFS urls.
+  const packageReference = PackageReference.isValid(packageRef) ? new PackageReference(packageRef) : null;
+
+  const presetRef = packageReference ? packageReference.preset : 'main';
+  const fullPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
+
+  const alreadyCopiedIpfs = new Map<string, any>();
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
+    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    if (alreadyCopiedIpfs.has(checkKey)) {
+      return alreadyCopiedIpfs.get(checkKey);
+    }
+
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
     //       Should it be called outside the scoped copyIpfs() function?
-    const metaUrl = await fromStorage.registry.getMetaUrl(packageRef, variant);
+    const metaUrl = await fromStorage.registry.getMetaUrl(fullPackageRef, chainId);
     let newMetaUrl = metaUrl;
 
     if (metaUrl) {
@@ -196,26 +239,29 @@ export async function publishPackage({
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
-    return {
-      packagesNames: [def.getVersion(preCtx) || 'latest', ...(context ? context.tags || [] : tags)].map(
-        (t) => `${def.getName(preCtx)}:${t}`
+    const returnVal = {
+      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : presetRef}`
       ),
-      variant: context ? `${chainId}-${context.preset}` : variant,
+      chainId,
       url,
       metaUrl: newMetaUrl || '',
     };
+
+    alreadyCopiedIpfs.set(checkKey, returnVal);
+
+    return returnVal;
   };
 
-  const preset = variant.substring(variant.indexOf('-') + 1);
-
-  const deployData = await fromStorage.readDeploy(packageRef, preset, chainId);
+  const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${packageRef}. Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
     );
   }
 
+  // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
   const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
 
   if (includeProvisioned) {
@@ -225,6 +271,6 @@ export async function publishPackage({
     debug('publishing without provisioned');
     const call = _.last(calls)!;
 
-    return toStorage.registry.publish(call.packagesNames, call.variant, call.url, call.metaUrl);
+    return toStorage.registry.publish(call.packagesNames, call.chainId, call.url, call.metaUrl);
   }
 }

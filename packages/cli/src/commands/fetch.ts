@@ -9,11 +9,12 @@ import {
   ChainDefinition,
   createInitialContext,
 } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from '../constants';
 import Debug from 'debug';
 import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
+
+import { getCannonRepoRegistryUrl } from './../constants';
 
 const debug = Debug('cannon:cli:clean');
 
@@ -30,7 +31,6 @@ async function storeDeployReference(filePath: string, content: string) {
   try {
     await mkdir(dir, { recursive: true });
     await writeFile(filePath, content);
-    console.log(`File created successfully at ${filePath}`);
   } catch (error) {
     throw new Error(`Error creating file: ${error}`);
   }
@@ -50,7 +50,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
 
   const storage = new CannonStorage(localRegistry, {
-    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || DEFAULT_REGISTRY_IPFS_ENDPOINT),
+    ipfs: new IPFSLoader(cliSettings.ipfsUrl! || getCannonRepoRegistryUrl()),
   });
 
   console.log(blueBright('Fetching IPFS data from: '));
@@ -68,7 +68,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId || chainId, deployInfo.options);
 
-    const pkgName = `${name}:${def.getVersion(preCtx) || version}`;
+    const pkgName = `${name}:${def.getVersion(preCtx) || version}@${preset}`;
 
     if (!deployInfo || Object.keys(deployInfo).length === 0) {
       throw new Error(`could not find package data on IPFS using the hash: ${hash}`);
@@ -80,11 +80,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
     debug('storing deploy info');
 
-    await storage.putBlob(deployInfo);
-
-    const variant = `${deployInfo.chainId || chainId}-${preset || 'main'}`;
-
-    const deployPath = localRegistry.getTagReferenceStorage(pkgName, variant);
+    const deployPath = localRegistry.getTagReferenceStorage(pkgName, deployInfo.chainId || chainId);
 
     await storeDeployReference(deployPath, ipfsUrl);
 
@@ -97,11 +93,7 @@ export async function fetch(packageRef: string, chainId: number, hash: string, m
 
       debug('reading metadata from ipfs');
 
-      const metadata = await storage.readBlob(ipfsUrl);
-
-      await storage.putBlob(metadata);
-
-      const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, variant);
+      const deployMetadataPath = localRegistry.getMetaTagReferenceStorage(pkgName, chainId);
 
       await storeDeployReference(deployMetadataPath, ipfsUrl);
     }

@@ -44,6 +44,12 @@ export const chains = [
     serviceUrl: '',
   },
   {
+    id: 8453,
+    name: 'Base',
+    shortName: 'base',
+    serviceUrl: 'https://safe-transaction-base.safe.global',
+  },
+  {
     id: 42161,
     name: 'Arbitrum',
     shortName: 'arb1',
@@ -65,7 +71,7 @@ export const chains = [
     id: 11155111,
     name: 'Sepolia',
     shortName: 'sepolia',
-    serviceUrl: '',
+    serviceUrl: 'https://safe-transaction-sepolia.safe.global',
   },
   {
     id: 1313161554,

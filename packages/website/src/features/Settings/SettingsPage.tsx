@@ -27,9 +27,7 @@ import {
 } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
-import { Store, useStore } from '@/helpers/store';
-import { validatePreset } from '@/helpers/cannon';
-//import { isIpfsUploadEndpoint } from '@/helpers/ipfs';
+import { Store, initialState, useStore } from '@/helpers/store';
 
 type Setting = {
   title: string;
@@ -44,7 +42,7 @@ type Setting = {
 const SETTINGS: Record<
   Exclude<
     keyof Store['settings'],
-    'ipfsUrl' | 'customProviders' | 'pythUrl' | 'ipfsQueryUrl'
+    'ipfsApiUrl' | 'isIpfsGateway' | 'customProviders' | 'pythUrl'
   >,
   Setting
 > = {
@@ -54,33 +52,9 @@ const SETTINGS: Record<
     description:
       'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
   },
-  publishTags: {
-    title: 'Package Tags',
-    description:
-      'Custom tags to add to the published Cannon package. Should be a string separated by commas.',
-  },
-  preset: {
-    title: 'Package Preset',
-    placeholder: 'main',
-    description: 'Select the preset that will be used to build the package.',
-    validate: (val: any) => {
-      if (val && !validatePreset(val)) {
-        return 'Invalid preset. Should only include lowercase letters.';
-      }
-    },
-  },
   registryAddress: {
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
-  },
-  registryProviderUrl: {
-    title: 'Registry Provider RPC URL',
-    description: 'JSON RPC url to connect with the Cannon Registry.',
-  },
-  forkProviderUrl: {
-    title: 'RPC URL for Local Fork',
-    description:
-      'JSON RPC url to create the local fork where the build will be executed.',
   },
 };
 
@@ -116,7 +90,13 @@ export default function SettingsPage() {
   return (
     <Container maxW="100%" w="container.md">
       <Box>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          my="10"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
@@ -150,9 +130,12 @@ export default function SettingsPage() {
                 Infura
               </Link>{' '}
               endpoints) added below if available for the target chain.
-              Otherwise, it will use{' '}
-              <Link isExternal href="https://www.publicnode.com/">
-                PublicNode
+              Otherwise, it will use a{' '}
+              <Link
+                isExternal
+                href="https://github.com/wevm/viem/tree/main/src/chains/definitions"
+              >
+                default RPC url
               </Link>
               .
             </Text>
@@ -284,54 +267,52 @@ export default function SettingsPage() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <Heading size="md" mb={3}>
+          <Heading size="md" mb={2}>
             IPFS
           </Heading>
-          <FormControl mb="4">
-            <FormLabel>IPFS Query URL</FormLabel>
-            <Input
-              bg="black"
-              borderColor="whiteAlpha.400"
-              value={settings.ipfsQueryUrl}
-              type={'text'}
-              name={'ipfsQueryUrl'}
-              onChange={(evt) =>
-                setSettings({ ipfsQueryUrl: evt.target.value })
-              }
-            />
-            <FormHelperText color="gray.300">
-              This is used to fetch package data. You can use a public gateway,
-              a paid gateway, or a{' '}
-              <Link
-                isExternal
-                href="https://docs.ipfs.tech/install/ipfs-desktop/"
-              >
-                local node
-              </Link>
-              .
-            </FormHelperText>
-          </FormControl>
+          <Text fontSize="md" mb={4}>
+            Cannon works with an{' '}
+            <Link
+              isExternal
+              href="https://docs.ipfs.tech/reference/http/gateway/"
+            >
+              IPFS HTTP Gateway URL
+            </Link>{' '}
+            or a{' '}
+            <Link isExternal href="https://docs.ipfs.tech/reference/kubo/rpc/">
+              Kubo RPC API URL
+            </Link>
+            . It must be a Kubo RPC API URL to publish packages using the{' '}
+            <Link as={NextLink} href="/deploy">
+              deployer
+            </Link>
+            .
+          </Text>
           <FormControl>
-            <FormLabel>IPFS Pinning URL</FormLabel>
+            <FormLabel>HTTP API URL</FormLabel>
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
-              value={settings.ipfsUrl}
+              value={settings.ipfsApiUrl}
               type={'text'}
-              name={'ipfsUrl'}
-              onChange={(evt) => setSettings({ ipfsUrl: evt.target.value })}
+              name={'ipfsApiUrl'}
+              onChange={async (evt) => {
+                setSettings({ ipfsApiUrl: evt.target.value });
+              }}
             />
-            <FormHelperText color="gray.300">
-              This is required by the{' '}
-              <Link as={NextLink} href="/deploy">
-                deployer
-              </Link>{' '}
-              to publish packages. Consider using a pinning service like{' '}
-              <Link isExternal href="https://www.pinata.cloud/">
-                Pinata
-              </Link>
-              .
-            </FormHelperText>
+            {settings.isIpfsGateway && (
+              <FormHelperText color="gray.200">
+                ⚠️ This appears to be an IPFS gateway. You must change this to a
+                Kubo RPC API URL to publish packages using the deployer.
+              </FormHelperText>
+            )}
+            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+              <FormHelperText color="gray.200">
+                ⚠️ Currently, the Cannon IPFS Repo only supports downloading
+                files from IPFS. You must change this to a Kubo RPC API URL to
+                publish packages using the deployer.
+              </FormHelperText>
+            )}
           </FormControl>
         </Box>
         <Box
@@ -390,10 +371,37 @@ export default function SettingsPage() {
             );
           })}
         </Box>
-        <Alert bg="gray.800" status="info" my="10">
+        <Alert
+          bg="gray.800"
+          status="info"
+          mt="10"
+          mb="5"
+          border="1px solid"
+          borderColor="gray.700"
+        >
           <AlertIcon />
           Changes to settings automatically persist in your web browser.
         </Alert>
+        <FormControl>
+          <FormHelperText color="gray.300" mb={5} textAlign="right">
+            <Link
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (
+                  window.confirm(
+                    'Are you sure you want to reset to default settings? This can’t be undone.'
+                  )
+                ) {
+                  setSettings(initialState.settings);
+                  alert('Done!');
+                }
+              }}
+            >
+              Reset to defaults
+            </Link>
+          </FormHelperText>
+        </FormControl>
       </Box>
     </Container>
   );

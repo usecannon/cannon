@@ -1,18 +1,28 @@
 import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
+import { CannonRegistry, ContractMap } from '@usecannon/builder';
 import path from 'node:path';
 import _ from 'lodash';
 import fs from 'fs-extra';
 import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';
-import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
+import {
+  CANNON_CHAIN_ID,
+  ChainDefinition,
+  RawChainDefinition,
+  ChainBuilderContext,
+  ChainArtifacts,
+  ContractData,
+} from '@usecannon/builder';
 import { chains } from './chains';
 import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
+
+import semver from 'semver';
 
 export async function filterSettings(settings: any) {
   // Filter out private key for logging
@@ -117,7 +127,7 @@ export async function resolveCannonVersion(): Promise<string> {
 
   const resolvedVersion = await execPromise('npm view @usecannon/cli version');
 
-  await fs.mkdirp(settings.cannonDirectory || 'undefined');
+  await fs.mkdirp(settings.cannonDirectory);
   await fs.writeFile(versionFile, `${resolvedVersion}:${now}`);
 
   return resolvedVersion;
@@ -125,7 +135,8 @@ export async function resolveCannonVersion(): Promise<string> {
 
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await resolveCannonVersion();
-  if (latestVersion && currentVersion !== latestVersion) {
+
+  if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
     console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
@@ -174,8 +185,9 @@ export async function loadCannonfile(filepath: string) {
 
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
+  const preset = def.getPreset(ctx);
 
-  return { def, name, version, cannonfile: buf.toString() };
+  return { def, name, version, preset, cannonfile: buf.toString() };
 }
 
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
@@ -320,4 +332,41 @@ export function toArgs(options: { [key: string]: string | boolean | number | big
 
     return [flag, stringified];
   });
+}
+
+/**
+ * Extracts the contract and details from the state of a deploy package
+ *
+ * @param state The deploy package state
+ * @returns an object containing ContractData
+ *
+ */
+
+export function getContractsAndDetails(state: {
+  [key: string]: { artifacts: Pick<ChainArtifacts, 'contracts'> };
+}): ContractMap {
+  const contractsAndDetails: { [contractName: string]: ContractData } = {};
+
+  for (const key in state) {
+    if (key.startsWith('contract.')) {
+      const contracts = state[key]?.artifacts?.contracts;
+      if (contracts) {
+        for (const contractName in contracts) {
+          contractsAndDetails[contractName] = contracts[contractName];
+        }
+      }
+    }
+  }
+
+  return contractsAndDetails;
+}
+
+/**
+ *
+ * @param registries The cannon registries
+ * @returns The source a cannon package is loaded from
+ */
+export function getSourceFromRegistry(registries: CannonRegistry[]): string | undefined {
+  const prioritizedRegistry = registries[0];
+  return prioritizedRegistry ? prioritizedRegistry.getLabel() : undefined;
 }

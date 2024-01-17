@@ -7,6 +7,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
+import { gray } from 'chalk';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -20,6 +21,7 @@ const ANVIL_OP_TIMEOUT = 10000;
 
 export type CannonRpcNode = ChildProcess &
   RpcOptions & {
+    host: string;
     port: number;
     chainId: number;
   };
@@ -122,8 +124,9 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
         if (m) {
           const host = 'http://' + m[1];
           state = 'listening';
-          //console.log('anvil spawned at', host);
+          console.log(gray('Anvil instance running on:', host, '\n'));
           anvilProvider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host));
+          anvilInstance!.host = host;
           resolve(anvilInstance!);
         }
 
@@ -183,7 +186,8 @@ export function createProviderProxy(provider: ethers.providers.JsonRpcProvider):
 
     server.on('listening', () => {
       const addrInfo = server.address() as { address: string; family: 'IPv4' | 'IPv6'; port: number };
-      resolve(`http://${addrInfo.family === 'IPv6' ? '[' + addrInfo.address + ']' : addrInfo.address}:${addrInfo.port}`);
+      debug(`Proxied server listening on: ${addrInfo.address}:${addrInfo.port} (${addrInfo.family})`);
+      resolve(`http://127.0.0.1:${addrInfo.port}`);
     });
 
     server.listen();

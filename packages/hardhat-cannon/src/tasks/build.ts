@@ -1,18 +1,18 @@
-import path from 'path';
-import { task } from 'hardhat/config';
-import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { ethers } from 'ethers';
-import { build, runRpc, parseSettings, loadCannonfile, resolveCliSettings, createDryRunRegistry } from '@usecannon/cli';
+import path from 'node:path';
+import { CannonWrapperGenericProvider, CANNON_CHAIN_ID } from '@usecannon/builder';
+import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
+import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
+import { yellow, yellowBright, bold } from 'chalk';
+import { ethers } from 'ethers';
+import * as fs from 'fs-extra';
+import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
+import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
-import { yellow } from 'chalk';
-import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
-import * as fs from 'fs-extra';
+import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -21,7 +21,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
   .addOptionalParam(
     'anvilOptions',
-    '(Optional) Custom anvil options json file to configure when running on the cannon network or a local forked node'
+    '(Optional) Custom anvil options json file or string to configure when running on the cannon network or a local forked node'
   )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
@@ -31,6 +31,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
     '(Optional) Wipe the deployment files, and use the deployment files from another cannon package as base'
   )
   .addOptionalParam('impersonate', '(Optional) When dry running, uses forked signers rather than actual signing keys')
+  .addOptionalParam(
+    'writeScript',
+    '(Experimental) Path to write all the actions taken as a script that can be later executed'
+  )
+  .addOptionalParam(
+    'writeScriptFormat',
+    '(Experimental) Format in which to write the actions script (Options: json, ethers)'
+  )
   .addFlag('noCompile', 'Do not execute hardhat compile before build')
   .setAction(
     async (
@@ -46,6 +54,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         dryRun,
         anvilOptions,
         impersonate,
+        writeScript,
+        writeScriptFormat,
       },
       hre
     ) => {
@@ -62,6 +72,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const parsedSettings = parseSettings(settings);
 
+      // This allows users to pass in a json file or simply add the anvil options as a list of arguments
       let anvilOpts;
       if (anvilOptions) {
         if ((anvilOptions as string).endsWith('.json')) {
@@ -76,7 +87,9 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
-      let provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(providerUrl));
+      const forkProvider = new hre.ethers.providers.JsonRpcProvider(providerUrl);
+
+      let provider = new CannonWrapperGenericProvider({}, forkProvider);
 
       if (hre.network.name === 'hardhat') {
         if (dryRun) {
@@ -89,46 +102,61 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         provider = new CannonWrapperGenericProvider({}, hre.ethers.provider, false);
       }
 
+      if (dryRun) {
+        console.log(
+          yellowBright(
+            bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n')
+          )
+        );
+      }
+
       if (dryRun || hre.network.name === 'cannon') {
+        const port = anvilOpts.port || hre.config.networks.cannon.port;
+        const accounts = anvilOpts.accounts || 1; // reduce image size by not creating unnecessary accounts
+        const chainId =
+          hre.network.name === 'cannon'
+            ? CANNON_CHAIN_ID
+            : anvilOpts.chainId || (await hre.ethers.provider.getNetwork()).chainId;
+
         const node = dryRun
           ? await runRpc(
               {
-                port: hre.config.networks.cannon.port,
-                chainId: (await hre.ethers.provider.getNetwork()).chainId,
-                accounts: anvilOpts.accounts || 10,
+                port,
+                chainId,
+                accounts,
                 ...anvilOpts,
               },
-              {
-                forkProvider: new ethers.providers.JsonRpcProvider(providerUrl),
-              }
+              hre.network.name === 'cannon' && !anvilOpts.forkUrl ? {} : { forkProvider }
             )
-          : await runRpc({ port: hre.config.networks.cannon.port, accounts: anvilOpts.accounts || 10, ...anvilOpts });
+          : await runRpc({ port, accounts, ...anvilOpts });
 
         provider = getProvider(node);
       }
 
-      const signers = getHardhatSigners(hre, provider);
+      const signers = await getHardhatSigners(hre, provider);
 
-      const getSigner = async (addr: string) => {
-        addr = addr.toLowerCase();
+      const getSigner = async (address: string) => {
+        const addr = ethers.utils.getAddress(address);
         for (const signer of signers) {
           const signerAddr = await signer.getAddress();
-          if (addr === signerAddr.toLowerCase()) return signer.connect(provider);
+          if (addr === signerAddr) return signer;
         }
       };
 
       let defaultSigner: ethers.Signer | null = null;
-      if (impersonate) {
-        await provider.send('hardhat_impersonateAccount', [impersonate]);
-        await provider.send('hardhat_setBalance', [impersonate, `0x${(1e22).toString(16)}`]);
-        defaultSigner = (await getSigner(impersonate)) || null;
-        // Add the impersonated signer if it is not part of the hardhat config
-        if (!defaultSigner) {
-          defaultSigner = provider.getSigner(impersonate);
-          signers.push(defaultSigner);
+      if (hre.network.name !== 'cannon') {
+        if (impersonate) {
+          await provider.send('hardhat_impersonateAccount', [impersonate]);
+          await provider.send('hardhat_setBalance', [impersonate, `0x${(1e22).toString(16)}`]);
+          defaultSigner = (await getSigner(impersonate)) || null;
+          // Add the impersonated signer if it is not part of the hardhat config
+          if (!defaultSigner) {
+            defaultSigner = provider.getSigner(impersonate);
+            signers.push(defaultSigner);
+          }
+        } else {
+          defaultSigner = signers[0];
         }
-      } else {
-        defaultSigner = signers[0].connect(provider);
       }
 
       if (defaultSigner) {
@@ -155,7 +183,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             // return the actual signer with private key
             const signer = await getSigner(addr);
             if (signer) return signer;
-
             throw new Error(
               `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
             );
@@ -172,6 +199,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
         publicSourceCode: hre.config.cannon.publicSourceCode,
+        writeScript,
+        writeScriptFormat,
       } as const;
 
       const { outputs } = await build(params);

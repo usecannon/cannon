@@ -28,24 +28,22 @@ export async function alter(
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  // Handle deprecated preset specification
+  let { fullPackageRef } = new PackageReference(packageRef);
 
-  if (presetArg && preset) {
+  // Once preset arg is removed from the cli args we can remove this logic
+  if (presetArg) {
+    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`;
     console.warn(
       yellow(
         bold(
-          `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
         )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
   }
 
-  const selectedPreset = preset || presetArg || 'main';
-
   const cliSettings = resolveCliSettings();
-
-  const variant = `${chainId}-${selectedPreset}`;
 
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -74,15 +72,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
-  const metaUrl = await resolver.getMetaUrl(basePackageRef, `${chainId}-${selectedPreset}`);
+  let startDeployInfo = await runtime.readDeploy(fullPackageRef, chainId);
+  const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(basePackageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(fullPackageRef, CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${basePackageRef} (${variant})`);
+      throw new Error(`deployment not found: ${fullPackageRef} (${chainId})`);
     }
   }
 
@@ -123,13 +121,9 @@ export async function alter(
           const version = thisNetworkDefinition.getVersion(ctx);
 
           // TODO: we should store preset info in the destination output, not config
-          const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
+          // const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
-          const newNetworkDeployment = await runtime.readDeploy(
-            `${name}:${version}`,
-            thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
-            chainId
-          );
+          const newNetworkDeployment = await runtime.readDeploy(fullPackageRef, chainId);
 
           if (!newNetworkDeployment) {
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
@@ -178,5 +172,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([basePackageRef], variant, newUrl, metaUrl || '');
+  await resolver.publish([fullPackageRef], chainId, newUrl, metaUrl || '');
 }

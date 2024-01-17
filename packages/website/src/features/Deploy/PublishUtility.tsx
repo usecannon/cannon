@@ -1,12 +1,5 @@
 import { ethers } from 'ethers';
-import {
-  Box,
-  Button,
-  FormControl,
-  FormHelperText,
-  Spinner,
-  Text,
-} from '@chakra-ui/react';
+import { Button, Link, Spinner, Text } from '@chakra-ui/react';
 import { useAccount, useMutation, useWalletClient } from 'wagmi';
 import {
   CannonStorage,
@@ -15,14 +8,14 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { CheckIcon } from '@chakra-ui/icons';
 import { useCannonPackage } from '@/hooks/cannon';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useStore } from '@/helpers/store';
+import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 
 export default function PublishUtility(props: {
   deployUrl: string;
-  targetVariant: string;
+  targetChainId: number;
 }) {
   const settings = useStore((s) => s.settings);
 
@@ -33,6 +26,7 @@ export default function PublishUtility(props: {
   const {
     resolvedName,
     resolvedVersion,
+    resolvedPreset,
     ipfsQuery: ipfsPkgQuery,
   } = useCannonPackage('@' + props.deployUrl.replace('://', ':'));
 
@@ -42,18 +36,38 @@ export default function PublishUtility(props: {
     registryQuery,
     ipfsQuery: ipfsChkQuery,
   } = useCannonPackage(
-    `${resolvedName}:${resolvedVersion}`,
-    props.targetVariant
+    `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+    props.targetChainId
   );
+
+  const packageUrl = `/packages/${resolvedName}/${
+    resolvedVersion || 'latest'
+  }/${props.targetChainId}-${resolvedPreset || 'main'}`;
+  const packageDisplay = `${resolvedName}${
+    resolvedVersion ? ':' + resolvedVersion : ''
+  }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const publishMutation = useMutation({
     mutationFn: async () => {
+      if (settings.isIpfsGateway) {
+        throw new Error(
+          'You cannot publish on an IPFS gateway, only read operations can be done'
+        );
+      }
+
+      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+        throw new Error(
+          'You cannot publish on an repo endpoint, only read operations can be done'
+        );
+      }
+
       console.log(
         'publish triggered',
         wc,
         resolvedName,
         resolvedVersion,
-        props.targetVariant
+        resolvedPreset,
+        props.targetChainId
       );
 
       const targetRegistry = new OnChainRegistry({
@@ -66,14 +80,14 @@ export default function PublishUtility(props: {
       const fakeLocalRegistry = new InMemoryRegistry();
       // TODO: set meta url
       void fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}`],
-        props.targetVariant,
+        [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
+        props.targetChainId,
         props.deployUrl,
         ''
       );
 
       const loader = new IPFSBrowserLoader(
-        settings.ipfsUrl || 'https://ipfs.io/ipfs/'
+        settings.ipfsApiUrl || 'https://repo.usecannon.com/'
       );
 
       const fromStorage = new CannonStorage(
@@ -88,9 +102,10 @@ export default function PublishUtility(props: {
       );
 
       await publishPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}`,
-        tags: settings.publishTags.split(','),
-        variant: props.targetVariant,
+        packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+        // TODO: Check if we need to provide tags
+        tags: ['latest'],
+        chainId: props.targetChainId,
         fromStorage,
         toStorage,
         includeProvisioned: true,
@@ -105,63 +120,68 @@ export default function PublishUtility(props: {
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text opacity={0.8}>
-        <Spinner boxSize={3} mr={1} /> Loading
+        <Spinner boxSize={3} mx="auto" />
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     return (
-      <FormControl mb="8">
+      <>
         {!existingRegistryUrl ? (
-          <Text mb={3}>
+          <Text fontSize="sm" mb={2}>
             The package resulting from this deployment has not been published to
             the registry.
           </Text>
         ) : (
-          <Text mb={3}>
+          <Text fontSize="sm" mb={2}>
             A different package has been published to the registry with a
             matching name and version.
           </Text>
         )}
-        <Button
-          isDisabled={wc.data?.chain?.id !== 1 || publishMutation.isLoading}
-          onClick={() => publishMutation.mutate()}
-        >
-          {publishMutation.isLoading
-            ? [<Spinner key={0} />, ' Publish in Progress...']
-            : 'Publish to Registry'}
-        </Button>
-        {wc.data?.chain?.id !== 1 && (
-          <FormHelperText>
-            You must set your wallet to Ethereum Mainnet to publish this
-            package.
-          </FormHelperText>
+        {settings.isIpfsGateway && (
+          <Text fontSize="sm" mb={2}>
+            You cannot publish on an IPFS gateway, only read operations can be
+            done.
+          </Text>
         )}
-      </FormControl>
+        {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+          <Text fontSize="sm" mb={2}>
+            You cannot publish on an repo endpoint, only read operations can be
+            done.
+          </Text>
+        )}
+
+        {wc.data?.chain?.id === 1 ? (
+          <Button
+            isDisabled={
+              settings.isIpfsGateway ||
+              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
+              wc.data?.chain?.id !== 1 ||
+              publishMutation.isLoading
+            }
+            onClick={() => publishMutation.mutate()}
+          >
+            {publishMutation.isLoading
+              ? [<Spinner key={0} />, ' Publish in Progress...']
+              : 'Publish to Registry'}
+          </Button>
+        ) : (
+          <Text fontSize="xs" fontWeight="medium">
+            <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
+            Connect a wallet using chain ID 1 to publish
+          </Text>
+        )}
+      </>
     );
   } else {
     return (
-      <Box
-        display="inline-block"
-        borderRadius="lg"
-        bg="blackAlpha.300"
-        px={4}
-        py={3}
-      >
-        <Box
-          backgroundColor="green"
-          borderRadius="full"
-          display="inline-flex"
-          alignItems="center"
-          justifyContent="center"
-          boxSize={5}
-          mr={2.5}
-        >
-          <CheckIcon color="white" boxSize={2.5} />
-        </Box>
-        <Text fontWeight="bold" display="inline">
-          Published to Registry
+      <>
+        <Text fontSize="xs">
+          <Link href={packageUrl}>
+            {packageDisplay}
+            <ExternalLinkIcon ml={1} transform="translateY(-0.5px)" />
+          </Link>
         </Text>
-      </Box>
+      </>
     );
   }
 }

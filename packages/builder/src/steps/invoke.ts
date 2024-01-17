@@ -1,22 +1,23 @@
-import _ from 'lodash';
 import Debug from 'debug';
-
-import { z } from 'zod';
-import { invokeSchema } from '../schemas.zod';
-
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntimeInfo,
-  ChainArtifacts,
-  TransactionMap,
-  ChainBuilderContextWithHelpers,
-  PackageState,
-} from '../types';
-import { computeTemplateAccesses } from '../access-recorder';
-import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
 import { ethers } from 'ethers';
-
-import { getAllContractPaths } from '../util';
+import _ from 'lodash';
+import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { invokeSchema } from '../schemas.zod';
+import {
+  ChainArtifacts,
+  ChainBuilderContext,
+  ChainBuilderContextWithHelpers,
+  ChainBuilderRuntimeInfo,
+  PackageState,
+  TransactionMap,
+} from '../types';
+import {
+  getAllContractPaths,
+  getContractDefinitionFromPath,
+  getContractFromPath,
+  getMergedAbiFromContractPaths,
+} from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -94,6 +95,13 @@ async function runTxn(
     overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
+  // Attempt to encode data so that if any arguments have any type mismatches, we can catch them and present them to the user.
+  try {
+    contract.interface.encodeFunctionData(config.func, config.args);
+  } catch (error: any) {
+    throw new Error(`Invalid arguments for function "${config.func}": \n\n ${error}`);
+  }
+
   if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
@@ -102,6 +110,8 @@ async function runTxn(
     debug('owner for call', address);
 
     const callSigner = await runtime.getSigner(address);
+
+    debug('owner for call', address);
 
     txn = await contract.connect(callSigner)[config.func](...(config.args || []), overrides);
   } else {
@@ -372,6 +382,7 @@ const invokeSpec = {
     for (const t of config.target || []) {
       let contract: ethers.Contract | null;
 
+      debug('get contract for target: ', t);
       if (ethers.utils.isAddress(t)) {
         if (!customAbi) {
           throw new Error('abi must be defined if addresses is used for target');

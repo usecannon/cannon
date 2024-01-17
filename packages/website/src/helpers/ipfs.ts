@@ -9,15 +9,6 @@ export function parseIpfsHash(url: string) {
   return url.trim().match(FILE_URL_REGEX)?.groups?.cid || '';
 }
 
-export function isIpfsUploadEndpoint(ipfsUrl: string) {
-  try {
-    const url = new URL(ipfsUrl);
-    return url.port === '5001' || url.protocol === 'http+ipfs:' || url.protocol === 'https+ipfs:';
-  } catch (_) {
-    return false;
-  }
-}
-
 export class IPFSBrowserLoader extends IPFSLoader {
   constructor(ipfsUrl: string) {
     const { url, headers } = createIpfsUrl(ipfsUrl);
@@ -25,25 +16,28 @@ export class IPFSBrowserLoader extends IPFSLoader {
   }
 }
 
-// Create an ipfs url with compatibility for custom auth and https+ipfs:// protocol
+// Create an ipfs url with compatibility for custom auth
 export function createIpfsUrl(base: string, pathname = '') {
   const parsedUrl = parseUrl(base);
   const headers: { [k: string]: string } = {};
 
-  const customProtocol = parsedUrl.protocol.endsWith('+ipfs');
-
   const uri = {
-    protocol: customProtocol ? parsedUrl.protocol.split('+')[0] : parsedUrl.protocol,
-    host: customProtocol && !parsedUrl.host.includes(':') ? `${parsedUrl.host}:5001` : parsedUrl.host,
-    pathname,
+    protocol: parsedUrl.protocol,
+    host: parsedUrl.host,
+    pathname: pathname || parsedUrl.pathname,
     query: parsedUrl.query,
     hash: parsedUrl.hash,
   };
 
+  console.log('the uri info', parsedUrl, uri);
+
   if (parsedUrl.auth) {
+    console.log('Detected basic auth in url');
     const [username, password] = parsedUrl.auth.split(':');
     headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
   }
+
+  console.log('URL FINAL', createUrl(uri), headers);
 
   return { url: createUrl(uri), headers };
 }

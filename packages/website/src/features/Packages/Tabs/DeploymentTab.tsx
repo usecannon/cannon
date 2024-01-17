@@ -30,7 +30,7 @@ export const DeploymentTab: FC<{
     <Flex flexDirection="column" width="100%" mt="8">
       {currentVariant ? (
         <Container maxW="container.xl">
-          <DeploymentExplorer variant={currentVariant} />
+          <DeploymentExplorer pkgName={pkg.name} variant={currentVariant} />
         </Container>
       ) : (
         <CustomSpinner m="auto" />

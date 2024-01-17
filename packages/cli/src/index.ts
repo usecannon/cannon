@@ -1,41 +1,43 @@
+import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { spawn } from 'child_process';
-import { ethers } from 'ethers';
-import { Command } from 'commander';
 import {
+  CannonStorage,
   CannonWrapperGenericProvider,
+  ChainArtifacts,
+  ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  ChainBuilderRuntime,
-  ChainArtifacts,
-  CannonStorage,
+  InMemoryRegistry,
+  IPFSLoader,
+  PackageReference,
+  publishPackage,
 } from '@usecannon/builder';
-
-import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
-
+import { bold, gray, green, red, yellow } from 'chalk';
+import { Command } from 'commander';
+import Debug from 'debug';
+import { ethers } from 'ethers';
+import prompts from 'prompts';
 import pkg from '../package.json';
-import { PackageSpecification } from './types';
+import { interact } from './commands/interact';
+import commandsConfig from './commandsConfig';
+import { getFoundryArtifact } from './foundry';
+import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
+import { getMainLoader } from './loader';
+import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
+import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
-
+import { resolveCliSettings } from './settings';
+import { PackageSpecification } from './types';
+import { pickAnvilOptions } from './util/anvil';
+import { getContractsRecursive } from './util/contracts-recursive';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
+import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
 export * from './types';
 export * from './constants';
 export * from './util/params';
-
-import { interact } from './commands/interact';
-import { getContractsRecursive } from './util/contracts-recursive';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-import { resolveCliSettings } from './settings';
-
-import { installPlugin, removePlugin } from './plugins';
-import Debug from 'debug';
-import { writeModuleDeployments } from './util/write-deployments';
-import { getFoundryArtifact } from './foundry';
-import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
-import { getMainLoader } from './loader';
-import { bold, green, red, yellow, gray } from 'chalk';
 
 const debug = Debug('cannon:cli');
 
@@ -50,17 +52,11 @@ export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
 export { runRpc, getProvider } from './rpc';
-
 export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
 export { resolveProviderAndSigners } from './util/provider';
 export { resolveCliSettings } from './settings';
 export { getFoundryArtifact } from './foundry';
 export { loadCannonfile } from './helpers';
-
-import { listInstalledPlugins } from './plugins';
-import prompts from 'prompts';
-import { pickAnvilOptions } from './util/anvil';
-import commandsConfig from './commandsConfig';
 
 const program = new Command();
 
@@ -69,8 +65,16 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .hook('preAction', async function () {
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
+  .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
+    setDebugLevel(thisCommand.opts());
   });
 
 configureRun(program);
@@ -85,9 +89,9 @@ function applyCommandsConfig(command: Command, config: any) {
   }
   if (config.arguments) {
     config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageNames...>') {
+      if (argument.flags === '<packageRefs...>') {
         command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageName>') {
+      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
         command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
       } else {
         command.argument(argument.flags, argument.description, argument.defaultValue);
@@ -111,15 +115,34 @@ function applyCommandsConfig(command: Command, config: any) {
   return command;
 }
 
+function setDebugLevel(opts: any) {
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
+}
+
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
     program
   ) {
+    console.log(bold('Starting local node...\n'));
+
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port) || 8545;
+    options.port = Number.parseInt(options.port);
 
     let node: CannonRpcNode;
     if (options.chainId) {
@@ -151,7 +174,11 @@ function configureRun(program: Command) {
   });
 }
 
-async function doBuild(cannonfile: string, settings: string[], opts: any): Promise<[CannonRpcNode | null, ChainArtifacts]> {
+async function doBuild(
+  cannonfile: string,
+  settings: string[],
+  opts: any
+): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
   // set debug verbosity
   switch (true) {
     case opts.Vvvv:
@@ -195,8 +222,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       ...pickAnvilOptions(opts),
-      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: 0,
     });
 
     provider = getProvider(node);
@@ -207,6 +232,7 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       chainId = opts.chainId;
     }
+
     const p = await resolveWriteProvider(cliSettings, chainId as number);
 
     if (opts.dryRun) {
@@ -214,8 +240,6 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
         {
           ...pickAnvilOptions(opts),
           chainId,
-          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-          port: 0,
         },
         {
           forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
@@ -234,7 +258,9 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     } else {
       provider = p.provider;
 
-      getSigner = async (s) => {
+      getSigner = async (address) => {
+        const s = ethers.utils.getAddress(address);
+
         for (const signer of p.signers) {
           if ((await signer.getAddress()) === s) {
             return signer;
@@ -251,16 +277,19 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
   }
 
   const { build } = await import('./commands/build');
-  const { name, version, def } = await loadCannonfile(cannonfilePath);
+  const { name, version, preset, def } = await loadCannonfile(cannonfilePath);
 
-  const { outputs } = await build({
+  const pkgSpec: PackageSpecification = {
+    name,
+    version,
+    preset,
+    settings: parsedSettings,
+  };
+
+  const { outputs, runtime } = await build({
     provider,
     def,
-    packageDefinition: {
-      name,
-      version,
-      settings: parsedSettings,
-    },
+    packageDefinition: pkgSpec,
     pkgInfo: {},
     getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
     getSigner,
@@ -272,14 +301,17 @@ async function doBuild(cannonfile: string, settings: string[], opts: any): Promi
     overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
     publicSourceCode,
     providerUrl: cliSettings.providerUrl,
+    writeScript: opts.writeScript,
+    writeScriptFormat: opts.writeScriptFormat,
 
     gasPrice: opts.gasPrice,
     gasFee: opts.maxGasFee,
     priorityGasFee: opts.maxPriorityGasFee,
   });
 
-  return [node, outputs];
+  return [node, pkgSpec, outputs, runtime];
 }
+
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
@@ -306,7 +338,22 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
-    const [node] = await doBuild(cannonfile, settings, opts);
+    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
+
+    if (opts.keepAlive) {
+      console.log(
+        `Built package RPC URL available at ${
+          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
+        }`
+      );
+      const { run } = await import('./commands/run');
+      await run([{ ...pkgSpec, settings: {} }], {
+        ...opts,
+        resolver: runtime.registry,
+        node,
+        helpInformation: program.helpInformation(),
+      });
+    }
 
     node?.kill();
   });
@@ -351,6 +398,29 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
   await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
 });
 
+applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
+  const cliSettings = resolveCliSettings(options);
+
+  ipfsHash = ipfsHash.replace(/^ipfs:\/\//, '');
+
+  const fromStorage = new CannonStorage(new InMemoryRegistry(), getMainLoader(cliSettings));
+  const toStorage = new CannonStorage(new InMemoryRegistry(), {
+    ipfs: new IPFSLoader(cliSettings.publishIpfsUrl || cliSettings.ipfsUrl!),
+  });
+
+  console.log('Uploading package data for pinning...');
+
+  await publishPackage({
+    packageRef: '@ipfs:' + ipfsHash,
+    chainId: 13370,
+    tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
+    fromStorage,
+    toStorage,
+  });
+
+  console.log('Done!');
+});
+
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
   const { publish } = await import('./commands/publish');
 
@@ -370,7 +440,10 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!options.privateKey && !process.env.PRIVATE_KEY) {
+  const cliSettings = resolveCliSettings(options);
+  let { signers } = await resolveRegistryProvider(cliSettings);
+
+  if (!signers.length) {
     const validatePrivateKey = (privateKey: string) => {
       if (ethers.utils.isHexString(privateKey)) {
         return true;
@@ -385,21 +458,19 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Please provide a Private Key',
+      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
       validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
     });
 
     if (!keyPrompt.value) {
-      console.log('Private Key is required.');
+      console.log('A valid private key is required.');
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
+    const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
+    signers = p.signers;
   }
-
-  const cliSettings = resolveCliSettings(options);
-  const p = await resolveRegistryProvider(cliSettings);
 
   const overrides: ethers.PayableOverrides = {};
 
@@ -426,8 +497,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
-    signer: p.signers[0],
-    tags: options.tags ? options.tags.split(',') : [],
+    signer: signers[0],
+    tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
@@ -440,7 +511,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');
   resolveCliSettings(options);
-  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments);
+  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments, options.sources);
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
@@ -501,11 +572,11 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
   }
 });
 
-applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageName, data, options) {
+applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
   await trace({
-    packageName,
+    packageRef,
     data,
     chainId: options.chainId,
     preset: options.preset,
@@ -531,13 +602,14 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  const [node, outputs] = await doBuild(cannonfile, [], opts);
+  opts.port = 0;
+  const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
-  const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
+  const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
 
   forgeCmd.stdout.on('data', (data: Buffer) => {
     process.stdout.write(data);
@@ -556,7 +628,10 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   });
 });
 
-applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageDefinition, opts) {
+applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
+  packageDefinition: PackageSpecification,
+  opts
+) {
   const cliSettings = resolveCliSettings(opts);
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
@@ -564,6 +639,23 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const networkInfo = await p.provider.getNetwork();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
+
+  const [name, version] = [packageDefinition.name, packageDefinition.version];
+  let preset = packageDefinition.preset;
+
+  // Handle deprecated preset specification
+  if (opts.preset) {
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
+    preset = opts.preset;
+  }
+
+  const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 
   const runtime = new ChainBuilderRuntime(
     {
@@ -585,17 +677,11 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     getMainLoader(cliSettings)
   );
 
-  const selectedPreset = packageDefinition.preset || opts.preset || 'main';
-
-  const deployData = await runtime.readDeploy(
-    `${packageDefinition.name}:${packageDefinition.version}`,
-    selectedPreset,
-    runtime.chainId
-  );
+  const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${selectedPreset}. please make sure it exists for the given preset and current network.`
+      `deployment not found for package: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
@@ -603,7 +689,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   if (!outputs) {
     throw new Error(
-      `no cannon build found for chain ${networkInfo.chainId}/${selectedPreset}. Did you mean to run instead?`
+      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
     );
   }
 

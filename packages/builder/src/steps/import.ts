@@ -1,16 +1,14 @@
-import _ from 'lodash';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { yellow, bold } from 'chalk';
-
+import _ from 'lodash';
 import { z } from 'zod';
-import { importSchema } from '../schemas.zod';
-
-import { ChainBuilderContext, ChainArtifacts, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { computeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime } from '../runtime';
-import { computeTemplateAccesses } from '../access-recorder';
 import { PackageReference } from '../package';
+import { ChainBuilderRuntime } from '../runtime';
+import { importSchema } from '../schemas.zod';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
 const debug = Debug('cannon:builder:import');
 
@@ -37,11 +35,10 @@ const importSpec = {
     const cfg = this.configInject(ctx, config);
 
     const source = cfg.source;
-    const preset = cfg.preset;
     const chainId = cfg.chainId ?? runtime.chainId;
 
-    debug('resolved pkg', source, `${chainId}-${preset}`);
-    const url = await runtime.registry.getUrl(source, `${chainId}-${preset}`);
+    debug('resolved pkg', source, chainId);
+    const url = await runtime.registry.getUrl(source, chainId);
 
     return {
       url,
@@ -53,18 +50,20 @@ const importSpec = {
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
-    // If both definitions of a preset exist, its a user error.
-    if (config.preset && packageRef.preset) {
+    if (config.preset) {
       console.warn(
         yellow(
-          bold(`Duplicate preset definitions in source name "${config.source}" and in preset definition: "${config.preset}"`)
+          bold(
+            `The preset option will be deprecated soon. Using ${_.template(config.preset)(
+              ctx
+            )}. Reference presets in the "source" option like so: name@version:preset`
+          )
         )
       );
-      console.warn(yellow(bold(`Defaulting to source name preset  "${config.source}"...`)));
     }
 
-    config.source = packageRef.basePackageRef;
-    config.preset = packageRef.preset || _.template(config.preset)(ctx) || 'main';
+    config.source = packageRef.fullPackageRef;
+    config.preset = _.template(config.preset)(ctx);
 
     return config;
   },
@@ -91,15 +90,13 @@ const importSpec = {
     const importLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
-    const source = packageRef.basePackageRef;
-
-    const preset = packageRef.preset || config.preset || 'main';
+    const source = config.source;
+    const preset = config.preset;
     const chainId = config.chainId ?? runtime.chainId;
 
     // try to load the chain definition specific to this chain
     // otherwise, load the top level definition
-    const deployInfo = await runtime.readDeploy(source, preset, chainId);
+    const deployInfo = await runtime.readDeploy(source, chainId);
 
     if (!deployInfo) {
       throw new Error(
@@ -116,7 +113,7 @@ const importSpec = {
     return {
       imports: {
         [importLabel]: {
-          url: (await runtime.registry.getUrl(source, `${chainId}-${preset}`))!, // todo: duplication
+          url: (await runtime.registry.getUrl(source, chainId))!, // todo: duplication
           ...(await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state))!,
         },
       },

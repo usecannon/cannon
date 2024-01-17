@@ -1,11 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
   "changelog": "@changesets/cli/changelog",
-  "commit": false,
-  "fixed": [],
-  "linked": [],
-  "access": "restricted",
+  "commit": true,
+  "linked": [["@usecannon/cli", "@usecannon/builder", "hardhat-cannon"]],
+  "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": ["cannon-registry", "cannon-registry-subgraph", "cannon-website"]
 }

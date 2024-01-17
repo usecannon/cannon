@@ -1067,6 +1067,24 @@ const chains = [
     infoURL: 'https://community.optimism.io/docs/',
   },
   {
+    name: 'Base Sepolia Testnet',
+    chainId: 84532,
+    shortName: 'base-sepolia',
+    chain: 'ETH',
+    network: 'testnet',
+    networkId: 84532,
+    nativeCurrency: {
+      name: 'Sepolia Ether',
+      symbol: 'sETH',
+      decimals: 18,
+    },
+    rpc: ['https://sepolia.base.org'],
+    etherscanApi: 'https://api-sepolia.basescan.org/api',
+    etherscanUrl: 'https://sepolia.basescan.org/',
+    faucets: ['https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet'],
+    infoURL: 'https://base.org/',
+  },
+  {
     name: 'Base Goerli Testnet',
     chainId: 84531,
     shortName: 'basegor',
@@ -1083,6 +1101,34 @@ const chains = [
     etherscanUrl: 'https://goerli.basescan.org/',
     faucets: ['https://www.coinbase.com/faucets/base-ethereum-goerli-faucet'],
     infoURL: 'https://base.org/',
+  },
+  {
+    name: 'Scroll Sepolia Testnet',
+    chainId: 534351,
+    shortName: 'scroll-sepolia',
+    chain: '',
+    network: 'mainnet',
+    networkId: 534351,
+    nativeCurrency: { name: 'Sepolia Ether', symbol: 'sETH', decimals: 18 },
+    rpc: ['https://rpc.scroll.io'],
+    etherscanApi: 'https://api-sepolia.scrollscan.com/api',
+    etherscanUrl: 'https://sepolia.scrollscan.com',
+    faucets: [],
+    infoURL: 'https://scroll.io',
+  },
+  {
+    name: 'Scroll',
+    chainId: 534352,
+    shortName: 'scroll',
+    chain: '',
+    network: 'mainnet',
+    networkId: 534352,
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpc: ['https://rpc.scroll.io'],
+    etherscanApi: 'https://api.scrollscan.com/api',
+    etherscanUrl: 'https://scrollscan.com',
+    faucets: [],
+    infoURL: 'https://scroll.io',
   },
 ];
 
@@ -1150,6 +1196,18 @@ CHAIN_DATA = merge(CHAIN_DATA, {
   84531: {
     name: 'base goerli',
     color: 'blue',
+  },
+  84532: {
+    name: 'base sepolia',
+    color: 'blue',
+  },
+  534351: {
+    name: 'scroll sepolia',
+    color: 'yellow',
+  },
+  534532: {
+    name: 'scroll',
+    color: 'gold',
   },
 });
 

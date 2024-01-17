@@ -90,7 +90,7 @@ export const Interact: FC<{
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [ipfs]);
 
-  const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+  const deployUrl = `https://repo.usecannon.com/${currentVariant?.deploy_url.replace(
     'ipfs://',
     ''
   )}`;
@@ -117,6 +117,9 @@ export const Interact: FC<{
       ) : (
         <>
           <Flex
+            position={{ md: 'sticky' }}
+            top="0"
+            zIndex={3}
             bg="gray.800"
             p={2}
             flexDirection={['column', 'column', 'row']}
@@ -176,7 +179,6 @@ export const Interact: FC<{
               </Flex>
             </Box>
           </Flex>
-
           <Abi
             abi={contract?.abi as any}
             address={contractAddress}

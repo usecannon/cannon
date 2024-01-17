@@ -1,7 +1,10 @@
 import { FC, useMemo } from 'react';
-import { BundledOutput, ChainArtifacts } from '@usecannon/builder';
+import {
+  BundledOutput,
+  ChainArtifacts,
+  BundledChainBuilderOutputs,
+} from '@usecannon/builder';
 import { Box, Flex, Heading, Code } from '@chakra-ui/react';
-import { BundledChainBuilderOutputs } from '@usecannon/builder';
 import { Copy } from 'react-feather';
 import { useCopy } from '@/lib/copy';
 import { ContractStep } from '@/features/Packages/ContractStep';
