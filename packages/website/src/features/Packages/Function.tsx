@@ -129,7 +129,7 @@ export const Function: FC<{
       }
     } catch (e: any) {
       if (!suppressError) {
-        console.error(e);
+        // console.error(e);
         // setError(e?.message || e?.error?.message || e?.error || e);
         try {
           const provider = new ethers.providers.JsonRpcProvider(

@@ -38,7 +38,7 @@ import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { debounce } from 'lodash';
 import { ChainFilter } from './ChainFilter';
-import * as chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');

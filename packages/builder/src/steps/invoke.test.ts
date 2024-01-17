@@ -202,8 +202,7 @@ describe('steps/invoke.ts', () => {
         {
           target: ['Woot'],
           func: 'something',
-          args: ['foo', { bar: 'baz' }],
-          value: '1234',
+          args: ['foo', { bar: 'baz' }, 'foobar'],
           factory: {
             Whoof: {
               event: 'SomethingHappened',
