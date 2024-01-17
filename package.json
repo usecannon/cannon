@@ -14,6 +14,7 @@
     "test-all": "lerna run test",
     "build": "lerna run build --ignore cannon-website",
     "publish": "lerna publish",
+    "publish-ci": "lerna publish from-package --no-private --yes",
     "test": "lerna run test",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
     "website-dev": "npm run dev --workspace=packages/website",
