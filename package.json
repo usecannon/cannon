@@ -45,6 +45,7 @@
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
+    "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.26.2",
     "concat-md": "^0.5.1"
   }
