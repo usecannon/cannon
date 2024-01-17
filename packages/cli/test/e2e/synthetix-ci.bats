@@ -12,12 +12,6 @@ setup() {
   _setup
 }
 
-# This function is used to log output during test execution
-# Bats by default hides output during each test.
-log() {
-  echo "$@" >&3
-}
-
 # File post-run hook
 teardown_file() {
   load helpers/bats-helpers.sh

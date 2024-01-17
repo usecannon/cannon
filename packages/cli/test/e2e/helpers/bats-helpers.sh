@@ -18,9 +18,9 @@ _setup_file() {
 }
 
 _setup() {
-  load './helpers/bats-support/load'
-  load './helpers/bats-assert/load'
-  load './helpers/bats-file/load'
+  load 'helpers/bats-support/load'
+  load 'helpers/bats-assert/load'
+  load 'helpers/bats-file/load'
 
   # get the containing directory of this file
   # use $BATS_TEST_FILENAME instead of ${BASH_SOURCE[0]} or $0,
@@ -49,7 +49,7 @@ _teardown() {
 # CUSTOM FUNCTIONS
 
 # Copy remote network config over to temp dir
-set_config_remote() {
+set_custom_config() {
   touch "$CANNON_DIRECTORY/settings.json"
   cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
 }

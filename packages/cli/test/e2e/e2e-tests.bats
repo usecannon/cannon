@@ -42,7 +42,7 @@ teardown() {
 }
 
 @test "Build - Building foundry greeter example" {
-  set_config_remote
+  set_custom_config
   run build-foundry.sh
   echo $output
   assert_success
@@ -54,17 +54,19 @@ teardown() {
   run build-hardhat.sh
   echo $output
   assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_2.4.21_1-main.txt"
 }
 
 @test "Verify - Verify greeter packages" {
-  set_config_remote
+  set_custom_config
   run verify.sh
   echo $output
   assert_success
 }
 
 @test "Publish - Publishing package to goerli registry" {
-  set_config_remote
+  set_custom_config
   run publish.sh
   echo $output
   assert_success
