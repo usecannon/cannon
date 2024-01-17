@@ -65,7 +65,7 @@ teardown() {
   assert_success
 }
 
-@test "Publish - Publishing package to goerli registry" {
+@test "Publish - Publishing package to registry" {
   set_custom_config
   run publish.sh
   echo $output
