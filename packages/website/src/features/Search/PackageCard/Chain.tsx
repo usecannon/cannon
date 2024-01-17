@@ -1,7 +1,7 @@
 import { find, merge } from 'lodash';
 import { FC, useMemo } from 'react';
 import { Flex, Box, Text } from '@chakra-ui/react';
-import * as chains from '@/helpers/chains';
+import chains from '@/helpers/chains';
 import { Image } from '@chakra-ui/react';
 
 type ChainData = {
@@ -41,6 +41,9 @@ const metadata = {
   },
   zora: {
     color: '#000000',
+  },
+  gnosis: {
+    color: '#3e6957',
   },
 };
 
