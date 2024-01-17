@@ -1,9 +1,8 @@
 import { find, merge } from 'lodash';
 import { FC, useMemo } from 'react';
 import { Flex, Box, Text } from '@chakra-ui/react';
-import * as chains from 'wagmi/chains';
+import * as chains from '@/helpers/chains';
 import { Image } from '@chakra-ui/react';
-//import chainsData from '@/constants/chainsData';
 
 type ChainData = {
   id: number;

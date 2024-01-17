@@ -15,7 +15,7 @@ import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
-import * as Chains from 'wagmi/chains';
+import * as Chains from '@/helpers/chains';
 
 export const Interact: FC<{
   name: string;

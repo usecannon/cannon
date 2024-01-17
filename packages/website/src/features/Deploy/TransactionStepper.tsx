@@ -23,7 +23,7 @@ import {
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useMemo } from 'react';
-import * as Chains from 'wagmi/chains';
+import * as Chains from '@/helpers/chains';
 
 type Orientation = 'horizontal' | 'vertical';
 
