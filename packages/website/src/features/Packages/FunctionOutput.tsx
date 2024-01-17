@@ -1,146 +1,115 @@
-import { FC } from 'react';
-import { Box, Text, Divider, FormLabel, Flex } from '@chakra-ui/react';
+import { FC, ReactNode } from 'react';
+import { Box, Text, Code, Heading, Stack, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 
 export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
   result: any;
 }> = ({ output, result }) => {
-  const isArray = (_value: any) => Array.isArray(_value);
-  const isObject = (_value: any) =>
-    _value && typeof _value === 'object' && _value.constructor === Object;
+  const isArray = (value: any) => Array.isArray(value);
 
-  const arrayOutput: AbiParameter[] | undefined = isArray(output)
-    ? (output as AbiParameter[])
-    : undefined;
-  const objectOutput: AbiParameter | undefined = isObject(output)
-    ? (output as AbiParameter)
-    : undefined;
-  return (
-    <>
-      {(output as Array<any>).length == 0 && (
-        <Flex flex="1">
-          <Text fontSize="sm" m="auto" color="gray.500">
-            <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
-            any values
-          </Text>
-        </Flex>
-      )}
-      {arrayOutput && (
-        <div>
-          {arrayOutput.map((item: any, index: number) => {
+  const isArrayOutput = (
+    value: AbiParameter | readonly AbiParameter[]
+  ): value is readonly AbiParameter[] => {
+    return Array.isArray(value);
+  };
+
+  const renderOutput = (item: AbiParameter, value: any): ReactNode => {
+    // Tuples
+    if (
+      item.type === 'tuple' &&
+      'components' in item &&
+      isArray(item.components)
+    ) {
+      return (
+        <>
+          {item.components.map((component, idx) => {
+            const componentValue = isArray(value) ? value[idx] : value;
             return (
-              <div key={index}>
-                <FormLabel fontSize="sm" mb={0}>
-                  {item.name && <Text display="inline">{item.name}</Text>}
-                  {item.internalType && (
-                    <Text fontSize="xs" color="whiteAlpha.700" display="inline">
-                      {' '}
-                      {item.internalType}
-                    </Text>
-                  )}
-                </FormLabel>
-
-                {item.components && item.type === 'tuple' && result && (
-                  <Box pb="2">
-                    {Object.values(result).map(
-                      (component: any, componentIndex: any) => {
-                        return (
-                          <FunctionOutput
-                            output={item.components[componentIndex]}
-                            result={component}
-                            key={componentIndex}
-                          />
-                        );
-                      }
-                    )}
-                  </Box>
-                )}
-                {item.type === 'tuple[]' && result?.length && (
-                  <div>
-                    {(arrayOutput.length > 1 ? result[index] : result).map(
-                      (resultItem: any, resultItemIndex: number) => {
-                        if (isObject(resultItem)) {
-                          return (
-                            <div key={resultItemIndex}>
-                              <Box pb="2">
-                                {Object.values(resultItem).map(
-                                  (component: any, componentIndex: any) => {
-                                    return (
-                                      <FunctionOutput
-                                        output={item.components[componentIndex]}
-                                        result={component}
-                                        key={componentIndex}
-                                      />
-                                    );
-                                  }
-                                )}
-                              </Box>
-                              <Divider />
-                            </div>
-                          );
-                        } else {
-                          return (
-                            <div key={resultItemIndex}>
-                              <Box pb="2">
-                                {resultItem.map(
-                                  (component: any, componentIndex: number) => {
-                                    return (
-                                      <div key={componentIndex}>
-                                        <FunctionOutput
-                                          output={
-                                            item.components[componentIndex]
-                                          }
-                                          result={component}
-                                        />
-                                      </div>
-                                    );
-                                  }
-                                )}
-                              </Box>
-                            </div>
-                          );
-                        }
-                      }
-                    )}
-                  </div>
-                )}
-                {!item.components ||
-                (item.type !== 'tuple[]' && item.type !== 'tuple') ? (
-                  <>
-                    {(isArray(result) ? result[index] : result) === null ? (
-                      <Text color="gray.500">—</Text>
-                    ) : (output as Array<any>)[index].type.endsWith('[]') ? (
-                      String(result)
-                    ) : (
-                      String(isArray(result) ? result[index] : result)
-                    )}
-                  </>
-                ) : null}
-              </div>
+              <FunctionOutput
+                key={idx}
+                output={component}
+                result={componentValue}
+              />
             );
           })}
-        </div>
-      )}
-      {objectOutput && (
-        <>
-          {objectOutput.name}:{' '}
-          {JSON.stringify(
-            result,
-            (key, value) => {
-              typeof value === 'bigint' ? String(value) : value;
-            },
-            2
-          )}
-          <Text pl="1" fontSize="xs" color="whiteAlpha.700" display="inline">
-            {objectOutput.internalType}
-          </Text>
-          <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
-            {String(result)}
-          </Text>
         </>
-      )}
+      );
+      // Array of Tuples
+    } else if (
+      item.type === 'tuple[]' &&
+      item.type.endsWith('[]') &&
+      'components' in item &&
+      isArray(item.components)
+    ) {
+      return isArray(value)
+        ? value.map((tupleItem: AbiParameter, idx) => (
+          <Box key={idx} pl="4">
+            {item.components.map((component, compIdx) => {
+              const componentValue = isArray(tupleItem)
+                ? tupleItem[compIdx]
+                : tupleItem;
+              return (
+                <FunctionOutput
+                  key={`${idx}-${compIdx}`}
+                  output={component}
+                  result={componentValue}
+                />
+              );
+            })}
+          </Box>
+        ))
+        : null;
+      //Arrays
+    } else if (item.type.endsWith('[]')) {
+      return isArray(value) ? (
+        value.map((val: any, idx: number) => (
+          <Text key={idx}>{String(val)}</Text>
+        ))
+      ) : (
+        <Text>{String(value)}</Text>
+      );
+      // Other types and Objects
+    } else {
+      return <Text>{String(value)}</Text>;
+    }
+  };
+
+  return (
+    <>
+      <Stack>
+        {isArrayOutput(output) ? (
+          output.map((item, index) => (
+            <Box key={index} pl={2} pt={0}>
+              <Flex gap={1} alignItems={'center'}>
+                {item.name && (
+                  <Heading
+                    size="xs"
+                    fontWeight={400}
+                    letterSpacing={'1px'}
+                    color="gray.300"
+                  >
+                    {item.name}
+                  </Heading>
+                )}
+
+                <Text size={'xs'} color={'gray'}>
+                  {item.type}
+                </Text>
+              </Flex>
+              {renderOutput(item, result)}
+            </Box>
+          ))
+        ) : (
+          <Box ml={4}>
+            <Heading size="sm">{output.name || ''}</Heading>
+            <Code size={'xs'} color={'gray'}>
+              {output.type}
+            </Code>
+            {renderOutput(output, result)}
+          </Box>
+        )}
+      </Stack>
     </>
   );
 };
