@@ -299,6 +299,7 @@ export const Function: FC<{
             display="flex"
             flexDirection="column"
             position="relative"
+            overflowX="scroll"
           >
             <Heading
               size="xs"
