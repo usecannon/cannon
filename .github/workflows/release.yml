@@ -50,6 +50,6 @@ jobs:
         run: npm ci
 
       - name: Publish to NPM
-        run: npm publish-ci
+        run: npm run publish-ci
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
