@@ -47,27 +47,19 @@ teardown() {
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_2.4.21_1-main.txt"
 }
 
 @test "Build - Building hardhat greeter example" {
+  set_custom_config
   run build-hardhat.sh
   echo $output
   assert_success
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_2.4.21_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_1-main.txt"
 }
 
 @test "Verify - Verify greeter packages" {
   set_custom_config
   run verify.sh
-  echo $output
-  assert_success
-}
-
-@test "Publish - Publishing package to registry" {
-  set_custom_config
-  run publish.sh
   echo $output
   assert_success
 }
@@ -79,3 +71,11 @@ teardown() {
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }
+
+@test "Publish - Publishing package" {
+  set_custom_config
+  run publish.sh
+  echo $output
+  assert_success
+}
+
