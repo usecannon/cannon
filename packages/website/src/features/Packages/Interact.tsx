@@ -15,7 +15,7 @@ import { Abi } from '@/features/Packages/Abi';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
-import * as Chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 
 export const Interact: FC<{
   name: string;
@@ -97,7 +97,7 @@ export const Interact: FC<{
 
   const etherscanUrl =
     (
-      Object.values(Chains).find(
+      Object.values(chains).find(
         (chain) => chain.id === currentVariant?.chain_id
       ) as any
     )?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';

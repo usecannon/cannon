@@ -5,7 +5,7 @@ import 'prismjs/components/prism-json';
 import 'prismjs/themes/prism.css';
 import { DataTable } from './DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
-import * as chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
 
 const PackageTable: FC<{

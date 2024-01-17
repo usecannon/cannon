@@ -4,7 +4,7 @@ import { Variant } from '@/types/graphql/graphql';
 import NextLink from 'next/link';
 import Chain from './Chain';
 import { find } from 'lodash';
-import * as chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 
 const ChainNav: FC<{
   variants: Variant[];
