@@ -5,10 +5,10 @@
 
 ### Bug Fixes
 
-* **builder:** remove 31 char limit on cannonfile version and fix nonce validation ([#543](https://github.com/usecannon/cannon/issues/543)) ([155d39f](https://github.com/usecannon/cannon/commit/155d39f9d05c3090deb92c7482b709cfd22773e2))
-* **highlight:** add highlight boolean to factory contracts ([#536](https://github.com/usecannon/cannon/issues/536)) ([f4d40fe](https://github.com/usecannon/cannon/commit/f4d40fed13c15ac9e0a50d236cb1b35a8faa5578))
+<<<<<<< HEAD
+* test ([dff772c](https://github.com/FuzzB0t/cannon/commit/dff772c0a32988fba5629746db2bc5c520be6e66))
 
-## [2.9.0](https://github.com/usecannon/cannon/compare/v2.8.2...v2.9.0) (2023-10-25)
+## [2.5.1](https://github.com/FuzzB0t/cannon/compare/v2.5.0...v2.5.1) (2023-08-15)
 
 
 ### Features
@@ -103,8 +103,8 @@
 * tsconfig ([56e7943](https://github.com/usecannon/cannon/commit/56e79439cbda49fd0b49a56738b0c8b7041b5b93))
 
 ## [2.5.4](https://github.com/usecannon/cannon/compare/v2.5.3...v2.5.4) (2023-08-30)
+>>>>>>> a86e89cf4e2cbcf3142ff3585b5b7c8cfe2d0f2d
 
 
 ### Bug Fixes
-
 * remove anvil from inspect command and add support for invoke target string ([#364](https://github.com/usecannon/cannon/issues/364)) ([1dcaffb](https://github.com/usecannon/cannon/commit/1dcaffbbefad4b03841843f8f0f07c7eaf9fe93b))
