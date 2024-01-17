@@ -23,7 +23,7 @@ import {
 import { SafeTransaction } from '@/types/SafeTransaction';
 import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useMemo } from 'react';
-import * as Chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 
 type Orientation = 'horizontal' | 'vertical';
 
@@ -102,7 +102,7 @@ export function TransactionStepper(props: {
   );
 
   const etherscanUrl =
-    (Object.values(Chains).find((chain) => chain.id === props.chainId) as any)
+    (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
       ?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
 
   const packageName = props.cannonPackage.resolvedName;

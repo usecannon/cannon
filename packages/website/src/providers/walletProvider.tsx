@@ -5,7 +5,7 @@ import {
   darkTheme,
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import * as Chains from 'wagmi/chains';
+import chains from '@/helpers/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
@@ -14,12 +14,12 @@ import _ from 'lodash';
 import { useStore } from '@/helpers/store';
 
 const cannonLocalHost = {
-  ...Chains.localhost,
+  ...chains.localhost,
   id: 13370,
   name: 'Cannon Localhost',
   rpcUrl: 'http://127.0.0.1:8545',
 };
-const _chains = Object.values(Chains).filter((item) => _.isObject(item));
+const _chains = Object.values(chains).filter((item) => _.isObject(item));
 export const supportedChains = [..._chains, cannonLocalHost];
 
 const createWagmiConfig = (customProviders: string[]) => {
