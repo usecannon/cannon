@@ -43,6 +43,9 @@ const metadata = {
   zora: {
     color: '#000000',
   },
+  scroll: {
+    color: '#ffeeda',
+  },
 };
 
 const newChain = {

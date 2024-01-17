@@ -100,9 +100,8 @@ export class CliLoader implements CannonLoader {
   }
 
   async read(url: string) {
-    debug(`cli ipfs read ${url}`);
-
     const cacheFile = this.getCacheFilePath(url);
+    debug(`cli ipfs read ${url} ${cacheFile}`);
 
     // Check if we already have the file cached locally
     if (isFile(cacheFile)) {

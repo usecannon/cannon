@@ -609,7 +609,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
-  const forgeCmd = spawn('forge', ['test', '--fork-url', 'http://localhost:8545', ...forgeOpts]);
+  const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
 
   forgeCmd.stdout.on('data', (data: Buffer) => {
     process.stdout.write(data);

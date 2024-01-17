@@ -125,8 +125,9 @@ export async function build({
 
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
+  const preset = def.getPreset(ctx);
 
-  return { name, version, runtime, def, newState, simulatedTxs, skippedSteps };
+  return { name, version, preset, runtime, def, newState, simulatedTxs, skippedSteps };
 }
 
 interface PublishParams {
@@ -172,8 +173,9 @@ export async function loadCannonfile(repo: string, ref: string, filepath: string
 
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
+  const preset = def.getPreset(ctx);
 
-  return { def, name, version, cannonfile: buf.toString(), filesList };
+  return { def, name, version, preset, cannonfile: buf.toString(), filesList };
 }
 
 async function loadChainDefinitionToml(

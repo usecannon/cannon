@@ -1,20 +1,13 @@
-import mockfs from 'mock-fs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { CannonStorage, DeploymentInfo, IPFSLoader } from '@usecannon/builder';
+import { resolveCliSettings } from '@usecannon/cli/src/settings';
 import { ethers } from 'ethers';
-
-import { CannonStorage } from '@usecannon/builder';
+import mockfs from 'mock-fs';
+import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry, LocalRegistry } from '../registry';
 import * as settings from '../settings';
-import { resolveCliSettings } from '../settings';
 import { fetch } from './fetch';
-
-import { CliLoader, getMainLoader, LocalLoader } from '../loader';
-import { DeploymentInfo, IPFSLoader } from '@usecannon/builder';
-
-afterEach(() => {
-  mockfs.restore();
-});
 
 jest.mock('../registry');
 jest.mock('../settings');
