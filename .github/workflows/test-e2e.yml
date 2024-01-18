@@ -22,7 +22,7 @@ jobs:
           npm run build
 
       - name: E2E Tests
-        run: npx lerna run test-e2e
+        run: cd ./packages/cli && npm run test-e2e
 
       - name: Synthetix CI Downstream
-        run: npx lerna run test-snx-ci
+        run: cd ./packages/cli && npm run test-snx-ci
