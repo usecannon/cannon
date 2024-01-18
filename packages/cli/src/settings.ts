@@ -114,10 +114,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
     CANNON_PRIVATE_KEY: z
       .string()
-      .refine(
-        (val) => ethers.utils.isHexString(val, 32),
-        ({ message: 'Private key is invalid' })
-      )
+      .refine((val) => ethers.utils.isHexString(val, 32), { message: 'Private key is invalid' })
       .default(fileSettings.privateKey as string)
       .optional(),
     CANNON_IPFS_URL: z
