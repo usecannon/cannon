@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Box, Text, Tag, FormLabel, Flex } from '@chakra-ui/react';
+import { Box, Text, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 import { isArray, isObject } from 'lodash';
 
@@ -14,6 +14,8 @@ export const FunctionOutput: FC<{
 
   // Renders the output based on the type and structure of the item
   const renderOutput = (item: AbiParameter, value: any) => {
+
+    // TUPLE
     if (item.type === 'tuple' && item.components) {
       return (
         <Box pl="4">
@@ -26,6 +28,7 @@ export const FunctionOutput: FC<{
           ))}
         </Box>
       );
+      // ARRAY OF TUPLES 
     } else if (item.type === 'tuple[]' && item.components) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
@@ -41,15 +44,15 @@ export const FunctionOutput: FC<{
           ))
         : null;
     } else {
-      // Check if the value is an object and item.name is a valid key
+      // OBJECTS 
       if (isObject(value) && item.name && item.name in value) {
         console.log('value ', value);
         return <Text>{String(value[item.name])}</Text>;
       } else if (isArray(value)) {
-        // If the value is an array, render each element
+        // ARRAYS 
         return value.map((val, idx) => <Text key={idx}>{String(val)}</Text>);
       } else {
-        // For primitive types or other cases, just convert the value to a string
+        // FALLBACK 
         return (
           <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
             {result !== null ? String(result) : '---'}
@@ -63,10 +66,12 @@ export const FunctionOutput: FC<{
       {isArrayOutput(output) ? (
         output.map((item, index) => (
           <Box p={2} key={index}>
-            <Text>{item.name}</Text>
-            <Tag colorScheme="teal" size={'sm'}>
-              {item.type}
-            </Tag>
+            <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
+              <Text>{item.name}</Text>
+              <Text fontSize="xs" color="whiteAlpha.700">
+                {item.type}
+              </Text>
+            </Flex>
             {renderOutput(item, result)}
           </Box>
         ))
