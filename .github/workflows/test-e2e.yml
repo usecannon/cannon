@@ -21,6 +21,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
       - name: E2E Tests
         run: cd ./packages/cli && ./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats
 
