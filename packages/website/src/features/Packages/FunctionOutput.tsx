@@ -14,6 +14,10 @@ export const FunctionOutput: FC<{
     return Array.isArray(value);
   };
 
+  const isObject = (_value: any) =>
+    _value && typeof _value === 'object' && _value.constructor === Object;
+
+
   const renderOutput = (item: AbiParameter, value: any) => {
     if (item.type === 'tuple' && item.components) {
       return (
@@ -30,19 +34,30 @@ export const FunctionOutput: FC<{
     } else if (item.type === 'tuple[]' && item.components) {
       return isArray(value)
         ? value.map((tupleItem: AbiParameter, tupleIndex) => (
-            <Box key={tupleIndex} pl="4">
-              {item.components.map(
-                (component: AbiParameter, compIdx: number) => (
-                  <FunctionOutput
-                    key={compIdx}
-                    output={[component]}
-                    result={tupleItem[compIdx]}
-                  />
-                )
-              )}
-            </Box>
-          ))
+          <Box key={tupleIndex} pl="4">
+            {item.components.map(
+              (component: AbiParameter, compIdx: number) => (
+                <FunctionOutput
+                  key={compIdx}
+                  output={[component]}
+                  result={tupleItem[compIdx]}
+                />
+              )
+            )}
+          </Box>
+        ))
         : null;
+    } else if (isObject(value) && !Array.isArray(value)) {
+      // New handling for objects
+      return (
+        <Box pl="4">
+          {Object.keys(value).map((key, idx) => (
+            <Text key={idx}>
+              {key}: {String(value[key])}
+            </Text>
+          ))}
+        </Box>
+      );
     } else if (item.type !== 'tuple[]' && item.type !== 'tuple[]') {
       return <Text>{String(value)}</Text>;
     }
