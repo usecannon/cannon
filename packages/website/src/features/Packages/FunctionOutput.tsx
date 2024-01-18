@@ -13,8 +13,17 @@ export const FunctionOutput: FC<{
   ): value is readonly AbiParameter[] => isArray(value);
 
   // Renders the output based on the type and structure of the item
-  const renderOutput = (item: AbiParameter, value: any) => {
 
+  const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
+    <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
+      <Text>{name}</Text>
+      <Text fontSize="xs" color="whiteAlpha.700">
+        {type}
+      </Text>
+    </Flex>
+  );
+
+  const renderOutput = (item: AbiParameter, value: any) => {
     // TUPLE
     if (item.type === 'tuple' && item.components) {
       return (
@@ -28,7 +37,7 @@ export const FunctionOutput: FC<{
           ))}
         </Box>
       );
-      // ARRAY OF TUPLES 
+      // ARRAY OF TUPLES
     } else if (item.type === 'tuple[]' && item.components) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
@@ -44,15 +53,15 @@ export const FunctionOutput: FC<{
           ))
         : null;
     } else {
-      // OBJECTS 
+      // OBJECTS
       if (isObject(value) && item.name && item.name in value) {
         console.log('value ', value);
         return <Text>{String(value[item.name])}</Text>;
       } else if (isArray(value)) {
-        // ARRAYS 
+        // ARRAYS
         return value.map((val, idx) => <Text key={idx}>{String(val)}</Text>);
       } else {
-        // FALLBACK 
+        // FALLBACK
         return (
           <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
             {result !== null ? String(result) : '---'}
@@ -60,32 +69,20 @@ export const FunctionOutput: FC<{
         );
       }
     }
-  }
+  };
   return (
     <>
       {isArrayOutput(output) ? (
         output.map((item, index) => (
           <Box p={2} key={index}>
-            <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
-              <Text>{item.name}</Text>
-              <Text fontSize="xs" color="whiteAlpha.700">
-                {item.type}
-              </Text>
-            </Flex>
+            <ItemLabel name={item.name} type={item.type} />
+
             {renderOutput(item, result)}
           </Box>
         ))
       ) : (
-          <Box p={2}>
-          <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
-            {output.name && <Text>{output.name}</Text>}
-            {output.internalType && (
-              <Text fontSize="xs" color="whiteAlpha.700">
-                {output.internalType}
-              </Text>
-            )}
-          </Flex>
-
+        <Box p={2}>
+          <ItemLabel name={output.name || ''} type={output.type} />
           {renderOutput(output, result)}
         </Box>
       )}
