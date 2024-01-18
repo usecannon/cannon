@@ -48,7 +48,7 @@ teardown() {
 }
 
 @test "Build - Building foundry greeter example" {
-  set_custom_config
+  set_custom_config # Uses custom settings.json
   run build-foundry.sh
   echo $output
   assert_success
@@ -56,7 +56,7 @@ teardown() {
 }
 
 @test "Build - Building hardhat greeter example" {
-  set_custom_config
+  set_custom_config # Uses custom settings.json
   run build-hardhat.sh
   echo $output
   assert_success
@@ -64,7 +64,7 @@ teardown() {
 }
 
 @test "Verify - Verify greeter packages" {
-  set_custom_config
+  set_custom_config # Uses custom settings.json
   run verify.sh
   echo $output
   assert_success
@@ -79,7 +79,7 @@ teardown() {
 }
 
 @test "Publish - Publishing package" {
-  set_custom_config
+  set_custom_config # Uses custom settings.json
   run publish.sh
   echo $output
   assert_success

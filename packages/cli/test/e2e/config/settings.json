@@ -2,9 +2,9 @@
   "publishIpfsUrl": "https+ipfs://us-west.repo.usecannon.com", 
   "providerUrl": "http://localhost:9545",
   "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-  "registryPriority": "remote",
+  "registryPriority": "local",
   "registryProviderUrl": "http://localhost:9545",
-  "etherscanApiUrl": "",
+  "etherscanApiUrl": "​https://api.etherscan.io/api",
   "etherscanApiKey": "A7PNIZCEI2HDRUTDJBWS36XBGIB7Q74YMK"
  }
  
