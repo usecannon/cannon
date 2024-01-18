@@ -98,6 +98,8 @@ export const Function: FC<{
   // }, [params, readOnly]);
   //
 
+  // console.log("function outputs", f.outputs)
+
   const submit = async (suppressError = false, simulate = false) => {
     setLoading(true);
     setError(null);
@@ -280,7 +282,7 @@ export const Function: FC<{
             )}
 
             {error && (
-              <Alert overflowX="scroll" mt="2" status="error" bg="red.700">
+              <Alert mt="2" status="error" bg="red.700">
                 {`${error.includes('Encoded error signature') &&
                     error.includes('not found on ABI')
                     ? 'Error emitted during ERC-7412 orchestration: '
@@ -298,7 +300,6 @@ export const Function: FC<{
             display="flex"
             flexDirection="column"
             position="relative"
-            overflowX="scroll"
           >
             <Heading
               size="xs"
