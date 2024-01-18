@@ -1,9 +1,9 @@
 import path from 'node:path';
-import { CannonWrapperGenericProvider, CANNON_CHAIN_ID } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
-import { yellow, yellowBright, bold } from 'chalk';
+import { bold, yellow, yellowBright } from 'chalk';
 import { ethers } from 'ethers';
 import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
@@ -46,7 +46,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         cannonfile,
         settings,
         upgradeFrom,
-        preset,
+        presetArg,
         noCompile,
         wipe,
         usePlugins,
@@ -83,7 +83,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
       anvilOpts = pickAnvilOptions(anvilOpts);
 
-      const { name, version, def } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
+      const { name, version, def, preset } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
       const providerUrl = (hre.network.config as HttpNetworkConfig).url;
 
@@ -170,6 +170,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         packageDefinition: {
           name,
           version,
+          preset,
           settings: parsedSettings,
         },
         getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
@@ -191,7 +192,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         getDefaultSigner: defaultSigner ? async () => defaultSigner! : undefined,
         pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
         projectDirectory: hre.config.paths.root,
-        preset,
+        presetArg,
         upgradeFrom,
         wipe,
         registryPriority,
