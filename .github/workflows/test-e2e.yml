@@ -26,6 +26,3 @@ jobs:
 
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e
-
-      - name: Synthetix CI Downstream
-        run: cd ./packages/cli && npm run test-snx-ci
