@@ -116,9 +116,10 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .refine(
         (val) => ethers.utils.isHexString(val, 32),
-        (val) => ({ message: `Private key is invalid` })
+        ({ message: 'Private key is invalid' })
       )
-      .default(fileSettings.privateKey as string).optional(),
+      .default(fileSettings.privateKey as string)
+      .optional(),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -139,7 +140,11 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .length(42)
       .default(fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
-    CANNON_ETHERSCAN_API_URL: z.string().url().default(fileSettings.etherscanApiUrl as string).optional(),
+    CANNON_ETHERSCAN_API_URL: z
+      .string()
+      .url()
+      .default(fileSettings.etherscanApiUrl as string)
+      .optional(),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
     TRACE: z.boolean().default(false),
