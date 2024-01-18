@@ -1,24 +1,30 @@
 #!/usr/bin/env bats
 
+# This turns on native debug logs on bash
+# set -x
+
 # File pre-run hook
 setup_file() {
   load helpers/bats-helpers.sh
   _setup_file
 
   # Fork Mainnet to run tests against forked node
-  run anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent &
-}
-
-# Test pre-hook
-setup() {
-  load helpers/bats-helpers.sh
-  _setup;
+  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent &
+  export ANVIL_PID="$!"
 }
 
 # File post-run hook
 teardown_file() {
   load helpers/bats-helpers.sh
   _teardown_file
+
+  kill -15 "$ANVIL_PID"
+}
+
+# Test pre-hook
+setup() {
+  load helpers/bats-helpers.sh
+  _setup;
 }
 
 # Test post-hook
@@ -78,4 +84,3 @@ teardown() {
   echo $output
   assert_success
 }
-

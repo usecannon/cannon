@@ -1,5 +1,8 @@
 #!/usr/bin/env bats
 
+# This turns on native debug logs on bash
+# set -x
+
 # File pre-run hook
 setup_file() {
   load helpers/bats-helpers.sh

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# DEFAULT BATS FUNCTIONS
+# DEFAULT BATS FUNCTION OVERRIDES
 
 _setup_file() {
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
@@ -48,15 +48,15 @@ _teardown() {
 
 # CUSTOM FUNCTIONS
 
-# Copy remote network config over to temp dir
-set_custom_config() {
-  touch "$CANNON_DIRECTORY/settings.json"
-  cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
-}
-
 # This function is used to log output during test execution
 # Bats by default hides output during each test.
 log() {
   echo "$@" >&3
+}
+
+# Copy remote network config over to temp dir
+set_custom_config() {
+  touch "$CANNON_DIRECTORY/settings.json"
+  cp "$DIR/config/settings.json" "$CANNON_DIRECTORY/settings.json"
 }
 
