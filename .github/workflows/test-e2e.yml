@@ -22,7 +22,7 @@ jobs:
           npm run build
 
       - name: E2E Tests
-        run: cd ./packages/cli && npm run test-e2e
+        run: cd ./packages/cli && ./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats
 
       - name: Synthetix CI Downstream
-        run: cd ./packages/cli && npm run test-snx-ci
+        run: cd ./packages/cli && ./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats
