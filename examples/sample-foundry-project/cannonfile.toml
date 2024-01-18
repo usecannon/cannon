@@ -20,6 +20,5 @@ value = "2929372"
 [contract.greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
-value = "<%= settings.value %>"
 libraries.Library = "<%= contracts.library.address %>"
 salt = "<%= settings.salt %>"

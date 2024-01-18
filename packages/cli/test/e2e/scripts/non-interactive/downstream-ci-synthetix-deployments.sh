@@ -3,7 +3,7 @@
 git clone --depth=1 https://github.com/Synthetixio/synthetix-deployments
 cd synthetix-deployments
 yarn
-yarn link --all $CANNON_DIR 
+yarn link --all $CANNON_DIRECTORY 
 
 yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --port 8545 \

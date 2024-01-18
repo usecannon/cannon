@@ -3,8 +3,8 @@
 # DEFAULT BATS FUNCTIONS
 
 _setup_file() {
-  export CANNON_DIR="$(git rev-parse --show-toplevel)"
-  export CANNON="node $CANNON_DIR/packages/cli/bin/cannon.js"
+  export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
+  export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
   
   # Create temporary directory for tests
   export WORKDIR="$(mktemp -d)"

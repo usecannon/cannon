@@ -1,1 +1,1 @@
-$CANNON interact synthetix:latest@main --chain-id 5
+$CANNON interact synthetix:latest@main --chain-id 1
