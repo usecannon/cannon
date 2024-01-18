@@ -44,21 +44,21 @@ export const FunctionOutput: FC<{
     ) {
       return isArray(value)
         ? value.map((tupleItem: AbiParameter, idx) => (
-          <Box key={idx} pl="4">
-            {item.components.map((component, compIdx) => {
-              const componentValue = isArray(tupleItem)
-                ? tupleItem[compIdx]
-                : tupleItem;
-              return (
-                <FunctionOutput
-                  key={`${idx}-${compIdx}`}
-                  output={component}
-                  result={componentValue}
-                />
-              );
-            })}
-          </Box>
-        ))
+            <Box key={idx} pl="4">
+              {item.components.map((component, compIdx) => {
+                const componentValue = isArray(tupleItem)
+                  ? tupleItem[compIdx]
+                  : tupleItem;
+                return (
+                  <FunctionOutput
+                    key={`${idx}-${compIdx}`}
+                    output={component}
+                    result={componentValue}
+                  />
+                );
+              })}
+            </Box>
+          ))
         : null;
       //Arrays
     } else if (item.type.endsWith('[]')) {
