@@ -52,18 +52,17 @@ export const FunctionOutput: FC<{
         // For primitive types or other cases, just convert the value to a string
         return (
           <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
-            {String(result)}
+            {result !== null ? String(result) : '---'}
           </Text>
         );
       }
     }
-  };
-
+  }
   return (
     <>
       {isArrayOutput(output) ? (
         output.map((item, index) => (
-          <Box key={index}>
+          <Box p={2} key={index}>
             <Text>{item.name}</Text>
             <Tag colorScheme="teal" size={'sm'}>
               {item.type}
@@ -72,7 +71,7 @@ export const FunctionOutput: FC<{
           </Box>
         ))
       ) : (
-        <Box>
+          <Box p={2}>
           <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
             {output.name && <Text>{output.name}</Text>}
             {output.internalType && (
