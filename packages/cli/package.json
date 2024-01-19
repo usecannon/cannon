@@ -49,7 +49,7 @@
     "typedoc": "^0.24.8",
     "typedoc-plugin-markdown": "^3.15.4",
     "typedoc-plugin-zod": "^1.0.2",
-    "typescript": "^4.8.2"
+    "typescript": "^5.3.3"
   },
   "bin": {
     "cannon": "bin/cannon.js"
@@ -62,7 +62,6 @@
     "commander": "^9.5.0",
     "debug": "^4.3.4",
     "eth-provider": "^0.13.6",
-    "ethers": "^5.7.1",
     "fastq": "^1.15.0",
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
@@ -72,6 +71,7 @@
     "table": "^6.8.0",
     "tildify": "2.0.0",
     "untildify": "^4.0.0",
+    "viem": "^2.4.0",
     "znv": "^0.4.0",
     "zod": "^3.22.4"
   },
