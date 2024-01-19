@@ -107,7 +107,7 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
  * In a dry run, it forks the mainnet using the specified provider.
  * @param opts Options for configuring the provider.
  * @param cliSettings CLI settings to use in provider configuration.
- * @returns An object containing the configured provider, signers, chainId, and an optional RPC node.
+ * @returns An object containing the configured provider, signers, and an optional RPC node.
  */
 async function configureProvider(opts: any, cliSettings: CliSettings) {
   let provider: CannonWrapperGenericProvider | undefined = undefined;
