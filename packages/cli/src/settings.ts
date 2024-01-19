@@ -12,6 +12,7 @@ import {
   DEFAULT_REGISTRY_PROVIDER_URL,
 } from './constants';
 import { filterSettings } from './helpers';
+import { ethers } from 'ethers';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -72,7 +73,7 @@ export type CliSettings = {
   /**
    * URL of etherscan API for verification
    */
-  etherscanApiUrl: string;
+  etherscanApiUrl?: string;
 
   /**
    * Etherscan API Key for verification
@@ -113,9 +114,9 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
     CANNON_PRIVATE_KEY: z
       .string()
-      .length(64)
-      .optional()
-      .default(fileSettings.privateKey as string),
+      .refine((val) => ethers.utils.isHexString(val, 32), { message: 'Private key is invalid' })
+      .default(fileSettings.privateKey as string)
+      .optional(),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -136,7 +137,11 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .length(42)
       .default(fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
-    CANNON_ETHERSCAN_API_URL: z.string().url().optional().default(fileSettings.etherscanApiUrl),
+    CANNON_ETHERSCAN_API_URL: z
+      .string()
+      .url()
+      .default(fileSettings.etherscanApiUrl as string)
+      .optional(),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
     TRACE: z.boolean().default(false),
@@ -158,7 +163,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
 
   if (!Object.values(fileSettings).length) {
     console.warn(
-      `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/learn/technical-reference#setup for more information.`
+      `settings not configured: please create file ${cliSettingsStore} for better performance. See https://usecannon.com/learn/cli#setup for more information.`
     );
     console.warn(`using default settings (cannon repo, ${DEFAULT_REGISTRY_PROVIDER_URL})`);
   }
