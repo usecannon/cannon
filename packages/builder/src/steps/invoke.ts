@@ -190,6 +190,73 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
   return vals;
 }
 
+async function importTxnData(
+  runtime: ChainBuilderRuntimeInfo,
+  ctx: ChainBuilderContext,
+  config: Config,
+  packageState: PackageState,
+  txns: TransactionMap
+) {
+  const contracts: ChainArtifacts['contracts'] = {};
+
+  if (config.factory) {
+    for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
+      const topLabel = k.split('_')[0];
+      const factoryInfo = config.factory[topLabel];
+
+      if (!contractAddress || !ethers.utils.isAddress(contractAddress)) {
+        throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
+      }
+
+      let abi: any[];
+      let sourceName: string | null;
+      let contractName: string;
+      if (factoryInfo.artifact) {
+        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
+        abi = artifact.abi;
+        sourceName = artifact.sourceName;
+        contractName = artifact.contractName;
+      } else if (factoryInfo.abiOf) {
+        abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
+
+        sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
+        contractName = '';
+      } else {
+        throw new Error(
+          `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
+        );
+      }
+
+      contracts[k] = {
+        address: contractAddress,
+        abi,
+        //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
+        deployTxnHash: '',
+        constructorArgs: factoryInfo.constructorArgs,
+        sourceName: sourceName,
+        contractName: contractName,
+        deployedOn: packageState.currentLabel,
+
+        // contract was deployed as part of another transaction that was alreayd counted for gas usage, so we mark gas cost/usage as 0 here
+        gasUsed: 0,
+        gasCost: '0',
+      };
+
+      if (factoryInfo.highlight) {
+        contracts[k].highlight = true;
+      }
+    }
+  }
+
+  const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
+
+  return {
+    contracts,
+    txns,
+    extras,
+  };
+}
+
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
@@ -417,62 +484,77 @@ ${getAllContractPaths(ctx).join('\n')}`);
       };
     }
 
-    const contracts: ChainArtifacts['contracts'] = {};
+    return importTxnData(runtime, ctx, config, packageState, txns);
+  },
 
-    if (config.factory) {
-      for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
-        const topLabel = k.split('_')[0];
-        const factoryInfo = config.factory[topLabel];
+  async importExisting(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    packageState: PackageState,
+    existingKeys: string[]
+  ): Promise<ChainArtifacts> {
+    const txns: TransactionMap = {};
+    for (let i = 0; i < existingKeys.length; i++) {
+      const key = existingKeys[i];
+      const splitLabel = packageState.currentLabel.split('.')[1];
+      const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${i}`;
 
-        if (!contractAddress || !ethers.utils.isAddress(contractAddress)) {
-          throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
+      const customAbi =
+        typeof config.abi === 'string'
+          ? config.abi.startsWith('[')
+            ? JSON.parse(config.abi)
+            : getContractDefinitionFromPath(ctx, config.abi)?.abi
+          : null;
+
+      debug('resolved contract abi for txn decode', customAbi, config);
+
+      let contract: ethers.Contract | null;
+      if (ethers.utils.isAddress(config.target[i])) {
+        if (!customAbi) {
+          throw new Error('abi must be defined if addresses is used for target');
         }
 
-        let abi: any[];
-        let sourceName: string | null;
-        let contractName: string;
-        if (factoryInfo.artifact) {
-          const artifact = await runtime.getArtifact!(factoryInfo.artifact);
-          abi = artifact.abi;
-          sourceName = artifact.sourceName;
-          contractName = artifact.contractName;
-        } else if (factoryInfo.abiOf) {
-          abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
-
-          sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
-          contractName = '';
-        } else {
-          throw new Error(
-            `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
-          );
-        }
-
-        contracts[k] = {
-          address: contractAddress,
-          abi,
-          //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
-          deployTxnHash: '',
-          constructorArgs: factoryInfo.constructorArgs,
-          sourceName: sourceName,
-          contractName: contractName,
-          deployedOn: packageState.currentLabel,
-          gasUsed: 0,
-          gasCost: '0',
-        };
-
-        if (factoryInfo.highlight) {
-          contracts[k].highlight = true;
-        }
+        contract = new ethers.Contract(config.target[i], customAbi);
+      } else {
+        contract = getContractFromPath(ctx, config.target[i], customAbi);
       }
+
+      if (!contract) {
+        throw new Error('target contract not found');
+      }
+
+      const receipt = await runtime.provider.passThroughProvider.getTransactionReceipt(key);
+
+      const txnEvents = _.groupBy(
+        _.filter(
+          receipt.logs?.map((l) => {
+            const e = contract!.interface.parseLog(l);
+            if (!e.name || !e.args) {
+              return null;
+            }
+
+            return {
+              name: e.name,
+              args: e.args as any[],
+            };
+          }),
+          _.isObject
+        ),
+        'name'
+      );
+
+      txns[label] = {
+        hash: key,
+        events: txnEvents as EncodedTxnEvents,
+        deployedOn: packageState.currentLabel,
+        gasUsed: receipt.gasUsed.toNumber(),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: receipt.from,
+      };
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
-
-    return {
-      contracts,
-      txns,
-      extras,
-    };
+    return importTxnData(runtime, ctx, config, packageState, txns);
   },
 };
 

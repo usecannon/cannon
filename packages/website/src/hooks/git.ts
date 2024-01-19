@@ -1,10 +1,9 @@
-import { createTwoFilesPatch } from 'diff';
-import http from 'isomorphic-git/http/web';
-import { ServerRef, listServerRefs } from 'isomorphic-git';
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
 import * as git from '@/helpers/git';
+import { useQuery } from '@tanstack/react-query';
+import { createTwoFilesPatch } from 'diff';
+import { listServerRefs, ServerRef } from 'isomorphic-git';
+import http from 'isomorphic-git/http/web';
+import { useMemo } from 'react';
 
 export function useGitRefsList(url: string) {
   const refsQuery = useQuery(['git', 'ls-remote', url], {
@@ -45,9 +44,10 @@ export function useGitFilesList(url: string, ref: string, path: string) {
   };
 }
 
-// load files from a git repo
+// Initialize or fetch && pull a git repository
 export function useGitRepo(url: string, ref: string, files: string[]) {
-  return useQuery(['git', 'clone', url, ref, files], {
+  const query = useQuery({
+    queryKey: ['git', 'clone', url, ref, files],
     queryFn: async () => {
       await git.init(url, ref);
       const fileContents = [];
@@ -61,8 +61,10 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
 
       return fileContents;
     },
-    enabled: url != '' && ref != '',
+    enabled: !!(url && ref),
   });
+
+  return query;
 }
 
 /**

@@ -12,10 +12,11 @@ import {
   CANNON_CHAIN_ID,
   DeploymentInfo,
 } from '@usecannon/builder';
+import { ActionKinds } from '@usecannon/builder/dist/actions';
 import { resolveCliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
+import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -24,7 +25,7 @@ export async function alter(
   chainId: number,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
+  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -47,10 +48,12 @@ export async function alter(
 
   // create temporary provider
   // todo: really shouldn't be necessary
-  const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000),
-  });
-  const provider = getProvider(node);
+  // const node = await runRpc({
+  //   port: 30000 + Math.floor(Math.random() * 30000),
+  // });
+  // const provider = getProvider(node);
+
+  const { provider } = await resolveWriteProvider(cliSettings, chainId as number);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -136,6 +139,41 @@ export async function alter(
         }
       }
       // clear transaction hash for all contracts and transactions
+      break;
+
+    case 'import':
+      if (targets.length !== 2) {
+        throw new Error(
+          'incorrect number of arguments for import. Should be <stepName> <existingArtifacts (comma separated)>'
+        );
+      }
+
+      {
+        const stepName = targets[0];
+        const existingKeys = targets[1].split(',');
+
+        const stepAction = ActionKinds[stepName.split('.')[0]];
+
+        if (!stepAction.importExisting) {
+          throw new Error(
+            `the given step ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+          );
+        }
+
+        const def = new ChainDefinition(deployInfo.def);
+        const config = def.getConfig(stepName, ctx);
+
+        // some steps may require access to misc artifacts
+        await runtime.restoreMisc(deployInfo.miscUrl);
+        deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+          runtime,
+          ctx,
+          config,
+          { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+          existingKeys
+        );
+      }
+
       break;
     case 'set-contract-address':
       // find the steps that deploy contract

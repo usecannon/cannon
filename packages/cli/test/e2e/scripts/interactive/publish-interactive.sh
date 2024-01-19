@@ -1,0 +1,1 @@
+$CANNON publish greeter-foundry
