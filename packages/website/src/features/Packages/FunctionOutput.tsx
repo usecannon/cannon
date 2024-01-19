@@ -26,7 +26,7 @@ export const FunctionOutput: FC<{
     </Flex>
   );
 
-  const renderOutput = (item: AbiParameter, value: any) => {
+  const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
     // TUPLE
     if (item.type === 'tuple' && hasComponents(item)) {
       return (
@@ -60,9 +60,10 @@ export const FunctionOutput: FC<{
     } else {
       // OBJECTS
       if (isObject(value) && item.name && item.name in value) {
+        const outputValue = value[item.name];
         return (
-          <Text pt="1" pb="3" fontSize="sm" color="whiteAlpha.900">
-            {String(value[item.name])}
+          <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
+            {String(outputValue)}
           </Text>
         );
       } else if (isArray(value)) {
@@ -71,7 +72,7 @@ export const FunctionOutput: FC<{
       } else {
         // FALLBACK
         return (
-          <Text pt="1" pb="3" fontSize="sm" color="whiteAlpha.900">
+          <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
             {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
