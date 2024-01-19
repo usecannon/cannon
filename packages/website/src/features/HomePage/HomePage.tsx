@@ -117,7 +117,7 @@ export default function HomePage() {
           color="gray.300"
           maxW={['340px', '340px', '680px']}
         >
-          <CustomLink href="https://deploy.usecannon.com">Deploy</CustomLink>{' '}
+          <CustomLink href={links.DEPLOY}>Deploy</CustomLink>{' '}
           protocols and publish packages to the{' '}
           <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
           Ethereum and IPFS.
