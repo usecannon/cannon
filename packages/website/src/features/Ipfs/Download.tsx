@@ -86,7 +86,7 @@ export default function Download() {
   const { data: ipfsData } = useQueryIpfsData(cid, true, !decompress);
 
   const decodedData =
-    ipfsData instanceof ArrayBuffer ? decodeData(ipfsData, encoding) : ipfsData;
+    ipfsData instanceof ArrayBuffer ? decodeData(ipfsData, encoding) : JSON.stringify(ipfsData);
 
   const isJson = isJsonParsable(decodedData);
 
@@ -104,8 +104,6 @@ export default function Download() {
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
   };
-
-  console.log(ipfsData);
 
   return (
     <Container maxW="container.md" py={{ base: 8, md: 12 }}>
@@ -172,9 +170,8 @@ export default function Download() {
                   <option value="hex">Hexadecimal</option>
                 </Select>
                 </FormControl>
-
-                <Box mb={2}>
-                  <CodePreview code={decodedData} />
+                <Box mb={2} minHeight="420px">
+                  <CodePreview code={decodedData} language={isJson ? 'json': undefined}  />
                 </Box>
                 <Box>
                   <Button
