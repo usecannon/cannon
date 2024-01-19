@@ -86,7 +86,9 @@ export default function Download() {
   const { data: ipfsData } = useQueryIpfsData(cid, true, !decompress);
 
   const decodedData =
-    ipfsData instanceof ArrayBuffer ? decodeData(ipfsData, encoding) : JSON.stringify(ipfsData);
+    ipfsData instanceof ArrayBuffer
+      ? decodeData(ipfsData, encoding)
+      : JSON.stringify(ipfsData, null, 2);
 
   const isJson = isJsonParsable(decodedData);
 
@@ -160,18 +162,24 @@ export default function Download() {
             </Checkbox>
             {ipfsData && (
               <Box>
-            <FormControl mb={2}>
-              <FormLabel mb={1}>
-                Decode
-              </FormLabel>
-                <Select value={encoding} onChange={handleEncodingChange} mb={2}>
-                  <option value="utf8">UTF-8</option>
-                  <option value="base64">Base64</option>
-                  <option value="hex">Hexadecimal</option>
-                </Select>
+                <FormControl mb={8}>
+                  <FormLabel mb={1}>Decode</FormLabel>
+                  <Select
+                    value={encoding}
+                    onChange={handleEncodingChange}
+                    mb={2}
+                  >
+                    <option value="utf8">UTF-8</option>
+                    <option value="base64">Base64</option>
+                    <option value="hex">Hexadecimal</option>
+                  </Select>
                 </FormControl>
-                <Box mb={2} minHeight="420px">
-                  <CodePreview code={decodedData} language={isJson ? 'json': undefined}  />
+                <Box mb={4} minHeight="420px">
+                  <CodePreview
+                    code={decodedData}
+                    language={isJson ? 'json' : undefined}
+                    height="420px"
+                  />
                 </Box>
                 <Box>
                   <Button
