@@ -69,6 +69,58 @@ function resolveBytecode(
   return [injectedBytecode, linkedLibraries];
 }
 
+function generateOutputs(
+  config: Config,
+  ctx: ChainBuilderContext,
+  artifactData: ContractArtifact,
+  deployTxn: ethers.providers.TransactionReceipt | null,
+  currentLabel: string
+): ChainArtifacts {
+  console.log('artifacts', artifactData);
+  const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
+  const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
+  const txn = factory.getDeployTransaction(...(config.args || []));
+  const [, create2Addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
+
+  let abi = artifactData.abi;
+  // override abi?
+  if (config.abi) {
+    if (config.abi.trimStart().startsWith('[')) {
+      // Allow to pass in a literal abi string
+      abi = JSON.parse(config.abi);
+    } else {
+      // Load the abi from another contract
+      const implContract = getContractDefinitionFromPath(ctx, config.abi);
+
+      if (!implContract) {
+        throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
+      }
+
+      abi = implContract.abi;
+    }
+  } else if (config.abiOf) {
+    abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
+  }
+
+  return {
+    contracts: {
+      [currentLabel.split('.')[1] || '']: {
+        address: config.create2 ? create2Addr : deployTxn!.contractAddress,
+        abi,
+        constructorArgs: config.args || [],
+        linkedLibraries,
+        deployTxnHash: deployTxn?.transactionHash || '',
+        sourceName: artifactData.sourceName,
+        contractName: artifactData.contractName,
+        deployedOn: currentLabel!,
+        highlight: config.highlight,
+        gasUsed: deployTxn?.gasUsed.toNumber() || 0,
+        gasCost: deployTxn?.effectiveGasPrice.toString() || '0',
+      },
+    },
+  };
+}
+
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
@@ -185,15 +237,12 @@ const contractSpec = {
       );
     }
 
-    const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
+    const [injectedBytecode] = resolveBytecode(artifactData, config);
 
     // finally, deploy
     const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
 
     const txn = factory.getDeployTransaction(...(config.args || []));
-
-    let transactionHash: string;
-    let contractAddress: string;
 
     const overrides: ethers.Overrides & { value?: string } = {};
 
@@ -213,8 +262,7 @@ const contractSpec = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    let gasUsed = 0;
-    let gasCost = '0';
+    let receipt: ethers.providers.TransactionReceipt | null = null;
 
     if (config.create2) {
       await ensureArachnidCreate2Exists(runtime);
@@ -226,28 +274,22 @@ const contractSpec = {
       if ((await runtime.provider.getCode(addr)) !== '0x') {
         debug('create2 contract already completed');
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
-        transactionHash = '';
       } else {
         const signer = config.from
           ? await runtime.getSigner(config.from)
           : await runtime.getDefaultSigner!(txn, config.salt);
         const pendingTxn = await signer.sendTransaction(_.assign(create2Txn, overrides));
-        const receipt = await pendingTxn.wait();
-        gasUsed = receipt.gasUsed.toNumber();
-        gasCost = receipt.effectiveGasPrice.toString();
-        transactionHash = pendingTxn.hash;
+        receipt = await pendingTxn.wait();
 
         debug('arachnid create2 complete', receipt);
       }
-
-      contractAddress = addr;
     } else {
       if (
         config.from &&
         config.nonce?.length &&
         parseInt(config.nonce) < (await runtime.provider.getTransactionCount(config.from))
       ) {
-        contractAddress = getContractAddress({ from: config.from, nonce: config.nonce });
+        const contractAddress = getContractAddress({ from: config.from, nonce: config.nonce });
 
         debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
 
@@ -262,62 +304,36 @@ const contractSpec = {
             `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
           );
         }
-
-        // unfortunately it is not easy to figure out what the transaction hash was
-        transactionHash = '';
       } else {
         const signer = config.from
           ? await runtime.getSigner(config.from)
           : await runtime.getDefaultSigner!(txn, config.salt);
         const txnData = await signer.sendTransaction(_.assign(txn, overrides));
-        const receipt = await txnData.wait();
-        contractAddress = receipt.contractAddress;
-        transactionHash = receipt.transactionHash;
-        gasUsed = receipt.gasUsed.toNumber();
-        gasCost = receipt.effectiveGasPrice.toString();
+        receipt = await txnData.wait();
       }
     }
 
-    let abi = artifactData.abi;
+    return generateOutputs(config, ctx, artifactData, receipt, packageState.currentLabel);
+  },
 
-    // override abi?
-    if (config.abi) {
-      if (config.abi.trimStart().startsWith('[')) {
-        // Allow to pass in a literal abi string
-        abi = JSON.parse(config.abi);
-      } else {
-        // Load the abi from another contract
-        const implContract = getContractDefinitionFromPath(ctx, config.abi);
-
-        if (!implContract) {
-          throw new Error(`previously deployed contract with name ${config.abi} for abi not found`);
-        }
-
-        abi = implContract.abi;
-      }
-    } else if (config.abiOf) {
-      abi = getMergedAbiFromContractPaths(ctx, config.abiOf);
+  async importExisting(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    packageState: PackageState,
+    existingKeys: string[]
+  ): Promise<ChainArtifacts> {
+    if (existingKeys.length != 1) {
+      throw new Error(
+        'a contract can only be deployed on one transaction, so you can only supply one hash transaction to import'
+      );
     }
 
-    debug('contract deployed to address', contractAddress);
+    const artifactData = await runtime.getArtifact!(config.artifact);
 
-    return {
-      contracts: {
-        [packageState.currentLabel.split('.')[1] || '']: {
-          address: contractAddress,
-          abi,
-          constructorArgs: config.args || [],
-          linkedLibraries,
-          deployTxnHash: transactionHash,
-          sourceName: artifactData.sourceName,
-          contractName: artifactData.contractName,
-          deployedOn: packageState.currentLabel!,
-          highlight: config.highlight,
-          gasUsed,
-          gasCost,
-        },
-      },
-    };
+    const txn = await runtime.provider.getTransactionReceipt(existingKeys[0]);
+
+    return generateOutputs(config, ctx, artifactData, txn, packageState.currentLabel);
   },
 };
 

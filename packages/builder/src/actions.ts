@@ -42,6 +42,14 @@ export interface CannonAction {
     packageState: PackageState
   ) => Promise<ChainArtifacts>;
 
+  importExisting?: (
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: any,
+    packageState: PackageState,
+    existingKeys: string[]
+  ) => Promise<ChainArtifacts>;
+
   // Takes in any schema as long as the base type is ZodSchema
   validate: z.ZodSchema;
 
