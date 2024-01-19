@@ -18,7 +18,6 @@ import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { getFoundryArtifact } from './foundry';
 import { checkCannonVersion } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
