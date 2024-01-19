@@ -7,12 +7,15 @@ export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
   result: any;
 }> = ({ output, result }) => {
-  // Helper function to check if a value is an array of AbiParameters
   const isArrayOutput = (
     value: AbiParameter | readonly AbiParameter[]
   ): value is readonly AbiParameter[] => isArray(value);
 
-  // Renders the output based on the type and structure of the item
+  const hasComponents = (
+    item: AbiParameter
+  ): item is AbiParameter & { components: readonly AbiParameter[] } => {
+    return 'components' in item && isArray(item.components);
+  };
 
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
@@ -25,7 +28,7 @@ export const FunctionOutput: FC<{
 
   const renderOutput = (item: AbiParameter, value: any) => {
     // TUPLE
-    if (item.type === 'tuple' && item.components) {
+    if (item.type === 'tuple' && hasComponents(item)) {
       return (
         <Box pl="4">
           {item.components.map((component: AbiParameter, idx) => (
@@ -38,7 +41,7 @@ export const FunctionOutput: FC<{
         </Box>
       );
       // ARRAY OF TUPLES
-    } else if (item.type === 'tuple[]' && item.components) {
+    } else if (item.type === 'tuple[]' && hasComponents(item)) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <Box key={tupleIndex} pl="4">
