@@ -42,47 +42,55 @@ export const FunctionOutput: FC<{
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
             <Box key={tupleIndex} pl="4">
-              {item.components.map((component, compIdx) => (
-                <FunctionOutput
-                  key={compIdx}
-                  output={component}
-                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                />
-              ))}
+              {item.components.map(
+                (component: AbiParameter, compIdx: number) => (
+                  <FunctionOutput
+                    key={compIdx}
+                    output={component}
+                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                  />
+                )
+              )}
             </Box>
           ))
         : null;
     } else {
       // OBJECTS
       if (isObject(value) && item.name && item.name in value) {
-        console.log('value ', value);
-        return <Text>{String(value[item.name])}</Text>;
+        return (
+          <Text pt="1" pb="3" fontSize="sm" color="whiteAlpha.900">
+            {String(value[item.name])}
+          </Text>
+        );
       } else if (isArray(value)) {
         // ARRAYS
         return value.map((val, idx) => <Text key={idx}>{String(val)}</Text>);
       } else {
         // FALLBACK
         return (
-          <Text pt="1" pb="3" fontSize="xs" color="whiteAlpha.900">
-            {result !== null ? String(result) : '---'}
+          <Text pt="1" pb="3" fontSize="sm" color="whiteAlpha.900">
+            {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
       }
     }
   };
+
   return (
     <>
       {isArrayOutput(output) ? (
         output.map((item, index) => (
           <Box p={2} key={index}>
-            <ItemLabel name={item.name} type={item.type} />
-
+            <ItemLabel name={item.name || ''} type={item.internalType || ''} />
             {renderOutput(item, result)}
           </Box>
         ))
       ) : (
         <Box p={2}>
-          <ItemLabel name={output.name || ''} type={output.type} />
+          <ItemLabel
+            name={output.name || ''}
+            type={output.internalType || ''}
+          />
           {renderOutput(output, result)}
         </Box>
       )}
