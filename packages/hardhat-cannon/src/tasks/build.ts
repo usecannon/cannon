@@ -85,24 +85,16 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const { name, version, def, preset } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
-      const providerUrl = (hre.network.config as HttpNetworkConfig).url;
-
-      const forkProvider = new (hre as any).ethers.providers.JsonRpcProvider(providerUrl);
-
-      let provider = new CannonWrapperGenericProvider({}, forkProvider);
-
-      if (hre.network.name === 'hardhat') {
-        if (dryRun) {
-          throw new Error('You cannot use --dry-run param when using the "hardhat" network');
-        }
-
-        // hardhat network is "special" in that it looks like its a jsonrpc provider,
-        // but really you can't use it like that.
-        console.log('using hardhat network provider');
-        provider = new CannonWrapperGenericProvider({}, (hre as any).ethers.provider, false);
-      } else {
-        provider = new CannonJsonRpcProvider({}, providerUrl);
+      if (hre.network.name === 'hardhat' && dryRun) {
+        throw new Error('You cannot use --dry-run param when using the "hardhat" network');
       }
+
+      let provider =
+        hre.network.name === 'hardhat'
+          ? // hardhat network is "special" in that it looks like its a jsonrpc provider,
+            // but really you can't use it like that.
+            new CannonWrapperGenericProvider({}, (hre as any).ethers.provider, false)
+          : new CannonJsonRpcProvider({}, (hre.network.config as HttpNetworkConfig).url);
 
       if (dryRun) {
         console.log(
@@ -128,7 +120,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
                 accounts,
                 ...anvilOpts,
               },
-              hre.network.name === 'cannon' && !anvilOpts.forkUrl ? {} : { forkProvider }
+              hre.network.name === 'cannon' && !anvilOpts.forkUrl ? {} : { forkProvider: provider as any }
             )
           : await runRpc({ port, accounts, ...anvilOpts });
 
