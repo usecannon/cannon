@@ -1,11 +1,11 @@
-import path from 'path';
-
+import { loadCannonfile, PackageSpecification, parsePackagesArguments, run, runRpc } from '@usecannon/cli';
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
-import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
-import { TASK_RUN } from '../task-names';
+import path from 'path';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { ethers } from 'ethers';
+import { TASK_RUN } from '../task-names';
+
+import type { Signer } from 'ethers';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(
@@ -53,12 +53,13 @@ task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone cont
                 port: Number.parseInt(port) || hre.config.networks.cannon.port,
                 chainId: networkConfig.chainId,
               },
-              { forkProvider: new ethers.providers.JsonRpcProvider(networkConfig.url) }
+              { forkProvider: new (hre as any).ethers.providers.JsonRpcProvider(networkConfig.url) }
             );
 
       let toImpersonate: string[] = [];
       if (impersonate) {
-        toImpersonate = (await hre.ethers.getSigners()).map((s) => s.address);
+        const signers: Signer[] = await (hre as any).ethers.getSigners();
+        toImpersonate = await Promise.all(signers.map((s) => s.getAddress()));
       }
 
       return run(packages, {
