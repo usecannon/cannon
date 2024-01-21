@@ -1,5 +1,5 @@
 import axios from 'axios';
-import viem from 'viem';
+import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { Abi, zeroAddress } from 'viem';

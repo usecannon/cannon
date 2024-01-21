@@ -26,7 +26,7 @@ import {
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { Address, zeroAddress } from 'viem';
 import { handleTxnError } from '@usecannon/builder';
-import viem from 'viem';
+import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';

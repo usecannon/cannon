@@ -205,7 +205,7 @@ export const CodeExplorer: FC<{
                 );
               })}
 
-              {metadata.cannonfile && (
+              {metadata?.cannonfile && (
                 <>
                   <Box mt={4}>
                     <Flex flexDirection="row" px="2" alignItems="center" mb="1">

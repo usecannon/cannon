@@ -1,6 +1,6 @@
 import * as chains from '@wagmi/core/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import viem from 'viem';
+import { ethers } from 'ethers';
 
 export function findChainUrl(chainId: number) {
   if (typeof chainId !== 'number') {
