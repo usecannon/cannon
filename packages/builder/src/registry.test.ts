@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { CannonRegistry, OnChainRegistry } from './registry';
 import { CannonWrapperGenericProvider } from './error/provider';
 

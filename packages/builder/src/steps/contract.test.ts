@@ -1,9 +1,9 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import '../actions';
 import { ContractArtifact } from '../types';
 import action from './contract';
 
-import { fakeRuntime, fakeCtx, makeFakeSigner } from './testUtils';
+import { fakeRuntime, fakeCtx, makeFakeSigner } from './utils.test';
 import { makeArachnidCreate2Txn } from '../create2';
 import { ARACHNID_CREATE2_PROXY } from '../constants';
 

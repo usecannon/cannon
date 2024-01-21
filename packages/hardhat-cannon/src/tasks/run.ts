@@ -5,7 +5,7 @@ import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
 import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
 import { TASK_RUN } from '../task-names';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { ethers } from 'ethers';
+import viem from 'viem';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(

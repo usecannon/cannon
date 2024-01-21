@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { ethers } from 'ethers';
+import viem from 'viem';
 
 import { subtask } from 'hardhat/config';
 

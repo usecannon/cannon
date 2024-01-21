@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { ethers, ethers as Ethers } from 'ethers';
+import viem from 'viem';
 
 import chalk from 'chalk';
 
@@ -9,17 +9,17 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
 import { PackageSpecification } from '../types';
-import { CannonWrapperGenericProvider, ChainArtifacts, ContractMap } from '@usecannon/builder';
+import { CannonSigner, ChainArtifacts, Contract, ContractMap } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
   packages: PackageSpecification[];
   packagesArtifacts?: ChainArtifacts[];
-  contracts: { [name: string]: Ethers.Contract }[];
-  provider: CannonWrapperGenericProvider;
+  contracts: { [name: string]: Contract }[];
+  provider: viem.PublicClient;
 
-  signer?: ethers.Signer;
+  signer?: CannonSigner;
   blockTag?: number;
 };
 
@@ -72,24 +72,26 @@ export async function interact(ctx: InteractTaskArgs) {
       }
     } else if (!currentArgs) {
       const argData = await pickFunctionArgs({
-        func: ctx.contracts[pickedPackage][pickedContract].interface.getFunction(pickedFunction),
+        func: viem.getAbiItem({ abi: ctx.contracts[pickedPackage][pickedContract].abi, name: pickedFunction }) as viem.AbiFunction,
       });
 
       if (!argData) {
         pickedFunction = null;
       } else {
         currentArgs = argData.args;
-        txnValue = wei(argData.value);
+        txnValue = wei(argData.value.toString());
       }
     } else {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
-      const functionInfo = contract.interface.getFunction(pickedFunction!);
+      const functionInfo = viem.getAbiItem({ ...contract, name: pickedFunction! }) as viem.AbiFunction;
       if (ctx.packagesArtifacts) {
-        ctx.provider.artifacts = ctx.packagesArtifacts[pickedPackage];
+        // TODO
+        //ctx.provider.artifacts = ctx.packagesArtifacts[pickedPackage];
       }
 
-      if (functionInfo.constant) {
+      if (functionInfo.stateMutability === 'view' || functionInfo.stateMutability === 'pure') {
         await query({
+          provider: ctx.provider,
           contract,
           functionSignature: pickedFunction,
           args: currentArgs,
@@ -101,6 +103,7 @@ export async function interact(ctx: InteractTaskArgs) {
         console.log();
       } else {
         const receipt = await execTxn({
+          provider: ctx.provider,
           signer: ctx.signer,
           contract,
           functionSignature: pickedFunction,
@@ -126,7 +129,7 @@ async function printHeader(ctx: InteractTaskArgs) {
   // retrieve balance of the signer address
   // this isnt always necessary but it serves as a nice test that the provider is working
   // and prevents the UI from lurching later if its queried later
-  const signerBalance = ctx.signer ? wei(await ctx.signer.getBalance()) : wei(0);
+  const signerBalance = ctx.signer ? wei((await ctx.provider.getBalance({ address: ctx.signer.address })).toString()) : wei(0);
 
   console.log('\n');
   console.log(gray('================================================================================'));
@@ -134,7 +137,7 @@ async function printHeader(ctx: InteractTaskArgs) {
   console.log(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
 
   if (ctx.signer) {
-    console.log(yellow(`> Read/Write: ${await ctx.signer.getAddress()}`));
+    console.log(yellow(`> Read/Write: ${await ctx.signer.address}`));
 
     if (signerBalance.gt(1)) {
       console.log(green(`> Signer Balance: ${signerBalance.toString(2)}`));
@@ -156,7 +159,7 @@ async function printHelpfulInfo(ctx: InteractTaskArgs, pickedPackage: number, pi
     console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
   }
 
-  console.log(gray(`  * Signer: ${ctx.signer ? await ctx.signer.getAddress() : 'None'}`));
+  console.log(gray(`  * Signer: ${ctx.signer ? await ctx.signer.address : 'None'}`));
   console.log('\n');
 }
 
@@ -219,8 +222,8 @@ async function pickContract({
   return pickedContract === PROMPT_BACK_OPTION.title ? null : pickedContract;
 }
 
-async function pickFunction({ contract }: { contract: ethers.Contract }) {
-  const functionSignatures = Object.keys(contract.functions).filter((f) => f.indexOf('(') != -1);
+async function pickFunction({ contract }: { contract: Contract }) {
+  const functionSignatures = Object.keys(contract.abi.filter(v => v.type === 'function').map(v => (v as viem.AbiFunction).name)).filter((f) => f.indexOf('(') != -1);
 
   const choices = functionSignatures.sort().map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
@@ -238,11 +241,11 @@ async function pickFunction({ contract }: { contract: ethers.Contract }) {
   return pickedFunction == PROMPT_BACK_OPTION.title ? null : pickedFunction;
 }
 
-async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment }) {
+async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   const args: any[] = [];
-  let value: ethers.BigNumber = wei(0).toBN();
+  let value = BigInt(0);
 
-  if (func.payable) {
+  if (func.stateMutability === 'payable') {
     const { txnValue } = await prompts.prompt([
       {
         type: 'text',
@@ -251,7 +254,7 @@ async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment 
       },
     ]);
 
-    value = wei(txnValue).toBN();
+    value = viem.parseEther(txnValue);
   }
 
   for (const input of func.inputs) {
@@ -268,29 +271,31 @@ async function pickFunctionArgs({ func }: { func: Ethers.utils.FunctionFragment 
 }
 
 async function query({
+  provider,
   contract,
   functionSignature,
   args,
   blockTag,
 }: {
-  contract: ethers.Contract;
+  provider: viem.PublicClient;
+  contract: Contract;
   functionSignature: string;
   args: any[];
   blockTag?: number;
 }) {
-  const functionInfo = contract.interface.getFunction(functionSignature);
+  const functionInfo = viem.getAbiItem({ ...contract, name: functionSignature }) as viem.AbiFunction;
 
-  const callData = contract.interface.encodeFunctionData(functionSignature, args);
+  const callData = viem.encodeFunctionData({ ...contract, functionName: functionSignature, args });
   console.log(gray(`  > calldata: ${callData}`));
 
   let result = [];
+  const callArgs = { ...contract, functionName: functionSignature, args, blockTag: blockTag as any };
   try {
     console.log(
-      gray(`  > estimated gas required: ${await contract.estimateGas[functionSignature!](...args, { blockTag })}`)
+      gray(`  > estimated gas required: ${await provider.estimateContractGas(callArgs)}`)
     );
-    result = await contract.callStatic[functionSignature!](...args, {
-      blockTag,
-    });
+    const simulation = await provider.simulateContract(callArgs);
+    result = simulation.result;
   } catch (err: any) {
     console.error('failed query:', err?.message && process.env.TRACE !== 'true' ? err?.message : err);
     return null;
@@ -313,31 +318,36 @@ async function execTxn({
   functionSignature,
   args,
   value,
+  provider,
   signer,
 }: {
-  contract: ethers.Contract;
+  contract: Contract;
   functionSignature: string;
   args: any[];
   value: any;
-  signer: Ethers.Signer;
+  provider: viem.PublicClient,
+  signer: CannonSigner;
 }) {
-  const callData = contract.interface.encodeFunctionData(functionSignature, args);
+  const callData = viem.encodeFunctionData({ ...contract, functionName: functionSignature, args });
 
-  let txn: ethers.PopulatedTransaction | null = {};
+  let txn: viem.TransactionRequest | null = null;
 
   // estimate gas
   try {
-    txn = await contract.populateTransaction[functionSignature](...args, {
-      from: await signer.getAddress(),
-      value: Ethers.BigNumber.from(value),
-    });
-    const estimatedGas = await contract.estimateGas[functionSignature](...args, {
-      from: await signer.getAddress(),
-      value: Ethers.BigNumber.from(value),
-    });
+    txn = await provider.prepareTransactionRequest({
+      account: signer.address,
+      chain: provider.chain,
+      to: contract.address,
+      data: callData,
+      value: BigInt(value),
+    }) as any;
+    /*const estimatedGas = await contract.estimateGas[functionSignature](...args, {
+      from: await signer.address,
+      value: BigInt(value),
+    });*/
 
-    console.log(gray(`  > calldata: ${txn.data}`));
-    console.log(gray(`  > estimated gas required: ${estimatedGas}`));
+    console.log(gray(`  > calldata: ${txn!.data}`));
+    console.log(gray(`  > estimated gas required: ${txn!.gas}`));
     console.log(gray(`  > gas: ${JSON.stringify(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'))}`));
     console.log(green(bold('  ✅ txn will succeed')));
   } catch (err) {
@@ -357,18 +367,14 @@ async function execTxn({
       return null;
     }
 
-    let txInfo;
+    let txHash;
     try {
-      txInfo = await signer.sendTransaction({
-        to: contract.address,
-        data: callData,
-        value: Ethers.BigNumber.from(value),
-      });
+      txHash = await signer.wallet.sendTransaction({ account: signer.address, chain: signer.wallet.chain, ...txn! });
 
-      console.log('> hash: ', txInfo.hash);
+      console.log('> hash: ', txHash);
       console.log('confirming...');
 
-      const receipt = await txInfo.wait();
+      const receipt = await provider.waitForTransactionReceipt({ hash: txHash });
 
       return receipt;
     } catch (err) {
@@ -380,7 +386,7 @@ async function execTxn({
   }
 }
 
-async function promptInputValue(input: Ethers.utils.ParamType): Promise<any> {
+async function promptInputValue(input: viem.AbiParameter): Promise<any> {
   const name = input.name || input.type;
 
   const message = input.name ? `${input.name} (${input.type})` : input.type;
@@ -407,7 +413,7 @@ async function promptInputValue(input: Ethers.utils.ParamType): Promise<any> {
   }
 }
 
-function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
+function parseInput(input: viem.AbiParameter, rawValue: string): any {
   const isTuple = input.type.includes('tuple');
   const isBytes32 = input.type.includes('bytes32');
   const isArray = input.type.includes('[]');
@@ -415,11 +421,11 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
   const isBoolean = input.type.includes('bool');
 
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
-  if (isBytes32 && !ethers.utils.isBytesLike(processed)) {
+  if (isBytes32 && !viem.isBytes(processed)) {
     if (isArray) {
-      processed = processed.map((item: string) => Ethers.utils.formatBytes32String(item));
+      processed = processed.map((item: string) => viem.stringToHex(item));
     } else {
-      processed = Ethers.utils.formatBytes32String(processed);
+      processed = viem.stringToHex(processed);
     }
   }
 
@@ -458,29 +464,31 @@ function parseInput(input: Ethers.utils.ParamType, rawValue: string): any {
   }
 
   // Encode user's input to validate it
-  Ethers.utils.defaultAbiCoder.encode([input.type], [processed]);
+  viem.encodeAbiParameters([input], [processed]);
 
   return processed;
 }
 
-function parseWeiValue(v: string): Ethers.BigNumber {
+function parseWeiValue(v: string): BigInt {
   if (v.includes('.')) {
-    return wei(v).toBN();
+    return viem.parseEther(v);
   } else {
-    return wei(v, 0, true).toBN();
+    return BigInt(v);
   }
 }
 
-function printReturnedValue(output: Ethers.utils.ParamType, value: any): string {
-  if (output?.baseType === 'tuple') {
+function printReturnedValue(output: viem.AbiParameter, value: any): string {
+  if (output.type === 'tuple') {
     // handle structs
-    return '\n' + output?.components.map((comp, ind) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`).join('\n');
-  } else if (output?.baseType === 'array' && Array.isArray(value)) {
+    // TODO: for some reason viem's types die here
+    return '\n' + (output as any).components
+      .map((comp: viem.AbiParameter, ind: number) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`).join('\n');
+  } else if (output.type === 'array' && Array.isArray(value)) {
     // handle arrays
-    return value.map((item) => printReturnedValue(output.arrayChildren, item)).join(', ');
-  } else if (output?.type.startsWith('uint') || output?.type.startsWith('int')) {
+    return value.map((item) => printReturnedValue((output as any).arrayChildren, item)).join(', ');
+  } else if (output.type.startsWith('uint') || output.type.startsWith('int')) {
     return `${value.toString()} (${wei(value).toString(5)})`;
-  } else if (output?.type.startsWith('bytes')) {
+  } else if (output.type.startsWith('bytes')) {
     return `${value} (${Buffer.from(value.slice(2), 'hex').toString('utf8')})`;
   } else {
     return value;
@@ -493,7 +501,7 @@ function boolify(value: any) {
   return value;
 }
 
-async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.TransactionReceipt) {
+async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionReceipt) {
   console.log(green('  ✅ Success'));
   // console.log('receipt', JSON.stringify(receipt, null, 2));
 
@@ -517,15 +525,19 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: Ethers.providers.Tra
       for (const [n, logContract] of contractsByAddress[log.address.toLowerCase()] || []) {
         try {
           // find contract matching address of the log
-          const parsedLog = logContract.interface.parseLog(log);
+          const parsedLog = viem.decodeEventLog({ ...logContract, ...log });
           foundLog = true;
-          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.name), gray(`\t${n}`));
+          console.log(gray(`\n    log ${i}:`), cyan(parsedLog.eventName), gray(`\t${n}`));
 
-          for (let i = 0; i < (parsedLog.args.length || 0); i++) {
-            const output = parsedLog.args[i];
-            const paramType = logContract.interface.getEvent(parsedLog.name).inputs[i];
+          //logContract.interface.getEvent(parsedLog.name).inputs[i]
+          // TODO: for some reason viem does not export `AbiEvent` type (even though they export other types like AbiFunction)
+          const eventAbiDef = viem.getAbiItem({ abi: logContract.abi, name: parsedLog.eventName as any }) as any;
 
-            console.log(cyan(`  ↪ ${output.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
+          for (let i = 0; i < (parsedLog.args?.length || 0); i++) {
+            const output = parsedLog.args![i];
+            const paramType = eventAbiDef.inputs[i] as viem.AbiParameter;
+
+            console.log(cyan(`  ↪ ${paramType.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
           }
 
           break;

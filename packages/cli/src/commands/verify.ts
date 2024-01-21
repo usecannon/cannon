@@ -1,5 +1,5 @@
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import axios from 'axios';
 import { getChainDataFromId } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';
@@ -33,7 +33,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
   const node = await runRpc({
     port: 30000 + Math.floor(Math.random() * 30000),
   });
-  const provider = getProvider(node);
+  const provider = getProvider(node)!;
 
   const settings = resolveCliSettings();
 
@@ -43,11 +43,9 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     {
       provider,
       chainId: chainId,
-      async getSigner(addr: string) {
+      async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        return { address: addr, wallet: provider };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -121,9 +119,11 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
           compilerversion: 'v' + contractArtifact.source.solcVersion,
 
           // NOTE: below: yes, the etherscan api is misspelling
-          constructorArguements: new ethers.utils.Interface(contractArtifact.abi)
-            .encodeDeploy(contractInfo.constructorArgs)
-            .slice(2),
+          constructorArguements: viem.encodeDeployData({
+            abi: contractArtifact.abi,
+            bytecode: contractArtifact.bytecode,
+            args: contractInfo.constructorArgs || []
+          }).slice(2),
         };
 
         debug('verification request', reqData);

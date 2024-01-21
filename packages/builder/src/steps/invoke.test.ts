@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import '../actions';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import action from './invoke';
-import { fakeCtx, fakeRuntime } from './testUtils';
+import { fakeCtx, fakeRuntime } from './utils.test';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {

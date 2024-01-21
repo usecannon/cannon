@@ -1,6 +1,6 @@
 import Debug from 'debug';
-import { ethers } from 'ethers';
 import _ from 'lodash';
+import { CannonHelperContext } from './types';
 
 const debug = Debug('cannon:builder:access-recorder');
 
@@ -60,8 +60,7 @@ export function computeTemplateAccesses(str?: string) {
       ...recorders,
       // TODO: replace with cannon "standard template library" after the refactor
       // for now we are just using ethers so its fine to just put here
-      ...ethers.constants,
-      ...ethers.utils,
+      ...CannonHelperContext
     },
   });
 

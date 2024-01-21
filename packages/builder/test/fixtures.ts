@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import _ from 'lodash';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { JsonFragment } from '@ethersproject/abi';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';

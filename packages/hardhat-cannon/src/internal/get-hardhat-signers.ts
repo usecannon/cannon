@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 export async function getHardhatSigners(hre: HardhatRuntimeEnvironment, provider: ethers.providers.Provider) {

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { ChainDefinition } from './definition';
 import { RawChainDefinition } from './actions';
 import { CannonWrapperGenericProvider } from './error/provider';

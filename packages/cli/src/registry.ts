@@ -173,7 +173,7 @@ export async function createDefaultReadRegistry(
   const { provider } = await resolveRegistryProvider(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
-  const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
+  const onChainRegistry = new OnChainRegistry({ provider, address: settings.registryAddress });
 
   if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');

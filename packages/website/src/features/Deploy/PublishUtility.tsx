@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { Button, Link, Spinner, Text } from '@chakra-ui/react';
 import { useAccount, useMutation, useWalletClient } from 'wagmi';
 import {

@@ -8,7 +8,7 @@ import {
 } from './util';
 
 import 'jest';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { ChainBuilderContext } from '.';
 import { JsonFragment } from '@ethersproject/abi';
 

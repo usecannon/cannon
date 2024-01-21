@@ -6,7 +6,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import fs, { Dirent } from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';

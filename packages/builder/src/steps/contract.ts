@@ -4,9 +4,7 @@ import Debug from 'debug';
 import { z } from 'zod';
 import { contractSchema } from '../schemas.zod';
 
-import { ethers } from 'ethers';
-
-import { getContractAddress } from '@ethersproject/address';
+import viem, { Address, Hash, Hex } from 'viem';
 
 import {
   ChainBuilderContext,
@@ -38,7 +36,7 @@ export interface ContractOutputs {
 function resolveBytecode(
   artifactData: ContractArtifact,
   config: Config
-): [string, { [sourceName: string]: { [libName: string]: string } }] {
+): [Hex, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
   const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
@@ -73,13 +71,18 @@ function generateOutputs(
   config: Config,
   ctx: ChainBuilderContext,
   artifactData: ContractArtifact,
-  deployTxn: ethers.providers.TransactionReceipt | null,
+  deployTxn: viem.TransactionReceipt | null,
   currentLabel: string
 ): ChainArtifacts {
   console.log('artifacts', artifactData);
   const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
-  const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
-  const txn = factory.getDeployTransaction(...(config.args || []));
+
+  const txn = { data: viem.encodeDeployData({
+    abi: artifactData.abi,
+    bytecode: injectedBytecode,
+    args: config.args || []
+  }) };
+
   const [, create2Addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
 
   let abi = artifactData.abi;
@@ -105,7 +108,7 @@ function generateOutputs(
   return {
     contracts: {
       [currentLabel.split('.')[1] || '']: {
-        address: config.create2 ? create2Addr : deployTxn!.contractAddress,
+        address: config.create2 ? create2Addr : deployTxn!.contractAddress!,
         abi,
         constructorArgs: config.args || [],
         linkedLibraries,
@@ -114,7 +117,7 @@ function generateOutputs(
         contractName: artifactData.contractName,
         deployedOn: currentLabel!,
         highlight: config.highlight,
-        gasUsed: deployTxn?.gasUsed.toNumber() || 0,
+        gasUsed: Number(deployTxn?.gasUsed) || 0,
         gasCost: deployTxn?.effectiveGasPrice.toString() || '0',
       },
     },
@@ -224,7 +227,7 @@ const contractSpec = {
 
     // sanity check that any connected libraries are bytecoded
     for (const lib in config.libraries || {}) {
-      if ((await runtime.provider.getCode(config.libraries![lib])) === '0x') {
+      if ((await runtime.provider.getBytecode({ address: config.libraries![lib] as Address })) === '0x') {
         throw new Error(`library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`);
       }
     }
@@ -240,11 +243,13 @@ const contractSpec = {
     const [injectedBytecode] = resolveBytecode(artifactData, config);
 
     // finally, deploy
-    const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
+    const txn = { data: viem.encodeDeployData({
+      abi: artifactData.abi,
+      bytecode: injectedBytecode,
+      args: config.args || []
+    }) };
 
-    const txn = factory.getDeployTransaction(...(config.args || []));
-
-    const overrides: ethers.Overrides & { value?: string } = {};
+    const overrides: any = {}; // TODO
 
     if (config.overrides?.gasLimit) {
       overrides.gasLimit = config.overrides.gasLimit;
@@ -262,7 +267,7 @@ const contractSpec = {
       overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
     }
 
-    let receipt: ethers.providers.TransactionReceipt | null = null;
+    let receipt: viem.TransactionReceipt | null = null;
 
     if (config.create2) {
       await ensureArachnidCreate2Exists(runtime);
@@ -271,15 +276,15 @@ const contractSpec = {
       const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
       debug('create2 address is', addr);
 
-      if ((await runtime.provider.getCode(addr)) !== '0x') {
+      if ((await runtime.provider.getBytecode({ address: addr })) !== '0x') {
         debug('create2 contract already completed');
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
       } else {
         const signer = config.from
-          ? await runtime.getSigner(config.from)
+          ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const pendingTxn = await signer.sendTransaction(_.assign(create2Txn, overrides));
-        receipt = await pendingTxn.wait();
+        const hash = await signer.wallet.sendTransaction(_.assign(create2Txn, overrides));
+        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
         debug('arachnid create2 complete', receipt);
       }
@@ -287,18 +292,18 @@ const contractSpec = {
       if (
         config.from &&
         config.nonce?.length &&
-        parseInt(config.nonce) < (await runtime.provider.getTransactionCount(config.from))
+        parseInt(config.nonce) < (await runtime.provider.getTransactionCount({ address: config.from as Address }))
       ) {
-        const contractAddress = getContractAddress({ from: config.from, nonce: config.nonce });
+        const contractAddress = viem.getContractAddress({ from: config.from as Address, nonce: BigInt(config.nonce) });
 
         debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
 
         // check that the contract bytecode that was deployed matches the requested
-        const actualBytecode = await runtime.provider.getCode(contractAddress);
+        const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
         // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
         // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
-        // lengt hshould be sufficient
-        if (artifactData.deployedBytecode.length !== actualBytecode.length) {
+        // length hshould be sufficient
+        if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
           debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
           throw new Error(
             `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
@@ -306,10 +311,10 @@ const contractSpec = {
         }
       } else {
         const signer = config.from
-          ? await runtime.getSigner(config.from)
+          ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const txnData = await signer.sendTransaction(_.assign(txn, overrides));
-        receipt = await txnData.wait();
+        const hash = await signer.wallet.sendTransaction(_.assign(txn, overrides));
+        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }
 
@@ -331,7 +336,7 @@ const contractSpec = {
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
-    const txn = await runtime.provider.getTransactionReceipt(existingKeys[0]);
+    const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as Hash });
 
     return generateOutputs(config, ctx, artifactData, txn, packageState.currentLabel);
   },

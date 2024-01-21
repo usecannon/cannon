@@ -1,9 +1,8 @@
-import { ethers } from 'ethers';
+import viem, { Address, Hash, Hex } from 'viem';
 
 import { ChainBuilderRuntimeInfo } from '.';
 
 import { ARACHNID_CREATE2_PROXY } from './constants';
-import { keccak256 } from 'ethers/lib/utils';
 
 import Debug from 'debug';
 
@@ -20,7 +19,7 @@ export const ARACHNID_DEPLOY_TXN =
  */
 export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeInfo) {
   // if arachnid create2 contract is not deployed
-  if ((await runtime.provider.getCode(ARACHNID_CREATE2_PROXY)) === '0x') {
+  if ((await runtime.provider.getBytecode({ address: ARACHNID_CREATE2_PROXY })) === '0x') {
     debug('arachnid create2 contract not found. attempting to deploy...');
     // on local testnets the arachnid contract is not deployed,
     // but we can deploy it easily
@@ -39,9 +38,9 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
     }
 
     // now run the presigned deployment txn
-    const txn = await runtime.provider.sendTransaction(ARACHNID_DEPLOY_TXN);
+    const hash = await runtime.provider.sendRawTransaction({ serializedTransaction: ARACHNID_DEPLOY_TXN });
 
-    await txn.wait();
+    await runtime.provider.waitForTransactionReceipt({ hash })
   }
 }
 
@@ -50,25 +49,24 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
  */
 export function makeArachnidCreate2Txn(
   salt: string,
-  initcode: ethers.utils.BytesLike,
+  initcode: Hex,
   arachnidAddress = ARACHNID_CREATE2_PROXY
-): [ethers.providers.TransactionRequest, string] {
-  let saltHash = salt;
-  if (!ethers.utils.isBytesLike(salt) || salt.length != 66) {
-    saltHash = keccak256(ethers.utils.toUtf8Bytes(salt));
-  }
+): [Pick<viem.TransactionRequest, 'to' | 'data'>, Address] {
+  let saltHash: Hash = !viem.isHash(salt) ? viem.keccak256(viem.toBytes(salt)) : salt as Hash;
 
   const txn = {
     to: arachnidAddress,
-    data: saltHash + initcode.toString().slice(2),
+    data: viem.concatHex([saltHash, initcode]),
   };
+
+  // TODO: may be able to use viem.getCreate2Address()
 
   const contractAddress =
     '0x' +
-    ethers.utils
-      .keccak256('0xff' + arachnidAddress.slice(2) + saltHash.slice(2) + ethers.utils.keccak256(initcode).slice(2))
+    viem
+      .keccak256(viem.concatHex(['0xff', arachnidAddress, saltHash, viem.keccak256(initcode)]))
       .slice(26);
 
-  // ethers.getAddress will uppercase the address properly for checksum purposes
-  return [txn, ethers.utils.getAddress(contractAddress)];
+  // viem.getAddress will uppercase the address properly for checksum purposes
+  return [txn, viem.getAddress(contractAddress)];
 }

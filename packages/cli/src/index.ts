@@ -1,8 +1,8 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  CannonSigner,
   CannonStorage,
-  CannonWrapperGenericProvider,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -15,7 +15,7 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
@@ -151,7 +151,7 @@ function configureRun(program: Command) {
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
       if (options.providerUrl) {
-        const providerChainId = (await provider.getNetwork()).chainId;
+        const providerChainId = await provider.getChainId();
         if (providerChainId != options.chainId) {
           throw new Error(
             `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
@@ -160,7 +160,7 @@ function configureRun(program: Command) {
       }
 
       node = await runRpc(pickAnvilOptions(options), {
-        forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        forkProvider: provider,
       });
     } else {
       node = await runRpc(pickAnvilOptions(options));
@@ -210,11 +210,11 @@ async function doBuild(
 
   const cliSettings = resolveCliSettings(opts);
 
-  let provider: CannonWrapperGenericProvider;
+  let provider: viem.PublicClient & viem.WalletClient & viem.TestClient;
   let node: CannonRpcNode | null = null;
 
-  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
+  let getSigner: ((s: string) => Promise<CannonSigner>) | undefined = undefined;
+  let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   let chainId: number | undefined = undefined;
 
@@ -224,11 +224,11 @@ async function doBuild(
       ...pickAnvilOptions(opts),
     });
 
-    provider = getProvider(node);
+    provider = getProvider(node)!;
   } else {
     if (opts.providerUrl && !opts.chainId) {
-      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
-      chainId = (await _provider.getNetwork()).chainId;
+      const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
+      chainId = await _provider.getChainId();
     } else {
       chainId = opts.chainId;
     }
@@ -242,27 +242,27 @@ async function doBuild(
           chainId,
         },
         {
-          forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+          forkProvider: p.provider,
         }
       );
 
-      provider = getProvider(node);
+      provider = getProvider(node)!;
 
       // need to set default signer to make sure it is accurate to the actual signer
       getDefaultSigner = async () => {
-        const addr = p.signers.length > 0 ? await p.signers[0].getAddress() : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        const addr = p.signers.length > 0 ? await p.signers[0].address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+        await provider.impersonateAccount({ address: addr });
+        await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: addr, wallet: provider };
       };
     } else {
-      provider = p.provider;
+      provider = p.provider as any;
 
       getSigner = async (address) => {
-        const s = ethers.utils.getAddress(address);
+        const s = viem.getAddress(address);
 
         for (const signer of p.signers) {
-          if ((await signer.getAddress()) === s) {
+          if (signer.address === s) {
             return signer;
           }
         }
@@ -340,10 +340,10 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
-    if (opts.keepAlive) {
+    if (opts.keepAlive && node) {
       console.log(
-        `Built package RPC URL available at ${
-          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
+        `Built package RPC URL available at http://${
+          node.host
         }`
       );
       const { run } = await import('./commands/run');
@@ -439,18 +439,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   const cliSettings = resolveCliSettings(options);
-  let { signers } = await resolveRegistryProvider(cliSettings);
+  let { provider, signers } = await resolveRegistryProvider(cliSettings);
 
   if (!signers.length) {
     const validatePrivateKey = (privateKey: string) => {
-      if (ethers.utils.isHexString(privateKey)) {
-        return true;
-      } else {
-        if (privateKey.length === 64) {
-          return ethers.utils.isHexString(`0x${privateKey}`);
-        }
-        return false;
-      }
+      return viem.isHex(privateKey, { strict: false });
     };
 
     const keyPrompt = await prompts({
@@ -470,10 +463,10 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     signers = p.signers;
   }
 
-  const overrides: ethers.PayableOverrides = {};
+  const overrides: any = {};
 
   if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
+    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
   }
 
   if (options.gasLimit) {
@@ -495,6 +488,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
+    provider,
     signer: signers[0],
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
@@ -634,7 +628,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
 
-  const networkInfo = await p.provider.getNetwork();
+  const chainId = await p.provider.getChainId();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -658,12 +652,12 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const runtime = new ChainBuilderRuntime(
     {
       provider: p.provider,
-      chainId: networkInfo.chainId,
-      async getSigner(addr: string) {
+      chainId: chainId,
+      async getSigner(address: viem.Address) {
         // on test network any user can be conjured
-        await p.provider.send('hardhat_impersonateAccount', [addr]);
-        await p.provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return p.provider.getSigner(addr);
+        //await p.provider.impersonateAccount({ address: addr });
+        //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: address, wallet: p.provider };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -687,13 +681,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   if (!outputs) {
     throw new Error(
-      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+      `no cannon build found for chain ${chainId} with preset "${preset}". Did you mean to run the package instead?`
     );
   }
 
-  const contracts = [getContractsRecursive(outputs, p.provider)];
+  const contracts = [getContractsRecursive(outputs)];
 
-  p.provider.artifacts = outputs;
+  // TODO
+  //p.provider.artifacts = outputs;
 
   await interact({
     packages: [packageDefinition],

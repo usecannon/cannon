@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { CannonWrapperGenericProvider } from './error/provider';
 import { IPFSLoader } from './loader';
 import { ChainBuilderRuntime, Events } from './runtime';

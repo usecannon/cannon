@@ -1,5 +1,5 @@
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import _ from 'lodash';
 import { dirSync } from 'tmp-promise';
 import cli from '../index';

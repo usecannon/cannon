@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { gray, yellow, green, red, bold } from 'chalk';
 import { readDeployRecursive } from '../package';
 import { resolveWriteProvider } from '../util/provider';
@@ -24,14 +24,14 @@ export async function trace({
   json = false,
 }: {
   packageRef: string;
-  data: string;
+  data: viem.Hex;
   chainId: number;
   preset: string;
   providerUrl: string;
-  from?: string;
-  to?: string;
+  from?: viem.Address;
+  to?: viem.Address;
   block?: string;
-  value?: ethers.BigNumberish;
+  value?: bigint;
   json: boolean;
 }) {
   const cliSettings = resolveCliSettings({ providerUrl });
@@ -56,12 +56,12 @@ export async function trace({
   // get transaction data from the provider
   const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
-  if (data.length == 66) {
-    const txHash = data;
+  if (viem.isHash(data)) {
+    const txHash = data as viem.Hash;
 
     try {
-      const txData = await provider.getTransaction(txHash);
-      const txReceipt = await provider.getTransactionReceipt(txHash);
+      const txData = await provider.getTransaction({ hash: txHash });
+      const txReceipt = await provider.getTransactionReceipt({ hash: txHash });
 
       // this is a transaction hash
       console.log(gray('Detected transaction hash'));
@@ -75,9 +75,9 @@ export async function trace({
       throw new Error('could not get transaction information. The transaction may not exist?');
     }
   } else if (!to) {
-    const r = findContract(artifacts, ({ address, abi }) => {
+    const r = findContract(artifacts, ({ abi }) => {
       try {
-        new ethers.Contract(address, abi).interface.parseTransaction({ data, value });
+        viem.decodeFunctionData({ abi, data });
         return true;
       } catch (_) {
         // intentionally empty
@@ -101,7 +101,7 @@ export async function trace({
   let rpc;
   if (block) {
     // subtract one second because 1 second is added when the block is mined
-    const blockInfo = await provider.getBlock((block || 'latest').match(/^[0-9]*$/) ? parseInt(block) : block);
+    const blockInfo = await provider.getBlock((block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag });
     const timestamp = blockInfo.timestamp - 1;
     rpc = await runRpc(
       { port: 0, forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number - 1).toString(), timestamp },
@@ -110,11 +110,11 @@ export async function trace({
   } else {
     rpc = await runRpc({ port: 0 }, { forkProvider: provider as any });
   }
-  const simulateProvider = getProvider(rpc);
+  const simulateProvider = getProvider(rpc)!;
 
   const fullTxn = {
-    from,
-    to,
+    from: from || viem.zeroAddress,
+    to: to || viem.zeroAddress,
     data,
     value,
     // set the gas limit very high to make sure the txn does not try to estimate
@@ -124,36 +124,36 @@ export async function trace({
   debug('full txn to execute', fullTxn);
 
   // now we should be able to run the transaction. force it through
-  let txnHash: string;
+  let txnHash: viem.Hash;
   try {
-    let signer = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+    const signer = (fullTxn.from || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266') as viem.Address;
     if (fullTxn.from) {
-      await simulateProvider.send('hardhat_impersonateAccount', [fullTxn.from]);
-      await simulateProvider.send('hardhat_setBalance', [fullTxn.from, ethers.utils.parseEther('10000').toString()]);
-      signer = fullTxn.from;
+      await simulateProvider.impersonateAccount({ address: fullTxn.from });
+      await simulateProvider.setBalance({ address: fullTxn.from, value: viem.parseEther('10000') });
     }
+
     console.log(gray('Simulating transaction (be patient! this could take a while...)'));
-    const pushedTxn = await simulateProvider.getSigner(signer).sendTransaction(fullTxn);
+    const pushedTxn = await simulateProvider.sendTransaction({ account: signer, chain: simulateProvider.chain, ...fullTxn });
 
     try {
-      await pushedTxn.wait();
+      await simulateProvider.waitForTransactionReceipt({ hash: pushedTxn });
     } catch {
       // intentionally empty
     }
-    txnHash = pushedTxn.hash;
+    txnHash = pushedTxn;
   } catch (err: any) {
     throw new Error(`failed to simulate txn: ${err.toString()}`);
   }
 
   // once we have forced through the transaction, call `trace_transaction`
-  const traces: TraceEntry[] = await simulateProvider.send('trace_transaction', [txnHash]);
+  const traces: TraceEntry[] = await simulateProvider.request({ method: 'trace_transaction' as any, params: [txnHash] });
 
   if (!json) {
     const traceText = renderTrace(artifacts, traces);
 
     console.log(traceText);
 
-    const receipt = await simulateProvider.getTransactionReceipt(txnHash);
+    const receipt = await simulateProvider.getTransactionReceipt({ hash: txnHash });
     const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
     console.log();
     if (receipt.status == 1) {
@@ -168,11 +168,11 @@ export async function trace({
   }
 }
 
-function computeGasUsed(traces: TraceEntry[], txn: ethers.providers.TransactionRequest): number {
+function computeGasUsed(traces: TraceEntry[], txn: viem.TransactionRequest): number {
   // total gas required for the transaction is whatever was used by the actual txn
   // + 21000 (base transaction cost)
   // + cost of the txn calldata
-  const txnData = ethers.utils.arrayify(txn.data || '0x');
+  const txnData = viem.hexToBytes(txn.data || '0x');
   const zeroDataCount = txnData.filter((d) => d === 0).length;
   const nonZeroDataCount = txnData.length - zeroDataCount;
   return parseInt(traces[0].result.gasUsed) + 21000 + 4 * zeroDataCount + 16 * nonZeroDataCount;

@@ -1,7 +1,7 @@
 import { ARACHNID_CREATE2_PROXY } from './constants';
 import { ARACHNID_DEPLOY_ADDR, ARACHNID_DEPLOY_TXN, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
 
-import { fakeRuntime, makeFakeSigner } from './steps/testUtils';
+import { fakeRuntime, makeFakeSigner } from './steps/utils.test';
 
 describe('util.ts', () => {
   describe('ensureArachnidCreate2Exists()', () => {

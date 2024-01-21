@@ -1,6 +1,6 @@
 import { Signer, BigNumber } from 'ethers';
 import { ok, equal, deepEqual } from 'assert/strict';
-import { ethers } from 'hardhat';
+import viem from 'viem';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 
 import assertRevert from '../helpers/assert-revert';

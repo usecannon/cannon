@@ -1,7 +1,7 @@
-import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
+import { CannonSigner, CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
 import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
@@ -9,14 +9,15 @@ import { resolveCliSettings } from '../settings';
 
 interface Params {
   packageRef: string;
-  signer: ethers.Signer;
+  signer: CannonSigner;
+  provider: viem.PublicClient;
   tags: string[];
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
   includeProvisioned?: boolean;
   skipConfirm?: boolean;
-  overrides?: ethers.PayableOverrides;
+  overrides?: any;
 }
 
 interface DeployList {
@@ -34,6 +35,7 @@ interface SubPackage {
 export async function publish({
   packageRef,
   signer,
+  provider,
   tags = ['latest'],
   chainId,
   presetArg,
@@ -66,12 +68,13 @@ export async function publish({
   }
 
   if (!quiet) {
-    console.log(blueBright(`Publishing with ${await signer.getAddress()}`));
+    console.log(blueBright(`Publishing with ${signer.address}`));
     console.log();
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
   const onChainRegistry = new OnChainRegistry({
-    signerOrProvider: signer,
+    signer,
+    provider,
     address: cliSettings.registryAddress,
     overrides,
   });

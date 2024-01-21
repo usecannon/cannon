@@ -4,7 +4,7 @@ import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliS
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import { yellow, yellowBright, bold } from 'chalk';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';

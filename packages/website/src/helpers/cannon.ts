@@ -21,7 +21,7 @@ import {
   TransactionMap,
 } from '@usecannon/builder';
 import CannonRegistryAbi from '@usecannon/builder/dist/abis/CannonRegistry';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import _ from 'lodash';
 import { Address, decodeAbiParameters, decodeFunctionData, Hex, parseAbiParameters, zeroAddress } from 'viem';
 

@@ -4,8 +4,8 @@
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "tsc -p tsconfig.build.json",
+    "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test-e2e": "./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats",

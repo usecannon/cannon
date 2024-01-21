@@ -23,7 +23,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { mainnet, Address, useChainId } from 'wagmi';

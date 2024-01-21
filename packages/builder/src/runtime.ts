@@ -1,10 +1,9 @@
 import { yellow } from 'chalk';
 import Debug from 'debug';
-import { ethers } from 'ethers';
+import viem, { Hex } from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
-import { PackageReference } from './';
-import { CannonWrapperGenericProvider } from './error/provider';
+import { CannonSigner, PackageReference } from './';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
@@ -98,14 +97,14 @@ export class CannonStorage extends EventEmitter {
 const parseGasValue = (value: string | undefined) => {
   if (!value) return undefined;
 
-  return ethers.utils.parseUnits(value, 'gwei').toString();
+  return viem.parseGwei.toString();
 };
 
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
-  readonly provider: CannonWrapperGenericProvider;
+  readonly provider: viem.PublicClient;
   readonly chainId: number;
-  readonly getSigner: (addr: string) => Promise<ethers.Signer>;
-  readonly getDefaultSigner: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+  readonly getSigner: (addr: viem.Address) => Promise<CannonSigner>;
+  readonly getDefaultSigner: (txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>, salt?: string) => Promise<CannonSigner>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
@@ -137,7 +136,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.provider = info.provider;
     this.chainId = info.chainId;
     this.getSigner = info.getSigner;
-    this.getDefaultSigner = info.getDefaultSigner || _.partial(getExecutionSigner, this.provider);
+    this.getDefaultSigner = info.getDefaultSigner || _.partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
 
     this.getArtifact = async (n: string) => {
       debug(`resolve artifact ${n}`);
@@ -194,25 +193,25 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   async checkNetwork() {
-    const networkInfo = await this.provider.getNetwork();
-    if (networkInfo.chainId !== this.chainId) {
+    const chainId = await this.provider.getChainId();
+    if (chainId !== this.chainId) {
       throw new Error(
-        `provider network reported chainId (${networkInfo.chainId}) does not match configured deployment chain id (${this.chainId})`
+        `provider network reported chainId (${chainId}) does not match configured deployment chain id (${this.chainId})`
       );
     }
   }
 
-  async loadState(stateDump: string): Promise<void> {
+  async loadState(stateDump: Hex): Promise<void> {
     if (this.snapshots) {
       debug('load state', stateDump.length);
-      await this.provider.send('hardhat_loadState', [stateDump]);
+      await (this.provider as viem.TestClient & viem.PublicClient).loadState({ state: stateDump });
     }
   }
 
   async dumpState() {
     if (this.snapshots) {
       debug('dump state');
-      return await this.provider.send('hardhat_dumpState', []);
+      return await (this.provider as viem.TestClient & viem.PublicClient).dumpState();
     }
 
     return null;
@@ -224,13 +223,10 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
       // revert is assumed hardcoded to the beginning chainstate on a clearable node
       if (this.cleanSnapshot) {
-        const status = await this.provider.send('evm_revert', [this.cleanSnapshot]);
-        if (!status) {
-          throw new Error('node state clear failed');
-        }
+        await (this.provider as viem.TestClient & viem.PublicClient).revert({ id: this.cleanSnapshot });
       }
 
-      this.cleanSnapshot = await this.provider.send('evm_snapshot', []);
+      this.cleanSnapshot = await (this.provider as viem.TestClient & viem.PublicClient).snapshot();
     }
   }
 

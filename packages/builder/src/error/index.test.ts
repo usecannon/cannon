@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { handleTxnError } from './index';
 
 describe('error/index.ts', () => {

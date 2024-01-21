@@ -6,7 +6,7 @@ import { supportedChains } from '@/providers/walletProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import SafeApiKit from '@safe-global/api-kit';
 import { EthersAdapter } from '@safe-global/protocol-kit';
-import { ethers } from 'ethers';
+import viem from 'viem';
 import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
 import { mainnet, useAccount, useContractReads, useQuery } from 'wagmi';
 

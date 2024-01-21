@@ -1,6 +1,6 @@
-import { ChainArtifacts, ContractData } from './types';
+import { ChainArtifacts, Contract, ContractData } from './types';
 import { ConsoleLogs } from './consoleLog';
-import { ethers } from 'ethers';
+import viem, { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
 import { green, grey, bold, red } from 'chalk';
 
 const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
@@ -10,15 +10,15 @@ const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 // geth trace types
 export type CallTraceAction = {
   callType: 'staticcall' | 'delegatecall' | 'call';
-  from: string;
+  from: Address;
   gas: string;
-  input: string;
-  to: string;
+  input: Hex;
+  to: Address;
   value: string;
 };
 
 export type CreateTraceAction = {
-  from: string;
+  from: Address;
   gas: string;
   init: string;
   value: string;
@@ -31,11 +31,11 @@ export type TraceEntry = {
   result: {
     gasUsed: string;
     code?: string;
-    output: string;
+    output: Hex;
   };
   subtraces: number;
   traceAddress: number[];
-  transactionHash: string;
+  transactionHash: Hash;
   transactionPosition: number;
   type: 'call' | 'create';
 };
@@ -85,9 +85,9 @@ function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
 
 export function parseFunctionData(
   ctx: ChainArtifacts,
-  contractAddress: string,
-  input: string,
-  output: string
+  contractAddress: Address,
+  input: Hex,
+  output: Hex
 ): {
   contractName: string;
   parsedInput: string;
@@ -106,9 +106,9 @@ export function parseFunctionData(
     parsedInput =
       'log' +
       renderResult(
-        ethers.utils.defaultAbiCoder.decode(
-          ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs],
-          '0x' + input.slice(10)
+        decodeAbiParameters(
+          ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs].map(v => ({ type: v })),
+          '0x' + input.slice(10) as Hex
         )
       );
 
@@ -116,10 +116,10 @@ export function parseFunctionData(
     parsedOutput = '';
   } else {
     const info =
-      findContract(ctx, ({ address, abi }) => {
-        if (address.toLowerCase() === contractAddress.toLowerCase()) {
+      findContract(ctx, (contract) => {
+        if (viem.isAddressEqual(contract.address, contractAddress)) {
           try {
-            new ethers.Contract(address, abi).interface.parseTransaction({ data: input, value: 0 });
+            viem.decodeFunctionData({ ...contract, data: input });
             return true;
           } catch {
             return false;
@@ -132,14 +132,14 @@ export function parseFunctionData(
     if (info) {
       contractName = info.name;
 
-      let decodedInput: any;
+      let decodedInput: { functionName: string, args: readonly any[] | undefined };
       try {
-        decodedInput = info.contract.interface.parseTransaction({ data: input, value: 0 })!;
-        parsedInput = decodedInput.name + renderResult(decodedInput.args);
+        decodedInput = viem.decodeFunctionData({ ...info.contract, data: input });
+        parsedInput = decodedInput.functionName + renderResult(decodedInput.args || []);
 
         // its actually easier to start by trying to parse the output first
         try {
-          const decodedOutput = info.contract.interface.decodeFunctionResult(decodedInput.functionFragment, output)!;
+          const decodedOutput = viem.decodeFunctionResult({ ...info.contract, functionName: decodedInput.functionName, data: output })! as any[];
           parsedOutput = renderResult(decodedOutput);
         } catch (err) {
           // if we found an address but the transaction cannot be parsed, it could be decodable error
@@ -171,14 +171,14 @@ export function parseFunctionData(
 
 export function findContract(
   ctx: ChainArtifacts,
-  condition: (v: { address: string; abi: any[] }) => boolean,
+  condition: (v: { address: Address; abi: Abi }) => boolean,
   prefix = ''
-): { name: string; contract: ethers.Contract } | null {
+): { name: string; contract: Contract } | null {
   for (const name in ctx.contracts) {
     if (condition(ctx.contracts[name])) {
       return {
         name: prefix + name,
-        contract: new ethers.Contract(ctx.contracts[name].address, ctx.contracts[name].abi),
+        contract: ctx.contracts[name]
       };
     }
   }
@@ -193,11 +193,12 @@ export function findContract(
   return null;
 }
 
-export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
-  if (data.startsWith(ethers.utils.id('Panic(uint256)').slice(0, 10))) {
+// TODO: viem probably makes most of this code unnecessary now
+export function decodeTxError(data: Hex, abis: ContractData['abi'][] = []) {
+  if (data.startsWith(viem.toFunctionSelector('Panic(uint256)'))) {
     // this is the `Panic` builtin opcode
-    const reason = ethers.utils.defaultAbiCoder.decode(['uint256'], '0x' + data.slice(10))[0];
-    switch (reason.toNumber()) {
+    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('uint256'), '0x' + data.slice(10) as Hex)[0];
+    switch (Number(reason)) {
       case 0x00:
         return 'Panic("generic/unknown error")';
       case 0x01:
@@ -221,16 +222,15 @@ export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
       default:
         return 'Panic("unknown")';
     }
-  } else if (data.startsWith(ethers.utils.id('Error(string)').slice(0, 10))) {
+  } else if (data.startsWith(viem.toFunctionSelector('Error(string)'))) {
     // this is the `Error` builtin opcode
-    const reason = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + data.slice(10));
+    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('string'), '0x' + data.slice(10) as Hex);
     return `Error("${reason}")`;
   }
   for (const abi of abis) {
-    const iface = new ethers.utils.Interface(abi as string[]);
     try {
-      const error = iface.parseError(data);
-      return error.name + renderResult(error.args);
+      const error = viem.decodeErrorResult({ data, abi });
+      return error.errorName + renderResult(error.args as any[] || []);
     } catch (err) {
       // intentionally empty
     }
@@ -238,7 +238,7 @@ export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
   return null;
 }
 
-export function parseContractErrorReason(contract: ethers.Contract | null, data: string): string {
+export function parseContractErrorReason(contract: Contract, data: Hex): string {
   const result = decodeTxError(data);
 
   if (result) {
@@ -246,8 +246,8 @@ export function parseContractErrorReason(contract: ethers.Contract | null, data:
   }
   if (contract) {
     try {
-      const error = contract.interface.parseError(data);
-      return error.name + renderResult(error.args);
+      const error = viem.decodeErrorResult({ data, ...contract });
+      return error.errorName + renderResult(error.args as any[] || []);
     } catch (err) {
       // intentionally empty
     }
@@ -256,6 +256,6 @@ export function parseContractErrorReason(contract: ethers.Contract | null, data:
   return data;
 }
 
-export function renderResult(result: ethers.utils.Result) {
+export function renderResult(result: readonly any[]) {
   return '(' + result.map((v) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
 }

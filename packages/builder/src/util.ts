@@ -1,14 +1,11 @@
 import crypto from 'crypto';
-import { ethers } from 'ethers';
+import viem, { Address } from 'viem';
 import { Buffer } from 'buffer';
 import _ from 'lodash';
-import { JsonFragment } from '@ethersproject/abi';
 
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
-import { ChainBuilderContext, ChainArtifacts } from './types';
-
-import { CannonWrapperGenericProvider } from './error/provider';
+import { ChainBuilderContext, ChainArtifacts, CannonSigner, Contract } from './types';
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new
@@ -21,10 +18,10 @@ import { CannonWrapperGenericProvider } from './error/provider';
  * @returns ethers signer
  */
 export async function getExecutionSigner(
-  provider: CannonWrapperGenericProvider,
-  txn: ethers.providers.TransactionRequest,
+  provider: viem.TestClient,
+  txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
   salt = ''
-): Promise<ethers.Signer> {
+): Promise<CannonSigner> {
   const hasher = crypto.createHash('sha256');
 
   // create a hashable string out of relevant properties
@@ -32,22 +29,28 @@ export async function getExecutionSigner(
 
   const size = 32;
   for (let i = 0; i < seed.length; i += size) {
-    hasher.update(seed.substr(i, size));
+    hasher.update(seed.substring(i, i + size));
   }
 
   const hash = hasher.digest('hex');
-  const address = '0x' + hash.slice(0, 40);
+  const address: Address = '0x' + hash.slice(0, 40) as Address;
 
-  await provider.send('hardhat_impersonateAccount', [address]);
-  await provider.send('hardhat_setBalance', [address, `0x${(1e22).toString(16)}`]);
+  await provider.impersonateAccount({ address });
+  await provider.setBalance({ address, value: BigInt(1e22) });
 
-  return await provider.getSigner(address);
+  const client = viem.createWalletClient({
+    account: address,
+    chain: provider.chain,
+    transport: viem.custom(provider.transport)
+  });
+
+  return { wallet: client, address };
 }
 
 export async function passThroughSigner(
-  getSigner: (addr: string) => Promise<ethers.Signer | null>,
+  getSigner: (addr: string) => Promise<CannonSigner | null>,
   addr: string
-): Promise<ethers.Signer> {
+): Promise<CannonSigner> {
   const signer = await getSigner(addr);
 
   if (!signer) {
@@ -91,18 +94,19 @@ export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: s
     .filter((a, index, abi) => {
       if (index === 0) return true;
       const alreadyExists = abi.slice(0, index).some((b) => {
-        return ethers.utils.Fragment.from(b)?.format('minimal') === ethers.utils.Fragment.from(a)?.format('minimal');
+        // TODO: viem doesn't appear to have functions to compare fragments
+        return JSON.stringify(b) === JSON.stringify(a);
       });
 
       return !alreadyExists;
     });
 }
 
-export function getContractFromPath(ctx: ChainBuilderContext, path: string, customAbi?: JsonFragment[]) {
+export function getContractFromPath(ctx: ChainBuilderContext, path: string): Contract | null {
   const contract = getContractDefinitionFromPath(ctx, path);
 
   if (contract) {
-    return new ethers.Contract(contract.address, customAbi || contract.abi);
+    return { address: contract.address, abi: contract.abi };
   }
 
   return null;

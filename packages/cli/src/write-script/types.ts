@@ -4,13 +4,13 @@ import type { Config as StepInvoke } from '@usecannon/builder/src/steps/invoke';
 import type { Config as StepRouter } from '@usecannon/builder/src/steps/router';
 import type { Config as StepImport } from '@usecannon/builder/src/steps/import';
 import type { Config as StepProvision } from '@usecannon/builder/src/steps/provision';
-import type { Transaction } from 'ethers';
+import viem from 'viem';
 
 type BaseDumpLine = {
   label: string;
   depth: number;
   result?: ChainArtifacts; // Step is called pre step execution if missing result
-  txns: Transaction[]; // Executed transactions
+  txns: viem.Transaction[]; // Executed transactions
 };
 
 /**

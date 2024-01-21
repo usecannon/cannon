@@ -1,8 +1,7 @@
 import { ChainBuilderRuntime } from '../runtime';
 import { ChainBuilderContextWithHelpers } from '../types';
 
-import { CannonWrapperGenericProvider } from '../error/provider';
-import { ethers } from 'ethers';
+import viem from 'viem';
 
 jest.mock('../runtime');
 jest.mock('../error/provider');
@@ -51,3 +50,4 @@ export function makeFakeSigner(address: string) {
   .fn()
   .mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'));
 (fakeRuntime.getArtifact as any) = jest.fn().mockResolvedValue(null);
+*/

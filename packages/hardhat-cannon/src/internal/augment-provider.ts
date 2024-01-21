@@ -5,7 +5,7 @@ import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
 
 import { BackwardsCompatibilityProviderAdapter } from 'hardhat/internal/core/providers/backwards-compatibility';
 import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import viem from 'viem';
 
 import { createProvider } from 'hardhat/internal/core/providers/construction';
 

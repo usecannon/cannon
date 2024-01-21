@@ -1,11 +1,8 @@
-import { ethers } from 'ethers';
-
-import { JsonFragment } from '@ethersproject/abi';
+import viem, { Abi, Address, Hash, Hex, SendTransactionParameters, TransactionRequest } from 'viem';
 
 import _ from 'lodash';
 
 import type { RawChainDefinition } from './actions';
-import { CannonWrapperGenericProvider } from './error/provider';
 
 export type OptionTypesTs = string | number | boolean;
 
@@ -13,8 +10,8 @@ export type OptionTypesTs = string | number | boolean;
 export type ContractArtifact = {
   contractName: string;
   sourceName: string;
-  abi: JsonFragment[];
-  bytecode: string;
+  abi: Abi;
+  bytecode: Hex;
   deployedBytecode: string;
   linkReferences: {
     [fileName: string]: {
@@ -31,8 +28,8 @@ export type ContractArtifact = {
 };
 
 export type ContractData = {
-  address: string;
-  abi: JsonFragment[];
+  address: Address;
+  abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   // only should be supplied when generated solidity as a single file
@@ -52,7 +49,7 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: string;
+    hash: Hash;
     events: EventMap;
     deployedOn: string;
     gasUsed: number;
@@ -87,24 +84,32 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   imports: BundledChainBuilderOutputs;
 }
 
-export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof ethers.utils & typeof ethers.constants;
+export const CannonHelperContext = {
+
+}
+
+export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
 
 export type BuildOptions = { [val: string]: OptionTypesTs };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
+export type CannonSigner = { wallet: viem.WalletClient, address: Address };
+
+export type Contract = Pick<viem.SimulateContractParameters, 'abi' | 'address'>;
+
 export interface ChainBuilderRuntimeInfo {
   // Interface to which all transactions should be sent and all state queried
-  provider: CannonWrapperGenericProvider;
+  provider: viem.PublicClient;
 
   // chainID to interact with
   chainId: number;
 
   // returns the signer associated with the given address. Reverts if the signer is not found or cannot be populated.
-  getSigner: (addr: string) => Promise<ethers.Signer>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
 
   // returns a signer which should be used for sending the specified transaction.
-  getDefaultSigner?: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+  getDefaultSigner?: (txn: Omit<SendTransactionParameters, 'account' | 'chain'>, salt?: string) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.
   getArtifact?: (name: string) => Promise<ContractArtifact>;
@@ -217,7 +222,7 @@ export type StepState = {
   artifacts: ChainArtifacts;
 
   // If this is a cannon network build, the full dump of the chain blob is recorded
-  chainDump?: string; // only included if cannon network build
+  chainDump?: Hex|null; // only included if cannon network build
 };
 
 export type DeploymentState = { [label: string]: StepState };
