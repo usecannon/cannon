@@ -44,18 +44,18 @@ export const FunctionOutput: FC<{
     } else if (item.type === 'tuple[]' && hasComponents(item)) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
-            <Box key={tupleIndex} pl="4">
-              {item.components.map(
-                (component: AbiParameter, compIdx: number) => (
-                  <FunctionOutput
-                    key={compIdx}
-                    output={component}
-                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                  />
-                )
-              )}
-            </Box>
-          ))
+          <Box key={tupleIndex} pl="4">
+            {item.components.map(
+              (component: AbiParameter, compIdx: number) => (
+                <FunctionOutput
+                  key={compIdx}
+                  output={component}
+                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                />
+              )
+            )}
+          </Box>
+        ))
         : null;
     } else {
       // OBJECTS
@@ -63,7 +63,7 @@ export const FunctionOutput: FC<{
         const outputValue = value[item.name];
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
-            {String(outputValue)}
+           im an object {String(outputValue)}
           </Text>
         );
       } else if (isArray(value)) {
@@ -73,7 +73,7 @@ export const FunctionOutput: FC<{
         // FALLBACK
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
-            {result !== null || undefined ? String(result) : '---'}
+          caca  {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
       }
