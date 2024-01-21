@@ -124,6 +124,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         overrideResolver: resolver,
         upgradeFrom: options.upgradeFrom,
         persist: false,
+        ignorePkgrefCheck: true,
       });
 
       buildOutputs.push({ pkg, outputs });
