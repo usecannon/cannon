@@ -22,7 +22,7 @@ interface BuildOptions {
 export async function cannonBuild(options: BuildOptions) {
   const { hre } = options;
   const provider = getProvider(options.node);
-  const signers = getHardhatSigners(options.hre, provider);
+  const signers = await getHardhatSigners(options.hre, provider);
 
   const getSigner = async (address: string) => {
     const addr = ethers.utils.getAddress(address);
