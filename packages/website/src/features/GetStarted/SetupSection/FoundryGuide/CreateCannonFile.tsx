@@ -53,7 +53,7 @@ export const CreateCannonFile = () => {
         . This will generate the following contract:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code1} language="solidity" />
+        <CodePreview code={code1} language="sol" />
       </Box>
       <Text mb={4}>
         Create a cannonfile.toml in the root directory of the project with the
