@@ -73,7 +73,14 @@ export async function resolveProviderAndSigners({
     try {
       const _provider = new ethers.providers.JsonRpcProvider(checkProviders[0]);
 
-      // `ready` will throw an error if it can't connect, so we can try the next rpc url
+      /*
+       * Implement `timeout` with `_provider.ready` to handle potential infinite waiting.
+       * `_provider.ready` only throws an error for issues other than `noNetwork`.
+       * `RPC_PROVIDER_TIMEOUT` limits the wait time, allowing for the use of a fallback RPC URL if necessary.
+       *
+       * Ref: Ethers.js BaseProvider `ready` method
+       * https://github.com/ethers-io/ethers.js/blob/master/packages/providers/src.ts/base-provider.ts#L842
+       */
       await timeout(_provider.ready, RPC_PROVIDER_TIMEOUT);
 
       wrappedEthersProvider = new CannonWrapperGenericProvider({}, _provider, false);
