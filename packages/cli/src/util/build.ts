@@ -13,6 +13,7 @@ import { pickAnvilOptions } from './anvil';
 import { resolveWriteProvider } from './provider';
 
 import { CannonWrapperGenericProvider, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { chains } from '../chains';
 
 const debug = Debug('cannon:cli');
 
@@ -129,6 +130,16 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
     }
   } else {
     chainId = opts.chainId;
+
+    // use default rpc url for the chain ID, skipping frame
+    if (opts.privateKey && !opts.providerUrl) {
+      const chainData = chains.find((chain) => Number(chain.chainId) === Number(chainId));
+      if (!chainData || !chainData.rpc || chainData.rpc.length === 0) {
+        throw new Error(`No RPC URL found for chain ID ${chainId}`);
+      }
+
+      cliSettings.providerUrl = chainData.rpc.join(',');
+    }
   }
 
   if (!provider) {

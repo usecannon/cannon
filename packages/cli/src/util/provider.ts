@@ -3,10 +3,13 @@ import { bold, red } from 'chalk';
 import Debug from 'debug';
 import provider from 'eth-provider';
 import { ethers } from 'ethers';
+import { timeout } from 'promise-timeout';
 import os from 'os';
 import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
+
+const RPC_PROVIDER_TIMEOUT = 5000;
 
 export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
@@ -67,11 +70,24 @@ export async function resolveProviderAndSigners({
   const signers = [];
   if (checkProviders[0].startsWith('http')) {
     debug('use explicit provider url', checkProviders);
-    wrappedEthersProvider = new CannonWrapperGenericProvider(
-      {},
-      new ethers.providers.JsonRpcProvider(checkProviders[0]),
-      false
-    );
+    try {
+      const _provider = new ethers.providers.JsonRpcProvider(checkProviders[0]);
+
+      // `ready` will throw an error if it can't connect, so we can try the next rpc url
+      await timeout(_provider.ready, RPC_PROVIDER_TIMEOUT);
+
+      wrappedEthersProvider = new CannonWrapperGenericProvider({}, _provider, false);
+    } catch (err: any) {
+      if (checkProviders.length <= 1) {
+        throw new Error('no more providers');
+      }
+
+      return await resolveProviderAndSigners({
+        chainId,
+        checkProviders: checkProviders.slice(1),
+        privateKey,
+      });
+    }
 
     if (privateKey) {
       signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(wrappedEthersProvider)));

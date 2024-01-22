@@ -18,7 +18,7 @@ import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion } from './helpers';
+import { checkCannonVersion, verifyPk } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -32,6 +32,7 @@ import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { chains } from './chains';
 
 export * from './types';
 export * from './constants';
@@ -296,27 +297,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  const cliSettings = resolveCliSettings(options);
-  let { signers } = await resolveRegistryProvider(cliSettings);
-
-  if (!signers.length) {
-    const validatePrivateKey = (privateKey: string) => {
-      if (ethers.utils.isHexString(privateKey)) {
-        return true;
-      } else {
-        if (privateKey.length === 64) {
-          return ethers.utils.isHexString(`0x${privateKey}`);
-        }
-        return false;
-      }
-    };
-
+  if (!options.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
+      validate: (key) => (!verifyPk(key) ? 'Private key is not valid' : true),
     });
 
     if (!keyPrompt.value) {
@@ -324,9 +311,21 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
-    signers = p.signers;
+    options.privateKey = keyPrompt.value;
   }
+
+  if (!options.providerUrl) {
+    const chainData = chains.find((chain) => Number(chain.chainId) === Number(options.chainId));
+    if (!chainData || !chainData.rpc || chainData.rpc.length === 0) {
+      throw new Error(`No RPC URL found for chain ID ${options.chainId}`);
+    }
+
+    options.providerUrl = chainData.rpc.join(',');
+  }
+
+  const cliSettings = resolveCliSettings(options);
+
+  const { signers } = await resolveRegistryProvider(cliSettings);
 
   const overrides: ethers.PayableOverrides = {};
 

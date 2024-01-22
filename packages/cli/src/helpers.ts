@@ -2,6 +2,7 @@ import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
 import { CannonRegistry, ContractMap } from '@usecannon/builder';
 import path from 'node:path';
+import { ethers } from 'ethers';
 import _ from 'lodash';
 import fs from 'fs-extra';
 import prompts from 'prompts';
@@ -369,4 +370,19 @@ export function getContractsAndDetails(state: {
 export function getSourceFromRegistry(registries: CannonRegistry[]): string | undefined {
   const prioritizedRegistry = registries[0];
   return prioritizedRegistry ? prioritizedRegistry.getLabel() : undefined;
+}
+
+/**
+ * Verifies a private key is valid
+ * @param privateKey The private key to verify
+ * @returns boolean If the private key is valid
+ */
+
+export function verifyPk(privateKey: string) {
+  try {
+    new ethers.Wallet(privateKey);
+  } catch (e) {
+    return false;
+  }
+  return true;
 }
