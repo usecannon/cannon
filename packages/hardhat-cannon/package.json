@@ -29,8 +29,6 @@
   ],
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@types/debug": "^4.1.7",
-    "@types/fs-extra": "^9.0.13",
     "@types/mocha": "^10.0.1",
     "@types/node": "^16.0.0",
     "bn.js": "^5.2.0",
@@ -46,8 +44,7 @@
     "@usecannon/builder": "^2.11.0-alpha.5",
     "@usecannon/cli": "^2.11.0-alpha.5",
     "chalk": "^4.1.2",
-    "debug": "^4.3.3",
-    "fs-extra": "^10.0.1"
+    "debug": "^4.3.3"
   },
   "gitHead": "61a3da984ce9c6af08685c6a2c883c328f6a7e25"
 }

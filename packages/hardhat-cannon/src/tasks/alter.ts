@@ -1,8 +1,8 @@
-import path from 'path';
-import { task } from 'hardhat/config';
-import { SUBTASK_GET_ARTIFACT, SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_ALTER } from '../task-names';
+import path from 'node:path';
 import { alter, PackageSpecification } from '@usecannon/cli';
+import { task } from 'hardhat/config';
 import { loadPackageJson } from '../internal/load-pkg-json';
+import { SUBTASK_GET_ARTIFACT, SUBTASK_LOAD_PACKAGE_DEFINITION, TASK_ALTER } from '../task-names';
 
 task(TASK_ALTER, 'Make a change to a cannon package outside the regular build process')
   .addPositionalParam('packageName', 'Name and version of the cannon package to inspect')
