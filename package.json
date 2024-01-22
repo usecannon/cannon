@@ -17,7 +17,8 @@
     "test": "lerna run test",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
     "website-dev": "npm run dev --workspace=packages/website",
-    "website": "npm run start --workspace=packages/website"
+    "website": "npm run start --workspace=packages/website",
+    "changeset": "changeset"
   },
   "devDependencies": {
     "@babel/core": "^7.22.1",
