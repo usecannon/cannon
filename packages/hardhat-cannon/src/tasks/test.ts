@@ -17,8 +17,6 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
     '(Optional) Custom anvil options json string or json file to configure when running on the cannon network or a local forked node'
   )
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first?', 'local')
-  .addOptionalParam('typechainOutDir', '(Optional) Folder where to write typechain types from the built cannonfile')
-  .addOptionalParam('typechainTarget', '(Optional) Format of Typechain files, defaults to ethers-v5', 'ethers-v5')
   .addFlag('noCompile', "Don't compile before running this task")
   .addOptionalParam('testFiles', 'An optional list of files separated by a comma to test')
   .addFlag('parallel', 'Run tests in parallel')
@@ -26,14 +24,7 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
   .addOptionalParam('grep', 'Only run tests matching the given string or regexp')
   .setAction(async (params, hre) => {
     let { cannonfile } = params;
-    const {
-      settings,
-      anvilOptions: anvilOptionsParam,
-      preset,
-      typechainOutDir,
-      typechainTarget,
-      ...hardhatTestParams
-    } = params;
+    const { settings, anvilOptions: anvilOptionsParam, preset, ...hardhatTestParams } = params;
 
     // If the first param is not a cannonfile, it should be parsed as settings
     if (typeof cannonfile === 'string' && !cannonfile.endsWith('.toml')) {
