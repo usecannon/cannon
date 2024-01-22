@@ -3,7 +3,7 @@
   "version": "2.10.0",
   "private": true,
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat cannon:test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
