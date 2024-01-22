@@ -32,7 +32,6 @@ import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
-import { chains } from './chains';
 
 export * from './types';
 export * from './constants';
@@ -312,15 +311,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     }
 
     options.privateKey = keyPrompt.value;
-  }
-
-  if (!options.providerUrl) {
-    const chainData = chains.find((chain) => Number(chain.chainId) === Number(options.chainId));
-    if (!chainData || !chainData.rpc || chainData.rpc.length === 0) {
-      throw new Error(`No RPC URL found for chain ID ${options.chainId}`);
-    }
-
-    options.providerUrl = chainData.rpc.join(',');
   }
 
   const cliSettings = resolveCliSettings(options);
