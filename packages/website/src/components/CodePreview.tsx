@@ -1,5 +1,5 @@
-import { FC, useEffect } from 'react';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import { FC } from 'react';
+import Editor from '@monaco-editor/react';
 
 interface ICodePreviewProps {
   code: string;
@@ -12,9 +12,6 @@ export const CodePreview: FC<ICodePreviewProps> = ({
   language,
   height,
 }) => {
-  console.log('language: ', language);
-  // const monaco = useMonaco();
-
   return (
     <Editor
       height={height}
