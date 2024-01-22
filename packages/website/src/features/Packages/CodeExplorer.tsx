@@ -245,7 +245,7 @@ export const CodeExplorer: FC<{
                     _hover={{ background: 'gray.800' }}
                     onClick={() => {
                       setSelectedCode(metadata.cannonfile);
-                      selectedLanguage('toml');
+                      setSelectedLanguage('toml');
                       setSelectedKey('cannonfile');
                     }}
                     fontWeight={
