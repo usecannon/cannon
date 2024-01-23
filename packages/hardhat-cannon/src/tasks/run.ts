@@ -1,7 +1,7 @@
+import path from 'node:path';
 import { loadCannonfile, PackageSpecification, parsePackagesArguments, run, runRpc } from '@usecannon/cli';
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
-import path from 'path';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { TASK_RUN } from '../task-names';
 
