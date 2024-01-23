@@ -1,4 +1,5 @@
 import { parseSettings } from '@usecannon/cli';
+import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { augmentProvider } from '../internal/augment-provider';
 import { cannonBuild } from '../internal/cannon';
@@ -23,6 +24,11 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
   .addFlag('bail', 'Stop running tests after the first test failure')
   .addOptionalParam('grep', 'Only run tests matching the given string or regexp')
   .setAction(async (params, hre) => {
+    if (!params.noCompile) {
+      await hre.run(TASK_COMPILE);
+      console.log('');
+    }
+
     let { cannonfile } = params;
     const { settings, anvilOptions: anvilOptionsParam, preset, ...hardhatTestParams } = params;
 
