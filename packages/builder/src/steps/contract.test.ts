@@ -1,4 +1,4 @@
-import viem from 'viem';
+import * as viem from 'viem';
 import '../actions';
 import { ContractArtifact } from '../types';
 import action from './contract';
@@ -152,7 +152,7 @@ describe('steps/contract.ts', () => {
   describe('exec()', () => {
     describe('when create2 = true', () => {
       it('works if contract already deployed', async () => {
-        jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
+        jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0xabcdef');
 
         const result = await action.exec(
           fakeRuntime,
@@ -160,7 +160,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+            args: [viem.stringToHex('one'), viem.stringToHex('two'), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -173,8 +173,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
               constructorArgs: [
-                ethers.utils.formatBytes32String('one'),
-                ethers.utils.formatBytes32String('two'),
+                viem.stringToHex('one'),
+                viem.stringToHex('two'),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -191,8 +191,8 @@ describe('steps/contract.ts', () => {
       });
 
       it('works if contract needs to be deployed', async () => {
-        jest.mocked(fakeRuntime.provider.getCode).mockImplementation(async (addr) => {
-          if (addr === ARACHNID_CREATE2_PROXY) {
+        jest.mocked(fakeRuntime.provider.getBytecode).mockImplementation(async ({ address }) => {
+          if (address === ARACHNID_CREATE2_PROXY) {
             return '0xabcd';
           }
 
@@ -205,7 +205,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -218,8 +218,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
               constructorArgs: [
-                ethers.utils.formatBytes32String('one'),
-                ethers.utils.formatBytes32String('two'),
+                viem.stringToHex('one', { size: 32}),
+                viem.stringToHex('two', { size: 32}),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -234,14 +234,14 @@ describe('steps/contract.ts', () => {
           },
         });
 
-        expect((await fakeRuntime.getDefaultSigner({}, '')).sendTransaction).toBeCalledWith(
+        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith(
           makeArachnidCreate2Txn(
             'wohoo',
-            new ethers.ContractFactory(fakeAbi, '0xabcd').getDeployTransaction(
-              ethers.utils.formatBytes32String('one'),
-              ethers.utils.formatBytes32String('two'),
+            viem.encodeDeployData({ bytecode: '0xabcd', abi: fakeAbi, args: [
+              viem.stringToHex('one', { size: 32}),
+              viem.stringToHex('two', { size: 32}),
               { three: 'four' }
-            ).data!
+            ]})
           )[0]
         );
       });
@@ -255,7 +255,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             highlight: true,
-            args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -268,8 +268,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                ethers.utils.formatBytes32String('one'),
-                ethers.utils.formatBytes32String('two'),
+                viem.stringToHex('one', { size: 32}),
+                viem.stringToHex('two', { size: 32}),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -300,7 +300,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             from: '0x1234123412341234123412341234123412341234',
-            args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -313,8 +313,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                ethers.utils.formatBytes32String('one'),
-                ethers.utils.formatBytes32String('two'),
+                viem.stringToHex('one', { size: 32}),
+                viem.stringToHex('two', { size: 32}),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -336,7 +336,7 @@ describe('steps/contract.ts', () => {
           fakeCtx,
           {
             artifact: 'hello',
-            args: [ethers.utils.formatBytes32String('one'), ethers.utils.formatBytes32String('two'), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -349,8 +349,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                ethers.utils.formatBytes32String('one'),
-                ethers.utils.formatBytes32String('two'),
+                viem.stringToHex('one', { size: 32}),
+                viem.stringToHex('two', { size: 32}),
                 { three: 'four' },
               ],
               contractName: undefined,

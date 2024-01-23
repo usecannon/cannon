@@ -1,4 +1,4 @@
-import viem from 'viem';
+import * as viem from 'viem';
 import { ChainArtifacts, ContractData } from '../types';
 import { renderTrace } from '../trace';
 

@@ -1,7 +1,8 @@
 import * as paramUtils from '../util/params';
 
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { CannonRpcNode } from '../rpc';
+
+import viem from 'viem';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
@@ -45,10 +46,10 @@ describe('build', () => {
   });
 
   describe('provider', () => {
-    let provider: CannonWrapperGenericProvider;
+    let provider: viem.PublicClient;
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
+      provider = viem.createPublicClient({ transport: viem.custom() });
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
     });
@@ -65,7 +66,7 @@ describe('build', () => {
         };
       });
 
-      jest.mocked(provider.getNetwork).mockResolvedValue({ chainId, name: 'dummy' });
+      jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
       await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
 

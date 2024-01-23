@@ -76,14 +76,14 @@ describe('steps/router.ts', () => {
 
       const runtime = fixtureRuntime();
       const ctx = fixtureCtx({ contracts });
-      const config = { from: await signer.getAddress(), contracts: Object.keys(contracts) };
+      const config = { from: await signer.address, contracts: Object.keys(contracts) };
 
       jest.spyOn(runtime, 'getSigner').mockResolvedValue(signer);
 
       const { tx, rx } = await mockDeployTransaction(signer);
       const res = await action.exec(runtime, ctx, config, step);
 
-      expect(signer.sendTransaction).toHaveBeenCalledTimes(1);
+      expect(signer.wallet.sendTransaction).toHaveBeenCalledTimes(1);
       expect(tx.wait).toHaveBeenCalledTimes(1);
 
       expect(res.contracts).toMatchObject({

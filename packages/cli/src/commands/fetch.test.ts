@@ -59,7 +59,7 @@ describe('fetch', () => {
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
         registryProviderUrl: 'http://localhost:3000',
-        registryAddress: ethers.constants.AddressZero,
+        registryAddress: viem.zeroAddress,
         registryChainId: '123',
         cannonDirectory: '/cannon/directory/',
       })

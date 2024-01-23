@@ -3,17 +3,19 @@ import { ARACHNID_DEPLOY_ADDR, ARACHNID_DEPLOY_TXN, ensureArachnidCreate2Exists,
 
 import { fakeRuntime, makeFakeSigner } from './steps/utils.test';
 
+import * as viem from 'viem';
+
 describe('util.ts', () => {
   describe('ensureArachnidCreate2Exists()', () => {
     it('does nothing if create2 exists', async () => {
-      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x1234');
+      jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0x1234');
 
       // if it tries to do get a signer that function isnt defined so it will fail
       await ensureArachnidCreate2Exists(fakeRuntime);
     });
 
     it('fails if deploy signer is not defined', async () => {
-      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x');
+      jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0x');
       (fakeRuntime.getSigner as any) = async () => {
         throw new Error('no signer');
       };
@@ -24,17 +26,17 @@ describe('util.ts', () => {
     });
 
     it('calls sendTransaction to create aracnid contract if not deployed', async () => {
-      jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0x');
+      jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0x');
 
       const fakeSigner = makeFakeSigner(ARACHNID_DEPLOY_ADDR);
 
       (fakeRuntime.getSigner as any) = async () => fakeSigner;
 
-      jest.mocked(fakeRuntime.provider.sendTransaction).mockResolvedValue({ wait: jest.fn() } as any);
+      jest.mocked((fakeRuntime.provider as unknown as viem.WalletClient).sendTransaction).mockResolvedValue({ wait: jest.fn() } as any);
 
       await ensureArachnidCreate2Exists(fakeRuntime);
 
-      expect(fakeRuntime.provider.sendTransaction).toBeCalledWith(ARACHNID_DEPLOY_TXN);
+      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendTransaction).toBeCalledWith(ARACHNID_DEPLOY_TXN);
     });
   });
 

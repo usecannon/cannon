@@ -1,5 +1,5 @@
 /*import { BlockTag, BlockWithTransactions } from '@ethersproject/abstract-provider';
-import viem from 'viem';
+import * as viem from 'viem';
 import { Deferrable } from 'ethers/lib/utils';
 import { handleTxnError } from '.';
 import { ChainArtifacts } from '../types';

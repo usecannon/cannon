@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import viem from 'viem';
+import * as viem from 'viem';
 import { isNumber } from 'lodash';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\

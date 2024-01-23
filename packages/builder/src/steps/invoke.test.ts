@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import '../actions';
-import viem from 'viem';
+import * as viem from 'viem';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './utils.test';
 
@@ -169,9 +169,9 @@ describe('steps/invoke.ts', () => {
 
   describe('exec()', () => {
     it('works and parses all information from transaction result', async () => {
-      jest.mocked((await (await fakeRuntime.getDefaultSigner({}, '')).sendTransaction({})).wait).mockResolvedValue({
+      jest.mocked(await fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue({
         transactionHash: '0x1234',
-        gasUsed: ethers.BigNumber.from('0'),
+        gasUsed: BigInt(0),
         effectiveGasPrice: 0,
         logs: [
           {

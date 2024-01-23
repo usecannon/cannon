@@ -1,7 +1,7 @@
 import { InMemoryRegistry } from '@usecannon/builder/src';
 import { getChainId, getChainDataFromId, getChainName, getContractsAndDetails, getSourceFromRegistry } from './helpers';
 import { LocalRegistry } from './registry';
-import { FallbackRegistry } from '@usecannon/builder';
+import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);
@@ -68,14 +68,16 @@ function getChainNameTestCases() {
 
 function getContractsAndDetailsTestCases() {
   it('should extract contracts and details from the state', () => {
-    const state = {
+    const state: {
+      [key: string]: { artifacts: Pick<ChainArtifacts, 'contracts'> };
+    } = {
       'contract.myContract1': {
         artifacts: {
           contracts: {
             Contract1: {
-              address: 'address1',
+              address: '0xaddress1',
               abi: [],
-              deployTxnHash: 'hash1',
+              deployTxnHash: '0xhash1',
               contractName: 'Contract1',
               sourceName: 'Source1',
               deployedOn: 'date1',

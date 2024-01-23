@@ -1,9 +1,8 @@
 import _ from 'lodash';
 
-import viem from 'viem';
+import * as viem from 'viem';
 import { ChainDefinition } from './definition';
 import { RawChainDefinition } from './actions';
-import { CannonWrapperGenericProvider } from './error/provider';
 import { build, getOutputs, runStep, createInitialContext } from './builder';
 import { IPFSLoader } from './loader';
 import { BUILD_VERSION } from './constants';
@@ -16,6 +15,7 @@ import invokeStep from './steps/invoke';
 import { InMemoryRegistry } from './registry';
 
 import { contractSchema } from './schemas.zod';
+import { fixtureSigner } from '../test/fixtures';
 
 jest.mock('./error/provider');
 jest.mock('./steps/contract');
@@ -28,13 +28,9 @@ jest.mocked((contractStep.validate = contractSchema));
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
 
-  const getSigner = jest.fn(async () => {
-    return ethers.Wallet.createRandom();
-  });
+  const getSigner = jest.fn(async (addr: viem.Address) => fixtureSigner());
 
-  const getDefaultSigner = jest.fn(async () => {
-    return ethers.Wallet.createRandom();
-  });
+  const getDefaultSigner = jest.fn(async () => fixtureSigner());
 
   const getArtifact = jest.fn(async (n: string): Promise<ContractArtifact> => {
     return {
@@ -47,13 +43,15 @@ describe('builder.ts', () => {
     };
   });
 
-  const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
+  const provider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({
+    request: async () => {}
+  }) })
+  .extend(viem.publicActions)
+  .extend(viem.walletActions);
 
-  jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 1234, name: 'dummy' });
-  jest.mocked(provider.send).mockImplementation(async (name: string) => {
-    if (name.endsWith('_dumpState')) {
-      return '0xfoobar';
-    }
+  jest.mocked(provider.getChainId).mockResolvedValue(1234);
+  jest.mocked(provider.dumpState).mockImplementation(async () => {
+    return '0xfoobar';
   });
 
   const runtime = new ChainBuilderRuntime(
@@ -118,7 +116,7 @@ describe('builder.ts', () => {
       artifacts: {
         txns: {
           smartFunc: {
-            hash: '',
+            hash: '0x',
             events: {},
             deployedOn: 'invoke.smartFunc',
             gasCost: '0',
@@ -270,8 +268,8 @@ describe('builder.ts', () => {
       await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
       // should only be called for the leaf
-      expect(provider.send).toBeCalledWith('hardhat_loadState', ['0x5678']);
-      expect(provider.send).toBeCalledTimes(1);
+      expect(provider.loadState).toBeCalledWith('0x5678');
+      expect(provider.loadState).toBeCalledTimes(1);
     });
   });
 
