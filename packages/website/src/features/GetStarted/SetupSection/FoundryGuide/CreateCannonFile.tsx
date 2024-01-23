@@ -62,7 +62,7 @@ export const CreateCannonFile = () => {
         420:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code2} language="toml" />
+        <CodePreview code={code2} language="ini" />
       </Box>
       <Alert status="info" mb={4} bg="gray.800">
         <AlertIcon />

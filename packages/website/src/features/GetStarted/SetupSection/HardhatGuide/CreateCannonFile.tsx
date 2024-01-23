@@ -93,7 +93,7 @@ export const CreateCannonFile = () => {
         time to 1700000000:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code2} language="toml" />
+        <CodePreview code={code2} language="ini" />
       </Box>
       <Text mb={4}>
         Now build the cannonfile for local development and testing:
