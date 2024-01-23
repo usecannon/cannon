@@ -2,18 +2,19 @@ import path from 'path';
 import Debug from 'debug';
 import { ethers } from 'ethers';
 
+import { chains } from '../chains';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { PackageSpecification } from '../types';
 import { CliSettings, resolveCliSettings } from '../settings';
 import { getFoundryArtifact } from '../foundry';
 import { filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
+
 import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { resolveWriteProvider } from './provider';
 
 import { CannonWrapperGenericProvider, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
-import { chains } from '../chains';
 
 const debug = Debug('cannon:cli');
 

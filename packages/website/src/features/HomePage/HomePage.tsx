@@ -1,10 +1,10 @@
 'use client';
 
-import { Flex, Button, Container, Heading, Link, Box } from '@chakra-ui/react';
-import NextLink from 'next/link';
 import { links } from '@/constants/links';
-import { ReactNode, useEffect } from 'react';
+import { Box, Button, Container, Flex, Heading, Link } from '@chakra-ui/react';
 import { gsap } from 'gsap';
+import NextLink from 'next/link';
+import { ReactNode, useEffect } from 'react';
 
 const CustomLink = ({
   href,
@@ -117,8 +117,8 @@ export default function HomePage() {
           color="gray.300"
           maxW={['340px', '340px', '680px']}
         >
-          <CustomLink href={links.DEPLOY}>Deploy</CustomLink>{' '}
-          protocols and publish packages to the{' '}
+          <CustomLink href={links.DEPLOY}>Deploy</CustomLink> protocols and
+          publish packages to the{' '}
           <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
           Ethereum and IPFS.
         </Heading>

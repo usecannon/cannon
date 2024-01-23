@@ -19,6 +19,7 @@ jest.mock('../settings', () => ({
     registryChainId: '123', // or whatever value is appropriate in your case
     privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
     cannonDirectory: dirSync().name,
+    providerUrl: 'http://localhost:8545',
     // Add other properties as needed
   }),
 }));
