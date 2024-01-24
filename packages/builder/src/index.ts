@@ -11,8 +11,7 @@ export { decodeTxError } from './error';
 
 export * from './util';
 export * from './types';
-
-export { CannonWrapperGenericProvider } from './error/provider';
+export * from './error/provider';
 
 export { handleTxnError } from './error';
 

@@ -26,7 +26,7 @@ import {
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { mainnet, Address, useChainId } from 'wagmi';
+import { Address, mainnet, useChainId } from 'wagmi';
 
 export type BuildState =
   | {

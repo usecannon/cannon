@@ -2,8 +2,6 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
   CannonStorage,
-  CannonWrapperGenericProvider,
-  ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
@@ -20,17 +18,17 @@ import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { getFoundryArtifact } from './foundry';
-import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
+import { checkCannonVersion } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
+import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
+import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -38,8 +36,6 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
-
-const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -172,144 +168,6 @@ function configureRun(program: Command) {
       helpInformation: program.helpInformation(),
     });
   });
-}
-
-async function doBuild(
-  cannonfile: string,
-  settings: string[],
-  opts: any
-): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
-  // set debug verbosity
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-
-  debug('do build called with', cannonfile, settings, filterSettings(opts));
-  // If the first param is not a cannonfile, it should be parsed as settings
-  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
-    settings.unshift(cannonfile);
-    cannonfile = 'cannonfile.toml';
-  }
-
-  const publicSourceCode = true; // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
-  const parsedSettings = parseSettings(settings);
-
-  const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(cannonfilePath);
-
-  const cliSettings = resolveCliSettings(opts);
-
-  let provider: CannonWrapperGenericProvider;
-  let node: CannonRpcNode | null = null;
-
-  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
-
-  let chainId: number | undefined = undefined;
-
-  if (!opts.chainId && !opts.providerUrl) {
-    // doing a local build, just create a anvil rpc
-    node = await runRpc({
-      ...pickAnvilOptions(opts),
-    });
-
-    provider = getProvider(node);
-  } else {
-    if (opts.providerUrl && !opts.chainId) {
-      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
-      chainId = (await _provider.getNetwork()).chainId;
-    } else {
-      chainId = opts.chainId;
-    }
-
-    const p = await resolveWriteProvider(cliSettings, chainId as number);
-
-    if (opts.dryRun) {
-      node = await runRpc(
-        {
-          ...pickAnvilOptions(opts),
-          chainId,
-        },
-        {
-          forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-        }
-      );
-
-      provider = getProvider(node);
-
-      // need to set default signer to make sure it is accurate to the actual signer
-      getDefaultSigner = async () => {
-        const addr = p.signers.length > 0 ? await p.signers[0].getAddress() : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
-      };
-    } else {
-      provider = p.provider;
-
-      getSigner = async (address) => {
-        const s = ethers.utils.getAddress(address);
-
-        for (const signer of p.signers) {
-          if ((await signer.getAddress()) === s) {
-            return signer;
-          }
-        }
-
-        throw new Error(
-          `signer not found for address ${s}. Please add the private key for this address to your command line.`
-        );
-      };
-
-      getDefaultSigner = async () => p.signers[0];
-    }
-  }
-
-  const { build } = await import('./commands/build');
-  const { name, version, preset, def } = await loadCannonfile(cannonfilePath);
-
-  const pkgSpec: PackageSpecification = {
-    name,
-    version,
-    preset,
-    settings: parsedSettings,
-  };
-
-  const { outputs, runtime } = await build({
-    provider,
-    def,
-    packageDefinition: pkgSpec,
-    pkgInfo: {},
-    getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
-    getSigner,
-    getDefaultSigner,
-    upgradeFrom: opts.upgradeFrom,
-    presetArg: opts.preset,
-    wipe: opts.wipe,
-    persist: !opts.dryRun,
-    overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
-    publicSourceCode,
-    providerUrl: cliSettings.providerUrl,
-    writeScript: opts.writeScript,
-    writeScriptFormat: opts.writeScriptFormat,
-
-    gasPrice: opts.gasPrice,
-    gasFee: opts.maxGasFee,
-    priorityGasFee: opts.maxPriorityGasFee,
-  });
-
-  return [node, pkgSpec, outputs, runtime];
 }
 
 applyCommandsConfig(program.command('build'), commandsConfig.build)

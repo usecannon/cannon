@@ -1,5 +1,3 @@
-import * as paramUtils from '../util/params';
-
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { CannonRpcNode } from '../rpc';
 
@@ -11,6 +9,7 @@ describe('build', () => {
   let helpers: typeof import('../helpers');
   let ethers: typeof import('ethers').ethers;
   let buildCommand: typeof import('./build');
+  let doBuild: typeof import('../util/build');
   let utilProvider: typeof import('../util/provider');
   let rpcModule: typeof import('../rpc');
 
@@ -23,6 +22,7 @@ describe('build', () => {
     helpers = await import('../helpers');
     ethers = (await import('ethers')).ethers;
     buildCommand = await import('./build');
+    doBuild = await import('../util/build');
     utilProvider = await import('../util/provider');
     rpcModule = await import('../rpc');
   });
@@ -32,16 +32,16 @@ describe('build', () => {
     jest.resetModules();
   });
 
-  it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
-    const errorMessage = 'Reject Error';
-    jest.spyOn(paramUtils, 'parseSettings').mockImplementationOnce(() => {
-      throw new Error(errorMessage);
+  describe('onBuild', () => {
+    it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
+      let cannonfile = '';
+      const settings = ['first=1', 'second=2'];
+
+      cannonfile = doBuild.setCannonfilePath(cannonfile, settings);
+
+      expect(cannonfile).toEqual('cannonfile.toml');
+      expect(settings).toEqual(['', 'first=1', 'second=2']);
     });
-    const settings = ['first=1', 'second=2'];
-    await expect(async () => {
-      await cli.parseAsync([...fixedArgs, ...settings]);
-    }).rejects.toThrow(errorMessage);
-    expect(paramUtils.parseSettings).toHaveBeenCalledWith(settings);
   });
 
   describe('provider', () => {

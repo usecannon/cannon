@@ -1,10 +1,8 @@
-import path from 'path';
-
+import path from 'node:path';
+import { loadCannonfile, PackageSpecification, parsePackageArguments } from '@usecannon/cli';
 import { subtask } from 'hardhat/config';
-
-import { SUBTASK_LOAD_PACKAGE_DEFINITION } from '../task-names';
-import { PackageSpecification, parsePackageArguments, loadCannonfile } from '@usecannon/cli';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SUBTASK_LOAD_PACKAGE_DEFINITION } from '../task-names';
 
 subtask(SUBTASK_LOAD_PACKAGE_DEFINITION).setAction(
   async ({ packageWithSettingsParams }: { packageWithSettingsParams: string[] }, hre): Promise<PackageSpecification> => {
