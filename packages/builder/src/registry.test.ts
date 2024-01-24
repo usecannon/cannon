@@ -1,6 +1,6 @@
 import * as viem from 'viem';
 import { CannonRegistry, OnChainRegistry } from './registry';
-import { fixtureSigner } from '../test/fixtures';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { CannonSigner } from '.';
 
 jest.mock('./error/provider');
@@ -45,7 +45,7 @@ describe('registry.ts', () => {
     const fakeRegistryAddress = '0x1234123412341234123412341234123412341234';
 
     beforeAll(async () => {
-      provider = viem.createPublicClient({ transport: viem.custom({} as any) });
+      provider = makeFakeProvider();
       signer = fixtureSigner();
       registry = new OnChainRegistry({
         address: fakeRegistryAddress,
@@ -54,7 +54,7 @@ describe('registry.ts', () => {
         overrides: { gasLimit: 1234000 },
       });
 
-      providerOnlyRegistry = new OnChainRegistry({ provider, signer, address: fakeRegistryAddress });
+      providerOnlyRegistry = new OnChainRegistry({ provider, address: fakeRegistryAddress });
     });
 
     describe('constructor', () => {
@@ -100,10 +100,16 @@ describe('registry.ts', () => {
 
         jest.mocked(provider.getChainId).mockResolvedValue(12341234);
 
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+
         jest
           .mocked(signer.wallet.sendTransaction)
           .mockResolvedValueOnce({} as any)
           .mockResolvedValueOnce({} as any);
+        
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue({
+          transactionHash: '0x1234',
+        })
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
@@ -132,13 +138,14 @@ describe('registry.ts', () => {
 
         expect(url).toBe('ipfs://Qmwohoo');
 
-        expect(jest.mocked(provider.call).mock.lastCall?.[0].data).toBe(
-          viem.encodeFunctionResult({ ...registry.contract, functionName: 'getPackageUrl', result: [
-            viem.stringToHex('dummyPackage', { size: 32 }),
-            viem.stringToHex('0.0.1', { size: 32 }),
-            viem.stringToHex('13370-main', { size: 32 }),
-          ]})
-        );
+        expect(jest.mocked(provider.simulateContract).mock.lastCall?.[0]).toMatchObject({
+          functionName: 'getUrl',
+          args: [
+            viem.stringToBytes('dummyPackage', { size: 32 }),
+            viem.stringToBytes('0.0.1', { size: 32 }),
+            viem.stringToBytes('13370-main', { size: 32 }),
+          ]
+        });
       });
     });
   });

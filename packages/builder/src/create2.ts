@@ -1,4 +1,5 @@
-import viem, { Address, Hash, Hex } from 'viem';
+import * as viem from 'viem'; 
+import { Address, Hash, Hex } from 'viem';
 
 import { ChainBuilderRuntimeInfo } from '.';
 

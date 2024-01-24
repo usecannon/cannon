@@ -156,10 +156,10 @@ const routerStep = {
           address: receipt.contractAddress,
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
-          deployTxnHash: hash,
+          deployTxnHash: receipt.transactionHash,
           contractName,
           sourceName: contractName + '.sol',
-          gasUsed: receipt.gasUsed.toNumber(),
+          gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
           //sourceCode
         },

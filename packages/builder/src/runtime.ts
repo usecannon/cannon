@@ -1,6 +1,6 @@
 import { yellow } from 'chalk';
 import Debug from 'debug';
-import viem, { Hex } from 'viem';
+import * as viem from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
 import { CannonSigner, PackageReference } from './';
@@ -97,7 +97,7 @@ export class CannonStorage extends EventEmitter {
 const parseGasValue = (value: string | undefined) => {
   if (!value) return undefined;
 
-  return viem.parseGwei.toString();
+  return viem.parseGwei(value).toString();
 };
 
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
@@ -201,7 +201,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     }
   }
 
-  async loadState(stateDump: Hex): Promise<void> {
+  async loadState(stateDump: viem.Hex): Promise<void> {
     if (this.snapshots) {
       debug('load state', stateDump.length);
       await (this.provider as viem.TestClient & viem.PublicClient).loadState({ state: stateDump });

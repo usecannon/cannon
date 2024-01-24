@@ -1,6 +1,7 @@
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
-import viem, { Abi, Address } from 'viem';
+import * as viem from 'viem';
+import { Abi, Address } from 'viem';
 import EventEmitter from 'promise-events';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { PackageReference } from './package';
@@ -273,9 +274,9 @@ export class OnChainRegistry extends CannonRegistry {
     metaUrl?: string
   ) {
     return viem.encodeFunctionData({ ...this.contract, functionName: 'publish', args: [
-      viem.stringToBytes(packagesName),
-      viem.stringToBytes(variant),
-      packageTags,
+      viem.stringToHex(packagesName, { size: 32 }),
+      viem.stringToHex(variant, { size: 32 }),
+      packageTags.map(t => viem.stringToHex(t, { size: 32 })),
       url,
       metaUrl || '',
     ] });
@@ -383,9 +384,9 @@ export class OnChainRegistry extends CannonRegistry {
       ...this.contract,
       functionName: 'getUrl',
       args: [
-        viem.stringToBytes(name),
-        viem.stringToBytes(version),
-        viem.stringToBytes(variant)
+        viem.stringToBytes(name, { size: 32 }),
+        viem.stringToBytes(version, { size: 32 }),
+        viem.stringToBytes(variant, { size: 32 })
       ]
     });
 

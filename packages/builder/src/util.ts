@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import viem, { Address } from 'viem';
+import * as viem from 'viem';
 import { Buffer } from 'buffer';
 import _ from 'lodash';
 
@@ -33,7 +33,7 @@ export async function getExecutionSigner(
   }
 
   const hash = hasher.digest('hex');
-  const address: Address = '0x' + hash.slice(0, 40) as Address;
+  const address = '0x' + hash.slice(0, 40) as viem.Address;
 
   await provider.impersonateAccount({ address });
   await provider.setBalance({ address, value: BigInt(1e22) });

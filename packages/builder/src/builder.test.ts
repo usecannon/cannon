@@ -15,7 +15,7 @@ import invokeStep from './steps/invoke';
 import { InMemoryRegistry } from './registry';
 
 import { contractSchema } from './schemas.zod';
-import { fixtureSigner } from '../test/fixtures';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./error/provider');
 jest.mock('./steps/contract');
@@ -43,11 +43,9 @@ describe('builder.ts', () => {
     };
   });
 
-  const provider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({
-    request: async () => {}
-  }) })
-  .extend(viem.publicActions)
-  .extend(viem.walletActions);
+  const provider = makeFakeProvider();
+
+
 
   jest.mocked(provider.getChainId).mockResolvedValue(1234);
   jest.mocked(provider.dumpState).mockImplementation(async () => {
@@ -259,7 +257,7 @@ describe('builder.ts', () => {
       expect(artifacts?.contracts?.Yoop.address).toStrictEqual(
         expectedStateOut['contract.Yoop'].artifacts.contracts!.Yoop.address
       );
-      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('');
+      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('0x');
     });
 
     it('loads state when snapshots are present', async () => {
@@ -268,7 +266,7 @@ describe('builder.ts', () => {
       await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
       // should only be called for the leaf
-      expect(provider.loadState).toBeCalledWith('0x5678');
+      expect(provider.loadState).toBeCalledWith({ state: '0x5678' });
       expect(provider.loadState).toBeCalledTimes(1);
     });
   });

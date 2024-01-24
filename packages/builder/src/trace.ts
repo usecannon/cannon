@@ -1,6 +1,7 @@
 import { ChainArtifacts, Contract, ContractData } from './types';
 import { ConsoleLogs } from './consoleLog';
-import viem, { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
+import * as viem from 'viem';
+import { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
 import { green, grey, bold, red } from 'chalk';
 
 const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';

@@ -3,7 +3,7 @@ import { IPFSLoader } from './loader';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { ContractArtifact } from './types';
 import { InMemoryRegistry } from './registry';
-import { fixtureSigner } from '../test/fixtures';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./error/provider');
 jest.mock('./loader');
@@ -31,7 +31,7 @@ describe('runtime.ts', () => {
     });
 
     beforeAll(async () => {
-      provider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({} as any) }).extend(viem.publicActions) as any;
+      provider = makeFakeProvider();
 
       loader = new IPFSLoader('', null as any);
 
@@ -116,7 +116,7 @@ describe('runtime.ts', () => {
       it('does calls evm_revert and evm_snapshots if snapshots = true', async () => {
         (runtime as any).snapshots = true;
         await runtime.clearNode();
-        expect(jest.mocked(provider.snapshot)).toBeCalledWith('evm_snapshot', []);
+        expect(jest.mocked(provider.snapshot)).toBeCalledWith();
       });
     });
 

@@ -1,5 +1,7 @@
 import Debug from 'debug';
-import viem, { Abi, AbiFunction, Address, Hash, SimulateContractReturnType } from 'viem';
+
+import * as viem from 'viem';
+import { Abi, AbiFunction, Address, Hash, SimulateContractReturnType } from 'viem';
 import _ from 'lodash';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';

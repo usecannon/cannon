@@ -2,7 +2,7 @@ import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
 import action from './provision';
-import { fakeCtx, fakeRuntime } from './utils.test';
+import { fakeCtx, fakeRuntime } from './utils.test.helper';
 
 import { contractSchema } from '../schemas.zod';
 import contractAction from './contract';

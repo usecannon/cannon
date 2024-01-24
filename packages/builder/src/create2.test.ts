@@ -1,7 +1,7 @@
 import { ARACHNID_CREATE2_PROXY } from './constants';
 import { ARACHNID_DEPLOY_ADDR, ARACHNID_DEPLOY_TXN, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
 
-import { fakeRuntime, makeFakeSigner } from './steps/utils.test';
+import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
 
 import * as viem from 'viem';
 
@@ -32,11 +32,11 @@ describe('util.ts', () => {
 
       (fakeRuntime.getSigner as any) = async () => fakeSigner;
 
-      jest.mocked((fakeRuntime.provider as unknown as viem.WalletClient).sendTransaction).mockResolvedValue({ wait: jest.fn() } as any);
+      //jest.mocked((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).mockResolvedValue({ wait: jest.fn() } as any);
 
       await ensureArachnidCreate2Exists(fakeRuntime);
 
-      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendTransaction).toBeCalledWith(ARACHNID_DEPLOY_TXN);
+      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).toBeCalledWith({ serializedTransaction: ARACHNID_DEPLOY_TXN });
     });
   });
 

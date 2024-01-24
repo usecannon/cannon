@@ -4,7 +4,8 @@ import Debug from 'debug';
 import { z } from 'zod';
 import { contractSchema } from '../schemas.zod';
 
-import viem, { Address, Hash, Hex } from 'viem';
+import * as viem from 'viem';
+import { Address, Hash, Hex } from 'viem';
 
 import {
   ChainBuilderContext,

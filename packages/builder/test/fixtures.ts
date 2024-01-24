@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import _ from 'lodash';
-import viem, { Address } from 'viem';
+import * as viem from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';
 import { ChainBuilderRuntime } from '../src/runtime';
@@ -57,7 +57,7 @@ export const fixtureRuntimeInfo = () => {
   return {
     provider,
     chainId: 13370,
-    getSigner: async (addr: Address) => ({ address: addr, wallet: provider as any}),
+    getSigner: async (addr: viem.Address) => ({ address: addr, wallet: provider as any}),
     getDefaultSigner: async () => ({ address: fixtureAddress(), wallet: provider as any}),
     getArtifact: async (contractName: string) => fixtureContractArtifact(contractName),
     snapshots: false,
@@ -72,10 +72,26 @@ export const fixtureRuntime = (
   defaultLoaderScheme?: ConstructorParameters<typeof ChainBuilderRuntime>[3]
 ) => new ChainBuilderRuntime(info, registry, loaders, defaultLoaderScheme);
 
-export const fixtureSigner = () => { 
+export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {
+  const fakeProvider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({
+    request: async () => {}
+  }) })
+    .extend(viem.publicActions)
+    .extend(viem.walletActions);
+  
+  for (const p in fakeProvider) {
+    if (typeof (fakeProvider as any)[p] as any === 'function') {
+      (fakeProvider as any)[p] = jest.fn();
+    }
+  }
+
+  return fakeProvider as any;
+}
+
+export const fixtureSigner = (provider: viem.WalletClient = makeFakeProvider()) => { 
   const acct = privateKeyToAccount(generatePrivateKey());
 
-  return { address: acct.address, wallet: viem.createWalletClient({ account: acct, transport: viem.custom({} as any)})};
+  return { address: acct.address, wallet: provider };
 }
 
 export async function mockDeployTransaction(signer: CannonSigner) {

@@ -8,8 +8,10 @@ import {
 } from './util';
 
 import 'jest';
-import viem, { AbiFunction, AbiItem } from 'viem';
+import * as viem from 'viem';
+import { AbiFunction, AbiItem } from 'viem';
 import { ChainBuilderContext } from '.';
+import { makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./error/provider');
 
@@ -185,17 +187,16 @@ describe('util.ts', () => {
   });
 
   describe('getExecutionSigner()', () => {
-    const provider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({} as any)})
-      /*.extend(viem.publicActions)
-      .extend(viem.walletActions)*/;
+    const provider = makeFakeProvider();
 
     it('returns a signer based on the hash of transaction data', async () => {
       const signer = await getExecutionSigner(provider, { data: '0xwoot' });
 
       // TODO: expect signer address to equal something
+      expect(viem.isAddress(signer.address)).toBeTruthy();
 
       // should return signer when called the same way again
-      expect(await getExecutionSigner(provider, { data: '0xwoot' })).toStrictEqual(signer);
+      expect((await getExecutionSigner(provider, { data: '0xwoot' })).address).toStrictEqual(signer.address);
     });
 
     it('gives a different signer for different salt', async () => {

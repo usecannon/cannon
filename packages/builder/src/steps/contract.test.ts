@@ -3,7 +3,7 @@ import '../actions';
 import { ContractArtifact } from '../types';
 import action from './contract';
 
-import { fakeRuntime, fakeCtx, makeFakeSigner } from './utils.test';
+import { fakeRuntime, fakeCtx, makeFakeSigner } from './utils.test.helper';
 import { makeArachnidCreate2Txn } from '../create2';
 import { ARACHNID_CREATE2_PROXY } from '../constants';
 
@@ -24,6 +24,12 @@ describe('steps/contract.ts', () => {
         {
           name: 'data',
           type: 'tuple',
+          components: [
+            {
+              type: 'string',
+              name: 'testval'
+            }
+          ]
         },
       ],
       stateMutability: 'nonpayable',
@@ -36,6 +42,14 @@ describe('steps/contract.ts', () => {
       bytecode: '0xabcd',
       abi: fakeAbi,
     } as unknown as ContractArtifact);
+
+    jest.mocked((fakeRuntime.provider as any).sendTransaction).mockResolvedValue('0x1234');
+    jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue({
+      transactionHash: '0x1234',
+      contractAddress: '0x2345234523452345234523452345234523452345',
+      gasUsed: BigInt(1234),
+      effectiveGasPrice: BigInt(5678),
+    });
   });
 
   describe('configInject()', () => {
@@ -160,7 +174,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [viem.stringToHex('one'), viem.stringToHex('two'), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32}), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -171,10 +185,10 @@ describe('steps/contract.ts', () => {
           contracts: {
             Woot: {
               abi: fakeAbi,
-              address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
+              address: '0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef',
               constructorArgs: [
-                viem.stringToHex('one'),
-                viem.stringToHex('two'),
+                viem.stringToHex('one', { size: 32 }),
+                viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -216,7 +230,7 @@ describe('steps/contract.ts', () => {
           contracts: {
             Woot: {
               abi: fakeAbi,
-              address: '0x2Fd75828bbbb23d9f76683060C1129CC3E50d65c',
+              address: '0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef',
               constructorArgs: [
                 viem.stringToHex('one', { size: 32}),
                 viem.stringToHex('two', { size: 32}),
@@ -228,8 +242,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
-              gasCost: '0',
-              gasUsed: 0,
+              gasCost: '5678',
+              gasUsed: 1234,
             },
           },
         });
@@ -278,8 +292,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: true,
-              gasCost: '0',
-              gasUsed: 0,
+              gasCost: '5678',
+              gasUsed: 1234,
             },
           },
         });
@@ -288,7 +302,7 @@ describe('steps/contract.ts', () => {
       it('deploys with specified signer fromCall', async () => {
         (fakeRuntime.getSigner as any) = async (addr: string) => {
           if (addr == '0x1234123412341234123412341234123412341234') {
-            return makeFakeSigner('0x1234123412341234123412341234123412341234');
+            return makeFakeSigner('0x1234123412341234123412341234123412341234', fakeRuntime.provider as any);
           }
 
           return null;
@@ -323,8 +337,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
-              gasCost: '0',
-              gasUsed: 0,
+              gasCost: '5678',
+              gasUsed: 1234,
             },
           },
         });
@@ -359,8 +373,8 @@ describe('steps/contract.ts', () => {
               linkedLibraries: {},
               sourceName: undefined,
               highlight: undefined,
-              gasCost: '0',
-              gasUsed: 0,
+              gasCost: '5678',
+              gasUsed: 1234,
             },
           },
         });
