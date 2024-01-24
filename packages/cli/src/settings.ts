@@ -12,7 +12,8 @@ import {
   DEFAULT_REGISTRY_PROVIDER_URL,
 } from './constants';
 import { filterSettings } from './helpers';
-import viem, { Address, Hash } from 'viem';
+import * as viem from 'viem';
+import { Address, Hash } from 'viem';
 
 const debug = Debug('cannon:cli:settings');
 

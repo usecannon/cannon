@@ -91,9 +91,9 @@ function getContractsAndDetailsTestCases() {
     const result = getContractsAndDetails(state);
     expect(result).toEqual({
       Contract1: {
-        address: 'address1',
+        address: '0xaddress1',
         abi: [],
-        deployTxnHash: 'hash1',
+        deployTxnHash: '0xhash1',
         contractName: 'Contract1',
         sourceName: 'Source1',
         deployedOn: 'date1',

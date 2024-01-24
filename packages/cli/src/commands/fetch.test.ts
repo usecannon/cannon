@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CannonStorage, DeploymentInfo, IPFSLoader } from '@usecannon/builder';
 import { resolveCliSettings } from '@usecannon/cli/src/settings';
-import viem from 'viem';
+import * as viem from 'viem';
 import mockfs from 'mock-fs';
 import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry, LocalRegistry } from '../registry';

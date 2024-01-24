@@ -11,7 +11,7 @@ import {
   renderTrace,
 } from '@usecannon/builder';
 import { bold, gray, green, greenBright, yellow } from 'chalk';
-import viem from 'viem';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import viem from 'viem';
+import * as viem from 'viem';
 
 import chalk from 'chalk';
 

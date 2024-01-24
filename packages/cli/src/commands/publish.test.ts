@@ -6,7 +6,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import viem from 'viem';
+import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import fs, { Dirent } from 'fs-extra';
 import _ from 'lodash';

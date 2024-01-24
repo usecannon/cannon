@@ -4,7 +4,7 @@ import type { Config as StepInvoke } from '@usecannon/builder/src/steps/invoke';
 import type { Config as StepRouter } from '@usecannon/builder/src/steps/router';
 import type { Config as StepImport } from '@usecannon/builder/src/steps/import';
 import type { Config as StepProvision } from '@usecannon/builder/src/steps/provision';
-import viem from 'viem';
+import * as viem from 'viem';
 
 type BaseDumpLine = {
   label: string;

@@ -1,7 +1,7 @@
 import { bold, red } from 'chalk';
 import Debug from 'debug';
 import provider from 'eth-provider';
-import viem from 'viem';
+import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import os from 'os';
 import { CliSettings } from '../settings';

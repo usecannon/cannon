@@ -15,7 +15,7 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import viem from 'viem';
+import * as viem from 'viem';
 import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';

@@ -1,5 +1,5 @@
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
-import viem from 'viem';
+import * as viem from 'viem';
 import { resolveCliSettings } from '../../src/settings';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';

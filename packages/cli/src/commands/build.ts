@@ -14,7 +14,7 @@ import {
   ChainArtifacts,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
-import viem from 'viem';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { table } from 'table';
 import pkg from '../../package.json';

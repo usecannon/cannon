@@ -2,7 +2,7 @@ import http from 'node:http';
 import { Readable } from 'node:stream';
 import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import viem from 'viem';
+import * as viem from 'viem';
 import Debug from 'debug';
 import _ from 'lodash';
 import { execPromise, toArgs } from './helpers';

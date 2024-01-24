@@ -1,5 +1,5 @@
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
-import viem from 'viem';
+import * as viem from 'viem';
 import axios from 'axios';
 import { getChainDataFromId } from '../helpers';
 import { createDefaultReadRegistry } from '../registry';

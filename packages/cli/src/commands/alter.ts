@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
-import viem from 'viem';
+import * as viem from 'viem';
 
 import { bold, yellow } from 'chalk';
 

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import viem from 'viem';
+import * as viem from 'viem';
 import { gray, yellow, green, red, bold } from 'chalk';
 import { readDeployRecursive } from '../package';
 import { resolveWriteProvider } from '../util/provider';

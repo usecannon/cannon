@@ -1,7 +1,7 @@
 import { CannonSigner, CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
 import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
-import viem from 'viem';
+import * as viem from 'viem';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
