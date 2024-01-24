@@ -82,12 +82,8 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const [buildSkippedSteps, setBuildSkippedSteps] = useState<StepExecutionError[]>([]);
 
   const buildFn = async () => {
-    if (settings.isIpfsGateway) {
-      throw new Error('You cannot build on an IPFS gateway, only read operations can be done');
-    }
-
-    if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-      throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+    if (settings.isIpfsGateway || settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
+      throw new Error('Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.');
     }
 
     setBuildStatus('Creating fork...');
