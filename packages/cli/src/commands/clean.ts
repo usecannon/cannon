@@ -10,7 +10,9 @@ const debug = Debug('cannon:cli:clean');
 export async function clean(confirm = true) {
   const settings = resolveCliSettings();
 
-  const folders = ['tags', 'metadata_cache'].map((dir) => path.join(settings.cannonDirectory, dir));
+  const folders = ['tags', 'metadata_cache', 'ipfs_cache', 'build_results', 'blobs'].map((dir) => {
+    return path.join(settings.cannonDirectory, dir);
+  });
 
   const filesAndDirs = await Promise.all(
     folders.map(async (dir) => {
