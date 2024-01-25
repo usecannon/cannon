@@ -465,6 +465,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
+  getProvider(node!).send('evm_mine', []);
   const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
 
   forgeCmd.stdout.on('data', (data: Buffer) => {
