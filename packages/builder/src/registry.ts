@@ -137,7 +137,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
 
         if (result) {
           debug('fallback registry: loaded from registry', registry.getLabel());
-          await this.emit('getUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
+          await this.emit('getPackageUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
           return result;
         }
       } catch (err: any) {
@@ -259,7 +259,7 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing signer needed for publishing');
     }
 
-    if (!await this.provider?.getBalance({ address: this.signer.address })) {
+    if (!(await this.provider?.getBalance({ address: this.signer.address }))) {
       throw new Error(
         `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
       );
@@ -273,20 +273,29 @@ export class OnChainRegistry extends CannonRegistry {
     url: string,
     metaUrl?: string
   ) {
-    return viem.encodeFunctionData({ ...this.contract, functionName: 'publish', args: [
-      viem.stringToHex(packagesName, { size: 32 }),
-      viem.stringToHex(variant, { size: 32 }),
-      packageTags.map(t => viem.stringToHex(t, { size: 32 })),
-      url,
-      metaUrl || '',
-    ] });
+    return viem.encodeFunctionData({
+      ...this.contract,
+      functionName: 'publish',
+      args: [
+        viem.stringToHex(packagesName, { size: 32 }),
+        viem.stringToHex(variant, { size: 32 }),
+        packageTags.map((t) => viem.stringToHex(t, { size: 32 })),
+        url,
+        metaUrl || '',
+      ],
+    });
   }
 
   private async doMulticall(datas: string[]): Promise<string> {
     if (!this.signer || !this.provider) {
       throw new Error('cannon read and write to registry');
     }
-    const tx = await this.provider?.simulateContract({ ...this.contract, functionName: 'multicall', datas, ...this.overrides });
+    const tx = await this.provider?.simulateContract({
+      ...this.contract,
+      functionName: 'multicall',
+      datas,
+      ...this.overrides,
+    });
     // TODO: why does sendTransaction not like output from tx
     const hash = await this.signer?.wallet.sendTransaction(tx.request as any);
     const receipt = await this.provider?.waitForTransactionReceipt({ hash });
@@ -382,12 +391,12 @@ export class OnChainRegistry extends CannonRegistry {
 
     const { result: url } = await this.provider.simulateContract({
       ...this.contract,
-      functionName: 'getUrl',
+      functionName: 'getPackageUrl',
       args: [
-        viem.stringToBytes(name, { size: 32 }),
-        viem.stringToBytes(version, { size: 32 }),
-        viem.stringToBytes(variant, { size: 32 })
-      ]
+        viem.stringToHex(name, { size: 32 }),
+        viem.stringToHex(version, { size: 32 }),
+        viem.stringToHex(variant, { size: 32 }),
+      ],
     });
 
     return url || null;
@@ -407,18 +416,15 @@ export class OnChainRegistry extends CannonRegistry {
     const { result: url } = await this.provider.simulateContract({
       ...this.contract,
       functionName: 'getPackageMeta',
-      args: [
-        viem.stringToBytes(name),
-        viem.stringToBytes(version),
-        viem.stringToBytes(variant)
-      ]
+      args: [viem.stringToHex(name), viem.stringToHex(version), viem.stringToHex(variant)],
     });
 
     return url || null;
   }
 
   // TODO: viem does not seems to support querying historical logs, even tho its part of a balanced provider diet
-  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
+  async getAllUrls(/*filterPackageRef?: string, chainId?: number*/): Promise<Set<string>> {
+    // TODO: someday
     /*if (!filterPackageRef) {
       // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
       // in the future we might have a way to give the urls to search for and then limit
@@ -449,8 +455,7 @@ export class OnChainRegistry extends CannonRegistry {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
       const simulatedGas = await this.provider.estimateGas({ functionName: 'multicall', args: [datas], ...this.overrides });
       console.log(`\nEstimated gas: ${simulatedGas}`);
-      const gasPrice =
-        BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
+      const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
       console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
       const transactionFeeWei = simulatedGas * gasPrice;
       // Convert the transaction fee from wei to ether
@@ -462,7 +467,8 @@ export class OnChainRegistry extends CannonRegistry {
         console.log(
           bold(
             yellow(
-              `Publishing address "${await this.signer?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+              `Publishing address "${await this.signer
+                ?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
             )
           )
         );

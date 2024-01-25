@@ -17,6 +17,6 @@ export const chains: Chain[] = [cannonChain, ...Object.values(viemChains)];
 export function getChainById(id: any) {
   return extractChain({
     chains,
-    id,
+    id: parseInt(id),
   });
 }

@@ -9,7 +9,7 @@ import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
 import { gray } from 'chalk';
 
-import { cannonChain } from './chains';
+import { cannonChain, getChainById } from './chains';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -132,7 +132,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           anvilProvider = viem
             .createTestClient({
               mode: 'anvil',
-              chain: cannonChain,
+              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
               transport: viem.http(host),
             })
             .extend(viem.publicActions)
