@@ -77,11 +77,6 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
-  // http://localhost:3000/deploy/txn/8453/0xbb63CA5554dc4CcaCa4EDd6ECC2837d5EFe83C82/13/0x31aec5ebff677329906aa611bbfc1e72a599239d863c5f5a487d5f62b13036cb?chainId=8453&address=0xbb63CA5554dc4CcaCa4EDd6ECC2837d5EFe83C82
-  // https://github.com/Synthetixio/synthetix-deployments/compare/a9597d6fab86024bfbc4e121f3226c7422508b30...a3540015523bf1f6b8cfb0a239c4cdaa08f30417
-  // in `patches`: "\n--- a/./tomls/omnibus-base-mainnet-andromeda/perps/btc.toml\n+++ b/./tomls/omnibus-base-mainnet-andromeda/perps/btc.toml\n"
-  console.log('patches', patches);
-
   const parseDiffFileNames = (diffString: string): string[] => {
     const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
     let match;

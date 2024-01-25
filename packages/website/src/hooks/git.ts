@@ -78,9 +78,6 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
   const fromQuery = useGitRepo(url, fromRef, files);
   const toQuery = useGitRepo(url, toRef, files);
 
-  // Seeing 3.3.5-2 on both of these
-  console.log(fromRef, fromQuery.data, toRef, toQuery.data);
-
   const patches = useMemo(() => {
     const patches = [];
     if (fromQuery.data && toQuery.data) {
