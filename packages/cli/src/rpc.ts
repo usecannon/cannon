@@ -9,6 +9,8 @@ import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
 import { gray } from 'chalk';
 
+import { cannonChain } from './chains';
+
 const debug = Debug('cannon:cli:rpc');
 
 export type RpcOptions = {
@@ -127,13 +129,15 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           console.log(gray('Anvil instance running on:', host, '\n'));
 
           // TODO: why is this type not working out? (something about mode being wrong?)
-          anvilProvider = viem.createTestClient({
-            mode: 'anvil',
-            transport: viem.http('http://' + host)
-          })
+          anvilProvider = viem
+            .createTestClient({
+              mode: 'anvil',
+              chain: cannonChain,
+              transport: viem.http(host),
+            })
             .extend(viem.publicActions)
             .extend(viem.walletActions) as any;
-          
+
           anvilInstance!.host = host;
           resolve(anvilInstance!);
         }

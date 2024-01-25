@@ -6,10 +6,14 @@ import { privateKeyToAccount } from 'viem/accounts';
 import os from 'os';
 import { CliSettings } from '../settings';
 import { CannonSigner } from '@usecannon/builder';
+import { getChainById } from '../chains';
 
 const debug = Debug('cannon:cli:provider');
 
-export async function resolveWriteProvider(settings: CliSettings, chainId: number | string): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
+export async function resolveWriteProvider(
+  settings: CliSettings,
+  chainId: number
+): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
       "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
@@ -28,9 +32,11 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
   }) as any;
 }
 
-export async function resolveRegistryProvider(settings: CliSettings): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+export async function resolveRegistryProvider(
+  settings: CliSettings
+): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
   return resolveProviderAndSigners({
-    chainId: settings.registryChainId,
+    chainId: parseInt(settings.registryChainId),
     checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
   });
@@ -41,7 +47,7 @@ export async function resolveProviderAndSigners({
   checkProviders = ['frame'],
   privateKey,
 }: {
-  chainId: number | string;
+  chainId: number;
   checkProviders?: string[];
   privateKey?: string;
 }): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
@@ -69,30 +75,34 @@ export async function resolveProviderAndSigners({
   if (checkProviders[0].startsWith('http')) {
     debug('use explicit provider url', checkProviders);
     publicClient = viem.createPublicClient({
-      // TODO: possibly add chain id (its hard tho because we have to link the full chain object here)
-      transport: viem.http(checkProviders[0])
+      chain: getChainById(chainId),
+      transport: viem.http(checkProviders[0]),
     });
 
     if (privateKey) {
-      signers.push(...privateKey.split(',').map((k: string) => {
-        const account = privateKeyToAccount(k as viem.Hash);
-        return {
-          address: account.address,
-          wallet: viem.createWalletClient({
+      signers.push(
+        ...privateKey.split(',').map((k: string) => {
+          const account = privateKeyToAccount(k as viem.Hash);
+          return {
+            address: account.address,
+            wallet: viem.createWalletClient({
               account,
-              transport: viem.custom(publicClient.transport)
-          })
-        }
-      }));
+              transport: viem.custom(publicClient.transport),
+            }),
+          };
+        })
+      );
     } else {
       debug('no signer supplied for provider');
     }
   } else {
     debug('use frame eth provider');
     // Use eth-provider wrapped in Web3Provider as default
-    publicClient = viem.createPublicClient({
-        transport: viem.custom(rawProvider)
-    }).extend(viem.walletActions);
+    publicClient = viem
+      .createPublicClient({
+        transport: viem.custom(rawProvider),
+      })
+      .extend(viem.walletActions);
     try {
       // Attempt to load from eth-provider
       await rawProvider.enable();
@@ -100,7 +110,7 @@ export async function resolveProviderAndSigners({
       for (const address of rawProvider.accounts) {
         signers.push({
           address: address as viem.Address,
-          wallet: publicClient as unknown as viem.WalletClient
+          wallet: publicClient as unknown as viem.WalletClient,
         });
       }
     } catch (err: any) {
@@ -130,7 +140,7 @@ export async function resolveProviderAndSigners({
     }
   }
 
-  debug(`returning ${signers.length && (await signers[0].address)} signers`);
+  debug(`returning ${signers.length && signers[0].address} signers`);
 
   return {
     provider: publicClient,

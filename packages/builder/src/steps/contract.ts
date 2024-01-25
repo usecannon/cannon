@@ -55,10 +55,9 @@ function resolveBytecode(
       const linkReferences = artifactData.linkReferences[file][lib];
 
       for (const ref of linkReferences) {
-        injectedBytecode =
-          injectedBytecode.substring(0, 2 + ref.start * 2) +
+        injectedBytecode = (injectedBytecode.substring(0, 2 + ref.start * 2) +
           libraryAddress.substring(2) +
-          injectedBytecode.substring(2 + (ref.start + ref.length) * 2);
+          injectedBytecode.substring(2 + (ref.start + ref.length) * 2)) as viem.Hex;
 
         _.set(linkedLibraries, [file, lib], libraryAddress);
       }
@@ -75,14 +74,15 @@ function generateOutputs(
   deployTxn: viem.TransactionReceipt | null,
   currentLabel: string
 ): ChainArtifacts {
-  console.log('artifacts', artifactData);
   const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
 
-  const txn = { data: viem.encodeDeployData({
-    abi: artifactData.abi,
-    bytecode: injectedBytecode,
-    args: config.args || []
-  }) };
+  const txn = {
+    data: viem.encodeDeployData({
+      abi: artifactData.abi,
+      bytecode: injectedBytecode,
+      args: config.args || [],
+    }),
+  };
 
   const [, create2Addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
 
@@ -244,11 +244,13 @@ const contractSpec = {
     const [injectedBytecode] = resolveBytecode(artifactData, config);
 
     // finally, deploy
-    const txn = { data: viem.encodeDeployData({
-      abi: artifactData.abi,
-      bytecode: injectedBytecode,
-      args: config.args || []
-    }) };
+    const txn = {
+      data: viem.encodeDeployData({
+        abi: artifactData.abi,
+        bytecode: injectedBytecode,
+        args: config.args || [],
+      }),
+    };
 
     const overrides: any = {}; // TODO
 

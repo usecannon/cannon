@@ -86,8 +86,43 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 }
 
 export const CannonHelperContext = {
+  // ethers style constants
+  AddressZero: viem.zeroAddress,
+  HashZero: viem.zeroHash,
+  MaxUint256: viem.maxUint256,
 
-}
+  // ethers style utils
+  defaultAbiCoder: {
+    encode: (a: string[], v: any[]) => {
+      return viem.encodeAbiParameters(
+        a.map((arg) => ({ type: arg })),
+        v
+      );
+    },
+    decode: (a: string[], v: viem.Hex | viem.ByteArray) => {
+      return viem.decodeAbiParameters(
+        a.map((arg) => ({ type: arg })),
+        v
+      );
+    },
+  },
+
+  zeroPad: viem.padHex,
+  stripZeros: viem.trim,
+  formatBytes32String: (v: string) => viem.stringToHex(v, { size: 32 }),
+  parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),
+  id: (v: string) => (v.startsWith('function ') ? viem.toFunctionSelector(v) : viem.keccak256(viem.toHex(v))),
+  formatEther: viem.formatEther,
+  parseEther: viem.parseEther,
+  keccak256: viem.keccak256,
+  sha256: viem.sha256,
+  ripemd160: viem.ripemd160,
+  solidityPack: viem.encodePacked,
+  solidityKeccak256: (a: string[], v: any[]) => viem.keccak256(viem.encodePacked(a, v)),
+  soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
+  serializeTransaction: viem.serializeTransaction,
+  parseTransaction: viem.parseTransaction,
+};
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
 
@@ -95,7 +130,7 @@ export type BuildOptions = { [val: string]: OptionTypesTs };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
-export type CannonSigner = { wallet: viem.WalletClient, address: Address };
+export type CannonSigner = { wallet: viem.WalletClient; address: Address };
 
 export type Contract = Pick<viem.SimulateContractParameters, 'abi' | 'address'>;
 
@@ -223,7 +258,7 @@ export type StepState = {
   artifacts: ChainArtifacts;
 
   // If this is a cannon network build, the full dump of the chain blob is recorded
-  chainDump?: Hex|null; // only included if cannon network build
+  chainDump?: Hex | null; // only included if cannon network build
 };
 
 export type DeploymentState = { [label: string]: StepState };

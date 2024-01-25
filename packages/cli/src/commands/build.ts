@@ -18,7 +18,7 @@ import * as viem from 'viem';
 import _ from 'lodash';
 import { table } from 'table';
 import pkg from '../../package.json';
-import { chains } from '../chains';
+import { getChainById } from '../chains';
 import { readMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
@@ -77,7 +77,7 @@ export async function build({
   priorityGasFee,
   writeScript,
   writeScriptFormat = 'ethers',
-}: Params): Promise<{ outputs: ChainArtifacts, provider: viem.PublicClient, runtime: ChainBuilderRuntime }> {
+}: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
@@ -117,9 +117,10 @@ export async function build({
     await loadPlugins();
   }
 
-  const chainId = await provider.getChainId();
-  const chainName = chains.find((c) => c.chainId === chainId)?.name;
-  const nativeCurrencySymbol = chains.find((c) => c.chainId === chainId)?.nativeCurrency.symbol || 'ETH';
+  const chainInfo = getChainById(await provider.getChainId());
+  const chainId = chainInfo?.id;
+  const chainName = chainInfo?.name || 'unknown chain';
+  const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
   let totalCost = BigInt(0);
 
   const runtimeOptions = {
@@ -140,8 +141,8 @@ export async function build({
           wallet: viem.createWalletClient({
             account: addr,
             chain: provider.chain,
-            transport: viem.custom(provider.transport)
-          })
+            transport: viem.custom(provider.transport),
+          }),
         };
       },
 
@@ -191,7 +192,7 @@ export async function build({
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
       }
       console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
-      const cost = BigInt(txn.gasCost) * txn.gasUsed;
+      const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
       totalCost = totalCost + cost;
       console.log(
         gray(
@@ -211,7 +212,7 @@ export async function build({
         );
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
         console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
-        const cost = BigInt(contract.gasCost) * contract.gasUsed;
+        const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
         totalCost = totalCost + cost;
         console.log(
           gray(

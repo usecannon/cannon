@@ -57,7 +57,6 @@ async function runTxn(
     );
   }
 
-
   const overrides: any = {};
 
   if (config.overrides?.gasLimit) {
@@ -88,7 +87,9 @@ async function runTxn(
       throw new Error(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
           config.func
-        }". List of recognized functions is:\n${Object.keys(contract.abi.filter(v => v.type === 'function').map(v => (v as AbiFunction).name)).join(
+        }". List of recognized functions is:\n${Object.keys(
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+        ).join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
       );
@@ -102,13 +103,19 @@ async function runTxn(
 
     let addressCall: SimulateContractReturnType;
     try {
-      addressCall = await runtime.provider.simulateContract({ ...contract, functionName: config.fromCall.func, args: config.fromCall.args });
+      addressCall = await runtime.provider.simulateContract({
+        ...contract,
+        functionName: config.fromCall.func,
+        args: config.fromCall.args,
+      });
     } catch (error: unknown) {
       if (error instanceof viem.AbiFunctionNotFoundError) {
         throw new Error(
           `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
             config.func
-          }" to determine owner. List of recognized functions is:\n${Object.keys(contract.abi.filter(v => v.type === 'function').map(v => (v as AbiFunction).name)).join(
+          }" to determine owner. List of recognized functions is:\n${Object.keys(
+            contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+          ).join(
             '\n'
           )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
         );
@@ -116,18 +123,30 @@ async function runTxn(
 
       throw new Error(`Invalid arguments for function to determine owner "${config.func}": \n\n ${error}`);
     }
-    
+
     const address = addressCall.result as Address;
 
     debug('owner for call', address);
 
     const callSigner = await runtime.getSigner(address);
 
-    const txnSimulation = await runtime.provider.simulateContract({ ...contract, account: callSigner.address, functionName: config.func, args: config.args, ...overrides});
+    const txnSimulation = await runtime.provider.simulateContract({
+      ...contract,
+      account: callSigner.address,
+      functionName: config.func,
+      args: config.args,
+      ...overrides,
+    });
     // TODO: why does viem hate having `txnSimulation.request` below without the any, despiset hte example on how to do this on the guide? https://viem.sh/docs/contract/writeContract#writecontract
     txn = await callSigner.wallet.writeContract(txnSimulation.request as any);
   } else {
-    const txnSimulation = await runtime.provider.simulateContract({ ...contract, account: signer.address, functionName: config.func, args: config.args, ...overrides});
+    const txnSimulation = await runtime.provider.simulateContract({
+      ...contract,
+      account: signer.address,
+      functionName: config.func,
+      args: config.args,
+      ...overrides,
+    });
     txn = await signer.wallet.writeContract(txnSimulation.request as any);
   }
 
@@ -136,25 +155,16 @@ async function runTxn(
   debug('got receipt', receipt);
 
   // get events
-  // TODO
-  const txnEvents = _.groupBy(
-    _.filter(
-      receipt.logs.map((e: any) => {
-        if (!e.event || !e.args) {
-          return null;
-        }
-
-        return {
-          name: e.event,
-          args: e.args as any[],
-        };
-      }),
-      _.isObject
-    ),
+  const txnEvents: EncodedTxnEvents = _.groupBy(
+    viem
+      .parseEventLogs({ ...contract, logs: receipt.logs })
+      .map((l) => ({ name: l.eventName, args: Object.values(l.args) })),
     'name'
   );
 
-  return [receipt, txnEvents as EncodedTxnEvents];
+  debug('decoded events', txnEvents);
+
+  return [receipt, txnEvents];
 }
 
 function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {

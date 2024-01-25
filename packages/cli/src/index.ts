@@ -250,7 +250,7 @@ async function doBuild(
 
       // need to set default signer to make sure it is accurate to the actual signer
       getDefaultSigner = async () => {
-        const addr = p.signers.length > 0 ? await p.signers[0].address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+        const addr = p.signers.length > 0 ? p.signers[0].address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
         await provider.impersonateAccount({ address: addr });
         await provider.setBalance({ address: addr, value: BigInt(1e22) });
         return { address: addr, wallet: provider };
@@ -341,11 +341,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
     if (opts.keepAlive && node) {
-      console.log(
-        `Built package RPC URL available at http://${
-          node.host
-        }`
-      );
+      console.log(`Built package RPC URL available at http://${node.host}`);
       const { run } = await import('./commands/run');
       await run([{ ...pkgSpec, settings: {} }], {
         ...opts,
