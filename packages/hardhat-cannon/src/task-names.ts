@@ -9,4 +9,5 @@ export const TASK_VERIFY = `${TASK_PREFIX}:verify`;
 export const TASK_INSPECT = `${TASK_PREFIX}:inspect`;
 
 export const SUBTASK_LOAD_PACKAGE_DEFINITION = `${TASK_PREFIX}:load-package-definition`;
+export const SUBTASK_LOAD_DEPLOY = `${TASK_PREFIX}:load-deploy`;
 export const SUBTASK_GET_ARTIFACT = `${TASK_PREFIX}:get-artifact`;

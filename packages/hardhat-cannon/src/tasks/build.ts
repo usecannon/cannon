@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID, CannonJsonRpcProvider, CannonWrapperGenericProvider } from '@usecannon/builder';
+import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
@@ -8,12 +8,13 @@ import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
-import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
 
-import type { ethers } from 'ethers';
+import * as viem from 'viem';
+import { CannonSigner } from '@usecannon/builder';
+
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
   .addOptionalVariadicPositionalParam('settings', 'Custom settings for building the cannonfile', [])
@@ -89,12 +90,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         throw new Error('You cannot use --dry-run param when using the "hardhat" network');
       }
 
-      let provider =
+      let provider: viem.PublicClient & viem.TestClient & viem.WalletClient =
         hre.network.name === 'hardhat'
           ? // hardhat network is "special" in that it looks like its a jsonrpc provider,
             // but really you can't use it like that.
-            new CannonWrapperGenericProvider({}, (hre as any).ethers.provider, false)
-          : new CannonJsonRpcProvider({}, (hre.network.config as HttpNetworkConfig).url);
+            viem.createTestClient({ mode: 'hardhat', transport: viem.custom(hre.network.provider) })
+              .extend(viem.walletActions)
+              .extend(viem.publicActions)
+          : viem.createTestClient({ mode: 'anvil', transport: viem.http((hre.network.config as HttpNetworkConfig).url) }) as any;
 
       if (dryRun) {
         console.log(
@@ -124,41 +127,41 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
             )
           : await runRpc({ port, accounts, ...anvilOpts });
 
-        provider = getProvider(node);
+        provider = getProvider(node)! as any;
       }
 
       const signers = await getHardhatSigners(hre, provider);
 
-      const getSigner = async (address: string) => {
-        const addr: string = (hre as any).ethers.utils.getAddress(address);
+      const getSigner = (address: viem.Address): CannonSigner | null => {
         for (const signer of signers) {
-          const signerAddr = await signer.getAddress();
-          if (addr === signerAddr) return signer;
+          if (viem.isAddressEqual(signer.address, address)) return { address: signer.address, wallet: viem.createWalletClient({ account: signer, transport: viem.custom(provider.transport)}) };
         }
+
+        return null;
       };
 
-      let defaultSigner: ethers.Signer | null = null;
+      let defaultSigner: CannonSigner | null = null;
       if (hre.network.name !== 'cannon') {
         if (impersonate) {
-          await provider.send('hardhat_impersonateAccount', [impersonate]);
-          await provider.send('hardhat_setBalance', [impersonate, `0x${(1e22).toString(16)}`]);
-          defaultSigner = (await getSigner(impersonate)) || null;
+          await provider.impersonateAccount({ address: impersonate });
+          await provider.setBalance({ address: impersonate, value: BigInt(1e22) });
+          defaultSigner = getSigner(impersonate) || null;
           // Add the impersonated signer if it is not part of the hardhat config
           if (!defaultSigner) {
-            defaultSigner = provider.getSigner(impersonate);
-            signers.push(defaultSigner);
+            defaultSigner = { address: impersonate, wallet: provider };
+            signers.push({ address: impersonate } as any);
           }
         } else {
-          defaultSigner = signers[0];
+          defaultSigner = getSigner(signers[0].address);
         }
       }
 
       if (defaultSigner) {
         // print out any live deployment info that might be relevant
-        console.log(yellow(`default signer is ${await defaultSigner.getAddress()}`));
+        console.log(yellow(`default signer is ${defaultSigner.address}`));
       }
 
-      const params = {
+      const params: Parameters<typeof build>[0] = {
         provider,
         def,
         packageDefinition: {
@@ -168,15 +171,15 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           settings: parsedSettings,
         },
         getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
-        async getSigner(addr: string) {
+        async getSigner(addr: viem.Address) {
           if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
             // on test network any user can be conjured
-            await provider.send('hardhat_impersonateAccount', [addr]);
-            await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-            return provider.getSigner(addr);
+            await provider.impersonateAccount({ address: addr });
+            await provider.setBalance({ address: addr, value: BigInt(1e22) });
+            return { address: addr, wallet: provider };
           } else {
             // return the actual signer with private key
-            const signer = await getSigner(addr);
+            const signer = getSigner(addr);
             if (signer) return signer;
             throw new Error(
               `the current step requests usage of the signer with address ${addr}, but this signer is not found. Please either supply the private key, or change the cannon configuration to use a different signer.`
@@ -208,8 +211,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         );
       }
 
-      await augmentProvider(hre, outputs);
-      provider.artifacts = outputs;
+      //await augmentProvider(hre, outputs);
+      //provider.artifacts = outputs;
 
       return { outputs, provider, signers };
     }

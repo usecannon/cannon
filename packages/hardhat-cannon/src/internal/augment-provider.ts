@@ -1,9 +1,9 @@
-import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
+//import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
 import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
 import { HardhatPluginError } from 'hardhat/plugins';
 import { EthereumProvider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
 
-class CannonWrapperProvider extends ProviderWrapper {
+/*class CannonWrapperProvider extends ProviderWrapper {
   artifacts: ChainArtifacts;
   Web3Provider: any;
 
@@ -56,3 +56,4 @@ export async function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts:
     );
   }
 }
+*/
