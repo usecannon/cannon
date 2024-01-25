@@ -109,7 +109,7 @@ function generateOutputs(
   return {
     contracts: {
       [currentLabel.split('.')[1] || '']: {
-        address: config.create2 ? create2Addr : deployTxn!.contractAddress!,
+        address: config.create2 ? create2Addr : viem.getAddress(deployTxn!.contractAddress!),
         abi,
         constructorArgs: config.args || [],
         linkedLibraries,
