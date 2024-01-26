@@ -60,7 +60,7 @@ export function computeTemplateAccesses(str?: string) {
       ...recorders,
       // TODO: replace with cannon "standard template library" after the refactor
       // for now we are just using ethers so its fine to just put here
-      ...CannonHelperContext
+      ...CannonHelperContext,
     },
   });
 

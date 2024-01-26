@@ -101,7 +101,9 @@ export async function trace({
   let rpc;
   if (block) {
     // subtract one second because 1 second is added when the block is mined
-    const blockInfo = await provider.getBlock((block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag });
+    const blockInfo = await provider.getBlock(
+      (block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag }
+    );
     const timestamp = blockInfo.timestamp - 1;
     rpc = await runRpc(
       { port: 0, forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number - 1).toString(), timestamp },

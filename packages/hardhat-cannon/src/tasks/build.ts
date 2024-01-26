@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
+import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { bold, yellow, yellowBright } from 'chalk';

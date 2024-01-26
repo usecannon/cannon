@@ -1,5 +1,4 @@
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import * as viem from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import _ from 'lodash';
 import { dirSync } from 'tmp-promise';

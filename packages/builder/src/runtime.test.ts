@@ -10,7 +10,6 @@ jest.mock('./loader');
 
 describe('runtime.ts', () => {
   describe('ChainBuilderRuntime', () => {
-
     let loader: IPFSLoader;
     let provider: viem.PublicClient & viem.TestClient;
     let runtime: ChainBuilderRuntime;

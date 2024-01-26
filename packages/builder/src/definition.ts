@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import Debug from 'debug';
 
 import _ from 'lodash';
-import * as viem from 'viem';
 import { ChainBuilderContext, PreChainBuilderContext, CannonHelperContext } from './types';
 
 import { ActionKinds, validateConfig, RawChainDefinition } from './actions';

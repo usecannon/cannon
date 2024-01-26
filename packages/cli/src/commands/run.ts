@@ -164,7 +164,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   if (options.logs) {
-    return/* {
+    return; /* {
       signers,
       outputs: buildOutputs,
       provider,
@@ -189,7 +189,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     for (const txn of bwt.transactions) {
       try {
-        const traces = await provider.request({ method: 'trace_transaction' as any, params: [txn.hash] }) as TraceEntry[];
+        const traces = (await provider.request({ method: 'trace_transaction' as any, params: [txn.hash] })) as TraceEntry[];
 
         let renderedTrace = renderTrace(mergedOutputs, traces);
 

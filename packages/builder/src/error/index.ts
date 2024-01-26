@@ -1,13 +1,12 @@
-import * as viem from 'viem';
+/* eslint-disable no-case-declarations */
+/*import * as viem from 'viem';
 import { ChainArtifacts, ContractData } from '../types';
 import { renderTrace } from '../trace';
-
-/* eslint-disable no-case-declarations */
 
 import Debug from 'debug';
 import { Logger } from 'ethers/lib/utils';
 
-const debug = Debug('cannon:builder:error');
+const debug = Debug('cannon:builder:error');*/
 
 /*export async function handleTxnError(
   artifacts: ChainArtifacts,

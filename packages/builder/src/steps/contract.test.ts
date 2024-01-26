@@ -27,9 +27,9 @@ describe('steps/contract.ts', () => {
           components: [
             {
               type: 'string',
-              name: 'testval'
-            }
-          ]
+              name: 'testval',
+            },
+          ],
         },
       ],
       stateMutability: 'nonpayable',
@@ -174,7 +174,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32}), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -219,7 +219,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -232,8 +232,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x3F9270CE7b8704E7BE0BfcA0EA8836f2B135a4ef',
               constructorArgs: [
-                viem.stringToHex('one', { size: 32}),
-                viem.stringToHex('two', { size: 32}),
+                viem.stringToHex('one', { size: 32 }),
+                viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -251,11 +251,11 @@ describe('steps/contract.ts', () => {
         expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith(
           makeArachnidCreate2Txn(
             'wohoo',
-            viem.encodeDeployData({ bytecode: '0xabcd', abi: fakeAbi, args: [
-              viem.stringToHex('one', { size: 32}),
-              viem.stringToHex('two', { size: 32}),
-              { three: 'four' }
-            ]})
+            viem.encodeDeployData({
+              bytecode: '0xabcd',
+              abi: fakeAbi,
+              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+            })
           )[0]
         );
       });
@@ -269,7 +269,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             highlight: true,
-            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -282,8 +282,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                viem.stringToHex('one', { size: 32}),
-                viem.stringToHex('two', { size: 32}),
+                viem.stringToHex('one', { size: 32 }),
+                viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -314,7 +314,7 @@ describe('steps/contract.ts', () => {
           {
             artifact: 'hello',
             from: '0x1234123412341234123412341234123412341234',
-            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -327,8 +327,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                viem.stringToHex('one', { size: 32}),
-                viem.stringToHex('two', { size: 32}),
+                viem.stringToHex('one', { size: 32 }),
+                viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
@@ -350,7 +350,7 @@ describe('steps/contract.ts', () => {
           fakeCtx,
           {
             artifact: 'hello',
-            args: [viem.stringToHex('one', { size: 32}), viem.stringToHex('two', { size: 32}), { three: 'four' }],
+            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             salt: 'wohoo',
             value: '1234',
           },
@@ -363,8 +363,8 @@ describe('steps/contract.ts', () => {
               abi: fakeAbi,
               address: '0x2345234523452345234523452345234523452345',
               constructorArgs: [
-                viem.stringToHex('one', { size: 32}),
-                viem.stringToHex('two', { size: 32}),
+                viem.stringToHex('one', { size: 32 }),
+                viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,

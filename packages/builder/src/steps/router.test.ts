@@ -1,5 +1,5 @@
 import action from './router';
-import { fixtureContractData, fixtureCtx, fixtureSigner, mockDeployTransaction } from '../../test/fixtures';
+import { fixtureContractData, fixtureCtx, fixtureSigner } from '../../test/fixtures';
 import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
@@ -86,7 +86,7 @@ describe('steps/router.ts', () => {
         contractAddress: '0x12345678',
         gasUsed: BigInt(1234),
         effectiveGasPrice: BigInt(5678),
-        transactionHash: '0x8484'
+        transactionHash: '0x8484',
       });
 
       const res = await action.exec(runtime, ctx, config, step);

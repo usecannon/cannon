@@ -104,7 +104,10 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly provider: viem.PublicClient;
   readonly chainId: number;
   readonly getSigner: (addr: viem.Address) => Promise<CannonSigner>;
-  readonly getDefaultSigner: (txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>, salt?: string) => Promise<CannonSigner>;
+  readonly getDefaultSigner: (
+    txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
+    salt?: string
+  ) => Promise<CannonSigner>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
@@ -136,7 +139,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.provider = info.provider;
     this.chainId = info.chainId;
     this.getSigner = info.getSigner;
-    this.getDefaultSigner = info.getDefaultSigner || _.partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
+    this.getDefaultSigner =
+      info.getDefaultSigner || _.partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
 
     this.getArtifact = async (n: string) => {
       debug(`resolve artifact ${n}`);

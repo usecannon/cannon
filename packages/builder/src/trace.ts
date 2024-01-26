@@ -108,8 +108,8 @@ export function parseFunctionData(
       'log' +
       renderResult(
         decodeAbiParameters(
-          ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs].map(v => ({ type: v })),
-          '0x' + input.slice(10) as Hex
+          ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs].map((v) => ({ type: v })),
+          ('0x' + input.slice(10)) as Hex
         )
       );
 
@@ -133,14 +133,18 @@ export function parseFunctionData(
     if (info) {
       contractName = info.name;
 
-      let decodedInput: { functionName: string, args: readonly any[] | undefined };
+      let decodedInput: { functionName: string; args: readonly any[] | undefined };
       try {
         decodedInput = viem.decodeFunctionData({ ...info.contract, data: input });
         parsedInput = decodedInput.functionName + renderResult(decodedInput.args || []);
 
         // its actually easier to start by trying to parse the output first
         try {
-          const decodedOutput = viem.decodeFunctionResult({ ...info.contract, functionName: decodedInput.functionName, data: output })! as any[];
+          const decodedOutput = viem.decodeFunctionResult({
+            ...info.contract,
+            functionName: decodedInput.functionName,
+            data: output,
+          })! as any[];
           parsedOutput = renderResult(decodedOutput);
         } catch (err) {
           // if we found an address but the transaction cannot be parsed, it could be decodable error
@@ -179,7 +183,7 @@ export function findContract(
     if (condition(ctx.contracts[name])) {
       return {
         name: prefix + name,
-        contract: ctx.contracts[name]
+        contract: ctx.contracts[name],
       };
     }
   }
@@ -198,7 +202,7 @@ export function findContract(
 export function decodeTxError(data: Hex, abis: ContractData['abi'][] = []) {
   if (data.startsWith(viem.toFunctionSelector('Panic(uint256)'))) {
     // this is the `Panic` builtin opcode
-    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('uint256'), '0x' + data.slice(10) as Hex)[0];
+    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('uint256'), ('0x' + data.slice(10)) as Hex)[0];
     switch (Number(reason)) {
       case 0x00:
         return 'Panic("generic/unknown error")';
@@ -225,13 +229,13 @@ export function decodeTxError(data: Hex, abis: ContractData['abi'][] = []) {
     }
   } else if (data.startsWith(viem.toFunctionSelector('Error(string)'))) {
     // this is the `Error` builtin opcode
-    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('string'), '0x' + data.slice(10) as Hex);
+    const reason = viem.decodeAbiParameters(viem.parseAbiParameters('string'), ('0x' + data.slice(10)) as Hex);
     return `Error("${reason}")`;
   }
   for (const abi of abis) {
     try {
       const error = viem.decodeErrorResult({ data, abi });
-      return error.errorName + renderResult(error.args as any[] || []);
+      return error.errorName + renderResult((error.args as any[]) || []);
     } catch (err) {
       // intentionally empty
     }
@@ -248,7 +252,7 @@ export function parseContractErrorReason(contract: Contract, data: Hex): string 
   if (contract) {
     try {
       const error = viem.decodeErrorResult({ data, ...contract });
-      return error.errorName + renderResult(error.args as any[] || []);
+      return error.errorName + renderResult((error.args as any[]) || []);
     } catch (err) {
       // intentionally empty
     }

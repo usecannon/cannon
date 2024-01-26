@@ -33,7 +33,7 @@ export async function getExecutionSigner(
   }
 
   const hash = hasher.digest('hex');
-  const address = '0x' + hash.slice(0, 40) as viem.Address;
+  const address = ('0x' + hash.slice(0, 40)) as viem.Address;
 
   await provider.impersonateAccount({ address });
   await provider.setBalance({ address, value: BigInt(1e22) });
@@ -41,7 +41,7 @@ export async function getExecutionSigner(
   const client = viem.createWalletClient({
     account: address,
     chain: provider.chain,
-    transport: viem.custom(provider.transport)
+    transport: viem.custom(provider.transport),
   });
 
   return { wallet: client, address };

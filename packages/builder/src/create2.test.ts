@@ -36,7 +36,9 @@ describe('util.ts', () => {
 
       await ensureArachnidCreate2Exists(fakeRuntime);
 
-      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).toBeCalledWith({ serializedTransaction: ARACHNID_DEPLOY_TXN });
+      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).toBeCalledWith({
+        serializedTransaction: ARACHNID_DEPLOY_TXN,
+      });
     });
   });
 

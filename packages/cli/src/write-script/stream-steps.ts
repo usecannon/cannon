@@ -15,7 +15,7 @@ export function createStepsStream(runtime: ChainBuilderRuntime) {
   const getTransaction = async (hash: Hash): Promise<Transaction> => {
     try {
       // TODO: why do types poop out here
-      return await timeout(runtime.provider.getTransaction({ hash }), 15000) as Transaction;
+      return (await timeout(runtime.provider.getTransaction({ hash }), 15000)) as Transaction;
     } catch (err) {
       if (err instanceof TimeoutError) {
         throw new Error(`TimeoutError: Could not get transaction "${hash}"`);

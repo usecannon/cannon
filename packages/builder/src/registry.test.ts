@@ -92,7 +92,7 @@ describe('registry.ts', () => {
           //lastBaseFeePerGas: null,
           baseFeePerGas: [],
           gasUsedRatio: [],
-          oldestBlock: BigInt(0)
+          oldestBlock: BigInt(0),
           //gasPrice: viem.parseGwei('10'),
         });
 
@@ -106,10 +106,10 @@ describe('registry.ts', () => {
           .mocked(signer.wallet.sendTransaction)
           .mockResolvedValueOnce({} as any)
           .mockResolvedValueOnce({} as any);
-        
+
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue({
           transactionHash: '0x1234',
-        })
+        });
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
@@ -144,7 +144,7 @@ describe('registry.ts', () => {
             viem.stringToBytes('dummyPackage', { size: 32 }),
             viem.stringToBytes('0.0.1', { size: 32 }),
             viem.stringToBytes('13370-main', { size: 32 }),
-          ]
+          ],
         });
       });
     });

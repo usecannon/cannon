@@ -52,13 +52,13 @@ export const fixtureContractData = (contractName = 'Greeter') => {
 };
 
 export const fixtureRuntimeInfo = () => {
-  const provider = viem.createPublicClient({ transport: viem.custom({} as any)});
+  const provider = viem.createPublicClient({ transport: viem.custom({} as any) });
 
   return {
     provider,
     chainId: 13370,
-    getSigner: async (addr: viem.Address) => ({ address: addr, wallet: provider as any}),
-    getDefaultSigner: async () => ({ address: fixtureAddress(), wallet: provider as any}),
+    getSigner: async (addr: viem.Address) => ({ address: addr, wallet: provider as any }),
+    getDefaultSigner: async () => ({ address: fixtureAddress(), wallet: provider as any }),
     getArtifact: async (contractName: string) => fixtureContractArtifact(contractName),
     snapshots: false,
     allowPartialDeploy: false,
@@ -73,14 +73,20 @@ export const fixtureRuntime = (
 ) => new ChainBuilderRuntime(info, registry, loaders, defaultLoaderScheme);
 
 export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {
-  const fakeProvider = viem.createTestClient({ mode: 'anvil', transport: viem.custom({
-    request: async () => {}
-  }) })
+  const fakeProvider = viem
+    .createTestClient({
+      mode: 'anvil',
+      transport: viem.custom({
+        request: async () => {
+          // do nothing
+        },
+      }),
+    })
     .extend(viem.publicActions)
     .extend(viem.walletActions);
-  
+
   for (const p in fakeProvider) {
-    if (typeof (fakeProvider as any)[p] as any === 'function') {
+    if ((typeof (fakeProvider as any)[p] as any) === 'function') {
       (fakeProvider as any)[p] = jest.fn();
     }
   }
@@ -88,11 +94,11 @@ export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem
   return fakeProvider as any;
 }
 
-export const fixtureSigner = (provider: viem.WalletClient = makeFakeProvider()) => { 
+export const fixtureSigner = (provider: viem.WalletClient = makeFakeProvider()) => {
   const acct = privateKeyToAccount(generatePrivateKey());
 
   return { address: acct.address, wallet: provider };
-}
+};
 
 export async function mockDeployTransaction(signer: CannonSigner) {
   const hash = fixtureTxHash();

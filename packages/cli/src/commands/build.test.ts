@@ -10,7 +10,9 @@ export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem
     .createTestClient({
       mode: 'anvil',
       transport: viem.custom({
-        request: async () => {},
+        request: async () => {
+          // no body
+        },
       }),
     })
     .extend(viem.publicActions)

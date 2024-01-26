@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { Abi, Address, Hash, Hex, SendTransactionParameters, TransactionRequest } from 'viem';
+import { Abi, Address, Hash, Hex, SendTransactionParameters } from 'viem';
 
 import _ from 'lodash';
 

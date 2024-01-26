@@ -1,6 +1,5 @@
 import _ from 'lodash';
 
-import * as viem from 'viem';
 import { ChainDefinition } from './definition';
 import { RawChainDefinition } from './actions';
 import { build, getOutputs, runStep, createInitialContext } from './builder';
@@ -28,7 +27,7 @@ jest.mocked((contractStep.validate = contractSchema));
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
 
-  const getSigner = jest.fn(async (addr: viem.Address) => fixtureSigner());
+  const getSigner = jest.fn(async () => fixtureSigner());
 
   const getDefaultSigner = jest.fn(async () => fixtureSigner());
 
@@ -44,8 +43,6 @@ describe('builder.ts', () => {
   });
 
   const provider = makeFakeProvider();
-
-
 
   jest.mocked(provider.getChainId).mockResolvedValue(1234);
   jest.mocked(provider.dumpState).mockImplementation(async () => {
