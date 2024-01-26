@@ -43,8 +43,14 @@ export default function Download() {
 
   useEffect(() => {
     const queryCid = searchParams.get('cid');
+    const queryCompressed = searchParams.get('compressed');
+
     if (queryCid && typeof queryCid === 'string') {
       setCid(queryCid);
+    }
+
+    if (queryCompressed && queryCompressed === 'true') {
+      setDecompress(true);
     }
   }, [searchParams]);
 
@@ -63,24 +69,32 @@ export default function Download() {
     const query = search ? `?${search}` : '';
 
     router.push(`${pathname}${query}`);
-    setCid(value);
   };
 
-  const handleEncodingChange = (e) => {
+  const handleEncodingChange = (e: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
     setEncoding(e.target.value);
   };
 
-  const decodeData = (data, encoding) => {
-    if (encoding === 'base64') {
-      return btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
-    } else if (encoding === 'hex') {
-      return Array.from(new Uint8Array(data))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
-    } else if (encoding === 'utf8') {
-      return new TextDecoder('utf-8').decode(new Uint8Array(data));
+  const decodeData = (data: ArrayBuffer, encoding: string) => {
+    try {
+      if (encoding === 'base64') {
+        return btoa(
+          String.fromCharCode.apply(null, Array.from(new Uint8Array(data)))
+        );
+      } else if (encoding === 'hex') {
+        return Array.from(new Uint8Array(data))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+      } else if (encoding === 'utf8') {
+        return new TextDecoder('utf-8').decode(new Uint8Array(data));
+      }
+      return data;
+    } catch (err) {
+      console.error("couldn't decode the data: ", err);
+      return data;
     }
-    return data;
   };
 
   const { data: ipfsData } = useQueryIpfsData(cid, true, !decompress);
@@ -90,7 +104,7 @@ export default function Download() {
       ? decodeData(ipfsData, encoding)
       : JSON.stringify(ipfsData, null, 2);
 
-  const isJson = isJsonParsable(decodedData);
+  const isJson = isJsonParsable(String(decodedData));
 
   const handleDownload = () => {
     const blob = new Blob([decodedData], { type: 'application/octet-stream' });
@@ -137,11 +151,9 @@ export default function Download() {
                 CID
               </FormLabel>
               <InputGroup size="md">
-                <InputLeftElement
-                  pl={8}
-                  color="gray.500"
-                  children={'ipfs://'}
-                />
+                <InputLeftElement pointerEvents="none" pl={8} color="gray.400">
+                  <span>ipfs://</span>
+                </InputLeftElement>
                 <Input
                   pl={16}
                   placeholder="Qm..."
@@ -176,7 +188,7 @@ export default function Download() {
                 </FormControl>
                 <Box mb={4} minHeight="420px">
                   <CodePreview
-                    code={decodedData}
+                    code={String(decodedData)}
                     language={isJson ? 'json' : undefined}
                     height="420px"
                   />
