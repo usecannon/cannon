@@ -11,6 +11,8 @@ import Wei, { wei } from '@synthetixio/wei';
 import { PackageSpecification } from '../types';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap } from '@usecannon/builder';
 
+import { formatAbiFunction } from '../helpers';
+
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
 type InteractTaskArgs = {
@@ -128,9 +130,7 @@ async function printHeader(ctx: InteractTaskArgs) {
   // retrieve balance of the signer address
   // this isnt always necessary but it serves as a nice test that the provider is working
   // and prevents the UI from lurching later if its queried later
-  const signerBalance = ctx.signer
-    ? wei((await ctx.provider.getBalance({ address: ctx.signer.address })).toString())
-    : wei(0);
+  const signerBalance = ctx.signer ? await ctx.provider.getBalance({ address: ctx.signer.address }) : BigInt(0);
 
   console.log('\n');
   console.log(gray('================================================================================'));
@@ -138,14 +138,12 @@ async function printHeader(ctx: InteractTaskArgs) {
   console.log(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
 
   if (ctx.signer) {
-    console.log(yellow(`> Read/Write: ${await ctx.signer.address}`));
+    console.log(yellow(`> Read/Write: ${ctx.signer.address}`));
 
-    if (signerBalance.gt(1)) {
-      console.log(green(`> Signer Balance: ${signerBalance.toString(2)}`));
-    } else if (signerBalance.gt(0.1)) {
-      console.log(yellow(`> Signer Balance: ${signerBalance.toString(4)}`));
+    if (signerBalance > viem.parseEther('0.01')) {
+      console.log(green(`> Signer Balance: ${viem.formatEther(signerBalance)}`));
     } else {
-      console.log(red(`> WARNING! Low signer balance: ${signerBalance.toString(4)}`));
+      console.log(red(`> WARNING! Low signer balance: ${viem.formatEther(signerBalance)}`));
     }
   } else {
     console.log(gray('> Read Only'));
@@ -160,7 +158,7 @@ async function printHelpfulInfo(ctx: InteractTaskArgs, pickedPackage: number, pi
     console.log(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
   }
 
-  console.log(gray(`  * Signer: ${ctx.signer ? await ctx.signer.address : 'None'}`));
+  console.log(gray(`  * Signer: ${ctx.signer ? ctx.signer.address : 'None'}`));
   console.log('\n');
 }
 
@@ -226,7 +224,7 @@ async function pickContract({
 function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction[], string[]] {
   const abiFunctions = abi.filter((v) => v.type === 'function') as viem.AbiFunction[];
 
-  const prettyNames = abiFunctions.map((v: viem.AbiFunction) => `${v.name}(${v.inputs.map((i) => i.type).join(',')})`);
+  const prettyNames = abiFunctions.map(formatAbiFunction);
 
   return [abiFunctions, prettyNames];
 }
@@ -246,8 +244,6 @@ async function pickFunction({ contract }: { contract: Contract }) {
       suggest: suggestBySubtring,
     },
   ]);
-
-  console.log('picked', pickedFunction);
 
   return pickedFunction == PROMPT_BACK_OPTION.title ? null : abiFunctions[functionSignatures.indexOf(pickedFunction)];
 }
@@ -560,11 +556,10 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           // TODO: for some reason viem does not export `AbiEvent` type (even though they export other types like AbiFunction)
           const eventAbiDef = viem.getAbiItem({ abi: logContract.abi, name: parsedLog.eventName as any }) as any;
 
-          for (let i = 0; i < (parsedLog.args?.length || 0); i++) {
-            const output = parsedLog.args![i];
-            const paramType = eventAbiDef.inputs[i] as viem.AbiParameter;
+          for (const [a, arg] of ((eventAbiDef.inputs || []) as viem.AbiParameter[]).entries()) {
+            const output = parsedLog.args![arg.name || (`${a}` as any)];
 
-            console.log(cyan(`  ↪ ${paramType.name || ''}(${paramType.type}):`), printReturnedValue(paramType, output));
+            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), printReturnedValue(arg, output));
           }
 
           break;

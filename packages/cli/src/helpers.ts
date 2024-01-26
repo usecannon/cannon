@@ -17,6 +17,7 @@ import {
 } from '@usecannon/builder';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { AbiFunction } from 'viem';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
@@ -79,9 +80,13 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
+export function formatAbiFunction(v: AbiFunction) {
+  return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
+}
+
 async function getAnvilVersionDate(): Promise<Date | false> {
   try {
-    const child = await spawnSync('anvil', ['--version']);
+    const child = spawnSync('anvil', ['--version']);
     const output = child.stdout.toString();
     const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
     return new Date(timestamp);

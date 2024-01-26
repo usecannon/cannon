@@ -4,6 +4,8 @@ import { resolveCliSettings } from '../../src/settings';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
 
+import { formatAbiFunction } from '../helpers';
+
 export async function decode({
   packageRef,
   data,
@@ -18,7 +20,7 @@ export async function decode({
   json: boolean;
 }) {
   if (!data[0].startsWith('0x')) {
-    data[0] = '0x' + data[0] as viem.Hash;
+    data[0] = ('0x' + data[0]) as viem.Hash;
   }
 
   // Handle deprecated preset specification
@@ -49,10 +51,12 @@ export async function decode({
 
   const fragment = viem.getAbiItem({
     abi: parsed.abi,
-    name: (parsed.result as viem.EncodeFunctionDataParameters).functionName ||
-          (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
-          (parsed.result as viem.EncodeEventTopicsParameters).eventName ||
-    ''
+    args: (parsed.result as any).args,
+    name:
+      (parsed.result as viem.EncodeFunctionDataParameters).functionName ||
+      (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
+      (parsed.result as viem.EncodeEventTopicsParameters).eventName ||
+      '',
   });
 
   if (json || !fragment) {
@@ -60,8 +64,10 @@ export async function decode({
   }
 
   console.log();
-  // TODO: can we format the fragment name? is it possible?
-  console.log(green(`${(fragment as any).name}`), `${'sighash' in parsed.result ? italic(gray(parsed.result.sighash)) : ''}`);
+  console.log(
+    green(`${formatAbiFunction(fragment as any)}`),
+    `${'sighash' in parsed.result ? italic(gray(parsed.result.sighash)) : ''}`
+  );
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(data[0], abis);
@@ -71,8 +77,7 @@ export async function decode({
     }
   }
 
-  const renderParam = (prefix: string, input: viem.AbiParameter) =>
-    `${prefix}${gray(input.type)} ${bold(input.name)}`;
+  const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${gray(input.type)} ${bold(input.name)}`;
 
   const renderArgs = (input: viem.AbiParameter, value: any, p = '  ') => {
     if (Array.isArray(input)) {
@@ -113,9 +118,9 @@ function _getAbis(deployData: DeploymentInfo) {
     .map((artifact) => artifact.abi);
 }
 
-function _renderValue(type: viem.AbiParameter, value: string | BigInt) {
+function _renderValue(type: viem.AbiParameter, value: string | bigint) {
   switch (true) {
-    case (typeof value == 'bigint'):
+    case typeof value == 'bigint':
       return value.toString();
     case type.type === 'address':
       return value;
@@ -143,7 +148,13 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
     const result =
       _try(() => viem.decodeErrorResult({ abi, data: data[0] })) ||
       _try(() => viem.decodeFunctionData({ abi, data: data[0] })) ||
-      _try(() => viem.decodeEventLog({ abi, topics: (data.length > 1 ? data.slice(0, -1) : data) as [viem.Hex], data: data.length > 1 ? data[data.length - 1] : '0x' }));
+      _try(() =>
+        viem.decodeEventLog({
+          abi,
+          topics: (data.length > 1 ? data.slice(0, -1) : data) as [viem.Hex],
+          data: data.length > 1 ? data[data.length - 1] : '0x',
+        })
+      );
 
     if (result) return { abi, result };
   }
