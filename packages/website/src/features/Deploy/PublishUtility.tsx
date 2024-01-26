@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Button, Link, Spinner, Text } from '@chakra-ui/react';
+import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
 import { useAccount, useMutation, useWalletClient } from 'wagmi';
 import {
   CannonStorage,
@@ -21,6 +21,7 @@ export default function PublishUtility(props: {
 
   const wc = useWalletClient();
   const account = useAccount();
+  const toast = useToast();
 
   // get the package referenced by this ipfs package
   const {
@@ -57,7 +58,7 @@ export default function PublishUtility(props: {
 
       if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
         throw new Error(
-          'You cannot publish on an repo endpoint, only read operations can be done'
+          'Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.'
         );
       }
 
@@ -114,6 +115,17 @@ export default function PublishUtility(props: {
     onSuccess() {
       void registryQuery.refetch();
     },
+    onError(e) {
+      console.log('Error publishing package:', e);
+      toast({
+        title: 'Error Publishing Package',
+        description:
+          'Confirm that the connected wallet is allowed to publish this package and a valid IPFS URL for pinning is in your settings.',
+        status: 'error',
+        duration: 30000,
+        isClosable: true,
+      });
+    },
   });
 
   // any difference means that this deployment is not technically published
@@ -127,24 +139,24 @@ export default function PublishUtility(props: {
     return (
       <>
         {!existingRegistryUrl ? (
-          <Text fontSize="sm" mb={2}>
-            The package resulting from this deployment has not been published to
-            the registry.
+          <Text fontSize="sm" mb={3}>
+            The package resulting from this deployment has not been published
+            yet.
           </Text>
         ) : (
-          <Text fontSize="sm" mb={2}>
+          <Text fontSize="sm" mb={3}>
             A different package has been published to the registry with a
             matching name and version.
           </Text>
         )}
         {settings.isIpfsGateway && (
-          <Text fontSize="sm" mb={2}>
+          <Text fontSize="sm" mb={3}>
             You cannot publish on an IPFS gateway, only read operations can be
             done.
           </Text>
         )}
         {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-          <Text fontSize="sm" mb={2}>
+          <Text fontSize="sm" mb={3}>
             You cannot publish on an repo endpoint, only read operations can be
             done.
           </Text>
@@ -158,10 +170,15 @@ export default function PublishUtility(props: {
               wc.data?.chain?.id !== 1 ||
               publishMutation.isLoading
             }
+            colorScheme="teal"
+            size="sm"
             onClick={() => publishMutation.mutate()}
+            leftIcon={
+              publishMutation.isLoading ? <Spinner size="sm" /> : undefined
+            }
           >
             {publishMutation.isLoading
-              ? [<Spinner key={0} />, ' Publish in Progress...']
+              ? 'Publishing...'
               : 'Publish to Registry'}
           </Button>
         ) : (

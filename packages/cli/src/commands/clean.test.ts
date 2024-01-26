@@ -44,8 +44,8 @@ describe('clean function', () => {
     const result = await clean(true);
     expect(result).toBe(true);
     expect(fs.readdir).toHaveBeenCalled();
-    // /tags/file1.txt /tags/file2.txt /metadata_cache/file1.txt /metadata_cache/file2.txt
-    expect(fs.rm).toHaveBeenCalledTimes(4);
+    // /tags/file1.txt /tags/file2.txt /metadata_cache/file1.txt /metadata_cache/file2.txt /ipfs_cache/file1.txt /ipfs_cache/file2.txt /build_results/file1.txt /build_results/file2.txt /blobs/file1.txt /blobs/file2.txt
+    expect(fs.rm).toHaveBeenCalledTimes(10);
   });
 
   it('should not delete files or directories if not confirmed', async () => {

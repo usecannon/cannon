@@ -5,8 +5,10 @@ import path from 'path';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
+import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
+import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
@@ -40,6 +42,9 @@ extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
   if (hre.network.name === 'hardhat' && (hre as any).ethers.version.startsWith('6.')) {
     throw new Error("Cannon is not comptible with ethers v6 + hardhat's network. You can use --network cannon");
   }
+
+  const { getContract } = await import('./utils');
+  hre.cannon = { getContract };
 
   //await augmentProvider(hre);
 });

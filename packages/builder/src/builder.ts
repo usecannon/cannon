@@ -1,3 +1,4 @@
+import { redBright } from 'chalk';
 import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
@@ -8,7 +9,6 @@ import { ChainDefinition } from './definition';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
 import { printChainDefinitionProblems } from './util';
-import { redBright } from 'chalk';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
@@ -175,7 +175,6 @@ ${printChainDefinitionProblems(problems)}`);
   } catch (err: any) {
     // make sure its possible to debug the original error
     debug('error', err);
-
     debugVerbose('context', JSON.stringify(ctx, null, 2));
     throw err;
   }

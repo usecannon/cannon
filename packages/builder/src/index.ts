@@ -12,8 +12,6 @@ export { decodeTxError } from './trace';
 export * from './util';
 export * from './types';
 
-// export { CannonWrapperGenericProvider } from './error/provider';
-
 // export { handleTxnError } from './error';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';

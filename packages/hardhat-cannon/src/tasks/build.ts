@@ -1,17 +1,16 @@
 import path from 'node:path';
-import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings, runRpc } from '@usecannon/cli';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
-import { pickAnvilOptions } from '@usecannon/cli/dist/src/util/anvil';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { bold, yellow, yellowBright } from 'chalk';
-import * as fs from 'fs-extra';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { SUBTASK_GET_ARTIFACT, TASK_BUILD } from '../task-names';
+import { parseAnvilOptions } from '../internal/parse-anvil-options';
+import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
+import { SUBTASK_GET_ARTIFACT, SUBTASK_RUN_ANVIL_NODE, TASK_BUILD } from '../task-names';
 
 import * as viem from 'viem';
 import { CannonSigner } from '@usecannon/builder';
@@ -23,7 +22,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first? Default: onchain')
   .addOptionalParam(
     'anvilOptions',
-    '(Optional) Custom anvil options json file or string to configure when running on the cannon network or a local forked node'
+    '(Optional) Custom anvil options string or json file or string to configure when running on the cannon network or a local forked node'
   )
   .addFlag('dryRun', 'Run a shadow deployment on a local forked node instead of actually deploying')
   .addFlag('wipe', 'Do not reuse any previously built artifacts')
@@ -54,7 +53,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         usePlugins,
         registryPriority,
         dryRun,
-        anvilOptions,
+        anvilOptions: anvilOptionsParam,
         impersonate,
         writeScript,
         writeScriptFormat,
@@ -75,16 +74,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       const parsedSettings = parseSettings(settings);
 
       // This allows users to pass in a json file or simply add the anvil options as a list of arguments
-      let anvilOpts;
-      if (anvilOptions) {
-        if ((anvilOptions as string).endsWith('.json')) {
-          anvilOpts = JSON.parse(await fs.readFile(anvilOptions, 'utf8'));
-        } else {
-          anvilOpts = JSON.parse(anvilOptions);
-        }
-      }
-      anvilOpts = pickAnvilOptions(anvilOpts);
-
       const { name, version, def, preset } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
       if (hre.network.name === 'hardhat' && dryRun) {
@@ -117,30 +106,14 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         );
       }
 
-      if (dryRun || hre.network.name === 'cannon') {
-        const port = anvilOpts.port || hre.config.networks.cannon.port;
-        const accounts = anvilOpts.accounts || 1; // reduce image size by not creating unnecessary accounts
-        const chainId =
-          hre.network.name === 'cannon'
-            ? CANNON_CHAIN_ID
-            : anvilOpts.chainId || (await (hre as any).ethers.provider.getNetwork()).chainId;
+      const anvilOptions = parseAnvilOptions(anvilOptionsParam);
+      const node: SubtaskRunAnvilNodeResult = await hre.run(SUBTASK_RUN_ANVIL_NODE, { dryRun, anvilOptions });
 
-        const node = dryRun
-          ? await runRpc(
-              {
-                port,
-                chainId,
-                accounts,
-                ...anvilOpts,
-              },
-              hre.network.name === 'cannon' && !anvilOpts.forkUrl ? {} : { forkProvider: provider as any }
-            )
-          : await runRpc({ port, accounts, ...anvilOpts });
-
-        provider = getProvider(node)! as any;
+      if (node) {
+        provider = getProvider(node)!;
       }
 
-      const signers = getHardhatSigners(hre, provider);
+      const signers = getHardhatSigners(hre /*, provider*/);
 
       const getSigner = (address: viem.Address): CannonSigner | null => {
         for (const signer of signers) {
@@ -227,6 +200,8 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       //await augmentProvider(hre, outputs);
       //provider.artifacts = outputs;
+
+      hre.cannon.outputs = outputs;
 
       return { outputs, provider, signers };
     }
