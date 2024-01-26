@@ -1,15 +1,17 @@
 'use client';
 
+import NextLink from 'next/link';
 import React, { useState } from 'react';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import Editor from '@monaco-editor/react';
 import { useIpfsStore, useStore } from '@/helpers/store';
 import {
-  Textarea,
   Container,
+  Link,
   Heading,
   Checkbox,
   Button,
   Box,
+  Text,
 } from '@chakra-ui/react';
 import { writeIpfs } from '@/hooks/ipfs';
 import { useItemsList, ItemBase } from '@/helpers/db';
@@ -31,7 +33,7 @@ export default function Upload() {
       const cid = await writeIpfs(ipfsApiUrl, ipfsState.content, {
         compress: ipfsState.compression,
       });
-      await add({ id: cid });
+      await add({ id: cid, compressed: ipfsState.compression });
       setState(ipfsState, { cid });
     } finally {
       setUploading(false);
@@ -50,9 +52,20 @@ export default function Upload() {
         borderColor="gray.600"
         borderRadius="4px"
       >
-        <Heading paddingBottom="4" size="md" mb="4">
+        <Heading paddingBottom="4" size="md" mb="1">
           Upload to IPFS
         </Heading>
+
+        <Text mb={4}>
+          <Text>
+            Update your IPFS URL in{' '}
+            <Link as={NextLink} href="/settings">
+              settings
+            </Link>
+            .
+          </Text>
+        </Text>
+
         <Editor
           height="250px"
           theme="vs-dark"
@@ -62,6 +75,7 @@ export default function Upload() {
           onChange={(value) => setState(ipfsState, { content: value })}
         />
         <Checkbox
+          mt="2"
           mb="6"
           defaultChecked={ipfsState.compression}
           onChange={() =>

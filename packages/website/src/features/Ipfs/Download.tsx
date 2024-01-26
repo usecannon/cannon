@@ -132,10 +132,11 @@ export default function Download() {
         borderColor="gray.600"
         borderRadius="4px"
       >
-        <Heading size="md" mb={2}>
+        <Heading paddingBottom="4" size="md" mb="1">
           Download from IPFS
         </Heading>
-        <Text mb={3}>
+
+        <Text mb={4}>
           <Text>
             Update your IPFS URL in{' '}
             <Link as={NextLink} href="/settings">
@@ -144,6 +145,7 @@ export default function Download() {
             .
           </Text>
         </Text>
+
         {ipfsApiUrl?.length && (
           <>
             <FormControl mb={3}>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 export interface ItemBase {
   id: string;
+  compressed: boolean;
   createdAt: number;
   updatedAt: number;
 }

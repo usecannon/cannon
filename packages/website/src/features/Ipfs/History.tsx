@@ -37,7 +37,9 @@ export function History({ items }: HistoryProps) {
             <HStack>
               <Text fontFamily="mono">
                 <ListIcon as={ChevronRightIcon} color="white" />
-                <Link href={`/ipfs?cid=${item.id}&compressed=true`}>
+                <Link
+                  href={`/ipfs?cid=${item.id}&compressed=${item.compressed}`}
+                >
                   ipfs://{item.id}
                 </Link>
               </Text>
