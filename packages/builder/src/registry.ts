@@ -293,7 +293,7 @@ export class OnChainRegistry extends CannonRegistry {
     const tx = await this.provider?.simulateContract({
       ...this.contract,
       functionName: 'multicall',
-      datas,
+      args: [datas],
       ...this.overrides,
     });
     // TODO: why does sendTransaction not like output from tx

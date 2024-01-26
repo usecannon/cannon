@@ -87,6 +87,7 @@ export async function resolveProviderAndSigners({
             address: account.address,
             wallet: viem.createWalletClient({
               account,
+              chain: getChainById(chainId),
               transport: viem.custom(publicClient.transport),
             }),
           };
