@@ -67,7 +67,7 @@ export const initialState = {
     },
   },
   settings: {
-    ipfsApiUrl: 'https://localhost:5001',
+    ipfsApiUrl: 'https://repo.usecannon.com/',
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
