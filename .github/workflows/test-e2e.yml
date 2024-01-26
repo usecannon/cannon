@@ -21,6 +21,12 @@ jobs:
           npm ci
           npm run build
 
+      - name: Update Hardhat Example Package
+        run: cd ./examples/sample-hardhat-project && npm i
+
+      - name: Update Foundry Example Package
+        run: cd ./examples/sample-foundry-project && npm i
+
       - name: Initialize submodules
         run: git submodule update --init --recursive
 
