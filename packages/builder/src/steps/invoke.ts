@@ -557,23 +557,10 @@ ${getAllContractPaths(ctx).join('\n')}`);
       }
 
       const receipt = await runtime.provider.getTransactionReceipt({ hash: key });
-
-      // TODO
-      const txnEvents = _.groupBy(
-        _.filter(
-          receipt.logs?.map((l: any) => {
-            const e = viem.decodeEventLog({ ...contract, ...l });
-            if (!e.eventName || !e.args) {
-              return null;
-            }
-
-            return {
-              name: e.eventName,
-              args: e.args as any[],
-            };
-          }),
-          _.isObject
-        ),
+      const txnEvents: EncodedTxnEvents = _.groupBy(
+        viem
+          .parseEventLogs({ ...contract, logs: receipt.logs })
+          .map((l) => ({ name: l.eventName, args: Object.values(l.args) })),
         'name'
       );
 
@@ -581,7 +568,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: key,
         events: txnEvents as EncodedTxnEvents,
         deployedOn: packageState.currentLabel,
-        gasUsed: receipt.gasUsed.toNumber(),
+        gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
         signer: receipt.from,
       };
