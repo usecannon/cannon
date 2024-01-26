@@ -286,7 +286,7 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(_.assign(create2Txn, overrides));
+        const hash = await signer.wallet.sendTransaction(_.assign(create2Txn, overrides, { account: signer.address }));
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
         debug('arachnid create2 complete', receipt);
@@ -316,7 +316,7 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(_.assign(txn, overrides));
+        const hash = await signer.wallet.sendTransaction(_.assign(txn, overrides, { account: signer.address }));
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }
