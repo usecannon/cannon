@@ -58,7 +58,7 @@ export const ImportProvisionPackages = () => {
         . The relevant code looks like this:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code1} language="toml" />
+        <CodePreview code={code1} language="ini" />
       </Box>
       <Text mb={4}>
         <Code colorScheme="blackAlpha" variant="solid">
@@ -75,7 +75,7 @@ export const ImportProvisionPackages = () => {
         version of the relevant code:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code2} language="toml" />
+        <CodePreview code={code2} language="ini" />
       </Box>
     </>
   );

@@ -65,7 +65,7 @@ const ChainDefinitionSteps: React.FC<Props> = ({ name, modules }) => {
               <CodePreview
                 height="66vh"
                 code={stringify({ ...activeModuleData } as any)}
-                language="toml"
+                language="ini"
               />
             </Box>
           </ModalContent>
