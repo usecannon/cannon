@@ -107,7 +107,9 @@ export const CannonHelperContext = {
     },
   },
 
-  zeroPad: viem.padHex,
+  zeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
+  hexZeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
+  hexlify: (v: viem.ByteArray) => viem.toHex(v),
   stripZeros: viem.trim,
   formatBytes32String: (v: string) => viem.stringToHex(v, { size: 32 }),
   parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),

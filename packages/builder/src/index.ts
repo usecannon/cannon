@@ -12,7 +12,10 @@ export { decodeTxError } from './trace';
 export * from './util';
 export * from './types';
 
-// export { handleTxnError } from './error';
+// prevent dumb bugs
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
