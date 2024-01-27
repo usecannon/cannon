@@ -73,7 +73,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
 
       const parsedSettings = parseSettings(settings);
 
-      // This allows users to pass in a json file or simply add the anvil options as a list of arguments
       const { name, version, def, preset } = await loadCannonfile(path.join(hre.config.paths.root, cannonfile));
 
       if (hre.network.name === 'hardhat' && dryRun) {
