@@ -1,10 +1,10 @@
 'use client';
 
-import { Flex, Button, Container, Heading, Link, Box } from '@chakra-ui/react';
-import NextLink from 'next/link';
 import { links } from '@/constants/links';
-import { ReactNode, useEffect } from 'react';
+import { Box, Button, Container, Flex, Heading, Link } from '@chakra-ui/react';
 import { gsap } from 'gsap';
+import NextLink from 'next/link';
+import { ReactNode, useEffect } from 'react';
 
 const CustomLink = ({
   href,

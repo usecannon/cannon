@@ -76,7 +76,6 @@ function generateOutputs(
   deployTxn: ethers.providers.TransactionReceipt | null,
   currentLabel: string
 ): ChainArtifacts {
-  console.log('artifacts', artifactData);
   const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
   const factory = new ethers.ContractFactory(artifactData.abi, injectedBytecode);
   const txn = factory.getDeployTransaction(...(config.args || []));

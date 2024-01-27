@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 //import {console} from "forge-std/console.sol";
 
-import "./Library.sol";
-import "./ClonedGreeter.sol";
+import {Library} from "./Library.sol";
+import {ClonedGreeter} from "./ClonedGreeter.sol";
 
 contract Greeter {
   string public greeting;
