@@ -89,13 +89,7 @@ export default function Upload() {
         </Checkbox>
         <Button
           width="100%"
-          variant="outline"
-          colorScheme="black"
-          _hover={{
-            background: 'gray.800',
-          }}
-          background="gray.900"
-          borderColor="gray.500"
+          colorScheme="teal"
           isLoading={uploading}
           disabled={
             !ipfsApiUrl || !ipfsState.content || uploading || !!ipfsState.cid
