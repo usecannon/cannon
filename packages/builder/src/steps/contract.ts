@@ -305,7 +305,7 @@ const contractSpec = {
         const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
         // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
         // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
-        // length hshould be sufficient
+        // length should be sufficient
         if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
           debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
           throw new Error(
