@@ -1,9 +1,11 @@
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { BigNumber, ethers, PayableOverrides } from 'ethers';
+import * as viem from 'viem';
+import { Abi, Address } from 'viem';
 import EventEmitter from 'promise-events';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { PackageReference } from './package';
+import { CannonSigner, Contract } from './types';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -135,7 +137,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
 
         if (result) {
           debug('fallback registry: loaded from registry', registry.getLabel());
-          await this.emit('getUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
+          await this.emit('getPackageUrl', { fullPackageRef, chainId, result, registry, fallbackRegistry: this });
           return result;
         }
       } catch (err: any) {
@@ -221,32 +223,28 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
 }
 
 export class OnChainRegistry extends CannonRegistry {
-  provider?: ethers.providers.Provider | null;
-  signer?: ethers.Signer | null;
-  contract: ethers.Contract;
-  overrides: ethers.PayableOverrides;
+  provider?: viem.PublicClient | null;
+  signer?: CannonSigner | null;
+  contract: Contract;
+  overrides: any;
 
   constructor({
-    signerOrProvider,
+    signer,
+    provider,
     address,
     overrides = {},
   }: {
-    address: string;
-    signerOrProvider: string | ethers.Signer | ethers.providers.Provider;
-    overrides?: PayableOverrides;
+    address: Address;
+    signer?: CannonSigner;
+    provider?: viem.PublicClient;
+    overrides?: any;
   }) {
     super();
 
-    if (typeof signerOrProvider === 'string') {
-      this.provider = new ethers.providers.JsonRpcProvider(signerOrProvider);
-    } else if ((signerOrProvider as ethers.Signer).provider) {
-      this.signer = signerOrProvider as ethers.Signer;
-      this.provider = this.signer.provider;
-    } else {
-      this.provider = signerOrProvider as ethers.providers.Provider;
-    }
+    this.signer = signer;
+    this.provider = provider;
 
-    this.contract = new ethers.Contract(address, CannonRegistryAbi, this.provider);
+    this.contract = { address, abi: CannonRegistryAbi as Abi };
     this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
@@ -261,9 +259,9 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing signer needed for publishing');
     }
 
-    if ((await this.signer.getBalance()).lte(0)) {
+    if (!(await this.provider?.getBalance({ address: this.signer.address }))) {
       throw new Error(
-        `Signer at address ${await this.signer.getAddress()} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
       );
     }
   }
@@ -275,18 +273,32 @@ export class OnChainRegistry extends CannonRegistry {
     url: string,
     metaUrl?: string
   ) {
-    return this.contract.interface.encodeFunctionData('publish', [
-      ethers.utils.formatBytes32String(packagesName),
-      ethers.utils.formatBytes32String(variant),
-      packageTags,
-      url,
-      metaUrl || '',
-    ]);
+    return viem.encodeFunctionData({
+      ...this.contract,
+      functionName: 'publish',
+      args: [
+        viem.stringToHex(packagesName, { size: 32 }),
+        viem.stringToHex(variant, { size: 32 }),
+        packageTags.map((t) => viem.stringToHex(t, { size: 32 })),
+        url,
+        metaUrl || '',
+      ],
+    });
   }
 
   private async doMulticall(datas: string[]): Promise<string> {
-    const tx = await this.contract.connect(this.signer!).multicall(datas, this.overrides);
-    const receipt = await tx.wait();
+    if (!this.signer || !this.provider) {
+      throw new Error('cannon read and write to registry');
+    }
+    const tx = await this.provider?.simulateContract({
+      ...this.contract,
+      functionName: 'multicall',
+      args: [datas],
+      ...this.overrides,
+    });
+    // TODO: why does sendTransaction not like output from tx
+    const hash = await this.signer?.wallet.sendTransaction(tx.request as any);
+    const receipt = await this.provider?.waitForTransactionReceipt({ hash });
 
     return receipt.transactionHash;
   }
@@ -316,14 +328,14 @@ export class OnChainRegistry extends CannonRegistry {
 
       const tx = this.generatePublishTransactionData(
         name,
-        versions.map((p) => ethers.utils.formatBytes32String(p)),
+        versions.map((p) => viem.stringToHex(p)),
         variant,
         url,
         metaUrl
       );
       datas.push(tx);
     }
-    await this.logMultiCallEstimatedGas(datas, this.overrides);
+    await this.logMultiCallEstimatedGas(datas);
     return [await this.doMulticall(datas)];
   }
 
@@ -353,7 +365,7 @@ export class OnChainRegistry extends CannonRegistry {
 
         const tx = this.generatePublishTransactionData(
           name,
-          versions.map((p) => ethers.utils.formatBytes32String(p)),
+          versions.map((p) => viem.stringToHex(p)),
           variant,
           pub.url,
           pub.metaUrl
@@ -362,44 +374,58 @@ export class OnChainRegistry extends CannonRegistry {
         datas.push(tx);
       }
     }
-    await this.logMultiCallEstimatedGas(datas, this.overrides);
+    await this.logMultiCallEstimatedGas(datas);
     return [await this.doMulticall(datas)];
   }
 
   async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    if (!this.provider) {
+      throw new Error('provider not given to getUrl');
+    }
+
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const url = await this.contract.getPackageUrl(
-      ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version),
-      ethers.utils.formatBytes32String(variant)
-    );
+    const { result: url } = await this.provider.simulateContract({
+      ...this.contract,
+      functionName: 'getPackageUrl',
+      args: [
+        viem.stringToHex(name, { size: 32 }),
+        viem.stringToHex(version, { size: 32 }),
+        viem.stringToHex(variant, { size: 32 }),
+      ],
+    });
 
     return url || null;
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+    if (!this.provider) {
+      throw new Error('provider not given to getUrl');
+    }
+
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const url = await this.contract.getPackageMeta(
-      ethers.utils.formatBytes32String(name),
-      ethers.utils.formatBytes32String(version),
-      ethers.utils.formatBytes32String(variant)
-    );
+    const { result: url } = await this.provider.simulateContract({
+      ...this.contract,
+      functionName: 'getPackageMeta',
+      args: [viem.stringToHex(name), viem.stringToHex(version), viem.stringToHex(variant)],
+    });
 
     return url || null;
   }
 
-  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
-    if (!filterPackageRef) {
+  // TODO: viem does not seems to support querying historical logs, even tho its part of a balanced provider diet
+  async getAllUrls(/*filterPackageRef?: string, chainId?: number*/): Promise<Set<string>> {
+    // TODO: someday
+    /*if (!filterPackageRef) {
       // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
       // in the future we might have a way to give the urls to search for and then limit
       return super.getAllUrls(filterPackageRef, chainId);
@@ -409,35 +435,40 @@ export class OnChainRegistry extends CannonRegistry {
     const filterVariant = `${chainId}-${preset}`;
 
     const filter = this.contract.filters.PackagePublish(
-      name ? ethers.utils.formatBytes32String(name) : null,
-      version ? ethers.utils.formatBytes32String(version) : null,
-      filterVariant ? ethers.utils.formatBytes32String(filterVariant) : null
+      name ? viem.stringToHex(name) : null,
+      version ? viem.stringToHex(version) : null,
+      filterVariant ? viem.stringToHex(filterVariant) : null
     );
 
     const events = await this.contract.queryFilter(filter, 0, 'latest');
 
-    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));
+    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));*/
+    throw new Error('verifying upstream package urls temporarily not supported');
   }
 
-  private async logMultiCallEstimatedGas(datas: any, overrides: PayableOverrides): Promise<void> {
+  private async logMultiCallEstimatedGas(datas: any): Promise<void> {
+    if (!this.provider) {
+      throw new Error('provider not required for estimating gas');
+    }
+
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
-      const estimatedGas = await this.contract.connect(this.signer!).estimateGas.multicall(datas, overrides);
-      console.log(`\nEstimated gas: ${estimatedGas}`);
-      const gasPrice =
-        (overrides.maxFeePerGas as BigNumber) || (overrides.gasPrice as BigNumber) || (await this.provider?.getGasPrice());
-      console.log(`\nGas price: ${ethers.utils.formatEther(gasPrice)} ETH`);
-      const transactionFeeWei = estimatedGas.mul(gasPrice);
+      const simulatedGas = await this.provider.estimateGas({ functionName: 'multicall', args: [datas], ...this.overrides });
+      console.log(`\nEstimated gas: ${simulatedGas}`);
+      const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
+      console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
+      const transactionFeeWei = simulatedGas * gasPrice;
       // Convert the transaction fee from wei to ether
-      const transactionFeeEther = ethers.utils.formatEther(transactionFeeWei);
+      const transactionFeeEther = viem.formatEther(transactionFeeWei);
 
       console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
 
-      if ((await this.signer?.getBalance())?.lte(transactionFeeWei)) {
+      if (this.signer && (await this.provider.getBalance({ address: this.signer.address })) < transactionFeeWei) {
         console.log(
           bold(
             yellow(
-              `Publishing address "${await this.signer?.getAddress()}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+              `Publishing address "${await this.signer
+                ?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
             )
           )
         );

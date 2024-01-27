@@ -1,22 +1,18 @@
-import { ChainArtifacts } from '@usecannon/builder';
-import { ethers } from 'ethers';
-import { mapKeys, mapValues } from 'lodash';
+import { ChainArtifacts, ContractData } from '@usecannon/builder';
+import { mapKeys } from 'lodash';
 
 export function getContractsRecursive(
   outputs: ChainArtifacts,
-  signerOrProvider: ethers.Signer | ethers.providers.Provider,
   prefix?: string
 ): {
-  [x: string]: ethers.Contract;
+  [x: string]: ContractData;
 } {
-  let contracts = mapValues(outputs.contracts, (ci) => {
-    return new ethers.Contract(ci.address, ci.abi, signerOrProvider);
-  });
+  let contracts = outputs.contracts || {};
   if (prefix) {
     contracts = mapKeys(contracts, (_, contractName) => `${prefix}.${contractName}`);
   }
   for (const [importName, importOutputs] of Object.entries(outputs.imports || {})) {
-    const newContracts = getContractsRecursive(importOutputs, signerOrProvider, importName);
+    const newContracts = getContractsRecursive(importOutputs, importName);
     contracts = { ...contracts, ...newContracts };
   }
   return contracts;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import { isNumber } from 'lodash';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
@@ -27,7 +27,7 @@ const artifactPathRegex = RegExp(/^.*\.sol:\w+/, 'i');
 // Invoke target string schema
 const targetString = z.string().refine(
   (val) =>
-    ethers.utils.isAddress(val) ||
+    viem.isAddress(val) ||
     !!val.match(interpolatedRegex) ||
     !!val.match(stepRegex) ||
     !!val.match(artifactNameRegex) ||
@@ -36,6 +36,25 @@ const targetString = z.string().refine(
     message: `"${val}" must be a valid ethereum address, existing contract step name, contract artifact name or filepath`,
   })
 );
+
+// stolen from https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
+function tryParseJson(jsonString: string) {
+  try {
+    const o = JSON.parse(jsonString);
+
+    // Handle non-exception-throwing cases:
+    // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+    // but... JSON.parse(null) returns null, and typeof null === "object",
+    // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+    if (o && typeof o === 'object') {
+      return o;
+    }
+  } catch (e) {
+    // do nothing
+  }
+
+  return false;
+}
 
 const targetSchema = targetString.or(z.array(targetString).nonempty());
 
@@ -70,14 +89,14 @@ export const contractSchema = z
         from: z
           .string()
           .refine(
-            (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" is not a valid ethereum address` })
           )
           .describe('Contract deployer address. Must match the ethereum address format'),
         nonce: z
           .union([z.string(), z.number()])
           .refine(
-            (val) => ethers.utils.isHexString(val) || isNumber(parseInt(val.toString())),
+            (val) => viem.isHex(val) || isNumber(parseInt(val.toString())),
             (val) => ({
               message: `Nonce ${val} must be a string, number or hexadecimal value`,
             })
@@ -96,7 +115,7 @@ export const contractSchema = z
               !!val.match(artifactNameRegex) ||
               !!val.match(jsonAbiPathRegex) ||
               !!val.match(interpolatedRegex) ||
-              ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
+              tryParseJson(val),
             {
               message:
                 'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
@@ -138,7 +157,7 @@ export const contractSchema = z
          */
         value: z
           .string()
-          .refine((val) => !!val.match(interpolatedRegex) || !!ethers.utils.parseEther(val), {
+          .refine((val) => !!val.match(interpolatedRegex) || !!viem.parseEther(val), {
             message: 'Field value must be of numeric value',
           })
           .describe('Native currency value to send in the transaction'),
@@ -242,7 +261,7 @@ export const invokeSchema = z
               !!val.match(artifactNameRegex) ||
               !!val.match(jsonAbiPathRegex) ||
               !!val.match(interpolatedRegex) ||
-              ethers.utils.Fragment.isFragment(new ethers.utils.Interface(val).fragments[0]),
+              tryParseJson(val),
             {
               message:
                 'ABI must be a valid JSON ABI string, see more here: https://docs.soliditylang.org/en/latest/abi-spec.html#json',
@@ -262,7 +281,7 @@ export const invokeSchema = z
         from: z
           .string()
           .refine(
-            (val) => ethers.utils.isAddress(val) || !!val.match(interpolatedRegex),
+            (val) => viem.isAddress(val) || !!val.match(interpolatedRegex),
             (val) => ({ message: `"${val}" must be a valid ethereum address` })
           )
           .describe('The calling address to use when invoking this call.'),
@@ -289,7 +308,7 @@ export const invokeSchema = z
          */
         value: z
           .string()
-          .refine((val) => !!val.match(interpolatedRegex) || !!ethers.utils.parseEther(val), {
+          .refine((val) => !!val.match(interpolatedRegex) || !!viem.parseEther(val), {
             message: 'Field must be of numeric value',
           })
           .describe('The amount of ether/wei to send in the transaction.'),

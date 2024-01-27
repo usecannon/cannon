@@ -1,29 +1,22 @@
-import { ethers } from 'ethers';
-import { CannonWrapperGenericProvider } from './error/provider';
+import * as viem from 'viem';
 import { IPFSLoader } from './loader';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { ContractArtifact } from './types';
 import { InMemoryRegistry } from './registry';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./error/provider');
 jest.mock('./loader');
 
 describe('runtime.ts', () => {
   describe('ChainBuilderRuntime', () => {
-    //jest.mocked(ethers.providers.JsonRpcProvider);
-    jest.mocked(CannonWrapperGenericProvider);
-
     let loader: IPFSLoader;
-    let provider: CannonWrapperGenericProvider;
+    let provider: viem.PublicClient & viem.TestClient;
     let runtime: ChainBuilderRuntime;
 
-    const getSigner = jest.fn(async () => {
-      return ethers.Wallet.createRandom();
-    });
+    const getSigner = jest.fn(async () => fixtureSigner());
 
-    const getDefaultSigner = jest.fn(async () => {
-      return ethers.Wallet.createRandom();
-    });
+    const getDefaultSigner = jest.fn(async () => fixtureSigner());
 
     const getArtifact = jest.fn(async (n: string): Promise<ContractArtifact> => {
       return {
@@ -37,7 +30,7 @@ describe('runtime.ts', () => {
     });
 
     beforeAll(async () => {
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
+      provider = makeFakeProvider();
 
       loader = new IPFSLoader('', null as any);
 
@@ -73,12 +66,12 @@ describe('runtime.ts', () => {
 
     describe('checkNetwork()', () => {
       it('throws if the chainId does not match', async () => {
-        jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 5678, name: 'foobar' });
+        jest.mocked(provider.getChainId).mockResolvedValue(5678);
         await expect(() => runtime.checkNetwork()).rejects.toThrowError('provider network reported chainId');
       });
 
       it('does nothing further if it matches', async () => {
-        jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 1234, name: 'foobar' });
+        jest.mocked(provider.getChainId).mockResolvedValue(1234);
         await runtime.checkNetwork();
       });
     });
@@ -87,13 +80,13 @@ describe('runtime.ts', () => {
       it('does nothing if snapshots = false', async () => {
         (runtime as any).snapshots = false;
         await runtime.loadState('0x');
-        expect(jest.mocked(provider.send)).toBeCalledTimes(0);
+        expect(jest.mocked(provider.loadState)).toBeCalledTimes(0);
       });
 
       it('does calls hardhat_loadState if snapshots = true', async () => {
         (runtime as any).snapshots = true;
         await runtime.loadState('0xdeadbeef');
-        expect(jest.mocked(provider.send)).toBeCalledWith('hardhat_loadState', ['0xdeadbeef']);
+        expect(jest.mocked(provider.loadState)).toBeCalledWith({ state: '0xdeadbeef' });
       });
     });
 
@@ -101,14 +94,14 @@ describe('runtime.ts', () => {
       it('does nothing if snapshots = false', async () => {
         (runtime as any).snapshots = false;
         await runtime.dumpState();
-        expect(jest.mocked(provider.send)).toBeCalledTimes(0);
+        expect(jest.mocked(provider.dumpState)).toBeCalledTimes(0);
       });
 
       it('does calls hardhat_dumpState if snapshots = true', async () => {
         (runtime as any).snapshots = true;
-        jest.mocked(provider.send).mockResolvedValue('0xdeadbeef');
+        jest.mocked(provider.dumpState).mockResolvedValue('0xdeadbeef');
         expect(await runtime.dumpState()).toBe('0xdeadbeef');
-        expect(jest.mocked(provider.send)).toBeCalledWith('hardhat_dumpState', []);
+        expect(jest.mocked(provider.dumpState)).toBeCalledWith();
       });
     });
 
@@ -116,13 +109,13 @@ describe('runtime.ts', () => {
       it('does nothing if snapshots = false', async () => {
         (runtime as any).snapshots = false;
         await runtime.clearNode();
-        expect(jest.mocked(provider.send)).toBeCalledTimes(0);
+        expect(jest.mocked(provider.snapshot)).toBeCalledTimes(0);
       });
 
       it('does calls evm_revert and evm_snapshots if snapshots = true', async () => {
         (runtime as any).snapshots = true;
         await runtime.clearNode();
-        expect(jest.mocked(provider.send)).toBeCalledWith('evm_snapshot', []);
+        expect(jest.mocked(provider.snapshot)).toBeCalledWith();
       });
     });
 
@@ -193,7 +186,7 @@ describe('runtime.ts', () => {
           gasPrice,
         });
 
-        expect(newRuntime.gasPrice).toBe(ethers.utils.parseUnits(gasPrice, 'gwei').toString());
+        expect(newRuntime.gasPrice).toBe(viem.parseGwei(gasPrice).toString());
         expect(newRuntime.gasFee).toBeUndefined();
         expect(newRuntime.priorityGasFee).toBeUndefined();
       });
@@ -205,7 +198,7 @@ describe('runtime.ts', () => {
 
         const newNewRuntime = newRuntime.derive({});
 
-        expect(newNewRuntime.gasPrice).toBe(ethers.utils.parseUnits(gasPrice, 'gwei').toString());
+        expect(newNewRuntime.gasPrice).toBe(viem.parseGwei(gasPrice).toString());
         expect(newNewRuntime.gasFee).toBeUndefined();
         expect(newNewRuntime.priorityGasFee).toBeUndefined();
       });
@@ -216,7 +209,7 @@ describe('runtime.ts', () => {
           gasFee,
         });
 
-        expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
+        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
         expect(newRuntime.gasPrice).toBeUndefined();
         expect(newRuntime.priorityGasFee).toBeUndefined();
       });
@@ -229,8 +222,8 @@ describe('runtime.ts', () => {
           priorityGasFee,
         });
 
-        expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
-        expect(newRuntime.priorityGasFee).toBe(ethers.utils.parseUnits(priorityGasFee, 'gwei').toString());
+        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
+        expect(newRuntime.priorityGasFee).toBe(viem.parseGwei(priorityGasFee).toString());
         expect(newRuntime.gasPrice).toBeUndefined();
       });
 
@@ -242,7 +235,7 @@ describe('runtime.ts', () => {
           gasPrice,
         });
 
-        expect(newRuntime.gasFee).toBe(ethers.utils.parseUnits(gasFee, 'gwei').toString());
+        expect(newRuntime.gasFee).toBe(viem.parseGwei(gasFee).toString());
         expect(newRuntime.priorityGasFee).toBeUndefined();
         expect(newRuntime.gasPrice).toBeUndefined();
       });

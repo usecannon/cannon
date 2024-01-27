@@ -1,15 +1,14 @@
-import { ethers } from 'ethers';
+/* eslint-disable no-case-declarations */
+/*import * as viem from 'viem';
 import { ChainArtifacts, ContractData } from '../types';
 import { renderTrace } from '../trace';
-
-/* eslint-disable no-case-declarations */
 
 import Debug from 'debug';
 import { Logger } from 'ethers/lib/utils';
 
-const debug = Debug('cannon:builder:error');
+const debug = Debug('cannon:builder:error');*/
 
-export async function handleTxnError(
+/*export async function handleTxnError(
   artifacts: ChainArtifacts,
   provider: ethers.providers.Provider,
   err: any
@@ -190,7 +189,7 @@ export function findContract(
 
 export function renderResult(result: ethers.utils.Result) {
   return '(' + result.map((v) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
-}
+}*/
 
 /**
  * Decode transaction error data to a human-readable error message
@@ -200,7 +199,7 @@ export function renderResult(result: ethers.utils.Result) {
  * @param abis ABIs of all involved contracts if available
  * @return Human-readable error message if decode to error is successful, otherwise null
  */
-export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
+/*export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
   if (data.startsWith(ethers.utils.id('Panic(uint256)').slice(0, 10))) {
     // this is the `Panic` builtin opcode
     const reason = ethers.utils.defaultAbiCoder.decode(['uint256'], '0x' + data.slice(10))[0];
@@ -261,4 +260,4 @@ export function parseContractErrorReason(contract: ethers.Contract | null, data:
   }
 
   return data;
-}
+}*/

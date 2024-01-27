@@ -1,6 +1,7 @@
 import {
   CANNON_CHAIN_ID,
   CannonRegistry,
+  CannonSigner,
   ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -10,7 +11,7 @@ import {
   renderTrace,
 } from '@usecannon/builder';
 import { bold, gray, green, greenBright, yellow } from 'chalk';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
@@ -22,6 +23,7 @@ import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { interact } from './interact';
+import { TraceEntry } from '@usecannon/builder/src';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -31,7 +33,7 @@ export interface RunOptions {
   presetArg?: string;
   impersonate: string;
   mnemonic?: string;
-  privateKey?: string;
+  privateKey?: viem.Hash;
   upgradeFrom?: string;
   getArtifact?: (name: string) => Promise<ContractArtifact>;
   registryPriority: 'local' | 'onchain';
@@ -50,17 +52,17 @@ const INSTRUCTIONS = green(
   )} to toggle display verbosity of transaction traces as they run.`
 );
 
-export async function run(packages: PackageSpecification[], options: RunOptions) {
+export async function run(packages: PackageSpecification[], options: RunOptions): Promise<void> {
   await setupAnvil();
 
   // Start the rpc server
   const node = options.node;
-  const provider = getProvider(node);
+  const provider = getProvider(node)!;
   const nodeLogging = await createLoggingInterface(node);
 
   if (options.fundAddresses && options.fundAddresses.length) {
     for (const fundAddress of options.fundAddresses) {
-      await provider.send('hardhat_setBalance', [fundAddress, `0x${(1e22).toString(16)}`]);
+      await provider?.setBalance({ address: fundAddress as viem.Address, value: BigInt(1e22) });
     }
   }
 
@@ -69,26 +71,26 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
-  let signers: ethers.Signer[] = [];
+  let signers: CannonSigner[] = [];
 
   // set up signers
   for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
-    await provider.send('hardhat_impersonateAccount', [addr]);
-    await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-    signers = [provider.getSigner(addr)];
+    await provider.impersonateAccount({ address: addr as viem.Address });
+    await provider.setBalance({ address: addr as viem.Address, value: BigInt(1e22) });
+    signers = [{ address: addr as viem.Address, wallet: provider }];
   }
 
-  const chainId = (await provider.getNetwork()).chainId;
+  const chainId = await provider.getChainId();
 
   const basicRuntime = new ChainBuilderRuntime(
     {
       provider: provider,
       chainId,
-      async getSigner(addr: string) {
+      async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        await provider.impersonateAccount({ address: addr });
+        await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: addr, wallet: provider };
       },
       snapshots: chainId === CANNON_CHAIN_ID,
       allowPartialDeploy: false,
@@ -162,12 +164,12 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   if (options.logs) {
-    return {
+    return; /* {
       signers,
       outputs: buildOutputs,
       provider,
       node,
-    };
+    };*/
   }
 
   const mergedOutputs =
@@ -179,15 +181,15 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   let traceLevel = 0;
 
-  async function debugTracing(blockNumber: number) {
+  async function debugTracing(blockInfo: viem.Block) {
     if (traceLevel == 0) {
       return;
     }
-    const bwt = await provider.getBlockWithTransactions(blockNumber);
+    const bwt = await provider.getBlock({ blockNumber: blockInfo.number!, includeTransactions: true });
 
     for (const txn of bwt.transactions) {
       try {
-        const traces = await provider.send('trace_transaction', [txn.hash]);
+        const traces = (await provider.request({ method: 'trace_transaction' as any, params: [txn.hash] })) as TraceEntry[];
 
         let renderedTrace = renderTrace(mergedOutputs, traces);
 
@@ -211,7 +213,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
   }
 
-  provider.on('block', debugTracing);
+  // TODO: once again types from docs do not work here for some reason
+  provider.watchBlocks({ onBlock: debugTracing as any });
 
   if (options.nonInteractive) {
     await new Promise(() => {
@@ -242,7 +245,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         await pause(async () => {
           const [signer] = signers;
 
-          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs, signer));
+          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs));
 
           await interact({
             packages,
