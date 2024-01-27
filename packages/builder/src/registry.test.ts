@@ -139,11 +139,11 @@ describe('registry.ts', () => {
         expect(url).toBe('ipfs://Qmwohoo');
 
         expect(jest.mocked(provider.simulateContract).mock.lastCall?.[0]).toMatchObject({
-          functionName: 'getUrl',
+          functionName: 'getPackageUrl',
           args: [
-            viem.stringToBytes('dummyPackage', { size: 32 }),
-            viem.stringToBytes('0.0.1', { size: 32 }),
-            viem.stringToBytes('13370-main', { size: 32 }),
+            viem.stringToHex('dummyPackage', { size: 32 }),
+            viem.stringToHex('0.0.1', { size: 32 }),
+            viem.stringToHex('13370-main', { size: 32 }),
           ],
         });
       });

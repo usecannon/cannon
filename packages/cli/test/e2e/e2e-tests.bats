@@ -43,7 +43,7 @@ teardown() {
 @test "Alter - Import invoke" {
   run alter-import-invoke.sh
   echo $output
-  assert_output --partial 'ipfs://QmQkWf1pirgScSqqSeZ4HLbEyCQPwXwYQRdNDGELzM4BiG'
+  assert_output --partial 'ipfs://QmTUoPoXcSTCxbxRQLQ9Jy9ZfqW6Ngiio4tmZWKqYHKJJp'
   assert_success
 }
 
