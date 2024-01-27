@@ -17,6 +17,10 @@ export const FunctionOutput: FC<{
     return 'components' in item && isArray(item.components);
   };
 
+  // console.log(" my func output ", output)
+  console.log('my res ', result);
+
+
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
       <Text>{name}</Text>
@@ -58,12 +62,14 @@ export const FunctionOutput: FC<{
         ))
         : null;
     } else {
+      // item type is not a tuple or tuple []  , render fallbacks
+
       // OBJECTS
       if (isObject(value) && item.name && item.name in value) {
         const outputValue = value[item.name];
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
-           im an object {String(outputValue)}
+            im an object {String(outputValue)}
           </Text>
         );
       } else if (isArray(value)) {
@@ -73,7 +79,7 @@ export const FunctionOutput: FC<{
         // FALLBACK
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
-          caca  {result !== null || undefined ? String(result) : '---'}
+            {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
       }

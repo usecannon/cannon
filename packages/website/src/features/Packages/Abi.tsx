@@ -13,6 +13,8 @@ import {
   Link,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
+import { FunctionOutput } from './FunctionOutput';
+import { mockOutput, mockResult } from './mockdata';
 
 export const Abi: FC<{
   abi: AbiType;
@@ -190,7 +192,7 @@ export const Abi: FC<{
               prior to execution.
             </Text>
           </Alert>
-          {functions?.map((f, index) => (
+          {/* {functions?.map((f, index) => (
             <Function
               key={index}
               f={f}
@@ -199,7 +201,9 @@ export const Abi: FC<{
               cannonOutputs={cannonOutputs}
               chainId={chainId}
             />
-          ))}
+          ))} */}
+
+          <FunctionOutput output={mockOutput} result={mockResult} />
         </Box>
       </Flex>
     </Flex>
