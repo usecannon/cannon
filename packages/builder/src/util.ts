@@ -94,8 +94,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: s
     .filter((a, index, abi) => {
       if (index === 0) return true;
       const alreadyExists = abi.slice(0, index).some((b) => {
-        // TODO: viem doesn't appear to have functions to compare fragments
-        return JSON.stringify(b) === JSON.stringify(a);
+        return _.isEqual(a, b);
       });
 
       return !alreadyExists;
