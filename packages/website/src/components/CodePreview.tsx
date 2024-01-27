@@ -17,7 +17,7 @@ export const CodePreview: FC<ICodePreviewProps> = ({
       height={height}
       theme="vs-dark"
       defaultLanguage={language}
-      defaultValue={code}
+      value={code}
       options={{ readOnly: true }}
     />
   );
