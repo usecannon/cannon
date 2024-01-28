@@ -2,7 +2,7 @@ import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
 import action from './import';
-import { fakeCtx, fakeRuntime } from './testUtils';
+import { fakeCtx, fakeRuntime } from './utils.test.helper';
 
 jest.mock('../loader');
 

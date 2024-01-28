@@ -36,14 +36,14 @@ teardown() {
 @test "Alter - Import contract " {
   run alter-import-contract.sh
   echo $output
-  assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
+  assert_output --partial 'ipfs://QmQkWf1pirgScSqqSeZ4HLbEyCQPwXwYQRdNDGELzM4BiG'
   assert_success
 }
 
 @test "Alter - Import invoke" {
   run alter-import-invoke.sh
   echo $output
-  assert_output --partial 'ipfs://QmQZu9RscJYaiwqN2qEhkpEVGTFKPj6K54yV7WnX7CPKAt'
+  assert_output --partial 'ipfs://QmTUoPoXcSTCxbxRQLQ9Jy9ZfqW6Ngiio4tmZWKqYHKJJp'
   assert_success
 }
 
@@ -70,10 +70,10 @@ teardown() {
   assert_success
 }
 
-@test "Fetch - Fetch synthetix:latest@main package" {
+@test "Fetch - Fetch synthetix:3.3.4@main" {
   run fetch.sh
   echo $output
-  assert_output --partial 'Successfully fetched and saved deployment data'
+  assert_output --partial 'Successfully fetched and saved deployment data for the following package: synthetix:3.3.4@main'
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }

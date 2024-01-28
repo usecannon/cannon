@@ -1,16 +1,11 @@
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import { generatePrivateKey } from 'viem/accounts';
 import _ from 'lodash';
 import { dirSync } from 'tmp-promise';
 import cli from '../index';
 import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { alter } from './alter';
-
-function generatePrivateKey(): string {
-  const randomWallet = ethers.Wallet.createRandom();
-  return randomWallet.privateKey;
-}
 
 // Jest Mocking
 jest.mock('../settings', () => ({

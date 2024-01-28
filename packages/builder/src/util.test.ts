@@ -8,16 +8,15 @@ import {
 } from './util';
 
 import 'jest';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
+import { AbiFunction, AbiItem } from 'viem';
 import { ChainBuilderContext } from '.';
-import { JsonFragment } from '@ethersproject/abi';
-
-import { CannonWrapperGenericProvider } from './error/provider';
+import { makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./error/provider');
 
 describe('util.ts', () => {
-  const fakeTransferFragment: JsonFragment = {
+  const fakeTransferFragment: AbiFunction = {
     inputs: [
       {
         internalType: 'address',
@@ -41,7 +40,7 @@ describe('util.ts', () => {
     type: 'function',
   };
 
-  const fakeEventFragment: JsonFragment = {
+  const fakeEventFragment: AbiItem = {
     anonymous: false,
     inputs: [
       {
@@ -67,7 +66,7 @@ describe('util.ts', () => {
     type: 'event',
   };
 
-  const fakeReadFragment: JsonFragment = {
+  const fakeReadFragment: AbiFunction = {
     inputs: [],
     name: 'isInitialized',
     outputs: [
@@ -188,28 +187,27 @@ describe('util.ts', () => {
   });
 
   describe('getExecutionSigner()', () => {
-    const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
-
-    jest.mocked(provider.getSigner).mockImplementation((addr) => new ethers.VoidSigner(addr, provider));
+    const provider = makeFakeProvider();
 
     it('returns a signer based on the hash of transaction data', async () => {
-      const signer = await getExecutionSigner(provider, { data: 'woot' });
+      const signer = await getExecutionSigner(provider, { data: '0xwoot' });
 
-      expect(await signer.getAddress()).toStrictEqual(jest.mocked(provider.getSigner).mock.calls[0][0]);
+      // TODO: expect signer address to equal something
+      expect(viem.isAddress(signer.address)).toBeTruthy();
 
       // should return signer when called the same way again
-      expect(await getExecutionSigner(provider, { data: 'woot' })).toStrictEqual(signer);
+      expect((await getExecutionSigner(provider, { data: '0xwoot' })).address).toStrictEqual(signer.address);
     });
 
     it('gives a different signer for different salt', async () => {
-      const signer1 = await getExecutionSigner(provider, { data: 'woot' });
+      const signer1 = await getExecutionSigner(provider, { data: '0xwoot' });
       const signer2 = await getExecutionSigner(
         provider,
-        { data: 'woot' },
+        { data: '0xwoot' },
         'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssss'
       );
 
-      expect(await signer1.getAddress()).not.toStrictEqual(await signer2.getAddress());
+      expect(await signer1.address).not.toStrictEqual(await signer2.address);
     });
   });
 

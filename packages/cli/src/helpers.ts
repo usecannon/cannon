@@ -1,13 +1,15 @@
+import _ from 'lodash';
 import os from 'node:os';
+import fs from 'fs-extra';
+import { Hex } from 'viem';
+import path from 'node:path';
+import prompts from 'prompts';
+import toml from '@iarna/toml';
+import { privateKeyToAccount } from 'viem/accounts';
 import { exec, spawnSync } from 'node:child_process';
 import { CannonRegistry, ContractMap } from '@usecannon/builder';
-import path from 'node:path';
-import { ethers } from 'ethers';
-import _ from 'lodash';
-import fs from 'fs-extra';
-import prompts from 'prompts';
 import { magentaBright, yellowBright, yellow, bold } from 'chalk';
-import toml from '@iarna/toml';
+
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -16,10 +18,9 @@ import {
   ChainArtifacts,
   ContractData,
 } from '@usecannon/builder';
-import { chains } from './chains';
-import { IChainData } from './types';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { AbiFunction } from 'viem';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
@@ -82,9 +83,13 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
+export function formatAbiFunction(v: AbiFunction) {
+  return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
+}
+
 async function getAnvilVersionDate(): Promise<Date | false> {
   try {
-    const child = await spawnSync('anvil', ['--version']);
+    const child = spawnSync('anvil', ['--version']);
     const output = child.stdout.toString();
     const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
     return new Date(timestamp);
@@ -229,53 +234,6 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
-export function getChainName(chainId: number): string {
-  return getChainDataFromId(chainId)?.name || 'unknown';
-}
-
-export function getChainId(chainName: string): number {
-  if (chainName == 'cannon') return CANNON_CHAIN_ID;
-  if (chainName == 'hardhat') return 31337;
-  const chainData = chains.find((c: IChainData) => c.name == chainName);
-  if (!chainData) {
-    throw new Error(`Invalid chain "${chainName}"`);
-  } else {
-    return chainData.chainId;
-  }
-}
-
-export function getChainDataFromId(chainId: number): IChainData | null {
-  if (chainId == CANNON_CHAIN_ID) {
-    return {
-      name: 'cannon',
-      chainId: CANNON_CHAIN_ID,
-      shortName: 'eth',
-      chain: 'ETH',
-      network: 'local',
-      networkId: CANNON_CHAIN_ID,
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: ['http://127.0.0.1'],
-      faucets: [],
-      infoURL: 'https://usecannon.com',
-    };
-  }
-  if (chainId == 31337) {
-    return {
-      name: 'hardhat',
-      chainId: 31337,
-      shortName: 'eth',
-      chain: 'ETH',
-      network: 'local',
-      networkId: 31337,
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: ['http://127.0.0.1'],
-      faucets: [],
-      infoURL: 'https://hardhat.org',
-    };
-  }
-  return chains.find((c: IChainData) => c.chainId == chainId) || null;
-}
-
 function getMetadataPath(packageName: string): string {
   const cliSettings = resolveCliSettings();
   return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
@@ -378,9 +336,9 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @returns boolean If the private key is valid
  */
 
-export function verifyPk(privateKey: string) {
+export function verifyPk(privateKey: Hex) {
   try {
-    new ethers.Wallet(privateKey);
+    privateKeyToAccount(privateKey);
   } catch (e) {
     return false;
   }

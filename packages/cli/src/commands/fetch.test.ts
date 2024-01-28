@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CannonStorage, DeploymentInfo, IPFSLoader } from '@usecannon/builder';
 import { resolveCliSettings } from '@usecannon/cli/src/settings';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import mockfs from 'mock-fs';
 import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry, LocalRegistry } from '../registry';
@@ -59,7 +59,7 @@ describe('fetch', () => {
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
         registryProviderUrl: 'http://localhost:3000',
-        registryAddress: ethers.constants.AddressZero,
+        registryAddress: viem.zeroAddress,
         registryChainId: '123',
         cannonDirectory: '/cannon/directory/',
       })

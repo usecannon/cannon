@@ -13,7 +13,7 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
@@ -147,7 +147,7 @@ function configureRun(program: Command) {
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
       if (options.providerUrl) {
-        const providerChainId = (await provider.getNetwork()).chainId;
+        const providerChainId = await provider.getChainId();
         if (providerChainId != options.chainId) {
           throw new Error(
             `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
@@ -156,7 +156,7 @@ function configureRun(program: Command) {
       }
 
       node = await runRpc(pickAnvilOptions(options), {
-        forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        forkProvider: provider,
       });
     } else {
       node = await runRpc(pickAnvilOptions(options));
@@ -198,12 +198,8 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
-    if (opts.keepAlive) {
-      console.log(
-        `Built package RPC URL available at ${
-          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
-        }`
-      );
+    if (opts.keepAlive && node) {
+      console.log(`Built package RPC URL available at http://${node.host}`);
       const { run } = await import('./commands/run');
       await run([{ ...pkgSpec, settings: {} }], {
         ...opts,
@@ -315,12 +311,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  const { signers } = await resolveRegistryProvider(cliSettings);
+  const { provider, signers } = await resolveRegistryProvider(cliSettings);
 
-  const overrides: ethers.PayableOverrides = {};
+  const overrides: any = {};
 
   if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
+    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
   }
 
   if (options.gasLimit) {
@@ -342,6 +338,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
+    provider,
     signer: signers[0],
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
@@ -454,6 +451,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
+  await getProvider(node!)!.mine({ blocks: 1 });
   const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
 
   forgeCmd.stdout.on('data', (data: Buffer) => {
@@ -481,7 +479,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
 
-  const networkInfo = await p.provider.getNetwork();
+  const chainId = await p.provider.getChainId();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -505,12 +503,12 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const runtime = new ChainBuilderRuntime(
     {
       provider: p.provider,
-      chainId: networkInfo.chainId,
-      async getSigner(addr: string) {
+      chainId: chainId,
+      async getSigner(address: viem.Address) {
         // on test network any user can be conjured
-        await p.provider.send('hardhat_impersonateAccount', [addr]);
-        await p.provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return p.provider.getSigner(addr);
+        //await p.provider.impersonateAccount({ address: addr });
+        //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: address, wallet: p.provider };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -534,13 +532,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   if (!outputs) {
     throw new Error(
-      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+      `no cannon build found for chain ${chainId} with preset "${preset}". Did you mean to run the package instead?`
     );
   }
 
-  const contracts = [getContractsRecursive(outputs, p.provider)];
+  const contracts = [getContractsRecursive(outputs)];
 
-  p.provider.artifacts = outputs;
+  // TODO
+  //p.provider.artifacts = outputs;
 
   await interact({
     packages: [packageDefinition],

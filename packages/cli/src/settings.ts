@@ -12,7 +12,8 @@ import {
   DEFAULT_REGISTRY_PROVIDER_URL,
 } from './constants';
 import { filterSettings } from './helpers';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
+import { Address, Hash } from 'viem';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -28,7 +29,7 @@ export type CliSettings = {
   /**
    * private key(s) of default signer that should be used for build, comma separated
    */
-  privateKey?: string;
+  privateKey?: Hash;
 
   /**
    * the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
@@ -53,7 +54,7 @@ export type CliSettings = {
   /**
    * Address of the registry
    */
-  registryAddress: string;
+  registryAddress: Address;
 
   /**
    * Which registry to read from first. Defaults to `onchain`
@@ -114,7 +115,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
     CANNON_PRIVATE_KEY: z
       .string()
-      .refine((val) => ethers.utils.isHexString(val, 32), { message: 'Private key is invalid' })
+      .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
       .default(fileSettings.privateKey as string)
       .optional(),
     CANNON_IPFS_URL: z
@@ -203,7 +204,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       trace: TRACE,
     },
     _.pickBy(overrides)
-  );
+  ) as CliSettings;
 
   debug('got settings', filterSettings(finalSettings));
 

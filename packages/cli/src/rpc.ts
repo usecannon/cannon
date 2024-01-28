@@ -1,20 +1,22 @@
 import http from 'node:http';
 import { Readable } from 'node:stream';
 import { spawn, ChildProcess } from 'node:child_process';
-import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import * as viem from 'viem';
 import Debug from 'debug';
 import _ from 'lodash';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
 import { gray } from 'chalk';
 
+import { cannonChain, getChainById } from './chains';
+
 const debug = Debug('cannon:cli:rpc');
 
 export type RpcOptions = {
-  forkProvider?: ethers.providers.JsonRpcProvider;
-  forkBlockNumber?: ethers.BigNumberish;
-  timestamp?: ethers.BigNumberish;
+  forkProvider?: viem.PublicClient;
+  forkBlockNumber?: number;
+  timestamp?: number;
 };
 
 const ANVIL_OP_TIMEOUT = 10000;
@@ -28,7 +30,7 @@ export type CannonRpcNode = ChildProcess &
 
 // saved up here to allow for reset of existing process
 let anvilInstance: CannonRpcNode | null = null;
-let anvilProvider: CannonWrapperGenericProvider | null = null;
+let anvilProvider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | null = null;
 
 export const versionCheck = _.once(async () => {
   const anvilVersionInfo = await execPromise('anvil --version');
@@ -125,7 +127,17 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           const host = 'http://' + m[1];
           state = 'listening';
           console.log(gray('Anvil instance running on:', host, '\n'));
-          anvilProvider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(host));
+
+          // TODO: why is this type not working out? (something about mode being wrong?)
+          anvilProvider = viem
+            .createTestClient({
+              mode: 'anvil',
+              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
+              transport: viem.http(host),
+            })
+            .extend(viem.publicActions)
+            .extend(viem.walletActions) as any;
+
           anvilInstance!.host = host;
           resolve(anvilInstance!);
         }
@@ -146,7 +158,7 @@ function timeout(period: number, msg: string) {
   return new Promise<ChildProcess>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
 }
 
-export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperGenericProvider {
+export function getProvider(expectedAnvilInstance: ChildProcess): typeof anvilProvider {
   if (anvilInstance === expectedAnvilInstance) {
     return anvilProvider!;
   } else {
@@ -154,14 +166,14 @@ export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperG
   }
 }
 
-export function createProviderProxy(provider: ethers.providers.JsonRpcProvider): Promise<string> {
+export function createProviderProxy(provider: viem.Client): Promise<string> {
   return new Promise((resolve) => {
     const server = http.createServer(async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       const reqJson = JSON.parse(await streamToString(req));
 
       try {
-        const proxiedResult = await provider.send(reqJson.method, reqJson.params);
+        const proxiedResult = await provider.request(reqJson);
 
         res.writeHead(200);
         res.end(

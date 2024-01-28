@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
+import * as viem from 'viem';
 
 import { bold, yellow } from 'chalk';
 
@@ -53,7 +54,7 @@ export async function alter(
   // });
   // const provider = getProvider(node);
 
-  const { provider } = await resolveWriteProvider(cliSettings, chainId as number);
+  const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -61,11 +62,11 @@ export async function alter(
     {
       provider,
       chainId: chainId,
-      async getSigner(addr: string) {
+      async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        //await provider.impersonateAccount({ address: addr });
+        //await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: addr, wallet: provider as viem.WalletClient };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -107,7 +108,7 @@ export async function alter(
         }
 
         for (const txn in deployInfo.state[actionStep].artifacts.txns) {
-          deployInfo.state[actionStep].artifacts.txns![txn].hash = '';
+          deployInfo.state[actionStep].artifacts.txns![txn].hash = '0x';
         }
 
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
@@ -182,7 +183,7 @@ export async function alter(
           deployInfo.state[actionStep].artifacts.contracts &&
           deployInfo.state[actionStep].artifacts.contracts![targets[0]]
         ) {
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1];
+          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1] as viem.Address;
           deployInfo.state[actionStep].artifacts.contracts![targets[0]].deployTxnHash = '';
         }
       }

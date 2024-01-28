@@ -1,14 +1,14 @@
+import path from 'node:path';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import path from 'path';
-import { augmentProvider } from './internal/augment-provider';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
-import './tasks/run';
+import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
+import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
@@ -43,5 +43,8 @@ extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
     throw new Error("Cannon is not comptible with ethers v6 + hardhat's network. You can use --network cannon");
   }
 
-  await augmentProvider(hre);
+  const { getContract } = await import('./utils');
+  hre.cannon = { getContract };
+
+  //await augmentProvider(hre);
 });

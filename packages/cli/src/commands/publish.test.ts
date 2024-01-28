@@ -1,12 +1,13 @@
 import {
+  CannonSigner,
   CannonStorage,
-  CannonWrapperGenericProvider,
   DeploymentInfo,
   IPFSLoader,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import fs, { Dirent } from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
@@ -23,7 +24,8 @@ describe('publish command', () => {
   const fullPackageRef = `package:1.2.3@${preset}`;
   const basePackageRef = 'package:1.2.3';
   const otherPreset = 'other';
-  let signer: ethers.Signer;
+  let signer: CannonSigner;
+  let provider: viem.PublicClient;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const deployDataLocalFileNameLatest = `package_latest_${chainId}-${preset}.txt`;
   const miscData = { misc: 'info' };
@@ -61,7 +63,7 @@ describe('publish command', () => {
         ipfsUrl: 'http://127.0.0.1:5001',
         publishIpfsUrl: 'http://127.0.0.1:5001',
         registryProviderUrl: 'http://localhost:3000',
-        registryAddress: ethers.constants.AddressZero,
+        registryAddress: viem.zeroAddress,
         registryChainId: '123', // or whatever value is appropriate in your case
         cannonDirectory: dirSync().name,
         // Add other properties as needed
@@ -69,9 +71,7 @@ describe('publish command', () => {
     );
 
     const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-    signer = new ethers.Wallet(privateKey).connect(
-      new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider())
-    );
+    signer = { address: privateKeyToAccount(privateKey).address, wallet: {} as any };
 
     // signer = ethers.Wallet.createRandom().connect(
     //   new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider(), false)
@@ -148,6 +148,7 @@ describe('publish command', () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
       packageRef: fullPackageRef,
+      provider,
       signer,
       tags,
       chainId,
@@ -169,6 +170,7 @@ describe('publish command', () => {
     tags = [];
     await publish({
       packageRef: fullPackageRef,
+      provider,
       signer,
       tags,
       chainId,
@@ -203,6 +205,7 @@ describe('publish command', () => {
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        provider,
         signer,
         tags,
         chainId,
@@ -222,6 +225,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        provider,
         signer,
         tags,
         chainId,
@@ -241,6 +245,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        provider,
         signer,
         tags,
         chainId: 0,
