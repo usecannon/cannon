@@ -5,7 +5,7 @@ import http from 'isomorphic-git/http/web';
 import { memoize } from 'lodash';
 
 const getFs = memoize((name: string) => new LightningFS(name).promises);
-const getDir = memoize((repo: string, ref: string) => `/${md5(repo)}-${md5(ref)}-v1`);
+const getDir = (repo: string, ref: string) => `/${md5(repo)}-${md5(ref)}-v1`;
 
 export const init = memoize(
   async function init(repo: string, ref: string) {

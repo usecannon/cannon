@@ -1,33 +1,44 @@
-import {
-  Box,
-  Flex,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalOverlay,
-  Text,
-  Link,
-  useDisclosure,
-  AlertDescription,
-  AlertTitle,
-  Alert as ChakraAlert,
-  Spinner,
-} from '@chakra-ui/react';
-import { Diff, parseDiff } from 'react-diff-view';
+import { Alert } from '@/components/Alert';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { parseHintedMulticall } from '@/helpers/cannon';
+import { SafeDefinition } from '@/helpers/store';
 import {
   useCannonPackageContracts,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
 import { useGitDiff } from '@/hooks/git';
 import { useGetPreviousGitInfoQuery } from '@/hooks/safe';
-import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import { parseHintedMulticall } from '@/helpers/cannon';
-import { Alert } from '@/components/Alert';
-import { DisplayedTransaction } from './DisplayedTransaction';
-import { CustomSpinner } from '@/components/CustomSpinner';
+import {
+  Alert as ChakraAlert,
+  AlertDescription,
+  AlertTitle,
+  Box,
+  Flex,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  Spinner,
+  Text,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { uniq } from 'lodash';
+import { Diff, parseDiff } from 'react-diff-view';
 import { GitHub } from 'react-feather';
+import { DisplayedTransaction } from './DisplayedTransaction';
+
+const parseDiffFileNames = (diffString: string): string[] => {
+  const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
+  let match;
+  const fileNames: string[] = [];
+  while ((match = regExp.exec(diffString)) !== null) {
+    fileNames.push(match[1]);
+  }
+  return fileNames;
+};
 
 export function TransactionDisplay(props: {
   safeTxn: SafeTransaction;
@@ -79,29 +90,7 @@ export function TransactionDisplay(props: {
     cannonDefInfo.filesList ? Array.from(cannonDefInfo.filesList) : []
   );
 
-  const parseDiffFileNames = (diffString: string): string[] => {
-    const regExp = /[-|+]{3}\s[ab]\/\.(.*?)\n/g;
-    let match;
-    const fileNames: string[] = [];
-    while ((match = regExp.exec(diffString)) !== null) {
-      fileNames.push(match[1]);
-    }
-    return fileNames;
-  };
-
-  const diffFiles = patches
-    .map((p) => {
-      try {
-        parseDiff(p)[0];
-        return parseDiffFileNames(p);
-      } catch (e) {
-        return [];
-      }
-    })
-    .flat()
-    .filter((value, index, array) => {
-      return array.indexOf(value) === index;
-    });
+  const diffFiles = uniq(patches.map(parseDiffFileNames).flat());
 
   if (hintData?.cannonPackage && !cannonInfo.contracts) {
     return (
@@ -174,48 +163,40 @@ export function TransactionDisplay(props: {
                   </Box>
                 </Flex>
                 {patches.map((p, i) => {
-                  if (!p) {
-                    return [];
-                  }
+                  const { oldRevision, newRevision, type, hunks } =
+                    parseDiff(p)[0];
+                  const [fromFileName, toFileName] = parseDiffFileNames(p);
 
-                  try {
-                    const { oldRevision, newRevision, type, hunks } =
-                      parseDiff(p)[0];
-                    return (
-                      <Box
-                        bg="gray.900"
-                        borderRadius="sm"
-                        overflow="hidden"
-                        fontSize="xs"
-                        mb={2}
-                        key={i}
+                  return (
+                    <Box
+                      bg="gray.900"
+                      borderRadius="sm"
+                      overflow="hidden"
+                      fontSize="xs"
+                      mb={2}
+                      key={i}
+                    >
+                      <Flex
+                        bg="blackAlpha.300"
+                        direction="row"
+                        py="1"
+                        fontWeight="semibold"
                       >
-                        <Flex
-                          bg="blackAlpha.300"
-                          direction="row"
-                          py="1"
-                          fontWeight="semibold"
-                        >
-                          <Box w="50%" px={2} py={1}>
-                            {parseDiffFileNames(p)[0]}
-                          </Box>
-                          <Box w="50%" px={2} py={1}>
-                            {parseDiffFileNames(p)[1]}
-                          </Box>
-                        </Flex>
-                        <Diff
-                          key={oldRevision + '-' + newRevision}
-                          viewType="split"
-                          diffType={type}
-                          hunks={hunks}
-                        />
-                      </Box>
-                    );
-                  } catch (err) {
-                    console.debug('diff didnt work:', err);
-
-                    return [];
-                  }
+                        <Box w="50%" px={2} py={1}>
+                          {fromFileName}
+                        </Box>
+                        <Box w="50%" px={2} py={1}>
+                          {toFileName}
+                        </Box>
+                      </Flex>
+                      <Diff
+                        key={oldRevision + '-' + newRevision}
+                        viewType="split"
+                        diffType={type}
+                        hunks={hunks}
+                      />
+                    </Box>
+                  );
                 })}
               </ModalBody>
             </ModalContent>
