@@ -29,15 +29,11 @@ export function createIpfsUrl(base: string, pathname = '') {
     hash: parsedUrl.hash,
   };
 
-  console.log('the uri info', parsedUrl, uri);
-
   if (parsedUrl.auth) {
-    console.log('Detected basic auth in url');
+    console.log('detected basic auth in url');
     const [username, password] = parsedUrl.auth.split(':');
     headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
   }
-
-  console.log('URL FINAL', createUrl(uri), headers);
 
   return { url: createUrl(uri), headers };
 }

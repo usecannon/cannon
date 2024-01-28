@@ -79,19 +79,23 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
   const toQuery = useGitRepo(url, toRef, files);
 
   const patches = useMemo(() => {
-    const patches = [];
-    if (fromQuery.data && toQuery.data) {
-      const fromFiles = fromQuery.data;
-      const toFiles = toQuery.data;
+    const patches: string[] = [];
 
-      for (let i = 0; i < fromFiles.length; i++) {
-        const p = createTwoFilesPatch('a/' + files[i], 'b/' + files[i], fromFiles[i], toFiles[i]);
-        patches.push(p.slice(p.indexOf('\n')));
-      }
+    if (!fromQuery.data || !toQuery.data) return patches;
+
+    const fromFiles = fromQuery.data;
+    const toFiles = toQuery.data;
+
+    for (let i = 0; i < fromFiles.length; i++) {
+      if (fromFiles[i] === toFiles[i]) continue;
+      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles[i], toFiles[i], undefined, undefined, {
+        ignoreWhitespace: false,
+      });
+      patches.push(p.slice(p.indexOf('\n')));
     }
 
     return patches;
-  }, [fromQuery.data, toQuery.data]);
+  }, [fromQuery.status, toQuery.status]);
 
   return {
     patches,
