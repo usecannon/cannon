@@ -1,3 +1,7 @@
+import SafeABIJSON from '@/abi/Safe.json';
+import { SafeDefinition, useStore } from '@/helpers/store';
+import { useSafeAddress } from '@/hooks/safe';
+import { SafeTransaction } from '@/types/SafeTransaction';
 import axios from 'axios';
 import { ethers } from 'ethers';
 import _ from 'lodash';
@@ -14,10 +18,6 @@ import {
   useQuery,
   useWalletClient,
 } from 'wagmi';
-import { SafeDefinition, useStore } from '@/helpers/store';
-import { SafeTransaction } from '@/types/SafeTransaction';
-import { useSafeAddress } from '@/hooks/safe';
-import SafeABIJSON from '@/abi/Safe.json';
 
 const SafeABI = SafeABIJSON as Abi;
 
@@ -57,9 +57,9 @@ export function useSafeTransactions(safe?: SafeDefinition) {
 export function useTxnStager(
   txn: Partial<SafeTransaction>,
   options: {
-    safe?: SafeDefinition;
+    safe: SafeDefinition | null;
     onSignComplete?: () => void;
-  } = {}
+  } = { safe: null }
 ) {
   const chainId = useChainId();
 
