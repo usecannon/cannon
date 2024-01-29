@@ -12,55 +12,55 @@ export const FunctionOutput: FC<{
     value: AbiParameter | readonly AbiParameter[]
   ): value is readonly AbiParameter[] => isArray(value);
 
-  const hasComponents = (
+  const hasresultItems = (
     item: AbiParameter
-  ): item is AbiParameter & { components: readonly AbiParameter[] } => {
-    return 'components' in item && isArray(item.components);
+  ): item is AbiParameter & { resultItems: readonly AbiParameter[] } => {
+    return 'resultItems' in item && isArray(item.resultItems);
   };
 
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     <Box alignItems={'center'} gap={1} fontSize="sm" mb={0}>
-      <Text fontWeight="bold" as="span">
+      <Text pr={1} fontWeight="bold" as="span">
         {name}
       </Text>
-      <Text pl={1} as="span" fontSize="xs" color="whiteAlpha.700">
+      <Text as="span" fontSize="xs" color="whiteAlpha.700">
         {type}
       </Text>
     </Box>
   );
 
   const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
-    // TUPLE
-    if (item.type === 'tuple' && hasComponents(item) && value) {
+    if (item.type === 'tuple' && hasresultItems(item) && value) {
       return (
         <Box pl="4">
-          {Object.values(value).map((component: any, componentIndex: any) => {
-            return (
-              <FunctionOutput
-                output={item.components[componentIndex]}
-                result={component}
-                key={componentIndex}
-              />
-            );
-          })}
+          {Object.values(value).map(
+            (resultItem: any, resIdx: number) => {
+              return (
+                <FunctionOutput
+                  output={item.resultItems[resIdx]}
+                  result={resultItem}
+                  key={resIdx}
+                />
+              );
+            }
+          )}
         </Box>
       );
-      // ARRAY OF TUPLES
-    } else if (item.type === 'tuple[]' && hasComponents(item) && value) {
+    } else if (item.type === 'tuple[]' && hasresultItems(item) && value) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
-            <Box key={tupleIndex} pl="4">
-              {item.components.map(
-                (component: AbiParameter, compIdx: number) => (
-                  <FunctionOutput
-                    key={compIdx}
-                    output={component}
-                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                  />
-                )
-              )}
-            </Box>
-          ))
+          <Box key={tupleIndex} pl="4">
+            {item.resultItems.map(
+              (resultItem: AbiParameter, compIdx: number) => (
+                <FunctionOutput
+                  key={compIdx}
+                  output={resultItem}
+                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                />
+              )
+            )}
+          </Box>
+        ))
         : null;
     } else {
       // === Rendering of Results  ===
