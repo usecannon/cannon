@@ -98,8 +98,6 @@ export const Function: FC<{
   // }, [params, readOnly]);
   //
 
-  // console.log("function outputs", f.outputs)
-
   const submit = async (suppressError = false, simulate = false) => {
     setLoading(true);
     setError(null);
