@@ -1,16 +1,38 @@
-import * as paramUtils from '../util/params';
-
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
 import { CannonRpcNode } from '../rpc';
+
+import * as viem from 'viem';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
+
+export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {
+  const fakeProvider = viem
+    .createTestClient({
+      mode: 'anvil',
+      transport: viem.custom({
+        request: async () => {
+          // no body
+        },
+      }),
+    })
+    .extend(viem.publicActions)
+    .extend(viem.walletActions);
+
+  for (const p in fakeProvider) {
+    if ((typeof (fakeProvider as any)[p] as any) === 'function') {
+      (fakeProvider as any)[p] = jest.fn();
+    }
+  }
+
+  return fakeProvider as any;
+}
 
 describe('build', () => {
   let cli: typeof import('../index').default;
   let helpers: typeof import('../helpers');
   let ethers: typeof import('ethers').ethers;
   let buildCommand: typeof import('./build');
+  let doBuild: typeof import('../util/build');
   let utilProvider: typeof import('../util/provider');
   let rpcModule: typeof import('../rpc');
 
@@ -23,6 +45,7 @@ describe('build', () => {
     helpers = await import('../helpers');
     ethers = (await import('ethers')).ethers;
     buildCommand = await import('./build');
+    doBuild = await import('../util/build');
     utilProvider = await import('../util/provider');
     rpcModule = await import('../rpc');
   });
@@ -32,25 +55,25 @@ describe('build', () => {
     jest.resetModules();
   });
 
-  it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
-    const errorMessage = 'Reject Error';
-    jest.spyOn(paramUtils, 'parseSettings').mockImplementationOnce(() => {
-      throw new Error(errorMessage);
+  describe('onBuild', () => {
+    it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
+      let cannonfile = '';
+      const settings = ['first=1', 'second=2'];
+
+      cannonfile = doBuild.setCannonfilePath(cannonfile, settings);
+
+      expect(cannonfile).toEqual('cannonfile.toml');
+      expect(settings).toEqual(['', 'first=1', 'second=2']);
     });
-    const settings = ['first=1', 'second=2'];
-    await expect(async () => {
-      await cli.parseAsync([...fixedArgs, ...settings]);
-    }).rejects.toThrow(errorMessage);
-    expect(paramUtils.parseSettings).toHaveBeenCalledWith(settings);
   });
 
   describe('provider', () => {
-    let provider: CannonWrapperGenericProvider;
+    let provider: viem.PublicClient;
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
+      provider = makeFakeProvider();
       jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
-      jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
+      jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
     it('should resolve chainId from provider url', async () => {
@@ -65,7 +88,7 @@ describe('build', () => {
         };
       });
 
-      jest.mocked(provider.getNetwork).mockResolvedValue({ chainId, name: 'dummy' });
+      jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
       await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
 
@@ -104,7 +127,7 @@ describe('build', () => {
         },
       } as CannonRpcNode;
       jest.spyOn(rpcModule, 'runRpc').mockResolvedValue(cannonRpcNode);
-      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider);
+      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider as any);
       await cli.parseAsync(fixedArgs);
 
       // Create rpc node with default options
@@ -127,7 +150,7 @@ describe('build', () => {
         },
       } as CannonRpcNode;
       jest.spyOn(rpcModule, 'runRpc').mockResolvedValue(cannonRpcNode);
-      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider);
+      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider as any);
 
       const args = [...fixedArgs, '--port', '8545'];
 

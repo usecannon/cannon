@@ -1,18 +1,14 @@
-import path from 'path';
-import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
-import '@nomiclabs/hardhat-ethers';
+import path from 'node:path';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import { augmentProvider } from './internal/augment-provider';
-
+import { extendConfig, extendEnvironment } from 'hardhat/config';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
-import './tasks/run';
+import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
-import './subtasks/load-deploy';
-import './subtasks/rpc';
+import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
@@ -30,8 +26,25 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
     ...(userConfig.networks?.cannon || {}),
     chainId: CANNON_CHAIN_ID,
   } as any;
+
+  if (!config.networks.cannon.url) {
+    config.networks.cannon.url = `http://127.0.0.1:${config.networks.cannon.port}`;
+  }
 });
 
-extendEnvironment(async (env: HardhatRuntimeEnvironment) => {
-  await augmentProvider(env);
+extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
+  if (!(hre as any).ethers) {
+    throw new Error(
+      'Missing ethers.js installation. Install it with:\n  npm install --save-dev @nomicfoundation/hardhat-ethers ethers'
+    );
+  }
+
+  if (hre.network.name === 'hardhat' && (hre as any).ethers.version.startsWith('6.')) {
+    throw new Error("Cannon is not comptible with ethers v6 + hardhat's network. You can use --network cannon");
+  }
+
+  const { getContract } = await import('./utils');
+  hre.cannon = { getContract };
+
+  //await augmentProvider(hre);
 });

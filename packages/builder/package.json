@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.10.7",
+  "version": "2.10.8",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,11 +36,8 @@
     "typedoc": "^0.24.8",
     "typedoc-plugin-zod": "^1.0.2"
   },
-  "peerDependencies": {
-    "ethers": ">=5.6.0 < 6.0.0"
-  },
   "dependencies": {
-    "@synthetixio/router": "^3.3.0",
+    "@synthetixio/router": "^3.3.2",
     "axios": "^1.6.2",
     "buffer": "^6.0.3",
     "debug": "^4.3.4",
@@ -50,11 +47,12 @@
     "promise-events": "^0.2.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typestub-ipfs-only-hash": "^4.0.0",
+    "viem": "^2.5.0",
     "zod": "^3.22.4"
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "engineStrict": true,
-  "gitHead": "f0df80734df9aa08fc824202644c454e7aa01025"
+  "gitHead": "61a3da984ce9c6af08685c6a2c883c328f6a7e25"
 }

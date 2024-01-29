@@ -2,8 +2,6 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
   CannonStorage,
-  CannonWrapperGenericProvider,
-  ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
@@ -15,22 +13,22 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import prompts from 'prompts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { getFoundryArtifact } from './foundry';
-import { checkCannonVersion, filterSettings, loadCannonfile } from './helpers';
+import { checkCannonVersion } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
+import { createDefaultReadRegistry } from './registry';
 import { CannonRpcNode, getProvider, runRpc } from './rpc';
 import { resolveCliSettings } from './settings';
 import { PackageSpecification } from './types';
 import { pickAnvilOptions } from './util/anvil';
+import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -38,8 +36,6 @@ import './custom-steps/run';
 export * from './types';
 export * from './constants';
 export * from './util/params';
-
-const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
@@ -151,7 +147,7 @@ function configureRun(program: Command) {
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
       if (options.providerUrl) {
-        const providerChainId = (await provider.getNetwork()).chainId;
+        const providerChainId = await provider.getChainId();
         if (providerChainId != options.chainId) {
           throw new Error(
             `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
@@ -160,7 +156,7 @@ function configureRun(program: Command) {
       }
 
       node = await runRpc(pickAnvilOptions(options), {
-        forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        forkProvider: provider,
       });
     } else {
       node = await runRpc(pickAnvilOptions(options));
@@ -174,144 +170,6 @@ function configureRun(program: Command) {
   });
 }
 
-async function doBuild(
-  cannonfile: string,
-  settings: string[],
-  opts: any
-): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime]> {
-  // set debug verbosity
-  switch (true) {
-    case opts.Vvvv:
-      Debug.enable('cannon:*');
-      break;
-    case opts.Vvv:
-      Debug.enable('cannon:builder*');
-      break;
-    case opts.Vv:
-      Debug.enable('cannon:builder,cannon:builder:definition');
-      break;
-    case opts.v:
-      Debug.enable('cannon:builder');
-      break;
-  }
-
-  debug('do build called with', cannonfile, settings, filterSettings(opts));
-  // If the first param is not a cannonfile, it should be parsed as settings
-  if (cannonfile !== '-' && !cannonfile.endsWith('.toml')) {
-    settings.unshift(cannonfile);
-    cannonfile = 'cannonfile.toml';
-  }
-
-  const publicSourceCode = true; // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
-  const parsedSettings = parseSettings(settings);
-
-  const cannonfilePath = path.resolve(cannonfile);
-  const projectDirectory = path.resolve(cannonfilePath);
-
-  const cliSettings = resolveCliSettings(opts);
-
-  let provider: CannonWrapperGenericProvider;
-  let node: CannonRpcNode | null = null;
-
-  let getSigner: ((s: string) => Promise<ethers.Signer>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
-
-  let chainId: number | undefined = undefined;
-
-  if (!opts.chainId && !opts.providerUrl) {
-    // doing a local build, just create a anvil rpc
-    node = await runRpc({
-      ...pickAnvilOptions(opts),
-    });
-
-    provider = getProvider(node);
-  } else {
-    if (opts.providerUrl && !opts.chainId) {
-      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
-      chainId = (await _provider.getNetwork()).chainId;
-    } else {
-      chainId = opts.chainId;
-    }
-
-    const p = await resolveWriteProvider(cliSettings, chainId as number);
-
-    if (opts.dryRun) {
-      node = await runRpc(
-        {
-          ...pickAnvilOptions(opts),
-          chainId,
-        },
-        {
-          forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
-        }
-      );
-
-      provider = getProvider(node);
-
-      // need to set default signer to make sure it is accurate to the actual signer
-      getDefaultSigner = async () => {
-        const addr = p.signers.length > 0 ? await p.signers[0].getAddress() : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
-      };
-    } else {
-      provider = p.provider;
-
-      getSigner = async (address) => {
-        const s = ethers.utils.getAddress(address);
-
-        for (const signer of p.signers) {
-          if ((await signer.getAddress()) === s) {
-            return signer;
-          }
-        }
-
-        throw new Error(
-          `signer not found for address ${s}. Please add the private key for this address to your command line.`
-        );
-      };
-
-      getDefaultSigner = async () => p.signers[0];
-    }
-  }
-
-  const { build } = await import('./commands/build');
-  const { name, version, preset, def } = await loadCannonfile(cannonfilePath);
-
-  const pkgSpec: PackageSpecification = {
-    name,
-    version,
-    preset,
-    settings: parsedSettings,
-  };
-
-  const { outputs, runtime } = await build({
-    provider,
-    def,
-    packageDefinition: pkgSpec,
-    pkgInfo: {},
-    getArtifact: (name) => getFoundryArtifact(name, projectDirectory),
-    getSigner,
-    getDefaultSigner,
-    upgradeFrom: opts.upgradeFrom,
-    presetArg: opts.preset,
-    wipe: opts.wipe,
-    persist: !opts.dryRun,
-    overrideResolver: opts.dryRun ? await createDryRunRegistry(cliSettings) : undefined,
-    publicSourceCode,
-    providerUrl: cliSettings.providerUrl,
-    writeScript: opts.writeScript,
-    writeScriptFormat: opts.writeScriptFormat,
-
-    gasPrice: opts.gasPrice,
-    gasFee: opts.maxGasFee,
-    priorityGasFee: opts.maxPriorityGasFee,
-  });
-
-  return [node, pkgSpec, outputs, runtime];
-}
-
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
   .action(async (cannonfile, settings, opts) => {
@@ -320,7 +178,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     console.log(bold('Building the foundry project...'));
     if (!opts.skipCompile) {
-      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
+      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory, shell: true });
       await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
@@ -340,12 +198,8 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
-    if (opts.keepAlive) {
-      console.log(
-        `Built package RPC URL available at ${
-          (getProvider(node!).passThroughProvider as ethers.providers.JsonRpcProvider).connection.url
-        }`
-      );
+    if (opts.keepAlive && node) {
+      console.log(`Built package RPC URL available at http://${node.host}`);
       const { run } = await import('./commands/run');
       await run([{ ...pkgSpec, settings: {} }], {
         ...opts,
@@ -371,9 +225,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
 ) {
   const { alter } = await import('./commands/alter');
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
-    getArtifact: getFoundryArtifact,
-  });
+  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {});
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {
@@ -441,18 +293,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   const cliSettings = resolveCliSettings(options);
-  let { signers } = await resolveRegistryProvider(cliSettings);
+  const { provider, signers } = await resolveRegistryProvider(cliSettings);
+  let resolvedSigners = signers;
 
   if (!signers.length) {
     const validatePrivateKey = (privateKey: string) => {
-      if (ethers.utils.isHexString(privateKey)) {
-        return true;
-      } else {
-        if (privateKey.length === 64) {
-          return ethers.utils.isHexString(`0x${privateKey}`);
-        }
-        return false;
-      }
+      return viem.isHex(privateKey, { strict: false });
     };
 
     const keyPrompt = await prompts({
@@ -469,13 +315,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     }
 
     const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
-    signers = p.signers;
+    resolvedSigners = p.signers;
   }
 
-  const overrides: ethers.PayableOverrides = {};
+  const overrides: any = {};
 
   if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = ethers.utils.parseUnits(options.maxFeePerGas, 'gwei');
+    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
   }
 
   if (options.gasLimit) {
@@ -497,7 +343,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
-    signer: signers[0],
+    provider,
+    signer: resolvedSigners[0],
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
@@ -609,6 +456,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
+  await getProvider(node!)!.mine({ blocks: 1 });
   const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
 
   forgeCmd.stdout.on('data', (data: Buffer) => {
@@ -636,7 +484,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
 
-  const networkInfo = await p.provider.getNetwork();
+  const chainId = await p.provider.getChainId();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -660,12 +508,12 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const runtime = new ChainBuilderRuntime(
     {
       provider: p.provider,
-      chainId: networkInfo.chainId,
-      async getSigner(addr: string) {
+      chainId: chainId,
+      async getSigner(address: viem.Address) {
         // on test network any user can be conjured
-        await p.provider.send('hardhat_impersonateAccount', [addr]);
-        await p.provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return p.provider.getSigner(addr);
+        //await p.provider.impersonateAccount({ address: addr });
+        //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: address, wallet: p.provider };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -689,13 +537,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   if (!outputs) {
     throw new Error(
-      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+      `no cannon build found for chain ${chainId} with preset "${preset}". Did you mean to run the package instead?`
     );
   }
 
-  const contracts = [getContractsRecursive(outputs, p.provider)];
+  const contracts = [getContractsRecursive(outputs)];
 
-  p.provider.artifacts = outputs;
+  // TODO
+  //p.provider.artifacts = outputs;
 
   await interact({
     packages: [packageDefinition],

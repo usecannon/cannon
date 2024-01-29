@@ -84,8 +84,8 @@ export const Function: FC<{
       readOnly
         ? readContractResult
         : simulated
-        ? readContractResult
-        : writeContractResult,
+          ? readContractResult
+          : writeContractResult,
     [readOnly, simulated, readContractResult, writeContractResult]
   );
 
@@ -282,13 +282,12 @@ export const Function: FC<{
             )}
 
             {error && (
-              <Alert mt="2" status="error" bg="red.700">
-                {`${
-                  error.includes('Encoded error signature') &&
-                  error.includes('not found on ABI')
+              <Alert overflowX="scroll" mt="2" status="error" bg="red.700">
+                {`${error.includes('Encoded error signature') &&
+                    error.includes('not found on ABI')
                     ? 'Error emitted during ERC-7412 orchestration: '
                     : ''
-                }${error}`}
+                  }${error}`}
               </Alert>
             )}
           </Box>
@@ -301,6 +300,7 @@ export const Function: FC<{
             display="flex"
             flexDirection="column"
             position="relative"
+            overflowX="scroll"
           >
             <Heading
               size="xs"

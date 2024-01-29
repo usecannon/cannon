@@ -45,11 +45,11 @@ export const createRenderer: DumpRenderer = () =>
         this.push(`  ${JSON.stringify({ title, depth: line.depth })},${EOL}`);
       }
 
-      for (const { to, data, value } of line.txns) {
+      for (const { to, input, value } of line.txns) {
         const params: { title: string; depth: number; data: string; to?: string; value?: BigNumberish } = {
           title,
           depth: line.depth,
-          data,
+          data: input,
         };
 
         // contract deployments doesn't have a "to" or "value"

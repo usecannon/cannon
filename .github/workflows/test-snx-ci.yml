@@ -1,0 +1,28 @@
+name: Test-snx-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: npm
+          node-version: '20.5.1'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+      - run: |
+          npm ci
+          npm run build
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
+      - name: Synthetix CI Downstream
+        run: cd ./packages/cli && npm run test-snx-ci

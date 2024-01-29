@@ -1,6 +1,5 @@
 import { ContractArtifact } from '@usecannon/builder';
 import { subtask } from 'hardhat/config';
-
 import { SUBTASK_GET_ARTIFACT } from '../task-names';
 
 // purpose: for testing the extraction of artifact compilation data for use in hardhat-cannon

@@ -1,6 +1,6 @@
 {
   "name": "cannon-registry",
-  "version": "2.4.26-alpha.0",
+  "version": "2.10.8",
   "private": true,
   "description": "Contract registry for Cannon images",
   "scripts": {
@@ -19,7 +19,6 @@
   "homepage": "https://github.com/Synthetixio/cannon#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.6",
-    "@nomiclabs/hardhat-etherscan": "3.1.0",
     "@synthetixio/core-contracts": "1.1.1",
     "@typechain/ethers-v5": "10.1.0",
     "@typechain/hardhat": "6.1.2",
