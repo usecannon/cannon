@@ -13,7 +13,6 @@ import {
   Link,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-
 export const Abi: FC<{
   abi: AbiType;
   address: string;
@@ -190,6 +189,7 @@ export const Abi: FC<{
               prior to execution.
             </Text>
           </Alert>
+
           {functions?.map((f, index) => (
             <Function
               key={index}
