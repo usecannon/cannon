@@ -32,6 +32,18 @@ export interface State {
   };
 }
 
+export interface IpfsState {
+  cid: string;
+  content: string;
+  compression: boolean;
+  format: string;
+}
+
+export interface ipfsActions {
+  download: (state: IpfsState, cid: string) => void;
+  setState: (state: IpfsState, payload: Partial<IpfsState>) => void;
+}
+
 export interface Actions {
   setState: (state: Partial<State>) => void;
   setBuild: (build: Partial<State['build']>) => void;
@@ -42,6 +54,7 @@ export interface Actions {
 }
 
 export type Store = State & Actions;
+export type IpfsStore = IpfsState & ipfsActions;
 
 export const initialState = {
   currentSafe: null,
@@ -62,6 +75,42 @@ export const initialState = {
     pythUrl: 'https://hermes.pyth.network',
   },
 } satisfies State;
+
+export const initialIpfsState = {
+  cid: '',
+  content: '',
+  compression: false,
+  format: 'text',
+} satisfies IpfsState;
+
+const useIpfsStore = create<IpfsStore>()(
+  persist(
+    (set) => ({
+      ...initialIpfsState,
+      setState(state: IpfsState, payload: Partial<IpfsState>) {
+        set({ ...state, ...payload });
+      },
+      download(state: IpfsState, cid: string) {
+        if (state.cid === cid) {
+          set({
+            ...state,
+          });
+        } else {
+          set({
+            ...state,
+            cid,
+            content: '',
+            compression: false,
+            format: 'text',
+          });
+        }
+      },
+    }),
+    {
+      name: 'ipfs-state',
+    }
+  )
+);
 
 const useStore = create<Store>()(
   persist(
@@ -120,4 +169,4 @@ const useStore = create<Store>()(
   )
 );
 
-export { useStore };
+export { useStore, useIpfsStore };

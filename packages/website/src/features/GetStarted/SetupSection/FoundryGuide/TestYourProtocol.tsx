@@ -52,7 +52,7 @@ export const TestYourProtocol = () => {
         Include the Cannon.sol library in your tests. Here&apos;s an example:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code} language="solidity" />
+        <CodePreview code={code} language="sol" />
       </Box>
       <Text mb={4}>
         Use the test command to run them. (Note that the&nbsp;

@@ -28,6 +28,7 @@ import {
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
+import { links } from '@/constants/links';
 
 type Setting = {
   title: string;
@@ -176,13 +177,6 @@ export default function SettingsPage() {
               Add Provider
             </Button>
           </Box>
-          {/* <Box mb="6" bg="gray.900" p={3} borderRadius="md" shadow="sm">
-            <InfoIcon mr={1} mt={-1} d="inline" /> Provider detected in
-            connected wallet:{' '}
-            <Text fontFamily="mono" display="inline">
-              https://asdf.com
-            </Text>
-          </Box> */}
           <Heading size="sm" fontWeight={600} mb={1}>
             Oracle Multicalls
           </Heading>
@@ -288,7 +282,7 @@ export default function SettingsPage() {
             </Link>
             .
           </Text>
-          <FormControl>
+          <FormControl mb={4}>
             <FormLabel>HTTP API URL</FormLabel>
             <Input
               bg="black"
@@ -314,6 +308,21 @@ export default function SettingsPage() {
               </FormHelperText>
             )}
           </FormControl>
+          {settings.ipfsApiUrl.length ? (
+            <Button
+              as={Link}
+              textDecoration="none"
+              variant="outline"
+              size="xs"
+              colorScheme="blue"
+              color="blue.400"
+              borderColor="blue.400"
+              _hover={{ bg: 'blue.800', textDecoration: 'none' }}
+              href={links.IPFS_DOWNLOAD}
+            >
+              Test IPFS Endpoint
+            </Button>
+          ) : null}
         </Box>
         <Box
           mb={6}

@@ -80,7 +80,7 @@ export const CodeExplorer: FC<{
         if (firstSource) {
           const [sourceKey, sourceValue] = firstSource;
           setSelectedCode((sourceValue as any)?.content);
-          setSelectedLanguage('solidity');
+          setSelectedLanguage('sol');
           setSelectedKey(sourceKey);
         }
       }
@@ -94,7 +94,7 @@ export const CodeExplorer: FC<{
   });
 
   const [selectedCode, setSelectedCode] = useState('');
-  const [selectedLangauge, setSelectedLanguage] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
 
   const artifacts = miscData?.data && Object.entries(miscData?.data.artifacts);
@@ -176,7 +176,7 @@ export const CodeExplorer: FC<{
                               _hover={{ background: 'gray.800' }}
                               onClick={() => {
                                 setSelectedCode((sourceValue as any)?.content);
-                                setSelectedLanguage('solidity');
+                                setSelectedLanguage('sol');
                                 setSelectedKey(sourceKey);
                               }}
                               whiteSpace="nowrap"
@@ -265,7 +265,7 @@ export const CodeExplorer: FC<{
             maxHeight={['none', 'none', 'calc(100vh - 236px)']}
             background="gray.800"
           >
-            <CodePreview code={selectedCode} language={selectedLangauge} />
+            <CodePreview code={selectedCode} language={selectedLanguage} />
           </Box>
         </Flex>
       ) : (

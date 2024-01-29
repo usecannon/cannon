@@ -63,7 +63,10 @@ jspm_packages/
 
 # macOS
 .DS_Store
-
 .idea
 
+# local env vars
 .env.local
+
+# nx cache folder
+.nx/cache
