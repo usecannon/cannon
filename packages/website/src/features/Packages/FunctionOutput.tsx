@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { Box, Text, Flex } from '@chakra-ui/react';
 import { AbiParameter } from 'abitype';
 import { isArray, isObject } from 'lodash';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 
 export const FunctionOutput: FC<{
   output: AbiParameter | readonly AbiParameter[];
@@ -18,12 +19,12 @@ export const FunctionOutput: FC<{
   };
 
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
-    <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
+    <Box alignItems={'center'} gap={1} fontSize="sm" mb={0}>
       <Text>{name}</Text>
       <Text fontSize="xs" color="whiteAlpha.700">
         {type}
       </Text>
-    </Flex>
+    </Box>
   );
 
   const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
@@ -87,6 +88,14 @@ export const FunctionOutput: FC<{
 
   return (
     <>
+      {(output as Array<any>).length == 0 && (
+        <Flex flex="1">
+          <Text fontSize="sm" m="auto" color="gray.500">
+            <InfoOutlineIcon mt={-0.5} mr={0.5} /> This function does not return
+            any values
+          </Text>
+        </Flex>
+      )}
       {isArrayOutput(output) ? (
         output.map((item, index) => (
           <Box p={2} key={index}>
