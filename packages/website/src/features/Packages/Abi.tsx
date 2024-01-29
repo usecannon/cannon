@@ -13,8 +13,6 @@ import {
   Link,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { mockOutput, mockResult } from './mockdata';
-import { FunctionOutput } from './FunctionOutput';
 export const Abi: FC<{
   abi: AbiType;
   address: string;
@@ -202,7 +200,6 @@ export const Abi: FC<{
               chainId={chainId}
             />
           ))}
-          {/* <FunctionOutput output={mockOutput} result={mockResult} /> */}
         </Box>
       </Flex>
     </Flex>
