@@ -17,6 +17,9 @@ export const FunctionOutput: FC<{
     return 'components' in item && isArray(item.components);
   };
 
+  // console.log(" my func output ", output)
+  // console.log('my res ', result);
+
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     <Flex alignItems={'center'} gap={1} fontSize="sm" mb={0}>
       <Text>{name}</Text>
@@ -31,13 +34,31 @@ export const FunctionOutput: FC<{
     if (item.type === 'tuple' && hasComponents(item)) {
       return (
         <Box pl="4">
-          {Object.values(value).map((component: any, componentIndex: any) => {
+          <h1>hey im a tuple </h1>
+          {item.components.map((component: AbiParameter, idx) => {
+            // console.log('======compoennt is ', component, value);
+            {
+              isObject(value) &&
+                Object.values(value).map((objItem: any) => {
+                  console.log('hello value ', objItem);
+                  return (
+                    <FunctionOutput
+                      key={idx}
+                      output={component}
+                      result={isArray(value) ? value[component.name] : value}
+                    />
+                  );
+                });
+            }
             return (
-              <FunctionOutput
-                output={item.components[componentIndex]}
-                result={component}
-                key={componentIndex}
-              />
+              <>
+                <h1>{component.name}</h1>
+                {/* <FunctionOutput
+                  key={idx}
+                  output={component}
+                  result={isArray(value) ? value[component.name] : value}
+                /> */}
+              </>
             );
           })}
         </Box>
@@ -46,18 +67,18 @@ export const FunctionOutput: FC<{
     } else if (item.type === 'tuple[]' && hasComponents(item)) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
-          <Box key={tupleIndex} pl="4">
-            {item.components.map(
-              (component: AbiParameter, compIdx: number) => (
-                <FunctionOutput
-                  key={compIdx}
-                  output={component}
-                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                />
-              )
-            )}
-          </Box>
-        ))
+            <Box key={tupleIndex} pl="4">
+              {item.components.map(
+                (component: AbiParameter, compIdx: number) => (
+                  <FunctionOutput
+                    key={compIdx}
+                    output={component}
+                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                  />
+                )
+              )}
+            </Box>
+          ))
         : null;
     } else {
       // item type is not a tuple or tuple []  , render fallbacks
@@ -67,7 +88,7 @@ export const FunctionOutput: FC<{
         const outputValue = value[item.name];
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
-            {String(outputValue)}
+            im an object {String(outputValue)}
           </Text>
         );
       } else if (isArray(value)) {
@@ -77,6 +98,7 @@ export const FunctionOutput: FC<{
         // FALLBACK
         return (
           <Text pt="1" pb="2" fontSize="sm" color="whiteAlpha.900">
+            i am a normie{' '}
             {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
