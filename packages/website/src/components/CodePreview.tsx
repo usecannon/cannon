@@ -10,7 +10,7 @@ interface ICodePreviewProps {
 export const CodePreview: FC<ICodePreviewProps> = ({
   code,
   language,
-  height,
+  height = '190px',
 }) => {
   return (
     <Editor
