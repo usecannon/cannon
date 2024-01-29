@@ -1,8 +1,6 @@
 import hre from 'hardhat';
 import { getAllContractDatasFromOutputs, getContractDataFromOutputs } from '../internal/cannon';
 
-import type { Signer } from 'ethers';
-
 /** Get data of a given contract from the built outputs */
 export function getContractData(contractName: string) {
   if (!hre.cannon.outputs) throw new Error('There are no cannon artifacs present');
@@ -15,10 +13,8 @@ export function getAllContractDatas() {
   return getAllContractDatasFromOutputs(hre.cannon.outputs);
 }
 
-/** Get an instance of a ethers.Contract from the built outputs */
-export async function getContract(contractName: string, signer?: Signer) {
-  const { ethers } = await import('ethers');
-  if (!signer) [signer] = (await (hre as any).ethers.getSigners()) as Signer[];
+/** Get the abi and address from the built outputs */
+export async function getContract(contractName: string) {
   const contract = getContractData(contractName);
-  return new ethers.Contract(contract.address || ethers.constants.AddressZero, contract.abi, signer);
+  return { address: contract.address, abi: contract.abi };
 }

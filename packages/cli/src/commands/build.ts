@@ -2,7 +2,6 @@ import {
   build as cannonBuild,
   CANNON_CHAIN_ID,
   CannonRegistry,
-  CannonWrapperGenericProvider,
   ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
@@ -12,13 +11,14 @@ import {
   getContractFromPath,
   getOutputs,
   PackageReference,
+  ChainArtifacts,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import _ from 'lodash';
 import { table } from 'table';
 import pkg from '../../package.json';
-import { chains } from '../chains';
+import { getChainById } from '../chains';
 import { readMetadataCache } from '../helpers';
 import { getMainLoader } from '../loader';
 import { listInstalledPlugins, loadPlugins } from '../plugins';
@@ -26,17 +26,18 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
+import { CannonSigner } from '@usecannon/builder/src';
 
 interface Params {
-  provider: CannonWrapperGenericProvider;
+  provider: viem.PublicClient;
   def?: ChainDefinition;
   packageDefinition: PackageSpecification;
   upgradeFrom?: string;
   pkgInfo: any;
 
   getArtifact?: (name: string) => Promise<ContractArtifact>;
-  getSigner?: (addr: string) => Promise<ethers.Signer>;
-  getDefaultSigner?: () => Promise<ethers.Signer>;
+  getSigner?: (addr: viem.Address) => Promise<CannonSigner>;
+  getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
   presetArg?: string;
   chainId?: number;
@@ -76,7 +77,7 @@ export async function build({
   priorityGasFee,
   writeScript,
   writeScriptFormat = 'ethers',
-}: Params) {
+}: Params): Promise<{ outputs: ChainArtifacts; provider: viem.PublicClient; runtime: ChainBuilderRuntime }> {
   if (wipe && upgradeFrom) {
     throw new Error('wipe and upgradeFrom are mutually exclusive. Please specify one or the other');
   }
@@ -116,10 +117,11 @@ export async function build({
     await loadPlugins();
   }
 
-  const chainId = (await provider.getNetwork()).chainId;
-  const chainName = chains.find((c) => c.chainId === chainId)?.name;
-  const nativeCurrencySymbol = chains.find((c) => c.chainId === chainId)?.nativeCurrency.symbol || 'ETH';
-  let totalCost = ethers.BigNumber.from(0);
+  const chainInfo = getChainById(await provider.getChainId());
+  const chainId = chainInfo?.id;
+  const chainName = chainInfo?.name || 'unknown chain';
+  const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
+  let totalCost = BigInt(0);
 
   const runtimeOptions = {
     provider,
@@ -129,11 +131,19 @@ export async function build({
 
     getSigner:
       getSigner ||
-      async function (addr: string) {
+      async function (addr: viem.Address) {
         // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        await (provider as unknown as viem.TestClient).impersonateAccount({ address: addr });
+        await (provider as unknown as viem.TestClient).setBalance({ address: addr, value: BigInt(1e22) });
+
+        return {
+          address: addr,
+          wallet: viem.createWalletClient({
+            account: addr,
+            chain: provider.chain,
+            transport: viem.custom(provider.transport),
+          }),
+        };
       },
 
     getDefaultSigner,
@@ -182,11 +192,11 @@ export async function build({
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
       }
       console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
-      const cost = ethers.BigNumber.from(txn.gasCost).mul(txn.gasUsed);
-      totalCost = totalCost.add(cost);
+      const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
+      totalCost = totalCost + cost;
       console.log(
         gray(
-          `${'  '.repeat(d)}  Transaction Cost: ${ethers.utils.formatEther(
+          `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
             cost
           )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
         )
@@ -202,11 +212,11 @@ export async function build({
         );
         console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
         console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
-        const cost = ethers.BigNumber.from(contract.gasCost).mul(contract.gasUsed);
-        totalCost = totalCost.add(cost);
+        const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
+        totalCost = totalCost + cost;
         console.log(
           gray(
-            `${'  '.repeat(d)}  Transaction Cost: ${ethers.utils.formatEther(
+            `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
               cost
             )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
           )
@@ -303,7 +313,7 @@ export async function build({
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner!();
     if (defaultSigner) {
-      defaultSignerAddress = await defaultSigner.getAddress();
+      defaultSignerAddress = await defaultSigner.address;
       console.log(`Using ${defaultSignerAddress}`);
     } else {
       console.log();
@@ -406,7 +416,7 @@ export async function build({
           )
         )
       );
-      console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+      console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       console.log('');
       console.log(
         '- Rerunning the build command will attempt to execute skipped steps. It will not rerun executed steps. (To rerun executed steps, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
@@ -426,7 +436,7 @@ export async function build({
         console.log(gray('This package can be run locally using the CLI and provisioned by Cannonfiles.'));
       } else {
         console.log(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
-        console.log(gray(`Total Cost: ${ethers.utils.formatEther(totalCost)} ${nativeCurrencySymbol}`));
+        console.log(gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol}`));
       }
       console.log();
 
@@ -469,7 +479,8 @@ export async function build({
 
   console.log('');
 
-  provider.artifacts = outputs;
+  // TODO
+  //provider.artifacts = outputs;
 
   return { outputs, provider, runtime };
 }

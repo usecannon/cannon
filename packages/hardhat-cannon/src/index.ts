@@ -2,11 +2,9 @@ import path from 'node:path';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { augmentProvider } from './internal/augment-provider';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
-import './tasks/run';
 import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
@@ -48,5 +46,5 @@ extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
   const { getContract } = await import('./utils');
   hre.cannon = { getContract };
 
-  await augmentProvider(hre);
+  //await augmentProvider(hre);
 });

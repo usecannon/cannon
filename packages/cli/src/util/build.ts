@@ -1,6 +1,5 @@
 import path from 'path';
 import Debug from 'debug';
-import { ethers } from 'ethers';
 
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { PackageSpecification } from '../types';
@@ -12,7 +11,9 @@ import { parseSettings } from './params';
 import { pickAnvilOptions } from './anvil';
 import { resolveWriteProvider } from './provider';
 
-import { CannonWrapperGenericProvider, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
+
+import * as viem from 'viem';
 
 const debug = Debug('cannon:cli');
 
@@ -44,7 +45,8 @@ export async function doBuild(
   const { provider, signers, node } = await configureProvider(opts, cliSettings);
 
   // Set up signers
-  const { getSigner, getDefaultSigner } = await configureSigners(opts, provider, signers);
+  // TODO: why are the provider types borked up here (like they are everywhere)
+  const { getSigner, getDefaultSigner } = await configureSigners(opts, provider as any, signers);
 
   // Prepare pre-build config
   const buildConfig = await prepareBuildConfig(
@@ -53,7 +55,7 @@ export async function doBuild(
     opts,
     settings,
     cliSettings,
-    provider,
+    provider as any,
     getSigner,
     getDefaultSigner
   );
@@ -110,8 +112,8 @@ export function setCannonfilePath(cannonfile: string, settings: string[]) {
  * @returns An object containing the configured provider, signers, and an optional RPC node.
  */
 async function configureProvider(opts: any, cliSettings: CliSettings) {
-  let provider: CannonWrapperGenericProvider | undefined = undefined;
-  let signers: ethers.Signer[] | undefined = undefined;
+  let provider: (viem.PublicClient & viem.WalletClient & viem.TestClient) | undefined = undefined;
+  let signers: CannonSigner[] | undefined = undefined;
 
   let node: CannonRpcNode | null = null;
   let chainId: number | undefined = undefined;
@@ -122,10 +124,10 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
         ...pickAnvilOptions(opts),
       });
 
-      provider = getProvider(node);
+      provider = getProvider(node)!;
     } else {
-      const _provider = new ethers.providers.JsonRpcProvider(opts.providerUrl);
-      chainId = (await _provider.getNetwork()).chainId;
+      const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
+      chainId = await _provider.getChainId();
     }
   } else {
     chainId = opts.chainId;
@@ -133,7 +135,7 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
 
   if (!provider) {
     const _provider = await resolveWriteProvider(cliSettings, chainId!);
-    provider = _provider.provider;
+    provider = _provider.provider as any;
     signers = _provider.signers;
   }
 
@@ -144,11 +146,11 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
         chainId,
       },
       {
-        forkProvider: provider.passThroughProvider as ethers.providers.JsonRpcProvider,
+        forkProvider: provider,
       }
     );
 
-    provider = getProvider(node);
+    provider = getProvider(node)!;
   }
 
   return { provider, signers, node };
@@ -163,9 +165,13 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
  * @param signers Array of signers.
  * @returns An object containing methods to get a specific signer or the default signer.
  */
-async function configureSigners(opts: any, provider: CannonWrapperGenericProvider, signers?: ethers.Signer[]) {
-  let getSigner: ((address: string) => Promise<ethers.Signer>) | undefined = undefined;
-  let getDefaultSigner: (() => Promise<ethers.Signer>) | undefined = undefined;
+async function configureSigners(
+  opts: any,
+  provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
+  signers?: CannonSigner[]
+) {
+  let getSigner: ((s: string) => Promise<CannonSigner>) | undefined = undefined;
+  let getDefaultSigner: (() => Promise<CannonSigner>) | undefined = undefined;
 
   // Early return, we don't need to configure signers
   if (!opts.chainId && !opts.providerUrl) return { getSigner, getDefaultSigner };
@@ -173,18 +179,17 @@ async function configureSigners(opts: any, provider: CannonWrapperGenericProvide
   if (opts.dryRun) {
     // Setup for dry run
     getDefaultSigner = async () => {
-      const addr =
-        signers && signers.length > 0 ? await signers[0].getAddress() : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
-      await provider.send('hardhat_impersonateAccount', [addr]);
-      await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-      return provider.getSigner(addr);
+      const addr = signers && signers.length > 0 ? signers[0].address : '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+      await provider.impersonateAccount({ address: addr });
+      await provider.setBalance({ address: addr, value: BigInt(1e22) });
+      return { address: addr, wallet: provider };
     };
   } else {
     getSigner = async (address: string) => {
-      const s = ethers.utils.getAddress(address);
+      const s = viem.getAddress(address);
 
-      for (const signer of signers!) {
-        if ((await signer.getAddress()) === s) {
+      for (const signer of signers || []) {
+        if (signer.address === s) {
           return signer;
         }
       }
@@ -219,9 +224,9 @@ async function prepareBuildConfig(
   opts: any,
   settings: string[],
   cliSettings: CliSettings,
-  provider: CannonWrapperGenericProvider,
-  getSigner: ((address: string) => Promise<ethers.Signer>) | undefined,
-  getDefaultSigner: (() => Promise<ethers.Signer>) | undefined
+  provider: viem.PublicClient,
+  getSigner: ((address: string) => Promise<CannonSigner>) | undefined,
+  getDefaultSigner: (() => Promise<CannonSigner>) | undefined
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 

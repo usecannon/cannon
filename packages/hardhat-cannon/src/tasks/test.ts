@@ -1,7 +1,6 @@
 import { parseSettings } from '@usecannon/cli';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
-import { augmentProvider } from '../internal/augment-provider';
 import { cannonBuild } from '../internal/cannon';
 import { parseAnvilOptions } from '../internal/parse-anvil-options';
 import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
@@ -56,7 +55,7 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
       settings: parsedSettings,
     });
 
-    await augmentProvider(hre, outputs);
+    //await augmentProvider(hre, outputs);
 
     hre.cannon.outputs = outputs;
 

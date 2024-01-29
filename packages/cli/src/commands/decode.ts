@@ -1,8 +1,10 @@
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import { resolveCliSettings } from '../../src/settings';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { readDeployRecursive } from '../package';
+
+import { formatAbiFunction } from '../helpers';
 
 export async function decode({
   packageRef,
@@ -12,13 +14,13 @@ export async function decode({
   json = false,
 }: {
   packageRef: string;
-  data: string[];
+  data: viem.Hash[];
   chainId: number;
   presetArg: string;
   json: boolean;
 }) {
   if (!data[0].startsWith('0x')) {
-    data[0] = '0x' + data[0];
+    data[0] = ('0x' + data[0]) as viem.Hash;
   }
 
   // Handle deprecated preset specification
@@ -36,9 +38,9 @@ export async function decode({
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const abis = deployInfos.flatMap((deployData) => _getAbis(deployData));
-  const tx = _parseData(abis, data);
+  const parsed = _parseData(abis, data);
 
-  if (!tx) {
+  if (!parsed) {
     const errorMessage = decodeTxError(data[0], abis);
     if (errorMessage) {
       console.log(errorMessage);
@@ -47,16 +49,27 @@ export async function decode({
     throw new Error('Could not decode transaction data');
   }
 
-  const fragment = _getFragment(tx);
+  const fragment = viem.getAbiItem({
+    abi: parsed.abi,
+    args: (parsed.result as any).args,
+    name:
+      (parsed.result as viem.EncodeFunctionDataParameters).functionName ||
+      (parsed.result as viem.DecodeErrorResultReturnType).errorName ||
+      (parsed.result as viem.EncodeEventTopicsParameters).eventName ||
+      '',
+  });
 
   if (json || !fragment) {
-    return console.log(JSON.stringify(tx, null, 2));
+    return console.log(JSON.stringify(parsed.result, null, 2));
   }
 
   console.log();
-  console.log(green(`${fragment.format('full')}`), `${'sighash' in tx ? italic(gray(tx.sighash)) : ''}`);
+  console.log(
+    green(`${formatAbiFunction(fragment as any)}`),
+    `${'sighash' in parsed.result ? italic(gray(parsed.result.sighash)) : ''}`
+  );
 
-  if ('errorFragment' in tx) {
+  if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(data[0], abis);
     if (errorMessage) {
       console.log(errorMessage);
@@ -64,26 +77,25 @@ export async function decode({
     }
   }
 
-  const renderParam = (prefix: string, input: ethers.utils.ParamType) =>
-    `${prefix}${gray(input.format())} ${bold(input.name)}`;
+  const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${gray(input.type)} ${bold(input.name)}`;
 
-  const renderArgs = (input: ethers.utils.ParamType, value: ethers.utils.Result, p = '  ') => {
+  const renderArgs = (input: viem.AbiParameter, value: any, p = '  ') => {
     if (Array.isArray(input)) {
       if (input.length !== value.length) throw new Error('input and value length mismatch');
 
       for (let i = 0; i < input.length; i++) {
         renderArgs(input[i], value[i], p);
       }
-    } else if (input.baseType === 'array') {
+    } else if (input.type === 'array') {
       console.log(renderParam(p, input));
       for (let i = 0; i < value.length; i++) {
-        if (input.arrayChildren.baseType === 'array') {
+        if ((input as any).arrayChildren.baseType === 'array') {
           console.log(`${p.repeat(2)}[${i}]`);
-          renderArgs(input.arrayChildren, value[i], p.repeat(3));
-        } else if (input.arrayChildren.baseType === 'tuple') {
-          renderArgs(input.arrayChildren.components[i], value[i], p.repeat(2));
+          renderArgs((input as any).arrayChildren, value[i], p.repeat(3));
+        } else if ((input as any).arrayChildren.baseType === 'tuple') {
+          renderArgs((input as any).arrayChildren.components[i], value[i], p.repeat(2));
         } else {
-          console.log(`${p.repeat(2)}${gray(`[${i}]`)}`, _renderValue(input.arrayChildren, value[i] as any));
+          console.log(`${p.repeat(2)}${gray(`[${i}]`)}`, _renderValue((input as any).arrayChildren, value[i] as any));
         }
       }
     } else {
@@ -91,8 +103,10 @@ export async function decode({
     }
   };
 
-  for (let index = 0; index < tx.args.length; index++) {
-    renderArgs(fragment.inputs[index], tx.args[index]);
+  if (parsed.result.args) {
+    for (let index = 0; index < parsed.result.args.length; index++) {
+      renderArgs((fragment as viem.AbiFunction).inputs[index], parsed.result.args[index]);
+    }
   }
 
   console.log();
@@ -104,15 +118,15 @@ function _getAbis(deployData: DeploymentInfo) {
     .map((artifact) => artifact.abi);
 }
 
-function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNumber) {
+function _renderValue(type: viem.AbiParameter, value: string | bigint) {
   switch (true) {
-    case ethers.BigNumber.isBigNumber(value):
+    case typeof value == 'bigint':
       return value.toString();
     case type.type === 'address':
       return value;
     case type.type === 'bytes32':
       try {
-        return ethers.utils.parseBytes32String(value as string);
+        return viem.stringToHex(value as string);
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
@@ -125,18 +139,24 @@ function _renderValue(type: ethers.utils.ParamType, value: string | ethers.BigNu
   }
 }
 
-function _parseData(abis: ContractData['abi'][], data: string[]) {
+function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
   if (data.length === 0) return null;
 
   for (const abi of abis) {
-    const iface = new ethers.utils.Interface(abi as string[]);
+    //const iface = new ethers.utils.Interface(abi as viem.Abi);
 
     const result =
-      _try(() => iface.parseError(data[0])) ||
-      _try(() => iface.parseTransaction({ data: data[0] })) ||
-      _try(() => iface.parseLog({ topics: data.slice(0, -1), data: data[data.length - 1] }));
+      _try(() => viem.decodeErrorResult({ abi, data: data[0] })) ||
+      _try(() => viem.decodeFunctionData({ abi, data: data[0] })) ||
+      _try(() =>
+        viem.decodeEventLog({
+          abi,
+          topics: (data.length > 1 ? data.slice(0, -1) : data) as [viem.Hex],
+          data: data.length > 1 ? data[data.length - 1] : '0x',
+        })
+      );
 
-    if (result) return result;
+    if (result) return { abi, result };
   }
 
   return null;
@@ -148,15 +168,4 @@ function _try<T extends (...args: any) => any>(fn: T): ReturnType<T> | null {
   } catch (err) {
     return null;
   }
-}
-
-function _getFragment(value: ReturnType<typeof _parseData>) {
-  if (!value) return null;
-  return 'functionFragment' in value
-    ? value.functionFragment
-    : 'errorFragment' in value
-    ? value.errorFragment
-    : 'eventFragment' in value
-    ? value.eventFragment
-    : null;
 }

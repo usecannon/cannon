@@ -1,5 +1,5 @@
-import { BlockTag, BlockWithTransactions } from '@ethersproject/abstract-provider';
-import { ethers } from 'ethers';
+/*import { BlockTag, BlockWithTransactions } from '@ethersproject/abstract-provider';
+import * as viem from 'viem';
 import { Deferrable } from 'ethers/lib/utils';
 import { ChainArtifacts } from '../types';
 import { handleTxnError } from './';
@@ -240,4 +240,4 @@ export class CannonJsonRpcProvider extends CannonWrapperGenericProvider {
     const passThroughProvider = new ethers.providers.JsonRpcProvider(url);
     super(artifacts, passThroughProvider, true);
   }
-}
+}*/

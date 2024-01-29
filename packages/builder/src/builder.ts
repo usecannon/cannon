@@ -331,7 +331,8 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   debugVerbose('ctx for step', pkgState.currentLabel, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
-  runtime.provider.artifacts = ctx;
+  // TODO: setup provider on viem to catch errors and traces
+  //runtime.provider.artifacts = ctx;
 
   const result = await Promise.race([
     ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),

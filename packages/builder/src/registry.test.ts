@@ -1,6 +1,7 @@
-import { ethers } from 'ethers';
+import * as viem from 'viem';
 import { CannonRegistry, OnChainRegistry } from './registry';
-import { CannonWrapperGenericProvider } from './error/provider';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
+import { CannonSigner } from '.';
 
 jest.mock('./error/provider');
 
@@ -36,24 +37,24 @@ describe('registry.ts', () => {
   });
 
   describe('OnChainRegistry', () => {
-    let provider: ethers.providers.Provider;
-    let signer: ethers.Signer;
+    let provider: viem.PublicClient;
+    let signer: CannonSigner;
     let registry: OnChainRegistry;
     let providerOnlyRegistry: OnChainRegistry;
 
     const fakeRegistryAddress = '0x1234123412341234123412341234123412341234';
 
     beforeAll(async () => {
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
-      (provider._isProvider as any) = true;
-      signer = ethers.Wallet.createRandom().connect(provider);
+      provider = makeFakeProvider();
+      signer = fixtureSigner();
       registry = new OnChainRegistry({
         address: fakeRegistryAddress,
-        signerOrProvider: signer,
+        provider,
+        signer,
         overrides: { gasLimit: 1234000 },
       });
 
-      providerOnlyRegistry = new OnChainRegistry({ signerOrProvider: provider, address: fakeRegistryAddress });
+      providerOnlyRegistry = new OnChainRegistry({ provider, address: fakeRegistryAddress });
     });
 
     describe('constructor', () => {
@@ -78,7 +79,7 @@ describe('registry.ts', () => {
       });
 
       it('checks signer balance', async () => {
-        jest.mocked(provider.getBalance).mockResolvedValue(ethers.BigNumber.from(0));
+        jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
 
         await expect(() => registry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
           /Signer at .* is not funded with ETH./
@@ -86,26 +87,29 @@ describe('registry.ts', () => {
       });
 
       it('makes call to register all specified packages, and returns list of published packages', async () => {
-        jest.mocked(provider.getBalance).mockResolvedValue(ethers.utils.parseEther('1'));
-        jest.mocked(provider.getFeeData).mockResolvedValue({
-          lastBaseFeePerGas: null,
-          maxFeePerGas: null,
-          maxPriorityFeePerGas: null,
-          gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getFeeHistory).mockResolvedValue({
+          //lastBaseFeePerGas: null,
+          baseFeePerGas: [],
+          gasUsedRatio: [],
+          oldestBlock: BigInt(0),
+          //gasPrice: viem.parseGwei('10'),
         });
 
-        jest.mocked(provider.resolveName).mockResolvedValue(fakeRegistryAddress);
+        //jest.mocked(provider.resolveName).mockResolvedValue(fakeRegistryAddress);
 
-        jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 12341234, name: 'fake' });
+        jest.mocked(provider.getChainId).mockResolvedValue(12341234);
+
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
 
         jest
-          .mocked(provider.sendTransaction)
-          .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x1234' } as unknown as ethers.providers.TransactionReceipt),
-          } as any)
-          .mockResolvedValueOnce({
-            wait: async () => ({ logs: [], transactionHash: '0x5678' } as unknown as ethers.providers.TransactionReceipt),
-          } as any);
+          .mocked(signer.wallet.sendTransaction)
+          .mockResolvedValueOnce({} as any)
+          .mockResolvedValueOnce({} as any);
+
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue({
+          transactionHash: '0x1234',
+        });
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
@@ -128,19 +132,20 @@ describe('registry.ts', () => {
       });
 
       it('calls `getPackageUrl`', async () => {
-        jest.mocked(provider.call).mockResolvedValue(ethers.utils.defaultAbiCoder.encode(['string'], ['ipfs://Qmwohoo']));
+        jest.mocked(provider.simulateContract).mockResolvedValue({ result: 'ipfs://Qmwohoo' } as any);
 
         const url = await registry.getUrl('dummyPackage:0.0.1@main', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
 
-        expect(jest.mocked(provider.call).mock.lastCall?.[0].data).toBe(
-          registry.contract.interface.encodeFunctionData('getPackageUrl', [
-            ethers.utils.formatBytes32String('dummyPackage'),
-            ethers.utils.formatBytes32String('0.0.1'),
-            ethers.utils.formatBytes32String('13370-main'),
-          ])
-        );
+        expect(jest.mocked(provider.simulateContract).mock.lastCall?.[0]).toMatchObject({
+          functionName: 'getPackageUrl',
+          args: [
+            viem.stringToHex('dummyPackage', { size: 32 }),
+            viem.stringToHex('0.0.1', { size: 32 }),
+            viem.stringToHex('13370-main', { size: 32 }),
+          ],
+        });
       });
     });
   });

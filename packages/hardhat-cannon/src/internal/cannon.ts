@@ -1,10 +1,11 @@
 import path from 'node:path';
 import { ContractMap } from '@usecannon/builder';
 import { build, getProvider, loadCannonfile, PackageSettings } from '@usecannon/cli';
-import { ethers } from 'ethers';
 import { SUBTASK_GET_ARTIFACT } from '../task-names';
 import { getHardhatSigners } from './get-hardhat-signers';
 import { loadPackageJson } from './load-pkg-json';
+
+import * as viem from 'viem';
 
 import type { CannonRpcNode } from '@usecannon/cli/src/rpc';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -21,14 +22,17 @@ interface BuildOptions {
 
 export async function cannonBuild(options: BuildOptions) {
   const { hre } = options;
-  const provider = getProvider(options.node);
-  const signers = await getHardhatSigners(options.hre, provider);
+  const provider = getProvider(options.node)!;
+  const signers = getHardhatSigners(options.hre /*, provider*/);
 
-  const getSigner = async (address: string) => {
-    const addr = ethers.utils.getAddress(address);
+  const getSigner = async (address: viem.Address) => {
+    const addr = viem.getAddress(address);
     for (const signer of signers) {
-      if (addr === (await signer.getAddress())) {
-        return signer.connect(provider);
+      if (viem.isAddressEqual(addr, signer.address)) {
+        return {
+          address: addr,
+          wallet: viem.createWalletClient({ account: signer, transport: viem.custom(provider.transport) }),
+        };
       }
     }
 
@@ -47,7 +51,7 @@ export async function cannonBuild(options: BuildOptions) {
     },
     getArtifact: async (contractName: string) => await hre.run(SUBTASK_GET_ARTIFACT, { name: contractName }),
     getSigner,
-    getDefaultSigner: async () => signers[0],
+    getDefaultSigner: async () => getSigner(signers[0].address),
     presetArg: options.preset,
     pkgInfo: loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
     projectDirectory: hre.config.paths.root,

@@ -2,8 +2,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 
 import _ from 'lodash';
-import { ethers } from 'ethers';
-import { ChainBuilderContext, PreChainBuilderContext } from './types';
+import { ChainBuilderContext, PreChainBuilderContext, CannonHelperContext } from './types';
 
 import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
 import { chainDefinitionSchema } from './schemas.zod';
@@ -208,7 +207,7 @@ export class ChainDefinition {
     validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
 
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
-      { ...ctx, ...ethers.utils, ...ethers.constants },
+      { ...ctx, ...CannonHelperContext },
       _.get(this.raw, n),
       {
         name: this.getName(ctx),
@@ -246,7 +245,7 @@ export class ChainDefinition {
 
     const obj = await ActionKinds[kind].getState(
       runtime,
-      { ...ctx, ...ethers.utils, ...ethers.constants },
+      { ...ctx, ...CannonHelperContext },
       this.getConfig(n, ctx) as any,
       {
         name: this.getName(ctx),
@@ -270,7 +269,7 @@ export class ChainDefinition {
    */
   getSettings(ctx: PreChainBuilderContext) {
     const loadedSettings: Record<string, any> = {};
-    const _ctx = { ...ctx, ...ethers.utils, ...ethers.constants, settings: loadedSettings };
+    const _ctx = { ...ctx, ...CannonHelperContext, settings: loadedSettings };
 
     return _.mapValues(this.raw.setting, (sValue, sKey) => {
       const newSetting = _.clone(sValue);
