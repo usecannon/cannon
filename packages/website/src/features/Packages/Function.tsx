@@ -316,7 +316,7 @@ export const Function: FC<{
             {loading ? (
               <CustomSpinner m="auto" />
             ) : (
-              <Flex flex="1">
+              <Box flex="1">
                 {f.outputs.length != 0 && result == null && (
                   <Flex
                     position="absolute"
@@ -340,7 +340,7 @@ export const Function: FC<{
                   </Flex>
                 )}
                 <FunctionOutput result={result} output={f.outputs} />
-              </Flex>
+              </Box>
             )}
           </Box>
         </Flex>

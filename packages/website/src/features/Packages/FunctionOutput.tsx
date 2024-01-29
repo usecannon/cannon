@@ -98,13 +98,13 @@ export const FunctionOutput: FC<{
       )}
       {isArrayOutput(output) ? (
         output.map((item, index) => (
-          <Box p={2} key={index}>
+          <Box overflowX={'scroll'} p={2} key={index}>
             <ItemLabel name={item.name || ''} type={item.internalType || ''} />
             {renderOutput(item, result)}
           </Box>
         ))
       ) : (
-        <Box p={2}>
+        <Box overflowX={'scroll'} p={2}>
           <ItemLabel
             name={output.name || ''}
             type={output.internalType || ''}
