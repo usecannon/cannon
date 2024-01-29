@@ -191,6 +191,7 @@ export const Abi: FC<{
               prior to execution.
             </Text>
           </Alert>
+
           {functions?.map((f, index) => (
             <Function
               key={index}
@@ -201,7 +202,7 @@ export const Abi: FC<{
               chainId={chainId}
             />
           ))}
-
+          {/* <FunctionOutput output={mockOutput} result={mockResult} /> */}
         </Box>
       </Flex>
     </Flex>

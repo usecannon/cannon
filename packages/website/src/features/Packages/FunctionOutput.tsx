@@ -28,7 +28,7 @@ export const FunctionOutput: FC<{
 
   const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
     // TUPLE
-    if (item.type === 'tuple' && hasComponents(item)) {
+    if (item.type === 'tuple' && hasComponents(item) && value) {
       return (
         <Box pl="4">
           {Object.values(value).map((component: any, componentIndex: any) => {
@@ -43,26 +43,24 @@ export const FunctionOutput: FC<{
         </Box>
       );
       // ARRAY OF TUPLES
-    } else if (item.type === 'tuple[]' && hasComponents(item)) {
+    } else if (item.type === 'tuple[]' && hasComponents(item) && value) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
-          <Box key={tupleIndex} pl="4">
-            {item.components.map(
-              (component: AbiParameter, compIdx: number) => (
-                <FunctionOutput
-                  key={compIdx}
-                  output={component}
-                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                />
-              )
-            )}
-          </Box>
-        ))
+            <Box key={tupleIndex} pl="4">
+              {item.components.map(
+                (component: AbiParameter, compIdx: number) => (
+                  <FunctionOutput
+                    key={compIdx}
+                    output={component}
+                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                  />
+                )
+              )}
+            </Box>
+          ))
         : null;
     } else {
-      // item type is not a tuple or tuple []  , render fallbacks
-
-      // OBJECTS
+      // === Rendering of Results  ===
       if (isObject(value) && item.name && item.name in value) {
         const outputValue = value[item.name];
         return (
@@ -71,8 +69,11 @@ export const FunctionOutput: FC<{
           </Text>
         );
       } else if (isArray(value)) {
-        // ARRAYS
-        return value.map((val, idx) => <Text key={idx}>{String(val)}</Text>);
+        return value.map((val, idx) => (
+          <Text display="inline" key={idx}>
+            {String(val)}
+          </Text>
+        ));
       } else {
         // FALLBACK
         return (
