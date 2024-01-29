@@ -12,10 +12,10 @@ export const FunctionOutput: FC<{
     value: AbiParameter | readonly AbiParameter[]
   ): value is readonly AbiParameter[] => isArray(value);
 
-  const hasresultItems = (
+  const hasComponents = (
     item: AbiParameter
-  ): item is AbiParameter & { resultItems: readonly AbiParameter[] } => {
-    return 'resultItems' in item && isArray(item.resultItems);
+  ): item is AbiParameter & { components: readonly AbiParameter[] } => {
+    return 'components' in item && isArray(item.components);
   };
 
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
@@ -30,40 +30,37 @@ export const FunctionOutput: FC<{
   );
 
   const renderOutput = (item: AbiParameter, value: { [key: string]: any }) => {
-    if (item.type === 'tuple' && hasresultItems(item) && value) {
+    if (item.type === 'tuple' && hasComponents(item) && value) {
       return (
         <Box pl="4">
-          {Object.values(value).map(
-            (resultItem: any, resIdx: number) => {
-              return (
-                <FunctionOutput
-                  output={item.resultItems[resIdx]}
-                  result={resultItem}
-                  key={resIdx}
-                />
-              );
-            }
-          )}
+          {Object.values(value).map((component: any, resIdx: number) => {
+            return (
+              <FunctionOutput
+                output={item.components[resIdx]}
+                result={component}
+                key={resIdx}
+              />
+            );
+          })}
         </Box>
       );
-    } else if (item.type === 'tuple[]' && hasresultItems(item) && value) {
+    } else if (item.type === 'tuple[]' && hasComponents(item) && value) {
       return isArray(value)
         ? value.map((tupleItem, tupleIndex) => (
-          <Box key={tupleIndex} pl="4">
-            {item.resultItems.map(
-              (resultItem: AbiParameter, compIdx: number) => (
-                <FunctionOutput
-                  key={compIdx}
-                  output={resultItem}
-                  result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
-                />
-              )
-            )}
-          </Box>
-        ))
+            <Box key={tupleIndex} pl="4">
+              {item.components.map(
+                (component: AbiParameter, compIdx: number) => (
+                  <FunctionOutput
+                    key={compIdx}
+                    output={component}
+                    result={isArray(tupleItem) ? tupleItem[compIdx] : tupleItem}
+                  />
+                )
+              )}
+            </Box>
+          ))
         : null;
     } else {
-      // === Rendering of Results  ===
       if (isObject(value) && item.name && item.name in value) {
         const outputValue = value[item.name];
         return (
@@ -78,7 +75,6 @@ export const FunctionOutput: FC<{
           </Text>
         ));
       } else {
-        // FALLBACK
         return (
           <Text pt="1" pb="2" fontSize="xs" color="whiteAlpha.900">
             {result !== null || undefined ? String(result) : '---'}
