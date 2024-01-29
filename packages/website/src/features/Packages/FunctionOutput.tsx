@@ -20,9 +20,13 @@ export const FunctionOutput: FC<{
 
   const ItemLabel: FC<{ name: string; type: string }> = ({ name, type }) => (
     <Box alignItems={'center'} gap={1} fontSize="sm" mb={0}>
-      <Text pr={1} fontWeight="bold" as="span">
-        {name}
-      </Text>
+      {name?.length ? (
+        <Text pr={1} fontWeight="semibold" as="span">
+          {name}
+        </Text>
+      ) : (
+        ''
+      )}
       <Text as="span" fontSize="xs" color="whiteAlpha.700">
         {type}
       </Text>
@@ -64,19 +68,31 @@ export const FunctionOutput: FC<{
       if (isObject(value) && item.name && item.name in value) {
         const outputValue = value[item.name];
         return (
-          <Text pt="1" pb="2" fontSize="xs" color="whiteAlpha.900">
+          <Text
+            display="block"
+            pt="1"
+            pb="2"
+            fontSize="xs"
+            color="whiteAlpha.900"
+          >
             {String(outputValue)}
           </Text>
         );
       } else if (isArray(value)) {
         return value.map((val, idx) => (
-          <Text fontSize="xs" display="inline" key={idx}>
+          <Text fontSize="xs" display="block" key={idx}>
             {String(val)}
           </Text>
         ));
       } else {
         return (
-          <Text pt="1" pb="2" fontSize="xs" color="whiteAlpha.900">
+          <Text
+            display="block"
+            pt="1"
+            pb="2"
+            fontSize="xs"
+            color="whiteAlpha.900"
+          >
             {result !== null || undefined ? String(result) : '---'}
           </Text>
         );
