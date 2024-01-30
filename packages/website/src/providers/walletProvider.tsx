@@ -1,87 +1,55 @@
-import { useStore } from '@/helpers/store';
-import {
-  darkTheme,
-  getDefaultWallets,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
-import _ from 'lodash';
-import { ReactNode, useEffect, useState } from 'react';
-import chains from 'viem/chains';
-import { createConfig, WagmiProvider } from 'wagmi';
 import '@rainbow-me/rainbowkit/styles.css';
 
-const cannonLocalHost = {
+import {
+  getDefaultWallets,
+  darkTheme,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import * as chains from '@wagmi/core/chains';
+import { Chain } from 'viem/chains';
+import { HttpTransport } from 'viem';
+import { ReactNode } from 'react';
+import { WagmiProvider } from 'wagmi';
+import { createConfig, http } from '@wagmi/core';
+
+const cannonNetwork: Chain = {
   ...chains.localhost,
   id: 13370,
   name: 'Cannon Localhost',
-  rpcUrl: 'http://127.0.0.1:8545',
 };
 
-const _chains = Object.values(chains).filter((item) => _.isObject(item));
-export const supportedChains = [..._chains, cannonLocalHost];
+export const supportedChains = [
+  cannonNetwork,
+  ...Object.values(chains),
+] as unknown as readonly [Chain, ...Chain[]];
 
-const createWagmiConfig = (customProviders: string[]) => {
-  const providers = [];
+const transports = supportedChains.reduce((prev, curr) => {
+  prev[curr.id] = http(curr.rpcUrls.default.http[0]);
+  return prev;
+}, {} as Record<number, HttpTransport>);
 
-  for (const customProvider of customProviders) {
-    if (customProvider.includes('infura')) {
-      const splitted = customProvider.split('/');
-      providers.push(
-        infuraProvider({
-          apiKey: splitted[splitted.length - 1],
-        })
-      );
-    } else if (customProvider.includes('alchemy')) {
-      const splitted = customProvider.split('/');
-      providers.push(
-        alchemyProvider({
-          apiKey: splitted[splitted.length - 1],
-        })
-      );
-    }
-  }
+const { connectors } = getDefaultWallets({
+  appName: 'Cannon',
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+});
 
-  const { chains, publicClient, webSocketPublicClient } = configureChains(
-    supportedChains,
-    [...(providers as any), publicProvider()]
-  );
+interface IWalletProvider {
+  children: ReactNode;
+}
 
-  const { connectors } = getDefaultWallets({
-    appName: 'Cannon',
-    projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-    chains,
-  });
-
-  const config = createConfig({
-    chains,
+function WalletProvider({ children }: IWalletProvider) {
+  const wagmiConfig = createConfig({
+    chains: supportedChains,
     connectors,
-    publicClient,
-    webSocketPublicClient,
+    transports,
   });
-
-  return { config, chains };
-};
-
-const { config: defaultWagmiConfig, chains: defaultWagmiChains } =
-  createWagmiConfig([]);
-
-function WalletProvider({ children }: { children: ReactNode }) {
-  const [wagmiConfig, setWagmiConfig] = useState(defaultWagmiConfig);
-  const [rainbowKitChains, setRainbowKitChains] = useState(defaultWagmiChains);
-  const settings = useStore((s) => s.settings);
-
-  useEffect(() => {
-    const { config, chains } = createWagmiConfig(settings.customProviders);
-    setRainbowKitChains(chains);
-    setWagmiConfig(config);
-  }, [settings.customProviders]);
 
   // NOTE: have to hack the style below becuase otherwise it overflows the page.
   // hopefully the class name doesnt change from compile to compile lol
   // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
     <WagmiProvider config={wagmiConfig}>
-      <RainbowKitProvider chains={rainbowKitChains} theme={darkTheme()}>
+      <RainbowKitProvider theme={darkTheme()}>
         <style
           dangerouslySetInnerHTML={{
             __html: `
