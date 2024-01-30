@@ -27,7 +27,7 @@ export async function createFork({ chainId, impersonate = [] }: { chainId: numbe
   const chainUrl = findChainUrl(chainId);
 
   // This is a hack because we needed to remove ganache as a dependency because
-  // it wasn't working the installation on CI
+  // the installation wasn't working on CI.
   // More info: https://stackoverflow.com/questions/49475492/npm-install-error-code-ebadplatform
 
   // @ts-ignore-next-line Import module

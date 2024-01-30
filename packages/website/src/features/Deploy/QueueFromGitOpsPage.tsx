@@ -38,7 +38,7 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -235,22 +235,23 @@ function QueueFromGitOps() {
 
   // run the build and get the list of transactions we need to run
   const buildInfo = useCannonBuild(
-    currentSafe as any,
-    cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    chainId
+    currentSafe,
+    cannonDefInfo.def,
+    prevCannonDeployInfo.pkg
   );
 
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
-    buildInfo.buildResult?.runtime as any,
-    {
-      def: cannonDefInfo.def?.toJson(),
-      state: buildInfo.buildResult?.state,
-      options: prevCannonDeployInfo.pkg?.options,
-      meta: prevCannonDeployInfo.pkg?.meta,
-      miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
-    } as any,
-    prevCannonDeployInfo.metaUrl as any
+    buildInfo.buildResult?.runtime,
+    cannonDefInfo.def
+      ? ({
+          def: cannonDefInfo.def?.toJson(),
+          state: buildInfo.buildResult?.state,
+          options: prevCannonDeployInfo.pkg?.options,
+          meta: prevCannonDeployInfo.pkg?.meta,
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
+        } as DeploymentInfo)
+      : undefined,
+    prevCannonDeployInfo.metaUrl || undefined
   );
 
   useEffect(() => {

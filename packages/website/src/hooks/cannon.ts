@@ -66,7 +66,7 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
   };
 }
 
-export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevDeploy: DeploymentInfo, chainId: number) {
+export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
@@ -86,6 +86,10 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const buildFn = async () => {
     if (settings.isIpfsGateway || settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
       throw new Error('Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.');
+    }
+
+    if (!safe || !def || !prevDeploy) {
+      throw new Error('Missing required parameters');
     }
 
     setBuildStatus('Creating fork...');
@@ -220,21 +224,15 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   };
 }
 
-type IPFSPackageWriteResult = {
-  packageRef: string;
-  mainUrl: string;
-  publishTxns: string[];
-};
-
 export function useCannonWriteDeployToIpfs(
-  runtime: ChainBuilderRuntime,
-  deployInfo: DeploymentInfo,
-  metaUrl: string,
+  runtime?: ChainBuilderRuntime,
+  deployInfo?: DeploymentInfo,
+  metaUrl?: string,
   mutationOptions: Partial<UseMutationOptions> = {}
 ) {
   const settings = useStore((s) => s.settings);
 
-  const writeToIpfsMutation = useMutation<IPFSPackageWriteResult>({
+  const writeToIpfsMutation = useMutation({
     ...mutationOptions,
     mutationFn: async () => {
       if (settings.isIpfsGateway) {
@@ -243,6 +241,10 @@ export function useCannonWriteDeployToIpfs(
 
       if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
         throw new Error('You cannot publish on an repo endpoint, only read operations can be done');
+      }
+
+      if (!runtime || !deployInfo || !metaUrl) {
+        throw new Error('Missing required parameters');
       }
 
       const def = new ChainDefinition(deployInfo.def);
@@ -282,7 +284,7 @@ export function useCannonWriteDeployToIpfs(
         publishTxns,
       };
     },
-  } as any); // TODO: why is ts having a freak out fit about this
+  });
 
   return {
     writeToIpfsMutation,
