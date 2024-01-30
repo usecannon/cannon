@@ -1,9 +1,10 @@
-import { bold, red } from 'chalk';
+import os from 'node:os';
 import Debug from 'debug';
-import provider from 'eth-provider';
 import * as viem from 'viem';
+import { bold, red } from 'chalk';
+import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
-import os from 'os';
+
 import { CliSettings } from '../settings';
 import { CannonSigner } from '@usecannon/builder';
 import { getChainById } from '../chains';
@@ -74,10 +75,22 @@ export async function resolveProviderAndSigners({
   const signers: CannonSigner[] = [];
   if (checkProviders[0].startsWith('http')) {
     debug('use explicit provider url', checkProviders);
-    publicClient = viem.createPublicClient({
-      chain: getChainById(chainId),
-      transport: viem.http(checkProviders[0]),
-    });
+    try {
+      publicClient = viem.createPublicClient({
+        chain: getChainById(chainId),
+        transport: viem.http(checkProviders[0]),
+      });
+    } catch (err) {
+      if (checkProviders.length <= 1) {
+        throw new Error('no more providers');
+      }
+
+      return await resolveProviderAndSigners({
+        chainId,
+        checkProviders: checkProviders.slice(1),
+        privateKey,
+      });
+    }
 
     if (privateKey) {
       signers.push(
