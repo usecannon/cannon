@@ -1,6 +1,7 @@
 'use client';
 
 import { links } from '@/constants/links';
+import { parseIpfsHash } from '@/helpers/ipfs';
 import { makeMultisend } from '@/helpers/multisend';
 import * as onchainStore from '@/helpers/onchain-store';
 import { useStore } from '@/helpers/store';
@@ -239,10 +240,6 @@ function QueueFromGitOps() {
     prevCannonDeployInfo.pkg as any,
     chainId
   );
-
-  const buildTransactions = () => {
-    buildInfo.doBuild();
-  };
 
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime as any,
@@ -534,11 +531,8 @@ function QueueFromGitOps() {
                     : 'red.500'
                 }
                 background="black"
-                onChange={
-                  (evt: any) =>
-                    setPartialDeployIpfs(
-                      evt.target.value.slice(evt.target.value.indexOf('Qm'))
-                    ) /** TODO: handle bafy hash or other hashes */
+                onChange={(evt: any) =>
+                  setPartialDeployIpfs(parseIpfsHash(evt.target.value))
                 }
               />
               <InputRightElement>
@@ -570,9 +564,10 @@ function QueueFromGitOps() {
               !cannonDefInfo.def ||
               cannonPkgPreviousInfo.isFetching ||
               partialDeployInfo.isFetching ||
-              cannonPkgVersionInfo.isFetching
+              cannonPkgVersionInfo.isFetching ||
+              buildInfo.isBuilding
             }
-            onClick={() => buildTransactions()}
+            onClick={() => buildInfo.doBuild()}
           >
             Preview Transactions to Queue
           </Button>
@@ -590,25 +585,28 @@ function QueueFromGitOps() {
           )}
           {buildInfo.buildSkippedSteps.length > 0 && (
             <Flex flexDir="column" mt="6">
-              <strong>
+              <Text mb="2" fontWeight="bold">
                 This safe will not be able to complete the following steps:
-              </strong>
+              </Text>
               {buildInfo.buildSkippedSteps.map((s, i) => (
-                <strong key={i}>{`${s.name}: ${s.err.toString()}`}</strong>
+                <Text fontFamily="monospace" key={i} mb="2">
+                  <strong>{`[${s.name}]: `}</strong>
+                  {s.err.toString()}
+                </Text>
               ))}
             </Flex>
           )}
           {isPartialDataRequired && (
-            <Alert mt="6" status="error" bg="red.700">
-              <AlertIcon mr={3} />
-              <Flex flexDir="column" gap={5}>
-                <strong>
+            <Alert mt="6" status="error" bg="red.700" mb="5">
+              <Flex flexDir="column" gap={3}>
+                <Text>
                   The web deployer is unable to compile and deploy contracts and
                   routers. Run the following command to generate partial deploy
                   data:
-                </strong>
-                <Code display="block">
-                  {`cannon build ${gitFile} --upgrade-from ${previousPackageInput} --chain-id ${currentSafe?.chainId}`}
+                </Text>
+                <Code display="block" p="2">
+                  cannon build {gitFile} --upgrade-from {previousPackageInput}{' '}
+                  --chain-id {currentSafe?.chainId}
                 </Code>
               </Flex>
             </Alert>
@@ -654,7 +652,9 @@ function QueueFromGitOps() {
                 ) : null}
                 <Tooltip label={stager.execConditionFailed}>
                   <Button
-                    isDisabled={!!stager.execConditionFailed}
+                    isDisabled={
+                      !!stager.execConditionFailed || isPartialDataRequired
+                    }
                     size="lg"
                     w="100%"
                     onClick={async () => {

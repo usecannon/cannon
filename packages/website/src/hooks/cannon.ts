@@ -16,6 +16,7 @@ import {
   ChainDefinition,
   createInitialContext,
   DeploymentInfo,
+  DeploymentState,
   Events,
   FallbackRegistry,
   getOutputs,
@@ -69,11 +70,12 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
   const { addLog } = useLogs();
   const settings = useStore((s) => s.settings);
 
+  const [isBuilding, setIsBuilding] = useState(false);
   const [buildStatus, setBuildStatus] = useState('');
 
   const [buildResult, setBuildResult] = useState<{
     runtime: ChainBuilderRuntime;
-    state: any;
+    state: DeploymentState;
     steps: { name: string; gas: ethers.BigNumber; tx: BaseTransaction }[];
   } | null>(null);
 
@@ -88,7 +90,6 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
 
     setBuildStatus('Creating fork...');
     const fork = await createFork({
-      url: findChainUrl(chainId),
       chainId: safe.chainId,
       impersonate: [safe.address],
     }).catch((err) => {
@@ -194,6 +195,7 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
     setBuildResult(null);
     setBuildError(null);
     setBuildSkippedSteps([]);
+    setIsBuilding(true);
     buildFn()
       .then((res) => {
         setBuildResult(res);
@@ -203,11 +205,13 @@ export function useCannonBuild(safe: SafeDefinition, def: ChainDefinition, prevD
         setBuildError(err.toString());
       })
       .finally(() => {
+        setIsBuilding(false);
         setBuildStatus('');
       });
   }
 
   return {
+    isBuilding,
     buildStatus,
     buildResult,
     buildError,

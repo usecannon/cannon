@@ -1,8 +1,8 @@
-import * as chains from '@wagmi/core/chains';
+import { parseEther, toHex } from 'viem';
+import * as chains from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { ethers } from 'ethers';
 
-export function findChainUrl(chainId: number) {
+export function findChain(chainId: number) {
   if (typeof chainId !== 'number') {
     throw new Error(`Invalid chainId: ${chainId}`);
   }
@@ -10,6 +10,11 @@ export function findChainUrl(chainId: number) {
   const chain = Object.values(chains).find((c) => c.id === chainId);
   if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
 
+  return chain;
+}
+
+export function findChainUrl(chainId: number) {
+  const chain = findChain(chainId);
   const providerConfig = publicProvider()(chain);
   const url = providerConfig?.rpcUrls.http[0];
 
@@ -18,16 +23,8 @@ export function findChainUrl(chainId: number) {
   return url;
 }
 
-export async function createFork({
-  url,
-  chainId,
-  impersonate = [],
-}: {
-  url?: string;
-  chainId: number;
-  impersonate: string[];
-}) {
-  const chainUrl = url || findChainUrl(chainId);
+export async function createFork({ chainId, impersonate = [] }: { chainId: number; impersonate: string[] }) {
+  const chainUrl = findChainUrl(chainId);
 
   // This is a hack because we needed to remove ganache as a dependency because
   // it wasn't working the installation on CI
@@ -39,30 +36,11 @@ export async function createFork({
 
   const node = Ganache.provider({
     wallet: { unlockedAccounts: impersonate },
-    chain: { chainId: chainId },
+    chain: { chainId },
     fork: { url: chainUrl },
   });
 
-  if (url) {
-    const provider = url.startsWith('wss:')
-      ? new ethers.providers.WebSocketProvider(url)
-      : new ethers.providers.JsonRpcProvider(url);
-
-    const urlChainId = await provider.getNetwork().then((n) => n.chainId);
-    if (urlChainId !== chainId) {
-      throw new Error(
-        'Invalid Fork Provider Url configured in settings, it should have the same chainId as the Safe Wallet'
-      );
-    }
-
-    if (provider instanceof ethers.providers.WebSocketProvider) {
-      await provider.destroy();
-    }
-  }
-
-  const bunchOfEth = ethers.utils.hexValue(ethers.utils.parseUnits('10000', 'ether').toHexString());
-
-  await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, bunchOfEth])));
+  await Promise.all(impersonate.map((addr) => node.send('evm_setAccountBalance', [addr, toHex(parseEther('10000'))])));
 
   return node;
 }
