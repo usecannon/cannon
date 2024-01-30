@@ -54,7 +54,7 @@ export async function alter(
   // });
   // const provider = getProvider(node);
 
-  const { provider } = await resolveWriteProvider(cliSettings, chainId as number);
+  const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);

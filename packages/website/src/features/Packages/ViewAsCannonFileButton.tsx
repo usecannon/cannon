@@ -70,7 +70,8 @@ export const ViewAsCannonFileButton: FC<{
             <ModalCloseButton />
             <CodePreview
               code={stringify(processedDeploymentInfo as any)}
-              language="toml"
+              language="ini"
+              height="66vh"
             />
           </Box>
         </ModalContent>

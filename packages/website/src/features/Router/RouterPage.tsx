@@ -150,7 +150,7 @@ export const RouterPage = () => {
           a router:
         </Text>
         <Box mb={4}>
-          <CodePreview code={code1} language="toml" />
+          <CodePreview code={code1} language="ini" />
         </Box>
         <Text mb={4}>Build the Cannonfile:</Text>
         <Box mb={4}>
@@ -204,7 +204,7 @@ export const RouterPage = () => {
           :
         </Text>
         <Box mb={4}>
-          <CodePreview code={code2} language="toml" />
+          <CodePreview code={code2} language="ini" />
         </Box>
         <Text mb={4}>
           If you alter one of your contracts, when building, Cannon will
