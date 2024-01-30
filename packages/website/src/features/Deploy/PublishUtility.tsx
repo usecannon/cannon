@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
-import { useAccount, useMutation, useWalletClient } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
+import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
   FallbackRegistry,
@@ -168,16 +169,16 @@ export default function PublishUtility(props: {
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               wc.data?.chain?.id !== 1 ||
-              publishMutation.isLoading
+              publishMutation.isPending
             }
             colorScheme="teal"
             size="sm"
             onClick={() => publishMutation.mutate()}
             leftIcon={
-              publishMutation.isLoading ? <Spinner size="sm" /> : undefined
+              publishMutation.isPending ? <Spinner size="sm" /> : undefined
             }
           >
-            {publishMutation.isLoading
+            {publishMutation.isPending
               ? 'Publishing...'
               : 'Publish to Registry'}
           </Button>
