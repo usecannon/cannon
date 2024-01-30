@@ -47,9 +47,8 @@ import {
   InfoOutlineIcon,
 } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
-import { useContractWrite } from 'wagmi';
+import { useWriteContract } from 'wagmi';
 import * as chains from '@wagmi/core/chains';
-import PublishUtility from './PublishUtility';
 import { useAccount, useChainId } from 'wagmi';
 
 const TransactionDetailsPage: FC<{
@@ -125,7 +124,7 @@ const TransactionDetailsPage: FC<{
   );
 
   const stager = useTxnStager(safeTxn || {}, { safe: safe });
-  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const execTxn = useWriteContract();
   const router = useRouter();
   const toast = useToast();
 
@@ -174,9 +173,8 @@ const TransactionDetailsPage: FC<{
 
   const buildInfo = useCannonBuild(
     safe,
-    cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    Number(chainId)
+    cannonDefInfo.def,
+    prevCannonDeployInfo.pkg
   );
 
   useEffect(
@@ -414,18 +412,22 @@ const TransactionDetailsPage: FC<{
                                   (safeTxn &&
                                     !!stager.execConditionFailed) as any
                                 }
-                                onClick={async () => {
-                                  if (execTxn.writeAsync) {
-                                    await execTxn.writeAsync();
-                                    router.push(links.DEPLOY);
-                                    toast({
-                                      title:
-                                        'You successfully executed the transaction.',
-                                      status: 'success',
-                                      duration: 5000,
-                                      isClosable: true,
-                                    });
-                                  }
+                                onClick={() => {
+                                  execTxn.writeContract(
+                                    stager.executeTxnConfig,
+                                    {
+                                      onSuccess: () => {
+                                        router.push(links.DEPLOY);
+                                        toast({
+                                          title:
+                                            'You successfully executed the transaction.',
+                                          status: 'success',
+                                          duration: 5000,
+                                          isClosable: true,
+                                        });
+                                      },
+                                    }
+                                  );
                                 }}
                               >
                                 Execute
@@ -456,11 +458,6 @@ const TransactionDetailsPage: FC<{
                       <Heading size="sm" mb="2">
                         Cannon Package
                       </Heading>
-
-                      <PublishUtility
-                        deployUrl={hintData.cannonPackage}
-                        targetChainId={safe.chainId}
-                      />
                     </Box>
                   )}
                 </Box>

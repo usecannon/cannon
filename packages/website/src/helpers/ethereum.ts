@@ -1,12 +1,12 @@
 import { Address, decodeFunctionResult, encodeFunctionData, Hex, TransactionRequestBase, zeroAddress } from 'viem';
-import { PublicClient, WalletClient } from 'wagmi';
+import * as viem from 'viem';
 import { Abi } from 'abitype/src/abi';
 import { EIP7412 } from 'erc7412';
 import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
 import MulticallABI from '@/abi/Multicall.json';
 
 async function generate7412CompatibleCall(
-  client: PublicClient,
+  client: viem.PublicClient,
   from: Address,
   txn: Partial<TransactionRequestBase>,
   pythUrl: string
@@ -56,7 +56,7 @@ export async function contractCall(
   functionName: string,
   params: any,
   abi: Abi,
-  publicClient: PublicClient,
+  publicClient: viem.PublicClient,
   pythUrl: string
 ) {
   const data = encodeFunctionData({
@@ -116,8 +116,8 @@ export async function contractTransaction(
   functionName: string,
   params: any,
   abi: Abi,
-  publicClient: PublicClient,
-  walletClient: WalletClient,
+  publicClient: viem.PublicClient,
+  walletClient: viem.WalletClient,
   pythUrl: string
 ) {
   const data = encodeFunctionData({
@@ -131,11 +131,13 @@ export async function contractTransaction(
     data,
   };
   const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+
   const hash = await walletClient.sendTransaction({
     account: from,
     to: call.to,
     data: call.data,
     value: call.value,
   });
+
   return hash;
 }

@@ -15,17 +15,15 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
+import { ChainArtifacts /* handleTxnError */ } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype/src/abi';
-import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+// import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import React, { FC, useMemo, useState } from 'react';
 import { Address, zeroAddress } from 'viem';
 import {
   useAccount,
-  useConnect,
-  useNetwork,
   usePublicClient,
-  useSwitchNetwork,
+  useSwitchChain,
   useWalletClient,
 } from 'wagmi';
 
@@ -35,20 +33,17 @@ export const Function: FC<{
   address: string;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ f, abi, cannonOutputs, address, chainId }) => {
+}> = ({ f, abi /*, cannonOutputs */, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
-  const { isConnected, address: from } = useAccount();
-  const { connectAsync } = useConnect();
+  const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { chain: connectedChain } = useNetwork();
-
   const publicClient = usePublicClient({
     chainId: chainId as number,
   });
-  const { switchNetworkAsync } = useSwitchNetwork();
+  const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
   });
@@ -106,17 +101,12 @@ export const Function: FC<{
         await fetchReadContractResult(zeroAddress);
       } else {
         if (!isConnected) {
-          try {
-            await connectAsync?.();
-          } catch (e) {
-            if (openConnectModal) openConnectModal();
-            return;
-          }
+          if (openConnectModal) openConnectModal();
+          return;
         }
 
         if (connectedChain?.id != chainId) {
-          const newChain = await switchNetworkAsync?.(chainId as number);
-          if (newChain?.id != chainId) return;
+          await switchChain({ chainId: chainId });
         }
 
         if (simulate) {
@@ -130,10 +120,13 @@ export const Function: FC<{
         // console.error(e);
         // setError(e?.message || e?.error?.message || e?.error || e);
         try {
+          /*
           const provider = new ethers.providers.JsonRpcProvider(
             publicClient?.chain?.rpcUrls?.public?.http[0] as string
           );
+
           await handleTxnError(cannonOutputs, provider, e);
+          */
         } catch (e2: any) {
           setError(
             typeof e2 === 'string'

@@ -25,7 +25,7 @@ import {
 import deepEqual from 'fast-deep-equal';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { useSwitchNetwork } from 'wagmi';
+import { useSwitchChain } from 'wagmi';
 
 type SafeOption = {
   value: SafeString;
@@ -43,7 +43,7 @@ export function SafeAddressInput() {
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
 
-  const { switchNetwork } = useSwitchNetwork();
+  const { switchChain } = useSwitchChain();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,8 +69,8 @@ export function SafeAddressInput() {
           prependSafeAddress(newSafe);
         }
 
-        if (switchNetwork) {
-          switchNetwork(newSafe.chainId);
+        if (switchChain) {
+          switchChain({ chainId: newSafe.chainId });
         }
       } else {
         const newSearchParams = new URLSearchParams(
@@ -131,8 +131,8 @@ export function SafeAddressInput() {
     const query = `${'?'.repeat(search.length && 1)}${search}`;
     router.push(`${pathname}${query}`);
 
-    if (switchNetwork) {
-      switchNetwork(selectedSafe.chainId);
+    if (switchChain) {
+      switchChain({ chainId: selectedSafe.chainId });
     }
   }
 
@@ -151,8 +151,8 @@ export function SafeAddressInput() {
       const query = `${'?'.repeat(search.length && 1)}${search}`;
       router.push(`${pathname}${query}`);
 
-      if (switchNetwork) {
-        switchNetwork(newSafe.chainId);
+      if (switchChain) {
+        switchChain({ chainId: newSafe.chainId });
       }
     }
   }

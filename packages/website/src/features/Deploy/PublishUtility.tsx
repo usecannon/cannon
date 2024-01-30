@@ -6,13 +6,11 @@ import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
 import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
-  FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { ethers } from 'ethers';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;

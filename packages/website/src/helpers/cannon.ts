@@ -3,19 +3,10 @@ import * as git from '@/helpers/git';
 import toml from '@iarna/toml';
 import path from '@isomorphic-git/lightning-fs/src/path';
 import {
-  build as cannonBuild,
-  BuildOptions,
   CANNON_CHAIN_ID,
   CannonLoader,
-  CannonRegistry,
-  CannonWrapperGenericProvider,
-  ChainArtifacts,
   ChainBuilderContext,
-  ChainBuilderRuntime,
   ChainDefinition,
-  createInitialContext,
-  DeploymentInfo,
-  Events,
   InMemoryRegistry,
   RawChainDefinition,
   TransactionMap,
@@ -59,6 +50,7 @@ export class InMemoryLoader implements CannonLoader {
 export const inMemoryRegistry = new InMemoryRegistry();
 export const inMemoryLoader = new InMemoryLoader(Math.floor(Math.random() * 100000));
 
+/*
 export async function build({
   chainId,
   provider,
@@ -129,6 +121,7 @@ export async function build({
 
   return { name, version, preset, runtime, def, newState, simulatedTxs, skippedSteps };
 }
+*/
 
 interface PublishParams {
   packageName: string;
@@ -228,7 +221,7 @@ async function loadChainDefinitionToml(
 }
 
 export function parseHintedMulticall(data: Hex) {
-  let decoded: ReturnType<typeof decodeFunctionData> | null = null;
+  let decoded = null;
 
   // see what we can parse out of the data
   try {
@@ -247,8 +240,8 @@ export function parseHintedMulticall(data: Hex) {
   let gitRepoHash = '';
   let prevGitRepoHash = '';
   if (
-    (decoded.functionName === 'aggregate3' || decoded.functionName === 'aggregate3Value') &&
-    ((decoded.args![0] as any)[0] as any).target === zeroAddress
+    (decoded?.functionName === 'aggregate3' || decoded?.functionName === 'aggregate3Value') &&
+    ((decoded?.args![0] as any)[0] as any).target === zeroAddress
   ) {
     try {
       [type, cannonPackage, cannonUpgradeFromPackage, gitRepoUrl, gitRepoHash, prevGitRepoHash] = decodeAbiParameters(
@@ -262,7 +255,7 @@ export function parseHintedMulticall(data: Hex) {
   }
 
   let txns: { to: Address; data: Hex; value: bigint }[] = [];
-  if (decoded.args?.length) {
+  if (decoded?.args?.length) {
     txns = (decoded.args[0] as any[])
       .slice(type === 'deploy' ? 3 : 1)
       .map((txn) => ({ to: txn.target, data: txn.callData, value: txn.value }));
