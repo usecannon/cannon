@@ -1,11 +1,9 @@
 import Debug from 'debug';
-
-import * as viem from 'viem';
-import { Abi, AbiFunction, Address, Hash, SimulateContractReturnType } from 'viem';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { invokeSchema } from '../schemas.zod';
+import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
   ChainArtifacts,
@@ -46,7 +44,7 @@ async function runTxn(
   signer: CannonSigner,
   packageState: PackageState
 ): Promise<[viem.TransactionReceipt, EncodedTxnEvents]> {
-  let txn: Hash;
+  let txn: viem.Hash;
 
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
@@ -88,7 +86,7 @@ async function runTxn(
         `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
           config.func
         }". List of recognized functions is:\n${Object.keys(
-          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
         ).join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
@@ -101,7 +99,7 @@ async function runTxn(
   if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
-    let addressCall: SimulateContractReturnType;
+    let addressCall: viem.SimulateContractReturnType;
     try {
       addressCall = await runtime.provider.simulateContract({
         ...contract,
@@ -114,7 +112,7 @@ async function runTxn(
           `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
             config.func
           }" to determine owner. List of recognized functions is:\n${Object.keys(
-            contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+            contract.abi.filter((v) => v.type === 'function').map((v) => (v as viem.AbiFunction).name)
           ).join(
             '\n'
           )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
@@ -124,7 +122,7 @@ async function runTxn(
       throw new Error(`Invalid arguments for function to determine owner "${config.func}": \n\n ${error}`);
     }
 
-    const address = addressCall.result as Address;
+    const address = addressCall.result as viem.Address;
 
     debug('owner for call', address);
 
@@ -232,7 +230,7 @@ async function importTxnData(
         throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
       }
 
-      let abi: Abi;
+      let abi: viem.Abi;
       let sourceName: string | null;
       let contractName: string;
       if (factoryInfo.artifact) {
@@ -524,7 +522,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
   ): Promise<ChainArtifacts> {
     const txns: TransactionMap = {};
     for (let i = 0; i < existingKeys.length; i++) {
-      const key = existingKeys[i] as Hash;
+      const key = existingKeys[i] as viem.Hash;
       const splitLabel = packageState.currentLabel.split('.')[1];
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${i}`;
 
@@ -543,7 +541,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = { address: config.target[i] as Address, abi: customAbi };
+        contract = { address: config.target[i] as viem.Address, abi: customAbi };
       } else {
         contract = getContractFromPath(ctx, config.target[i]);
 

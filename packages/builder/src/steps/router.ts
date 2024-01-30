@@ -1,12 +1,12 @@
 import Debug from 'debug';
 import _ from 'lodash';
-import z from 'zod';
-import { routerSchema } from '../schemas.zod';
+import { Abi, Address, Hex } from 'viem';
+import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
+import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { computeTemplateAccesses } from '../access-recorder';
-import { Abi, Address, Hex } from 'viem';
 
 const debug = Debug('cannon:builder:router');
 

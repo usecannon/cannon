@@ -1,11 +1,10 @@
-import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
+import { contractSchema } from '../schemas';
+import contractAction from './contract';
 import action from './provision';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
-
-import { contractSchema } from '../schemas.zod';
-import contractAction from './contract';
+import '../actions';
 
 jest.mock('../loader');
 jest.mock('./contract');
