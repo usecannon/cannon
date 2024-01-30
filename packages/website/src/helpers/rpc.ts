@@ -1,6 +1,5 @@
 import { extractChain, parseEther, toHex } from 'viem';
 import * as chains from 'viem/chains';
-import { publicProvider } from 'wagmi/providers/public';
 
 const chainsValues = Object.values(chains);
 
@@ -21,8 +20,7 @@ export function findChain(chainId: number) {
 
 export function findChainUrl(chainId: number) {
   const chain = findChain(chainId);
-  const providerConfig = publicProvider()(chain);
-  const url = providerConfig?.rpcUrls.http[0];
+  const url = chain?.rpcUrls.default.http[0];
 
   if (!url) throw new Error(`Chaind ${chain.name} dos not have a default url`);
 

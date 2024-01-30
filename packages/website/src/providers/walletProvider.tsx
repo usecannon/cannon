@@ -1,16 +1,15 @@
 import '@rainbow-me/rainbowkit/styles.css';
+
 import {
   getDefaultWallets,
   RainbowKitProvider,
   darkTheme,
 } from '@rainbow-me/rainbowkit';
-import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import chains from '@/helpers/chains';
-import { publicProvider } from 'wagmi/providers/public';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { ReactNode, useEffect, useState } from 'react';
 import _ from 'lodash';
+import chains from 'viem/chains';
+import { createConfig, WagmiProvider } from 'wagmi';
+import { ReactNode, useEffect, useState } from 'react';
+
 import { useStore } from '@/helpers/store';
 
 const cannonLocalHost = {
@@ -19,6 +18,7 @@ const cannonLocalHost = {
   name: 'Cannon Localhost',
   rpcUrl: 'http://127.0.0.1:8545',
 };
+
 const _chains = Object.values(chains).filter((item) => _.isObject(item));
 export const supportedChains = [..._chains, cannonLocalHost];
 
@@ -55,7 +55,7 @@ const createWagmiConfig = (customProviders: string[]) => {
   });
 
   const config = createConfig({
-    autoConnect: true,
+    chains,
     connectors,
     publicClient,
     webSocketPublicClient,
@@ -82,7 +82,7 @@ function WalletProvider({ children }: { children: ReactNode }) {
   // hopefully the class name doesnt change from compile to compile lol
   // related issue: https://github.com/rainbow-me/rainbowkit/issues/1007
   return (
-    <WagmiConfig config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig}>
       <RainbowKitProvider chains={rainbowKitChains} theme={darkTheme()}>
         <style
           dangerouslySetInnerHTML={{
@@ -96,7 +96,7 @@ function WalletProvider({ children }: { children: ReactNode }) {
         />
         {children}
       </RainbowKitProvider>
-    </WagmiConfig>
+    </WagmiProvider>
   );
 }
 

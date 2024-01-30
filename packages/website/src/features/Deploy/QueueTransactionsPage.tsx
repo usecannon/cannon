@@ -36,7 +36,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useContractWrite } from 'wagmi';
+import { useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import 'react-diff-view/style/index.css';
 import { SafeTransaction } from '@/types/SafeTransaction';
@@ -127,7 +127,7 @@ function QueueTransactions() {
 
   console.log('final tx:', stager.executeTxnConfig);
 
-  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const execTxn = useWriteContract();
 
   const funcIsPayable = false;
 
@@ -207,7 +207,7 @@ function QueueTransactions() {
             />
             {!isAddress(target) &&
               target.length >= 3 &&
-              cannonInfo.registryQuery.status === 'loading' && (
+              cannonInfo.registryQuery.status === 'pending' && (
                 <InputRightElement>
                   <Spinner />
                 </InputRightElement>
@@ -230,7 +230,7 @@ function QueueTransactions() {
       </Box>
       {!isAddress(target) &&
         cannonInfo.pkgUrl &&
-        cannonInfo.ipfsQuery.status === 'loading' && (
+        cannonInfo.ipfsQuery.status === 'pending' && (
           <Alert bg="gray.800" status="info" mt={6}>
             <AlertIcon />
             <Box>
@@ -390,17 +390,19 @@ function QueueTransactions() {
                     colorScheme="teal"
                     w="100%"
                     isDisabled={disableExecute}
-                    onClick={async () => {
-                      if (execTxn.writeAsync) {
-                        await execTxn.writeAsync();
-                        router.push(links.DEPLOY);
-                        toast({
-                          title: 'You successfully executed the transaction.',
-                          status: 'success',
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                      }
+                    onClick={() => {
+                      execTxn.writeContract(stager.executeTxnConfig, {
+                        onSuccess: () => {
+                          router.push(links.DEPLOY);
+
+                          toast({
+                            title: 'You successfully executed the transaction.',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                        },
+                      });
                     }}
                   >
                     Execute

@@ -54,8 +54,8 @@ import {
 } from 'viem';
 import {
   useChainId,
-  useContractWrite,
-  usePrepareSendTransaction,
+  useWriteContract,
+  useEstimateGas,
   useSendTransaction,
 } from 'wagmi';
 import NoncePicker from './NoncePicker';
@@ -70,14 +70,13 @@ function QueueFromGitOps() {
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
 
-  const prepareDeployOnchainStore = usePrepareSendTransaction(
-    onchainStore.deployTxn as any
-  );
+  const { data: gasData, refetch } = useEstimateGas(onchainStore.deployTxn);
+
   const deployOnChainStore = useSendTransaction({
-    ...prepareDeployOnchainStore.config,
-    onSuccess: () => {
-      console.log('on success');
-      void prepareDeployOnchainStore.refetch();
+    mutation: {
+      onSuccess: () => {
+        refetch();
+      },
     },
   });
 
@@ -360,7 +359,7 @@ function QueueFromGitOps() {
     }
   );
 
-  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const execTxn = useWriteContract();
 
   const isPartialDataRequired =
     buildInfo.buildSkippedSteps.filter(
@@ -388,11 +387,11 @@ function QueueFromGitOps() {
   }
 
   if (
-    prepareDeployOnchainStore.isFetched &&
-    !prepareDeployOnchainStore.isFetching &&
-    !prepareDeployOnchainStore.isError
+    deployOnChainStore.isSuccess &&
+    !deployOnChainStore.isPending &&
+    !deployOnChainStore.isError
   ) {
-    console.log('prepare deploy onchain', prepareDeployOnchainStore);
+    console.log('prepare deploy onchain', deployOnChainStore);
     return (
       <Container maxWidth="container.sm">
         <Box
@@ -412,8 +411,10 @@ function QueueFromGitOps() {
             colorScheme="teal"
             w="100%"
             onClick={() =>
-              deployOnChainStore.sendTransaction &&
-              deployOnChainStore.sendTransaction()
+              deployOnChainStore.sendTransaction({
+                gas: gasData,
+                ...onchainStore.deployTxn,
+              })
             }
           >
             Deploy On-Chain Store Contract
@@ -623,7 +624,7 @@ function QueueFromGitOps() {
               />
             </Box>
           )}
-          {uploadToPublishIpfs.writeToIpfsMutation.isLoading && (
+          {uploadToPublishIpfs.writeToIpfsMutation.isPending && (
             <Text>Uploading build result to IPFS...</Text>
           )}
           {uploadToPublishIpfs.writeToIpfsMutation.error && (
@@ -658,17 +659,19 @@ function QueueFromGitOps() {
                     }
                     size="lg"
                     w="100%"
-                    onClick={async () => {
-                      if (execTxn.writeAsync) {
-                        await execTxn.writeAsync();
-                        router.push(links.DEPLOY);
-                        toast({
-                          title: 'You successfully executed the transaction.',
-                          status: 'success',
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                      }
+                    onClick={() => {
+                      execTxn.writeContract(stager.executeTxnConfig, {
+                        onSuccess: () => {
+                          router.push(links.DEPLOY);
+
+                          toast({
+                            title: 'You successfully executed the transaction.',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                        },
+                      });
                     }}
                   >
                     Execute
