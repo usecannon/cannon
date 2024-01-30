@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import {
@@ -9,6 +8,7 @@ import {
   PackageState,
   registerAction,
 } from '@usecannon/builder';
+import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';

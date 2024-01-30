@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 import Debug from 'debug';
 import _ from 'lodash';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';

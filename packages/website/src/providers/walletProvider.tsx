@@ -1,16 +1,14 @@
-import '@rainbow-me/rainbowkit/styles.css';
-
+import { useStore } from '@/helpers/store';
 import {
+  darkTheme,
   getDefaultWallets,
   RainbowKitProvider,
-  darkTheme,
 } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
+import { ReactNode, useEffect, useState } from 'react';
 import chains from 'viem/chains';
 import { createConfig, WagmiProvider } from 'wagmi';
-import { ReactNode, useEffect, useState } from 'react';
-
-import { useStore } from '@/helpers/store';
+import '@rainbow-me/rainbowkit/styles.css';
 
 const cannonLocalHost = {
   ...chains.localhost,

@@ -1,5 +1,5 @@
-import { chainDefinitionSchema } from '@usecannon/builder/src/schemas';
-import { runSchema } from '@usecannon/cli/src/schemas';
+import { chainDefinitionSchema } from '@usecannon/builder/dist/schemas';
+import { runSchema } from '@usecannon/cli/dist/src/schemas';
 import { compile } from 'json-schema-to-typescript';
 import { useEffect, useState } from 'react';
 import { zodToJsonSchema } from 'zod-to-json-schema';

@@ -54,9 +54,9 @@ import {
 } from 'viem';
 import {
   useChainId,
-  useWriteContract,
   useEstimateGas,
   useSendTransaction,
+  useWriteContract,
 } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
@@ -75,7 +75,7 @@ function QueueFromGitOps() {
   const deployOnChainStore = useSendTransaction({
     mutation: {
       onSuccess: () => {
-        refetch();
+        refetch().catch((err) => console.error(err));
       },
     },
   });

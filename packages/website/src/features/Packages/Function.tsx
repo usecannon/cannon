@@ -1,7 +1,8 @@
-import React, { FC, useMemo, useState } from 'react';
-import { AbiFunction, Abi } from 'abitype/src/abi';
-
-import { ChainArtifacts } from '@usecannon/builder';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { FunctionInput } from '@/features/Packages/FunctionInput';
+import { FunctionOutput } from '@/features/Packages/FunctionOutput';
+import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
+import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Alert,
   Box,
@@ -13,8 +14,12 @@ import {
   Link,
   Text,
 } from '@chakra-ui/react';
-import { FunctionInput } from '@/features/Packages/FunctionInput';
-import { FunctionOutput } from '@/features/Packages/FunctionOutput';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
+import { Abi, AbiFunction } from 'abitype/src/abi';
+import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
+import React, { FC, useMemo, useState } from 'react';
+import { Address, zeroAddress } from 'viem';
 import {
   useAccount,
   useConnect,
@@ -23,13 +28,6 @@ import {
   useSwitchNetwork,
   useWalletClient,
 } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, zeroAddress } from 'viem';
-import { handleTxnError } from '@usecannon/builder';
-import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
-import { CustomSpinner } from '@/components/CustomSpinner';
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
-import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -84,8 +82,8 @@ export const Function: FC<{
       readOnly
         ? readContractResult
         : simulated
-          ? readContractResult
-          : writeContractResult,
+        ? readContractResult
+        : writeContractResult,
     [readOnly, simulated, readContractResult, writeContractResult]
   );
 
@@ -281,11 +279,12 @@ export const Function: FC<{
 
             {error && (
               <Alert overflowX="scroll" mt="2" status="error" bg="red.700">
-                {`${error.includes('Encoded error signature') &&
-                    error.includes('not found on ABI')
+                {`${
+                  error.includes('Encoded error signature') &&
+                  error.includes('not found on ABI')
                     ? 'Error emitted during ERC-7412 orchestration: '
                     : ''
-                  }${error}`}
+                }${error}`}
               </Alert>
             )}
           </Box>

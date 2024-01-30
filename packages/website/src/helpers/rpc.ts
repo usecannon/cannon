@@ -20,7 +20,7 @@ export function findChain(chainId: number) {
 
 export function findChainUrl(chainId: number) {
   const chain = findChain(chainId);
-  const url = chain?.rpcUrls.default.http[0];
+  const url = chain.rpcUrls.default.http[0];
 
   if (!url) throw new Error(`Chaind ${chain.name} dos not have a default url`);
 
