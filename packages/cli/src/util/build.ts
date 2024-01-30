@@ -1,21 +1,17 @@
-import path from 'path';
+import path from 'node:path';
+import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
-
+import * as viem from 'viem';
 import { chains } from '../chains';
-import { CannonRpcNode, getProvider, runRpc } from '../rpc';
-import { PackageSpecification } from '../types';
-import { CliSettings, resolveCliSettings } from '../settings';
 import { getFoundryArtifact } from '../foundry';
 import { filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
-
-import { parseSettings } from './params';
+import { CannonRpcNode, getProvider, runRpc } from '../rpc';
+import { CliSettings, resolveCliSettings } from '../settings';
+import { PackageSpecification } from '../types';
 import { pickAnvilOptions } from './anvil';
+import { parseSettings } from './params';
 import { resolveWriteProvider } from './provider';
-
-import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
-
-import * as viem from 'viem';
 
 const debug = Debug('cannon:cli');
 

@@ -1,30 +1,29 @@
-import _ from 'lodash';
-import os from 'node:os';
-import fs from 'fs-extra';
-import { Hex } from 'viem';
-import path from 'node:path';
-import prompts from 'prompts';
-import toml from '@iarna/toml';
-import { privateKeyToAccount } from 'viem/accounts';
 import { exec, spawnSync } from 'node:child_process';
-import { CannonRegistry, ContractMap } from '@usecannon/builder';
-import { magentaBright, yellowBright, yellow, bold } from 'chalk';
-
+import os from 'node:os';
+import path from 'node:path';
+import toml from '@iarna/toml';
 import {
   CANNON_CHAIN_ID,
-  ChainDefinition,
-  RawChainDefinition,
-  ChainBuilderContext,
+  CannonRegistry,
   ChainArtifacts,
+  ChainBuilderContext,
+  ChainDefinition,
   ContractData,
+  ContractMap,
+  RawChainDefinition,
 } from '@usecannon/builder';
+import { bold, magentaBright, yellow, yellowBright } from 'chalk';
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
+import prompts from 'prompts';
+import semver from 'semver';
+import { AbiFunction, Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { AbiFunction } from 'viem';
-import Debug from 'debug';
-const debug = Debug('cannon:cli:helpers');
 
-import semver from 'semver';
+const debug = Debug('cannon:cli:helpers');
 
 export async function filterSettings(settings: any) {
   // Filter out private key for logging
@@ -335,12 +334,11 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @param privateKey The private key to verify
  * @returns boolean If the private key is valid
  */
-
-export function verifyPk(privateKey: Hex) {
+export function isPrivateKey(privateKey: Hex) {
   try {
     privateKeyToAccount(privateKey);
+    return true;
   } catch (e) {
     return false;
   }
-  return true;
 }

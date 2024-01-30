@@ -13,12 +13,12 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import * as viem from 'viem';
 import prompts from 'prompts';
+import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, verifyPk } from './helpers';
+import { checkCannonVersion, isPrivateKey } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -298,7 +298,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => (!verifyPk(key) ? 'Private key is not valid' : true),
+      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
