@@ -122,7 +122,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const getDefaultSigner = () => ({ address: safe.address, wallet });
 
     const readOnlyRegistry = new OnChainRegistry({
-      address: settings.registryAddress,
+      address: settings.registryAddress as Address,
       provider: createPublicClient({
         chain: mainnet,
         transport: http(),
