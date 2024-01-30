@@ -1,6 +1,5 @@
-import { z } from 'zod';
 import * as viem from 'viem';
-import { isNumber } from 'lodash';
+import { z } from 'zod';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
@@ -53,7 +52,7 @@ function tryParseJson(jsonString: string) {
     // do nothing
   }
 
-  return false;
+  return undefined;
 }
 
 const targetSchema = targetString.or(z.array(targetString).nonempty());
@@ -96,7 +95,7 @@ export const contractSchema = z
         nonce: z
           .union([z.string(), z.number()])
           .refine(
-            (val) => viem.isHex(val) || isNumber(parseInt(val.toString())),
+            (val) => viem.isHex(val) || Number.isFinite(parseInt(val.toString())),
             (val) => ({
               message: `Nonce ${val} must be a string, number or hexadecimal value`,
             })
