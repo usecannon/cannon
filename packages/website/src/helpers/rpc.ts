@@ -1,13 +1,19 @@
-import { parseEther, toHex } from 'viem';
+import { extractChain, parseEther, toHex } from 'viem';
 import * as chains from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
+
+const chainsValues = Object.values(chains);
 
 export function findChain(chainId: number) {
   if (typeof chainId !== 'number') {
     throw new Error(`Invalid chainId: ${chainId}`);
   }
 
-  const chain = Object.values(chains).find((c) => c.id === chainId);
+  const chain = extractChain({
+    chains: chainsValues,
+    id: chainId as any,
+  });
+
   if (!chain) throw new Error(`Unknown chainId: ${chainId}`);
 
   return chain;

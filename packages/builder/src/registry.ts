@@ -1,8 +1,7 @@
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
-import * as viem from 'viem';
-import { Abi, Address } from 'viem';
 import EventEmitter from 'promise-events';
+import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { PackageReference } from './package';
 import { CannonSigner, Contract } from './types';
@@ -229,12 +228,12 @@ export class OnChainRegistry extends CannonRegistry {
   overrides: any;
 
   constructor({
+    address,
     signer,
     provider,
-    address,
     overrides = {},
   }: {
-    address: Address;
+    address: viem.Address;
     signer?: CannonSigner;
     provider?: viem.PublicClient;
     overrides?: any;
@@ -244,7 +243,7 @@ export class OnChainRegistry extends CannonRegistry {
     this.signer = signer;
     this.provider = provider;
 
-    this.contract = { address, abi: CannonRegistryAbi as Abi };
+    this.contract = { address, abi: CannonRegistryAbi as viem.Abi };
     this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
@@ -288,8 +287,9 @@ export class OnChainRegistry extends CannonRegistry {
 
   private async doMulticall(datas: string[]): Promise<string> {
     if (!this.signer || !this.provider) {
-      throw new Error('cannon read and write to registry');
+      throw new Error('Missing signer for executing registry operations');
     }
+
     const tx = await this.provider?.simulateContract({
       ...this.contract,
       functionName: 'multicall',
