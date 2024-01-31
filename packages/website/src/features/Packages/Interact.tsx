@@ -1,5 +1,10 @@
-import { FC, useEffect, useState } from 'react';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { Abi } from '@/features/Packages/Abi';
 import { GET_PACKAGE } from '@/graphql/queries';
+import chains from '@/helpers/chains';
+import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { getOutput } from '@/lib/builder';
 import {
   Box,
   Code,
@@ -10,12 +15,8 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
-import { getOutput } from '@/lib/builder';
-import { Abi } from '@/features/Packages/Abi';
-import { CustomSpinner } from '@/components/CustomSpinner';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
-import { useQueryIpfsData } from '@/hooks/ipfs';
-import chains from '@/helpers/chains';
+import { FC, useEffect, useState } from 'react';
+import { Address } from 'viem';
 
 export const Interact: FC<{
   name: string;
@@ -23,7 +24,7 @@ export const Interact: FC<{
   variant: string;
   moduleName: string;
   contractName: string;
-  contractAddress: string;
+  contractAddress: Address;
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
