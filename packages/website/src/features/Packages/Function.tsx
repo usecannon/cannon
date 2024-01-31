@@ -15,11 +15,15 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { ChainArtifacts /* handleTxnError */ } from '@usecannon/builder';
+import { ChainArtifacts } from '@usecannon/builder';
 import { Abi, AbiFunction } from 'abitype/src/abi';
-// import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
 import React, { FC, useMemo, useState } from 'react';
-import { Address, zeroAddress } from 'viem';
+import {
+  Address,
+  toFunctionSelector,
+  toFunctionSignature,
+  zeroAddress,
+} from 'viem';
 import {
   useAccount,
   usePublicClient,
@@ -30,7 +34,7 @@ import {
 export const Function: FC<{
   f: AbiFunction;
   abi: Abi;
-  address: string;
+  address: Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
 }> = ({ f, abi /*, cannonOutputs */, address, chainId }) => {
@@ -42,14 +46,14 @@ export const Function: FC<{
   const { openConnectModal } = useConnectModal();
   const publicClient = usePublicClient({
     chainId: chainId as number,
-  });
+  })!;
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
-  });
+  })!;
 
   const [readContractResult, fetchReadContractResult] = useContractCall(
-    address as Address,
+    address,
     f.name,
     params,
     abi,
@@ -150,32 +154,14 @@ export const Function: FC<{
     </Box>
   ) : null;
 
-  function sanitizeForIdAndURI(anchor: string) {
-    let sanitized = encodeURIComponent(anchor);
-    sanitized = sanitized.replace(/%20/g, '_');
-    if (/^[0-9]/.test(sanitized)) {
-      sanitized = 'id_' + sanitized;
-    }
-    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
-    return sanitized;
-  }
-
-  const anchor = sanitizeForIdAndURI(
-    `${f.name}(${f.inputs
-      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
-      .join(',')})`
-  );
+  const anchor = toFunctionSelector(f);
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
-            {f.name}(
-            {f.inputs
-              .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-              .join(',')}
-            )
+            {toFunctionSignature(f)}
             <Link
               color="gray.300"
               ml={1}
