@@ -2,35 +2,28 @@ import SafeABIJSON from '@/abi/Safe.json';
 import { SafeDefinition, useStore } from '@/helpers/store';
 import { useSafeAddress } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { Abi, Address, zeroAddress } from 'viem';
-import {
-  useAccount,
-  useChainId,
-  useContractRead,
-  useContractReads,
-  useMutation,
-  usePrepareContractWrite,
-  useQuery,
-  useWalletClient,
-} from 'wagmi';
+import { useAccount, useChainId, useReadContract, useReadContracts, useSimulateContract, useWalletClient } from 'wagmi';
 
 const SafeABI = SafeABIJSON as Abi;
 
 export function useSafeTransactions(safe?: SafeDefinition) {
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
-  const stagedQuery = useQuery(['staged', safe?.chainId, safe?.address], {
+  const stagedQuery = useQuery({
+    queryKey: ['staged', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return;
       return axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
   });
 
-  const nonceQuery = useContractRead({
+  const nonceQuery = useReadContract({
     address: safe?.address,
     chainId: safe?.chainId,
     abi: SafeABI,
@@ -93,7 +86,7 @@ export function useTxnStager(
   // try to match with an existing transaction
   const alreadyStaged = staged.find((s) => _.isEqual(s.txn, safeTxn));
 
-  const reads = useContractReads({
+  const reads = useReadContracts({
     contracts: [
       {
         abi: SafeABI,
@@ -179,7 +172,7 @@ export function useTxnStager(
     );
   }
 
-  const stageTxnMutate = usePrepareContractWrite({
+  const stageTxnMutate = useSimulateContract({
     abi: SafeABI,
     address: querySafeAddress as any,
     functionName: 'execTransaction',
@@ -266,6 +259,6 @@ export function useTxnStager(
 
     requiredSigners: requiredSigs,
 
-    executeTxnConfig: stageTxnMutate.config,
+    executeTxnConfig: stageTxnMutate.data?.request,
   };
 }

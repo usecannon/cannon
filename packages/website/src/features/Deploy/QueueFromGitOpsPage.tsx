@@ -660,7 +660,7 @@ function QueueFromGitOps() {
                     size="lg"
                     w="100%"
                     onClick={() => {
-                      execTxn.writeContract(stager.executeTxnConfig, {
+                      execTxn.writeContract(stager.executeTxnConfig!, {
                         onSuccess: () => {
                           router.push(links.DEPLOY);
 
