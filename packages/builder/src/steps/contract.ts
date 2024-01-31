@@ -279,7 +279,9 @@ const contractSpec = {
       const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
       debug('create2 address is', addr);
 
-      if (await runtime.provider.getBytecode({ address: addr })) {
+      const bytecode = await runtime.provider.getBytecode({ address: addr });
+
+      if (bytecode && bytecode !== '0x') {
         debug('create2 contract already completed');
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
       } else {
