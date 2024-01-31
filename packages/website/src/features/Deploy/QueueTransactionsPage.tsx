@@ -6,6 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
+import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   Alert,
   AlertDescription,
@@ -22,10 +23,10 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Spinner,
   Text,
   Tooltip,
   useToast,
-  Spinner,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -38,9 +39,8 @@ import {
 } from 'viem';
 import { useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
-import 'react-diff-view/style/index.css';
-import { SafeTransaction } from '@/types/SafeTransaction';
 import { QueueTransaction } from './QueueTransaction';
+import 'react-diff-view/style/index.css';
 
 type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -391,7 +391,7 @@ function QueueTransactions() {
                     w="100%"
                     isDisabled={disableExecute}
                     onClick={() => {
-                      execTxn.writeContract(stager.executeTxnConfig, {
+                      execTxn.writeContract(stager.executeTxnConfig!, {
                         onSuccess: () => {
                           router.push(links.DEPLOY);
 
