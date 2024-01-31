@@ -13,7 +13,7 @@ import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
 import { SUBTASK_GET_ARTIFACT, SUBTASK_RUN_ANVIL_NODE, TASK_BUILD } from '../task-names';
 
 import * as viem from 'viem';
-import { CannonSigner } from '@usecannon/builder';
+import { CannonSigner, traceActions } from '@usecannon/builder';
 
 task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can be used later')
   .addPositionalParam('cannonfile', 'Path to a cannonfile to build', 'cannonfile.toml')
@@ -198,7 +198,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       //await augmentProvider(hre, outputs);
-      //provider.artifacts = outputs;
+      provider.extend(traceActions(outputs) as any);
 
       hre.cannon.outputs = outputs;
 

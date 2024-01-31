@@ -243,7 +243,7 @@ export function decodeTxError(data: Hex, abis: ContractData['abi'][] = []) {
   return null;
 }
 
-export function parseContractErrorReason(contract: Contract, data: Hex): string {
+export function parseContractErrorReason(contract: Contract | null, data: Hex): string {
   const result = decodeTxError(data);
 
   if (result) {
