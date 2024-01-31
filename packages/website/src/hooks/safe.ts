@@ -4,11 +4,8 @@ import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
 import { supportedChains } from '@/providers/walletProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import SafeApiKit from '@safe-global/api-kit';
-import { EthersAdapter } from '@safe-global/protocol-kit';
 import { useQuery } from '@tanstack/react-query';
-import { ethers } from 'ethers';
-import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
-import { mainnet } from 'viem/chains';
+import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 
 export type SafeString = `${ChainId}:${Address}`;
@@ -72,7 +69,14 @@ function _createSafeApiKit(chainId: number) {
 
   if (!chain?.serviceUrl) return null;
 
-  return new SafeApiKit({ txServiceUrl: chain.serviceUrl });
+  return new SafeApiKit({
+    txServiceUrl: chain.serviceUrl,
+    // hack to avoid using the web3 adapter for write operations,
+    // we only need service read only methods.
+    ethAdapter: {} as any,
+    // ethAdapter: new Web3Adapter({
+    // }),
+  });
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition) {
