@@ -154,7 +154,7 @@ export const Function: FC<{
     </Box>
   ) : null;
 
-  const anchor = toFunctionSelector(f);
+  const anchor = `selector=${toFunctionSelector(f)}`;
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
