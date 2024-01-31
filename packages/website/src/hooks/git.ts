@@ -31,7 +31,8 @@ export function useGitRefsList(url: string) {
 export function useGitFilesList(url: string, ref: string, path: string) {
   const gitRepoQuery = useGitRepo(url, ref, []);
 
-  const readdirQuery = useQuery(['git', 'readdir', url, ref, path], {
+  const readdirQuery = useQuery({
+    queryKey: ['git', 'readdir', url, ref, path],
     queryFn: async () => {
       return git.readDir(url, ref, path);
     },
