@@ -267,8 +267,6 @@ function QueueFromGitOps() {
     gitUrl + ':' + gitFile
   );
 
-  console.log('the prev info query data is', prevInfoQuery.data);
-
   const multicallTxn: /*Partial<TransactionRequestBase>*/ any =
     buildInfo.buildResult &&
     buildInfo.buildResult.steps.indexOf(null as any) === -1
