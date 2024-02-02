@@ -6,7 +6,7 @@ import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { CliSettings } from '../settings';
-import { CannonSigner } from '@usecannon/builder';
+import { CannonSigner, traceActions } from '@usecannon/builder';
 import { getChainById } from '../chains';
 
 const debug = Debug('cannon:cli:provider');
@@ -75,11 +75,14 @@ export async function resolveProviderAndSigners({
   const signers: CannonSigner[] = [];
   if (checkProviders[0].startsWith('http')) {
     debug('use explicit provider url', checkProviders);
+
     try {
-      publicClient = viem.createPublicClient({
-        chain: getChainById(chainId),
-        transport: viem.http(checkProviders[0]),
-      });
+      publicClient = (
+        viem.createPublicClient({
+          chain: getChainById(chainId),
+          transport: viem.http(checkProviders[0]),
+        }) as any
+      ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
         throw new Error('no more providers');
@@ -112,11 +115,13 @@ export async function resolveProviderAndSigners({
   } else {
     debug('use frame eth provider');
     // Use eth-provider wrapped in Web3Provider as default
-    publicClient = viem
-      .createPublicClient({
-        transport: viem.custom(rawProvider),
-      })
-      .extend(viem.walletActions);
+    publicClient = (
+      viem
+        .createPublicClient({
+          transport: viem.custom(rawProvider),
+        })
+        .extend(viem.walletActions) as any
+    ).extend(traceActions({}));
     try {
       // Attempt to load from eth-provider
       await rawProvider.enable();
