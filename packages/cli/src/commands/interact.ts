@@ -9,7 +9,7 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
 import { PackageSpecification } from '../types';
-import { CannonSigner, ChainArtifacts, Contract, ContractMap } from '@usecannon/builder';
+import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
 import { formatAbiFunction } from '../helpers';
 
@@ -86,8 +86,7 @@ export async function interact(ctx: InteractTaskArgs) {
     } else {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
       if (ctx.packagesArtifacts) {
-        // TODO
-        //ctx.provider.artifacts = ctx.packagesArtifacts[pickedPackage];
+        ctx.provider = ctx.provider.extend(traceActions(ctx.packagesArtifacts[pickedPackage]) as any);
       }
 
       if (pickedFunction.stateMutability === 'view' || pickedFunction.stateMutability === 'pure') {
@@ -115,7 +114,7 @@ export async function interact(ctx: InteractTaskArgs) {
         if (receipt?.status === 'success') {
           await logTxSucceed(ctx, receipt);
         } else {
-          logTxFail('txn is null');
+          logTxFail('tx did not succeed');
         }
       }
 

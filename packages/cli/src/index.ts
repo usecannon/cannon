@@ -9,6 +9,7 @@ import {
   IPFSLoader,
   PackageReference,
   publishPackage,
+  traceActions,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
@@ -538,8 +539,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const contracts = [getContractsRecursive(outputs)];
 
-  // TODO
-  //p.provider.artifacts = outputs;
+  p.provider = p.provider.extend(traceActions(outputs) as any);
 
   await interact({
     packages: [packageDefinition],

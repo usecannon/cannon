@@ -12,6 +12,7 @@ import {
   getOutputs,
   PackageReference,
   ChainArtifacts,
+  traceActions,
 } from '@usecannon/builder';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
 import * as viem from 'viem';
@@ -479,8 +480,7 @@ export async function build({
 
   console.log('');
 
-  // TODO
-  //provider.artifacts = outputs;
+  provider = provider.extend(traceActions(outputs) as any);
 
   return { outputs, provider, runtime };
 }

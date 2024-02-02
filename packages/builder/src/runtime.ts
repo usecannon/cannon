@@ -3,9 +3,10 @@ import Debug from 'debug';
 import * as viem from 'viem';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
-import { CannonSigner, PackageReference } from './';
+import { CannonSigner, ChainArtifacts, PackageReference } from './';
 import { CannonLoader, IPFSLoader } from './loader';
 import { CannonRegistry } from './registry';
+import { traceActions } from './error';
 import { ChainBuilderRuntimeInfo, ContractArtifact, DeploymentInfo } from './types';
 import { getExecutionSigner } from './util';
 
@@ -101,7 +102,7 @@ const parseGasValue = (value: string | undefined) => {
 };
 
 export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRuntimeInfo {
-  readonly provider: viem.PublicClient;
+  provider: viem.PublicClient;
   readonly chainId: number;
   readonly getSigner: (addr: viem.Address) => Promise<CannonSigner>;
   readonly getDefaultSigner: (
@@ -256,6 +257,11 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     debug('reported contract artifact', n, artifact);
 
     this.misc.artifacts[n] = artifact;
+  }
+
+  updateProviderArtifacts(artifacts: ChainArtifacts) {
+    console.log('updating provider artifacts');
+    this.provider = this.provider.extend(traceActions(artifacts) as any);
   }
 
   derive(overrides: Partial<ChainBuilderRuntimeInfo>): ChainBuilderRuntime {
