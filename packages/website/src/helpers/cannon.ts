@@ -32,6 +32,8 @@ export interface StepExecutionError {
   err: Error;
 }
 
+/* eslint no-console: "off" */
+
 export class InMemoryLoader implements CannonLoader {
   private datas = new Map<string, string>();
   readonly space: number;
