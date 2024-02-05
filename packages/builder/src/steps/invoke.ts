@@ -521,7 +521,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
-        signer: receipt.from,
+        signer: viem.getAddress(receipt.from),
       };
     }
 
@@ -584,7 +584,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
-        signer: receipt.from,
+        signer: viem.getAddress(receipt.from),
       };
     }
 
