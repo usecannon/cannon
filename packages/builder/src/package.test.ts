@@ -182,7 +182,6 @@ describe('package.ts', () => {
         });
 
         // the recursed package data should be pushed, and all the declared tags should have been honored
-        console.log(toRegistry.pkgs);
         expect(await toRegistry.getUrl(nestedPkg, 1)).toStrictEqual('https://usecannon.com/nested');
         expect(await toRegistry.getUrl('nested:tag3@main', 1)).toStrictEqual('https://usecannon.com/nested');
         expect(await toRegistry.getUrl('nested:tag4@main', 1)).toStrictEqual('https://usecannon.com/nested');

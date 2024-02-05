@@ -322,7 +322,6 @@ describe('ChainDefinition', () => {
 
       const layers = def.getStateLayers();
 
-      console.log(layers);
       expect(layers['contract.L2'].depends).not.toContain('contract.L2');
       expect(layers['contract.R1'].depends).not.toContain('contract.R1');
       expect(layers['contract.R2'].depends).not.toContain('contract.R2');

@@ -170,7 +170,6 @@ async function runTxn(
   const txnEvents: EncodedTxnEvents = _.groupBy(
     viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
       const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
-      console.log('received log', l);
       return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
     }),
     'name'
@@ -574,7 +573,6 @@ ${getAllContractPaths(ctx).join('\n')}`);
       const txnEvents: EncodedTxnEvents = _.groupBy(
         viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
           const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
-          console.log('received log', l);
           return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
         }),
         'name'

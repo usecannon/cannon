@@ -87,7 +87,7 @@ export async function handleTxnError(
 
       await fullProvider.waitForTransactionReceipt({ hash: txnHash });
     } catch (err) {
-      console.error('warning: failed to force through transaction:', err);
+      debug('warning: failed to force through transaction:', err);
     }
   }
 
@@ -96,7 +96,7 @@ export async function handleTxnError(
     try {
       traces = await provider.request({ method: 'trace_transaction' as any, params: [txnHash] });
     } catch (err) {
-      console.error('warning: trace api unavailable', err);
+      debug('warning: trace api unavailable', err);
     }
   }
 

@@ -231,7 +231,6 @@ describe('builder.ts', () => {
         expect(newState).toStrictEqual(nextState);
 
         // handler should have gotten no calls because no steps were run
-        console.log(handler.mock.calls);
         expect(handler).toBeCalledTimes(0);
       });
     });
