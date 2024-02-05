@@ -14,12 +14,12 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
-import * as viem from 'viem';
 import prompts from 'prompts';
+import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion } from './helpers';
+import { checkCannonVersion, isPrivateKey } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -293,21 +293,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  const cliSettings = resolveCliSettings(options);
-  const { provider, signers } = await resolveRegistryProvider(cliSettings);
-  let resolvedSigners = signers;
-
-  if (!signers.length) {
-    const validatePrivateKey = (privateKey: string) => {
-      return viem.isHex(privateKey, { strict: false });
-    };
-
+  if (!options.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => (!validatePrivateKey(key) ? 'Private key is not valid' : true),
+      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
@@ -315,9 +307,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    const p = await resolveRegistryProvider({ ...cliSettings, privateKey: keyPrompt.value });
-    resolvedSigners = p.signers;
+    options.privateKey = keyPrompt.value;
   }
+
+  const cliSettings = resolveCliSettings(options);
+
+  const { provider, signers } = await resolveRegistryProvider(cliSettings);
 
   const overrides: any = {};
 
@@ -345,7 +340,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   await publish({
     packageRef,
     provider,
-    signer: resolvedSigners[0],
+    signer: signers[0],
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
