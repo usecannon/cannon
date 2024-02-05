@@ -16,7 +16,6 @@ import { InMemoryRegistry } from './registry';
 import { contractSchema } from './schemas.zod';
 import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 
-jest.mock('./error/provider');
 jest.mock('./steps/contract');
 jest.mock('./steps/invoke');
 
@@ -201,6 +200,7 @@ describe('builder.ts', () => {
 
     describe('without layers', () => {
       it('returns correct state', async () => {
+
         const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
 
         expect(newState['contract.Yoop'].artifacts).toStrictEqual({
