@@ -23,13 +23,17 @@ export function traceActions(artifacts: ChainArtifacts) {
         try {
           return await simulateContract(client, args);
         } catch (err) {
-          await handleTxnError(artifacts, client, err, {
-            account: args.account,
-            to: args.address,
-            chain: args.chain,
-            data: viem.encodeFunctionData(args),
-            value: args.value,
-          });
+          try {
+            await handleTxnError(artifacts, client, err, {
+              account: args.account,
+              to: args.address,
+              chain: args.chain,
+              data: viem.encodeFunctionData(args),
+              value: args.value,
+            });
+          } catch (err2) {
+            throw err;
+          }
         }
       },
     };

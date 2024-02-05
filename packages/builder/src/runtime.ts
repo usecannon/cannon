@@ -260,7 +260,6 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    console.log('updating provider artifacts');
     this.provider = this.provider.extend(traceActions(artifacts) as any);
   }
 
