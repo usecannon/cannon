@@ -5,28 +5,11 @@ import {
   darkTheme,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
-import * as chains from '@wagmi/core/chains';
-import { Chain } from 'viem/chains';
-import { HttpTransport } from 'viem';
 import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
-import { createConfig, http } from '@wagmi/core';
+import { createConfig } from '@wagmi/core';
 
-const cannonNetwork: Chain = {
-  ...chains.localhost,
-  id: 13370,
-  name: 'Cannon Localhost',
-};
-
-export const supportedChains = [
-  cannonNetwork,
-  ...Object.values(chains),
-] as unknown as readonly [Chain, ...Chain[]];
-
-const transports = supportedChains.reduce((prev, curr) => {
-  prev[curr.id] = http(curr.rpcUrls.default.http[0]);
-  return prev;
-}, {} as Record<number, HttpTransport>);
+import { useProviders, supportedChains } from '@/hooks/providers';
 
 const { connectors } = getDefaultWallets({
   appName: 'Cannon',
@@ -38,6 +21,8 @@ interface IWalletProvider {
 }
 
 function WalletProvider({ children }: IWalletProvider) {
+  const { transports } = useProviders();
+
   const wagmiConfig = createConfig({
     chains: supportedChains,
     connectors,
