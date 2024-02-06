@@ -24,7 +24,6 @@ import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { chains, cannonChain } from './chains';
 
-
 const debug = Debug('cannon:cli:helpers');
 
 export async function filterSettings(settings: any) {

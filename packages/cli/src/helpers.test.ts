@@ -1,5 +1,5 @@
 import { InMemoryRegistry } from '@usecannon/builder/src';
-import { getContractsAndDetails, getSourceFromRegistry, getChainId, getChainDataFromId, getChainName} from './helpers';
+import { getContractsAndDetails, getSourceFromRegistry, getChainId, getChainDataFromId, getChainName } from './helpers';
 import { LocalRegistry } from './registry';
 import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
 

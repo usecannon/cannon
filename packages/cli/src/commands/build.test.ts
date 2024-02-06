@@ -1,5 +1,4 @@
 import { CannonRpcNode, runRpc } from '../rpc';
-import { traceActions } from '@usecannon/builder';
 
 import * as viem from 'viem';
 
@@ -31,7 +30,7 @@ export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem
       }),
     })
     .extend(viem.publicActions)
-    .extend(viem.walletActions)
+    .extend(viem.walletActions);
 
   for (const p in fakeProvider) {
     if ((typeof (fakeProvider as any)[p] as any) === 'function') {
