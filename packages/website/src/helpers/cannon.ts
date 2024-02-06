@@ -4,15 +4,13 @@ import toml from '@iarna/toml';
 import path from '@isomorphic-git/lightning-fs/src/path';
 import {
   CANNON_CHAIN_ID,
-  CannonLoader,
   ChainBuilderContext,
   ChainDefinition,
+  InMemoryLoader,
   InMemoryRegistry,
   RawChainDefinition,
   TransactionMap,
 } from '@usecannon/builder';
-import CannonRegistryAbi from '@usecannon/builder/dist/abis/CannonRegistry';
-import { ethers } from 'ethers';
 import _ from 'lodash';
 import { Address, decodeAbiParameters, decodeFunctionData, Hex, parseAbiParameters, zeroAddress } from 'viem';
 
@@ -23,128 +21,8 @@ export interface StepExecutionError {
   err: Error;
 }
 
-export class InMemoryLoader implements CannonLoader {
-  private datas = new Map<string, string>();
-  readonly space: number;
-  private idx = 0;
-
-  constructor(space: number) {
-    this.space = space;
-  }
-
-  getLabel(): string {
-    return 'in memory';
-  }
-
-  async read(url: string): Promise<any | null> {
-    return JSON.parse(this.datas.get(url) ?? '');
-  }
-  async put(misc: any): Promise<string | null> {
-    const k = `mem://${this.space}/${this.idx++}`;
-    this.datas.set(k, JSON.stringify(misc));
-
-    return k;
-  }
-}
-
 export const inMemoryRegistry = new InMemoryRegistry();
 export const inMemoryLoader = new InMemoryLoader(Math.floor(Math.random() * 100000));
-
-/*
-export async function build({
-  chainId,
-  provider,
-  def,
-  options,
-  defaultSignerAddress,
-  incompleteDeploy,
-  registry,
-  loaders,
-  onStepExecute,
-}: {
-  chainId: number;
-  provider: CannonWrapperGenericProvider;
-  def: ChainDefinition;
-  options: BuildOptions;
-  defaultSignerAddress: string;
-  incompleteDeploy: DeploymentInfo;
-  registry: CannonRegistry;
-  loaders: { [k: string]: CannonLoader };
-  onStepExecute: (stepType: string, stepName: string, outputs: ChainArtifacts) => void;
-}) {
-  const runtime = new ChainBuilderRuntime(
-    {
-      provider,
-      chainId,
-      getSigner: async (addr: string) => provider.getSigner(addr),
-      getDefaultSigner: async () => provider.getSigner(defaultSignerAddress),
-      snapshots: false,
-      allowPartialDeploy: true,
-      publicSourceCode: true,
-    },
-    registry,
-    loaders
-  );
-
-  const simulatedSteps: ChainArtifacts[] = [];
-  const skippedSteps: StepExecutionError[] = [];
-
-  runtime.on(
-    Events.PostStepExecute,
-    (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-      simulatedSteps.push(stepOutput);
-      onStepExecute(stepType, stepLabel, stepOutput);
-    }
-  );
-
-  runtime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-    console.log(stepName, err);
-    skippedSteps.push({ name: stepName, err });
-  });
-
-  if (incompleteDeploy) {
-    await runtime.restoreMisc(incompleteDeploy.miscUrl);
-  }
-
-  const ctx = await createInitialContext(def, incompleteDeploy?.meta || {}, chainId, incompleteDeploy?.options || options);
-
-  const newState = await cannonBuild(runtime, def, incompleteDeploy?.state ?? {}, ctx);
-
-  const simulatedTxs = simulatedSteps
-    .map((s) => !!s?.txns && Object.values(s.txns))
-    .filter((tx) => !!tx)
-    .flat();
-
-  const name = def.getName(ctx);
-  const version = def.getVersion(ctx);
-  const preset = def.getPreset(ctx);
-
-  return { name, version, preset, runtime, def, newState, simulatedTxs, skippedSteps };
-}
-*/
-
-interface PublishParams {
-  packageName: string;
-  variant: string;
-  packageTags: string[];
-  packageVersionUrl: string;
-  packageMetaUrl: string;
-}
-
-export function createPublishData({ packageName, variant, packageTags, packageVersionUrl, packageMetaUrl }: PublishParams) {
-  const ICannonRegistry = new ethers.utils.Interface(CannonRegistryAbi);
-  return ICannonRegistry.encodeFunctionData('publish', [
-    ethers.utils.formatBytes32String(packageName),
-    ethers.utils.formatBytes32String(variant),
-    packageTags.map((p) => ethers.utils.formatBytes32String(p)),
-    packageVersionUrl,
-    packageMetaUrl,
-  ]);
-}
-
-export function validatePreset(preset: string) {
-  return /^[a-z]+$/.test(preset);
-}
 
 export async function loadCannonfile(repo: string, ref: string, filepath: string) {
   const filesList = new Set<string>();
