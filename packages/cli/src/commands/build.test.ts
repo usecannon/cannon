@@ -1,4 +1,5 @@
 import { CannonRpcNode, runRpc } from '../rpc';
+import { traceActions } from '@usecannon/builder';
 
 import * as viem from 'viem';
 
@@ -9,14 +10,28 @@ export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem
   const fakeProvider = viem
     .createTestClient({
       mode: 'anvil',
-      transport: viem.custom({
-        request: async () => {
-          // do nothing
+      transport: viem.http('http://localhost:8588'),
+      chain: viem.defineChain({
+        id: 999,
+        name: 'test',
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        rpcUrls: {
+          default: {
+            http: [''],
+            webSocket: [''],
+          },
+        },
+        blockExplorers: {
+          default: { name: 'test', url: '' },
         },
       }),
     })
     .extend(viem.publicActions)
-    .extend(viem.walletActions);
+    .extend(viem.walletActions)
 
   for (const p in fakeProvider) {
     if ((typeof (fakeProvider as any)[p] as any) === 'function') {
@@ -31,7 +46,6 @@ describe('build', () => {
   let cli: typeof import('../index').default;
   let helpers: typeof import('../helpers');
   let buildCommand: typeof import('./build');
-  let ethers: typeof import('ethers').ethers;
   let doBuild: typeof import('../util/build');
   let utilProvider: typeof import('../util/provider');
   let rpcModule: typeof import('../rpc');
@@ -44,7 +58,6 @@ describe('build', () => {
     cli = (await import('../index')).default;
     helpers = await import('../helpers');
     buildCommand = await import('./build');
-    ethers = (await import('ethers')).ethers;
     doBuild = await import('../util/build');
     utilProvider = await import('../util/provider');
     rpcModule = await import('../rpc');
@@ -76,17 +89,12 @@ describe('build', () => {
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
-    it('should resolve chainId from provider url', async () => {      
+    it('should resolve chainId from provider url', async () => {
+      // this test needs a node for the client to connect to
+      const cannonNode = await runRpc({ port: 8588, chainId: 999 });
+
       const providerUrl = 'http://localhost:8588';
       const chainId = 999;
-
-      const getNetworkFake = jest.fn().mockResolvedValue({ chainId });
-      jest.mocked(ethers.providers.JsonRpcProvider).mockImplementation(() => {
-        return {
-          ...jest.requireActual('ethers').providers.JsonRpcProvider,
-          getNetwork: getNetworkFake,
-        };
-      });
 
       jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
@@ -99,7 +107,8 @@ describe('build', () => {
 
       // The same provider is passed to build command
       expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
-    });
+      cannonNode.kill('SIGTERM');
+    }, 30000);
 
     it('should connect to frame with provided chainId', async () => {
       const chainId = 999;

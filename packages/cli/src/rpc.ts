@@ -129,8 +129,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           console.log(gray('Anvil instance running on:', host, '\n'));
 
           // TODO: why is this type not working out? (something about mode being wrong?)
-          anvilProvider = (
-            viem
+          anvilProvider = viem
               .createTestClient({
                 mode: 'anvil',
                 chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
@@ -138,7 +137,6 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               })
               .extend(viem.publicActions)
               .extend(viem.walletActions) as any
-          ).extend(traceActions({}));
 
           anvilInstance!.host = host;
           resolve(anvilInstance!);

@@ -200,7 +200,6 @@ describe('builder.ts', () => {
 
     describe('without layers', () => {
       it('returns correct state', async () => {
-
         const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
 
         expect(newState['contract.Yoop'].artifacts).toStrictEqual({
