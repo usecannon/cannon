@@ -53,7 +53,6 @@ export function useTxnStager(
   } = { safe: null }
 ) {
   const chainId = useChainId();
-
   const account = useAccount();
   const walletClient = useWalletClient();
   const safeAddress = useSafeAddress();
@@ -65,11 +64,10 @@ export function useTxnStager(
   const querySafeAddress = options.safe?.address || safeAddress;
 
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
-
   const currentSafe = useStore((s) => s.currentSafe);
+
   const { nonce, staged, stagedQuery } = useSafeTransactions((options.safe || currentSafe) as any);
 
-  //console.log('staged txns', staged.length, _.last(staged).txn._nonce + 1, nonce)
   const safeTxn: SafeTransaction = {
     to: txn.to || viem.zeroAddress,
     value: txn.value || '0',
@@ -125,24 +123,22 @@ export function useTxnStager(
   const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Address) : null;
 
   useEffect(() => {
-    const fetchSigners = async () => {
+    if (!hashToSign || !alreadyStaged) return setAlreadyStagedSigners([]);
+
+    void (async function () {
       const signers: viem.Address[] = [];
-
-      if (!hashToSign || !alreadyStaged) {
-        return signers;
-      }
-
       for (const sig of alreadyStaged.sigs) {
-        const regularSig = viem.toBytes(sig);
-        regularSig[regularSig.length - 1] -= 4;
-        const address = await viem.recoverMessageAddress({ message: viem.toHex(hashToSign), signature: regularSig });
-        signers.push(address);
+        const signature = viem.toBytes(sig);
+        signature[signature.length - 1] -= 4; // remove 4 at the end from gnosis signature version code
+        const signerAddress = await viem.recoverAddress({
+          hash: hashToSign,
+          signature,
+        });
+        signers.push(signerAddress);
       }
 
       setAlreadyStagedSigners(signers);
-    };
-
-    void fetchSigners();
+    })();
   }, [alreadyStaged?.sigs, hashToSign]);
 
   const sigInsertIdx = _.sortedIndex(
@@ -171,16 +167,12 @@ export function useTxnStager(
 
   const execSig: string[] = _.clone(alreadyStaged?.sigs || []);
   if (alreadyStagedSigners.length < requiredSigs) {
-    const encodedData = viem.encodeAbiParameters(viem.parseAbiParameters('address, uint256'), [
+    const params = viem.encodeAbiParameters(viem.parseAbiParameters('address, uint256'), [
       account.address || viem.zeroAddress,
       BigInt(0),
     ]);
 
-    execSig.splice(
-      sigInsertIdx,
-      0,
-      viem.decodeAbiParameters(viem.parseAbiParameters(['address', 'uint256']), encodedData) + '01'
-    );
+    execSig.splice(sigInsertIdx, 0, `${params}01`);
   }
 
   const stageTxnMutate = useSimulateContract({
