@@ -8,6 +8,7 @@ export { ChainBuilderRuntime, CannonStorage, Events } from './runtime';
 export type { CannonLoader } from './loader';
 export { IPFSLoader, InMemoryLoader } from './loader';
 export { decodeTxError } from './trace';
+export { traceActions } from './error';
 
 export * from './util';
 export * from './types';
