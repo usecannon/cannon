@@ -248,8 +248,8 @@ npx @usecannon/cli synthetix-omnibus`}
               Write smart contracts that integrate with existing protocols
             </Heading>
             <Text color="gray.300">
-              Leverage composability by importing packages for popular
-              protocols in Cannonfiles during development and deployment.
+              Leverage composability by importing packages for popular protocols
+              in Cannonfiles during development and deployment.
             </Text>
           </Box>
           <Box w="100%">

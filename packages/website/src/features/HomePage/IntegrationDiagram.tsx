@@ -180,7 +180,10 @@ export const IntegrationDiagram: FC = () => {
       .data(nodes)
       .enter()
       .append('g')
-      .attr('class', (d) => `node ${d.id == "Your Smart Contract" ? "highlight" : ""}`);
+      .attr(
+        'class',
+        (d) => `node ${d.id == 'Your Smart Contract' ? 'highlight' : ''}`
+      );
 
     // Append text to the node group first
     node
@@ -257,11 +260,10 @@ export const IntegrationDiagram: FC = () => {
     }
 
     // Call zoomToFit to fit graph after initial rendering
-    
+
     setTimeout(() => {
       zoomToFit();
     }, 1000);
-    
   }, []);
 
   return (
