@@ -31,7 +31,7 @@ export async function cannonBuild(options: BuildOptions) {
       if (viem.isAddressEqual(addr, signer.address)) {
         return {
           address: addr,
-          wallet: viem.createWalletClient({ account: signer, transport: viem.custom(provider.transport) }),
+          wallet: viem.createWalletClient({ account: signer, transport: viem.custom(provider.transport), chain: provider.chain}),
         };
       }
     }

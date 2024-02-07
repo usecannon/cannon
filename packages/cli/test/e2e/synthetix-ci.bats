@@ -29,7 +29,6 @@ teardown() {
 
 @test "Synthetix CI - Build Synthetix V3 contracts" {
   run downstream-ci-synthetix-v3.sh
-  echo $output>&3
   echo $output
   assert_success
 }
@@ -38,5 +37,12 @@ teardown() {
   run downstream-ci-synthetix-deployments.sh
   echo $output
   assert_line --regexp 'synthetix-omnibus:.+@andromeda built on Base \(Chain ID: 8453\)'
+  assert_success
+}
+
+@test "Synthetix CI - Inspect Synthetix Sandbox" {
+  run downstream-ci-synthetix-sandbox.sh
+  echo $output
+  assert_file_exists "$CANNON_DIRECTORY/deployments/synthetix/CoreProxy.json"
   assert_success
 }

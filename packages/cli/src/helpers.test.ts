@@ -3,7 +3,6 @@ import { getContractsAndDetails, getSourceFromRegistry, getChainId, getChainData
 import { LocalRegistry } from './registry';
 import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
 
-// TODO: Refactor Helpers and readd these methods but use viem instead of ethers.
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);
 describe('getChainDataFromId', getChainDataFromIdTestCases);
