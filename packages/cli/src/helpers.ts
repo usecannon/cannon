@@ -86,12 +86,13 @@ export async function setupAnvil(): Promise<void> {
 export function getSighash(fragment: AbiFunction | AbiEvent) {
   let sighash = '';
 
-  if (fragment.type === 'function') {
-    sighash = viem.toFunctionSelector(fragment);
-  }
-
-  if (fragment.type === 'event') {
-    sighash = viem.toEventSelector(fragment);
+  switch (fragment.type) {
+    case 'function':
+      sighash = viem.toFunctionSelector(fragment);
+      break;
+    case 'event':
+      sighash = viem.toEventSelector(fragment);
+      break;
   }
 
   return sighash;

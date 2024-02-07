@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { AbiFunction, AbiEvent, SolidityBytes } from 'abitype';
+import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic, yellow } from 'chalk';
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 
@@ -83,7 +83,7 @@ export async function decode({
   const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
     switch (true) {
       case input.type.startsWith('tuple'): {
-        // tuple and array of tuples
+        // e.g. tuple, tuple[]
         console.log(renderParam(offset, input));
         // @ts-ignore: TODO - figure out how to type this
         const components = input.components;
@@ -119,7 +119,7 @@ export async function decode({
       }
 
       default: {
-        console.log(renderParam(offset, input), _renderValue(input, value as any));
+        console.log(renderParam(offset, input), _renderValue(input, value));
       }
     }
   };
