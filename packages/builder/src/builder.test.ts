@@ -44,7 +44,7 @@ describe('builder.ts', () => {
   let provider: any;
   let runtime: ChainBuilderRuntime;
 
-  beforeEach(() => { 
+  beforeEach(() => {
     provider = makeFakeProvider();
     jest.mocked(provider.getChainId).mockResolvedValue(1234);
     jest.mocked(provider.dumpState).mockImplementation(async () => {
@@ -64,7 +64,7 @@ describe('builder.ts', () => {
       new InMemoryRegistry(),
       { ipfs: loader }
     );
-  })
+  });
 
   const fakeDefinition: RawChainDefinition = {
     name: 'super-duper',
