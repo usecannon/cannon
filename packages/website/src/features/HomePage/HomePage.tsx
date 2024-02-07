@@ -1,10 +1,21 @@
 'use client';
 
 import { links } from '@/constants/links';
-import { Box, Button, Container, Flex, Heading, Link } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Heading,
+  Link,
+  Text,
+  Image,
+} from '@chakra-ui/react';
 import { gsap } from 'gsap';
 import NextLink from 'next/link';
 import { ReactNode, useEffect } from 'react';
+import { CopyBlock, dracula } from 'react-code-blocks';
+import { IntegrationDiagram } from './IntegrationDiagram';
 
 const CustomLink = ({
   href,
@@ -71,8 +82,8 @@ export default function HomePage() {
       .to(
         paths,
         {
-          stroke: '#7E858F',
-          opacity: '0.75',
+          stroke: '#f0f0f0',
+          opacity: '1',
           duration: randomDuration,
         },
         `>-${randomDuration()}`
@@ -88,103 +99,194 @@ export default function HomePage() {
       flexDirection="column"
       flex={1}
       minHeight="100%"
-      py={4}
+      py={24}
       bg="black"
       justify="center"
     >
-      <Container maxW="container.xl" py={4}>
-        <Heading
-          as="h1"
-          mb={[4, 4, 7]}
-          fontFamily="var(--font-inter)"
-          fontWeight={400}
-          fontSize={['30px', '30px', '64px']}
-          lineHeight={['38px', '38px', '76px']}
-          letterSpacing={['-2.1px', '-2.1px', '-4.2px']}
-          textShadow="0px 0px 8px rgba(63, 211, 203, 0.75);"
-          maxWidth={['480px', '480px', '800px']}
-        >
-          Cannon manages protocol deployments on blockchains
-        </Heading>
-        <Heading
-          as="h2"
-          mb={[6, 6, 10]}
-          fontFamily="var(--font-inter)"
-          fontWeight={200}
-          fontSize={['18px', '18px', '36px']}
-          lineHeight={['23px', '23px', '46px']}
-          letterSpacing={['-0.8px', '-0.8px', '-1.6px']}
-          color="gray.300"
-          maxW={['340px', '340px', '680px']}
-        >
-          <CustomLink href={links.DEPLOY}>Deploy</CustomLink> protocols and
-          publish packages to the{' '}
-          <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
-          Ethereum and IPFS.
-        </Heading>
-        <Link href={links.GETSTARTED} color="white" as={NextLink}>
-          <Button
-            colorScheme="teal"
-            size={['sm', 'sm', 'lg']}
-            letterSpacing="0.5px"
-            fontWeight="bold"
-            fontFamily="var(--font-miriam)"
-            textTransform="uppercase"
+      <Box position="relative" py={24}>
+        <Container maxW="container.xl" py={4}>
+          <Heading
+            as="h1"
+            mb={[4, 4, 7]}
+            fontFamily="var(--font-inter)"
+            fontWeight={400}
+            fontSize={['30px', '30px', '64px']}
+            lineHeight={['38px', '38px', '76px']}
+            letterSpacing={['-2.1px', '-2.1px', '-4.2px']}
+            textShadow="0px 0px 8px rgba(63, 211, 203, 0.75);"
+            maxWidth={['480px', '480px', '800px']}
           >
-            Get Started
-          </Button>
-        </Link>
-      </Container>
-      <svg
-        viewBox="0 0 180 100"
-        style={{ height: 0, width: 0, visibility: 'hidden' }}
-      >
-        <filter id="noise" x="0%" y="0%" width="100%" height="100%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0 0.000001"
-            result="NOISE"
-            numOctaves="2"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="NOISE"
-            scale="30"
-            xChannelSelector="R"
-            yChannelSelector="R"
-          />
-        </filter>
-      </svg>
-
-      <Box
-        display={{ base: 'none', lg: 'block' }}
-        position="absolute"
-        top="50%"
-        transform="translateY(-50%)"
-        right="0"
-        style={{ filter: 'url(#noise)' }}
-      >
+            Cannon manages protocol deployments on blockchains
+          </Heading>
+          <Heading
+            as="h2"
+            mb={[6, 6, 10]}
+            fontFamily="var(--font-inter)"
+            fontWeight={200}
+            fontSize={['18px', '18px', '36px']}
+            lineHeight={['23px', '23px', '46px']}
+            letterSpacing={['-0.8px', '-0.8px', '-1.6px']}
+            color="gray.300"
+            maxW={['340px', '340px', '680px']}
+          >
+            <CustomLink href={links.DEPLOY}>Deploy</CustomLink> protocols and
+            publish packages to the{' '}
+            <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
+            Ethereum and IPFS.
+          </Heading>
+          <Link href={links.GETSTARTED} color="white" as={NextLink}>
+            <Button
+              colorScheme="teal"
+              size={['sm', 'sm', 'lg']}
+              letterSpacing="0.5px"
+              fontWeight="bold"
+              fontFamily="var(--font-miriam)"
+              textTransform="uppercase"
+            >
+              Get Started
+            </Button>
+          </Link>
+        </Container>
         <svg
-          width="46vw"
-          height="46vw"
-          viewBox="0 0 62 62"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 180 100"
+          style={{ height: 0, width: 0, visibility: 'hidden' }}
         >
-          <path
-            d="M42.1984 15.1439C44.7336 14.4668 47.0791 16.7293 46.4936 19.2873L42.2577 37.7937C41.8258 39.6807 39.9384 40.8538 38.0552 40.4057L30.9874 38.7243C27.2801 37.8424 24.3466 35.0126 23.3318 31.3394L21.3972 24.3367C20.8817 22.4708 21.9861 20.5425 23.8564 20.043L42.1984 15.1439Z"
-            stroke="#7E858F"
-            strokeWidth="0.05px"
-            opacity="0.4"
-          />
-          <path
-            d="M14.6917 44.8648C14.4224 46.6439 15.9899 48.1565 17.7583 47.8239L36.926 44.2186C37.3878 44.1317 37.4036 43.476 36.9465 43.367L28.4394 41.3389C24.7351 40.4557 21.8042 37.6277 20.7893 33.9572L18.4605 25.5348C18.3353 25.0819 17.6805 25.1211 17.6102 25.5857L14.6917 44.8648Z"
-            stroke="#7E858F"
-            strokeWidth="0.05px"
-            opacity="0.4"
-          />
+          <filter id="noise" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0 0.000001"
+              result="NOISE"
+              numOctaves="2"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="NOISE"
+              scale="30"
+              xChannelSelector="R"
+              yChannelSelector="R"
+            />
+          </filter>
         </svg>
+
+        <Box
+          display={{ base: 'none', lg: 'block' }}
+          position="absolute"
+          top="50%"
+          transform="translateY(-50%)"
+          right="0"
+          style={{ filter: 'url(#noise)' }}
+        >
+          <svg
+            width="46vw"
+            height="46vw"
+            viewBox="0 0 62 62"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M42.1984 15.1439C44.7336 14.4668 47.0791 16.7293 46.4936 19.2873L42.2577 37.7937C41.8258 39.6807 39.9384 40.8538 38.0552 40.4057L30.9874 38.7243C27.2801 37.8424 24.3466 35.0126 23.3318 31.3394L21.3972 24.3367C20.8817 22.4708 21.9861 20.5425 23.8564 20.043L42.1984 15.1439Z"
+              stroke="#7E858F"
+              strokeWidth="0.05px"
+              opacity="0.4"
+            />
+            <path
+              d="M14.6917 44.8648C14.4224 46.6439 15.9899 48.1565 17.7583 47.8239L36.926 44.2186C37.3878 44.1317 37.4036 43.476 36.9465 43.367L28.4394 41.3389C24.7351 40.4557 21.8042 37.6277 20.7893 33.9572L18.4605 25.5348C18.3353 25.0819 17.6805 25.1211 17.6102 25.5857L14.6917 44.8648Z"
+              stroke="#7E858F"
+              strokeWidth="0.05px"
+              opacity="0.4"
+            />
+          </svg>
+        </Box>
       </Box>
+
+      <Container maxWidth="container.xl" py={{ base: 4, lg: 32 }}>
+        <Flex
+          alignItems="center"
+          direction={{ base: 'column', lg: 'row' }}
+          gap={6}
+        >
+          <Box maxWidth="580px">
+            <Heading
+              size="lg"
+              mb={2}
+              textShadow="0px 0px 4px rgba(63, 211, 203, 0.5);"
+              maxWidth="500px"
+            >
+              Build apps and bots that connect to protocols on Ethereum
+            </Heading>
+            <Text color="gray.300">
+              Run packages on a local node for development with a single
+              command. Easily retrieve ABIs and addresses for development,
+              testnets, and mainnets.
+            </Text>
+          </Box>
+          <Box fontFamily="var(--font-miriam)" mx="auto" minWidth="490px">
+            <CopyBlock
+              text={`npx @usecannon/cli inspect synthetix-omnibus
+npx @usecannon/cli synthetix-omnibus`}
+              language={'bash'}
+              showLineNumbers={false}
+              theme={dracula}
+            />
+          </Box>
+        </Flex>
+      </Container>
+
+      <Container maxWidth="container.xl" py={{ base: 4, lg: 32 }}>
+        <Flex
+          alignItems="center"
+          direction={{ base: 'column', lg: 'row-reverse' }}
+          gap={6}
+        >
+          <Box maxWidth="520px">
+            <Heading
+              size="lg"
+              mb={2}
+              textShadow="0px 0px 4px rgba(63, 211, 203, 0.5);"
+              maxWidth="800px"
+            >
+              Write smart contracts that integrate with existing protocols
+            </Heading>
+            <Text color="gray.300">
+              Leverage composability by importing packages for popular
+              protocols in Cannonfiles during development and deployment.
+            </Text>
+          </Box>
+          <Box w="100%">
+            <IntegrationDiagram />
+          </Box>
+        </Flex>
+      </Container>
+
+      <Container maxWidth="container.xl" py={{ base: 4, lg: 32 }}>
+        <Flex
+          alignItems="center"
+          direction={{ base: 'column', lg: 'row' }}
+          gap={6}
+        >
+          <Box maxWidth="640px">
+            <Heading
+              size="lg"
+              mb={2}
+              textShadow="0px 0px 4px rgba(63, 211, 203, 0.5);"
+            >
+              Manage complex deployments across multiple chains
+            </Heading>
+            <Text color="gray.300">
+              Maintain Cannonfiles in a GitOps repository. Owners of a Safe can
+              review and sign protocol changes using the Cannon deployer.
+            </Text>
+          </Box>
+          <Box w="100%">
+            <Image
+              transform="scale(1.2)"
+              mx="auto"
+              src="/images/deployer-diagram.svg"
+              alt="Deploy Protocols with Github and Safe"
+            />
+          </Box>
+        </Flex>
+      </Container>
     </Flex>
   );
 }
