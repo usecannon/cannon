@@ -23,13 +23,17 @@ export function traceActions(artifacts: ChainArtifacts) {
         try {
           return await simulateContract(client, args);
         } catch (err) {
-          await handleTxnError(artifacts, client, err, {
-            account: args.account,
-            to: args.address,
-            chain: args.chain,
-            data: viem.encodeFunctionData(args),
-            value: args.value,
-          });
+          try {
+            await handleTxnError(artifacts, client, err, {
+              account: args.account,
+              to: args.address,
+              chain: args.chain,
+              data: viem.encodeFunctionData(args),
+              value: args.value,
+            });
+          } catch (err2) {
+            throw err;
+          }
         }
       },
     };
@@ -83,7 +87,7 @@ export async function handleTxnError(
 
       await fullProvider.waitForTransactionReceipt({ hash: txnHash });
     } catch (err) {
-      console.error('warning: failed to force through transaction:', err);
+      debug('warning: failed to force through transaction:', err);
     }
   }
 
@@ -92,7 +96,7 @@ export async function handleTxnError(
     try {
       traces = await provider.request({ method: 'trace_transaction' as any, params: [txnHash] });
     } catch (err) {
-      console.error('warning: trace api unavailable', err);
+      debug('warning: trace api unavailable', err);
     }
   }
 

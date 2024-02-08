@@ -16,7 +16,6 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
   const [computedTxns, setComputedTxns] = useState<string | null>(null);
 
   const runTxns = async () => {
-    console.log('starting fork simulate');
     const results: (SimulatedTransactionResult | null)[] = [];
 
     for (const txn of txns) {
@@ -48,6 +47,7 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
         });
       } catch (err: any) {
         // record error and continue to try to execute more txns
+        /* eslint no-console: "off" */
         console.log('full txn error', err, txn);
         results.push({
           gasUsed: BigInt(0),
@@ -65,7 +65,6 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
       const _node = await createFork({ chainId: safe.chainId, impersonate: [safe.address] });
       setNode(_node);
       setCleanStateSnapshot((await _node?.request({ method: 'evm_snapshot', params: [] })) ?? '');
-      console.log('finished creating fork');
     }
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises

@@ -25,7 +25,6 @@ export function useQueryIpfsData(url?: string, enabled?: boolean, raw?: boolean)
       const headers: { [k: string]: string } = {};
 
       if (parsedUrl.auth) {
-        console.log('Detected basic auth in url');
         const [username, password] = parsedUrl.auth.split(':');
         headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
         kuboQueryUrl = kuboQueryUrl.replace(/\/\/.*@/, '//');
@@ -96,8 +95,6 @@ export async function writeIpfs(ipfsUrl: string, content: string, { compress = f
 
   const { url, headers } = createIpfsUrl(ipfsUrl, '/api/v0/add');
   const res = await axios.post(url, formData, { headers });
-
-  console.log('uploaded', res.statusText, res.data.Hash);
 
   return res.data.Hash;
 }

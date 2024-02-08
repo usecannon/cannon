@@ -172,7 +172,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     if (info.gasPrice) {
       if (info.gasFee) {
-        console.log(yellow('WARNING: gasPrice is ignored when gasFee is set'));
+        debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
         this._gasPrice = parseGasValue(info.gasPrice);
       }
@@ -260,7 +260,6 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    console.log('updating provider artifacts');
     this.provider = this.provider.extend(traceActions(artifacts) as any);
   }
 

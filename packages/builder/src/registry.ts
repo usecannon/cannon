@@ -303,6 +303,9 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
+  // TODO: in time remove this
+  /* eslint no-console: "off" */
+
   // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
@@ -467,8 +470,7 @@ export class OnChainRegistry extends CannonRegistry {
         console.log(
           bold(
             yellow(
-              `Publishing address "${await this.signer
-                ?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+              `Publishing address "${this.signer?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
             )
           )
         );
