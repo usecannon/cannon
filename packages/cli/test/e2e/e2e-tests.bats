@@ -47,7 +47,7 @@ teardown() {
   assert_success
 }
 
-@test "Decode - Syntethix mintUsd transaction" {
+@test "Decode - Synthetix mintUsd transaction" {
   run decode.sh 2
   echo $output
   assert_output --partial 'function mintUsd(uint128 accountId, uint128 poolId, address collateralType, uint256 amount)'
@@ -59,7 +59,7 @@ teardown() {
   assert_success  
 }
 
-@test "Decode - Syntethix burnUsd transaction" {
+@test "Decode - Synthetix burnUsd transaction" {
   run decode.sh 3
   echo $output
   assert_output --partial 'function burnUsd(uint128 accountId, uint128 poolId, address collateralType, uint256 amount)'
@@ -71,7 +71,7 @@ teardown() {
   assert_success
 }
 
-@test "Decode - Syntethix burnUsd transaction (--json)" {
+@test "Decode - Synthetix burnUsd transaction (--json)" {
   run decode.sh 4
   echo $output
   assert_output --partial 'burnUsd'
