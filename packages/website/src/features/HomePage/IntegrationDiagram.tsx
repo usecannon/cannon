@@ -10,7 +10,7 @@ const GlobalStyles = createGlobalStyle`
     fill: white;
     font-size: 12px;
     font-family: "Fira Code", "Fira Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
-    cursor: pointer;
+    cursor: default;
     &.highlight {
       fill: #1ad6ff;
     }
@@ -247,7 +247,7 @@ export const IntegrationDiagram: FC = () => {
       const x = bounds!.x + dx! / 2;
       const y = bounds!.y + dy! / 2;
 
-      const scale = Math.min(0.9 / Math.max(dx! / width!, dy! / height!), 4);
+      const scale = Math.min(0.8 / Math.max(dx! / width!, dy! / height!), 4);
       const translate = [width! / 2 - scale * x, height! / 2 - scale * y];
 
       svg
@@ -271,9 +271,10 @@ export const IntegrationDiagram: FC = () => {
       <GlobalStyles />
       <Box
         border="1px solid"
-        borderColor="gray.800"
-        height="420px"
-        borderRadius="sm"
+        borderColor="#4e4d4d"
+        height={['150px', '150px', '300px']}
+        borderRadius="lg"
+        boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
       >
         <svg ref={svgRef} width={'100%'} height={'100%'} />
       </Box>
