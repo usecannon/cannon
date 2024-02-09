@@ -1,12 +1,12 @@
-import { chains } from '@/constants/deployChains';
-import * as onchainStore from '@/helpers/onchain-store';
-import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
-import { supportedChains } from '@/providers/walletProvider';
-import { SafeTransaction } from '@/types/SafeTransaction';
 import SafeApiKit from '@safe-global/api-kit';
 import { useQuery } from '@tanstack/react-query';
 import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
+import { chains } from '@/constants/deployChains';
+import * as onchainStore from '@/helpers/onchain-store';
+import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
+import { SafeTransaction } from '@/types/SafeTransaction';
+import { supportedChains } from './providers';
 
 export type SafeString = `${ChainId}:${Address}`;
 
