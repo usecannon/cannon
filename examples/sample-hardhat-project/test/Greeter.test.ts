@@ -6,7 +6,8 @@ describe('Greeter', function () {
   let Greeter: Greeter;
 
   before('load', async function () {
-    Greeter = (await hre.cannon.getContract('Greeter')) as Greeter;
+    const contractInfo: {address: string, abi: Array<Object>} = await hre.cannon.getContract('Greeter');
+    Greeter = (await hre.ethers.getContractAt('Greeter', contractInfo.address)) as Greeter;
   });
 
   it('Should return the new greeting once it is changed', async function () {
