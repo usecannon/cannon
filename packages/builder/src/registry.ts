@@ -303,6 +303,9 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
+  // TODO: in time remove this
+  /* eslint no-console: "off" */
+
   // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
     await this.checkSigner();
@@ -453,8 +456,17 @@ export class OnChainRegistry extends CannonRegistry {
 
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
-      const simulatedGas = await this.provider.estimateGas({ functionName: 'multicall', args: [datas], ...this.overrides });
-      console.log(`\nEstimated gas: ${simulatedGas}`);
+
+      const simulatedGas = await this.provider.estimateContractGas({
+        address: this.contract.address,
+        account: this.signer?.wallet.account,
+        abi: this.contract.abi,
+        functionName: 'multicall',
+        args: [datas],
+        ...this.overrides,
+      });
+
+      console.log(`\nEstimated gas: ${simulatedGas} wei`);
       const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
       console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
       const transactionFeeWei = simulatedGas * gasPrice;
@@ -463,12 +475,13 @@ export class OnChainRegistry extends CannonRegistry {
 
       console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
 
-      if (this.signer && (await this.provider.getBalance({ address: this.signer.address })) < transactionFeeWei) {
+      const userBalance = await this.provider.getBalance({ address: this.signer!.address });
+
+      if (this.signer && userBalance < transactionFeeWei) {
         console.log(
           bold(
             yellow(
-              `Publishing address "${await this.signer
-                ?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+              `Publishing address "${this.signer?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
             )
           )
         );

@@ -94,7 +94,8 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
     const safeService = _createSafeApiKit(safe.chainId);
 
     if (!safeService) {
-      console.warn('safe service not initializable for network', safe.chainId);
+      // TODO: show some helpful information on ui to indicate that this network is unsupported rather
+      // than just returning emptiness
       return { count: 0, next: null, previous: null, results: [] };
     }
 

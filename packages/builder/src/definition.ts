@@ -331,7 +331,7 @@ export class ChainDefinition {
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
         } else if (!input.startsWith('settings.')) {
-          console.log(`WARNING: dependency ${input} not found for step ${node}`);
+          debug(`WARNING: dependency ${input} not found for step ${node}`);
         }
       }
     }

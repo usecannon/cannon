@@ -1,6 +1,6 @@
 import LightningFS from '@isomorphic-git/lightning-fs';
 import md5 from 'crypto-js/md5';
-import { checkout, clone, fastForward, fetch, findRoot, log } from 'isomorphic-git';
+import { checkout, clone, fastForward, fetch, findRoot } from 'isomorphic-git';
 import http from 'isomorphic-git/http/web';
 import { memoize } from 'lodash';
 
@@ -35,10 +35,6 @@ export const init = memoize(
         singleBranch: true,
       });
     }
-
-    const [commit] = await log({ ...baseOpts, depth: 1 });
-
-    console.log('git.init', { repo, ref, alreadyCloned: cloned, commit });
   },
   (repo: string, ref: string) => `${repo}-${ref}`
 );

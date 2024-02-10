@@ -30,7 +30,6 @@ export function createIpfsUrl(base: string, pathname = '') {
   };
 
   if (parsedUrl.auth) {
-    console.log('detected basic auth in url');
     const [username, password] = parsedUrl.auth.split(':');
     headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
   }
