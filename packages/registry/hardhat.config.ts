@@ -7,7 +7,7 @@ import 'hardhat-gas-reporter';
 import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-ethers';
 
-import 'hardhat-cannon';
+import 'hardhat-cannon/src/index';
 
 dotenv.config();
 
