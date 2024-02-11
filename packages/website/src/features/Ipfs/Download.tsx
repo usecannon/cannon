@@ -92,7 +92,6 @@ export default function Download() {
       }
       return data;
     } catch (err) {
-      console.error("couldn't decode the data: ", err);
       return data;
     }
   };

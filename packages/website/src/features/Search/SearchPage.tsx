@@ -79,10 +79,6 @@ export const SearchPage = () => {
   >([]);
 
   useEffect(() => {
-    if (error) {
-      console.log('error:', error);
-    }
-
     const variantExistsInPackage = (pkg: Package, variantId: string): boolean =>
       pkg.variants.some((v) => v.id === variantId);
 

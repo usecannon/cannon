@@ -1,37 +1,28 @@
-import axios from 'axios';
-import { ethers } from 'ethers';
-import _ from 'lodash';
-import { useMemo, useState } from 'react';
-import { Abi, zeroAddress } from 'viem';
-import {
-  Address,
-  useAccount,
-  useChainId,
-  useContractRead,
-  useContractReads,
-  useMutation,
-  usePrepareContractWrite,
-  useQuery,
-  useWalletClient,
-} from 'wagmi';
-import { SafeDefinition, useStore } from '@/helpers/store';
-import { SafeTransaction } from '@/types/SafeTransaction';
-import { useSafeAddress } from '@/hooks/safe';
 import SafeABIJSON from '@/abi/Safe.json';
+import { SafeDefinition, useStore } from '@/helpers/store';
+import { useSafeAddress } from '@/hooks/safe';
+import { SafeTransaction } from '@/types/SafeTransaction';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
+import * as viem from 'viem';
+import { useAccount, useChainId, useReadContract, useReadContracts, useSimulateContract, useWalletClient } from 'wagmi';
 
-const SafeABI = SafeABIJSON as Abi;
+const SafeABI = SafeABIJSON as viem.Abi;
 
 export function useSafeTransactions(safe?: SafeDefinition) {
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
 
-  const stagedQuery = useQuery(['staged', safe?.chainId, safe?.address], {
+  const stagedQuery = useQuery({
+    queryKey: ['staged', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return;
       return axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
   });
 
-  const nonceQuery = useContractRead({
+  const nonceQuery = useReadContract({
     address: safe?.address,
     chainId: safe?.chainId,
     abi: SafeABI,
@@ -57,36 +48,35 @@ export function useSafeTransactions(safe?: SafeDefinition) {
 export function useTxnStager(
   txn: Partial<SafeTransaction>,
   options: {
-    safe?: SafeDefinition;
+    safe: SafeDefinition | null;
     onSignComplete?: () => void;
-  } = {}
+  } = { safe: null }
 ) {
   const chainId = useChainId();
-
   const account = useAccount();
   const walletClient = useWalletClient();
   const safeAddress = useSafeAddress();
 
   const [alreadySigned] = useState(false);
+  const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
 
   const queryChainId = options.safe?.chainId || chainId.toString();
   const querySafeAddress = options.safe?.address || safeAddress;
 
   const stagingUrl = useStore((s) => s.settings.stagingUrl);
-
   const currentSafe = useStore((s) => s.currentSafe);
+
   const { nonce, staged, stagedQuery } = useSafeTransactions((options.safe || currentSafe) as any);
 
-  //console.log('staged txns', staged.length, _.last(staged).txn._nonce + 1, nonce)
   const safeTxn: SafeTransaction = {
-    to: txn.to || ethers.constants.AddressZero,
+    to: txn.to || viem.zeroAddress,
     value: txn.value || '0',
     data: txn.data || '0x',
     operation: txn.operation || '0', // 0 = call, 1 = delegatecall
     safeTxGas: txn.safeTxGas || '0',
     baseGas: txn.baseGas || '0',
     gasPrice: txn.gasPrice || '0',
-    gasToken: txn.gasToken || ethers.constants.AddressZero,
+    gasToken: txn.gasToken || viem.zeroAddress,
     refundReceiver: querySafeAddress as any,
     _nonce: txn._nonce || (staged.length ? _.last(staged).txn._nonce + 1 : Number(nonce || 0)),
   };
@@ -94,7 +84,7 @@ export function useTxnStager(
   // try to match with an existing transaction
   const alreadyStaged = staged.find((s) => _.isEqual(s.txn, safeTxn));
 
-  const reads = useContractReads({
+  const reads = useReadContracts({
     contracts: [
       {
         abi: SafeABI,
@@ -130,21 +120,25 @@ export function useTxnStager(
     ],
   });
 
-  const hashToSign = reads.isSuccess ? (reads.data![0].result as unknown as Address) : null;
+  const hashToSign = reads.isSuccess ? (reads.data![0].result as viem.Address) : null;
 
-  const alreadyStagedSigners = useMemo(() => {
-    if (!hashToSign || !alreadyStaged) {
-      return [];
-    }
+  useEffect(() => {
+    if (!hashToSign || !alreadyStaged) return setAlreadyStagedSigners([]);
 
-    const signers = [];
-    for (const sig of alreadyStaged.sigs) {
-      const regularSig = ethers.utils.arrayify(sig);
-      regularSig[regularSig.length - 1] -= 4;
-      signers.push(ethers.utils.verifyMessage(ethers.utils.arrayify(hashToSign), regularSig));
-    }
+    void (async function () {
+      const signers: viem.Address[] = [];
+      for (const sig of alreadyStaged.sigs) {
+        const signature = viem.toBytes(sig);
+        signature[signature.length - 1] -= 4; // remove 4 at the end from gnosis signature version code
+        const signerAddress = await viem.recoverAddress({
+          hash: hashToSign,
+          signature,
+        });
+        signers.push(signerAddress);
+      }
 
-    return signers;
+      setAlreadyStagedSigners(signers);
+    })();
   }, [alreadyStaged?.sigs, hashToSign]);
 
   const sigInsertIdx = _.sortedIndex(
@@ -173,14 +167,15 @@ export function useTxnStager(
 
   const execSig: string[] = _.clone(alreadyStaged?.sigs || []);
   if (alreadyStagedSigners.length < requiredSigs) {
-    execSig.splice(
-      sigInsertIdx,
-      0,
-      ethers.utils.defaultAbiCoder.encode(['address', 'uint256'], [account.address || zeroAddress, 0]) + '01'
-    );
+    const params = viem.encodeAbiParameters(viem.parseAbiParameters('address, uint256'), [
+      account.address || viem.zeroAddress,
+      BigInt(0),
+    ]);
+
+    execSig.splice(sigInsertIdx, 0, `${params}01`);
   }
 
-  const stageTxnMutate = usePrepareContractWrite({
+  const stageTxnMutate = useSimulateContract({
     abi: SafeABI,
     address: querySafeAddress as any,
     functionName: 'execTransaction',
@@ -209,7 +204,7 @@ export function useTxnStager(
     signConditionFailed = `current wallet ${account.address} not signer of this safe`;
   } else if (!walletClient.data) {
     signConditionFailed = 'wallet not connected';
-  } else if (alreadyStagedSigners.indexOf(account.address ?? '') !== -1) {
+  } else if (alreadyStagedSigners.indexOf(account.address!) !== -1) {
     signConditionFailed = `current wallet ${account.address} has already signed the transaction`;
   }
 
@@ -231,12 +226,12 @@ export function useTxnStager(
     safeTxn,
 
     sign: async () => {
-      const signature = await walletClient.data?.signMessage({
+      const signature = await walletClient.data!.signMessage({
         account: account.address,
         message: { raw: hashToSign as any },
       });
 
-      const gnosisSignature = ethers.utils.arrayify(signature as any);
+      const gnosisSignature = viem.toBytes(signature);
 
       // sometimes the signature comes back with a `v` of 0 or 1 when when it should 27 or 28, called a "recid" apparently
       // Allow a recid to be used as the v
@@ -253,7 +248,7 @@ export function useTxnStager(
 
       await mutation.mutateAsync({
         txn: safeTxn,
-        sig: ethers.utils.hexlify(gnosisSignature),
+        sig: viem.toHex(gnosisSignature),
       });
 
       if (options.onSignComplete) {
@@ -267,6 +262,6 @@ export function useTxnStager(
 
     requiredSigners: requiredSigs,
 
-    executeTxnConfig: stageTxnMutate.config,
+    executeTxnConfig: stageTxnMutate.data?.request,
   };
 }

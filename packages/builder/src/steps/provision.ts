@@ -8,7 +8,7 @@ import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
 import { ChainBuilderRuntime, Events } from '../runtime';
-import { provisionSchema } from '../schemas.zod';
+import { provisionSchema } from '../schemas';
 import {
   ChainArtifacts,
   ChainBuilderContext,

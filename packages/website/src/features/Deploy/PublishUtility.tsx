@@ -1,17 +1,16 @@
-import { ethers } from 'ethers';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { useStore } from '@/helpers/store';
+import { useCannonPackage } from '@/hooks/cannon';
+import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
-import { useAccount, useMutation, useWalletClient } from 'wagmi';
+import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
-  FallbackRegistry,
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { useCannonPackage } from '@/hooks/cannon';
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { useStore } from '@/helpers/store';
-import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -20,7 +19,6 @@ export default function PublishUtility(props: {
   const settings = useStore((s) => s.settings);
 
   const wc = useWalletClient();
-  const account = useAccount();
   const toast = useToast();
 
   // get the package referenced by this ipfs package
@@ -62,25 +60,21 @@ export default function PublishUtility(props: {
         );
       }
 
-      console.log(
-        'publish triggered',
-        wc,
-        resolvedName,
-        resolvedVersion,
-        resolvedPreset,
-        props.targetChainId
-      );
+      if (!wc.data) {
+        throw new Error('Wallet not connected');
+      }
+
+      const [walletAddress] = await wc.data.getAddresses();
 
       const targetRegistry = new OnChainRegistry({
-        signerOrProvider: new ethers.providers.Web3Provider(
-          wc.data as any
-        ).getSigner(account.address),
+        signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
       });
 
       const fakeLocalRegistry = new InMemoryRegistry();
+
       // TODO: set meta url
-      void fakeLocalRegistry.publish(
+      await fakeLocalRegistry.publish(
         [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
         props.targetChainId,
         props.deployUrl,
@@ -92,7 +86,7 @@ export default function PublishUtility(props: {
       );
 
       const fromStorage = new CannonStorage(
-        new FallbackRegistry([fakeLocalRegistry, targetRegistry]),
+        fakeLocalRegistry,
         { ipfs: loader },
         'ipfs'
       );
@@ -104,7 +98,6 @@ export default function PublishUtility(props: {
 
       await publishPackage({
         packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
-        // TODO: Check if we need to provide tags
         tags: ['latest'],
         chainId: props.targetChainId,
         fromStorage,
@@ -115,8 +108,7 @@ export default function PublishUtility(props: {
     onSuccess() {
       void registryQuery.refetch();
     },
-    onError(e) {
-      console.log('Error publishing package:', e);
+    onError() {
       toast({
         title: 'Error Publishing Package',
         description:
@@ -168,16 +160,16 @@ export default function PublishUtility(props: {
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
               wc.data?.chain?.id !== 1 ||
-              publishMutation.isLoading
+              publishMutation.isPending
             }
             colorScheme="teal"
             size="sm"
             onClick={() => publishMutation.mutate()}
             leftIcon={
-              publishMutation.isLoading ? <Spinner size="sm" /> : undefined
+              publishMutation.isPending ? <Spinner size="sm" /> : undefined
             }
           >
-            {publishMutation.isLoading
+            {publishMutation.isPending
               ? 'Publishing...'
               : 'Publish to Registry'}
           </Button>

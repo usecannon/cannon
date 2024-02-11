@@ -1,21 +1,23 @@
-import { FC, useEffect, useMemo, useRef } from 'react';
-import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
-import { ChainArtifacts } from '@usecannon/builder';
 import { Function } from '@/features/Packages/Function';
 import {
-  Flex,
-  Text,
-  Box,
-  useBreakpointValue,
-  AlertIcon,
   Alert,
+  AlertIcon,
+  Box,
+  Flex,
   Heading,
   Link,
+  Text,
+  useBreakpointValue,
 } from '@chakra-ui/react';
+import { ChainArtifacts } from '@usecannon/builder';
+import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
 import NextLink from 'next/link';
+import { FC, useEffect, useMemo, useRef } from 'react';
+import { Address } from 'viem';
+
 export const Abi: FC<{
   abi: AbiType;
-  address: string;
+  address: Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
 }> = ({ abi, address, cannonOutputs, chainId }) => {
