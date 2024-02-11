@@ -207,35 +207,60 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
-          {deploymentInfo?.def?.description && (
-            <Text fontSize="xl">{deploymentInfo.def.description}</Text>
+          <Flex direction={['column', 'column', 'row']} pb={2}>
+            <Box pb={2}>
+              {deploymentInfo?.def?.description && (
+                <Text fontSize="xl">{deploymentInfo.def.description}</Text>
+              )}
+              <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
+                {deploymentInfo?.generator &&
+                  `built with ${deploymentInfo.generator} `}
+                {deploymentInfo?.generator &&
+                  deploymentInfo?.timestamp &&
+                  `on ${format(
+                    new Date(deploymentInfo?.timestamp * 1000),
+                    'PPPppp'
+                  ).toLowerCase()}`}
+              </Text>
+            </Box>
+            <Box ml={['none', 'none', 'auto']} pl={[0, 0, 4]} pt={0.5} pb={4}>
+              {deploymentInfo?.status == 'complete' && (
+                <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
+                  <Badge opacity={0.8} colorScheme="green">
+                    Complete deployment
+                  </Badge>
+                </Tooltip>
+              )}
+              {deploymentInfo?.status == 'partial' && (
+                <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
+                  <Badge opacity={0.8} colorScheme="yellow">
+                    Partial deployment
+                  </Badge>
+                </Tooltip>
+              )}
+            </Box>
+          </Flex>
+          {!isEmpty(addressesAbis) && (
+            <Box mb={8}>
+              <Button
+                variant="outline"
+                colorScheme="white"
+                size="sm"
+                bg="teal.900"
+                borderColor="teal.500"
+                _hover={{ bg: 'teal.800' }}
+                leftIcon={<DownloadIcon />}
+                onClick={handleDownload}
+                textTransform="uppercase"
+                letterSpacing="1px"
+                fontFamily="var(--font-miriam)"
+                color="gray.200"
+                fontWeight={500}
+              >
+                Download Addresses + ABIs
+              </Button>
+            </Box>
           )}
-          <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
-            {deploymentInfo?.generator &&
-              `built with ${deploymentInfo.generator} `}
-            {deploymentInfo?.generator &&
-              deploymentInfo?.timestamp &&
-              `on ${format(
-                new Date(deploymentInfo?.timestamp * 1000),
-                'PPPppp'
-              ).toLowerCase()}`}
-          </Text>
-          <Box mb={6}>
-            {deploymentInfo?.status == 'complete' && (
-              <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
-                <Badge opacity={0.8} colorScheme="green">
-                  Complete
-                </Badge>
-              </Tooltip>
-            )}
-            {deploymentInfo?.status == 'partial' && (
-              <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
-                <Badge opacity={0.8} colorScheme="yellow">
-                  Partial
-                </Badge>
-              </Tooltip>
-            )}
-          </Box>
           {variant.chain_id == 13370 && (
             <Box
               bg="blackAlpha.600"
@@ -490,59 +515,45 @@ export const DeploymentExplorer: FC<{
                 The chain state includes data recorded during the build.
               </Text>
             </Box>
-            <Box mb={2}>
-              <Heading size="sm" mb={2}>
-                Contract Deployments
-              </Heading>
-              <Button
-                variant="outline"
-                colorScheme="white"
-                size="xs"
-                color="gray.300"
-                borderColor="gray.500"
-                _hover={{ bg: 'gray.700' }}
-                leftIcon={<DownloadIcon />}
-                onClick={handleDownload}
-              >
-                Download Addresses + ABIs
-              </Button>
-              {!isEmpty(contractState) && (
-                <>
-                  {Object.entries(contractState).length > 0 && (
-                    <Box overflowX="auto" mt={6}>
-                      <Table variant="simple" size="sm">
-                        <Thead>
-                          <Tr>
-                            <Th color="gray.300" pl={0} borderColor="gray.500">
-                              Contract
-                            </Th>
-                            <Th color="gray.300" borderColor="gray.500">
-                              Address
-                            </Th>
-                            <Th color="gray.300" borderColor="gray.500">
-                              Transaction Hash
-                            </Th>
+            {!isEmpty(contractState) && (
+              <Box mb={2}>
+                <Heading size="sm" mb={2}>
+                  Contract Deployments
+                </Heading>
+                {Object.entries(contractState).length > 0 && (
+                  <Box overflowX="auto" mt={6}>
+                    <Table variant="simple" size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th color="gray.300" pl={0} borderColor="gray.500">
+                            Contract
+                          </Th>
+                          <Th color="gray.300" borderColor="gray.500">
+                            Address
+                          </Th>
+                          <Th color="gray.300" borderColor="gray.500">
+                            Transaction Hash
+                          </Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody fontFamily={'mono'}>
+                        {Object.entries(contractState).map(([key, value]) => (
+                          <Tr key={key}>
+                            <Td pl={0} borderColor="gray.500">
+                              {key?.toString()}
+                            </Td>
+                            <Td borderColor="gray.500">{value.address}</Td>
+                            <Td borderColor="gray.500">
+                              {value.deployTxnHash}
+                            </Td>
                           </Tr>
-                        </Thead>
-                        <Tbody fontFamily={'mono'}>
-                          {Object.entries(contractState).map(([key, value]) => (
-                            <Tr key={key}>
-                              <Td pl={0} borderColor="gray.500">
-                                {key?.toString()}
-                              </Td>
-                              <Td borderColor="gray.500">{value.address}</Td>
-                              <Td borderColor="gray.500">
-                                {value.deployTxnHash}
-                              </Td>
-                            </Tr>
-                          ))}
-                        </Tbody>
-                      </Table>
-                    </Box>
-                  )}
-                </>
-              )}
-            </Box>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                )}
+              </Box>
+            )}
             {!isEmpty(invokeState) && (
               <Box mt={6}>
                 <Heading size="sm" mb={2}>

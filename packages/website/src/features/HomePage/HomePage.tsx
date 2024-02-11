@@ -161,12 +161,6 @@ export default function HomePage() {
       justify="center"
     >
       <Box position="relative" py={[20, 20, 40]}>
-        <video autoPlay muted loop>
-          <source src="/videos/homepage_background.mp4" type="video/mp4" />
-        </video>
-        <video autoPlay muted loop className="alt">
-          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
-        </video>
         <Container maxW="container.xl" py={4} position="relative">
           <Heading
             as="h1"
@@ -265,6 +259,12 @@ export default function HomePage() {
             />
           </svg>
         </Box>
+        <video autoPlay muted loop>
+          <source src="/videos/homepage_background.mp4" type="video/mp4" />
+        </video>
+        <video autoPlay muted loop className="alt">
+          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
+        </video>
       </Box>
       <Container maxWidth="container.xl" py={{ base: 12, lg: 24 }}>
         <Flex
