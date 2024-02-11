@@ -1,20 +1,16 @@
 import _ from 'lodash';
-
-import { ChainDefinition } from './definition';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { RawChainDefinition } from './actions';
-import { build, getOutputs, runStep, createInitialContext } from './builder';
-import { IPFSLoader } from './loader';
+import { build, createInitialContext, getOutputs, runStep } from './builder';
 import { BUILD_VERSION } from './constants';
-
+import { ChainDefinition } from './definition';
+import { IPFSLoader } from './loader';
+import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
-import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
-
+import { contractSchema } from './schemas';
 import contractStep from './steps/contract';
 import invokeStep from './steps/invoke';
-import { InMemoryRegistry } from './registry';
-
-import { contractSchema } from './schemas.zod';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
+import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
 jest.mock('./steps/contract');
 jest.mock('./steps/invoke');

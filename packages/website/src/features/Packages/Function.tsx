@@ -1,7 +1,8 @@
-import React, { FC, useMemo, useState } from 'react';
-import { AbiFunction, Abi } from 'abitype/src/abi';
-
-import { ChainArtifacts } from '@usecannon/builder';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { FunctionInput } from '@/features/Packages/FunctionInput';
+import { FunctionOutput } from '@/features/Packages/FunctionOutput';
+import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
+import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Alert,
   Box,
@@ -13,50 +14,46 @@ import {
   Link,
   Text,
 } from '@chakra-ui/react';
-import { FunctionInput } from '@/features/Packages/FunctionInput';
-import { FunctionOutput } from '@/features/Packages/FunctionOutput';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { ChainArtifacts } from '@usecannon/builder';
+import { Abi, AbiFunction } from 'abitype/src/abi';
+import React, { FC, useMemo, useState } from 'react';
+import {
+  Address,
+  toFunctionSelector,
+  toFunctionSignature,
+  zeroAddress,
+} from 'viem';
 import {
   useAccount,
-  useConnect,
-  useNetwork,
   usePublicClient,
-  useSwitchNetwork,
+  useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { Address, zeroAddress } from 'viem';
-import { handleTxnError } from '@usecannon/builder';
-import { ethers } from 'ethers'; // Remove after the builder is refactored to viem. (This is already a dependency via builder.)
-import { CustomSpinner } from '@/components/CustomSpinner';
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
-import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 
 export const Function: FC<{
   f: AbiFunction;
   abi: Abi;
-  address: string;
+  address: Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ f, abi, cannonOutputs, address, chainId }) => {
+}> = ({ f, abi /*, cannonOutputs */, address, chainId }) => {
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
-  const { isConnected, address: from } = useAccount();
-  const { connectAsync } = useConnect();
+  const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { chain: connectedChain } = useNetwork();
-
   const publicClient = usePublicClient({
     chainId: chainId as number,
-  });
-  const { switchNetworkAsync } = useSwitchNetwork();
+  })!;
+  const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient({
     chainId: chainId as number,
-  });
+  })!;
 
   const [readContractResult, fetchReadContractResult] = useContractCall(
-    address as Address,
+    address,
     f.name,
     params,
     abi,
@@ -108,17 +105,12 @@ export const Function: FC<{
         await fetchReadContractResult(zeroAddress);
       } else {
         if (!isConnected) {
-          try {
-            await connectAsync?.();
-          } catch (e) {
-            if (openConnectModal) openConnectModal();
-            return;
-          }
+          if (openConnectModal) openConnectModal();
+          return;
         }
 
         if (connectedChain?.id != chainId) {
-          const newChain = await switchNetworkAsync?.(chainId as number);
-          if (newChain?.id != chainId) return;
+          await switchChain({ chainId: chainId });
         }
 
         if (simulate) {
@@ -132,10 +124,13 @@ export const Function: FC<{
         // console.error(e);
         // setError(e?.message || e?.error?.message || e?.error || e);
         try {
+          /*
           const provider = new ethers.providers.JsonRpcProvider(
             publicClient?.chain?.rpcUrls?.public?.http[0] as string
           );
+
           await handleTxnError(cannonOutputs, provider, e);
+          */
         } catch (e2: any) {
           setError(
             typeof e2 === 'string'
@@ -159,32 +154,14 @@ export const Function: FC<{
     </Box>
   ) : null;
 
-  function sanitizeForIdAndURI(anchor: string) {
-    let sanitized = encodeURIComponent(anchor);
-    sanitized = sanitized.replace(/%20/g, '_');
-    if (/^[0-9]/.test(sanitized)) {
-      sanitized = 'id_' + sanitized;
-    }
-    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
-    return sanitized;
-  }
-
-  const anchor = sanitizeForIdAndURI(
-    `${f.name}(${f.inputs
-      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
-      .join(',')})`
-  );
+  const anchor = `selector=${toFunctionSelector(f)}`;
 
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
-            {f.name}(
-            {f.inputs
-              .map((i) => i.type + (i.name ? ' ' + i.name : ''))
-              .join(',')}
-            )
+            {toFunctionSignature(f)}
             <Link
               color="gray.300"
               ml={1}

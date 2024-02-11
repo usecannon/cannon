@@ -6,7 +6,8 @@ import http from 'isomorphic-git/http/web';
 import { useMemo } from 'react';
 
 export function useGitRefsList(url: string) {
-  const refsQuery = useQuery(['git', 'ls-remote', url], {
+  const refsQuery = useQuery({
+    queryKey: ['git', 'ls-remote', url],
     queryFn: async () => {
       if (url) {
         return listServerRefs({
@@ -30,7 +31,8 @@ export function useGitRefsList(url: string) {
 export function useGitFilesList(url: string, ref: string, path: string) {
   const gitRepoQuery = useGitRepo(url, ref, []);
 
-  const readdirQuery = useQuery(['git', 'readdir', url, ref, path], {
+  const readdirQuery = useQuery({
+    queryKey: ['git', 'readdir', url, ref, path],
     queryFn: async () => {
       return git.readDir(url, ref, path);
     },

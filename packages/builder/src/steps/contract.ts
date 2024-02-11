@@ -1,23 +1,19 @@
-import _ from 'lodash';
 import Debug from 'debug';
-
-import { z } from 'zod';
-import { contractSchema } from '../schemas.zod';
-
+import _ from 'lodash';
 import * as viem from 'viem';
-import { Address, Hash, Hex } from 'viem';
-
+import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { contractSchema } from '../schemas';
 import {
-  ChainBuilderContext,
-  ChainBuilderRuntimeInfo,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderContextWithHelpers,
+  ChainBuilderRuntimeInfo,
   ContractArtifact,
   PackageState,
 } from '../types';
-import { computeTemplateAccesses } from '../access-recorder';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -37,7 +33,7 @@ export interface ContractOutputs {
 function resolveBytecode(
   artifactData: ContractArtifact,
   config: Config
-): [Hex, { [sourceName: string]: { [libName: string]: string } }] {
+): [viem.Hex, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
   const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
@@ -228,7 +224,7 @@ const contractSpec = {
 
     // sanity check that any connected libraries are bytecoded
     for (const lib in config.libraries || {}) {
-      if ((await runtime.provider.getBytecode({ address: config.libraries![lib] as Address })) === '0x') {
+      if ((await runtime.provider.getBytecode({ address: config.libraries![lib] as viem.Address })) === '0x') {
         throw new Error(`library ${lib} has no bytecode. This is most likely a missing dependency or bad state.`);
       }
     }
@@ -300,9 +296,9 @@ const contractSpec = {
       if (
         config.from &&
         config.nonce?.length &&
-        parseInt(config.nonce) < (await runtime.provider.getTransactionCount({ address: config.from as Address }))
+        parseInt(config.nonce) < (await runtime.provider.getTransactionCount({ address: config.from as viem.Address }))
       ) {
-        const contractAddress = viem.getContractAddress({ from: config.from as Address, nonce: BigInt(config.nonce) });
+        const contractAddress = viem.getContractAddress({ from: config.from as viem.Address, nonce: BigInt(config.nonce) });
 
         debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
 
@@ -344,7 +340,7 @@ const contractSpec = {
 
     const artifactData = await runtime.getArtifact!(config.artifact);
 
-    const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as Hash });
+    const txn = await runtime.provider.getTransactionReceipt({ hash: existingKeys[0] as viem.Hash });
 
     return generateOutputs(config, ctx, artifactData, txn, packageState.currentLabel);
   },

@@ -26,7 +26,7 @@ export interface State {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
     stagingUrl: string;
-    registryAddress: string;
+    registryAddress: Address;
     customProviders: string[];
     pythUrl: string;
   };

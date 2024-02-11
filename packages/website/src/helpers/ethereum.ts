@@ -1,9 +1,17 @@
-import { Address, decodeFunctionResult, encodeFunctionData, Hex, TransactionRequestBase, zeroAddress } from 'viem';
-import { PublicClient, WalletClient } from 'wagmi';
+import MulticallABI from '@/abi/Multicall.json';
 import { Abi } from 'abitype/src/abi';
 import { EIP7412 } from 'erc7412';
 import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
-import MulticallABI from '@/abi/Multicall.json';
+import {
+  Address,
+  decodeFunctionResult,
+  encodeFunctionData,
+  Hex,
+  PublicClient,
+  TransactionRequestBase,
+  WalletClient,
+  zeroAddress,
+} from 'viem';
 
 async function generate7412CompatibleCall(
   client: PublicClient,
@@ -131,11 +139,14 @@ export async function contractTransaction(
     data,
   };
   const call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+
   const hash = await walletClient.sendTransaction({
+    chain: publicClient.chain!,
     account: from,
     to: call.to,
     data: call.data,
     value: call.value,
   });
+
   return hash;
 }

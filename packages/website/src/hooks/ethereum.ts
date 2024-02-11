@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { Address } from 'viem';
-import { PublicClient, WalletClient } from 'wagmi';
-import { Abi } from 'abitype/src/abi';
 import { contractCall, contractTransaction } from '@/helpers/ethereum';
 import { useStore } from '@/helpers/store';
 import { useLogs } from '@/providers/logsProvider';
+import { Abi } from 'abitype/src/abi';
+import { useState } from 'react';
+import { Address, PublicClient, WalletClient } from 'viem';
 
 export function useContractCall(to: Address, functionName: string, params: any, abi: Abi, publicClient: PublicClient) {
   const [data, setData] = useState<any>(null);
@@ -12,7 +11,7 @@ export function useContractCall(to: Address, functionName: string, params: any, 
   const { addLog } = useLogs();
 
   const fetch = async (from: Address) => {
-    addLog(`Querying ${to} (Chain ID ${publicClient.chain.id}): ${functionName}(${params})`);
+    addLog(`Querying ${to} (Chain ID ${publicClient.chain!.id}): ${functionName}(${params})`);
     const result = await contractCall(from, to, functionName, params, abi, publicClient, settings.pythUrl);
     setData(result);
   };

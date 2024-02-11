@@ -23,7 +23,6 @@ function LogsProvider({ children }: { children: ReactNode }) {
 
   const addLog = (message: string) => {
     const date = new Date();
-    console.log(message);
     setLogs((prevLogs) => {
       const res = [...prevLogs];
       if (prevLogs.length === 0) {
