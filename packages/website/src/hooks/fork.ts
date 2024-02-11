@@ -30,7 +30,6 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
   const runTxns = async () => {
     if (!fork) throw new Error('Fork not loaded');
 
-    console.log('starting fork simulate');
     const results: (SimulatedTransactionResult | null)[] = [];
 
     for (const txn of txns) {
@@ -60,6 +59,7 @@ export function useSimulatedTxns(safe: SafeDefinition, txns: (Omit<TransactionRe
         });
       } catch (err: any) {
         // record error and continue to try to execute more txns
+        /* eslint no-console: "off" */
         console.log('full txn error', err, txn);
         results.push({
           gasUsed: BigInt(0),

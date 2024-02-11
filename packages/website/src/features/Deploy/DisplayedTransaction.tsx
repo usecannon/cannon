@@ -87,7 +87,6 @@ export function DisplayedTransaction(props: {
 
         return bytesToString(trim(b, { dir: 'right' }));
       } catch (err) {
-        console.warn('could not decode hex', err);
         return val.toString();
       }
     } else if (type == 'tuple') {

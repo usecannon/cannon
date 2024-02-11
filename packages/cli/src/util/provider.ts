@@ -75,7 +75,6 @@ export async function resolveProviderAndSigners({
   const signers: CannonSigner[] = [];
   if (checkProviders[0].startsWith('http')) {
     debug('use explicit provider url', checkProviders);
-
     try {
       publicClient = (
         viem.createPublicClient({

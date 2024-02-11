@@ -86,9 +86,6 @@ function QueueTransactions() {
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
-  console.log('txns', queuedTxns);
-  console.log('txnresults', txnInfo.txnResults);
-
   const toast = useToast();
 
   const stager = useTxnStager(
@@ -113,7 +110,6 @@ function QueueTransactions() {
     {
       safe: currentSafe!,
       onSignComplete() {
-        console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
@@ -124,8 +120,6 @@ function QueueTransactions() {
       },
     }
   );
-
-  console.log('final tx:', stager.executeTxnConfig);
 
   const execTxn = useWriteContract();
 
@@ -159,9 +153,6 @@ function QueueTransactions() {
   };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
-
-  console.log('TXN HAS ERROR', txnHasError);
-  console.log('sign status', stager);
 
   const disableExecute =
     !targetTxn || txnHasError || !!stager.execConditionFailed;

@@ -66,15 +66,6 @@ export default function PublishUtility(props: {
 
       const [walletAddress] = await wc.data.getAddresses();
 
-      console.log(
-        'publish triggered',
-        wc,
-        resolvedName,
-        resolvedVersion,
-        resolvedPreset,
-        props.targetChainId
-      );
-
       const targetRegistry = new OnChainRegistry({
         signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
@@ -117,8 +108,7 @@ export default function PublishUtility(props: {
     onSuccess() {
       void registryQuery.refetch();
     },
-    onError(e) {
-      console.log('Error publishing package:', e);
+    onError() {
       toast({
         title: 'Error Publishing Package',
         description:

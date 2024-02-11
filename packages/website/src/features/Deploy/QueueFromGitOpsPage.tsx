@@ -74,8 +74,8 @@ function QueueFromGitOps() {
 
   const deployOnChainStore = useSendTransaction({
     mutation: {
-      onSuccess: () => {
-        refetch().catch((err) => console.error(err));
+      onSuccess: async () => {
+        await refetch();
       },
     },
   });
@@ -345,7 +345,6 @@ function QueueFromGitOps() {
     {
       safe: currentSafe,
       onSignComplete() {
-        console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
@@ -389,7 +388,6 @@ function QueueFromGitOps() {
     !deployOnChainStore.isPending &&
     !deployOnChainStore.isError
   ) {
-    console.log('prepare deploy onchain', deployOnChainStore);
     return (
       <Container maxWidth="container.sm">
         <Box

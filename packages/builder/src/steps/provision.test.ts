@@ -147,7 +147,6 @@ describe('steps/provision.ts', () => {
 
       jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
       jest.mocked(fakeRuntime.isCancelled).mockReturnValue(true);
-      console.log('is c ancel', fakeRuntime.isCancelled());
 
       const result = await action.exec(
         fakeRuntime,

@@ -21,6 +21,8 @@ export interface StepExecutionError {
   err: Error;
 }
 
+/* eslint no-console: "off" */
+
 export const inMemoryRegistry = new InMemoryRegistry();
 export const inMemoryLoader = new InMemoryLoader(Math.floor(Math.random() * 100000));
 
