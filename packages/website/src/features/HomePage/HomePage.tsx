@@ -54,6 +54,25 @@ const DeployerDiagramStyles = createGlobalStyle`
     max-width: 100%;
   }
 }
+
+video {   
+  object-fit: fit;   
+  width: 100%;
+  position: absolute;
+  z-index: 0;
+  opacity:.05;
+  top:0;
+  left:0; 
+  pointer-events:none;
+}
+video.alt {
+  transform: scaleX(-1);
+}
+@media screen and ( min-width: 900px ) {
+  video {
+    top:-15%;
+  }
+}
 `;
 
 const CustomLink = ({
@@ -85,7 +104,7 @@ export default function HomePage() {
     const randomDuration = () => 0.15 * (0.2 + Math.random());
 
     // Function to generate a random repeat delay
-    const randomRepeatDelay = () => 1.5 * (0.2 + Math.random());
+    const randomRepeatDelay = () => 1 * (0.2 + Math.random());
 
     // GSAP timeline for the combined effects
     const tl = gsap.timeline({
@@ -142,7 +161,13 @@ export default function HomePage() {
       justify="center"
     >
       <Box position="relative" py={[20, 20, 40]}>
-        <Container maxW="container.xl" py={4}>
+        <video autoPlay muted loop>
+          <source src="/videos/homepage_background.mp4" type="video/mp4" />
+        </video>
+        <video autoPlay muted loop className="alt">
+          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
+        </video>
+        <Container maxW="container.xl" py={4} position="relative">
           <Heading
             as="h1"
             mb={[4, 4, 7]}
@@ -241,7 +266,6 @@ export default function HomePage() {
           </svg>
         </Box>
       </Box>
-
       <Container maxWidth="container.xl" py={{ base: 12, lg: 24 }}>
         <Flex
           alignItems={{ base: 'left', lg: 'center' }}
@@ -295,13 +319,12 @@ export default function HomePage() {
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
               maxWidth="800px"
             >
-              Write smart contracts that integrate with existing protocols
+              Write smart contracts that integrate with protocols
             </Heading>
             <Text color="gray.300">
-              Create your own Cannonfile that deploys your contracts and imports
-              packages for the protocols it interacts with. Publish your own
-              packages to the registry after deploying your project using
-              Cannon.
+              Create a Cannonfile to deploy your contracts, configuring them to
+              connect with existing protocols. Publish a package for your
+              project so other developers can integrate with it as well.
             </Text>
           </Box>
           <Box w="100%" pr={[0, 0, 20]}>

@@ -90,6 +90,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             flexDirection="column"
             backgroundColor="gray.900"
             minHeight="100vh"
+            position="relative"
           >
             <Header />
             <Flex flex="1">{children}</Flex>
