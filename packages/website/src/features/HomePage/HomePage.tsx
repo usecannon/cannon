@@ -98,6 +98,35 @@ const CustomLink = ({
   </Link>
 );
 
+const CustomLinkButton = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) => (
+  <>
+    <Button
+      as={NextLink}
+      variant="outline"
+      colorScheme="white"
+      size="sm"
+      bg="teal.900"
+      borderColor="teal.500"
+      _hover={{ bg: 'teal.800' }}
+      textTransform="uppercase"
+      letterSpacing="1px"
+      fontFamily="var(--font-miriam)"
+      color="gray.200"
+      fontWeight={500}
+      mb={[4, 4, 0]}
+      href={href}
+    >
+      {children}
+    </Button>
+  </>
+);
+
 export default function HomePage() {
   useEffect(() => {
     // Function to generate a random duration
@@ -260,7 +289,12 @@ export default function HomePage() {
           </svg>
         </Box>
       </Box>
-      <Container maxWidth="container.xl" py={{ base: 12, lg: 24 }}>
+      <Container
+        maxWidth="container.xl"
+        py={{ base: 12, lg: 24 }}
+        zIndex={10}
+        position="relative"
+      >
         <Flex
           alignItems={{ base: 'left', lg: 'center' }}
           direction={{ base: 'column', lg: 'row' }}
@@ -275,11 +309,14 @@ export default function HomePage() {
             >
               Build apps and bots that connect to protocols on Ethereum
             </Heading>
-            <Text color="gray.300">
+            <Text color="gray.300" mb={4}>
               Easily retrieve ABIs and addresses for development, testnets, and
               mainnets. Deploy packages on a local node for development with a
               single command.
             </Text>
+            <CustomLinkButton href={links.GETSTARTED}>
+              Run Synthetix for Development
+            </CustomLinkButton>
           </Box>
           <Box pl={[0, 0, 8]}>
             <Box
@@ -287,9 +324,8 @@ export default function HomePage() {
               borderColor="#4e4d4d"
               borderRadius="lg"
               p={4}
+              background="black"
               boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
-              zIndex={100}
-              position="relative"
             >
               <Image
                 mx="auto"
@@ -317,11 +353,14 @@ export default function HomePage() {
             >
               Write smart contracts that integrate with protocols
             </Heading>
-            <Text color="gray.300">
+            <Text color="gray.300" mb={4}>
               Create a Cannonfile to deploy your contracts, configuring them to
               connect with existing protocols. Publish a package for your
               project so other developers can integrate with it as well.
             </Text>
+            <CustomLinkButton href={links.BUILD}>
+              Build a Protocol
+            </CustomLinkButton>
           </Box>
           <Box w="100%" pr={[0, 0, 20]}>
             <IntegrationDiagram />
@@ -344,10 +383,13 @@ export default function HomePage() {
             >
               Manage complex deployments across multiple chains
             </Heading>
-            <Text color="gray.300">
+            <Text color="gray.300" mb={4}>
               Maintain Cannonfiles in a GitOps repository. Owners of a Safe can
               review and sign protocol changes using the Cannon web deployer.
             </Text>
+            <CustomLinkButton href={links.DEPLOY}>
+              Deploy a Protocol
+            </CustomLinkButton>
           </Box>
           <Box w="100%">
             <DeployerDiagramStyles />
