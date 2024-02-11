@@ -187,7 +187,12 @@ export default function HomePage() {
         </Container>
         <svg
           viewBox="0 0 180 100"
-          style={{ height: 0, width: 0, visibility: 'hidden' }}
+          style={{
+            height: 0,
+            width: 0,
+            visibility: 'hidden',
+            pointerEvents: 'none',
+          }}
         >
           <filter id="noise" x="0%" y="0%" width="100%" height="100%">
             <feTurbulence
@@ -212,7 +217,7 @@ export default function HomePage() {
           top="50%"
           transform="translateY(-50%)"
           right="0"
-          style={{ filter: 'url(#noise)' }}
+          style={{ filter: 'url(#noise)', pointerEvents: 'none' }}
         >
           <svg
             width="46vw"
