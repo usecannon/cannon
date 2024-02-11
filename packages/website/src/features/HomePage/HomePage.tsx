@@ -61,7 +61,7 @@ video {
   position: absolute;
   z-index: 0;
   opacity:.05;
-  top:0;
+  top:10%;
   left:0; 
   pointer-events:none;
 }
@@ -70,7 +70,7 @@ video.alt {
 }
 @media screen and ( min-width: 900px ) {
   video {
-    top:-15%;
+    top:0%;
   }
 }
 `;
@@ -160,8 +160,8 @@ export default function HomePage() {
       bg="black"
       justify="center"
     >
-      <Box position="relative" py={[20, 20, 40]}>
-        <Container maxW="container.xl" py={4} position="relative">
+      <Box position="relative" zIndex={1} py={[20, 20, 48]}>
+        <Container maxW="container.xl">
           <Heading
             as="h1"
             mb={[4, 4, 7]}
@@ -259,12 +259,6 @@ export default function HomePage() {
             />
           </svg>
         </Box>
-        <video autoPlay muted loop>
-          <source src="/videos/homepage_background.mp4" type="video/mp4" />
-        </video>
-        <video autoPlay muted loop className="alt">
-          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
-        </video>
       </Box>
       <Container maxWidth="container.xl" py={{ base: 12, lg: 24 }}>
         <Flex
@@ -275,7 +269,7 @@ export default function HomePage() {
           <Box maxWidth="580px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
               maxWidth="500px"
             >
@@ -283,7 +277,7 @@ export default function HomePage() {
             </Heading>
             <Text color="gray.300">
               Easily retrieve ABIs and addresses for development, testnets, and
-              mainnets. Run packages on a local node for development with a
+              mainnets. Deploy packages on a local node for development with a
               single command.
             </Text>
           </Box>
@@ -294,6 +288,8 @@ export default function HomePage() {
               borderRadius="lg"
               p={4}
               boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
+              zIndex={100}
+              position="relative"
             >
               <Image
                 mx="auto"
@@ -315,7 +311,7 @@ export default function HomePage() {
           <Box maxWidth="520px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
               maxWidth="800px"
             >
@@ -343,7 +339,7 @@ export default function HomePage() {
           <Box maxWidth="640px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
             >
               Manage complex deployments across multiple chains
@@ -568,6 +564,12 @@ export default function HomePage() {
           </Box>
         </Flex>
       </Container>
+      <video autoPlay muted loop>
+        <source src="/videos/homepage_background.mp4" type="video/mp4" />
+      </video>
+      <video autoPlay muted loop className="alt">
+        <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
+      </video>
     </Flex>
   );
 }
