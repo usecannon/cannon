@@ -20,7 +20,7 @@ import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
 import { AbiEvent } from 'abitype';
-import { AbiFunction, Hex, Chain } from 'viem';
+import { AbiFunction, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
