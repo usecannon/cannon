@@ -70,7 +70,7 @@ video.alt {
 }
 @media screen and ( min-width: 900px ) {
   video {
-    top:-5%;
+    top:-2%;
   }
 }
 `;
@@ -309,7 +309,7 @@ export default function HomePage() {
             >
               Build apps and bots that connect to protocols on Ethereum
             </Heading>
-            <Text color="gray.300" mb={4}>
+            <Text color="gray.300" mb={5}>
               Easily retrieve ABIs and addresses for development, testnets, and
               mainnets. Deploy packages on a local node for development with a
               single command.
@@ -353,7 +353,7 @@ export default function HomePage() {
             >
               Write smart contracts that integrate with protocols
             </Heading>
-            <Text color="gray.300" mb={4}>
+            <Text color="gray.300" mb={5}>
               Create a Cannonfile to deploy your contracts, configuring them to
               connect with existing protocols. Publish a package for your
               project so other developers can integrate with it as well.
@@ -383,7 +383,7 @@ export default function HomePage() {
             >
               Manage complex deployments across multiple chains
             </Heading>
-            <Text color="gray.300" mb={4}>
+            <Text color="gray.300" mb={5}>
               Maintain Cannonfiles in a GitOps repository. Owners of a Safe can
               review and sign protocol changes using the Cannon web deployer.
             </Text>
