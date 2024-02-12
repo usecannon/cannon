@@ -1,14 +1,12 @@
+import SafeApiKit from '@safe-global/api-kit';
+import { useQuery } from '@tanstack/react-query';
+import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
+import { useAccount, useReadContracts } from 'wagmi';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
-import { findChainUrl } from '@/helpers/rpc';
 import { ChainId, SafeDefinition, useStore } from '@/helpers/store';
-import { supportedChains } from '@/providers/walletProvider';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import SafeApiKit from '@safe-global/api-kit';
-import { EthersAdapter } from '@safe-global/protocol-kit';
-import { ethers } from 'ethers';
-import { Address, createWalletClient, getAddress, http, isAddress, keccak256, stringToBytes } from 'viem';
-import { mainnet, useAccount, useContractReads, useQuery } from 'wagmi';
+import { supportedChains } from './providers';
 
 export type SafeString = `${ChainId}:${Address}`;
 
@@ -51,16 +49,16 @@ export function isValidSafe(safe: SafeDefinition): boolean {
   );
 }
 
-export function getShortName(safe: SafeDefinition) {
+function _getShortName(safe: SafeDefinition) {
   return chains.find((chain) => chain.id === safe.chainId)?.shortName;
 }
 
-export function getSafeShortNameAddress(safe: SafeDefinition) {
-  return `${getShortName(safe)}:${getAddress(safe.address)}`;
+function _getSafeShortNameAddress(safe: SafeDefinition) {
+  return `${_getShortName(safe)}:${getAddress(safe.address)}`;
 }
 
 export function getSafeUrl(safe: SafeDefinition, pathname = '/home') {
-  const address = getSafeShortNameAddress(safe);
+  const address = _getSafeShortNameAddress(safe);
   return `https://app.safe.global${pathname}?safe=${address}`;
 }
 
@@ -71,69 +69,68 @@ function _createSafeApiKit(chainId: number) {
 
   if (!chain?.serviceUrl) return null;
 
-  const provider = new ethers.providers.Web3Provider(
-    createWalletClient({
-      chain: mainnet,
-      transport: http(findChainUrl(mainnet.id)),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any
-  );
-
   return new SafeApiKit({
     txServiceUrl: chain.serviceUrl,
-    ethAdapter: new EthersAdapter({
-      ethers,
-      signerOrProvider: provider,
-    }),
+    // hack to avoid using the web3 adapter for write operations,
+    // we only need service read only methods.
+    ethAdapter: {} as any,
+    // ethAdapter: new Web3Adapter({
+    // }),
   });
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition) {
-  const txsQuery = useQuery(['safe-service', 'all-txns', safe?.chainId, safe?.address], async () => {
-    if (!safe) return null;
-    const safeService = _createSafeApiKit(safe.chainId);
+  const txsQuery = useQuery({
+    queryKey: ['safe-service', 'all-txns', safe?.chainId, safe?.address],
+    queryFn: async () => {
+      if (!safe) return null;
+      const safeService = _createSafeApiKit(safe.chainId);
 
-    if (!safeService) {
-      // TODO: show some helpful information on ui to indicate that this network is unsupported rather
-      // than just returning emptiness
-      return { count: 0, next: null, previous: null, results: [] };
-    }
+      if (!safeService) {
+        // TODO: show some helpful information on ui to indicate that this network is unsupported rather
+        // than just returning emptiness
+        return { count: 0, next: null, previous: null, results: [] };
+      }
 
-    const res = await safeService?.getMultisigTransactions(safe.address);
-    return {
-      count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,
-      next: res?.next,
-      previous: res?.previous,
-      results: res?.results
-        .filter((tx) => tx.isExecuted)
-        .map((tx) => ({
-          to: tx.to,
-          value: tx.value,
-          data: tx.data,
-          operation: tx.operation,
-          safeTxGas: tx.safeTxGas,
-          baseGas: tx.baseGas,
-          gasPrice: tx.gasPrice,
-          gasToken: tx.gasToken,
-          refundReceiver: tx.refundReceiver,
-          _nonce: tx.nonce,
-          transactionHash: tx.transactionHash,
-          safeTxHash: tx.safeTxHash,
-          submissionDate: tx.submissionDate,
-          confirmationsRequired: tx.confirmationsRequired,
-          confirmedSigners: tx.confirmations?.map((confirmation) => confirmation.owner),
-        })) as unknown as SafeTransaction[],
-    };
+      const res = await safeService?.getMultisigTransactions(safe.address);
+      return {
+        count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,
+        next: res?.next,
+        previous: res?.previous,
+        results: res?.results
+          .filter((tx) => tx.isExecuted)
+          .map((tx) => ({
+            to: tx.to,
+            value: tx.value,
+            data: tx.data,
+            operation: tx.operation,
+            safeTxGas: tx.safeTxGas,
+            baseGas: tx.baseGas,
+            gasPrice: tx.gasPrice,
+            gasToken: tx.gasToken,
+            refundReceiver: tx.refundReceiver,
+            _nonce: tx.nonce,
+            transactionHash: tx.transactionHash,
+            safeTxHash: tx.safeTxHash,
+            submissionDate: tx.submissionDate,
+            confirmationsRequired: tx.confirmationsRequired,
+            confirmedSigners: tx.confirmations?.map((confirmation) => confirmation.owner),
+          })) as unknown as SafeTransaction[],
+      };
+    },
   });
 
   return txsQuery?.data || { count: 0, next: null, previous: null, results: [] };
 }
 
 export function usePendingTransactions(safe?: SafeDefinition) {
-  const txsQuery = useQuery(['safe-service', 'pending-txns', safe?.chainId, safe?.address], async () => {
-    if (!safe) return null;
-    const safeService = _createSafeApiKit(safe.chainId);
-    return await safeService?.getPendingTransactions(safe.address);
+  const txsQuery = useQuery({
+    queryKey: ['safe-service', 'pending-txns', safe?.chainId, safe?.address],
+    queryFn: async () => {
+      if (!safe) return null;
+      const safeService = _createSafeApiKit(safe.chainId);
+      return await safeService?.getPendingTransactions(safe.address);
+    },
   });
 
   return txsQuery?.data || { count: 0, next: null, previous: null, results: [] };
@@ -142,21 +139,24 @@ export function usePendingTransactions(safe?: SafeDefinition) {
 export function useWalletPublicSafes() {
   const { address } = useAccount();
 
-  const txsQuery = useQuery(['safe-service', 'wallet-safes', address], async () => {
-    const results: SafeDefinition[] = [];
-    if (!address) return results;
-    await Promise.all(
-      supportedChains.map(async (chain) => {
-        const safeService = _createSafeApiKit(chain.id);
-        if (!safeService) return;
-        const res = await safeService.getSafesByOwner(address);
-        if (!Array.isArray(res.safes)) return;
-        for (const safe of res.safes) {
-          results.push({ chainId: chain.id, address: safe as Address });
-        }
-      })
-    );
-    return results;
+  const txsQuery = useQuery({
+    queryKey: ['safe-service', 'wallet-safes', address],
+    queryFn: async () => {
+      const results: SafeDefinition[] = [];
+      if (!address) return results;
+      await Promise.all(
+        supportedChains.map(async (chain) => {
+          const safeService = _createSafeApiKit(chain.id);
+          if (!safeService) return;
+          const res = await safeService.getSafesByOwner(address);
+          if (!Array.isArray(res.safes)) return;
+          for (const safe of res.safes) {
+            results.push({ chainId: chain.id, address: safe as Address });
+          }
+        })
+      );
+      return results;
+    },
   });
 
   return txsQuery.data || ([] as SafeDefinition[]);
@@ -168,7 +168,7 @@ export function useSafeAddress() {
 
 export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: string) {
   // get previous deploy info git information
-  return useContractReads({
+  return useReadContracts({
     contracts: [
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -185,5 +185,5 @@ export function useGetPreviousGitInfoQuery(safe: SafeDefinition, gitRepoUrl: str
         args: [safe.address, keccak256(stringToBytes((gitRepoUrl || '') + 'cannonPackage'))],
       },
     ],
-  } as any);
+  });
 }

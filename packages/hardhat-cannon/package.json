@@ -1,12 +1,12 @@
 {
   "name": "hardhat-cannon",
-  "version": "2.10.8",
+  "version": "2.11.0",
   "description": "Agnostic chain construction. Select the protocols and configuration you need to quickly and easily verify your project",
   "repository": "github:usecannon/cannon",
   "author": "Synthetix",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -41,12 +41,12 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "^2.10.8",
-    "@usecannon/cli": "^2.10.8",
+    "@usecannon/builder": "^2.11.0",
+    "@usecannon/cli": "^2.11.0",
     "chalk": "^4.1.2",
     "debug": "^4.3.3",
     "fs-extra": "^10.0.1",
-    "viem": "^2.5.0"
+    "viem": "^2.6.1"
   },
   "gitHead": "61a3da984ce9c6af08685c6a2c883c328f6a7e25"
 }

@@ -6,6 +6,7 @@ import { useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
+import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   Alert,
   AlertDescription,
@@ -22,10 +23,10 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Spinner,
   Text,
   Tooltip,
   useToast,
-  Spinner,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -36,11 +37,10 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useContractWrite } from 'wagmi';
+import { useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
-import 'react-diff-view/style/index.css';
-import { SafeTransaction } from '@/types/SafeTransaction';
 import { QueueTransaction } from './QueueTransaction';
+import 'react-diff-view/style/index.css';
 
 type IdentifiableTxn = {
   txn: Omit<TransactionRequestBase, 'from'>;
@@ -86,9 +86,6 @@ function QueueTransactions() {
 
   const txnInfo = useSimulatedTxns(currentSafe as any, queuedTxns);
 
-  console.log('txns', queuedTxns);
-  console.log('txnresults', txnInfo.txnResults);
-
   const toast = useToast();
 
   const stager = useTxnStager(
@@ -113,7 +110,6 @@ function QueueTransactions() {
     {
       safe: currentSafe!,
       onSignComplete() {
-        console.log('signing is complete, redirect');
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
@@ -125,9 +121,7 @@ function QueueTransactions() {
     }
   );
 
-  console.log('final tx:', stager.executeTxnConfig);
-
-  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const execTxn = useWriteContract();
 
   const funcIsPayable = false;
 
@@ -159,9 +153,6 @@ function QueueTransactions() {
   };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
-
-  console.log('TXN HAS ERROR', txnHasError);
-  console.log('sign status', stager);
 
   const disableExecute =
     !targetTxn || txnHasError || !!stager.execConditionFailed;
@@ -207,7 +198,7 @@ function QueueTransactions() {
             />
             {!isAddress(target) &&
               target.length >= 3 &&
-              cannonInfo.registryQuery.status === 'loading' && (
+              cannonInfo.registryQuery.status === 'pending' && (
                 <InputRightElement>
                   <Spinner />
                 </InputRightElement>
@@ -230,7 +221,7 @@ function QueueTransactions() {
       </Box>
       {!isAddress(target) &&
         cannonInfo.pkgUrl &&
-        cannonInfo.ipfsQuery.status === 'loading' && (
+        cannonInfo.ipfsQuery.status === 'pending' && (
           <Alert bg="gray.800" status="info" mt={6}>
             <AlertIcon />
             <Box>
@@ -390,17 +381,19 @@ function QueueTransactions() {
                     colorScheme="teal"
                     w="100%"
                     isDisabled={disableExecute}
-                    onClick={async () => {
-                      if (execTxn.writeAsync) {
-                        await execTxn.writeAsync();
-                        router.push(links.DEPLOY);
-                        toast({
-                          title: 'You successfully executed the transaction.',
-                          status: 'success',
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                      }
+                    onClick={() => {
+                      execTxn.writeContract(stager.executeTxnConfig!, {
+                        onSuccess: () => {
+                          router.push(links.DEPLOY);
+
+                          toast({
+                            title: 'You successfully executed the transaction.',
+                            status: 'success',
+                            duration: 5000,
+                            isClosable: true,
+                          });
+                        },
+                      });
                     }}
                   >
                     Execute

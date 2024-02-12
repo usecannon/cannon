@@ -1,6 +1,5 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
-import { BigNumberish } from 'ethers';
 
 import type { DumpLine, DumpRenderer } from './types';
 const header = `/* eslint-disable */
@@ -46,7 +45,7 @@ export const createRenderer: DumpRenderer = () =>
       }
 
       for (const { to, input, value } of line.txns) {
-        const params: { title: string; depth: number; data: string; to?: string; value?: BigNumberish } = {
+        const params: { title: string; depth: number; data: string; to?: string; value?: any /** BigNumberish */ } = {
           title,
           depth: line.depth,
           data: input,

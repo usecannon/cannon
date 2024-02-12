@@ -56,7 +56,7 @@ export const RunPackage = () => {
         , like so:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon synthetix-sandbox" />
+        <CommandPreview command="cannon synthetix-omnibus@andromeda" />
       </Box>
 
       <Text mb={4}>
@@ -70,7 +70,7 @@ export const RunPackage = () => {
         &nbsp; on port 8545 with{' '}
         <Link
           isExternal
-          href="https://github.com/synthetixio/synthetix-sandbox"
+          href="https://github.com/synthetixio/synthetix-deployments"
         >
           a deployment of Synthetix V3
         </Link>{' '}
@@ -82,7 +82,7 @@ export const RunPackage = () => {
         ABIs. For example:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon inspect synthetix-sandbox --write-deployments ./deployments" />
+        <CommandPreview command="cannon inspect synthetix-omnibus@andromeda --write-deployments ./deployments" />
       </Box>
       <Text mb={4}>
         The command-line tool has a lot of additional functionality, including

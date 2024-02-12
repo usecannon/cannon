@@ -1,11 +1,10 @@
 import Debug from 'debug';
-
 import * as viem from 'viem';
-import { Abi, AbiFunction, Address, Hash } from 'viem';
+import { AbiFunction } from 'viem';
 import _ from 'lodash';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { invokeSchema } from '../schemas.zod';
+import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
   ChainArtifacts,
@@ -60,7 +59,7 @@ async function runTxn(
   signer: CannonSigner,
   packageState: PackageState
 ): Promise<[viem.TransactionReceipt, EncodedTxnEvents]> {
-  let txn: Hash;
+  let txn: viem.Hash;
 
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
@@ -134,7 +133,7 @@ async function runTxn(
       args: config.fromCall.args,
     });
 
-    const address = addressCall.result as Address;
+    const address = addressCall.result as viem.Address;
 
     debug('owner for call', address);
 
@@ -245,7 +244,7 @@ async function importTxnData(
         throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
       }
 
-      let abi: Abi;
+      let abi: viem.Abi;
       let sourceName: string | null;
       let contractName: string;
       if (factoryInfo.artifact) {
@@ -537,7 +536,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
   ): Promise<ChainArtifacts> {
     const txns: TransactionMap = {};
     for (let i = 0; i < existingKeys.length; i++) {
-      const key = existingKeys[i] as Hash;
+      const key = existingKeys[i] as viem.Hash;
       const splitLabel = packageState.currentLabel.split('.')[1];
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${i}`;
 
@@ -556,7 +555,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = { address: config.target[i] as Address, abi: customAbi };
+        contract = { address: config.target[i] as viem.Address, abi: customAbi };
       } else {
         contract = getContractFromPath(ctx, config.target[i]);
 

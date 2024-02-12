@@ -87,6 +87,7 @@ export class InMemoryLoader implements CannonLoader {
   async read(url: string): Promise<any | null> {
     return JSON.parse(this.datas.get(url) || 'null');
   }
+
   async put(misc: any): Promise<string> {
     const k = `mem://${this.space}/${this.idx++}`;
     this.datas.set(k, JSON.stringify(misc));
