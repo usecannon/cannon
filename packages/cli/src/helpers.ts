@@ -19,10 +19,12 @@ import _ from 'lodash';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
-import { AbiFunction, AbiEvent } from 'abitype';
+import { AbiEvent } from 'abitype';
+import { AbiFunction, Hex, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { chains, cannonChain } from './chains';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -250,6 +252,28 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   _.mergeWith(assembledDef, _.omit(rawDef, 'include'), customMerge);
 
   return [assembledDef, buf];
+}
+
+export function getChainName(chainId: number): string {
+  return getChainDataFromId(chainId)?.name || 'unknown';
+}
+
+export function getChainId(chainName: string): number {
+  if (chainName == 'cannon') return CANNON_CHAIN_ID;
+  if (chainName == 'hardhat') return 31337;
+  const chainData = chains.find((c: Chain) => c.name === chainName);
+  if (!chainData) {
+    throw new Error(`Invalid chain "${chainName}"`);
+  } else {
+    return chainData.id;
+  }
+}
+
+export function getChainDataFromId(chainId: number): Chain | null {
+  if (chainId == CANNON_CHAIN_ID) {
+    return cannonChain;
+  }
+  return chains.find((c: Chain) => c.id == chainId) || null;
 }
 
 function getMetadataPath(packageName: string): string {

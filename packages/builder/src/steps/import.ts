@@ -1,4 +1,3 @@
-import { bold, yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
@@ -7,7 +6,7 @@ import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
 import { ChainBuilderRuntime } from '../runtime';
-import { importSchema } from '../schemas.zod';
+import { importSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
 const debug = Debug('cannon:builder:import');
@@ -49,18 +48,6 @@ const importSpec = {
     config = _.cloneDeep(config);
 
     const packageRef = new PackageReference(_.template(config.source)(ctx));
-
-    if (config.preset) {
-      console.warn(
-        yellow(
-          bold(
-            `The preset option will be deprecated soon. Using ${_.template(config.preset)(
-              ctx
-            )}. Reference presets in the "source" option like so: name@version:preset`
-          )
-        )
-      );
-    }
 
     config.source = packageRef.fullPackageRef;
     config.preset = _.template(config.preset)(ctx);

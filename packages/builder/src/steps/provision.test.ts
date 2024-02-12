@@ -1,11 +1,10 @@
-import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
+import { contractSchema } from '../schemas';
+import contractAction from './contract';
 import action from './provision';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
-
-import { contractSchema } from '../schemas.zod';
-import contractAction from './contract';
+import '../actions';
 
 jest.mock('../loader');
 jest.mock('./contract');
@@ -148,7 +147,6 @@ describe('steps/provision.ts', () => {
 
       jest.mocked(fakeRuntime.putDeploy).mockResolvedValue('ipfs://Qmsomething');
       jest.mocked(fakeRuntime.isCancelled).mockReturnValue(true);
-      console.log('is c ancel', fakeRuntime.isCancelled());
 
       const result = await action.exec(
         fakeRuntime,

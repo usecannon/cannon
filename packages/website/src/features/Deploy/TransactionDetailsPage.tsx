@@ -1,56 +1,54 @@
 'use client';
 
-import { FC, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  Spinner,
-  Alert,
-  Button,
-  Grid,
-  Link,
-  Tooltip,
-  useToast,
-} from '@chakra-ui/react';
-import _ from 'lodash';
-import {
-  Address,
-  TransactionRequestBase,
-  hexToString,
-  isAddress,
-  zeroAddress,
-} from 'viem';
-import 'react-diff-view/style/index.css';
+import { links } from '@/constants/links';
+import { parseHintedMulticall } from '@/helpers/cannon';
+import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
+import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
 import {
-  useCannonPackage,
   useCannonBuild,
+  useCannonPackage,
   useLoadCannonDefinition,
 } from '@/hooks/cannon';
 import {
   useExecutedTransactions,
   useGetPreviousGitInfoQuery,
 } from '@/hooks/safe';
-import { parseHintedMulticall } from '@/helpers/cannon';
-import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
-import { SafeDefinition } from '@/helpers/store';
 import { SafeTransaction } from '@/types/SafeTransaction';
+import {
+  CheckIcon,
+  ExternalLinkIcon,
+  InfoOutlineIcon,
+  WarningIcon,
+} from '@chakra-ui/icons';
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Grid,
+  Heading,
+  Link,
+  Spinner,
+  Text,
+  Tooltip,
+  useToast,
+} from '@chakra-ui/react';
+import * as chains from '@wagmi/core/chains';
+import _ from 'lodash';
+import { useRouter } from 'next/navigation';
+import { FC, useEffect } from 'react';
+import {
+  Address,
+  hexToString,
+  isAddress,
+  TransactionRequestBase,
+  zeroAddress,
+} from 'viem';
+import { useAccount, useChainId, useWriteContract } from 'wagmi';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
-import { links } from '@/constants/links';
-import {
-  WarningIcon,
-  ExternalLinkIcon,
-  CheckIcon,
-  InfoOutlineIcon,
-} from '@chakra-ui/icons';
-import { useRouter } from 'next/navigation';
-import { useContractWrite } from 'wagmi';
-import * as chains from '@wagmi/core/chains';
-import PublishUtility from './PublishUtility';
-import { useAccount, useChainId } from 'wagmi';
+import 'react-diff-view/style/index.css';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -125,7 +123,7 @@ const TransactionDetailsPage: FC<{
   );
 
   const stager = useTxnStager(safeTxn || {}, { safe: safe });
-  const execTxn = useContractWrite(stager.executeTxnConfig);
+  const execTxn = useWriteContract();
   const router = useRouter();
   const toast = useToast();
 
@@ -174,9 +172,8 @@ const TransactionDetailsPage: FC<{
 
   const buildInfo = useCannonBuild(
     safe,
-    cannonDefInfo.def as any,
-    prevCannonDeployInfo.pkg as any,
-    Number(chainId)
+    cannonDefInfo.def,
+    prevCannonDeployInfo.pkg
   );
 
   useEffect(
@@ -414,18 +411,22 @@ const TransactionDetailsPage: FC<{
                                   (safeTxn &&
                                     !!stager.execConditionFailed) as any
                                 }
-                                onClick={async () => {
-                                  if (execTxn.writeAsync) {
-                                    await execTxn.writeAsync();
-                                    router.push(links.DEPLOY);
-                                    toast({
-                                      title:
-                                        'You successfully executed the transaction.',
-                                      status: 'success',
-                                      duration: 5000,
-                                      isClosable: true,
-                                    });
-                                  }
+                                onClick={() => {
+                                  execTxn.writeContract(
+                                    stager.executeTxnConfig!,
+                                    {
+                                      onSuccess: () => {
+                                        router.push(links.DEPLOY);
+                                        toast({
+                                          title:
+                                            'You successfully executed the transaction.',
+                                          status: 'success',
+                                          duration: 5000,
+                                          isClosable: true,
+                                        });
+                                      },
+                                    }
+                                  );
                                 }}
                               >
                                 Execute
@@ -456,11 +457,6 @@ const TransactionDetailsPage: FC<{
                       <Heading size="sm" mb="2">
                         Cannon Package
                       </Heading>
-
-                      <PublishUtility
-                        deployUrl={hintData.cannonPackage}
-                        targetChainId={safe.chainId}
-                      />
                     </Box>
                   )}
                 </Box>

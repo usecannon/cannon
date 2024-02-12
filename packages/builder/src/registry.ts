@@ -1,8 +1,7 @@
 import { blueBright, bold, yellow } from 'chalk';
 import Debug from 'debug';
-import * as viem from 'viem';
-import { Abi, Address } from 'viem';
 import EventEmitter from 'promise-events';
+import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { PackageReference } from './package';
 import { CannonSigner, Contract } from './types';
@@ -229,12 +228,12 @@ export class OnChainRegistry extends CannonRegistry {
   overrides: any;
 
   constructor({
+    address,
     signer,
     provider,
-    address,
     overrides = {},
   }: {
-    address: Address;
+    address: viem.Address;
     signer?: CannonSigner;
     provider?: viem.PublicClient;
     overrides?: any;
@@ -244,7 +243,7 @@ export class OnChainRegistry extends CannonRegistry {
     this.signer = signer;
     this.provider = provider;
 
-    this.contract = { address, abi: CannonRegistryAbi as Abi };
+    this.contract = { address, abi: CannonRegistryAbi as viem.Abi };
     this.overrides = overrides;
 
     debug(`created registry on address "${address}"`);
@@ -288,8 +287,9 @@ export class OnChainRegistry extends CannonRegistry {
 
   private async doMulticall(datas: string[]): Promise<string> {
     if (!this.signer || !this.provider) {
-      throw new Error('cannon read and write to registry');
+      throw new Error('Missing signer for executing registry operations');
     }
+
     const tx = await this.provider?.simulateContract({
       ...this.contract,
       functionName: 'multicall',
@@ -302,6 +302,9 @@ export class OnChainRegistry extends CannonRegistry {
 
     return receipt.transactionHash;
   }
+
+  // TODO: in time remove this
+  /* eslint no-console: "off" */
 
   // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
@@ -453,8 +456,17 @@ export class OnChainRegistry extends CannonRegistry {
 
     try {
       console.log(bold(blueBright('\nCalculating Transaction cost...')));
-      const simulatedGas = await this.provider.estimateGas({ functionName: 'multicall', args: [datas], ...this.overrides });
-      console.log(`\nEstimated gas: ${simulatedGas}`);
+
+      const simulatedGas = await this.provider.estimateContractGas({
+        address: this.contract.address,
+        account: this.signer?.wallet.account,
+        abi: this.contract.abi,
+        functionName: 'multicall',
+        args: [datas],
+        ...this.overrides,
+      });
+
+      console.log(`\nEstimated gas: ${simulatedGas} wei`);
       const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
       console.log(`\nGas price: ${viem.formatEther(gasPrice)} ETH`);
       const transactionFeeWei = simulatedGas * gasPrice;
@@ -463,12 +475,13 @@ export class OnChainRegistry extends CannonRegistry {
 
       console.log(`\nEstimated transaction Fee: ${transactionFeeEther} ETH\n\n`);
 
-      if (this.signer && (await this.provider.getBalance({ address: this.signer.address })) < transactionFeeWei) {
+      const userBalance = await this.provider.getBalance({ address: this.signer!.address });
+
+      if (this.signer && userBalance < transactionFeeWei) {
         console.log(
           bold(
             yellow(
-              `Publishing address "${await this.signer
-                ?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
+              `Publishing address "${this.signer?.address}" does not have enough funds to pay for the publishing transaction, the transaction will likely revert.\n`
             )
           )
         );

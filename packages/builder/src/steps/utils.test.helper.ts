@@ -5,7 +5,6 @@ import { ChainBuilderContextWithHelpers } from '../types';
 import * as viem from 'viem';
 
 jest.mock('../runtime');
-jest.mock('../error/provider');
 
 export const fakeCtx = {
   settings: {

@@ -1,12 +1,10 @@
 import crypto from 'crypto';
 import Debug from 'debug';
-
 import _ from 'lodash';
-import { ChainBuilderContext, PreChainBuilderContext, CannonHelperContext } from './types';
-
-import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
-import { chainDefinitionSchema } from './schemas.zod';
+import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
+import { chainDefinitionSchema } from './schemas';
+import { CannonHelperContext, ChainBuilderContext, PreChainBuilderContext } from './types';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -331,7 +329,7 @@ export class ChainDefinition {
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
         } else if (!input.startsWith('settings.')) {
-          console.log(`WARNING: dependency ${input} not found for step ${node}`);
+          debug(`WARNING: dependency ${input} not found for step ${node}`);
         }
       }
     }

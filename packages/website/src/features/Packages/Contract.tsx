@@ -1,12 +1,13 @@
-import React, { FC } from 'react';
-import { Abi as AbiType } from 'abitype';
-import { ChainArtifacts } from '@usecannon/builder';
-import { Box, Code, Flex, Heading } from '@chakra-ui/react';
 import { Abi } from '@/features/Packages/Abi';
+import { Box, Code, Flex, Heading } from '@chakra-ui/react';
+import { ChainArtifacts } from '@usecannon/builder';
+import { Abi as AbiType } from 'abitype';
+import React, { FC } from 'react';
+import { Address } from 'viem';
 
 export const Contract: FC<{
   title: string;
-  address: string;
+  address: Address;
   abi: AbiType;
   cannonOutputs: ChainArtifacts;
   chainId: number;

@@ -36,7 +36,6 @@ async function isIpfsGateway(ipfsUrl: string) {
     const headers: { [k: string]: string } = {};
 
     if (parsedUrl.auth) {
-      console.log('Detected basic auth in url');
       const [username, password] = parsedUrl.auth.split(':');
       headers['Authorization'] = `Basic ${btoa(`${username}:${password}`)}`;
     }
@@ -91,6 +90,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             flexDirection="column"
             backgroundColor="gray.900"
             minHeight="100vh"
+            position="relative"
           >
             <Header />
             <Flex flex="1">{children}</Flex>

@@ -212,7 +212,7 @@ export async function fetchIPFSAvailability(ipfsUrl: string | undefined, cid: st
     const score = await getIPFSAvailabilityScoreLocally(ipfsUrl, cid);
     return score;
   } else {
-    console.error('Local IPFS node is not running. Cannot fetch availability score.');
+    debug('local ipfs unavailable, returning null for ipfs availability. Cannot fetch availability score.');
     return undefined;
   }
 }

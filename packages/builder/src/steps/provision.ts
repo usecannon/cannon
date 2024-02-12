@@ -1,4 +1,4 @@
-import { bold, yellow } from 'chalk';
+import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
 import { ChainBuilderRuntime, Events } from '../runtime';
-import { provisionSchema } from '../schemas.zod';
+import { provisionSchema } from '../schemas';
 import {
   ChainArtifacts,
   ChainBuilderContext,
@@ -77,16 +77,6 @@ const provisionSpec = {
     config.source = ref.fullPackageRef;
 
     if (config.sourcePreset) {
-      console.warn(
-        yellow(
-          bold(
-            `The sourcePreset option will be deprecated soon. Using ${_.template(config.sourcePreset)(
-              ctx
-            )}. Reference presets in the "source" option like so: name@version:preset`
-          )
-        )
-      );
-
       config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
@@ -173,7 +163,7 @@ const provisionSpec = {
       // sanity: there shouldn't already be a build in our way
       // if there is, we need to overwrite it. print out a warning.
       if (await runtime.readDeploy(source, runtime.chainId)) {
-        console.warn(
+        debug(
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
@@ -234,7 +224,7 @@ const provisionSpec = {
     });
 
     if (!newSubDeployUrl) {
-      console.warn('warn: cannot record built state for import nested state');
+      debug('warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
         [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],

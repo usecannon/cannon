@@ -1,4 +1,3 @@
-import { redBright } from 'chalk';
 import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
@@ -70,10 +69,6 @@ export async function build(
   if (problems) {
     throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
 ${printChainDefinitionProblems(problems)}`);
-  }
-
-  if (debug.enabled) {
-    console.log(def.printTopology().join('\n'));
   }
 
   debug('build', initialCtx.settings);
@@ -166,7 +161,6 @@ ${printChainDefinitionProblems(problems)}`);
             // make sure its possible to debug the original error
             debug('error', err);
             debugVerbose('context', JSON.stringify(ctx, null, 2));
-            console.log(redBright(`\nFailure on step ${n}`));
             throw err;
           }
         }

@@ -1,11 +1,10 @@
 import Debug from 'debug';
-
 import * as viem from 'viem';
-import { Abi, AbiFunction, Address, Hash, SimulateContractReturnType } from 'viem';
+import { AbiFunction } from 'viem';
 import _ from 'lodash';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { invokeSchema } from '../schemas.zod';
+import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
   ChainArtifacts,
@@ -39,6 +38,20 @@ export interface InvokeOutputs {
   events?: EncodedTxnEvents[];
 }
 
+export function formatAbiFunction(v: AbiFunction) {
+  return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
+}
+
+// we need this function because viem does not seem to have the ability to distinguish between overloaded functions the way ethers can
+function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction, string][] {
+  const abiFunctions = abi.filter((v) => v.type === 'function') as viem.AbiFunction[];
+
+  const prettyNames = abiFunctions.map(formatAbiFunction) as string[];
+
+  // type detection is bad here
+  return _.zip(abiFunctions, prettyNames) as any;
+}
+
 async function runTxn(
   runtime: ChainBuilderRuntimeInfo,
   config: Config,
@@ -46,7 +59,7 @@ async function runTxn(
   signer: CannonSigner,
   packageState: PackageState
 ): Promise<[viem.TransactionReceipt, EncodedTxnEvents]> {
-  let txn: Hash;
+  let txn: viem.Hash;
 
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
@@ -80,60 +93,57 @@ async function runTxn(
   }
 
   // Attempt to encode data so that if any arguments have any type mismatches, we can catch them and present them to the user.
-  try {
-    viem.encodeFunctionData({ ...contract, functionName: config.func, args: config.args });
-  } catch (error: unknown) {
-    if (error instanceof viem.AbiFunctionNotFoundError) {
-      throw new Error(
-        `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-          config.func
-        }". List of recognized functions is:\n${Object.keys(
-          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
-        ).join(
+  const functionList = assembleFunctionSignatures(contract.abi);
+  const neededFuncAbi = functionList.find(
+    (f) => config.func == f[1] || config.func == f[1].split('(')[0]
+  )?.[0] as viem.AbiFunction;
+  if (!neededFuncAbi) {
+    throw new Error(
+      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+        config.func
+      }". List of recognized functions is:\n${functionList
+        .map((v) => v[1])
+        .join(
           '\n'
         )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
-      );
-    }
-
-    throw new Error(`Invalid arguments for function "${config.func}": \n\n ${error}`);
+    );
   }
 
   if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
-    let addressCall: SimulateContractReturnType;
-    try {
-      addressCall = await runtime.provider.simulateContract({
-        ...contract,
-        functionName: config.fromCall.func,
-        args: config.fromCall.args,
-      });
-    } catch (error: unknown) {
-      if (error instanceof viem.AbiFunctionNotFoundError) {
-        throw new Error(
-          `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-            config.func
-          }" to determine owner. List of recognized functions is:\n${Object.keys(
-            contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
-          ).join(
-            '\n'
-          )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
-        );
-      }
-
-      throw new Error(`Invalid arguments for function to determine owner "${config.func}": \n\n ${error}`);
+    const neededOwnerFuncAbi = functionList.find(
+      (f) => config.fromCall!.func == f[1] || config.fromCall!.func == f[1].split('(')[0]
+    )?.[0] as viem.AbiFunction;
+    if (!neededOwnerFuncAbi) {
+      throw new Error(
+        `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+          config.func
+        }" to determine owner. List of recognized functions is:\n${Object.keys(
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+        ).join(
+          '\n'
+        )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
+      );
     }
+    const addressCall = await runtime.provider.simulateContract({
+      address: contract.address,
+      abi: [neededOwnerFuncAbi],
+      functionName: neededOwnerFuncAbi.name,
+      args: config.fromCall.args,
+    });
 
-    const address = addressCall.result as Address;
+    const address = addressCall.result as viem.Address;
 
     debug('owner for call', address);
 
     const callSigner = await runtime.getSigner(address);
 
     const txnSimulation = await runtime.provider.simulateContract({
-      ...contract,
+      address: contract.address,
+      abi: [neededFuncAbi],
+      functionName: neededFuncAbi.name,
       account: callSigner.address,
-      functionName: config.func,
       args: config.args,
       ...overrides,
     });
@@ -141,9 +151,10 @@ async function runTxn(
     txn = await callSigner.wallet.writeContract(txnSimulation.request as any);
   } else {
     const txnSimulation = await runtime.provider.simulateContract({
-      ...contract,
+      address: contract.address,
+      abi: [neededFuncAbi],
       account: signer.address,
-      functionName: config.func,
+      functionName: neededFuncAbi.name,
       args: config.args,
       ...overrides,
     });
@@ -156,9 +167,10 @@ async function runTxn(
 
   // get events
   const txnEvents: EncodedTxnEvents = _.groupBy(
-    viem
-      .parseEventLogs({ ...contract, logs: receipt.logs })
-      .map((l) => ({ name: l.eventName, args: Object.values(l.args) })),
+    viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
+      const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
+      return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
+    }),
     'name'
   );
 
@@ -205,7 +217,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 
           const v = e.args[extra.arg];
 
-          vals[label] = v.toString ? v.toString() : v;
+          vals[label] = typeof v == 'bigint' ? v.toString() : v;
         }
       }
     }
@@ -232,7 +244,7 @@ async function importTxnData(
         throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
       }
 
-      let abi: Abi;
+      let abi: viem.Abi;
       let sourceName: string | null;
       let contractName: string;
       if (factoryInfo.artifact) {
@@ -508,7 +520,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
-        signer: receipt.from,
+        signer: viem.getAddress(receipt.from),
       };
     }
 
@@ -524,7 +536,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
   ): Promise<ChainArtifacts> {
     const txns: TransactionMap = {};
     for (let i = 0; i < existingKeys.length; i++) {
-      const key = existingKeys[i] as Hash;
+      const key = existingKeys[i] as viem.Hash;
       const splitLabel = packageState.currentLabel.split('.')[1];
       const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${i}`;
 
@@ -543,7 +555,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = { address: config.target[i] as Address, abi: customAbi };
+        contract = { address: config.target[i] as viem.Address, abi: customAbi };
       } else {
         contract = getContractFromPath(ctx, config.target[i]);
 
@@ -558,9 +570,10 @@ ${getAllContractPaths(ctx).join('\n')}`);
 
       const receipt = await runtime.provider.getTransactionReceipt({ hash: key });
       const txnEvents: EncodedTxnEvents = _.groupBy(
-        viem
-          .parseEventLogs({ ...contract, logs: receipt.logs })
-          .map((l) => ({ name: l.eventName, args: Object.values(l.args) })),
+        viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
+          const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
+          return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
+        }),
         'name'
       );
 
@@ -570,7 +583,7 @@ ${getAllContractPaths(ctx).join('\n')}`);
         deployedOn: packageState.currentLabel,
         gasUsed: Number(receipt.gasUsed),
         gasCost: receipt.effectiveGasPrice.toString(),
-        signer: receipt.from,
+        signer: viem.getAddress(receipt.from),
       };
     }
 

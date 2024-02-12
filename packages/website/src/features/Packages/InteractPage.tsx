@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import { Address } from 'viem';
 import { Interact } from './Interact';
 
 export const InteractPage: FC<{
@@ -9,7 +10,7 @@ export const InteractPage: FC<{
   variant: string;
   moduleName: string;
   contractName: string;
-  contractAddress: string;
+  contractAddress: Address;
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   return (
     <Interact
