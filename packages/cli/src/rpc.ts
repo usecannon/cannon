@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { Readable } from 'node:stream';
 import { spawn, ChildProcess } from 'node:child_process';
-import { CANNON_CHAIN_ID, traceActions } from '@usecannon/builder';
+import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import * as viem from 'viem';
 import Debug from 'debug';
 import _ from 'lodash';
@@ -129,16 +129,14 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           console.log(gray('Anvil instance running on:', host, '\n'));
 
           // TODO: why is this type not working out? (something about mode being wrong?)
-          anvilProvider = (
-            viem
-              .createTestClient({
-                mode: 'anvil',
-                chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
-                transport: viem.http(host),
-              })
-              .extend(viem.publicActions)
-              .extend(viem.walletActions) as any
-          ).extend(traceActions({}));
+          anvilProvider = viem
+            .createTestClient({
+              mode: 'anvil',
+              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
+              transport: viem.http(host),
+            })
+            .extend(viem.publicActions)
+            .extend(viem.walletActions) as any;
 
           anvilInstance!.host = host;
           resolve(anvilInstance!);

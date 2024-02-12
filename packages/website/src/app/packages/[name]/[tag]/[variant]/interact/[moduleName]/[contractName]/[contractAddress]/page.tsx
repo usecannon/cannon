@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
+import { Address } from 'viem';
 
 const NoSSR = dynamic(() => import('@/features/Packages/InteractPage'), {
   ssr: false,
@@ -29,7 +30,7 @@ export default function Interact({
       variant={decodeURIComponent(params.variant)}
       moduleName={decodeURIComponent(params.moduleName)}
       contractName={decodeURIComponent(params.contractName)}
-      contractAddress={decodeURIComponent(params.contractAddress)}
+      contractAddress={decodeURIComponent(params.contractAddress) as Address}
     />
   );
 }

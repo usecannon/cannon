@@ -1,1 +1,1 @@
-$CANNON run synthetix:latest@main --chain-id 5
+$CANNON run synthetix-sandbox

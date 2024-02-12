@@ -13,8 +13,6 @@ import { AbiFunction, AbiItem } from 'viem';
 import { ChainBuilderContext } from '.';
 import { makeFakeProvider } from '../test/fixtures';
 
-jest.mock('./error/provider');
-
 describe('util.ts', () => {
   const fakeTransferFragment: AbiFunction = {
     inputs: [

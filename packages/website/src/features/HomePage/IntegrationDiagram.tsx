@@ -263,7 +263,7 @@ export const IntegrationDiagram: FC = () => {
 
     setTimeout(() => {
       zoomToFit();
-    }, 1000);
+    }, 2000);
   }, []);
 
   return (

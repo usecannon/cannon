@@ -55,8 +55,6 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
       settings: parsedSettings,
     });
 
-    //await augmentProvider(hre, outputs);
-
     hre.cannon.outputs = outputs;
 
     return await hre.run('test', hardhatTestParams);

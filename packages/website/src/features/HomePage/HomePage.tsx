@@ -54,6 +54,25 @@ const DeployerDiagramStyles = createGlobalStyle`
     max-width: 100%;
   }
 }
+
+video {   
+  object-fit: fit;   
+  width: 100%;
+  position: absolute;
+  z-index: 0;
+  opacity:.05;
+  top:10%;
+  left:0; 
+  pointer-events:none;
+}
+video.alt {
+  transform: scaleX(-1);
+}
+@media screen and ( min-width: 900px ) {
+  video {
+    top:-2%;
+  }
+}
 `;
 
 const CustomLink = ({
@@ -79,13 +98,42 @@ const CustomLink = ({
   </Link>
 );
 
+const CustomLinkButton = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) => (
+  <>
+    <Button
+      as={NextLink}
+      variant="outline"
+      colorScheme="white"
+      size="sm"
+      bg="teal.900"
+      borderColor="teal.500"
+      _hover={{ bg: 'teal.800' }}
+      textTransform="uppercase"
+      letterSpacing="1px"
+      fontFamily="var(--font-miriam)"
+      color="gray.200"
+      fontWeight={500}
+      mb={[4, 4, 0]}
+      href={href}
+    >
+      {children}
+    </Button>
+  </>
+);
+
 export default function HomePage() {
   useEffect(() => {
     // Function to generate a random duration
     const randomDuration = () => 0.15 * (0.2 + Math.random());
 
     // Function to generate a random repeat delay
-    const randomRepeatDelay = () => 1.5 * (0.2 + Math.random());
+    const randomRepeatDelay = () => 1 * (0.2 + Math.random());
 
     // GSAP timeline for the combined effects
     const tl = gsap.timeline({
@@ -141,8 +189,8 @@ export default function HomePage() {
       bg="black"
       justify="center"
     >
-      <Box position="relative" py={[20, 20, 40]}>
-        <Container maxW="container.xl" py={4}>
+      <Box position="relative" zIndex={1} py={[20, 20, 48]}>
+        <Container maxW="container.xl">
           <Heading
             as="h1"
             mb={[4, 4, 7]}
@@ -187,7 +235,12 @@ export default function HomePage() {
         </Container>
         <svg
           viewBox="0 0 180 100"
-          style={{ height: 0, width: 0, visibility: 'hidden' }}
+          style={{
+            height: 0,
+            width: 0,
+            visibility: 'hidden',
+            pointerEvents: 'none',
+          }}
         >
           <filter id="noise" x="0%" y="0%" width="100%" height="100%">
             <feTurbulence
@@ -212,7 +265,7 @@ export default function HomePage() {
           top="50%"
           transform="translateY(-50%)"
           right="0"
-          style={{ filter: 'url(#noise)' }}
+          style={{ filter: 'url(#noise)', pointerEvents: 'none' }}
         >
           <svg
             width="46vw"
@@ -236,8 +289,12 @@ export default function HomePage() {
           </svg>
         </Box>
       </Box>
-
-      <Container maxWidth="container.xl" py={{ base: 12, lg: 24 }}>
+      <Container
+        maxWidth="container.xl"
+        py={{ base: 12, lg: 24 }}
+        zIndex={10}
+        position="relative"
+      >
         <Flex
           alignItems={{ base: 'left', lg: 'center' }}
           direction={{ base: 'column', lg: 'row' }}
@@ -246,24 +303,28 @@ export default function HomePage() {
           <Box maxWidth="580px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
               maxWidth="500px"
             >
               Build apps and bots that connect to protocols on Ethereum
             </Heading>
-            <Text color="gray.300">
+            <Text color="gray.300" mb={5}>
               Easily retrieve ABIs and addresses for development, testnets, and
-              mainnets. Run packages on a local node for development with a
+              mainnets. Deploy packages on a local node for development with a
               single command.
             </Text>
+            <CustomLinkButton href={links.GETSTARTED}>
+              Run Synthetix for Development
+            </CustomLinkButton>
           </Box>
           <Box pl={[0, 0, 8]}>
             <Box
               border="1px solid"
               borderColor="#4e4d4d"
               borderRadius="lg"
-              p={4}
+              p={[0.5, 2, 4]}
+              background="black"
               boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
             >
               <Image
@@ -286,18 +347,20 @@ export default function HomePage() {
           <Box maxWidth="520px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
               maxWidth="800px"
             >
-              Write smart contracts that integrate with existing protocols
+              Write smart contracts that integrate with protocols
             </Heading>
-            <Text color="gray.300">
-              Create your own Cannonfile that deploys your contracts and imports
-              packages for the protocols it interacts with. Publish your own
-              packages to the registry after deploying your project using
-              Cannon.
+            <Text color="gray.300" mb={5}>
+              Create a Cannonfile to deploy your contracts, configuring them to
+              connect with existing protocols. Publish a package for your
+              project so other developers can integrate with it as well.
             </Text>
+            <CustomLinkButton href={links.BUILD}>
+              Build a Protocol
+            </CustomLinkButton>
           </Box>
           <Box w="100%" pr={[0, 0, 20]}>
             <IntegrationDiagram />
@@ -315,15 +378,18 @@ export default function HomePage() {
           <Box maxWidth="640px">
             <Heading
               size="lg"
-              mb={2}
+              mb={4}
               textShadow="0px 0px 4px rgba(63, 211, 203, 0.8);"
             >
               Manage complex deployments across multiple chains
             </Heading>
-            <Text color="gray.300">
+            <Text color="gray.300" mb={5}>
               Maintain Cannonfiles in a GitOps repository. Owners of a Safe can
               review and sign protocol changes using the Cannon web deployer.
             </Text>
+            <CustomLinkButton href={links.DEPLOY}>
+              Deploy a Protocol
+            </CustomLinkButton>
           </Box>
           <Box w="100%">
             <DeployerDiagramStyles />
@@ -540,6 +606,12 @@ export default function HomePage() {
           </Box>
         </Flex>
       </Container>
+      <video autoPlay muted loop>
+        <source src="/videos/homepage_background.mp4" type="video/mp4" />
+      </video>
+      <video autoPlay muted loop className="alt">
+        <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
+      </video>
     </Flex>
   );
 }

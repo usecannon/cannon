@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.10.8",
+  "version": "2.11.0",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,7 +47,7 @@
     "promise-events": "^0.2.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.5.0",
+    "viem": "^2.6.1",
     "zod": "^3.22.4"
   },
   "engines": {

@@ -45,6 +45,4 @@ extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
 
   const { getContract } = await import('./utils');
   hre.cannon = { getContract };
-
-  //await augmentProvider(hre);
 });

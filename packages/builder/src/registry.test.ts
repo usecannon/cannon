@@ -3,8 +3,6 @@ import { CannonRegistry, OnChainRegistry } from './registry';
 import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { CannonSigner } from '.';
 
-jest.mock('./error/provider');
-
 describe('registry.ts', () => {
   describe('CannonRegistry', () => {
     class FakeCannonRegistry extends CannonRegistry {

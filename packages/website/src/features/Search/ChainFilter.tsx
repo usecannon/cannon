@@ -1,18 +1,18 @@
+import { links } from '@/constants/links';
+import { InfoIcon } from '@chakra-ui/icons';
 import {
   Box,
-  Text,
   Link,
   Popover,
   PopoverArrow,
   PopoverContent,
   PopoverTrigger,
   Portal,
+  Text,
 } from '@chakra-ui/react';
-import Chain from './PackageCard/Chain';
-import { InfoIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
-import { links } from '@/constants/links';
 import { FC } from 'react';
+import Chain from './PackageCard/Chain';
 
 interface ChainFilterProps {
   id: number;
@@ -55,7 +55,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({
                 maxWidth="250px"
                 borderColor="gray.800"
               >
-                <PopoverArrow bg="gray.700" shadowColor="gray.700" />
+                <PopoverArrow bg="gray.700" />
                 <Text p={2} fontSize="sm" color="gray.200">
                   These packages can be{' '}
                   <Link as={NextLink} href={links.DOCS_CLI_RUN}>

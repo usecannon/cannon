@@ -40,7 +40,7 @@ _teardown_file() {
 
 # Test post-hook
 _teardown() {
-  if [ -e  "$CANNON_DIRECTORY/settings.json"]; then
+  if [ -e  "$CANNON_DIRECTORY/settings.json" ]; then
     rm "$CANNON_DIRECTORY/settings.json"
   fi
 }

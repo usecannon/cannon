@@ -5,7 +5,6 @@ import { ContractArtifact } from './types';
 import { InMemoryRegistry } from './registry';
 import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 
-jest.mock('./error/provider');
 jest.mock('./loader');
 
 describe('runtime.ts', () => {
