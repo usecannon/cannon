@@ -70,7 +70,7 @@ video.alt {
 }
 @media screen and ( min-width: 900px ) {
   video {
-    top:0%;
+    top:-5%;
   }
 }
 `;
@@ -323,7 +323,7 @@ export default function HomePage() {
               border="1px solid"
               borderColor="#4e4d4d"
               borderRadius="lg"
-              p={4}
+              p={[0.5, 2, 4]}
               background="black"
               boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
             >
