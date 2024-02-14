@@ -130,13 +130,13 @@ describe('registry.ts', () => {
       });
 
       it('calls `getPackageUrl`', async () => {
-        jest.mocked(provider.simulateContract).mockResolvedValue({ result: 'ipfs://Qmwohoo' } as any);
+        jest.mocked(provider.readContract).mockResolvedValue('ipfs://Qmwohoo');
 
         const url = await registry.getUrl('dummyPackage:0.0.1@main', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
 
-        expect(jest.mocked(provider.simulateContract).mock.lastCall?.[0]).toMatchObject({
+        expect(jest.mocked(provider.readContract).mock.lastCall?.[0]).toMatchObject({
           functionName: 'getPackageUrl',
           args: [
             viem.stringToHex('dummyPackage', { size: 32 }),
