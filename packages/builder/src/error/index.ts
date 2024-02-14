@@ -5,8 +5,8 @@ import { ChainArtifacts, ContractData } from '../types';
 import { TraceEntry, renderTrace, parseContractErrorReason } from '../trace';
 
 import Debug from 'debug';
-import { Logger } from 'ethers/lib/utils';
 
+const NONCE_EXPIRED = 'NONCE_EXPIRED';
 const debug = Debug('cannon:builder:error');
 
 export function traceActions(artifacts: ChainArtifacts) {
@@ -112,7 +112,7 @@ class CannonTraceError extends Error {
 
   // this is needed here to prevent ethers from intercepting the error
   // `NONCE_EXPIRED` is a very innocent looking error, so ethers will simply forward it.
-  code: string = Logger.errors.NONCE_EXPIRED;
+  code: string = NONCE_EXPIRED;
 
   constructor(error: Error, ctx: ChainArtifacts, errorCodeHex: viem.Hex | null, traces: TraceEntry[]) {
     let contractName = 'unknown';
