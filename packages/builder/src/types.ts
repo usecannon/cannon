@@ -85,6 +85,8 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   imports: BundledChainBuilderOutputs;
 }
 
+const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
+
 export const CannonHelperContext = {
   // ethers style constants
   AddressZero: viem.zeroAddress,
@@ -115,7 +117,29 @@ export const CannonHelperContext = {
   parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),
   id: (v: string) => (v.startsWith('function ') ? viem.toFunctionSelector(v) : viem.keccak256(viem.toHex(v))),
   formatEther: viem.formatEther,
+  formatUnits: (s: bigint, units: number | string) => {
+    if (typeof units === 'string') {
+      const index = etherUnitNames.indexOf(units);
+      if (index < 0) {
+        throw new Error(`formatUnits: unknown ethereum unit name: ${units}`);
+      }
+      units = 3 * index;
+    }
+
+    return viem.formatUnits(s, units as number);
+  },
   parseEther: viem.parseEther,
+  parseUnits: (s: string, units: number | string) => {
+    if (typeof units === 'string') {
+      const index = etherUnitNames.indexOf(units);
+      if (index < 0) {
+        throw new Error(`parseUnits: unknown ethereum unit name: ${units}`);
+      }
+      units = 3 * index;
+    }
+
+    return viem.parseUnits(s, units as number);
+  },
   keccak256: viem.keccak256,
   sha256: viem.sha256,
   ripemd160: viem.ripemd160,
