@@ -4,14 +4,24 @@
 
 _setup_file() {
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
-  export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
   
   # Create temporary directory for tests
   export WORKDIR="$(mktemp -d)"
   export CANNON_DIRECTORY="$WORKDIR/cannondir"
 
   #Creating cannon directory structure
-  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
+  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/ 
+  
+  # Adding npm pack built @usecannon/cli npm package
+  cd $WORKDIR 
+  cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
+  tar -xzf $cli
+
+  # Installing tarball package dependencies
+  cd $WORKDIR/package
+  npm i
+  
+  export CANNON="node $WORKDIR/package/bin/cannon.js"
 
   # CD into dir so any files created go in the tmp dir
   cd $CANNON_DIRECTORY  
