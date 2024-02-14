@@ -51,6 +51,7 @@ teardown() {
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
 }
 
 @test "Build - Building hardhat greeter example" {
@@ -59,6 +60,7 @@ teardown() {
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_13370-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_1-main.txt"
 }
 
 @test "Verify - Verify greeter packages" {
@@ -77,6 +79,8 @@ teardown() {
 }
 
 @test "Publish - Publishing package" {
+  run publish.sh
+  
   set_custom_config # Uses custom settings.json
   run publish.sh
   echo $output
