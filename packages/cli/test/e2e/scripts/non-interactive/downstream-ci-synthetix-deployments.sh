@@ -1,10 +1,13 @@
 #!/bin/bash
 git clone --depth=1 https://github.com/Synthetixio/synthetix-deployments
 cd synthetix-deployments
-yarn link $CANNON_REPO_DIR/packages/builder 
-yarn link $CANNON_REPO_DIR/packages/cli 
-yarn link $CANNON_REPO_DIR/packages/hardhat-cannon
 yarn
+
+cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
+builder=$(npm pack $CANNON_REPO_DIR/packages/builder)
+
+yarn add $cli
+yarn add $builder
 
 yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --port 8545 \
