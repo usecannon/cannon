@@ -8,6 +8,19 @@ setup_file() {
   load helpers/bats-helpers.sh
   _setup_file
 
+  # Adding npm pack built @usecannon/cli npm package
+  cd $WORKDIR 
+  cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
+  tar -xzf $cli
+
+  # Installing tarball package dependencies
+  cd $WORKDIR/package
+  npm i
+  
+  export CANNON="node $WORKDIR/package/bin/cannon.js"
+
+  cd $CANNON_DIRECTORY
+
   # Fork Mainnet to run tests against forked node
   anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent &
   export ANVIL_PID="$!"
@@ -78,11 +91,16 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }
 
-@test "Publish - Publishing package" {
-  run publish.sh
-  
+@test "Publish - Publishing greeter package" {  
   set_custom_config # Uses custom settings.json
   run publish.sh
   echo $output
+  assert_success
+}
+
+@test "Inspect - Inspect Synthetix Sandbox" {
+  run inspect.sh
+  echo $output
+  assert_file_exists "$CANNON_DIRECTORY/deployments/synthetix/CoreProxy.json"
   assert_success
 }
