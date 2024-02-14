@@ -12,9 +12,3 @@ export function getAllContractDatas() {
   if (!hre.cannon.outputs) throw new Error('There are no cannon artifacts present');
   return getAllContractDatasFromOutputs(hre.cannon.outputs);
 }
-
-/** Get the abi and address from the built outputs */
-export async function getContract(contractName: string) {
-  const contract = getContractData(contractName);
-  return { address: contract.address, abi: contract.abi };
-}
