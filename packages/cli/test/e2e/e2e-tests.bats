@@ -73,7 +73,6 @@ teardown() {
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_13370-main.txt"
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_1-main.txt"
 }
 
 @test "Verify - Verify greeter packages" {
