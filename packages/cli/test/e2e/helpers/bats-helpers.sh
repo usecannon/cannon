@@ -4,14 +4,13 @@
 
 _setup_file() {
   export CANNON_REPO_DIR="$(git rev-parse --show-toplevel)"
-  export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
   
   # Create temporary directory for tests
   export WORKDIR="$(mktemp -d)"
   export CANNON_DIRECTORY="$WORKDIR/cannondir"
 
   #Creating cannon directory structure
-  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/
+  mkdir $CANNON_DIRECTORY $CANNON_DIRECTORY/tags/ $CANNON_DIRECTORY/ipfs_cache/ $CANNON_DIRECTORY/metadata_cache/ 
 
   # CD into dir so any files created go in the tmp dir
   cd $CANNON_DIRECTORY  

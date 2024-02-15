@@ -118,8 +118,8 @@ export async function build({
     await loadPlugins();
   }
 
-  const chainInfo = getChainById(await provider.getChainId());
-  const chainId = chainInfo?.id;
+  const chainId = await provider.getChainId();
+  const chainInfo = getChainById(chainId);
   const chainName = chainInfo?.name || 'unknown chain';
   const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol || 'ETH';
   let totalCost = BigInt(0);
@@ -127,9 +127,7 @@ export async function build({
   const runtimeOptions = {
     provider,
     chainId,
-
     getArtifact,
-
     getSigner:
       getSigner ||
       async function (addr: viem.Address) {

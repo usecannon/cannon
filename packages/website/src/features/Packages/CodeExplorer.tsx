@@ -265,7 +265,11 @@ export const CodeExplorer: FC<{
             maxHeight={['none', 'none', 'calc(100vh - 236px)']}
             background="gray.800"
           >
-            <CodePreview code={selectedCode} language={selectedLanguage} />
+            <CodePreview
+              code={selectedCode}
+              language={selectedLanguage}
+              height="100%"
+            />
           </Box>
         </Flex>
       ) : (

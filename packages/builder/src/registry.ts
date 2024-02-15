@@ -387,13 +387,15 @@ export class OnChainRegistry extends CannonRegistry {
     }
 
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
+
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const { result: url } = await this.provider.simulateContract({
-      ...this.contract,
+    const url = await this.provider.readContract({
+      address: this.contract.address,
+      abi: this.contract.abi,
       functionName: 'getPackageUrl',
       args: [
         viem.stringToHex(name, { size: 32 }),
@@ -402,7 +404,7 @@ export class OnChainRegistry extends CannonRegistry {
       ],
     });
 
-    return url || null;
+    return (url as string) || null;
   }
 
   async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
