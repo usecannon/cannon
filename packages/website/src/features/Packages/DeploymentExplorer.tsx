@@ -57,7 +57,7 @@ export const DeploymentExplorer: FC<{
     const mergedContracts: any = {};
 
     for (const key of Object.keys(deploymentInfo?.state)) {
-      if (key.startsWith('contract.')) {
+      if (key.startsWith('contract.') || key.startsWith('router.')) {
         const artifactsContracts =
           deploymentInfo.state[key].artifacts.contracts;
 
