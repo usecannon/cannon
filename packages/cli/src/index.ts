@@ -446,7 +446,10 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 0;
-  opts.dryRun = true;
+
+  if (opts.providerUrl) {
+    opts.dryRun = true;
+  }
 
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
