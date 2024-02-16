@@ -184,7 +184,7 @@ export const DeploymentExplorer: FC<{
           </Text>
         </Box>
       ) : deploymentInfo ? (
-        <Container maxW="container.lg">
+        <>
           <Flex direction={['column', 'column', 'row']} pb={2}>
             <Box pb={2}>
               {deploymentInfo?.def?.description && (
@@ -269,6 +269,38 @@ export const DeploymentExplorer: FC<{
               />
             </Box>
           )}
+
+{/*
+  * Smart Contract Deployments
+
+  * Step
+  * Address {linked to etherscan}
+  * Transaction Hash {linked to etherscan}
+  * Used CREATE2?
+  * Deployer Address
+  * Timestamp? Block Number?
+  * Link to Code ?
+  * Link to Interact ?
+  * Show whether its highlighted
+*/}
+{/*
+  * Function Calls
+
+  * Step
+  * Transaction Hash {linked to etherscan}
+  * Target Address {linked to etherscan}
+  * From Address {linked to etherscan}
+  * Value?
+  * Timestamp? Block Number?
+  * Link to Code ?
+  * Link to Interact ?
+*/}
+{/*
+  * Event Data
+  * Name/value?
+*/}
+
+
           <Box
             bg="blackAlpha.600"
             border="1px solid"
@@ -277,14 +309,6 @@ export const DeploymentExplorer: FC<{
             p={6}
             mb={6}
           >
-            <Box mb={4}>
-              <Heading size="md" mb={2}>
-                Chain State
-              </Heading>
-              <Text fontSize="sm" color="gray.300">
-                The chain state includes data recorded during the build.
-              </Text>
-            </Box>
             {!isEmpty(contractState) && (
               <Box mb={2}>
                 <Heading size="sm" mb={2}>
@@ -399,7 +423,7 @@ export const DeploymentExplorer: FC<{
               </Box>
             )}
           </Box>
-        </Container>
+        </>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
