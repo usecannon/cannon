@@ -1,11 +1,10 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import {
-  Badge,
   Box,
-  Container,
   Flex,
+  Container,
   Heading,
   Link,
   Modal,
@@ -27,14 +26,32 @@ import { links } from '@/constants/links';
 import { CodePreview } from '@/components/CodePreview';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { DeploymentInfo } from '@usecannon/builder/src/types';
-import { format } from 'date-fns';
 import { InfoIcon } from '@chakra-ui/icons';
 import ChainDefinitionSteps from './ChainDefinitionSteps';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CannonfileGraph } from './CannonfileGraph';
-import { ViewAsCannonFileButton } from './ViewAsCannonFileButton';
 import { StepModalProvider } from '@/providers/stepModalProvider';
+import { stringify } from '@iarna/toml';
+import { PiGraphLight, PiCodeLight, PiListBullets } from 'react-icons/pi';
+
+function omitEmptyObjects(config: { [x: string]: any }) {
+  for (const key in config) {
+    if (Object.prototype.hasOwnProperty.call(config, key)) {
+      const value = config[key];
+      if (
+        value &&
+        typeof value === 'object' &&
+        Object.keys(value).length === 0
+      ) {
+        delete config[key];
+      } else if (typeof value === 'object') {
+        omitEmptyObjects(value);
+      }
+    }
+  }
+  return config;
+}
 
 export const CannonfileExplorer: FC<{
   pkgName: string;
@@ -55,6 +72,8 @@ export const CannonfileExplorer: FC<{
     onClose: closePackageJsonModal,
   } = useDisclosure();
 
+  const [displayMode, setDisplayMode] = useState(1);
+
   const settings: { [key: string]: any } = {};
   if (deploymentInfo?.def?.setting) {
     for (const key in deploymentInfo.def.setting) {
@@ -72,8 +91,18 @@ export const CannonfileExplorer: FC<{
     }
   }
 
+  // Deep clone the deploymentInfo.def object
+  const clonedDeploymentInfoDef = deploymentInfo?.def
+    ? JSON.parse(JSON.stringify(deploymentInfo.def))
+    : null;
+
+  // Apply the omitEmptyObjects function to the cloned object
+  const processedDeploymentInfo = clonedDeploymentInfoDef
+    ? omitEmptyObjects(clonedDeploymentInfoDef)
+    : null;
+
   return variant?.deploy_url ? (
-    <Box>
+    <Flex flex="1" direction="column">
       {deploymentData.isLoading ? (
         <Box
           py="20"
@@ -94,65 +123,76 @@ export const CannonfileExplorer: FC<{
           </Text>
         </Box>
       ) : deploymentInfo ? (
-        <Container maxW="container.lg">
-          <Flex direction={['column', 'column', 'row']} pb={2}>
-            <Box pb={2}>
-              {deploymentInfo?.def?.description && (
-                <Text fontSize="xl">{deploymentInfo.def.description}</Text>
-              )}
-              <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
-                {deploymentInfo?.generator &&
-                  `built with ${deploymentInfo.generator} `}
-                {deploymentInfo?.generator &&
-                  deploymentInfo?.timestamp &&
-                  `on ${format(
-                    new Date(deploymentInfo?.timestamp * 1000),
-                    'PPPppp'
-                  ).toLowerCase()}`}
-              </Text>
-            </Box>
-            <Box ml={['none', 'none', 'auto']} pl={[0, 0, 4]} pt={0.5} pb={4}>
-              {deploymentInfo?.status == 'complete' && (
-                <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
-                  <Badge opacity={0.8} colorScheme="green">
-                    Complete deployment
-                  </Badge>
-                </Tooltip>
-              )}
-              {deploymentInfo?.status == 'partial' && (
-                <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
-                  <Badge opacity={0.8} colorScheme="yellow">
-                    Partial deployment
-                  </Badge>
-                </Tooltip>
-              )}
-            </Box>
-          </Flex>
-          <Box
-            bg="blackAlpha.600"
+        <Flex position="relative" flex="1" direction="column">
+          <Flex
+            position="absolute"
+            borderRadius="full"
             border="1px solid"
-            borderColor="gray.900"
-            borderRadius="md"
-            p={6}
-            mb={6}
+            top="16px"
+            left="50%"
+            transform="translateX(-50%)"
+            overflow="hidden"
+            borderColor="gray.500"
+            background="black"
+            align="center"
+            zIndex={100}
           >
-            <StepModalProvider>
-              <Box mb={3}>
-                <Heading size="md" mb={2}>
-                  Chain Definition
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  The chain definition describes the desired state of the
-                  blockchain based on a cannonfile.
-                </Text>
-              </Box>
-              <Box mb={3}>
-                <CannonfileGraph deploymentInfo={deploymentInfo} />
-              </Box>
-              <ViewAsCannonFileButton deploymentInfo={deploymentInfo} />
+            <Link
+              onClick={() => setDisplayMode(1)}
+              p={3}
+              pl={4}
+              display="inline-block"
+              _hover={{ bg: 'gray.900' }}
+            >
+              <PiGraphLight
+                size="24"
+                fill={displayMode == 1 ? '#1ad6ff' : 'white'}
+              />
+            </Link>
+            <Link
+              onClick={() => setDisplayMode(2)}
+              p={3}
+              display="inline-block"
+              borderLeft="1px solid"
+              borderRight="1px solid"
+              borderColor="gray.500"
+              _hover={{ bg: 'gray.900' }}
+            >
+              <PiListBullets
+                size="24"
+                fill={displayMode == 2 ? '#1ad6ff' : 'white'}
+              />
+            </Link>
+            <Link
+              onClick={() => setDisplayMode(3)}
+              p={3}
+              pr={4}
+              display="inline-block"
+              _hover={{ bg: 'gray.900' }}
+            >
+              <PiCodeLight
+                size="24"
+                fill={displayMode == 3 ? '#1ad6ff' : 'white'}
+              />
+            </Link>
+          </Flex>
+
+          <StepModalProvider>
+            <Flex
+              display={displayMode == 1 ? 'block' : 'none'}
+              flex="1"
+              direction="column"
+            >
+              <CannonfileGraph deploymentInfo={deploymentInfo} />
+            </Flex>
+            <Container
+              maxW="container.xl"
+              py={14}
+              display={displayMode == 2 ? 'block' : 'none'}
+            >
               {Object.entries(settings).length > 0 && (
                 <Box mt={4}>
-                  <Heading size="sm" mb={2}>
+                  <Heading size="md" mb={3}>
                     Settings
                   </Heading>
                   <Box overflowX="auto" mb={6}>
@@ -245,7 +285,7 @@ export const CannonfileExplorer: FC<{
               )}
               {deploymentInfo?.def?.import && (
                 <Box mt={4}>
-                  <Heading size="sm" mb={3}>
+                  <Heading size="md" mb={3}>
                     Package Data Imports
                   </Heading>
                   <ChainDefinitionSteps
@@ -256,7 +296,7 @@ export const CannonfileExplorer: FC<{
               )}
               {deploymentInfo?.def?.provision && (
                 <Box mt={4}>
-                  <Heading size="sm" mb={3}>
+                  <Heading size="md" mb={3}>
                     Package Provisioning
                   </Heading>
                   <ChainDefinitionSteps
@@ -267,7 +307,7 @@ export const CannonfileExplorer: FC<{
               )}
               {deploymentInfo?.def?.router && (
                 <Box mt={4}>
-                  <Heading size="sm" mb={3}>
+                  <Heading size="md" mb={3}>
                     Router Generation
                   </Heading>
                   <ChainDefinitionSteps
@@ -278,7 +318,7 @@ export const CannonfileExplorer: FC<{
               )}
               {deploymentInfo?.def?.contract && (
                 <Box mt={4} maxW="100%" overflowX="auto">
-                  <Heading size="sm" mb={3}>
+                  <Heading size="md" mb={3}>
                     Contract Deployments
                   </Heading>
                   <ChainDefinitionSteps
@@ -289,7 +329,7 @@ export const CannonfileExplorer: FC<{
               )}
               {deploymentInfo?.def?.invoke && (
                 <Box mt={4} maxW="100%" overflowX="auto">
-                  <Heading size="sm" mb={3}>
+                  <Heading size="md" mb={3}>
                     Function Calls
                   </Heading>
                   <ChainDefinitionSteps
@@ -298,15 +338,27 @@ export const CannonfileExplorer: FC<{
                   />
                 </Box>
               )}
-            </StepModalProvider>
-          </Box>
-        </Container>
+            </Container>
+
+            <Flex
+              display={displayMode == 3 ? 'block' : 'none'}
+              flex="1"
+              direction="column"
+            >
+              <CodePreview
+                code={stringify(processedDeploymentInfo as any)}
+                language="ini"
+                height="100%"
+              />
+            </Flex>
+          </StepModalProvider>
+        </Flex>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
         </Box>
       )}
-    </Box>
+    </Flex>
   ) : (
     <Box textAlign="center" py="20" opacity="0.5">
       No metadata is associated with this package

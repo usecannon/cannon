@@ -2,9 +2,11 @@ import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import {
+  Badge,
   Box,
   Button,
   Container,
+  Flex,
   Heading,
   Link,
   Table,
@@ -25,6 +27,7 @@ import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
+import { format } from 'date-fns';
 
 export const DeploymentExplorer: FC<{
   pkgName: string;
@@ -182,6 +185,39 @@ export const DeploymentExplorer: FC<{
         </Box>
       ) : deploymentInfo ? (
         <Container maxW="container.lg">
+          <Flex direction={['column', 'column', 'row']} pb={2}>
+            <Box pb={2}>
+              {deploymentInfo?.def?.description && (
+                <Text fontSize="xl">{deploymentInfo.def.description}</Text>
+              )}
+              <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
+                {deploymentInfo?.generator &&
+                  `built with ${deploymentInfo.generator} `}
+                {deploymentInfo?.generator &&
+                  deploymentInfo?.timestamp &&
+                  `on ${format(
+                    new Date(deploymentInfo?.timestamp * 1000),
+                    'PPPppp'
+                  ).toLowerCase()}`}
+              </Text>
+            </Box>
+            <Box ml={['none', 'none', 'auto']} pl={[0, 0, 4]} pt={0.5} pb={4}>
+              {deploymentInfo?.status == 'complete' && (
+                <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
+                  <Badge opacity={0.8} colorScheme="green">
+                    Complete deployment
+                  </Badge>
+                </Tooltip>
+              )}
+              {deploymentInfo?.status == 'partial' && (
+                <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
+                  <Badge opacity={0.8} colorScheme="yellow">
+                    Partial deployment
+                  </Badge>
+                </Tooltip>
+              )}
+            </Box>
+          </Flex>
           {!isEmpty(addressesAbis) && (
             <Box mb={6}>
               <Button

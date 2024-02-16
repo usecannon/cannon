@@ -3,7 +3,6 @@ import { FC, useEffect, useRef } from 'react';
 import React from 'react';
 import * as d3 from 'd3';
 import { createGlobalStyle } from 'styled-components';
-import { Box } from '@chakra-ui/react';
 import { useStepModalContext } from '@/providers/stepModalProvider';
 
 // Define global styles
@@ -251,7 +250,7 @@ export const CannonfileGraph: FC<{
       const x = bounds!.x + dx! / 2;
       const y = bounds!.y + dy! / 2;
 
-      const scale = Math.min(0.9 / Math.max(dx! / width!, dy! / height!), 4);
+      const scale = Math.min(0.8 / Math.max(dx! / width!, dy! / height!), 4);
       const translate = [width! / 2 - scale * x, height! / 2 - scale * y];
 
       svg
@@ -266,20 +265,13 @@ export const CannonfileGraph: FC<{
     // Call zoomToFit to fit graph after initial rendering
     setTimeout(() => {
       zoomToFit();
-    }, 1000);
+    }, 1500);
   }, [deploymentInfo]);
 
   return (
     <>
       <GlobalStyles />
-      <Box
-        border="1px solid"
-        borderColor="gray.800"
-        height="420px"
-        borderRadius="sm"
-      >
-        <svg ref={svgRef} width={'100%'} height={'100%'} />
-      </Box>
+      <svg ref={svgRef} width={'100%'} height={'100%'} />
     </>
   );
 };
