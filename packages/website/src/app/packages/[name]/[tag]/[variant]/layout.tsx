@@ -1,17 +1,30 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Box, Container, Flex, Heading } from '@chakra-ui/react';
+import {
+  Box,
+  Container,
+  Flex,
+  Heading,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Portal,
+  Text,
+} from '@chakra-ui/react';
 import { NavLink } from '@/components/NavLink';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
 import { IpfsLinks } from '@/features/Packages/IpfsLinks';
-
 import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { CustomSpinner } from '@/components/CustomSpinner';
 import { usePathname } from 'next/navigation';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { useQueryIpfsData } from '@/hooks/ipfs';
+import { DeploymentInfo } from '@usecannon/builder';
+import { format } from 'date-fns';
 
 export default function PackageLayout({
   children,
@@ -43,6 +56,15 @@ export default function PackageLayout({
 
   const pathname = usePathname();
 
+  const deploymentData = useQueryIpfsData(
+    currentVariant?.deploy_url,
+    !!currentVariant?.deploy_url
+  );
+
+  const deploymentInfo = deploymentData.data
+    ? (deploymentData.data as DeploymentInfo)
+    : undefined;
+
   return (
     <Flex flexDirection="column" width="100%">
       {pkg ? (
@@ -62,6 +84,41 @@ export default function PackageLayout({
                 <Box>
                   <Heading as="h1" size="lg" mb="2">
                     {pkg?.name}
+                    <Popover trigger="hover">
+                      <PopoverTrigger>
+                        <InfoOutlineIcon boxSize={4} ml={2} color="gray.400" />
+                      </PopoverTrigger>
+                      <Portal>
+                        <PopoverContent
+                          background="gray.700"
+                          maxWidth="320px"
+                          borderColor="gray.800"
+                        >
+                          <Flex direction={'column'} p={2} gap={1}>
+                            {deploymentInfo?.def?.description && (
+                              <Text>{deploymentInfo.def.description}</Text>
+                            )}
+                            {(deploymentInfo?.generator ||
+                              deploymentInfo?.timestamp) && (
+                              <Text
+                                color="gray.300"
+                                fontSize="xs"
+                                letterSpacing="0.2px"
+                              >
+                                {deploymentInfo?.generator &&
+                                  `built with ${deploymentInfo.generator} `}
+                                {deploymentInfo?.generator &&
+                                  deploymentInfo?.timestamp &&
+                                  `on ${format(
+                                    new Date(deploymentInfo?.timestamp * 1000),
+                                    'PPPppp'
+                                  ).toLowerCase()}`}
+                              </Text>
+                            )}
+                          </Flex>
+                        </PopoverContent>
+                      </Portal>
+                    </Popover>
                   </Heading>
                   <PublishInfo p={currentVariant} />
                 </Box>
