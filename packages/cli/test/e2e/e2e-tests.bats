@@ -103,3 +103,9 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/deployments/synthetix/CoreProxy.json"
   assert_success
 }
+
+@test "Trace - Trace transaction Data" {
+  run trace.sh
+  echo $output
+  assert_success
+}
