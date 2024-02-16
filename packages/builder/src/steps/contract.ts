@@ -286,7 +286,7 @@ const contractSpec = {
           : await runtime.getDefaultSigner!(txn, config.salt);
 
         const hash = await signer.wallet.sendTransaction(
-          _.assign(create2Txn, overrides, { account: signer.wallet.account })
+          _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address })
         );
 
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
