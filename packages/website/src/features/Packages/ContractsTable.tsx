@@ -51,6 +51,7 @@ export const ContractsTable: React.FC<{
     ([key, value]) => {
       return {
         name: key?.toString(),
+        step: value.deployedOn.toString(),
         address: value.address as string,
         deployTxnHash: value.deployTxnHash as string,
       };
@@ -60,6 +61,10 @@ export const ContractsTable: React.FC<{
   const columnHelper = createColumnHelper<ContractRow>();
 
   const columns = [
+    columnHelper.accessor('step', {
+      cell: (info: any) => info.getValue(),
+      header: 'Step',
+    }),
     columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
       header: 'Contract Name',
@@ -75,7 +80,7 @@ export const ContractsTable: React.FC<{
   ];
 
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'name', desc: false },
+    { id: 'step', desc: false },
   ]);
   const table = useReactTable({
     columns,
@@ -165,6 +170,13 @@ export const ContractsTable: React.FC<{
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
+                      case 'step': {
+                        return (
+                          <Text fontFamily="mono">
+                            [{cell.row.original.step}]
+                          </Text>
+                        );
+                      }
                       case 'address': {
                         return (
                           <Text fontFamily="mono">

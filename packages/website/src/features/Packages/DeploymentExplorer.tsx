@@ -234,7 +234,9 @@ export const DeploymentExplorer: FC<{
                 </Button>
               </Heading>
 
-              <ContractsTable contractState={contractState} />
+              <Box maxW="100%" overflowX="auto">
+                <ContractsTable contractState={contractState} />
+              </Box>
             </Box>
           )}
 
@@ -243,7 +245,9 @@ export const DeploymentExplorer: FC<{
               <Heading size="md" px={4} mb={3}>
                 Function Calls
               </Heading>
-              <InvokesTable invokeState={invokeState} />
+              <Box maxW="100%" overflowX="auto">
+                <InvokesTable invokeState={invokeState} />
+              </Box>
             </Box>
           )}
 
@@ -259,7 +263,9 @@ export const DeploymentExplorer: FC<{
                   <InfoIcon color="gray.400" boxSize={3.5} mt={-0.5} ml={0.5} />
                 </Tooltip>
               </Heading>
-              <EventsTable extrasState={mergedExtras} />
+              <Box maxW="100%" overflowX="auto">
+                <EventsTable extrasState={mergedExtras} />
+              </Box>
             </Box>
           )}
         </Box>
