@@ -178,9 +178,9 @@ export const DeploymentExplorer: FC<{
           </Text>
         </Box>
       ) : deploymentInfo ? (
-        <>
+        <Box>
           {variant.chain_id == 13370 && (
-            <Container maxW="container.lg" my={[4, 4, 8]}>
+            <Container maxW="container.lg" mt={8}>
               <Box
                 bg="blackAlpha.600"
                 border="1px solid"
@@ -211,8 +211,8 @@ export const DeploymentExplorer: FC<{
             </Container>
           )}
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
-            <Box>
-              <Heading size="md" p={4}>
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
                 Contract Deployments
                 <Button
                   ml={4}
@@ -239,8 +239,8 @@ export const DeploymentExplorer: FC<{
           )}
 
           {!isEmpty(invokeState) && (
-            <Box>
-              <Heading size="md" p={4}>
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
                 Function Calls
               </Heading>
               <InvokesTable invokeState={invokeState} />
@@ -248,8 +248,8 @@ export const DeploymentExplorer: FC<{
           )}
 
           {!isEmpty(mergedExtras) && (
-            <Box>
-              <Heading size="md" p={4}>
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
                 Event Data{' '}
                 <Tooltip
                   label="This includes event data captured during the build, to be referenced in dependent steps."
@@ -262,7 +262,7 @@ export const DeploymentExplorer: FC<{
               <EventsTable extrasState={mergedExtras} />
             </Box>
           )}
-        </>
+        </Box>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
