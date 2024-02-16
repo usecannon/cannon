@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
-import { Flex, Container } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
@@ -27,11 +27,9 @@ export const DeploymentTab: FC<{
   );
 
   return (
-    <Flex flexDirection="column" width="100%" mt="8">
+    <Flex flexDirection="column" width="100%">
       {currentVariant ? (
-        <Container maxW="container.xl">
-          <DeploymentExplorer pkgName={pkg.name} variant={currentVariant} />
-        </Container>
+        <DeploymentExplorer pkgName={pkg.name} variant={currentVariant} />
       ) : (
         <CustomSpinner m="auto" />
       )}

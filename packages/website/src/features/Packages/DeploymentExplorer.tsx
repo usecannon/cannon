@@ -2,21 +2,13 @@ import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-toml';
 import {
-  Badge,
   Box,
   Button,
   Container,
-  Flex,
   Heading,
   Link,
-  Table,
-  Tbody,
-  Td,
   Text,
-  Th,
-  Thead,
   Tooltip,
-  Tr,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { links } from '@/constants/links';
@@ -27,7 +19,9 @@ import { ChainBuilderContext } from '@usecannon/builder';
 import { isEmpty } from 'lodash';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { CommandPreview } from '@/components/CommandPreview';
-import { format } from 'date-fns';
+import { ContractsTable } from './ContractsTable';
+import { InvokesTable } from './InvokesTable';
+import { EventsTable } from './EventsTable';
 
 export const DeploymentExplorer: FC<{
   pkgName: string;
@@ -184,222 +178,91 @@ export const DeploymentExplorer: FC<{
           </Text>
         </Box>
       ) : deploymentInfo ? (
-        <Container maxW="container.lg">
-          <Flex direction={['column', 'column', 'row']} pb={2}>
-            <Box pb={2}>
-              {deploymentInfo?.def?.description && (
-                <Text fontSize="xl">{deploymentInfo.def.description}</Text>
-              )}
-              <Text color="gray.300" fontSize="xs" mb={1} letterSpacing="0.2px">
-                {deploymentInfo?.generator &&
-                  `built with ${deploymentInfo.generator} `}
-                {deploymentInfo?.generator &&
-                  deploymentInfo?.timestamp &&
-                  `on ${format(
-                    new Date(deploymentInfo?.timestamp * 1000),
-                    'PPPppp'
-                  ).toLowerCase()}`}
-              </Text>
-            </Box>
-            <Box ml={['none', 'none', 'auto']} pl={[0, 0, 4]} pt={0.5} pb={4}>
-              {deploymentInfo?.status == 'complete' && (
-                <Tooltip label="A complete deployment occurs when the resulting chain state matches the desired chain definition.">
-                  <Badge opacity={0.8} colorScheme="green">
-                    Complete deployment
-                  </Badge>
-                </Tooltip>
-              )}
-              {deploymentInfo?.status == 'partial' && (
-                <Tooltip label="A partial deployment occurs when the resulting chain state did not match the desired chain definition.">
-                  <Badge opacity={0.8} colorScheme="yellow">
-                    Partial deployment
-                  </Badge>
-                </Tooltip>
-              )}
-            </Box>
-          </Flex>
-          {!isEmpty(addressesAbis) && (
-            <Box mb={6}>
-              <Button
-                variant="outline"
-                colorScheme="white"
-                size="sm"
-                bg="teal.900"
-                borderColor="teal.500"
-                _hover={{ bg: 'teal.800' }}
-                leftIcon={<DownloadIcon />}
-                onClick={handleDownload}
-                textTransform="uppercase"
-                letterSpacing="1px"
-                fontFamily="var(--font-miriam)"
-                color="gray.200"
-                fontWeight={500}
-              >
-                Download Addresses + ABIs
-              </Button>
-            </Box>
-          )}
+        <Box>
           {variant.chain_id == 13370 && (
-            <Box
-              bg="blackAlpha.600"
-              border="1px solid"
-              borderColor="gray.900"
-              borderRadius="md"
-              p={6}
-              mb={6}
-            >
-              <Box mb={4}>
-                <Heading size="md" mb={2}>
-                  Run Package
-                </Heading>
-                <Text fontSize="sm" color="gray.300">
-                  <Link as={NextLink} href="/learn/cli/">
-                    Install the CLI
-                  </Link>{' '}
-                  and then use the following command to run a local node for
-                  development with this package:
-                </Text>
+            <Container maxW="container.lg" mt={8}>
+              <Box
+                bg="blackAlpha.600"
+                border="1px solid"
+                borderColor="gray.900"
+                borderRadius="md"
+                p={6}
+              >
+                <Box mb={4}>
+                  <Heading size="md" mb={2}>
+                    Run Package
+                  </Heading>
+                  <Text fontSize="sm" color="gray.300">
+                    <Link as={NextLink} href="/learn/cli/">
+                      Install the CLI
+                    </Link>{' '}
+                    and then use the following command to run a local node for
+                    development with this package:
+                  </Text>
+                </Box>
+                <CommandPreview
+                  command={`cannon ${pkgName}${
+                    variant?.tag?.name !== 'latest'
+                      ? `:${variant?.tag?.name}`
+                      : ''
+                  }${variant?.preset !== 'main' ? `@${variant?.preset}` : ''}`}
+                />
               </Box>
-              <CommandPreview
-                command={`cannon ${pkgName}${
-                  variant?.tag?.name !== 'latest'
-                    ? `:${variant?.tag?.name}`
-                    : ''
-                }${variant?.preset !== 'main' ? `@${variant?.preset}` : ''}`}
-              />
+            </Container>
+          )}
+          {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
+                Contract Deployments
+                <Button
+                  ml={4}
+                  variant="outline"
+                  colorScheme="white"
+                  size="sm"
+                  bg="teal.900"
+                  borderColor="teal.500"
+                  _hover={{ bg: 'teal.800' }}
+                  leftIcon={<DownloadIcon />}
+                  onClick={handleDownload}
+                  textTransform="uppercase"
+                  letterSpacing="1px"
+                  fontFamily="var(--font-miriam)"
+                  color="gray.200"
+                  fontWeight={500}
+                >
+                  Download Addresses + ABIs
+                </Button>
+              </Heading>
+
+              <ContractsTable contractState={contractState} />
             </Box>
           )}
-          <Box
-            bg="blackAlpha.600"
-            border="1px solid"
-            borderColor="gray.900"
-            borderRadius="md"
-            p={6}
-            mb={6}
-          >
-            <Box mb={4}>
-              <Heading size="md" mb={2}>
-                Chain State
+
+          {!isEmpty(invokeState) && (
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
+                Function Calls
               </Heading>
-              <Text fontSize="sm" color="gray.300">
-                The chain state includes data recorded during the build.
-              </Text>
+              <InvokesTable invokeState={invokeState} />
             </Box>
-            {!isEmpty(contractState) && (
-              <Box mb={2}>
-                <Heading size="sm" mb={2}>
-                  Contract Deployments
-                </Heading>
-                {Object.entries(contractState).length > 0 && (
-                  <Box overflowX="auto" mt={6}>
-                    <Table variant="simple" size="sm">
-                      <Thead>
-                        <Tr>
-                          <Th color="gray.300" pl={0} borderColor="gray.500">
-                            Contract
-                          </Th>
-                          <Th color="gray.300" borderColor="gray.500">
-                            Address
-                          </Th>
-                          <Th color="gray.300" borderColor="gray.500">
-                            Transaction Hash
-                          </Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody fontFamily={'mono'}>
-                        {Object.entries(contractState).map(([key, value]) => (
-                          <Tr key={key}>
-                            <Td pl={0} borderColor="gray.500">
-                              {key?.toString()}
-                            </Td>
-                            <Td borderColor="gray.500">{value.address}</Td>
-                            <Td borderColor="gray.500">
-                              {value.deployTxnHash}
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  </Box>
-                )}
-              </Box>
-            )}
-            {!isEmpty(invokeState) && (
-              <Box mt={6}>
-                <Heading size="sm" mb={2}>
-                  Function Calls
-                </Heading>
-                <Box overflowX="auto">
-                  <Table variant="simple" size="sm">
-                    <Thead>
-                      <Tr>
-                        <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Step
-                        </Th>
-                        <Th color="gray.300" borderColor="gray.500">
-                          Transaction Hash
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody fontFamily={'mono'}>
-                      {Object.entries(invokeState).map(([key, value]) => (
-                        <Tr key={key}>
-                          <Td pl={0} borderColor="gray.500">
-                            [invoke.{key?.toString()}]
-                          </Td>
-                          <Td borderColor="gray.500">{value.hash}</Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
-              </Box>
-            )}
-            {!isEmpty(mergedExtras) && (
-              <Box mt={6}>
-                <Heading size="sm" mb={2}>
-                  Event Data{' '}
-                  <Tooltip
-                    label="This includes event data captured during the build, to be referenced in dependent steps."
-                    placement="right"
-                    hasArrow
-                  >
-                    <InfoIcon
-                      color="gray.400"
-                      boxSize={3.5}
-                      mt={-0.5}
-                      ml={0.5}
-                    />
-                  </Tooltip>
-                </Heading>
-                <Box overflowX="auto">
-                  <Table variant="simple" size="sm">
-                    <Thead>
-                      <Tr>
-                        <Th color="gray.300" pl={0} borderColor="gray.500">
-                          Name
-                        </Th>
-                        <Th color="gray.300" borderColor="gray.500">
-                          Value
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody fontFamily={'mono'}>
-                      {Object.entries(mergedExtras).map(([key, value]) => (
-                        <Tr key={key}>
-                          <Td pl={0} borderColor="gray.500">
-                            {key?.toString()}
-                          </Td>
-                          <Td borderColor="gray.500">{value.toString()}</Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </Container>
+          )}
+
+          {!isEmpty(mergedExtras) && (
+            <Box mt={8}>
+              <Heading size="md" px={4} mb={3}>
+                Event Data{' '}
+                <Tooltip
+                  label="This includes event data captured during the build, to be referenced in dependent steps."
+                  placement="right"
+                  hasArrow
+                >
+                  <InfoIcon color="gray.400" boxSize={3.5} mt={-0.5} ml={0.5} />
+                </Tooltip>
+              </Heading>
+              <EventsTable extrasState={mergedExtras} />
+            </Box>
+          )}
+        </Box>
       ) : (
         <Box textAlign="center" py="20" opacity="0.5">
           Unable to retrieve deployment data
