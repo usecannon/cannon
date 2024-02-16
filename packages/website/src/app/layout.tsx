@@ -1,6 +1,7 @@
 'use client';
 
 import { Providers } from './providers';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { Miriam_Libre, Inter, Roboto_Mono } from 'next/font/google';
 import { Flex } from '@chakra-ui/react';
 import { Header } from '@/features/Header/Header';
@@ -72,6 +73,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="en">
+      <head>
+        <GoogleAnalytics measurementId="G-C96791F6NC" />
+      </head>
       <style jsx global>
         {`
           :root {

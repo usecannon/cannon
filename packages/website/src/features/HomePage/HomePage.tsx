@@ -323,7 +323,7 @@ export default function HomePage() {
               border="1px solid"
               borderColor="#4e4d4d"
               borderRadius="lg"
-              p={[0.5, 2, 4]}
+              p={[2, 2, 4]}
               background="black"
               boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
             >
@@ -606,12 +606,14 @@ export default function HomePage() {
           </Box>
         </Flex>
       </Container>
-      <video autoPlay muted loop>
-        <source src="/videos/homepage_background.mp4" type="video/mp4" />
-      </video>
-      <video autoPlay muted loop className="alt">
-        <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
-      </video>
+      <Box display={['none', 'none', 'block']}>
+        <video autoPlay muted loop>
+          <source src="/videos/homepage_background.mp4" type="video/mp4" />
+        </video>
+        <video autoPlay muted loop className="alt">
+          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
+        </video>
+      </Box>
     </Flex>
   );
 }

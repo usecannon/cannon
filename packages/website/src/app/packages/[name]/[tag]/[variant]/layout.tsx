@@ -5,6 +5,7 @@ import { Box, Container, Flex, Heading } from '@chakra-ui/react';
 import { NavLink } from '@/components/NavLink';
 import PublishInfo from '@/features/Search/PackageCard/PublishInfo';
 import { VersionSelect } from '@/features/Packages/VersionSelect';
+import { IpfsLinks } from '@/features/Packages/IpfsLinks';
 
 import { useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
@@ -68,7 +69,7 @@ export default function PackageLayout({
                   <VersionSelect pkg={pkg} currentVariant={currentVariant} />
                 </Box>
               </Flex>
-              <Flex gap={8}>
+              <Flex gap={8} align="center" maxW="100%" overflowX="auto">
                 <NavLink
                   isActive={
                     pathname ==
@@ -104,6 +105,19 @@ export default function PackageLayout({
                 >
                   Interact
                 </NavLink>
+                <NavLink
+                  isActive={
+                    pathname ==
+                    `/packages/${pkg.name}/${params.tag}/${params.variant}/cannonfile`
+                  }
+                  href={`/packages/${pkg.name}/${params.tag}/${params.variant}/cannonfile`}
+                  isSmall
+                >
+                  Cannonfile
+                </NavLink>
+                <Box ml="auto">
+                  <IpfsLinks variant={currentVariant} />
+                </Box>
               </Flex>
             </Container>
           </Box>
