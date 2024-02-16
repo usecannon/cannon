@@ -165,117 +165,119 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.logs) {
     await new Promise(() => {
-      console.log("Displaying node logs.....")
+      console.log('Displaying node logs.....');
       nodeLogging.enable();
     });
-  } else {
-    const mergedOutputs =
-      buildOutputs.length == 1
-        ? buildOutputs[0].outputs
-        : ({
-            imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
-          } as ChainArtifacts);
-  
-    let traceLevel = 0;
-  
-    async function debugTracing(blockInfo: viem.Block) {
-      if (traceLevel == 0) {
-        return;
-      }
-      const bwt = await provider.getBlock({ blockNumber: blockInfo.number!, includeTransactions: true });
-  
-      for (const txn of bwt.transactions) {
-        try {
-          const traces = (await provider.request({ method: 'trace_transaction' as any, params: [txn.hash] })) as TraceEntry[];
-  
-          let renderedTrace = renderTrace(mergedOutputs, traces);
-  
-          if (traceLevel === 1) {
-            // only show lines containing `console.log`s, and prettify
-            renderedTrace = renderedTrace
-              .split('\n')
-              .filter((l) => l.includes('console.log('))
-              .map((l) => l.trim())
-              .join('\n');
-          }
-  
-          if (renderedTrace) {
-            console.log(`trace: ${txn.hash}`);
-            console.log(renderedTrace);
-            console.log();
-          }
-        } catch (err) {
-          console.log('could not render trace for transaction:', err);
-        }
-      }
+  }
+  const mergedOutputs =
+    buildOutputs.length == 1
+      ? buildOutputs[0].outputs
+      : ({
+          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+        } as ChainArtifacts);
+
+  let traceLevel = 0;
+
+  async function debugTracing(blockInfo: viem.Block) {
+    if (traceLevel == 0) {
+      return;
     }
-  
-    // TODO: once again types from docs do not work here for some reason
-    provider.watchBlocks({ onBlock: debugTracing as any });
-  
-    if (options.nonInteractive) {
-      await new Promise(() => {
-        console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
-      });
-    } else {
-      console.log();
-      console.log(INITIAL_INSTRUCTIONS);
-      console.log(INSTRUCTIONS);
-  
-      await onKeypress(async (evt, { pause, stop }) => {
-        if (evt.ctrl && evt.name === 'c') {
-          stop();
-          process.exit();
-        } else if (evt.name === 'a') {
-          // Toggle showAnvilLogs when the user presses "a"
-          if (nodeLogging.enabled()) {
-            console.log(gray('Paused anvil logs...'));
-            console.log(INSTRUCTIONS);
-            nodeLogging.disable();
-          } else {
-            console.log(gray('Unpaused anvil logs...'));
-            nodeLogging.enable();
-          }
-        } else if (evt.name === 'i') {
-          if (nodeLogging.enabled()) return;
-  
-          await pause(async () => {
-            const [signer] = signers;
-  
-            const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs));
-  
-            await interact({
-              packages,
-              packagesArtifacts: buildOutputs.map((info) => info.outputs),
-              contracts,
-              signer,
-              provider,
-            });
-          });
-  
-          console.log(INITIAL_INSTRUCTIONS);
-          console.log(INSTRUCTIONS);
-        } else if (evt.name == 'v') {
-          // Toggle showAnvilLogs when the user presses "a"
-          if (traceLevel === 0) {
-            traceLevel = 1;
-            console.log(gray('Enabled display of console.log events from transactions...'));
-          } else if (traceLevel === 1) {
-            traceLevel = 2;
-            console.log(gray('Enabled display of full transaction logs...'));
-          } else {
-            traceLevel = 0;
-            console.log(gray('Disabled transaction tracing...'));
-          }
-        } else if (evt.name === 'h') {
-          if (nodeLogging.enabled()) return;
-  
-          if (options.helpInformation) console.log('\n' + options.helpInformation);
+    const bwt = await provider.getBlock({ blockNumber: blockInfo.number!, includeTransactions: true });
+
+    for (const txn of bwt.transactions) {
+      try {
+        const traces = (await provider.request({
+          method: 'trace_transaction' as any,
+          params: [txn.hash],
+        })) as TraceEntry[];
+
+        let renderedTrace = renderTrace(mergedOutputs, traces);
+
+        if (traceLevel === 1) {
+          // only show lines containing `console.log`s, and prettify
+          renderedTrace = renderedTrace
+            .split('\n')
+            .filter((l) => l.includes('console.log('))
+            .map((l) => l.trim())
+            .join('\n');
+        }
+
+        if (renderedTrace) {
+          console.log(`trace: ${txn.hash}`);
+          console.log(renderedTrace);
           console.log();
-          console.log(INSTRUCTIONS);
         }
-      });
+      } catch (err) {
+        console.log('could not render trace for transaction:', err);
+      }
     }
+  }
+
+  // TODO: once again types from docs do not work here for some reason
+  provider.watchBlocks({ onBlock: debugTracing as any });
+
+  if (options.nonInteractive) {
+    await new Promise(() => {
+      console.log(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+    });
+  } else {
+    console.log();
+    console.log(INITIAL_INSTRUCTIONS);
+    console.log(INSTRUCTIONS);
+
+    await onKeypress(async (evt, { pause, stop }) => {
+      if (evt.ctrl && evt.name === 'c') {
+        stop();
+        process.exit();
+      } else if (evt.name === 'a') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (nodeLogging.enabled()) {
+          console.log(gray('Paused anvil logs...'));
+          console.log(INSTRUCTIONS);
+          nodeLogging.disable();
+        } else {
+          console.log(gray('Unpaused anvil logs...'));
+          nodeLogging.enable();
+        }
+      } else if (evt.name === 'i') {
+        if (nodeLogging.enabled()) return;
+
+        await pause(async () => {
+          const [signer] = signers;
+
+          const contracts = buildOutputs.map((info) => getContractsRecursive(info.outputs));
+
+          await interact({
+            packages,
+            packagesArtifacts: buildOutputs.map((info) => info.outputs),
+            contracts,
+            signer,
+            provider,
+          });
+        });
+
+        console.log(INITIAL_INSTRUCTIONS);
+        console.log(INSTRUCTIONS);
+      } else if (evt.name == 'v') {
+        // Toggle showAnvilLogs when the user presses "a"
+        if (traceLevel === 0) {
+          traceLevel = 1;
+          console.log(gray('Enabled display of console.log events from transactions...'));
+        } else if (traceLevel === 1) {
+          traceLevel = 2;
+          console.log(gray('Enabled display of full transaction logs...'));
+        } else {
+          traceLevel = 0;
+          console.log(gray('Disabled transaction tracing...'));
+        }
+      } else if (evt.name === 'h') {
+        if (nodeLogging.enabled()) return;
+
+        if (options.helpInformation) console.log('\n' + options.helpInformation);
+        console.log();
+        console.log(INSTRUCTIONS);
+      }
+    });
   }
 }
 
