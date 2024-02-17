@@ -180,7 +180,7 @@ export const DeploymentExplorer: FC<{
       ) : deploymentInfo ? (
         <Box>
           {variant.chain_id == 13370 && (
-            <Container maxW="container.lg" mt={8}>
+            <Container maxW="container.lg" mt={6}>
               <Box
                 bg="blackAlpha.600"
                 border="1px solid"
@@ -211,21 +211,22 @@ export const DeploymentExplorer: FC<{
             </Container>
           )}
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
-            <Box mt={8}>
+            <Box mt={6}>
               <Heading size="md" px={4} mb={3}>
                 Contract Deployments
                 <Button
                   ml={4}
                   variant="outline"
                   colorScheme="white"
-                  size="sm"
+                  size="xs"
                   bg="teal.900"
                   borderColor="teal.500"
                   _hover={{ bg: 'teal.800' }}
-                  leftIcon={<DownloadIcon />}
+                  leftIcon={<DownloadIcon boxSize={2.5} />}
                   onClick={handleDownload}
                   textTransform="uppercase"
                   letterSpacing="1px"
+                  pt={0.5}
                   fontFamily="var(--font-miriam)"
                   color="gray.200"
                   fontWeight={500}
@@ -244,7 +245,7 @@ export const DeploymentExplorer: FC<{
           )}
 
           {!isEmpty(invokeState) && (
-            <Box mt={8}>
+            <Box mt={6}>
               <Heading size="md" px={4} mb={3}>
                 Function Calls
               </Heading>
@@ -258,7 +259,7 @@ export const DeploymentExplorer: FC<{
           )}
 
           {!isEmpty(mergedExtras) && (
-            <Box mt={8}>
+            <Box mt={6}>
               <Heading size="md" px={4} mb={3}>
                 Event Data{' '}
                 <Tooltip

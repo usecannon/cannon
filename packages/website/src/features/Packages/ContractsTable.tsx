@@ -184,6 +184,13 @@ export const ContractsTable: React.FC<{
                           </Text>
                         );
                       }
+                      case 'name': {
+                        return (
+                          <Text fontWeight="bold">
+                            {cell.row.original.name}
+                          </Text>
+                        );
+                      }
                       case 'address': {
                         return etherscanUrl ? (
                           <Link
