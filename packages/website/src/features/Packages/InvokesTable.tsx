@@ -49,12 +49,14 @@ export const InvokesTable: React.FC<{
     hash: string;
   };
 
-  const data: InvokeRow[] = Object.entries(invokeState).map(([key, value]) => {
-    return {
-      name: key?.toString(),
-      value: value.hash as string,
-    };
-  });
+  const data = React.useMemo(() => {
+    return Object.entries(invokeState).map(
+      ([key, value]): InvokeRow => ({
+        name: key?.toString(),
+        value: value.hash,
+      })
+    );
+  }, [invokeState]);
 
   const columnHelper = createColumnHelper<InvokeRow>();
 

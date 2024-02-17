@@ -25,12 +25,12 @@ export const EventsTable: React.FC<{
     value: string;
   };
 
-  const data: EventRow[] = Object.entries(extrasState).map(([key, value]) => {
-    return {
+  const data = React.useMemo(() => {
+    return Object.entries(extrasState).map(([key, value]): EventRow => ({
       name: key,
-      value,
-    };
-  });
+      value: value,
+    }));
+  }, [extrasState]);
 
   const columnHelper = createColumnHelper<EventRow>();
 
@@ -65,13 +65,10 @@ export const EventsTable: React.FC<{
         {table.getHeaderGroups().map((headerGroup) => (
           <Tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = header.column.columnDef.meta;
               return (
                 <Th
                   key={header.id}
                   onClick={header.column.getToggleSortingHandler()}
-                  isNumeric={meta?.isNumeric}
                   color="gray.200"
                   borderColor="gray.600"
                   textTransform="none"
@@ -86,7 +83,7 @@ export const EventsTable: React.FC<{
                     header.column.columnDef.header,
                     header.getContext()
                   )}
-                  {header.column.columnDef.accessorKey !== 'arrow' && (
+                  {
                     <chakra.span display="inline-block" h="12px" w="12px">
                       {header.column.getIsSorted() ? (
                         header.column.getIsSorted() === 'desc' ? (
@@ -109,7 +106,7 @@ export const EventsTable: React.FC<{
                         />
                       )}
                     </chakra.span>
-                  )}
+                  }
                 </Th>
               );
             })}
@@ -120,12 +117,9 @@ export const EventsTable: React.FC<{
         {table.getRowModel().rows.map((row, rowInd) => (
           <Tr key={row.id}>
             {row.getVisibleCells().map((cell) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = cell.column.columnDef.meta;
               return (
                 <Td
                   key={cell.id}
-                  isNumeric={meta?.isNumeric}
                   borderColor="gray.600"
                   borderBottom={
                     table.getRowModel().rows.length == rowInd + 1

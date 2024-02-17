@@ -50,16 +50,16 @@ export const ContractsTable: React.FC<{
     deployTxnHash: string;
   };
 
-  const data: ContractRow[] = Object.entries(contractState).map(
-    ([key, value]) => {
-      return {
+  const data = React.useMemo(() => {
+    return Object.entries(contractState).map(
+      ([key, value]): ContractRow => ({
         name: key?.toString(),
         step: value.deployedOn.toString(),
-        address: value.address as string,
-        deployTxnHash: value.deployTxnHash as string,
-      };
-    }
-  );
+        address: value.address,
+        deployTxnHash: value.deployTxnHash,
+      })
+    );
+  }, [contractState]);
 
   const columnHelper = createColumnHelper<ContractRow>();
 
