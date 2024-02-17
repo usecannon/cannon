@@ -103,7 +103,7 @@ export function TransactionStepper(props: {
 
   const etherscanUrl =
     (Object.values(chains).find((chain) => chain.id === props.chainId) as any)
-      ?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const packageName = props.cannonPackage.resolvedName;
   const version = props.cannonPackage.resolvedVersion || 'latest';

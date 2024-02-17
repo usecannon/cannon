@@ -157,7 +157,8 @@ export const Function: FC<{
   const anchor = `selector=${toFunctionSelector(f)}`;
 
   return (
-    <Box p={6} borderTop="1px solid" borderColor="gray.600" id={anchor}>
+    <Box position="relative" p={6} borderTop="1px solid" borderColor="gray.600">
+      <span style={{ position: 'absolute', top: '-80px' }} id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>

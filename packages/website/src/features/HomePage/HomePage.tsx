@@ -60,7 +60,7 @@ video {
   width: 100%;
   position: absolute;
   z-index: 0;
-  opacity:.05;
+  opacity:.066;
   top:10%;
   left:0; 
   pointer-events:none;
