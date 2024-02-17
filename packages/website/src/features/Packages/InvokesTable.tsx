@@ -9,6 +9,7 @@ import {
   Td,
   chakra,
   Text,
+  Link,
 } from '@chakra-ui/react';
 import {
   ChevronDownIcon,
@@ -24,6 +25,7 @@ import {
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
+import chains from '@/helpers/chains';
 
 /*
   * Function Calls
@@ -40,7 +42,8 @@ import { ChainBuilderContext } from '@usecannon/builder';
 
 export const InvokesTable: React.FC<{
   invokeState: ChainBuilderContext['txns'];
-}> = ({ invokeState }) => {
+  chainId: number;
+}> = ({ invokeState, chainId }) => {
   type InvokeRow = {
     step: string;
     hash: string;
@@ -79,6 +82,10 @@ export const InvokesTable: React.FC<{
       sorting,
     },
   });
+
+  const etherscanUrl = (
+    Object.values(chains).find((chain) => chain.id === chainId) as any
+  )?.blockExplorers?.default?.url;
 
   return (
     <Table size="sm">
@@ -165,7 +172,21 @@ export const InvokesTable: React.FC<{
                         );
                       }
                       case 'hash': {
-                        return (
+                        return etherscanUrl ? (
+                          <Link
+                            isExternal
+                            href={
+                              etherscanUrl + '/tx/' + cell.row.original.value
+                            }
+                            fontFamily="mono"
+                            borderBottom="1px dotted"
+                            borderBottomColor="gray.300"
+                            textDecoration="none"
+                            _hover={{ textDecoration: 'none' }}
+                          >
+                            {cell.row.original.value}
+                          </Link>
+                        ) : (
                           <Text fontFamily="mono">
                             {cell.row.original.value}
                           </Text>

@@ -16,7 +16,7 @@ export const IpfsLinks: FC<{
   variant: any;
 }> = ({ variant }) => {
   const theme = useTheme();
-  const green600Hex = theme.colors.green[600];
+  const green500Hex = theme.colors.green[500];
   const yellow400Hex = theme.colors.yellow[400];
 
   const deploymentData = useQueryIpfsData(
@@ -118,7 +118,7 @@ export const IpfsLinks: FC<{
       {deploymentInfo?.status == 'complete' && (
         <Tooltip label="This deployment is complete. The resulting chain state matches the desired chain definition.">
           <Box ml={3}>
-            <PiCheckCircleFill size="20" fill={green600Hex} />
+            <PiCheckCircleFill size="20" fill={green500Hex} />
           </Box>
         </Tooltip>
       )}

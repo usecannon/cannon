@@ -235,7 +235,10 @@ export const DeploymentExplorer: FC<{
               </Heading>
 
               <Box maxW="100%" overflowX="auto">
-                <ContractsTable contractState={contractState} />
+                <ContractsTable
+                  contractState={contractState}
+                  chainId={variant.chain_id}
+                />
               </Box>
             </Box>
           )}
@@ -246,7 +249,10 @@ export const DeploymentExplorer: FC<{
                 Function Calls
               </Heading>
               <Box maxW="100%" overflowX="auto">
-                <InvokesTable invokeState={invokeState} />
+                <InvokesTable
+                  invokeState={invokeState}
+                  chainId={variant.chain_id}
+                />
               </Box>
             </Box>
           )}

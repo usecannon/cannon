@@ -9,6 +9,7 @@ import {
   Td,
   chakra,
   Text,
+  Link,
 } from '@chakra-ui/react';
 import {
   ChevronDownIcon,
@@ -24,6 +25,7 @@ import {
 } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { ChainBuilderContext } from '@usecannon/builder';
+import chains from '@/helpers/chains';
 
 /*
   * Smart Contract Deployments
@@ -40,7 +42,8 @@ import { ChainBuilderContext } from '@usecannon/builder';
 */
 export const ContractsTable: React.FC<{
   contractState: ChainBuilderContext['contracts'];
-}> = ({ contractState }) => {
+  chainId: number;
+}> = ({ contractState, chainId }) => {
   type ContractRow = {
     name: string;
     address: string;
@@ -75,7 +78,7 @@ export const ContractsTable: React.FC<{
     }),
     columnHelper.accessor('deployTxnHash', {
       cell: (info: any) => info.getValue(),
-      header: 'Deploy Transaction Hash',
+      header: 'Transaction Hash',
     }),
   ];
 
@@ -92,6 +95,10 @@ export const ContractsTable: React.FC<{
       sorting,
     },
   });
+
+  const etherscanUrl = (
+    Object.values(chains).find((chain) => chain.id === chainId) as any
+  )?.blockExplorers?.default?.url;
 
   return (
     <Table size="sm">
@@ -178,14 +185,46 @@ export const ContractsTable: React.FC<{
                         );
                       }
                       case 'address': {
-                        return (
+                        return etherscanUrl ? (
+                          <Link
+                            isExternal
+                            href={
+                              etherscanUrl +
+                              '/address/' +
+                              cell.row.original.address
+                            }
+                            fontFamily="mono"
+                            borderBottom="1px dotted"
+                            borderBottomColor="gray.300"
+                            textDecoration="none"
+                            _hover={{ textDecoration: 'none' }}
+                          >
+                            {cell.row.original.address}
+                          </Link>
+                        ) : (
                           <Text fontFamily="mono">
                             {cell.row.original.address}
                           </Text>
                         );
                       }
                       case 'deployTxnHash': {
-                        return (
+                        return etherscanUrl ? (
+                          <Link
+                            isExternal
+                            href={
+                              etherscanUrl +
+                              '/tx/' +
+                              cell.row.original.deployTxnHash
+                            }
+                            fontFamily="mono"
+                            borderBottom="1px dotted"
+                            borderBottomColor="gray.300"
+                            textDecoration="none"
+                            _hover={{ textDecoration: 'none' }}
+                          >
+                            {cell.row.original.deployTxnHash}
+                          </Link>
+                        ) : (
                           <Text fontFamily="mono">
                             {cell.row.original.deployTxnHash}
                           </Text>
