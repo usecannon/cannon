@@ -26,10 +26,12 @@ export const EventsTable: React.FC<{
   };
 
   const data = React.useMemo(() => {
-    return Object.entries(extrasState).map(([key, value]): EventRow => ({
-      name: key,
-      value: value,
-    }));
+    return Object.entries(extrasState).map(
+      ([key, value]): EventRow => ({
+        name: key,
+        value: value,
+      })
+    );
   }, [extrasState]);
 
   const columnHelper = createColumnHelper<EventRow>();
