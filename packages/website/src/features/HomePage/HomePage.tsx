@@ -10,6 +10,7 @@ import {
   Link,
   Text,
   Image,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { gsap } from 'gsap';
 import NextLink from 'next/link';
@@ -180,6 +181,8 @@ export default function HomePage() {
       tl.kill(); // This will kill the timeline when the component unmounts
     };
   }, []);
+
+  const isLargeScreen = useBreakpointValue({ base: false, md: true });
 
   return (
     <Flex
@@ -606,14 +609,19 @@ export default function HomePage() {
           </Box>
         </Flex>
       </Container>
-      <Box display={['none', 'none', 'block']}>
-        <video autoPlay muted loop>
-          <source src="/videos/homepage_background.mp4" type="video/mp4" />
-        </video>
-        <video autoPlay muted loop className="alt">
-          <source src="/videos/homepage_background.mp4#t=10" type="video/mp4" />
-        </video>
-      </Box>
+      {isLargeScreen && (
+        <>
+          <video autoPlay muted loop>
+            <source src="/videos/homepage_background.mp4" type="video/mp4" />
+          </video>
+          <video autoPlay muted loop className="alt">
+            <source
+              src="/videos/homepage_background.mp4#t=10"
+              type="video/mp4"
+            />
+          </video>
+        </>
+      )}
     </Flex>
   );
 }
