@@ -123,7 +123,7 @@ export const CannonfileExplorer: FC<{
           </Text>
         </Box>
       ) : deploymentInfo ? (
-        <Flex position="relative" flex="1" direction="column">
+        <Flex position="relative" flex="1" direction="column" minHeight="420px">
           <Flex
             position="absolute"
             borderRadius="full"
