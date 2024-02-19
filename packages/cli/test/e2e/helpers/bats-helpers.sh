@@ -32,7 +32,7 @@ _setup() {
 
 # File post-run hook
 _teardown_file() {
-  if [ -e $WORKDIR]; then
+  if [ -e $WORKDIR ]; then
     rm -rf $WORKDIR
   fi
 }

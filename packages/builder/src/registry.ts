@@ -329,13 +329,7 @@ export class OnChainRegistry extends CannonRegistry {
 
       console.log('\n');
 
-      const tx = this.generatePublishTransactionData(
-        name,
-        versions.map((p) => viem.stringToHex(p)),
-        variant,
-        url,
-        metaUrl
-      );
+      const tx = this.generatePublishTransactionData(name, versions, variant, url, metaUrl);
       datas.push(tx);
     }
     await this.logMultiCallEstimatedGas(datas);
@@ -368,7 +362,7 @@ export class OnChainRegistry extends CannonRegistry {
 
         const tx = this.generatePublishTransactionData(
           name,
-          versions.map((p) => viem.stringToHex(p)),
+          versions.map((p) => viem.stringToHex(p, { size: 32 })),
           variant,
           pub.url,
           pub.metaUrl
@@ -421,7 +415,11 @@ export class OnChainRegistry extends CannonRegistry {
     const { result: url } = await this.provider.simulateContract({
       ...this.contract,
       functionName: 'getPackageMeta',
-      args: [viem.stringToHex(name), viem.stringToHex(version), viem.stringToHex(variant)],
+      args: [
+        viem.stringToHex(name, { size: 32 }),
+        viem.stringToHex(version, { size: 32 }),
+        viem.stringToHex(variant, { size: 32 }),
+      ],
     });
 
     return url || null;

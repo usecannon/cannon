@@ -1,10 +1,12 @@
-import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import * as viem from 'viem';
-import { resolveCliSettings } from '../../src/settings';
+import { AbiFunction, AbiEvent } from 'abitype';
 import { bold, gray, green, italic, yellow } from 'chalk';
-import { readDeployRecursive } from '../package';
+import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 
-import { formatAbiFunction } from '../helpers';
+import { resolveCliSettings } from '../../src/settings';
+
+import { readDeployRecursive } from '../package';
+import { formatAbiFunction, getSighash } from '../helpers';
 
 export async function decode({
   packageRef,
@@ -63,11 +65,10 @@ export async function decode({
     return console.log(JSON.stringify(parsed.result, null, 2));
   }
 
+  const sighash = getSighash(fragment as AbiFunction | AbiEvent);
+
   console.log();
-  console.log(
-    green(`${formatAbiFunction(fragment as any)}`),
-    `${'sighash' in parsed.result ? italic(gray(parsed.result.sighash)) : ''}`
-  );
+  console.log(green(`${formatAbiFunction(fragment as any)}`), `${sighash ? italic(gray(sighash)) : ''}`);
 
   if ((parsed.result as viem.DecodeErrorResultReturnType).errorName) {
     const errorMessage = decodeTxError(data[0], abis);
@@ -79,27 +80,47 @@ export async function decode({
 
   const renderParam = (prefix: string, input: viem.AbiParameter) => `${prefix}${gray(input.type)} ${bold(input.name)}`;
 
-  const renderArgs = (input: viem.AbiParameter, value: any, p = '  ') => {
-    if (Array.isArray(input)) {
-      if (input.length !== value.length) throw new Error('input and value length mismatch');
-
-      for (let i = 0; i < input.length; i++) {
-        renderArgs(input[i], value[i], p);
-      }
-    } else if (input.type === 'array') {
-      console.log(renderParam(p, input));
-      for (let i = 0; i < value.length; i++) {
-        if ((input as any).arrayChildren.baseType === 'array') {
-          console.log(`${p.repeat(2)}[${i}]`);
-          renderArgs((input as any).arrayChildren, value[i], p.repeat(3));
-        } else if ((input as any).arrayChildren.baseType === 'tuple') {
-          renderArgs((input as any).arrayChildren.components[i], value[i], p.repeat(2));
-        } else {
-          console.log(`${p.repeat(2)}${gray(`[${i}]`)}`, _renderValue((input as any).arrayChildren, value[i] as any));
+  const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
+    switch (true) {
+      case input.type.startsWith('tuple'): {
+        // e.g. tuple, tuple[]
+        console.log(renderParam(offset, input));
+        // @ts-ignore: TODO - figure out how to type this
+        const components = input.components;
+        for (let i = 0; i < components.length; i++) {
+          renderArgs(
+            {
+              ...components[i],
+              name: `[${i}]`,
+            },
+            value[i],
+            offset.repeat(2)
+          );
         }
+
+        break;
       }
-    } else {
-      console.log(renderParam(p, input), _renderValue(input, value as any));
+
+      case input.type.endsWith('[]'): {
+        //e.g. uint256[], bool[], bytes[], bytes8[], bytes32[], etc
+        console.log(renderParam(offset, input));
+        for (let i = 0; i < value.length; i++) {
+          renderArgs(
+            {
+              name: `[${i}]`,
+              internalType: input.internalType?.replace('[]', ''),
+              type: input.type?.replace('[]', ''),
+            },
+            value[i],
+            offset.repeat(2)
+          );
+        }
+        break;
+      }
+
+      default: {
+        console.log(renderParam(offset, input), _renderValue(input, value));
+      }
     }
   };
 
@@ -122,17 +143,23 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
   switch (true) {
     case typeof value == 'bigint':
       return value.toString();
+
     case type.type === 'address':
       return value;
-    case type.type === 'bytes32':
+
+    case type.type == 'bool':
+      return viem.hexToBool(value as viem.Hex);
+
+    case type.type.startsWith('bytes'):
       try {
-        return viem.stringToHex(value as string);
+        return viem.hexToString(value as viem.Hex, { size: 32 });
       } catch (err) {
         const settings = resolveCliSettings();
         if (settings.trace) {
           console.error(err);
         }
       }
+
       return `"${value}"`;
     default:
       return `"${value}"`;
@@ -143,8 +170,6 @@ function _parseData(abis: ContractData['abi'][], data: viem.Hash[]) {
   if (data.length === 0) return null;
 
   for (const abi of abis) {
-    //const iface = new ethers.utils.Interface(abi as viem.Abi);
-
     const result =
       _try(() => viem.decodeErrorResult({ abi, data: data[0] })) ||
       _try(() => viem.decodeFunctionData({ abi, data: data[0] })) ||
