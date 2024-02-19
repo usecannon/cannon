@@ -1,17 +1,62 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx-cloud",
-      "options": {
-        "cacheableOperations": ["test", "build"],
-        "accessToken": "YjEyZGFlNjItZTllMi00YWM1LTg3NDYtNjVhZjBlMmZiMjQxfHJlYWQtd3JpdGU="
-      }
+  "targetDefaults": {
+    "test": {
+      "cache": true,
+      "dependsOn": ["^test"]
+    },
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist", "{projectRoot}/.next"]
+    },
+    "watch": {
+      "dependsOn": []
+    },
+    "prepublishOnly": {
+      "dependsOn": []
+    },
+    "docgen": {
+      "dependsOn": []
+    },
+    "test-e2e": {
+      "dependsOn": []
+    },
+    "test-snx-ci": {
+      "dependsOn": []
+    },
+    "start": {
+      "dependsOn": []
+    },
+    "lint:fix": {
+      "dependsOn": []
+    },
+    "lint": {
+      "dependsOn": []
+    },
+    "codegen": {
+      "dependsOn": []
+    },
+    "deploy": {
+      "dependsOn": []
+    },
+    "create-local": {
+      "dependsOn": []
+    },
+    "remove-local": {
+      "dependsOn": []
+    },
+    "deploy-local": {
+      "dependsOn": []
+    },
+    "coverage": {
+      "dependsOn": []
+    },
+    "dev": {
+      "dependsOn": []
+    },
+    "graphql-codegen": {
+      "dependsOn": []
     }
   },
-  "targetDefaults": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["{projectRoot}/dist"]
-    }
-  }
+  "nxCloudAccessToken": "YjEyZGFlNjItZTllMi00YWM1LTg3NDYtNjVhZjBlMmZiMjQxfHJlYWQtd3JpdGU="
 }

@@ -1,15 +1,11 @@
-import { ethers } from 'ethers';
-import { alter } from './alter';
-import { createDefaultReadRegistry } from '../registry';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { getMainLoader, LocalLoader } from '../loader';
+import { generatePrivateKey } from 'viem/accounts';
 import _ from 'lodash';
+import { dirSync } from 'tmp-promise';
 import cli from '../index';
-
-function generatePrivateKey(): string {
-  const randomWallet = ethers.Wallet.createRandom();
-  return randomWallet.privateKey;
-}
+import { CliLoader, getMainLoader, LocalLoader } from '../loader';
+import { createDefaultReadRegistry } from '../registry';
+import { alter } from './alter';
 
 // Jest Mocking
 jest.mock('../settings', () => ({
@@ -17,6 +13,8 @@ jest.mock('../settings', () => ({
     registryProviderUrl: 'http://localhost:3000',
     registryChainId: '123', // or whatever value is appropriate in your case
     privateKey: generatePrivateKey(), // or whatever value is appropriate in your case
+    cannonDirectory: dirSync().name,
+    providerUrl: 'http://localhost:8545',
     // Add other properties as needed
   }),
 }));
@@ -38,15 +36,12 @@ describe('alter', () => {
   const newUrl = 'file:/usecannon.com/new-url';
   let testPkgData: DeploymentInfo;
   let localLoader: LocalLoader;
-  let ipfsLoader: IPFSLoader;
+  let ipfsLoader: CliLoader;
   let mockedFallBackRegistry: FallbackRegistry;
 
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-
-    localLoader = new LocalLoader('path');
-    ipfsLoader = new IPFSLoader('ipfs');
     mockedFallBackRegistry = new FallbackRegistry([]);
     testPkgData = {
       generator: 'cannon test',
@@ -69,6 +64,8 @@ describe('alter', () => {
                 contractName: 'TestContract',
                 sourceName: 'TestContract.sol',
                 deployedOn: '',
+                gasCost: '0',
+                gasUsed: 0,
               },
             },
           },
@@ -84,6 +81,10 @@ describe('alter', () => {
     jest.spyOn(CannonStorage.prototype, 'readDeploy').mockResolvedValue(testPkgData);
     jest.spyOn(CannonStorage.prototype, 'putDeploy').mockResolvedValue(newUrl);
     jest.mocked(createDefaultReadRegistry).mockResolvedValue(Promise.resolve(mockedFallBackRegistry));
+
+    localLoader = new LocalLoader('path');
+    ipfsLoader = new CliLoader(new IPFSLoader('ipfs'), new IPFSLoader('ipfs'), 'path');
+
     jest.mocked(getMainLoader).mockReturnValueOnce({
       file: localLoader,
       ipfs: ipfsLoader,
@@ -119,11 +120,11 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(newTestPkgData);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [basePkgName],
-      `${chainId}-${preset}`,
+      [packageName],
+      chainId,
       newUrl,
       metaUrl
     );
@@ -137,16 +138,16 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [basePkgName],
-      `${chainId}-${preset}`,
+      [packageName],
+      chainId,
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 
   it('should perform alteration for mark-complete', async () => {
     const command = 'mark-complete';
@@ -157,15 +158,15 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('complete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [basePkgName],
-      `${chainId}-${preset}`,
+      [packageName],
+      chainId,
       newUrl,
       metaUrl
     );
@@ -179,15 +180,15 @@ describe('alter', () => {
     // Call the 'alter' function with the necessary arguments
     await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(basePkgName, preset, chainId);
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('incomplete');
     expect(testPkgData.state['provision.dummyStep'].hash).toEqual('INCOMPLETE');
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [basePkgName],
-      `${chainId}-${preset}`,
+      [packageName],
+      chainId,
       newUrl,
       metaUrl
     );
@@ -203,18 +204,14 @@ describe('alter', () => {
 
     await cli.parseAsync(['node', 'cannon.ts', 'alter', packageName, command, ...targets, '-c', String(chainId)]);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(
-      basePkgName,
-      preset,
-      String(chainId)
-    );
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, String(chainId));
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
-      [basePkgName],
-      `${chainId}-${preset}`,
+      [packageName],
+      String(chainId),
       newUrl,
       metaUrl
     );
-  });
+  }, 10000);
 });

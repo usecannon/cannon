@@ -1,13 +1,10 @@
 import crypto from 'crypto';
 import Debug from 'debug';
-
 import _ from 'lodash';
-import { ethers } from 'ethers';
-import { ChainBuilderContext, PreChainBuilderContext } from './types';
-
-import { ActionKinds, validateConfig, RawChainDefinition } from './actions';
-import { chainDefinitionSchema } from './schemas.zod';
+import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
+import { chainDefinitionSchema } from './schemas';
+import { CannonHelperContext, ChainBuilderContext, PreChainBuilderContext } from './types';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -24,6 +21,30 @@ export type StateLayers = {
     depends: string[];
   };
 };
+
+export function validatePackageName(n: string) {
+  if (n.length < 3) {
+    throw new Error('package name must be at least 3 characters long');
+  }
+
+  if (n.length > 31) {
+    throw new Error('package name must be at most 31 characters long');
+  }
+
+  if (_.last(n) == '-' || _.first(n) == '-') {
+    throw new Error('first and last character of package name must not be dash (-)');
+  }
+
+  if (!n.match(/^[0-9a-z-]*$/)) {
+    throw new Error('cannon packages can only have names connecting lowercase, alphanumeric characters, and dashes');
+  }
+}
+
+export function validatePackageVersion(v: string) {
+  if (v.length > 31) {
+    throw new Error('package version must be at most 31 characters long');
+  }
+}
 
 export class ChainDefinition {
   private raw: RawChainDefinition;
@@ -50,7 +71,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'description', 'keywords', 'setting');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'setting');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -149,11 +170,23 @@ export class ChainDefinition {
   }
 
   getName(ctx: ChainBuilderContext) {
-    return _.template(this.raw.name)(ctx);
+    const n = _.template(this.raw.name)(ctx);
+
+    validatePackageName(n);
+
+    return n;
   }
 
   getVersion(ctx: ChainBuilderContext) {
-    return _.template(this.raw.version)(ctx);
+    const v = _.template(this.raw.version)(ctx);
+
+    validatePackageVersion(v);
+
+    return v;
+  }
+
+  getPreset(ctx: ChainBuilderContext) {
+    return _.template(this.raw.preset)(ctx) || 'main';
   }
 
   getConfig(n: string, ctx: ChainBuilderContext) {
@@ -172,7 +205,7 @@ export class ChainDefinition {
     validateConfig(ActionKinds[kind].validate, _.get(this.raw, n));
 
     return ActionKinds[n.split('.')[0] as keyof typeof ActionKinds].configInject(
-      { ...ctx, ...ethers.utils, ...ethers.constants },
+      { ...ctx, ...CannonHelperContext },
       _.get(this.raw, n),
       {
         name: this.getName(ctx),
@@ -210,7 +243,7 @@ export class ChainDefinition {
 
     const objs = await ActionKinds[kind].getState(
       runtime,
-      { ...ctx, ...ethers.utils, ...ethers.constants },
+      { ...ctx, ...CannonHelperContext },
       this.getConfig(n, ctx) as any,
       {
         name: this.getName(ctx),
@@ -233,7 +266,7 @@ export class ChainDefinition {
    */
   getSettings(ctx: PreChainBuilderContext) {
     const loadedSettings: Record<string, any> = {};
-    const _ctx = { ...ctx, ...ethers.utils, ...ethers.constants, settings: loadedSettings };
+    const _ctx = { ...ctx, ...CannonHelperContext, settings: loadedSettings };
 
     return _.mapValues(this.raw.setting, (sValue, sKey) => {
       const newSetting = _.clone(sValue);
@@ -270,12 +303,24 @@ export class ChainDefinition {
    */
   computeDependencies(node: string) {
     if (!_.get(this.raw, node)) {
-      throw new Error(`invalid dependency: ${node}`);
+      const stepName = node.split('.')[0];
+      const stepList: string[] = [];
+      Object.keys(_.get(this.raw, stepName)).forEach((dep) => {
+        stepList.push(dep);
+      });
+
+      throw new Error(`invalid dependency: ${node}. Available "${stepName}" steps:
+        ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
+      `);
     }
 
     const deps = (_.get(this.raw, node)!.depends || []) as string[];
 
     const n = node.split('.')[0];
+
+    if (!ActionKinds[n]) {
+      throw new Error(`Unrecognized action type ${n} at [${node}]`);
+    }
 
     if (ActionKinds[n].getInputs) {
       for (const input of ActionKinds[n].getInputs!(_.get(this.raw, node), { name: '', version: '', currentLabel: node })) {
@@ -283,7 +328,7 @@ export class ChainDefinition {
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
         } else if (!input.startsWith('settings.')) {
-          console.log(`WARNING: dependency ${input} not found for step ${node}`);
+          debug(`WARNING: dependency ${input} not found for step ${node}`);
         }
       }
     }

@@ -1,17 +1,24 @@
-import { ethers } from 'ethers';
-
-import provider from 'eth-provider';
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
-
-import { bold } from 'chalk';
-
+import os from 'node:os';
 import Debug from 'debug';
+import * as viem from 'viem';
+import { bold, red } from 'chalk';
+import provider from 'eth-provider';
+import { privateKeyToAccount } from 'viem/accounts';
+
 import { CliSettings } from '../settings';
+import { CannonSigner, traceActions } from '@usecannon/builder';
+import { getChainById } from '../chains';
 
 const debug = Debug('cannon:cli:provider');
 
-export async function resolveWriteProvider(settings: CliSettings, chainId: number | string) {
+function normalizePrivateKey(pkey: string): viem.Hash {
+  return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
+}
+
+export async function resolveWriteProvider(
+  settings: CliSettings,
+  chainId: number
+): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
       "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
@@ -27,24 +34,15 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
     chainId,
     checkProviders: settings.providerUrl.split(','),
     privateKey: settings.privateKey,
-  });
+  }) as any;
 }
 
-export async function resolveRegistryProvider(settings: CliSettings) {
-  if (settings.registryProviderUrl!.split(',')[0] == 'frame' && !settings.quiet) {
-    console.warn(
-      `\nUsing Frame as the default registry provider. If you don't have Frame installed cannon defaults to: ${DEFAULT_REGISTRY_PROVIDER_URL}`
-    );
-    console.warn(
-      `Set a custom registry provider url in your settings (run ${bold(
-        'cannon setup'
-      )}) or pass it as an env variable (${bold('CANNON_REGISTRY_PROVIDER_URL')}).\n\n`
-    );
-  }
-
+export async function resolveRegistryProvider(
+  settings: CliSettings
+): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
   return resolveProviderAndSigners({
-    chainId: settings.registryChainId,
-    checkProviders: settings.registryProviderUrl!.split(','),
+    chainId: parseInt(settings.registryChainId),
+    checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
   });
 }
@@ -54,43 +52,120 @@ export async function resolveProviderAndSigners({
   checkProviders = ['frame'],
   privateKey,
 }: {
-  chainId: number | string;
+  chainId: number;
   checkProviders?: string[];
   privateKey?: string;
-}): Promise<{ provider: CannonWrapperGenericProvider; signers: ethers.Signer[] }> {
-  debug('resolving provider', checkProviders, chainId);
+}): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+  debug(
+    'resolving provider',
+    checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p)),
+    chainId
+  );
 
   const rawProvider = provider(checkProviders, { origin: 'Cannon' });
 
   // ensure provider is enabled and on the chain we expect
   try {
-    await rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
+    rawProvider.setChain(Number.parseInt(chainId.toString())); // its important here we ensure chainId is a number
   } catch (err) {
     console.error(`Failed to use chain id ${chainId}`, err);
     throw err;
   }
 
-  const ethersProvider = new CannonWrapperGenericProvider({}, new ethers.providers.Web3Provider(rawProvider as any), false);
+  let publicClient: viem.PublicClient;
 
-  const signers = [];
+  // TODO: if at any point we let users provide multiple urls, this will have to be changed.
+  // force provider to use JSON-RPC instead of Web3Provider for local http urls
+  const signers: CannonSigner[] = [];
+  if (checkProviders[0].startsWith('http')) {
+    debug('use explicit provider url', checkProviders);
+    try {
+      publicClient = (
+        viem.createPublicClient({
+          chain: getChainById(chainId),
+          transport: viem.http(checkProviders[0]),
+        }) as any
+      ).extend(traceActions({}));
+    } catch (err) {
+      if (checkProviders.length <= 1) {
+        throw new Error('no more providers');
+      }
 
-  // Use private key if provided
-  if (privateKey) {
-    signers.push(...privateKey.split(',').map((k: string) => new ethers.Wallet(k).connect(ethersProvider)));
+      return await resolveProviderAndSigners({
+        chainId,
+        checkProviders: checkProviders.slice(1),
+        privateKey,
+      });
+    }
+
+    if (privateKey) {
+      signers.push(
+        ...privateKey.split(',').map((k: string) => {
+          const account = privateKeyToAccount(normalizePrivateKey(k));
+          return {
+            address: account.address,
+            wallet: viem.createWalletClient({
+              account,
+              chain: getChainById(chainId),
+              transport: viem.custom(publicClient.transport),
+            }),
+          };
+        })
+      );
+    } else {
+      debug('no signer supplied for provider');
+    }
   } else {
+    debug('use frame eth provider');
+    // Use eth-provider wrapped in Web3Provider as default
+    publicClient = (
+      viem
+        .createPublicClient({
+          transport: viem.custom(rawProvider),
+        })
+        .extend(viem.walletActions) as any
+    ).extend(traceActions({}));
     try {
       // Attempt to load from eth-provider
       await rawProvider.enable();
-      for (const account of rawProvider.accounts) {
-        signers.push(ethersProvider.getSigner(account));
+
+      for (const address of rawProvider.accounts) {
+        signers.push({
+          address: address as viem.Address,
+          wallet: publicClient as unknown as viem.WalletClient,
+        });
       }
     } catch (err: any) {
-      debug('Failed to connect signers: ', err);
+      // try to do it with the next provider instead
+      try {
+        if (checkProviders.length <= 1) {
+          throw new Error('no more providers');
+        }
+
+        return await resolveProviderAndSigners({
+          chainId,
+          checkProviders: checkProviders.slice(1),
+          privateKey,
+        });
+      } catch (e: any) {
+        console.error(red('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), '')));
+        console.error();
+        console.error(
+          'Please ensure your wallet application is open, a wallet is selected, and the wallet is granting access to cannon.'
+        );
+        console.error();
+        console.error(
+          'Alternatively, you can supply a private key and RPC in the terminal by setting CANNON_PROVIDER_URL and CANNON_PRIVATE_KEY.'
+        );
+        process.exit(1);
+      }
     }
   }
 
+  debug(`returning ${signers.length && signers[0].address} signers`);
+
   return {
-    provider: ethersProvider,
+    provider: publicClient,
     signers,
   };
 }

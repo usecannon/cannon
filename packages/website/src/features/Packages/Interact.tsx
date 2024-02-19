@@ -1,5 +1,10 @@
-import { FC, useEffect, useState } from 'react';
+import { CustomSpinner } from '@/components/CustomSpinner';
+import { Abi } from '@/features/Packages/Abi';
 import { GET_PACKAGE } from '@/graphql/queries';
+import chains from '@/helpers/chains';
+import { useQueryIpfsData } from '@/hooks/ipfs';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
+import { getOutput } from '@/lib/builder';
 import {
   Box,
   Code,
@@ -10,26 +15,23 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
-import { getOutput } from '@/lib/builder';
-import { Abi } from '@/features/Packages/Abi';
-import { CustomSpinner } from '@/components/CustomSpinner';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
-import { useQueryIpfsData } from '@/hooks/ipfs';
-import * as Chains from 'wagmi/chains';
+import { FC, useEffect, useState } from 'react';
+import { Address } from 'viem';
 
 export const Interact: FC<{
   name: string;
   tag: string;
   variant: string;
-  contractAddress: string;
-}> = ({ name, tag, variant, contractAddress }) => {
+  moduleName: string;
+  contractName: string;
+  contractAddress: Address;
+}> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
   const [pkg, setPackage] = useState<any | null>(null);
   const [cannonOutputs, setCannonOutputs] = useState<ChainArtifacts>({});
-  const [moduleName, setModuleName] = useState<string | undefined>();
   const [contract, setContract] = useState<ContractData | undefined>();
 
   useEffect(() => {
@@ -53,15 +55,22 @@ export const Interact: FC<{
     const cannonOutputs: ChainArtifacts = getOutput(ipfs);
     setCannonOutputs(cannonOutputs);
 
-    const findContract = (contracts: any, moduleName: string, imports: any) => {
+    const findContract = (
+      contracts: any,
+      parentModuleName: string,
+      imports: any
+    ) => {
       if (contracts) {
         Object.entries(contracts).forEach(([k, v]) => {
-          if ((v as ContractData).address === contractAddress) {
+          if (
+            parentModuleName === moduleName &&
+            k === contractName &&
+            (v as ContractData).address === contractAddress
+          ) {
             setContract({
               ...(v as ContractData),
               contractName: k,
             });
-            setModuleName(moduleName);
             return;
           }
         });
@@ -69,24 +78,30 @@ export const Interact: FC<{
 
       if (imports) {
         Object.entries(imports).forEach(([k, v]) =>
-          findContract((v as any).contracts, k, (v as any).imports)
+          findContract(
+            (v as any).contracts,
+            parentModuleName && parentModuleName !== name
+              ? `${parentModuleName}.${k}`
+              : k,
+            (v as any).imports
+          )
         );
       }
     };
     findContract(cannonOutputs.contracts, name, cannonOutputs.imports);
   }, [ipfs]);
 
-  const deployUrl = `https://ipfs.io/ipfs/${currentVariant?.deploy_url.replace(
+  const deployUrl = `https://repo.usecannon.com/${currentVariant?.deploy_url.replace(
     'ipfs://',
     ''
   )}`;
 
   const etherscanUrl =
     (
-      Object.values(Chains).find(
+      Object.values(chains).find(
         (chain) => chain.id === currentVariant?.chain_id
       ) as any
-    )?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+    )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const isSmall = useBreakpointValue({
     base: true,
@@ -103,6 +118,9 @@ export const Interact: FC<{
       ) : (
         <>
           <Flex
+            position={{ md: 'sticky' }}
+            top="0"
+            zIndex={3}
             bg="gray.800"
             p={2}
             flexDirection={['column', 'column', 'row']}
@@ -162,7 +180,6 @@ export const Interact: FC<{
               </Flex>
             </Box>
           </Flex>
-
           <Abi
             abi={contract?.abi as any}
             address={contractAddress}

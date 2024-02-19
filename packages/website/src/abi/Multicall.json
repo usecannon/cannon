@@ -46,7 +46,7 @@
           },
           {
             "internalType": "bool",
-            "name": "allowFailure",
+            "name": "requireSuccess",
             "type": "bool"
           },
           {
@@ -94,7 +94,7 @@
           },
           {
             "internalType": "bool",
-            "name": "allowFailure",
+            "name": "requireSuccess",
             "type": "bool"
           },
           {

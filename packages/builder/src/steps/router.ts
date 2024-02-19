@@ -1,13 +1,12 @@
 import Debug from 'debug';
-import { ContractFactory } from 'ethers';
-import { JsonFragment } from '@ethersproject/abi';
 import _ from 'lodash';
-import z from 'zod';
-import { routerSchema } from '../schemas.zod';
+import { Abi, Address, Hex } from 'viem';
+import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
+import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { computeTemplateAccesses } from '../access-recorder';
 
 const debug = Debug('cannon:builder:router');
 
@@ -30,7 +29,7 @@ const routerStep = {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const newConfig = this.configInject(ctx, config);
 
-    const contractAbis: { [contractName: string]: JsonFragment[] } = {};
+    const contractAbis: { [contractName: string]: Abi } = {};
     const contractAddresses: { [contractName: string]: string } = {};
 
     for (const n of newConfig.contracts) {
@@ -112,7 +111,7 @@ const routerStep = {
 
     const sourceCode = generateRouter({
       contractName,
-      contracts,
+      contracts: contracts as any,
     });
 
     debug('router source code', sourceCode);
@@ -130,7 +129,7 @@ const routerStep = {
       contractName,
       sourceName: `${contractName}.sol`,
       abi: routableAbi,
-      bytecode: solidityInfo.bytecode,
+      bytecode: solidityInfo.bytecode as Hex,
       deployedBytecode: solidityInfo.deployedBytecode,
       linkReferences: {},
       source: {
@@ -139,17 +138,20 @@ const routerStep = {
       },
     });
 
-    const deployTxn = await ContractFactory.fromSolidity(solidityInfo).getDeployTransaction();
-
     const signer = config.from
-      ? await runtime.getSigner(config.from)
-      : await runtime.getDefaultSigner(deployTxn, config.salt);
+      ? await runtime.getSigner(config.from as Address)
+      : await runtime.getDefaultSigner({ data: solidityInfo.bytecode as Hex }, config.salt);
 
-    debug('using deploy signer with address', await signer.getAddress());
+    debug('using deploy signer with address', await signer.address);
 
-    const deployedRouterContractTxn = await signer.sendTransaction(deployTxn);
+    const hash = await signer.wallet.deployContract({
+      account: signer.address,
+      bytecode: solidityInfo.bytecode as Hex,
+      chain: undefined,
+      abi: [],
+    });
 
-    const receipt = await deployedRouterContractTxn.wait();
+    const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
     return {
       contracts: {
@@ -157,9 +159,11 @@ const routerStep = {
           address: receipt.contractAddress,
           abi: routableAbi,
           deployedOn: packageState.currentLabel,
-          deployTxnHash: deployedRouterContractTxn.hash,
+          deployTxnHash: receipt.transactionHash,
           contractName,
           sourceName: contractName + '.sol',
+          gasUsed: Number(receipt.gasUsed),
+          gasCost: receipt.effectiveGasPrice.toString(),
           //sourceCode
         },
       },

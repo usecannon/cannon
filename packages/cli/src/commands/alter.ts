@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Debug from 'debug';
+import * as viem from 'viem';
 
 import { bold, yellow } from 'chalk';
 
@@ -12,10 +13,11 @@ import {
   CANNON_CHAIN_ID,
   DeploymentInfo,
 } from '@usecannon/builder';
+import { ActionKinds } from '@usecannon/builder/dist/actions';
 import { resolveCliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
 import { getMainLoader } from '../loader';
 import { PackageReference } from '@usecannon/builder/dist/package';
+import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -24,35 +26,35 @@ export async function alter(
   chainId: number,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'mark-complete' | 'mark-incomplete',
+  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
-  const { preset, basePackageRef } = new PackageReference(packageRef);
+  // Handle deprecated preset specification
+  let { fullPackageRef } = new PackageReference(packageRef);
 
-  if (presetArg && preset) {
+  // Once preset arg is removed from the cli args we can remove this logic
+  if (presetArg) {
+    fullPackageRef = `${fullPackageRef.split('@')[0]}@${presetArg}`;
     console.warn(
       yellow(
         bold(
-          `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
         )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
   }
-
-  const selectedPreset = preset || presetArg || 'main';
 
   const cliSettings = resolveCliSettings();
 
-  const variant = `${chainId}-${selectedPreset}`;
-
   // create temporary provider
   // todo: really shouldn't be necessary
-  const node = await runRpc({
-    port: 30000 + Math.floor(Math.random() * 30000),
-  });
-  const provider = getProvider(node);
+  // const node = await runRpc({
+  //   port: 30000 + Math.floor(Math.random() * 30000),
+  // });
+  // const provider = getProvider(node);
+
+  const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -60,11 +62,11 @@ export async function alter(
     {
       provider,
       chainId: chainId,
-      async getSigner(addr: string) {
+      async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
-        await provider.send('hardhat_impersonateAccount', [addr]);
-        await provider.send('hardhat_setBalance', [addr, `0x${(1e22).toString(16)}`]);
-        return provider.getSigner(addr);
+        //await provider.impersonateAccount({ address: addr });
+        //await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        return { address: addr, wallet: provider as viem.WalletClient };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -74,15 +76,15 @@ export async function alter(
     loader
   );
 
-  let startDeployInfo = await runtime.readDeploy(basePackageRef, selectedPreset, chainId);
-  const metaUrl = await resolver.getMetaUrl(basePackageRef, `${chainId}-${selectedPreset}`);
+  let startDeployInfo = await runtime.readDeploy(fullPackageRef, chainId);
+  const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
 
   if (!startDeployInfo) {
     // try loading against the basic deploy
-    startDeployInfo = await runtime.readDeploy(basePackageRef, 'main', CANNON_CHAIN_ID);
+    startDeployInfo = await runtime.readDeploy(fullPackageRef, CANNON_CHAIN_ID);
 
     if (!startDeployInfo) {
-      throw new Error(`deployment not found: ${basePackageRef} (${variant})`);
+      throw new Error(`deployment not found: ${fullPackageRef} (${chainId})`);
     }
   }
 
@@ -106,7 +108,7 @@ export async function alter(
         }
 
         for (const txn in deployInfo.state[actionStep].artifacts.txns) {
-          deployInfo.state[actionStep].artifacts.txns![txn].hash = '';
+          deployInfo.state[actionStep].artifacts.txns![txn].hash = '0x';
         }
 
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
@@ -123,13 +125,9 @@ export async function alter(
           const version = thisNetworkDefinition.getVersion(ctx);
 
           // TODO: we should store preset info in the destination output, not config
-          const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
+          // const thisStepConfig = (deployInfo.def as any)[actionStep.split('.')[0]][actionStep.split('.')[1]];
 
-          const newNetworkDeployment = await runtime.readDeploy(
-            `${name}:${version}`,
-            thisStepConfig.preset || thisStepConfig.targetPreset || 'main',
-            chainId
-          );
+          const newNetworkDeployment = await runtime.readDeploy(fullPackageRef, chainId);
 
           if (!newNetworkDeployment) {
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
@@ -143,6 +141,41 @@ export async function alter(
       }
       // clear transaction hash for all contracts and transactions
       break;
+
+    case 'import':
+      if (targets.length !== 2) {
+        throw new Error(
+          'incorrect number of arguments for import. Should be <stepName> <existingArtifacts (comma separated)>'
+        );
+      }
+
+      {
+        const stepName = targets[0];
+        const existingKeys = targets[1].split(',');
+
+        const stepAction = ActionKinds[stepName.split('.')[0]];
+
+        if (!stepAction.importExisting) {
+          throw new Error(
+            `the given step ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+          );
+        }
+
+        const def = new ChainDefinition(deployInfo.def);
+        const config = def.getConfig(stepName, ctx);
+
+        // some steps may require access to misc artifacts
+        await runtime.restoreMisc(deployInfo.miscUrl);
+        deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+          runtime,
+          ctx,
+          config,
+          { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+          existingKeys
+        );
+      }
+
+      break;
     case 'set-contract-address':
       // find the steps that deploy contract
       for (const actionStep in deployInfo.state) {
@@ -150,7 +183,7 @@ export async function alter(
           deployInfo.state[actionStep].artifacts.contracts &&
           deployInfo.state[actionStep].artifacts.contracts![targets[0]]
         ) {
-          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1];
+          deployInfo.state[actionStep].artifacts.contracts![targets[0]].address = targets[1] as viem.Address;
           deployInfo.state[actionStep].artifacts.contracts![targets[0]].deployTxnHash = '';
         }
       }
@@ -178,5 +211,5 @@ export async function alter(
 
   console.log(newUrl);
 
-  await resolver.publish([basePackageRef], variant, newUrl, metaUrl || '');
+  await resolver.publish([fullPackageRef], chainId, newUrl, metaUrl || '');
 }

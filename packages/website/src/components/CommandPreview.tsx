@@ -5,11 +5,13 @@ import { Copy } from 'react-feather';
 interface ICommandPreviewProps {
   command: string;
   className?: string;
+  backgroundColor?: string;
 }
 
 export const CommandPreview: FC<ICommandPreviewProps> = ({
   command,
   className,
+  backgroundColor = 'gray.800',
 }) => {
   const { hasCopied, onCopy } = useClipboard(command);
   const index = command.indexOf(' ');
@@ -17,7 +19,7 @@ export const CommandPreview: FC<ICommandPreviewProps> = ({
   const secondPart = command.substring(index, command.length);
   return (
     <Box
-      backgroundColor="gray.800"
+      backgroundColor={backgroundColor}
       py={1}
       px={3}
       position="relative"

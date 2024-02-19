@@ -1,16 +1,51 @@
-import * as paramUtils from '../util/params';
+import { CannonRpcNode, runRpc } from '../rpc';
 
-import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { CannonRpcNode } from '../rpc';
+import * as viem from 'viem';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
 
+export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {
+  const fakeProvider = viem
+    .createTestClient({
+      mode: 'anvil',
+      transport: viem.http('http://localhost:8588'),
+      chain: viem.defineChain({
+        id: 999,
+        name: 'test',
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        rpcUrls: {
+          default: {
+            http: [''],
+            webSocket: [''],
+          },
+        },
+        blockExplorers: {
+          default: { name: 'test', url: '' },
+        },
+      }),
+    })
+    .extend(viem.publicActions)
+    .extend(viem.walletActions);
+
+  for (const p in fakeProvider) {
+    if ((typeof (fakeProvider as any)[p] as any) === 'function') {
+      (fakeProvider as any)[p] = jest.fn();
+    }
+  }
+
+  return fakeProvider as any;
+}
+
 describe('build', () => {
   let cli: typeof import('../index').default;
   let helpers: typeof import('../helpers');
-  let ethers: typeof import('ethers').ethers;
   let buildCommand: typeof import('./build');
+  let doBuild: typeof import('../util/build');
   let utilProvider: typeof import('../util/provider');
   let rpcModule: typeof import('../rpc');
 
@@ -21,8 +56,8 @@ describe('build', () => {
     jest.clearAllMocks();
     cli = (await import('../index')).default;
     helpers = await import('../helpers');
-    ethers = (await import('ethers')).ethers;
     buildCommand = await import('./build');
+    doBuild = await import('../util/build');
     utilProvider = await import('../util/provider');
     rpcModule = await import('../rpc');
   });
@@ -32,46 +67,37 @@ describe('build', () => {
     jest.resetModules();
   });
 
-  it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
-    const errorMessage = 'Reject Error';
-    jest.spyOn(paramUtils, 'parseSettings').mockImplementationOnce(() => {
-      throw new Error(errorMessage);
+  describe('onBuild', () => {
+    it('should handle when cannon file is not passed, default cannonfile.toml should be used', async () => {
+      let cannonfile = '';
+      const settings = ['first=1', 'second=2'];
+
+      cannonfile = doBuild.setCannonfilePath(cannonfile, settings);
+
+      expect(cannonfile).toEqual('cannonfile.toml');
+      expect(settings).toEqual(['', 'first=1', 'second=2']);
     });
-    const settings = ['first=1', 'second=2'];
-    await expect(async () => {
-      await cli.parseAsync([...fixedArgs, ...settings]);
-    }).rejects.toThrow(errorMessage);
-    expect(paramUtils.parseSettings).toHaveBeenCalledWith(settings);
   });
 
   describe('provider', () => {
-    let provider: CannonWrapperGenericProvider;
+    let provider: viem.PublicClient;
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
-      provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
-      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider });
-      jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider, signers: [] });
+      provider = makeFakeProvider();
+      jest.spyOn(buildCommand, 'build').mockResolvedValue({ outputs: {}, provider, runtime: {} as any });
+      jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
     it('should resolve chainId from provider url', async () => {
+      // this test needs a node for the client to connect to
+      const cannonNode = await runRpc({ port: 8588, chainId: 999 });
+
       const providerUrl = 'http://localhost:8588';
       const chainId = 999;
 
-      const getNetworkFake = jest.fn().mockResolvedValue({ chainId });
-      jest.mocked(ethers.providers.JsonRpcProvider).mockImplementation(() => {
-        return {
-          ...jest.requireActual('ethers').providers.JsonRpcProvider,
-          getNetwork: getNetworkFake,
-        };
-      });
-
-      jest.mocked(provider.getNetwork).mockResolvedValue({ chainId, name: 'dummy' });
+      jest.mocked(provider.getChainId).mockResolvedValue(chainId);
 
       await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
-
-      // Resolved chainId from provider url
-      expect(ethers.providers.JsonRpcProvider).toHaveBeenCalledWith(providerUrl);
-      expect(getNetworkFake).toHaveBeenCalledTimes(1);
 
       // create write provider with expected values
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl).toEqual(providerUrl);
@@ -80,7 +106,8 @@ describe('build', () => {
 
       // The same provider is passed to build command
       expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
-    });
+      cannonNode.kill('SIGTERM');
+    }, 30000);
 
     it('should connect to frame with provided chainId', async () => {
       const chainId = 999;
@@ -104,12 +131,38 @@ describe('build', () => {
         },
       } as CannonRpcNode;
       jest.spyOn(rpcModule, 'runRpc').mockResolvedValue(cannonRpcNode);
-      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider);
+      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider as any);
       await cli.parseAsync(fixedArgs);
 
       // Create rpc node with default options
       expect(rpcModule.runRpc).toBeCalledTimes(1);
-      expect(rpcModule.runRpc).toBeCalledWith({ port: 0 });
+      expect(rpcModule.runRpc).toBeCalledWith({ port: '0' });
+
+      // create provider with rpc node
+      expect(rpcModule.getProvider).toBeCalledTimes(1);
+      expect(rpcModule.getProvider).toBeCalledWith(cannonRpcNode);
+
+      // The same provider is passed to build command
+      expect(buildCommand.build).toBeCalledTimes(1);
+      expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
+    });
+
+    it('should prioritize user specified port when provided', async () => {
+      const cannonRpcNode: CannonRpcNode = {
+        kill: () => {
+          // do nothing
+        },
+      } as CannonRpcNode;
+      jest.spyOn(rpcModule, 'runRpc').mockResolvedValue(cannonRpcNode);
+      jest.spyOn(rpcModule, 'getProvider').mockReturnValue(provider as any);
+
+      const args = [...fixedArgs, '--port', '8545'];
+
+      await cli.parseAsync(args);
+
+      // Create rpc node with default options
+      expect(rpcModule.runRpc).toBeCalledTimes(1);
+      expect(rpcModule.runRpc).toBeCalledWith({ port: '8545' });
 
       // create provider with rpc node
       expect(rpcModule.getProvider).toBeCalledTimes(1);

@@ -1,23 +1,17 @@
 import _ from 'lodash';
-
-import { ethers } from 'ethers';
-import { ChainDefinition } from './definition';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { RawChainDefinition } from './actions';
-import { CannonWrapperGenericProvider } from './error/provider';
-import { build, getOutputs, runStep, createInitialContext } from './builder';
-import { IPFSLoader } from './loader';
+import { build, createInitialContext, getOutputs, runStep } from './builder';
 import { BUILD_VERSION } from './constants';
-
+import { ChainDefinition } from './definition';
+import { IPFSLoader } from './loader';
+import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
-import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
-
+import { contractSchema } from './schemas';
 import contractStep from './steps/contract';
 import invokeStep from './steps/invoke';
-import { InMemoryRegistry } from './registry';
+import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
-import { contractSchema } from './schemas.zod';
-
-jest.mock('./error/provider');
 jest.mock('./steps/contract');
 jest.mock('./steps/invoke');
 
@@ -28,13 +22,9 @@ jest.mocked((contractStep.validate = contractSchema));
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
 
-  const getSigner = jest.fn(async () => {
-    return ethers.Wallet.createRandom();
-  });
+  const getSigner = jest.fn(async () => fixtureSigner());
 
-  const getDefaultSigner = jest.fn(async () => {
-    return ethers.Wallet.createRandom();
-  });
+  const getDefaultSigner = jest.fn(async () => fixtureSigner());
 
   const getArtifact = jest.fn(async (n: string): Promise<ContractArtifact> => {
     return {
@@ -47,32 +37,33 @@ describe('builder.ts', () => {
     };
   });
 
-  const provider = new CannonWrapperGenericProvider({}, new ethers.providers.JsonRpcProvider());
+  let provider: any;
+  let runtime: ChainBuilderRuntime;
 
-  jest.mocked(provider.getNetwork).mockResolvedValue({ chainId: 1234, name: 'dummy' });
-  jest.mocked(provider.send).mockImplementation(async (name: string) => {
-    if (name.endsWith('_dumpState')) {
+  beforeEach(() => {
+    provider = makeFakeProvider();
+    jest.mocked(provider.getChainId).mockResolvedValue(1234);
+    jest.mocked(provider.dumpState).mockImplementation(async () => {
       return '0xfoobar';
-    }
+    });
+    runtime = new ChainBuilderRuntime(
+      {
+        allowPartialDeploy: true,
+        provider: provider,
+        chainId: 1234,
+        publicSourceCode: true,
+        snapshots: false,
+        getSigner,
+        getDefaultSigner,
+        getArtifact,
+      },
+      new InMemoryRegistry(),
+      { ipfs: loader }
+    );
   });
 
-  const runtime = new ChainBuilderRuntime(
-    {
-      allowPartialDeploy: true,
-      provider,
-      chainId: 1234,
-      publicSourceCode: true,
-      snapshots: false,
-      getSigner,
-      getDefaultSigner,
-      getArtifact,
-    },
-    new InMemoryRegistry(),
-    { ipfs: loader }
-  );
-
   const fakeDefinition: RawChainDefinition = {
-    name: 'superDuper',
+    name: 'super-duper',
     version: '0.1.0',
     setting: {
       foo: { defaultValue: 'bar' },
@@ -105,6 +96,8 @@ describe('builder.ts', () => {
             contractName: 'Wohoo',
             abi: [],
             deployedOn: 'contract.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
           },
         },
       },
@@ -116,9 +109,12 @@ describe('builder.ts', () => {
       artifacts: {
         txns: {
           smartFunc: {
-            hash: '',
+            hash: '0x',
             events: {},
             deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
           },
         },
       },
@@ -141,6 +137,8 @@ describe('builder.ts', () => {
         contractName: 'Wohoo',
         abi: [],
         deployedOn: 'contract.Yoop',
+        gasCost: '0',
+        gasUsed: 0,
       },
     },
   });
@@ -149,7 +147,9 @@ describe('builder.ts', () => {
 
   jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
-    txns: { smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc' } },
+    txns: {
+      smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
+    },
   });
   jest.mocked(invokeStep.getInputs).mockReturnValue([]);
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
@@ -190,17 +190,22 @@ describe('builder.ts', () => {
 
         expect(newState['invoke.smartFunc']).toBeUndefined();
       });
-
-      /*it('emits correct runtime events', async () => {
-        expect(handler.mock.calls[0]).toStrictEqual([Events.DeployContract]);
-        expect(handler.mock.calls[1]).toStrictEqual([Events.SkipDeploy]);
-      });*/
     });
 
     describe('without layers', () => {
-      it('returns correct state', async () => {
-        const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
+      const handler = jest.fn();
+      let newState: DeploymentState;
 
+      beforeAll(async () => {
+        runtime.on(Events.PostStepExecute, handler);
+        runtime.on(Events.SkipDeploy, handler);
+
+        jest.mocked(invokeStep.exec).mockRejectedValueOnce(new Error('cant do this right now'));
+
+        newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
+      });
+
+      it('returns correct state', async () => {
         expect(newState['contract.Yoop'].artifacts).toStrictEqual({
           contracts: {
             Yoop: {
@@ -210,14 +215,14 @@ describe('builder.ts', () => {
               contractName: 'Wohoo',
               abi: [],
               deployedOn: 'contract.Yoop',
+              gasCost: '0',
+              gasUsed: 0,
             },
           },
         });
       });
 
       it('re-running with same state causes no events on subsequent invoke', async () => {
-        const newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
-
         const handler = jest.fn();
         runtime.on(Events.PreStepExecute, handler);
 
@@ -227,21 +232,10 @@ describe('builder.ts', () => {
         expect(newState).toStrictEqual(nextState);
 
         // handler should have gotten no calls because no steps were run
-        console.log(handler.mock.calls);
         expect(handler).toBeCalledTimes(0);
       });
     });
   });
-
-  /*describe.skip('buildLayer()', () => {
-    it('runs steps depth first', async () => {});
-
-    it('restores before each layer', async () => {});
-
-    it('takes snapshots after layer', async () => {});
-
-    it('does not duplicate building of a layer', async () => {});
-  });*/
 
   describe('getOutputs()', () => {
     it('merges chain artifacts', async () => {
@@ -250,7 +244,7 @@ describe('builder.ts', () => {
       expect(artifacts?.contracts?.Yoop.address).toStrictEqual(
         expectedStateOut['contract.Yoop'].artifacts.contracts!.Yoop.address
       );
-      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('');
+      expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('0x');
     });
 
     it('loads state when snapshots are present', async () => {
@@ -259,8 +253,8 @@ describe('builder.ts', () => {
       await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
       // should only be called for the leaf
-      expect(provider.send).toBeCalledWith('hardhat_loadState', ['0x5678']);
-      expect(provider.send).toBeCalledTimes(1);
+      expect(provider.loadState).toBeCalledWith({ state: '0x5678' });
+      expect(provider.loadState).toBeCalledTimes(1);
     });
   });
 

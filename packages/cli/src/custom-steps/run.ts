@@ -1,19 +1,19 @@
-import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import fs from 'fs-extra';
-import _ from 'lodash';
-import Debug from 'debug';
-import { z } from 'zod';
 import {
-  computeTemplateAccesses,
+  ChainArtifacts,
   ChainBuilderContext,
   ChainBuilderRuntimeInfo,
-  ChainArtifacts,
-  registerAction,
+  computeTemplateAccesses,
   PackageState,
+  registerAction,
 } from '@usecannon/builder';
-import { runSchema } from '../schemas.zod';
+import crypto from 'crypto';
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
+import { z } from 'zod';
+import { runSchema } from '../schemas';
 
 const debug = Debug('cannon:builder:run');
 
@@ -80,6 +80,10 @@ const runAction = {
     const newConfig = this.configInject(ctx, config);
 
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
+      if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
+        throw new Error(`Invalid element in "modified" for "run" step. Path ${pathToScan} not found.`);
+      }
+
       try {
         return hashFs(pathToScan).toString('hex');
       } catch (err) {
@@ -151,6 +155,10 @@ const runAction = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     debug('exec', config);
+
+    if (!fs.statSync(config.exec).isFile()) {
+      throw new Error(`Invalid "exec" value for "run" step. Path "${config.exec}" not found.`);
+    }
 
     const runfile = await importFrom(process.cwd(), config.exec);
 

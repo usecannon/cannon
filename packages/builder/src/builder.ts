@@ -1,20 +1,16 @@
+import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
-import Debug from 'debug';
-
-import { ChainBuilderContext, BuildOptions, ChainArtifacts, PreChainBuilderContext, PackageState } from './types';
-
+import { ContractMap, DeploymentState, TransactionMap } from './';
+import { ActionKinds } from './actions';
+import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
-
+import { ChainBuilderRuntime, Events } from './runtime';
+import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
 import { printChainDefinitionProblems } from './util';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
-
-import { ContractMap, DeploymentState, TransactionMap } from '.';
-import { ChainBuilderRuntime, Events } from './runtime';
-import { BUILD_VERSION } from './constants';
-import { ActionKinds } from './actions';
 
 // a step is considered failed if it takes longer than 5 minutes always
 const DEFAULT_STEP_TIMEOUT = 300000;
@@ -41,7 +37,7 @@ export async function createInitialContext(
     } else if (pkgSettings[s].defaultValue !== undefined) {
       settings[s] = pkgSettings[s].defaultValue!;
     } else {
-      throw new Error(`required setting not supplied: ${s}`);
+      throw new Error(`Required setting not supplied: ${s}`);
     }
   }
 
@@ -73,10 +69,6 @@ export async function build(
   if (problems) {
     throw new Error(`Your cannonfile is invalid: please resolve the following issues before building your project:
 ${printChainDefinitionProblems(problems)}`);
-  }
-
-  if (debug.enabled) {
-    console.log(def.printTopology().join('\n'));
   }
 
   debug('build', initialCtx.settings);
@@ -172,8 +164,6 @@ ${printChainDefinitionProblems(problems)}`);
             // make sure its possible to debug the original error
             debug('error', err);
             debugVerbose('context', JSON.stringify(ctx, null, 2));
-
-            console.log(`failure on step ${n}`);
             throw err;
           }
         }
@@ -182,7 +172,6 @@ ${printChainDefinitionProblems(problems)}`);
   } catch (err: any) {
     // make sure its possible to debug the original error
     debug('error', err);
-
     debugVerbose('context', JSON.stringify(ctx, null, 2));
     throw err;
   }
@@ -266,7 +255,7 @@ export async function buildLayer(
       debug('error', err);
 
       // now log a more friendly message
-      throw new Error(`failure on step ${action}: ${(err as Error).toString()}`);
+      throw new Error(`Failure on step ${action}: ${(err as Error).toString()}`);
     }
   }
 
@@ -340,7 +329,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   debugVerbose('ctx for step', pkgState.currentLabel, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
-  runtime.provider.artifacts = ctx;
+  runtime.updateProviderArtifacts(ctx);
 
   const result = await Promise.race([
     ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
@@ -351,7 +340,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
     throw new Error('timed out without error');
   }
 
-  runtime.emit(Events.PostStepExecute, type, label, result, 0);
+  runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
 
   return result;
 }

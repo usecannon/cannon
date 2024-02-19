@@ -38,7 +38,19 @@ export const InteractTab: FC<{
   });
 
   const pathName = usePathname();
-  const activeContract = pathName.split('interact/')[1];
+
+  let activeContractOption: Option | undefined;
+  const activeContractPath = pathName.split('interact/')[1];
+  if (activeContractPath) {
+    const [moduleName, contractName, contractAddress] =
+      activeContractPath.split('/');
+    activeContractOption = {
+      moduleName,
+      contractName,
+      contractAddress,
+    };
+  }
+
   const router = useRouter();
 
   const [pkg, setPackage] = useState<any | null>(null);
@@ -54,9 +66,19 @@ export const InteractTab: FC<{
     (v: any) => v.name === variant && v.tag.name === tag
   );
 
-  const selectContract = (contractAddress: string) => {
+  const selectContract = (contract: Option) => {
     void router.push(
-      `/packages/${name}/${tag}/${variant}/interact/${contractAddress}`
+      `/packages/${name}/${tag}/${variant}/interact/${contract.moduleName}/${contract.contractName}/${contract.contractAddress}`
+    );
+  };
+
+  const isActiveContract = (contract: Option) => {
+    if (!activeContractOption) return false;
+
+    return (
+      activeContractOption.moduleName === contract.moduleName &&
+      activeContractOption.contractName === contract.contractName &&
+      activeContractOption.contractAddress === contract.contractAddress
     );
   };
 
@@ -70,7 +92,6 @@ export const InteractTab: FC<{
       return;
     }
 
-    let highlightedData: any[] = [];
     let allContracts: any[] = [];
 
     const processContracts = (contracts: any, moduleName: string) => {
@@ -107,12 +128,37 @@ export const InteractTab: FC<{
       contract.contractName.toLowerCase().includes('proxy')
     );
 
+    let highlightedData: any[] = [];
     if (highlightedContracts.length > 0) {
       highlightedData = highlightedContracts;
     } else if (proxyContracts.length > 0) {
       highlightedData = proxyContracts;
     } else {
       highlightedData = allContracts;
+    }
+
+    const uniqueAddresses = new Set();
+    for (const contractData of highlightedData) {
+      uniqueAddresses.add(contractData.contractAddress);
+    }
+
+    for (const uniqueAddress of uniqueAddresses) {
+      const excessContracts = highlightedData.filter(
+        (contract) => contract.contractAddress === uniqueAddress
+      );
+      excessContracts.sort((a, b) => {
+        const accumulateDeepLevel = (acc: number, cur: string) =>
+          cur === '.' ? acc + 1 : acc;
+        const getModuleNameDeepLevel = (moduleName: string) =>
+          moduleName.split('').reduce(accumulateDeepLevel, 0);
+        const aDeepLevel = getModuleNameDeepLevel(a.moduleName);
+        const bDeepLevel = getModuleNameDeepLevel(b.moduleName);
+        return aDeepLevel - bDeepLevel;
+      });
+      excessContracts.shift();
+      highlightedData = highlightedData.filter(
+        (contract) => !excessContracts.includes(contract)
+      );
     }
 
     setHighlightedOptions(highlightedData);
@@ -122,178 +168,170 @@ export const InteractTab: FC<{
     );
     setOtherOptions(otherData);
 
-    if (!activeContract) {
+    if (!activeContractOption) {
       if (highlightedData.length > 0) {
-        selectContract(highlightedData[0].contractAddress);
+        selectContract(highlightedData[0]);
       } else if (otherData.length > 0) {
-        selectContract(otherData[0].contractAddress);
+        selectContract(otherData[0]);
       }
     }
   }, [deploymentData.data]);
 
   return (
     <>
-      <Flex
-        overflowX="scroll"
-        maxW="100%"
-        p={2}
-        borderBottom="1px solid"
-        borderColor="gray.800"
-        flexWrap="nowrap"
-      >
-        {highlightedOptions.map((option, i) => (
-          <Button
-            key={i}
-            color="white"
-            borderWidth="2px"
-            borderRadius="md"
-            variant="outline"
-            aria-label="contract name"
-            boxShadow="lg"
-            flexShrink={0}
-            background={
-              activeContract === option.contractAddress
-                ? 'teal.900'
-                : 'gray.700'
-            }
-            borderColor={
-              activeContract === option.contractAddress
-                ? 'teal.600'
-                : 'gray.600'
-            }
-            _hover={
-              activeContract === option.contractAddress
-                ? {
-                    background: 'teal.800',
-                    borderColor: 'teal.500',
-                  }
-                : {
+      {(otherOptions.length > 0 || highlightedOptions.length > 1) && (
+        <Flex
+          overflowX="scroll"
+          maxW="100%"
+          p={2}
+          borderBottom="1px solid"
+          borderColor="gray.800"
+          flexWrap="nowrap"
+        >
+          {highlightedOptions.map((option, i) => (
+            <Button
+              key={i}
+              color="white"
+              borderWidth="2px"
+              borderRadius="md"
+              variant="outline"
+              aria-label="contract name"
+              boxShadow="lg"
+              flexShrink={0}
+              background={isActiveContract(option) ? 'teal.900' : 'gray.700'}
+              borderColor={isActiveContract(option) ? 'teal.600' : 'gray.600'}
+              _hover={
+                isActiveContract(option)
+                  ? {
+                      background: 'teal.800',
+                      borderColor: 'teal.500',
+                    }
+                  : {
+                      background: 'gray.600',
+                      borderColor: 'teal.500',
+                    }
+              }
+              mr={4}
+              height="48px"
+              px={2}
+              onClick={() => selectContract(option)}
+            >
+              <Box textAlign="left">
+                <Text
+                  fontSize="xs"
+                  display="block"
+                  fontWeight="normal"
+                  color="gray.400"
+                  mb="1px"
+                >
+                  {option.moduleName}
+                </Text>
+                <Heading
+                  fontWeight="500"
+                  size="sm"
+                  color="gray.200"
+                  letterSpacing="0.1px"
+                >
+                  {option.contractName}
+                </Heading>
+              </Box>
+            </Button>
+          ))}
+          {otherOptions.length > 0 && (
+            <Popover
+              placement="bottom-start"
+              isOpen={isPopoverOpen}
+              onOpen={() => setIsPopoverOpen(true)}
+              onClose={() => setIsPopoverOpen(false)}
+            >
+              <PopoverTrigger>
+                <Button
+                  color="white"
+                  borderColor={'gray.600'}
+                  borderWidth="2px"
+                  borderRadius="md"
+                  variant="outline"
+                  background={'gray.700'}
+                  aria-label="Settings"
+                  boxShadow="lg"
+                  _hover={{
                     background: 'gray.600',
                     borderColor: 'teal.500',
-                  }
-            }
-            mr={4}
-            height="48px"
-            px={2}
-            onClick={() => selectContract(option.contractAddress)}
-          >
-            <Box textAlign="left">
-              <Text
-                fontSize="xs"
-                display="block"
-                fontWeight="normal"
-                color="gray.400"
-                mb="1px"
-              >
-                {option.moduleName}
-              </Text>
-              <Heading
-                fontWeight="500"
-                size="sm"
-                color="gray.200"
-                letterSpacing="0.1px"
-              >
-                {option.contractName}
-              </Heading>
-            </Box>
-          </Button>
-        ))}
-        {otherOptions.length > 0 && (
-          <Popover
-            placement="bottom-start"
-            isOpen={isPopoverOpen}
-            onOpen={() => setIsPopoverOpen(true)}
-            onClose={() => setIsPopoverOpen(false)}
-          >
-            <PopoverTrigger>
-              <Button
-                color="white"
-                borderColor={'gray.600'}
-                borderWidth="2px"
-                borderRadius="md"
-                variant="outline"
-                background={'gray.700'}
-                aria-label="Settings"
-                boxShadow="lg"
-                _hover={{
-                  background: 'gray.600',
-                  borderColor: 'teal.500',
-                }}
-                height="48px"
-                width="48px"
-                flexShrink={0}
-                p={0}
-              >
-                <Icon
-                  boxSize={48}
-                  opacity={0.5}
-                  _hover={{ opacity: 1 }}
-                  viewBox="0 0 48 48"
-                  width="48px"
+                  }}
                   height="48px"
-                  fill="white"
-                  stroke="none"
+                  width="48px"
+                  flexShrink={0}
+                  p={0}
                 >
-                  <circle cx="13" cy="24" r="3"></circle>
-                  <circle cx="24" cy="24" r="3"></circle>
-                  <circle cx="35" cy="24" r="3"></circle>
-                </Icon>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              maxHeight={'45vh'}
-              overflowY={'auto'}
-              overflowX={'hidden'}
-              width="auto"
-              bg="gray.900"
-              borderColor="gray.700"
-            >
-              <PopoverBody p={0}>
-                {otherOptions.map((option, i) => (
-                  <Box
-                    key={i}
-                    cursor={'pointer'}
-                    textAlign="left"
-                    p={2}
-                    background={
-                      activeContract === option.contractAddress
-                        ? 'gray.800'
-                        : 'transparent'
-                    }
-                    _hover={{
-                      background: 'gray.800',
-                    }}
-                    borderBottom="1px solid"
-                    borderColor="gray.700"
-                    onClick={() => {
-                      setIsPopoverOpen(false);
-                      selectContract(option.contractAddress);
-                    }}
+                  <Icon
+                    boxSize={48}
+                    opacity={0.5}
+                    _hover={{ opacity: 1 }}
+                    viewBox="0 0 48 48"
+                    width="48px"
+                    height="48px"
+                    fill="white"
+                    stroke="none"
                   >
-                    <Text
-                      fontSize="xs"
-                      display="block"
-                      fontWeight="normal"
-                      color="gray.400"
-                      mb="1px"
+                    <circle cx="13" cy="24" r="3"></circle>
+                    <circle cx="24" cy="24" r="3"></circle>
+                    <circle cx="35" cy="24" r="3"></circle>
+                  </Icon>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                maxHeight={'45vh'}
+                overflowY={'auto'}
+                overflowX={'hidden'}
+                width="auto"
+                bg="gray.900"
+                borderColor="gray.700"
+              >
+                <PopoverBody p={0}>
+                  {otherOptions.map((option, i) => (
+                    <Box
+                      key={i}
+                      cursor={'pointer'}
+                      textAlign="left"
+                      p={2}
+                      background={
+                        isActiveContract(option) ? 'gray.800' : 'transparent'
+                      }
+                      _hover={{
+                        background: 'gray.800',
+                      }}
+                      borderBottom="1px solid"
+                      borderColor="gray.700"
+                      onClick={() => {
+                        setIsPopoverOpen(false);
+                        selectContract(option);
+                      }}
                     >
-                      {option.moduleName}
-                    </Text>
-                    <Heading
-                      fontWeight="500"
-                      size="sm"
-                      color="gray.200"
-                      letterSpacing="0.1px"
-                    >
-                      {option.contractName}
-                    </Heading>
-                  </Box>
-                ))}
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
-        )}
-      </Flex>
+                      <Text
+                        fontSize="xs"
+                        display="block"
+                        fontWeight="normal"
+                        color="gray.400"
+                        mb="1px"
+                      >
+                        {option.moduleName}
+                      </Text>
+                      <Heading
+                        fontWeight="500"
+                        size="sm"
+                        color="gray.200"
+                        letterSpacing="0.1px"
+                      >
+                        {option.contractName}
+                      </Heading>
+                    </Box>
+                  ))}
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
+          )}
+        </Flex>
+      )}
 
       {currentVariant && !deploymentData.isLoading ? (
         <Box>{children}</Box>

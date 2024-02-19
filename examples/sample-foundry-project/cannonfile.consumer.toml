@@ -17,7 +17,7 @@ options.msg = "a message from second greeter set"
 [invoke.change_greeting2]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= formatBytes32String(settings.change_greeting2) %>"]
+args = ["<%= settings.change_greeting2 %>"]
 
 # test for factory functionality
 [invoke.clone]
@@ -73,10 +73,3 @@ extra.NewClonedGreeterEvent.expectCount = 2
 target = ["greeters.greeter"]
 func = "changeCloneGreeting"
 args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
-
-
-
-[run.empty]
-exec = "./scripts/deploy.js"
-func = "empty"
-modified = ["dummy.js"]

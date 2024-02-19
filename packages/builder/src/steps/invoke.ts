@@ -1,22 +1,26 @@
-import _ from 'lodash';
 import Debug from 'debug';
-
+import * as viem from 'viem';
+import { AbiFunction } from 'viem';
+import _ from 'lodash';
 import { z } from 'zod';
-import { invokeSchema } from '../schemas.zod';
-
-import {
-  ChainBuilderContext,
-  ChainBuilderRuntimeInfo,
-  ChainArtifacts,
-  TransactionMap,
-  ChainBuilderContextWithHelpers,
-  PackageState,
-} from '../types';
 import { computeTemplateAccesses } from '../access-recorder';
-import { getContractDefinitionFromPath, getContractFromPath, getMergedAbiFromContractPaths } from '../util';
-import { ethers } from 'ethers';
-
-import { getAllContractPaths } from '../util';
+import { invokeSchema } from '../schemas';
+import {
+  CannonSigner,
+  ChainArtifacts,
+  ChainBuilderContext,
+  ChainBuilderContextWithHelpers,
+  ChainBuilderRuntimeInfo,
+  Contract,
+  PackageState,
+  TransactionMap,
+} from '../types';
+import {
+  getAllContractPaths,
+  getContractDefinitionFromPath,
+  getContractFromPath,
+  getMergedAbiFromContractPaths,
+} from '../util';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -34,45 +38,39 @@ export interface InvokeOutputs {
   events?: EncodedTxnEvents[];
 }
 
+export function formatAbiFunction(v: AbiFunction) {
+  return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
+}
+
+// we need this function because viem does not seem to have the ability to distinguish between overloaded functions the way ethers can
+function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction, string][] {
+  const abiFunctions = abi.filter((v) => v.type === 'function') as viem.AbiFunction[];
+
+  const prettyNames = abiFunctions.map(formatAbiFunction) as string[];
+
+  // type detection is bad here
+  return _.zip(abiFunctions, prettyNames) as any;
+}
+
 async function runTxn(
   runtime: ChainBuilderRuntimeInfo,
   config: Config,
-  contract: ethers.Contract,
-  signer: ethers.Signer,
+  contract: Contract,
+  signer: CannonSigner,
   packageState: PackageState
-): Promise<[ethers.ContractReceipt, EncodedTxnEvents]> {
-  let txn: ethers.ContractTransaction;
+): Promise<[viem.TransactionReceipt, EncodedTxnEvents]> {
+  let txn: viem.Hash;
 
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
   // if invoke calls succeeding when no action was actually performed.
-  if ((await runtime.provider.getCode(contract.address)) === '0x') {
+  if ((await runtime.provider.getBytecode({ address: contract.address })) === '0x') {
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
   }
 
-  if (!contract.functions[config.func]) {
-    throw new Error(
-      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-        config.func
-      }". List of recognized functions is:\n${Object.keys(contract.functions).join(
-        '\n'
-      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
-    );
-  }
-
-  if (config.fromCall && config.fromCall.func && !contract.functions[config.fromCall.func]) {
-    throw new Error(
-      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
-        config.func
-      }" to determine owner. List of recognized functions is:\n${Object.keys(contract.functions).join(
-        '\n'
-      )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
-    );
-  }
-
-  const overrides: ethers.Overrides & { value?: string } = {};
+  const overrides: any = {};
 
   if (config.overrides?.gasLimit) {
     overrides.gasLimit = config.overrides.gasLimit;
@@ -94,43 +92,91 @@ async function runTxn(
     overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
+  // Attempt to encode data so that if any arguments have any type mismatches, we can catch them and present them to the user.
+  const functionList = assembleFunctionSignatures(contract.abi);
+  const neededFuncAbi = functionList.find(
+    (f) => config.func == f[1] || config.func == f[1].split('(')[0]
+  )?.[0] as viem.AbiFunction;
+  if (!neededFuncAbi) {
+    throw new Error(
+      `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+        config.func
+      }". List of recognized functions is:\n${functionList
+        .map((v) => v[1])
+        .join(
+          '\n'
+        )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
+    );
+  }
+
   if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
 
-    const address = await contract.connect(runtime.provider)[config.fromCall.func](...(config.fromCall?.args || []));
+    const neededOwnerFuncAbi = functionList.find(
+      (f) => config.fromCall!.func == f[1] || config.fromCall!.func == f[1].split('(')[0]
+    )?.[0] as viem.AbiFunction;
+    if (!neededOwnerFuncAbi) {
+      throw new Error(
+        `contract ${contract.address} for ${packageState.currentLabel} does not contain the function "${
+          config.func
+        }" to determine owner. List of recognized functions is:\n${Object.keys(
+          contract.abi.filter((v) => v.type === 'function').map((v) => (v as AbiFunction).name)
+        ).join(
+          '\n'
+        )}\n\nIf this is a proxy contract, make sure you’ve specified abiOf for the contract action in the cannonfile that deploys it.`
+      );
+    }
+    const addressCall = await runtime.provider.simulateContract({
+      address: contract.address,
+      abi: [neededOwnerFuncAbi],
+      functionName: neededOwnerFuncAbi.name,
+      args: config.fromCall.args,
+    });
+
+    const address = addressCall.result as viem.Address;
 
     debug('owner for call', address);
 
     const callSigner = await runtime.getSigner(address);
 
-    txn = await contract.connect(callSigner)[config.func](...(config.args || []), overrides);
+    const txnSimulation = await runtime.provider.simulateContract({
+      address: contract.address,
+      abi: [neededFuncAbi],
+      functionName: neededFuncAbi.name,
+      account: callSigner.address,
+      args: config.args,
+      ...overrides,
+    });
+    // TODO: why does viem hate having `txnSimulation.request` below without the any, despiset hte example on how to do this on the guide? https://viem.sh/docs/contract/writeContract#writecontract
+    txn = await callSigner.wallet.writeContract(txnSimulation.request as any);
   } else {
-    txn = await contract.connect(signer)[config.func](...(config.args || []), overrides);
+    const txnSimulation = await runtime.provider.simulateContract({
+      address: contract.address,
+      abi: [neededFuncAbi],
+      account: signer.address,
+      functionName: neededFuncAbi.name,
+      args: config.args,
+      ...overrides,
+    });
+    txn = await signer.wallet.writeContract(txnSimulation.request as any);
   }
 
-  const receipt = await txn.wait();
+  const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
 
   debug('got receipt', receipt);
 
   // get events
-  const txnEvents = _.groupBy(
-    _.filter(
-      receipt.events?.map((e) => {
-        if (!e.event || !e.args) {
-          return null;
-        }
-
-        return {
-          name: e.event,
-          args: e.args as any[],
-        };
-      }),
-      _.isObject
-    ),
+  const txnEvents: EncodedTxnEvents = _.groupBy(
+    viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
+      const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
+      return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
+    }),
     'name'
   );
 
-  return [receipt, txnEvents as EncodedTxnEvents];
+  debug('decoded events', txnEvents);
+
+  return [receipt, txnEvents];
 }
 
 function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
@@ -171,13 +217,80 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
 
           const v = e.args[extra.arg];
 
-          vals[label] = v.toString ? v.toString() : v;
+          vals[label] = typeof v == 'bigint' ? v.toString() : v;
         }
       }
     }
   }
 
   return vals;
+}
+
+async function importTxnData(
+  runtime: ChainBuilderRuntimeInfo,
+  ctx: ChainBuilderContext,
+  config: Config,
+  packageState: PackageState,
+  txns: TransactionMap
+) {
+  const contracts: ChainArtifacts['contracts'] = {};
+
+  if (config.factory) {
+    for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
+      const topLabel = k.split('_')[0];
+      const factoryInfo = config.factory[topLabel];
+
+      if (!contractAddress || !viem.isAddress(contractAddress)) {
+        throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
+      }
+
+      let abi: viem.Abi;
+      let sourceName: string | null;
+      let contractName: string;
+      if (factoryInfo.artifact) {
+        const artifact = await runtime.getArtifact!(factoryInfo.artifact);
+        abi = artifact.abi;
+        sourceName = artifact.sourceName;
+        contractName = artifact.contractName;
+      } else if (factoryInfo.abiOf) {
+        abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
+
+        sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
+        contractName = '';
+      } else {
+        throw new Error(
+          `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
+        );
+      }
+
+      contracts[k] = {
+        address: contractAddress,
+        abi,
+        //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
+        deployTxnHash: '',
+        constructorArgs: factoryInfo.constructorArgs,
+        sourceName: sourceName,
+        contractName: contractName,
+        deployedOn: packageState.currentLabel,
+
+        // contract was deployed as part of another transaction that was alreayd counted for gas usage, so we mark gas cost/usage as 0 here
+        gasUsed: 0,
+        gasCost: '0',
+      };
+
+      if (factoryInfo.highlight) {
+        contracts[k].highlight = true;
+      }
+    }
+  }
+
+  const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
+
+  return {
+    contracts,
+    txns,
+    extras,
+  };
 }
 
 // ensure the specified contract is already deployed
@@ -284,7 +397,7 @@ const invokeSpec = {
     const accesses: string[] = [];
 
     for (const target of config.target) {
-      if (!ethers.utils.isAddress(target)) {
+      if (!viem.isAddress(target)) {
         if (target.includes('.')) {
           accesses.push(`imports.${target.split('.')[0]}`);
         } else {
@@ -368,8 +481,8 @@ const invokeSpec = {
 
     const txns: TransactionMap = {};
 
-    const mainSigner: ethers.Signer = config.from
-      ? await runtime.getSigner(config.from)
+    const mainSigner = config.from
+      ? await runtime.getSigner(config.from as viem.Address)
       : await runtime.getDefaultSigner!({}, '');
 
     const customAbi =
@@ -380,16 +493,21 @@ const invokeSpec = {
         : null;
 
     for (const t of config.target || []) {
-      let contract: ethers.Contract | null;
+      let contract: Contract | null;
 
-      if (ethers.utils.isAddress(t)) {
+      debug('get contract for target: ', t);
+      if (viem.isAddress(t)) {
         if (!customAbi) {
           throw new Error('abi must be defined if addresses is used for target');
         }
 
-        contract = new ethers.Contract(t, customAbi);
+        contract = { address: t, abi: customAbi };
       } else {
-        contract = getContractFromPath(ctx, t, customAbi);
+        contract = getContractFromPath(ctx, t);
+
+        if (contract && customAbi) {
+          contract.abi = customAbi;
+        }
       }
 
       if (!contract) {
@@ -410,59 +528,76 @@ ${getAllContractPaths(ctx).join('\n')}`);
         hash: receipt.transactionHash,
         events: txnEvents,
         deployedOn: packageState.currentLabel,
+        gasUsed: Number(receipt.gasUsed),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: viem.getAddress(receipt.from),
       };
     }
 
-    const contracts: ChainArtifacts['contracts'] = {};
+    return importTxnData(runtime, ctx, config, packageState, txns);
+  },
 
-    if (config.factory) {
-      for (const [k, contractAddress] of _.entries(parseEventOutputs(config.factory, _.map(txns, 'events')))) {
-        const topLabel = k.split('_')[0];
-        const factoryInfo = config.factory[topLabel];
+  async importExisting(
+    runtime: ChainBuilderRuntimeInfo,
+    ctx: ChainBuilderContext,
+    config: Config,
+    packageState: PackageState,
+    existingKeys: string[]
+  ): Promise<ChainArtifacts> {
+    const txns: TransactionMap = {};
+    for (let i = 0; i < existingKeys.length; i++) {
+      const key = existingKeys[i] as viem.Hash;
+      const splitLabel = packageState.currentLabel.split('.')[1];
+      const label = config.target?.length === 1 ? splitLabel || '' : `${splitLabel}_${i}`;
 
-        if (!contractAddress || !ethers.utils.isAddress(contractAddress)) {
-          throw new Error(`address is not valid in ${topLabel}. Ensure "arg" parameter is correct`);
+      const customAbi =
+        typeof config.abi === 'string'
+          ? config.abi.startsWith('[')
+            ? JSON.parse(config.abi)
+            : getContractDefinitionFromPath(ctx, config.abi)?.abi
+          : null;
+
+      debug('resolved contract abi for txn decode', customAbi, config);
+
+      let contract: Contract | null;
+      if (viem.isAddress(config.target[i])) {
+        if (!customAbi) {
+          throw new Error('abi must be defined if addresses is used for target');
         }
 
-        let abi: any[];
-        let sourceName: string | null;
-        let contractName: string;
-        if (factoryInfo.artifact) {
-          const artifact = await runtime.getArtifact!(factoryInfo.artifact);
-          abi = artifact.abi;
-          sourceName = artifact.sourceName;
-          contractName = artifact.contractName;
-        } else if (factoryInfo.abiOf) {
-          abi = getMergedAbiFromContractPaths(ctx, factoryInfo.abiOf);
+        contract = { address: config.target[i] as viem.Address, abi: customAbi };
+      } else {
+        contract = getContractFromPath(ctx, config.target[i]);
 
-          sourceName = ''; // TODO: might cause a problem, might be able to load from the resolved contract itself. update `getContractFromPath`
-          contractName = '';
-        } else {
-          throw new Error(
-            `factory."${topLabel}": must specify at least one of "artifact" or "abiOf" to resolve the contract ABI for the created contract`
-          );
+        if (customAbi && contract) {
+          contract.abi = customAbi;
         }
-
-        contracts[k] = {
-          address: contractAddress,
-          abi,
-          //deployTxnHash: txns[0].hash, // TODO: find the hash for the actual txn we are reading?
-          deployTxnHash: '',
-          constructorArgs: factoryInfo.constructorArgs,
-          sourceName: sourceName,
-          contractName: contractName,
-          deployedOn: packageState.currentLabel,
-        };
       }
+
+      if (!contract) {
+        throw new Error('target contract not found');
+      }
+
+      const receipt = await runtime.provider.getTransactionReceipt({ hash: key });
+      const txnEvents: EncodedTxnEvents = _.groupBy(
+        viem.parseEventLogs({ ...contract, logs: receipt.logs }).map((l) => {
+          const eventAbi = viem.getAbiItem({ abi: contract!.abi, name: l.eventName }) as any;
+          return { name: l.eventName, args: eventAbi.inputs.map((i: any) => (l.args as any)[i.name]) };
+        }),
+        'name'
+      );
+
+      txns[label] = {
+        hash: key,
+        events: txnEvents as EncodedTxnEvents,
+        deployedOn: packageState.currentLabel,
+        gasUsed: Number(receipt.gasUsed),
+        gasCost: receipt.effectiveGasPrice.toString(),
+        signer: viem.getAddress(receipt.from),
+      };
     }
 
-    const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
-
-    return {
-      contracts,
-      txns,
-      extras,
-    };
+    return importTxnData(runtime, ctx, config, packageState, txns);
   },
 };
 

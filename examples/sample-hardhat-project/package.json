@@ -1,9 +1,9 @@
 {
   "name": "sample-hardhat-project",
-  "version": "2.4.21",
+  "version": "2.11.0",
   "private": true,
   "scripts": {
-    "test": "hardhat test"
+    "test": "hardhat cannon:test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
@@ -16,10 +16,10 @@
     "chai": "^4.3.6",
     "dotenv": "^10.0.0",
     "ethers": "^5.7.1",
+    "hardhat-cannon": "file:../../packages/hardhat-cannon",
     "hardhat": "^2.13.1",
-    "hardhat-cannon": "@file:,,/packages/hardhat-cannon",
     "hardhat-gas-reporter": "^1.0.9",
-    "solidity-coverage": "^0.8.4",
+    "solidity-coverage": "^0.8.5",
     "ts-node": "^10.5.0",
     "typechain": "^5.2.0",
     "typescript": "^4.8.2"

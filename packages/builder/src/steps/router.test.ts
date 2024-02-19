@@ -1,5 +1,6 @@
 import action from './router';
-import { fixtureContractData, fixtureCtx, fixtureRuntime, fixtureSigner, mockDeployTransaction } from '../../test/fixtures';
+import { fixtureContractData, fixtureCtx, fixtureSigner } from '../../test/fixtures';
+import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
   describe('configInject()', () => {
@@ -30,7 +31,7 @@ describe('steps/router.ts', () => {
         GreeterTwo: fixtureContractData('GreeterTwo'),
       };
 
-      const runtime = fixtureRuntime();
+      const runtime = fakeRuntime;
 
       const ctx = fixtureCtx({ contracts });
 
@@ -57,7 +58,7 @@ describe('steps/router.ts', () => {
         currentLabel: 'router.Router',
       };
 
-      const runtime = fixtureRuntime();
+      const runtime = fakeRuntime;
       const ctx = fixtureCtx({}); // generate a ctx without the contracts
       const config = { contracts: Object.keys(contracts) };
 
@@ -74,26 +75,34 @@ describe('steps/router.ts', () => {
         currentLabel: 'router.Router',
       };
 
-      const runtime = fixtureRuntime();
+      const runtime = fakeRuntime;
       const ctx = fixtureCtx({ contracts });
-      const config = { from: await signer.getAddress(), contracts: Object.keys(contracts) };
+      const config = { from: await signer.address, contracts: Object.keys(contracts) };
 
-      jest.spyOn(runtime, 'getSigner').mockResolvedValue(signer);
+      (runtime as any).getSigner = jest.fn();
+      jest.mocked(runtime.getSigner).mockResolvedValue(signer);
+      jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
+      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue({
+        contractAddress: '0x12345678',
+        gasUsed: BigInt(1234),
+        effectiveGasPrice: BigInt(5678),
+        transactionHash: '0x8484',
+      });
 
-      const { tx, rx } = await mockDeployTransaction(signer);
       const res = await action.exec(runtime, ctx, config, step);
 
-      expect(signer.sendTransaction).toHaveBeenCalledTimes(1);
-      expect(tx.wait).toHaveBeenCalledTimes(1);
+      expect(fakeRuntime.provider.waitForTransactionReceipt).toHaveBeenCalledTimes(1);
 
       expect(res.contracts).toMatchObject({
         Router: {
-          address: rx.contractAddress,
+          address: '0x12345678',
           abi: contracts.Greeter.abi,
           deployedOn: step.currentLabel,
-          deployTxnHash: tx.hash,
+          deployTxnHash: '0x8484',
           contractName: 'Router',
           sourceName: 'Router.sol',
+          gasCost: '5678',
+          gasUsed: 1234,
         },
       });
     });

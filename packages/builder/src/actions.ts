@@ -1,17 +1,14 @@
 import { z } from 'zod';
-
+import { handleZodErrors } from './error/zod';
 import { ChainBuilderRuntime } from './runtime';
-
+import { chainDefinitionSchema } from './schemas';
 import contractSpec from './steps/contract';
 import importSpec from './steps/import';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 import routerSpec from './steps/router';
-
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
-import { chainDefinitionSchema } from './schemas.zod';
-import { handleZodErrors } from './error/zod';
 
 export interface CannonAction {
   label: string;
@@ -40,6 +37,14 @@ export interface CannonAction {
     ctx: ChainBuilderContext,
     config: any,
     packageState: PackageState
+  ) => Promise<ChainArtifacts>;
+
+  importExisting?: (
+    runtime: ChainBuilderRuntime,
+    ctx: ChainBuilderContext,
+    config: any,
+    packageState: PackageState,
+    existingKeys: string[]
   ) => Promise<ChainArtifacts>;
 
   // Takes in any schema as long as the base type is ZodSchema

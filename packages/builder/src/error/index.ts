@@ -1,48 +1,73 @@
-import { ethers } from 'ethers';
-import { ChainArtifacts, ContractData } from '../types';
-import { renderTrace } from '../trace';
-
 /* eslint-disable no-case-declarations */
+import * as viem from 'viem';
+import { simulateContract, prepareTransactionRequest } from 'viem/actions';
+import { ChainArtifacts, ContractData } from '../types';
+import { TraceEntry, renderTrace, parseContractErrorReason } from '../trace';
 
 import Debug from 'debug';
-import { Logger } from 'ethers/lib/utils';
 
+const NONCE_EXPIRED = 'NONCE_EXPIRED';
 const debug = Debug('cannon:builder:error');
+
+export function traceActions(artifacts: ChainArtifacts) {
+  return (client: viem.Client) => {
+    return {
+      prepareTransactionRequest: async (args: viem.PrepareTransactionRequestParameters) => {
+        try {
+          return await prepareTransactionRequest(client, args);
+        } catch (err) {
+          await handleTxnError(artifacts, client, err, args);
+        }
+      },
+      simulateContract: async (args: viem.SimulateContractParameters) => {
+        try {
+          return await simulateContract(client, args);
+        } catch (err) {
+          try {
+            await handleTxnError(artifacts, client, err, {
+              account: args.account,
+              to: args.address,
+              chain: args.chain,
+              data: viem.encodeFunctionData(args),
+              value: args.value,
+            });
+          } catch (err2) {
+            throw err;
+          }
+        }
+      },
+    };
+  };
+}
 
 export async function handleTxnError(
   artifacts: ChainArtifacts,
-  provider: ethers.providers.Provider,
-  err: any
+  provider: viem.Client,
+  err: any,
+  txnData?: viem.PrepareTransactionRequestParameters
 ): Promise<any> {
-  if (err instanceof CannonTraceError || (err.toString() as string).includes('CannonTraceError')) {
+  if (err instanceof CannonTraceError || (err?.toString() as string).includes('CannonTraceError')) {
     // error already parsed
     debug('skipping trace of error because already processed', err.toString());
     throw err;
   }
 
-  debug('handle txn error received', err.toString());
+  debug('handle txn error received', err.toString(), JSON.stringify(err, null, 2));
+  debug('the txn data', txnData);
 
-  let errorCodeHex: string | null = null;
-  let txnData: ethers.providers.TransactionRequest | null = null;
-  let txnHash: string | null = null;
+  let errorCodeHex: viem.Hex | null = null;
+  let txnHash: viem.Hash | null = null;
 
   let traces: TraceEntry[] = [];
 
-  if (err.code === 'UNPREDICTABLE_GAS_LIMIT') {
-    return handleTxnError(artifacts, provider, err.error);
-  } else if (err.code === 'CALL_EXCEPTION' || err.code === 3) {
-    txnData = err.transaction;
+  if (viem.isHex(err.data)) {
     errorCodeHex = err.data;
-  } else if (err.code === -32015) {
-    errorCodeHex = err.message.split(' ')[1];
-  } else if (err.code === -32603 && err.data.originalError) {
-    errorCodeHex = err.data.originalError.data;
-  } else if (err.code === -32603 && err.data.data) {
-    errorCodeHex = err.data.data;
   }
-  if (err.reason === 'processing response error') {
-    txnData = JSON.parse(err.requestBody).params[0];
+  if (viem.isHex(err.error?.data)) {
     errorCodeHex = err.error.data;
+  }
+  if (err.cause) {
+    await handleTxnError(artifacts, provider, err.cause, txnData);
   }
 
   if (txnData && (await isAnvil(provider))) {
@@ -53,29 +78,25 @@ export async function handleTxnError(
 
     // then, run it for real so we can get a trace
     try {
-      await (provider as ethers.providers.JsonRpcProvider).send('hardhat_impersonateAccount', [fullTxn.from]);
-      const pushedTxn = await (provider as ethers.providers.JsonRpcProvider)
-        .getSigner(fullTxn.from)
-        .sendTransaction(fullTxn);
+      const accountAddr: viem.Address =
+        typeof fullTxn.account === 'string' ? fullTxn.account : (fullTxn.account as viem.Account).address;
+      const fullProvider = provider.extend(viem.publicActions).extend(viem.walletActions);
+      await fullProvider.request({ method: 'anvil_impersonateAccount' as any, params: [accountAddr] });
+      // TODO: reevaluate typings
+      txnHash = await fullProvider.sendTransaction(fullTxn as any);
 
-      try {
-        await pushedTxn.wait();
-      } catch {
-        // intentionally empty
-      }
-      txnHash = pushedTxn.hash;
+      await fullProvider.waitForTransactionReceipt({ hash: txnHash });
     } catch (err) {
-      console.error('warning: failed to force through transaction:', err);
+      debug('warning: failed to force through transaction:', err);
     }
   }
 
-  if (txnHash && (provider as ethers.providers.JsonRpcProvider).send) {
+  if (txnHash) {
     // try getting trace data
     try {
-      traces = await (provider as ethers.providers.JsonRpcProvider).send('trace_transaction', [txnHash]);
+      traces = await provider.request({ method: 'trace_transaction' as any, params: [txnHash] });
     } catch (err) {
-      console.error('warning: trace api unavailable', err);
-      // TODO: trace API most likely not available
+      debug('warning: trace api unavailable', err);
     }
   }
 
@@ -91,16 +112,16 @@ class CannonTraceError extends Error {
 
   // this is needed here to prevent ethers from intercepting the error
   // `NONCE_EXPIRED` is a very innocent looking error, so ethers will simply forward it.
-  code: string = Logger.errors.NONCE_EXPIRED;
+  code: string = NONCE_EXPIRED;
 
-  constructor(error: Error, ctx: ChainArtifacts, errorCodeHex: string | null, traces: TraceEntry[]) {
+  constructor(error: Error, ctx: ChainArtifacts, errorCodeHex: viem.Hex | null, traces: TraceEntry[]) {
     let contractName = 'unknown';
     let decodedMsg = error.message;
     if (errorCodeHex) {
       try {
-        const r = findContract(ctx, ({ address, abi }) => {
+        const r = findContract(ctx, ({ abi }) => {
           try {
-            new ethers.Contract(address, abi).interface.parseError(errorCodeHex);
+            viem.decodeErrorResult({ abi, data: errorCodeHex });
             return true;
           } catch (_) {
             // intentionally empty
@@ -125,55 +146,20 @@ class CannonTraceError extends Error {
   }
 }
 
-export type CallTraceAction = {
-  callType: 'staticcall' | 'delegatecall' | 'call';
-  from: string;
-  gas: string;
-  input: string;
-  to: string;
-  value: string;
-};
-
-export type CreateTraceAction = {
-  from: string;
-  gas: string;
-  init: string;
-  value: string;
-};
-
-export type TraceEntry = {
-  action: CreateTraceAction | CallTraceAction;
-  blockHash: string;
-  blockNumber: string;
-  result: {
-    gasUsed: string;
-    code?: string;
-    output: string;
-  };
-  subtraces: number;
-  traceAddress: number[];
-  transactionHash: string;
-  transactionPosition: number;
-  type: 'call' | 'create';
-};
-
-async function isAnvil(provider: ethers.providers.Provider) {
-  return (
-    (provider as ethers.providers.JsonRpcProvider).send &&
-    (await (provider as ethers.providers.JsonRpcProvider).send('web3_clientVersion', [])).includes('anvil')
-  );
+async function isAnvil(provider: viem.Client) {
+  return (await provider.request({ method: 'web3_clientVersion' })).includes('anvil');
 }
 
 export function findContract(
   ctx: ChainArtifacts,
-  condition: (v: { address: string; abi: any[] }) => boolean,
+  condition: (v: { address: viem.Address; abi: viem.Abi }) => boolean,
   prefix = ''
-): { name: string; contract: ethers.Contract } | null {
+): { name: string; contract: ContractData } | null {
   for (const name in ctx.contracts) {
     if (condition(ctx.contracts[name])) {
       return {
         name: prefix + name,
-        contract: new ethers.Contract(ctx.contracts[name].address, ctx.contracts[name].abi),
+        contract: ctx.contracts[name],
       };
     }
   }
@@ -188,77 +174,6 @@ export function findContract(
   return null;
 }
 
-export function renderResult(result: ethers.utils.Result) {
-  return '(' + result.map((v) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
-}
-
-/**
- * Decode transaction error data to a human-readable error message
- * This method decodes general tx errors (i.e. Panic and Error), and
- * decodes against generated ABIs
- * @param data transaction data
- * @param abis ABIs of all involved contracts if available
- * @return Human-readable error message if decode to error is successful, otherwise null
- */
-export function decodeTxError(data: string, abis: ContractData['abi'][] = []) {
-  if (data.startsWith(ethers.utils.id('Panic(uint256)').slice(0, 10))) {
-    // this is the `Panic` builtin opcode
-    const reason = ethers.utils.defaultAbiCoder.decode(['uint256'], '0x' + data.slice(10))[0];
-    switch (reason.toNumber()) {
-      case 0x00:
-        return 'Panic("generic/unknown error")';
-      case 0x01:
-        return 'Panic("assertion failed")';
-      case 0x11:
-        return 'Panic("unchecked underflow/overflow")';
-      case 0x12:
-        return 'Panic("division by zero")';
-      case 0x21:
-        return 'Panic("invalid number to enum conversion")';
-      case 0x22:
-        return 'Panic("access to incorrect storage byte array")';
-      case 0x31:
-        return 'Panic("pop() empty array")';
-      case 0x32:
-        return 'Panic("out of bounds array access")';
-      case 0x41:
-        return 'Panic("out of memory")';
-      case 0x51:
-        return 'Panic("invalid internal function")';
-      default:
-        return 'Panic("unknown")';
-    }
-  } else if (data.startsWith(ethers.utils.id('Error(string)').slice(0, 10))) {
-    // this is the `Error` builtin opcode
-    const reason = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + data.slice(10));
-    return `Error("${reason}")`;
-  }
-  for (const abi of abis) {
-    const iface = new ethers.utils.Interface(abi as string[]);
-    try {
-      const error = iface.parseError(data);
-      return error.name + renderResult(error.args);
-    } catch (err) {
-      // intentionally empty
-    }
-  }
-  return null;
-}
-
-export function parseContractErrorReason(contract: ethers.Contract | null, data: string): string {
-  const result = decodeTxError(data);
-
-  if (result) {
-    return result;
-  }
-  if (contract) {
-    try {
-      const error = contract.interface.parseError(data);
-      return error.name + renderResult(error.args);
-    } catch (err) {
-      // intentionally empty
-    }
-  }
-
-  return data;
+export function renderResult(result: any) {
+  return '(' + result.map((v: any) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
 }

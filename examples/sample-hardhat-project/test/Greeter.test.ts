@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { Contract } from 'ethers';
 import hre from 'hardhat';
 import { Greeter } from '../typechain';
 
@@ -7,9 +6,8 @@ describe('Greeter', function () {
   let Greeter: Greeter;
 
   before('load', async function () {
-    const { outputs, signers } = await hre.run('cannon:build');
-    const { address, abi } = outputs.contracts.Greeter;
-    Greeter = new Contract(address, abi, signers[0]) as Greeter;
+    const contractInfo = await hre.cannon.getContract('Greeter');
+    Greeter = (await hre.ethers.getContractAt('Greeter', contractInfo.address)) as Greeter;
   });
 
   it('Should return the new greeting once it is changed', async function () {

@@ -58,15 +58,15 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# next.js build output
-.next
-
 # environment variables
 .env
 
 # macOS
 .DS_Store
-
 .idea
 
+# local env vars
 .env.local
+
+# nx cache folder
+.nx/cache

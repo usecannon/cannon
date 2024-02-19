@@ -1,11 +1,9 @@
-import { ethers } from 'ethers';
-
-import { JsonFragment } from '@ethersproject/abi';
+import * as viem from 'viem';
+import { Abi, Address, Hash, Hex, SendTransactionParameters } from 'viem';
 
 import _ from 'lodash';
 
 import type { RawChainDefinition } from './actions';
-import { CannonWrapperGenericProvider } from './error/provider';
 
 export type OptionTypesTs = string | number | boolean;
 
@@ -13,8 +11,8 @@ export type OptionTypesTs = string | number | boolean;
 export type ContractArtifact = {
   contractName: string;
   sourceName: string;
-  abi: JsonFragment[];
-  bytecode: string;
+  abi: Abi;
+  bytecode: Hex;
   deployedBytecode: string;
   linkReferences: {
     [fileName: string]: {
@@ -31,8 +29,8 @@ export type ContractArtifact = {
 };
 
 export type ContractData = {
-  address: string;
-  abi: JsonFragment[];
+  address: Address;
+  abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
   // only should be supplied when generated solidity as a single file
@@ -42,6 +40,8 @@ export type ContractData = {
   sourceName: string;
   deployedOn: string;
   highlight?: boolean;
+  gasUsed: number;
+  gasCost: string;
 };
 
 export type ContractMap = {
@@ -50,9 +50,12 @@ export type ContractMap = {
 
 export type TransactionMap = {
   [label: string]: {
-    hash: string;
+    hash: Hash;
     events: EventMap;
     deployedOn: string;
+    gasUsed: number;
+    gasCost: string;
+    signer: string;
   };
 };
 
@@ -82,24 +85,93 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   imports: BundledChainBuilderOutputs;
 }
 
-export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof ethers.utils & typeof ethers.constants;
+const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];
+
+export const CannonHelperContext = {
+  // ethers style constants
+  AddressZero: viem.zeroAddress,
+  HashZero: viem.zeroHash,
+  MaxUint256: viem.maxUint256,
+
+  // ethers style utils
+  defaultAbiCoder: {
+    encode: (a: string[], v: any[]) => {
+      return viem.encodeAbiParameters(
+        a.map((arg) => ({ type: arg })),
+        v
+      );
+    },
+    decode: (a: string[], v: viem.Hex | viem.ByteArray) => {
+      return viem.decodeAbiParameters(
+        a.map((arg) => ({ type: arg })),
+        v
+      );
+    },
+  },
+
+  zeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
+  hexZeroPad: (a: viem.Hex, s: number) => viem.padHex(a, { size: s }),
+  hexlify: (v: viem.ByteArray) => viem.toHex(v),
+  stripZeros: viem.trim,
+  formatBytes32String: (v: string) => viem.stringToHex(v, { size: 32 }),
+  parseBytes32String: (v: viem.Hex) => viem.hexToString(v, { size: 32 }),
+  id: (v: string) => (v.startsWith('function ') ? viem.toFunctionSelector(v) : viem.keccak256(viem.toHex(v))),
+  formatEther: viem.formatEther,
+  formatUnits: (s: bigint, units: number | string) => {
+    if (typeof units === 'string') {
+      const index = etherUnitNames.indexOf(units);
+      if (index < 0) {
+        throw new Error(`formatUnits: unknown ethereum unit name: ${units}`);
+      }
+      units = 3 * index;
+    }
+
+    return viem.formatUnits(s, units as number);
+  },
+  parseEther: viem.parseEther,
+  parseUnits: (s: string, units: number | string) => {
+    if (typeof units === 'string') {
+      const index = etherUnitNames.indexOf(units);
+      if (index < 0) {
+        throw new Error(`parseUnits: unknown ethereum unit name: ${units}`);
+      }
+      units = 3 * index;
+    }
+
+    return viem.parseUnits(s, units as number);
+  },
+  keccak256: viem.keccak256,
+  sha256: viem.sha256,
+  ripemd160: viem.ripemd160,
+  solidityPack: viem.encodePacked,
+  solidityKeccak256: (a: string[], v: any[]) => viem.keccak256(viem.encodePacked(a, v)),
+  soliditySha256: (a: string[], v: any[]) => viem.sha256(viem.encodePacked(a, v)),
+  serializeTransaction: viem.serializeTransaction,
+  parseTransaction: viem.parseTransaction,
+};
+
+export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
 
 export type BuildOptions = { [val: string]: OptionTypesTs };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
+export type CannonSigner = { wallet: viem.WalletClient; address: Address };
+
+export type Contract = Pick<viem.SimulateContractParameters, 'abi' | 'address'>;
+
 export interface ChainBuilderRuntimeInfo {
   // Interface to which all transactions should be sent and all state queried
-  provider: CannonWrapperGenericProvider;
+  provider: viem.PublicClient;
 
   // chainID to interact with
   chainId: number;
 
   // returns the signer associated with the given address. Reverts if the signer is not found or cannot be populated.
-  getSigner: (addr: string) => Promise<ethers.Signer>;
+  getSigner: (addr: viem.Address) => Promise<CannonSigner>;
 
   // returns a signer which should be used for sending the specified transaction.
-  getDefaultSigner?: (txn: ethers.providers.TransactionRequest, salt?: string) => Promise<ethers.Signer>;
+  getDefaultSigner?: (txn: Omit<SendTransactionParameters, 'account' | 'chain'>, salt?: string) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.
   getArtifact?: (name: string) => Promise<ContractArtifact>;
@@ -212,7 +284,7 @@ export type StepState = {
   artifacts: ChainArtifacts;
 
   // If this is a cannon network build, the full dump of the chain blob is recorded
-  chainDump?: string; // only included if cannon network build
+  chainDump?: Hex | null; // only included if cannon network build
 };
 
 export type DeploymentState = { [label: string]: StepState };

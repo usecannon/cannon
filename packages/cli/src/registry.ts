@@ -1,13 +1,13 @@
-import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
-import _ from 'lodash';
-import path from 'path';
-import fs from 'fs-extra';
-import Debug from 'debug';
+import os from 'node:os';
+import path from 'node:path';
+import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { yellowBright } from 'chalk';
-
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
 import { CliSettings } from './settings';
-import { resolveRegistryProvider } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { resolveRegistryProvider } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -26,76 +26,114 @@ export class LocalRegistry extends CannonRegistry {
     return 'local';
   }
 
-  getTagReferenceStorage(packageRef: string, variant: string): string {
-    return path.join(this.packagesDir, 'tags', `${packageRef.replace(':', '_')}_${variant}.txt`);
+  getTagReferenceStorage(packageRef: string, chainId: number): string {
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
+
+    return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt`);
   }
 
-  async getUrl(packageRef: string, variant: string): Promise<string | null> {
-    const baseResolved = await super.getUrl(packageRef, variant);
+  getMetaTagReferenceStorage(packageRef: string, chainId: number): string {
+    const { name, version, preset } = new PackageReference(packageRef);
+    const variant = `${chainId}-${preset}`;
+
+    return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
+  }
+
+  async getUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const { fullPackageRef } = new PackageReference(packageRef);
+
+    const baseResolved = await super.getUrl(fullPackageRef, chainId);
     if (baseResolved) {
       return baseResolved;
     }
 
-    debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
+    debug(
+      'load local package link',
+      fullPackageRef,
+      'at file',
+      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
+    );
     try {
-      return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
+      return (await fs.readFile(this.getTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
     }
   }
 
-  async getMetaUrl(packageName: string, variant: string): Promise<string | null> {
+  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+    const { fullPackageRef } = new PackageReference(packageRef);
+
     try {
-      debug(
-        'load local meta package link',
-        packageName,
-        variant,
-        'at file',
-        this.getTagReferenceStorage(packageName, variant) + '.meta'
-      );
-      return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+      debug('load local meta package link', fullPackageRef, 'at file', this.getMetaTagReferenceStorage(packageRef, chainId));
+      return (await fs.readFile(this.getMetaTagReferenceStorage(fullPackageRef, chainId))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
     }
   }
 
-  async publish(packagesNames: string[], variant: string, url: string, metaUrl: string): Promise<string[]> {
+  async publish(packagesNames: string[], chainId: number, url: string, metaUrl: string): Promise<string[]> {
     for (const packageName of packagesNames) {
+      const { fullPackageRef } = new PackageReference(packageName);
       debug('package local link', packageName);
-      const file = this.getTagReferenceStorage(packageName, variant);
+      const file = this.getTagReferenceStorage(fullPackageRef, chainId);
+      const metaFile = this.getMetaTagReferenceStorage(fullPackageRef, chainId);
       await fs.mkdirp(path.dirname(file));
       await fs.writeFile(file, url);
-      await fs.writeFile(file + '.meta', metaUrl);
+      await fs.writeFile(metaFile, metaUrl);
     }
 
     return [];
   }
 
-  async scanDeploys(packageName: RegExp | string, variant: RegExp | string): Promise<{ name: string; variant: string }[]> {
+  async scanDeploys(packageRef: string, chainId?: number): Promise<{ name: string; chainId: number }[]> {
+    const ref = PackageReference.parse(packageRef);
     const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
 
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
-    debug(`looking for ${packageName}, ${variant}`);
+    debug(`looking for ${packageRef}, ${chainId}`);
 
     return allTags
       .filter((t) => {
-        const [name, version, tagVariant] = t.replace('.txt', '').split('_');
+        if (t.endsWith('.txt')) {
+          debug(`checking ${packageRef}, ${chainId} for a match with ${t}`);
 
-        return !t.endsWith('.meta') && `${name}:${version}`.match(packageName) && tagVariant.match(variant);
+          const [tagName, tagVersion, tagVariant] = t.replace('.txt', '').split('_');
+          const [tagChainId, tagPreset] = tagVariant.split(/-(.*)/s); // split on first ocurrance only (because the preset can have -)
+
+          if (chainId && tagChainId !== chainId.toString()) return false;
+
+          let tag: PackageReference;
+          try {
+            tag = PackageReference.from(tagName, tagVersion, tagPreset);
+          } catch (er) {
+            return false;
+          }
+
+          if (ref.name && ref.version && ref.preset) {
+            return ref.name === tag.name && ref.version === tag.version && ref.preset === tag.preset;
+          } else if (ref.name && ref.version) {
+            return ref.name === tag.name && ref.version === tag.version;
+          } else {
+            return ref.name === tag.name;
+          }
+        }
       })
       .map((t) => {
         const [name, version, tagVariant] = t.replace('.txt', '').split('_');
-        return { name: `${name}:${version}`, variant: tagVariant };
+        const [chainId, preset] = tagVariant.split(/-(.*)/s);
+        return { name: `${name}:${version}@${preset}`, chainId: Number.parseInt(chainId) };
       });
   }
 
-  async getAllUrls(filterPackage: string, filterVariant: string): Promise<Set<string>> {
+  async getAllUrls(filterPackage: string, chainId: number): Promise<Set<string>> {
     if (!filterPackage) {
       return new Set();
     }
-    const [name, version] = filterPackage.split(':');
+    const { name, version, preset } = new PackageReference(filterPackage);
+    const filterVariant = `${chainId}-${preset}`;
 
     const urls = (await fs.readdir(this.packagesDir))
       .filter((f) => f.match(new RegExp(`${name || '.*'}_${version || '.*'}_${filterVariant || '.*'}`)))
@@ -106,23 +144,23 @@ export class LocalRegistry extends CannonRegistry {
 }
 
 async function checkLocalRegistryOverride({
-  packageRef,
-  variant,
+  fullPackageRef,
+  chainId,
   result,
   registry,
   fallbackRegistry,
 }: {
-  packageRef: string;
-  variant: string;
+  fullPackageRef: string;
+  chainId: number;
   result: string;
   registry: OnChainRegistry | LocalRegistry;
   fallbackRegistry: FallbackRegistry;
 }) {
-  const localResult = await _.last(fallbackRegistry.registries).getUrl(packageRef, variant);
+  const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     console.log(
       yellowBright(
-        `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
+        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
     );
   }
@@ -135,7 +173,7 @@ export async function createDefaultReadRegistry(
   const { provider } = await resolveRegistryProvider(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
-  const onChainRegistry = new OnChainRegistry({ signerOrProvider: provider, address: settings.registryAddress });
+  const onChainRegistry = new OnChainRegistry({ provider, address: settings.registryAddress });
 
   if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');

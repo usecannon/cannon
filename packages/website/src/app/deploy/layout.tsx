@@ -1,33 +1,18 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Flex,
-  Link,
-  useBreakpointValue,
-} from '@chakra-ui/react';
-import { some, omit } from 'lodash';
-import NextLink from 'next/link';
+import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
-import { useStore } from '@/helpers/store';
+
+const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
+  ssr: false,
+});
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const settings = useStore((s) => s.settings);
-
-  const missingSettings = some(
-    omit(settings, 'forkProviderUrl'),
-    (value) => !value
-  );
-
-  const showSettingsAlert =
-    (pathname.includes('/transactions') || pathname.includes('/gitops')) &&
-    missingSettings;
 
   const isMobile = useBreakpointValue([true, true, false]);
 
@@ -46,45 +31,30 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <NavLink
             isSmall
             href={links.DEPLOY}
-            isActive={links.DEPLOY == pathname}
+            isActive={
+              links.DEPLOY == pathname ||
+              pathname.startsWith(links.DEPLOY + '/txn')
+            }
           >
-            {isMobile ? 'Sign Txs' : 'Sign Transactions'}
-          </NavLink>
-          <NavLink
-            isSmall
-            href={links.QUEUETXS}
-            isActive={pathname.startsWith(links.QUEUETXS)}
-          >
-            {isMobile ? 'Queue Txs' : 'Queue Transactions'}
+            {isMobile ? 'Sign' : 'Sign & Execute'}
           </NavLink>
           <NavLink
             isSmall
             href={links.QUEUEFROMGITOPS}
             isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
           >
-            {isMobile ? 'GitOps' : 'Queue From GitOps'}
+            {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
+          </NavLink>
+          <NavLink
+            isSmall
+            href={links.QUEUETXS}
+            isActive={pathname.startsWith(links.QUEUETXS)}
+          >
+            {isMobile ? 'Transactions' : 'Queue Transactions'}
           </NavLink>
         </Flex>
       </Box>
-      {showSettingsAlert && (
-        <Alert bg="gray.700">
-          <Flex mx="auto" flexWrap="wrap" justifyContent="center">
-            <AlertIcon />
-            You must{' '}
-            <Link
-              mx="1"
-              fontWeight="medium"
-              textDecoration="underline"
-              as={NextLink}
-              href={links.SETTINGS}
-            >
-              update your settings
-            </Link>{' '}
-            to queue transactions.
-          </Flex>
-        </Alert>
-      )}
-      {children}
+      <NoSSRWithSafe>{children}</NoSSRWithSafe>
     </Flex>
   );
 }

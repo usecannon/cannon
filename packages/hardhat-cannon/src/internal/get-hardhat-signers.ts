@@ -1,22 +1,24 @@
-import { ethers } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-export function getHardhatSigners(hre: HardhatRuntimeEnvironment, provider: ethers.providers.Provider) {
+import * as viem from 'viem';
+import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts';
+
+export function getHardhatSigners(hre: HardhatRuntimeEnvironment /*, provider: viem.WalletClient*/): viem.Account[] {
   const accounts = hre.network.config.accounts;
+  let signers: viem.Account[] = [];
 
   if (Array.isArray(accounts)) {
-    return accounts.map((account) => new hre.ethers.Wallet(typeof account === 'string' ? account : account.privateKey));
+    signers = accounts.map((k) => privateKeyToAccount(k as viem.Hash));
   } else if (accounts === 'remote') {
-    throw new Error('Remote accounts configuration not implemented with cannon');
+    // TODO
+    //signers = hre.
   } else {
-    const signers: ethers.Signer[] = [];
-
-    for (let i = 0; i < accounts.count; i++) {
-      signers.push(
-        hre.ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${i + accounts.initialIndex}`).connect(provider)
+    signers = Array(accounts.count)
+      .fill(0)
+      .map((_, i) =>
+        mnemonicToAccount(accounts.mnemonic, { path: (accounts.path + `/${i + accounts.initialIndex}`) as any })
       );
-    }
-
-    return signers;
   }
+
+  return signers;
 }

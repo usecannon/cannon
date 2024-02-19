@@ -23,17 +23,25 @@ export interface State {
     buildState: BuildState;
   };
   settings: {
-    ipfsUrl: string;
+    ipfsApiUrl: string;
+    isIpfsGateway: boolean;
     stagingUrl: string;
-    publishTags: string;
-    preset: string;
-    registryAddress: string;
-    registryProviderUrl: string;
-    forkProviderUrl: string;
+    registryAddress: Address;
     customProviders: string[];
     pythUrl: string;
-    ipfsQueryUrl: string;
   };
+}
+
+export interface IpfsState {
+  cid: string;
+  content: string;
+  compression: boolean;
+  format: string;
+}
+
+export interface ipfsActions {
+  download: (state: IpfsState, cid: string) => void;
+  setState: (state: IpfsState, payload: Partial<IpfsState>) => void;
 }
 
 export interface Actions {
@@ -46,8 +54,9 @@ export interface Actions {
 }
 
 export type Store = State & Actions;
+export type IpfsStore = IpfsState & ipfsActions;
 
-const initialState = {
+export const initialState = {
   currentSafe: null,
   safeAddresses: [],
   build: {
@@ -58,18 +67,50 @@ const initialState = {
     },
   },
   settings: {
-    ipfsUrl: '',
+    ipfsApiUrl: 'https://repo.usecannon.com/',
+    isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
-    publishTags: 'latest',
-    preset: 'main',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    registryProviderUrl: 'https://ethereum.publicnode.com',
-    forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
-    ipfsQueryUrl: 'https://ipfs.io/ipfs/',
   },
 } satisfies State;
+
+export const initialIpfsState = {
+  cid: '',
+  content: '',
+  compression: false,
+  format: 'text',
+} satisfies IpfsState;
+
+const useIpfsStore = create<IpfsStore>()(
+  persist(
+    (set) => ({
+      ...initialIpfsState,
+      setState(state: IpfsState, payload: Partial<IpfsState>) {
+        set({ ...state, ...payload });
+      },
+      download(state: IpfsState, cid: string) {
+        if (state.cid === cid) {
+          set({
+            ...state,
+          });
+        } else {
+          set({
+            ...state,
+            cid,
+            content: '',
+            compression: false,
+            format: 'text',
+          });
+        }
+      },
+    }),
+    {
+      name: 'ipfs-state',
+    }
+  )
+);
 
 const useStore = create<Store>()(
   persist(
@@ -115,11 +156,12 @@ const useStore = create<Store>()(
         }));
       },
     }),
-    // Persist only settings and safe addresses on local storage
+    // Persist only settings, current safe and safe addresses on local storage
     {
       name: 'cannon-state',
       partialize: (state) => ({
         settings: state.settings,
+        currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
       }),
       merge: (persisted, initial) => deepmerge(initial, persisted) as Store,
@@ -127,4 +169,4 @@ const useStore = create<Store>()(
   )
 );
 
-export { useStore };
+export { useStore, useIpfsStore };

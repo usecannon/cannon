@@ -1,10 +1,10 @@
 {
   "name": "cannon-registry",
-  "version": "2.4.21",
+  "version": "2.11.3",
   "private": true,
   "description": "Contract registry for Cannon images",
   "scripts": {
-    "test": "hardhat --network hardhat test",
+    "test": "hardhat compile && hardhat --network hardhat test",
     "coverage": "hardhat coverage"
   },
   "repository": {
@@ -19,19 +19,18 @@
   "homepage": "https://github.com/Synthetixio/cannon#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.6",
-    "@nomiclabs/hardhat-etherscan": "3.1.0",
     "@synthetixio/core-contracts": "1.1.1",
     "@typechain/ethers-v5": "10.1.0",
     "@typechain/hardhat": "6.1.2",
     "@types/mocha": "9.1.1",
     "@types/node": "18.0.0",
-    "@usecannon/builder": "^2.4.21",
-    "@usecannon/cli": "^2.4.21",
+    "@usecannon/builder": "2.11.3",
+    "@usecannon/cli": "2.11.3",
     "chai": "4.3.6",
     "dotenv": "16.0.1",
     "ethers": "5.7.1",
     "hardhat": "^2.12.6",
-    "hardhat-cannon": "^2.4.21",
+    "hardhat-cannon": "2.11.3",
     "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.9",
     "mocha": "10.0.0",

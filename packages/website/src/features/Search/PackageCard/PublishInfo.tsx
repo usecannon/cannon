@@ -6,6 +6,7 @@ type PublishInfo = {
   last_updated: number;
   last_publisher?: string;
 };
+
 const PublishInfo: FC<{
   p: PublishInfo;
   lineBreak?: boolean;

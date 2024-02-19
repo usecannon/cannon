@@ -1,24 +1,7 @@
-import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import {
-  Container,
-  FormControl,
-  FormLabel,
-  IconButton,
-  Link,
-  Spacer,
-  Text,
-} from '@chakra-ui/react';
-import {
-  chakraComponents,
-  ChakraStylesConfig,
-  CreatableSelect,
-  GroupBase,
-  OptionProps,
-} from 'chakra-react-select';
-import deepEqual from 'fast-deep-equal';
-import { useEffect } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useAccount, useSwitchNetwork } from 'wagmi';
+import { Alert } from '@/components/Alert';
+import { links } from '@/constants/links';
+import { includes } from '@/helpers/array';
+import { State, useStore } from '@/helpers/store';
 import {
   getSafeFromString,
   getSafeUrl,
@@ -30,9 +13,19 @@ import {
   usePendingTransactions,
   useWalletPublicSafes,
 } from '@/hooks/safe';
-import { State, useStore } from '@/helpers/store';
-import { includes } from '@/helpers/array';
-import { Alert } from '@/components/Alert';
+import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
+import {
+  chakraComponents,
+  ChakraStylesConfig,
+  CreatableSelect,
+  GroupBase,
+  OptionProps,
+} from 'chakra-react-select';
+import deepEqual from 'fast-deep-equal';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useSwitchChain } from 'wagmi';
 
 type SafeOption = {
   value: SafeString;
@@ -49,9 +42,8 @@ export function SafeAddressInput() {
   const prependSafeAddress = useStore((s: any) => s.prependSafeAddress);
   const walletSafes = useWalletPublicSafes();
   const pendingServiceTransactions = usePendingTransactions(currentSafe);
-  const { isConnected } = useAccount();
 
-  const { switchNetwork } = useSwitchNetwork();
+  const { switchChain } = useSwitchChain();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -76,6 +68,10 @@ export function SafeAddressInput() {
         if (!includes(safeAddresses, newSafe)) {
           prependSafeAddress(newSafe);
         }
+
+        if (switchChain) {
+          switchChain({ chainId: newSafe.chainId });
+        }
       } else {
         const newSearchParams = new URLSearchParams(
           Array.from(searchParams.entries())
@@ -88,6 +84,25 @@ export function SafeAddressInput() {
       }
     }
   }, []);
+
+  // Keep the current safe in the url params
+  useEffect(() => {
+    if (
+      pathname.startsWith(links.DEPLOY) &&
+      currentSafe &&
+      !searchParams.has('address') &&
+      !searchParams.has('chainId')
+    ) {
+      const newSearchParams = new URLSearchParams(
+        Array.from(searchParams.entries())
+      );
+      newSearchParams.set('chainId', currentSafe.chainId.toString());
+      newSearchParams.set('address', currentSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router.push(`${pathname}${query}`);
+    }
+  }, [pathname]);
 
   // If the user puts a correct address in the input, update the url
   function handleSafeChange(safeString: SafeString) {
@@ -116,8 +131,8 @@ export function SafeAddressInput() {
     const query = `${'?'.repeat(search.length && 1)}${search}`;
     router.push(`${pathname}${query}`);
 
-    if (switchNetwork) {
-      switchNetwork(selectedSafe.chainId);
+    if (switchChain) {
+      switchChain({ chainId: selectedSafe.chainId });
     }
   }
 
@@ -125,12 +140,28 @@ export function SafeAddressInput() {
     const newSafe = getSafeFromString(newSafeAddress);
     if (newSafe) {
       prependSafeAddress(newSafe);
+      setState({ currentSafe: newSafe });
+
+      const newSearchParams = new URLSearchParams(
+        Array.from(searchParams.entries())
+      );
+      newSearchParams.set('chainId', newSafe.chainId.toString());
+      newSearchParams.set('address', newSafe.address);
+      const search = newSearchParams.toString();
+      const query = `${'?'.repeat(search.length && 1)}${search}`;
+      router.push(`${pathname}${query}`);
+
+      if (switchChain) {
+        switchChain({ chainId: newSafe.chainId });
+      }
     }
   }
 
   function handleSafeDelete(safeString: SafeString) {
     deleteSafe(parseSafe(safeString));
   }
+
+  const isEmpty = !currentSafe;
 
   const chakraStyles: ChakraStylesConfig<
     SafeOption,
@@ -139,8 +170,9 @@ export function SafeAddressInput() {
   > = {
     container: (provided) => ({
       ...provided,
-      borderColor: 'whiteAlpha.400',
+      borderColor: isEmpty ? 'teal.700' : 'gray.700',
       background: 'black',
+      cursor: 'pointer',
     }),
     menuList: (provided) => ({
       ...provided,
@@ -155,16 +187,27 @@ export function SafeAddressInput() {
       ...provided,
       background: 'black',
     }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      background: 'black',
+    }),
+    control: (provided) => ({
+      ...provided,
+      '& hr.chakra-divider': {
+        display: 'none',
+      },
+    }),
   };
 
   return (
-    <Container maxW="100%" w="container.md" pt="4" pb="4">
-      <FormControl mb="6">
-        <FormLabel>Safe</FormLabel>
+    <>
+      <FormControl>
         <CreatableSelect
+          instanceId={'safe-address-select'}
           chakraStyles={chakraStyles}
           isClearable
           value={currentSafe ? _safeToOption(currentSafe) : null}
+          placeholder="Select a Safe"
           noOptionsMessage={() =>
             'Add a safe in the format chainId:safeAddress'
           }
@@ -190,12 +233,6 @@ export function SafeAddressInput() {
           components={{ Option: DeletableOption }}
         />
       </FormControl>
-      {!currentSafe && (
-        <Alert status="info">
-          {isConnected ? 'S' : 'Connect a wallet and s'}elect a Safe from the
-          dropdown above.
-        </Alert>
-      )}
       {currentSafe && pendingServiceTransactions.count > 0 && (
         <Alert status="warning">
           There
@@ -214,7 +251,7 @@ export function SafeAddressInput() {
           override the ones on Safe.
         </Alert>
       )}
-    </Container>
+    </>
   );
 }
 

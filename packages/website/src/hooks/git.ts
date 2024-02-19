@@ -1,18 +1,18 @@
-import { createTwoFilesPatch } from 'diff';
-import http from 'isomorphic-git/http/web';
-import { ServerRef, listServerRefs } from 'isomorphic-git';
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
 import * as git from '@/helpers/git';
+import { useQuery } from '@tanstack/react-query';
+import { createTwoFilesPatch } from 'diff';
+import { listServerRefs, ServerRef } from 'isomorphic-git';
+import http from 'isomorphic-git/http/web';
+import { useMemo } from 'react';
 
 export function useGitRefsList(url: string) {
-  const refsQuery = useQuery(['git', 'ls-remote', url], {
+  const refsQuery = useQuery({
+    queryKey: ['git', 'ls-remote', url],
     queryFn: async () => {
       if (url) {
         return listServerRefs({
           http,
-          corsProxy: 'https://cors.isomorphic-git.org',
+          corsProxy: 'https://git-proxy.repo.usecannon.com',
           url,
           protocolVersion: 1, // reccomended when not filtering prefix
         });
@@ -31,7 +31,8 @@ export function useGitRefsList(url: string) {
 export function useGitFilesList(url: string, ref: string, path: string) {
   const gitRepoQuery = useGitRepo(url, ref, []);
 
-  const readdirQuery = useQuery(['git', 'readdir', url, ref, path], {
+  const readdirQuery = useQuery({
+    queryKey: ['git', 'readdir', url, ref, path],
     queryFn: async () => {
       return git.readDir(url, ref, path);
     },
@@ -45,9 +46,10 @@ export function useGitFilesList(url: string, ref: string, path: string) {
   };
 }
 
-// load files from a git repo
+// Initialize or fetch && pull a git repository
 export function useGitRepo(url: string, ref: string, files: string[]) {
-  return useQuery(['git', 'clone', url, ref, files], {
+  const query = useQuery({
+    queryKey: ['git', 'clone', url, ref, files],
     queryFn: async () => {
       await git.init(url, ref);
       const fileContents = [];
@@ -61,8 +63,10 @@ export function useGitRepo(url: string, ref: string, files: string[]) {
 
       return fileContents;
     },
-    enabled: url != '' && ref != '',
+    enabled: !!(url && ref),
   });
+
+  return query;
 }
 
 /**
@@ -77,19 +81,23 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
   const toQuery = useGitRepo(url, toRef, files);
 
   const patches = useMemo(() => {
-    const patches = [];
-    if (fromQuery.data && toQuery.data) {
-      const fromFiles = fromQuery.data;
-      const toFiles = toQuery.data;
+    const patches: string[] = [];
 
-      for (let i = 0; i < fromFiles.length; i++) {
-        const p = createTwoFilesPatch('a/' + files[i], 'b/' + files[i], fromFiles[i], toFiles[i]);
-        patches.push(p.slice(p.indexOf('\n')));
-      }
+    if (!fromQuery.data || !toQuery.data) return patches;
+
+    const fromFiles = fromQuery.data;
+    const toFiles = toQuery.data;
+
+    for (let i = 0; i < fromFiles.length; i++) {
+      if (fromFiles[i] === toFiles[i]) continue;
+      const p = createTwoFilesPatch(`a/${files[i]}`, `b/${files[i]}`, fromFiles[i], toFiles[i], undefined, undefined, {
+        ignoreWhitespace: false,
+      });
+      patches.push(p.slice(p.indexOf('\n')));
     }
 
     return patches;
-  }, [fromQuery.data, toQuery.data]);
+  }, [fromQuery.status, toQuery.status]);
 
   return {
     patches,

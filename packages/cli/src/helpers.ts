@@ -1,18 +1,49 @@
-import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
-import _ from 'lodash';
-import fs from 'fs-extra';
-import prompts from 'prompts';
-import { magentaBright, yellowBright, yellow, bold } from 'chalk';
 import toml from '@iarna/toml';
-import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
-import { chains } from './chains';
-import { IChainData } from './types';
+import {
+  CANNON_CHAIN_ID,
+  CannonRegistry,
+  ChainArtifacts,
+  ChainBuilderContext,
+  ChainDefinition,
+  ContractData,
+  ContractMap,
+  RawChainDefinition,
+} from '@usecannon/builder';
+import { bold, magentaBright, yellow, yellowBright } from 'chalk';
+import Debug from 'debug';
+import fs from 'fs-extra';
+import _ from 'lodash';
+import prompts from 'prompts';
+import semver from 'semver';
+import * as viem from 'viem';
+import { AbiEvent } from 'abitype';
+import { AbiFunction, Chain } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import Debug from 'debug';
-const debug = Debug('cannon:builder:loader');
+import { chains, cannonChain } from './chains';
+
+const debug = Debug('cannon:cli:helpers');
+
+export async function filterSettings(settings: any) {
+  // Filter out private key for logging
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const { cannonDirectory, privateKey, etherscanApiKey, ...filteredSettings } = settings;
+
+  // Filters out API keys
+  filteredSettings.providerUrl = filteredSettings.providerUrl?.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.registryProviderUrl = filteredSettings.registryProviderUrl?.replace(
+    RegExp(/[=A-Za-z0-9_-]{32,}/),
+    '*'.repeat(32)
+  );
+  filteredSettings.publishIpfsUrl = filteredSettings.publishIpfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+  filteredSettings.ipfsUrl = filteredSettings.ipfsUrl?.replace(RegExp(/[=AZa-z0-9_-]{32,}/), '*'.repeat(32));
+
+  return filteredSettings;
+}
 
 export async function setupAnvil(): Promise<void> {
   // TODO Setup anvil using https://github.com/foundry-rs/hardhat/tree/develop/packages/easy-foundryup
@@ -54,9 +85,31 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
+export function getSighash(fragment: AbiFunction | AbiEvent) {
+  let sighash = '';
+
+  switch (fragment.type) {
+    case 'function':
+      sighash = viem.toFunctionSelector(fragment);
+      break;
+    case 'event':
+      sighash = viem.toEventSelector(fragment);
+      break;
+  }
+
+  return sighash;
+}
+
+export function formatAbiFunction(v: viem.AbiFunction) {
+  return `${v.type} ${v.name}(${v.inputs
+    .map((param) => ` ${param.type} ${param.name}`)
+    .join(',')
+    .trim()})`;
+}
+
 async function getAnvilVersionDate(): Promise<Date | false> {
   try {
-    const child = await spawnSync('anvil', ['--version']);
+    const child = spawnSync('anvil', ['--version']);
     const output = child.stdout.toString();
     const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
     return new Date(timestamp);
@@ -78,14 +131,38 @@ export function execPromise(command: string): Promise<string> {
   });
 }
 
-export async function checkCannonVersion(currentVersion: string): Promise<void> {
+export async function resolveCannonVersion(): Promise<string> {
+  const settings = resolveCliSettings();
+  const versionFile = settings.cannonDirectory + '/version';
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const fileData = fs.readFileSync(versionFile).toString('utf8').split(':');
+    if (parseInt(fileData[1]) >= now - 86400 * 7) {
+      debug('read cannon version from file', fileData);
+      return fileData[0];
+    }
+  } catch (err) {
+    debug('could not load version file', err);
+  }
+
+  debug('downloading version from the internet');
   if (!(await isConnectedToInternet())) {
     debug('You are offline so we dont check the latest version of cannon');
-    return;
+    return '';
   }
-  const latestVersion = await execPromise('npm view @usecannon/cli version');
 
-  if (currentVersion !== latestVersion) {
+  const resolvedVersion = await execPromise('npm view @usecannon/cli version');
+
+  await fs.mkdirp(settings.cannonDirectory);
+  await fs.writeFile(versionFile, `${resolvedVersion}:${now}`);
+
+  return resolvedVersion;
+}
+
+export async function checkCannonVersion(currentVersion: string): Promise<void> {
+  const latestVersion = await resolveCannonVersion();
+
+  if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
     console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
     console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
   }
@@ -134,8 +211,9 @@ export async function loadCannonfile(filepath: string) {
 
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
+  const preset = def.getPreset(ctx);
 
-  return { def, name, version, cannonfile: buf.toString() };
+  return { def, name, version, preset, cannonfile: buf.toString() };
 }
 
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
@@ -183,44 +261,19 @@ export function getChainName(chainId: number): string {
 export function getChainId(chainName: string): number {
   if (chainName == 'cannon') return CANNON_CHAIN_ID;
   if (chainName == 'hardhat') return 31337;
-  const chainData = chains.find((c: IChainData) => c.name == chainName);
+  const chainData = chains.find((c: Chain) => c.name === chainName);
   if (!chainData) {
     throw new Error(`Invalid chain "${chainName}"`);
   } else {
-    return chainData.chainId;
+    return chainData.id;
   }
 }
 
-export function getChainDataFromId(chainId: number): IChainData | null {
+export function getChainDataFromId(chainId: number): Chain | null {
   if (chainId == CANNON_CHAIN_ID) {
-    return {
-      name: 'cannon',
-      chainId: CANNON_CHAIN_ID,
-      shortName: 'eth',
-      chain: 'ETH',
-      network: 'local',
-      networkId: CANNON_CHAIN_ID,
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: ['http://127.0.0.1'],
-      faucets: [],
-      infoURL: 'https://usecannon.com',
-    };
+    return cannonChain;
   }
-  if (chainId == 31337) {
-    return {
-      name: 'hardhat',
-      chainId: 31337,
-      shortName: 'eth',
-      chain: 'ETH',
-      network: 'local',
-      networkId: 31337,
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpc: ['http://127.0.0.1'],
-      faucets: [],
-      infoURL: 'https://hardhat.org',
-    };
-  }
-  return chains.find((c: IChainData) => c.chainId == chainId) || null;
+  return chains.find((c: Chain) => c.id == chainId) || null;
 }
 
 function getMetadataPath(packageName: string): string {
@@ -280,4 +333,55 @@ export function toArgs(options: { [key: string]: string | boolean | number | big
 
     return [flag, stringified];
   });
+}
+
+/**
+ * Extracts the contract and details from the state of a deploy package
+ *
+ * @param state The deploy package state
+ * @returns an object containing ContractData
+ *
+ */
+
+export function getContractsAndDetails(state: {
+  [key: string]: { artifacts: Pick<ChainArtifacts, 'contracts'> };
+}): ContractMap {
+  const contractsAndDetails: { [contractName: string]: ContractData } = {};
+
+  for (const key in state) {
+    if (key.startsWith('contract.')) {
+      const contracts = state[key]?.artifacts?.contracts;
+      if (contracts) {
+        for (const contractName in contracts) {
+          contractsAndDetails[contractName] = contracts[contractName];
+        }
+      }
+    }
+  }
+
+  return contractsAndDetails;
+}
+
+/**
+ *
+ * @param registries The cannon registries
+ * @returns The source a cannon package is loaded from
+ */
+export function getSourceFromRegistry(registries: CannonRegistry[]): string | undefined {
+  const prioritizedRegistry = registries[0];
+  return prioritizedRegistry ? prioritizedRegistry.getLabel() : undefined;
+}
+
+/**
+ * Verifies a private key is valid
+ * @param privateKey The private key to verify
+ * @returns boolean If the private key is valid
+ */
+export function isPrivateKey(privateKey: viem.Hex) {
+  try {
+    privateKeyToAccount(privateKey);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

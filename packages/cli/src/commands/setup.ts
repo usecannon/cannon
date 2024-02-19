@@ -3,12 +3,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import untildify from 'untildify';
 import prompts from 'prompts';
-import {
-  DEFAULT_CANNON_DIRECTORY,
-  CLI_SETTINGS_STORE,
-  DEFAULT_REGISTRY_PROVIDER_URL,
-  DEFAULT_REGISTRY_ADDRESS,
-} from '../constants';
+import { CLI_SETTINGS_STORE, DEFAULT_REGISTRY_PROVIDER_URL, DEFAULT_REGISTRY_ADDRESS } from '../constants';
+import { resolveCliSettings } from '../settings';
 import _ from 'lodash';
 import { bold, italic, yellow } from 'chalk';
 
@@ -16,10 +12,12 @@ export async function setup() {
   // Setup Anvil
   await setupAnvil();
 
-  // Exit if using env var
-  if (process.env.CANNON_SETTINGS) {
+  const settings = resolveCliSettings();
+
+  // Exit if settings is already configured
+  if (settings.cannonSettings) {
     console.log('Your Cannon settings are configured in the environmental variable ____, as follows:');
-    console.log(JSON.stringify(process.env.CANNON_SETTINGS));
+    console.log(JSON.stringify(settings.cannonSettings));
     return;
   }
 
@@ -28,9 +26,7 @@ export async function setup() {
     'Cannon can retrieve and run packages from the registry using public Ethereum and IPFS endpoints, but you need to set custom endpoints to build and publish packages.'
   );
 
-  const cliSettingsStore = untildify(
-    path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
-  );
+  const cliSettingsStore = untildify(path.join(settings.cannonDirectory, CLI_SETTINGS_STORE));
 
   const configExists = fs.existsSync(cliSettingsStore);
   let fileSettings = configExists ? fs.readJsonSync(cliSettingsStore) : {};
@@ -47,7 +43,7 @@ export async function setup() {
       type: 'text',
       name: 'publishIpfsUrl',
       message:
-        'What IPFS endpoint would you like to use when publishing packages? (This may start with https+ipfs://) Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
+        'What IPFS endpoint would you like to use when publishing packages? Avoid using Infura, as pinned files can’t be reliably accessed from other gateways. You can leave this blank and set it later.\n',
       initial: fileSettings.publishIpfsUrl,
     },
     {
@@ -62,13 +58,13 @@ export async function setup() {
       name: 'registryProviderUrl',
       message:
         'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
-      initial: fileSettings.registryProviderUrl || DEFAULT_REGISTRY_PROVIDER_URL || '',
+      initial: fileSettings.registryProviderUrl,
     },
     {
       type: 'text',
       name: 'registryAddress',
       message: 'Optionally, you can set a custom registry address. It is strongly recommended that you use the default.\n',
-      initial: fileSettings.registryAddress || DEFAULT_REGISTRY_ADDRESS || '',
+      initial: fileSettings.registryAddress,
     },
   ];
 

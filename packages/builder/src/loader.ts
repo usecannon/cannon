@@ -1,6 +1,5 @@
-import { Headers, listPinsIpfs, readIpfs, writeIpfs, deleteIpfs } from './ipfs';
-
 import Debug from 'debug';
+import { deleteIpfs, Headers, isIpfsGateway, listPinsIpfs, readIpfs, writeIpfs } from './ipfs';
 
 const debug = Debug('cannon:builder:loader');
 
@@ -14,45 +13,61 @@ export interface CannonLoader {
 
 export class IPFSLoader implements CannonLoader {
   ipfsUrl: string;
+  gatewayChecked = false;
+  isGateway = false;
   customHeaders: Headers = {};
 
   static PREFIX = 'ipfs://';
 
   constructor(ipfsUrl: string, customHeaders: Headers = {}) {
-    this.ipfsUrl = ipfsUrl;
+    this.ipfsUrl = ipfsUrl.replace('+ipfs://', '://');
     this.customHeaders = customHeaders;
+  }
+
+  async checkGateway() {
+    if (this.gatewayChecked) return;
+    this.isGateway = await isIpfsGateway(this.ipfsUrl, this.customHeaders);
+    this.gatewayChecked = true;
   }
 
   getLabel() {
     return `ipfs ${this.ipfsUrl}`;
   }
 
-  async put(misc: any): Promise<string | null> {
+  async put(misc: any): Promise<string> {
+    await this.checkGateway();
+
     debug('ipfs put');
 
-    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders);
+    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway);
 
-    return hash ? IPFSLoader.PREFIX + hash : hash;
+    return IPFSLoader.PREFIX + hash;
   }
 
   async read(url: string) {
+    await this.checkGateway();
+
     debug('ipfs read', url);
 
-    return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders);
+    return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders, this.isGateway);
   }
 
   async remove(url: string) {
+    await this.checkGateway();
+
     debug('ipfs remove', url);
 
     const hash = url.replace(IPFSLoader.PREFIX, '');
 
-    await deleteIpfs(this.ipfsUrl, hash, this.customHeaders);
+    await deleteIpfs(this.ipfsUrl, hash, this.customHeaders, this.isGateway);
   }
 
   async list() {
+    await this.checkGateway();
+
     debug('ipfs list');
 
-    return listPinsIpfs(this.ipfsUrl, this.customHeaders);
+    return listPinsIpfs(this.ipfsUrl, this.customHeaders, this.isGateway);
   }
 }
 
@@ -72,6 +87,7 @@ export class InMemoryLoader implements CannonLoader {
   async read(url: string): Promise<any | null> {
     return JSON.parse(this.datas.get(url) || 'null');
   }
+
   async put(misc: any): Promise<string> {
     const k = `mem://${this.space}/${this.idx++}`;
     this.datas.set(k, JSON.stringify(misc));

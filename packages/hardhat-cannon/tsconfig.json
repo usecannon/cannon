@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2020",
     "module": "commonjs",
     "declaration": true,
     "declarationMap": true,
@@ -13,10 +13,5 @@
     "resolveJsonModule": true
   },
   "exclude": ["dist", "node_modules"],
-  "include": [
-    "./test",
-    "./src",
-    "./src/abis/*.json",
-    "types.ts",
-  ]
+  "include": ["./src"]
 }

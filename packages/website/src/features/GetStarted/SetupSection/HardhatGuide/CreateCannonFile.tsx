@@ -84,7 +84,7 @@ export const CreateCannonFile = () => {
       </Text>
       <Text mb={4}>Your project should have the following contract:</Text>
       <Box mb={4}>
-        <CodePreview code={code1} language="solidity" />
+        <CodePreview code={code1} language="sol" />
       </Box>
       <Text mb={4}>
         Create a cannonfile.toml in the root directory of the project with the
@@ -93,7 +93,7 @@ export const CreateCannonFile = () => {
         time to 1700000000:
       </Text>
       <Box mb={4}>
-        <CodePreview code={code2} language="toml" />
+        <CodePreview code={code2} language="ini" />
       </Box>
       <Text mb={4}>
         Now build the cannonfile for local development and testing:

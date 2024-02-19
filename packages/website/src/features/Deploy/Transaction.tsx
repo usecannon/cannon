@@ -25,8 +25,6 @@ interface Params {
 export function Transaction({ safe, tx, hideExternal }: Params) {
   const hintData = parseHintedMulticall(tx.data);
 
-  console.log(tx._nonce, hintData);
-
   const sigHash = useMemo(
     () => hintData && getSafeTransactionHash(safe, tx),
     [safe, tx]
@@ -41,13 +39,14 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
       mb="4"
       p="5"
       border="1px solid"
-      bg="blackAlpha.300"
+      bg="blackAlpha.500"
       borderColor={isLink ? 'gray.600' : 'gray.700'}
       borderRadius="md"
       alignItems="center"
       shadow={isLink ? 'lg' : ''}
       transition="all 0.2s"
-      _hover={isLink ? { shadow: 'xl', bg: 'blackAlpha.400' } : {}}
+      _hover={isLink ? { shadow: 'xl', bg: 'blackAlpha.600' } : {}}
+      minHeight="74px"
     >
       <Box alignContent={'center'} minWidth={0}>
         <Heading size="md">Transaction #{tx._nonce}</Heading>
@@ -58,7 +57,7 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
             as={NextLink}
             href={`/deploy/txn/${safe.chainId}/${safe.address}/${tx._nonce}/${sigHash}`}
           >
-            <ChevronRightIcon boxSize={6} />
+            <ChevronRightIcon boxSize={8} mr={1} />
           </LinkOverlay>
         ) : (
           <ChakraLink
@@ -67,9 +66,7 @@ export function Transaction({ safe, tx, hideExternal }: Params) {
           >
             <IconButton
               variant="link"
-              opacity={0.4}
               transform="translateY(1px)"
-              _hover={{ opacity: 1 }}
               aria-label={`View Transaction #${tx._nonce}`}
               icon={<ExternalLinkIcon />}
             />

@@ -1,4 +1,4 @@
-import { ChainDefinition } from './definition';
+import { ChainDefinition, validatePackageName, validatePackageVersion } from './definition';
 
 import 'jest';
 import _ from 'lodash';
@@ -18,6 +18,39 @@ function makeFakeChainDefinition(nodes: { [n: string]: any }) {
 }
 
 describe('ChainDefinition', () => {
+  describe('validatePackageName()', () => {
+    it('verifies the name is not too short', () => {
+      expect(() => validatePackageName('hh')).toThrowError('must be at least');
+    });
+
+    it('verifies the name is not too long', () => {
+      expect(() => validatePackageName('12341234123412341234123412341234')).toThrowError('must be at most');
+    });
+
+    it('verifies the name does not have dash at beginning or end', () => {
+      expect(() => validatePackageName('wohoo--')).toThrowError('dash');
+      expect(() => validatePackageName('--wohoo')).toThrowError('dash');
+    });
+
+    it('verifies character set', () => {
+      expect(() => validatePackageName('woh+oo')).toThrowError('dash');
+    });
+
+    it('works if there is no problem', () => {
+      validatePackageName('something--1234-fun');
+    });
+  });
+
+  describe('validatePackageVersion()', () => {
+    it('verifies the name is not too long', () => {
+      expect(() => validatePackageVersion('12341234123412341234123412341234')).toThrowError('must be at most');
+    });
+
+    it('works if there is no problem', () => {
+      validatePackageVersion('something-1234-fun');
+    });
+  });
+
   describe('checkCycles()', () => {
     it('works when there are 0 nodes', async () => {
       const def = makeFakeChainDefinition({});
@@ -289,7 +322,6 @@ describe('ChainDefinition', () => {
 
       const layers = def.getStateLayers();
 
-      console.log(layers);
       expect(layers['contract.L2'].depends).not.toContain('contract.L2');
       expect(layers['contract.R1'].depends).not.toContain('contract.R1');
       expect(layers['contract.R2'].depends).not.toContain('contract.R2');

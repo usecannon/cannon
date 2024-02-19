@@ -1,6 +1,15 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import { Heading, Text, Box, Link } from '@chakra-ui/react';
+import {
+  Heading,
+  Text,
+  Box,
+  Link,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+} from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 export const RunPackage = () => {
@@ -18,6 +27,23 @@ export const RunPackage = () => {
       >
         Run a Cannon Package
       </Heading>
+      <Alert status="info" mb={4} bg="gray.800">
+        <AlertIcon />
+        <Box>
+          <AlertTitle>Install Forge before proceeding</AlertTitle>
+          <AlertDescription>
+            The steps in this guide require Anvil, which is included as part of
+            Forge. If you do not have Forge installed, you can{' '}
+            <Link
+              href="https://book.getfoundry.sh/getting-started/installation"
+              isExternal
+            >
+              follow their installation guide
+            </Link>
+            {'.'}
+          </AlertDescription>
+        </Box>
+      </Alert>
       <Text mb={4}>Start by installing Cannon with the following command:</Text>
       <Box mb={4}>
         <CommandPreview command="npm install -g @usecannon/cli" />
@@ -30,8 +56,9 @@ export const RunPackage = () => {
         , like so:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon synthetix-sandbox" />
+        <CommandPreview command="cannon synthetix-omnibus@andromeda" />
       </Box>
+
       <Text mb={4}>
         This will start an&nbsp;
         <Link
@@ -43,7 +70,7 @@ export const RunPackage = () => {
         &nbsp; on port 8545 with{' '}
         <Link
           isExternal
-          href="https://github.com/synthetixio/synthetix-sandbox"
+          href="https://github.com/synthetixio/synthetix-deployments"
         >
           a deployment of Synthetix V3
         </Link>{' '}
@@ -55,7 +82,7 @@ export const RunPackage = () => {
         ABIs. For example:
       </Text>
       <Box mb={4}>
-        <CommandPreview command="cannon inspect synthetix-sandbox --write-deployments ./deployments" />
+        <CommandPreview command="cannon inspect synthetix-omnibus@andromeda --write-deployments ./deployments" />
       </Box>
       <Text mb={4}>
         The command-line tool has a lot of additional functionality, including

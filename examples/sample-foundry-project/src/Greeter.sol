@@ -3,11 +3,13 @@ pragma solidity ^0.8.0;
 
 //import {console} from "forge-std/console.sol";
 
-import "./Library.sol";
-import "./ClonedGreeter.sol";
+import {Library} from "./Library.sol";
+import {ClonedGreeter} from "./ClonedGreeter.sol";
 
 contract Greeter {
   string public greeting;
+
+  error BadGreeting(string);
 
   constructor(string memory _greeting) {
     //console.log("Deploying a Greeter with greeting:", _greeting);
@@ -21,6 +23,9 @@ contract Greeter {
 
   function setGreeting(string memory _greeting) public {
     //console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+    if (keccak256(abi.encodePacked(_greeting)) == keccak256(abi.encodePacked("whoops"))) {
+      revert BadGreeting(_greeting);
+    }
     greeting = _greeting;
   }
 
