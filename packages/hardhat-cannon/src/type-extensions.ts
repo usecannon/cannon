@@ -1,6 +1,7 @@
 import type { HardhatNetworkConfig } from 'hardhat/types/config';
 import type { BuildOutputs } from './types';
-import type { getContract } from './utils';
+import type { getContract, getContractData, getAllContractDatas } from './utils';
+import type * as viem from 'viem';
 
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
@@ -44,8 +45,14 @@ declare module 'hardhat/types/runtime' {
     cannon: {
       /** Output generated on last build */
       outputs?: BuildOutputs;
-      /** Get an instance of a ethers.Contract from the built outputs */
+      provider?: viem.PublicClient & viem.TestClient & viem.WalletClient;
+      signers?: viem.Account[];
+      /** Get the abi and address from a specific contract */
       getContract: typeof getContract;
+      /** Get all the contract data from a specific contract */
+      getContractData: typeof getContractData;
+      /** Get all the contracts generated during the executed cannon:build */
+      getAllContractDatas: typeof getAllContractDatas;
     };
   }
 }
