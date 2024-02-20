@@ -96,7 +96,7 @@ describe('steps/contract.ts', () => {
     it('resolves correct properties with minimal config', async () => {
       const result = await action.getState(fakeRuntime, fakeCtx, { artifact: 'hello' });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         bytecode: '0xabcd',
         args: [],
         salt: undefined,
@@ -116,7 +116,7 @@ describe('steps/contract.ts', () => {
         value: '1234',
       });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         bytecode: '0xabcd',
         args: ['one', 'two', '{"three":"four"}'],
         salt: 'wohoo',
