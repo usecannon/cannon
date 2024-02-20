@@ -39,9 +39,11 @@ const importSpec = {
     debug('resolved pkg', source, chainId);
     const url = await runtime.registry.getUrl(source, chainId);
 
-    return {
-      url,
-    };
+    return [
+      {
+        url,
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {

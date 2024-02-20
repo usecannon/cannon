@@ -56,17 +56,20 @@ const provisionSpec = {
       if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
         // partial build always need to be re-evaluated
         debug('forcing rebuild because deployment is partial');
-        return 'REBUILD PARTIAL DEPLOYMENT ' + Math.random();
+        // returning an empty array for force a rebuild because any provided state hash will never match
+        return [];
       }
     }
 
     const srcUrl = await runtime.registry.getUrl(source, chainId);
 
-    return {
-      url: srcUrl,
-      options: cfg.options,
-      targetPreset: cfg.targetPreset,
-    };
+    return [
+      {
+        url: srcUrl,
+        options: cfg.options,
+        targetPreset: cfg.targetPreset,
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {

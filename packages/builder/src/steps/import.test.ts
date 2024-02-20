@@ -38,7 +38,7 @@ describe('steps/import.ts', () => {
 
       const result = await action.getState(fakeRuntime, fakeCtx, { source: 'hello:1.0.0' });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         url: 'https://something.com',
       });
     });
