@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
-import { ChainBuilderContext, ChainArtifacts, CannonSigner, Contract } from './types';
+import { ChainArtifacts, CannonSigner, Contract } from './types';
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new

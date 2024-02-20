@@ -1,8 +1,6 @@
 import path from 'node:path';
 import os from 'node:os';
 
-import Debug from 'debug';
-
 export const DEFAULT_CANNON_DIRECTORY = path.join(os.homedir(), '.local', 'share', 'cannon');
 export const DEFAULT_REGISTRY_PROVIDER_URL = 'https://ethereum.publicnode.com/';
 export const DEFAULT_ETHERSCAN_API_URL = '';
