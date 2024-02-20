@@ -22,8 +22,10 @@ export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 
 export { publishPackage, PackageReference, PKG_REG_EXP } from './package';
 
-export { CANNON_CHAIN_ID } from './constants';
+export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl } from './constants';
 
 export * from './access-recorder';
 export { renderTrace, findContract } from './trace';
 export type { TraceEntry } from './trace';
+
+export * from './helpers';
