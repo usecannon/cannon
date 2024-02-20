@@ -8,6 +8,7 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import { HttpNetworkConfig } from 'hardhat/types';
 import * as viem from 'viem';
+import { augmentProvider } from '../internal/augment-provider';
 import { getHardhatSigners } from '../internal/get-hardhat-signers';
 import { loadPackageJson } from '../internal/load-pkg-json';
 import { parseAnvilOptions } from '../internal/parse-anvil-options';
@@ -197,9 +198,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       }
 
       // Include provider error parsing
-      provider = provider.extend(traceActions(outputs) as any) as unknown as viem.PublicClient &
-        viem.TestClient &
-        viem.WalletClient;
+      provider = augmentProvider(provider, outputs);
 
       hre.cannon.outputs = outputs;
       hre.cannon.provider = provider;

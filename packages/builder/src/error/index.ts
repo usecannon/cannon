@@ -1,7 +1,7 @@
 import Debug from 'debug';
 /* eslint-disable no-case-declarations */
 import * as viem from 'viem';
-import { prepareTransactionRequest, simulateContract } from 'viem/actions';
+import { estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
 import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace';
 import { ChainArtifacts, ContractData } from '../types';
 
@@ -11,6 +11,13 @@ const debug = Debug('cannon:builder:error');
 export function traceActions(artifacts: ChainArtifacts) {
   return (client: viem.Client) => {
     return {
+      estimateGas: async (args: viem.EstimateGasParameters) => {
+        try {
+          return await estimateGas(client, args);
+        } catch (err) {
+          await handleTxnError(artifacts, client, err, args as viem.PrepareTransactionRequestParameters);
+        }
+      },
       prepareTransactionRequest: async (args: viem.PrepareTransactionRequestParameters) => {
         try {
           return await prepareTransactionRequest(client, args);
