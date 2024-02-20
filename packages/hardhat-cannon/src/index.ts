@@ -12,10 +12,6 @@ import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
-  config.paths.deployments = userConfig.paths?.deployments
-    ? path.resolve(config.paths.root, userConfig.paths.deployments)
-    : path.join(config.paths.root, 'deployments');
-
   config.cannon = {
     publicSourceCode: userConfig.cannon?.publicSourceCode || false,
   };
