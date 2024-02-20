@@ -20,7 +20,7 @@ export interface CannonAction {
     ctx: ChainBuilderContextWithHelpers,
     config: any,
     packageState: PackageState
-  ) => any;
+  ) => Promise<any[] | null>;
 
   /**
    * Returns a list of state keys that this step consumes (used for dependency inference)
