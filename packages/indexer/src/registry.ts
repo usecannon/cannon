@@ -149,12 +149,12 @@ export async function handleCannonPublish(
           // note: we dont include chainId in the index here because transaction ids are almost always unique
           batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, contract.deployTxnHash, packageRef);
           batch.ts.incrBy(`${RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
-            TIMESTAMP: timestamp - (timestamp % 3600),
+            TIMESTAMP: timestamp - (timestamp % 3600000),
             LABELS: { chainId: `${chainId}`, kind: RKEY_TS_TRANSACTION_COUNT },
           });
         }
         batch.ts.incrBy(`${RKEY_TS_CONTRACT_COUNT}:${chainId}`, 1, {
-          TIMESTAMP: timestamp - (timestamp % 3600),
+          TIMESTAMP: timestamp - (timestamp % 3600000),
           LABELS: { chainId: `${chainId}`, kind: RKEY_TS_CONTRACT_COUNT },
         });
 
@@ -183,7 +183,7 @@ export async function handleCannonPublish(
       for (const txn of Object.values(state.artifacts.txns || {})) {
         batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, txn.hash, packageRef);
         batch.ts.incrBy(`${RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
-          TIMESTAMP: timestamp - (timestamp % 3600),
+          TIMESTAMP: timestamp - (timestamp % 3600000),
           LABELS: { chainId: `${chainId}`, kind: RKEY_TS_TRANSACTION_COUNT },
         });
       }
@@ -248,14 +248,16 @@ export async function loop() {
             size: 32,
           })}@${viem.hexToString(event.args.variant, { size: 32 }).split('-')[1]}`;
           const chainId = parseInt(viem.hexToString(event.args.variant, { size: 32 }).split('-')[0]);
-          const timestamp = Number((await client.getBlock({ blockNumber: event.blockNumber })).timestamp);
+
+          // most redis time primitives expect millisecond timestamp
+          const timestamp = Number((await client.getBlock({ blockNumber: event.blockNumber })).timestamp) * 1000;
           const batch = redis.multi();
 
           // index: list of all package names, sorted set for easy resolution/querying
           // timestamp is set as the score so we can easily get the "last package published" or between any date range
           batch.zAdd(`${RKEY_PACKAGE_NAMES}`, { score: timestamp, value: packageRef + '#' + chainId });
           batch.ts.incrBy(`${RKEY_TS_PACKAGE_COUNT}:${chainId}`, 1, {
-            TIMESTAMP: timestamp - (timestamp % 3600),
+            TIMESTAMP: timestamp - (timestamp % 3600000),
             LABELS: { chainId: `${chainId}`, kind: RKEY_TS_PACKAGE_COUNT },
           });
 
