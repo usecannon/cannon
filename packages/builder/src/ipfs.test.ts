@@ -27,13 +27,13 @@ describe('ipfs.ts', () => {
 
     if (IPFS_GATEWAY_URL) {
       it('can download and decompress cannon info on gateway', async function () {
-        expect(await readIpfs(IPFS_GATEWAY_URL, knownIpfsResource, {}, true)).toEqual({ hello: 'world' });
+        expect(await readIpfs(IPFS_GATEWAY_URL, knownIpfsResource, {}, true, 300000)).toEqual({ hello: 'world' });
       });
     }
 
     if (IPFS_API_URL) {
       it('can download and decompress cannon info on ipfs api', async function () {
-        expect(await readIpfs(IPFS_API_URL, knownIpfsResource, {}, true)).toEqual({ hello: 'world' });
+        expect(await readIpfs(IPFS_API_URL, knownIpfsResource, {}, true, 300000)).toEqual({ hello: 'world' });
       });
     }
   });
@@ -48,27 +48,27 @@ describe('ipfs.ts', () => {
     it('returns custom local content hash', async () => {
       const result = { statusText: 'Success', data: { Hash: 'QmP4iRbwrrP4DjRXsxh6uxnMfwhsHpCfX1THt2nR9RYP9M' } };
       mockedPost.mockResolvedValueOnce(result);
-      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, false)).toEqual(result.data.Hash);
+      expect(await writeIpfs('http://arstarst.com', { hello: 'world' }, {}, false, 300000)).toEqual(result.data.Hash);
     });
 
     if (IPFS_API_URL) {
       it('uploads compressed archive that can be read back', async () => {
-        await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true);
+        await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true, 300000);
       });
     }
   });
 
   describe('deleteIpfs()', () => {
     it('throws on gateway', async () => {
-      await expect(() => deleteIpfs('http://arstarst.com', 'ipfs://Qmfake', {}, true)).rejects.toBeTruthy();
+      await expect(() => deleteIpfs('http://arstarst.com', 'ipfs://Qmfake', {}, true, 300000)).rejects.toBeTruthy();
     });
 
     if (IPFS_API_URL) {
       it('deletes', async () => {
-        const url = await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true);
-        await deleteIpfs(IPFS_API_URL, url!, {}, true);
+        const url = await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true, 300000);
+        await deleteIpfs(IPFS_API_URL, url!, {}, true, 300000);
 
-        expect(await readIpfs(IPFS_API_URL, url!, {}, true)).toEqual(null);
+        expect(await readIpfs(IPFS_API_URL, url!, {}, true, 300000)).toEqual(null);
       });
     }
   });
@@ -80,7 +80,7 @@ describe('ipfs.ts', () => {
 
     if (IPFS_API_URL) {
       it('returns empty array when no pins are present', async () => {
-        const url = await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true);
+        const url = await writeIpfs(IPFS_API_URL, { hello: 'world' }, {}, true, 300000);
         expect(await listPinsIpfs(IPFS_API_URL, {}, true)).toContain(url);
       });
     }
