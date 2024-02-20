@@ -14,7 +14,7 @@ export function getAllContractDatas() {
 }
 
 /** Get the abi and address from the built outputs */
-export async function getContract(contractName: string) {
+export function getContract(contractName: string) {
   const contract = getContractData(contractName);
   return { address: contract.address, abi: contract.abi };
 }

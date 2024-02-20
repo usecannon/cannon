@@ -33,16 +33,6 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 });
 
 extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
-  if (!(hre as any).ethers) {
-    throw new Error(
-      'Missing ethers.js installation. Install it with:\n  npm install --save-dev @nomicfoundation/hardhat-ethers ethers'
-    );
-  }
-
-  if (hre.network.name === 'hardhat' && (hre as any).ethers.version.startsWith('6.')) {
-    throw new Error("Cannon is not comptible with ethers v6 + hardhat's network. You can use --network cannon");
-  }
-
-  const { getContract } = await import('./utils');
-  hre.cannon = { getContract };
+  const { getContract, getContractData, getAllContractDatas } = await import('./utils');
+  hre.cannon = { getContract, getContractData, getAllContractDatas };
 });

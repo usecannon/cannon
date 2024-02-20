@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract ClonedGreeter {
   string public greeting;
 
   constructor(string memory _greeting) {
-    console.log("Deploying a ClonedGreeter with greeting:", _greeting);
+    // console.log("Deploying a ClonedGreeter with greeting:", _greeting);
     greeting = _greeting;
   }
 
