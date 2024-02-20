@@ -262,11 +262,17 @@ export function parseContractErrorReason(contract: Contract | null, data: Hex): 
 }
 
 export function renderResult(result: readonly any[]) {
-  return '(' + result.map((v) => {
-    if (typeof v === 'object') {
-      return JSON.stringify(v);
-    } else {
-      (v.toString ? '"' + v.toString() + '"' : v)
-    }
-  }).join(', ') + ')';
+  return (
+    '(' +
+    result
+      .map((v) => {
+        if (typeof v === 'object') {
+          return JSON.stringify(v);
+        } else {
+          v.toString ? '"' + v.toString() + '"' : v;
+        }
+      })
+      .join(', ') +
+    ')'
+  );
 }

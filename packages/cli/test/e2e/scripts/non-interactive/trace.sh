@@ -4,3 +4,4 @@ $CANNON trace trusted-multicall-forwarder@with-synthetix \
  --to 0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e \ 
  --from 0xFD348aF9ee8D155066d11356A3E81680c7535b4c \ 
  --chain-id 8453
+ --provider-url https://base-mainnet.g.alchemy.com/v2/nxqdwH6pqTH5sQfR4R_ioXy3ZH1FFLkL

@@ -167,7 +167,7 @@ export async function trace({
     const receipt = await simulateProvider.getTransactionReceipt({ hash: txnHash });
     const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
     console.log();
-    if (receipt.status == 1) {
+    if (receipt.status == 'success') {
       console.log(
         green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
       );
