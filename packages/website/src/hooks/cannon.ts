@@ -356,7 +356,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
   const ipfsQuery = useQuery({
     queryKey: ['cannon', 'pkg', pkgUrl],
     queryFn: async () => {
-      addLog(`LOADING PKG URL: ${pkgUrl}`);
+      addLog(`Loading ${pkgUrl}`);
 
       if (!pkgUrl) return null;
 
@@ -374,7 +374,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
         const resolvedPreset = def.getPreset(ctx);
 
         if (deployInfo) {
-          addLog('LOADED');
+          addLog(`Loaded ${resolvedName}:${resolvedVersion}@${resolvedPreset} from IPFS`);
           return { deployInfo, ctx, resolvedName, resolvedVersion, resolvedPreset };
         } else {
           throw new Error('failed to download package data');

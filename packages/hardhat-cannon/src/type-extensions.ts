@@ -4,10 +4,6 @@ import type { getContract, getContractData, getAllContractDatas } from './utils'
 import type * as viem from 'viem';
 
 declare module 'hardhat/types/config' {
-  export interface ProjectPathsUserConfig {
-    deployments?: string;
-  }
-
   export interface HardhatUserConfig {
     cannon?: {
       publicSourceCode: boolean;
@@ -27,10 +23,6 @@ declare module 'hardhat/types/config' {
     // nothing for now
     port: number;
     url: string;
-  }
-
-  export interface ProjectPathsConfig {
-    deployments: string;
   }
 
   export interface HardhatConfig {

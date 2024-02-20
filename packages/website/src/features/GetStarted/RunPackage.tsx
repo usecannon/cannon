@@ -66,16 +66,16 @@ export const RunPackage = () => {
           isExternal
         >
           Anvil node
-        </Link>
-        &nbsp; on port 8545 with{' '}
+        </Link>{' '}
+        with{' '}
         <Link
           isExternal
           href="https://github.com/synthetixio/synthetix-deployments"
         >
           a deployment of Synthetix V3
         </Link>{' '}
-        for local testing and development. Press i to interact with the
-        contracts directly in the command-line interface.
+        for local testing and development. Press <kbd>i</kbd> to interact with
+        the contracts directly in the command-line interface.
       </Text>
       <Text mb={4}>
         You can use the inspect command to retrieve the contract addresses and
