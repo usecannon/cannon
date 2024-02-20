@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CannonSigner, traceActions } from '@usecannon/builder';
+import { CannonSigner } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings } from '@usecannon/cli';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
