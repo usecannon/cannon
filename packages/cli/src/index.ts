@@ -446,6 +446,11 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
   opts.port = 0;
+
+  if (opts.providerUrl) {
+    opts.dryRun = true;
+  }
+
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here

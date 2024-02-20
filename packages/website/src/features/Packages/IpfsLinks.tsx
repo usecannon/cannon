@@ -117,14 +117,14 @@ export const IpfsLinks: FC<{
       </Flex>
       {deploymentInfo?.status == 'complete' && (
         <Tooltip label="This deployment is complete. The resulting chain state matches the desired chain definition.">
-          <Box ml={3}>
+          <Box pl={[6, 6, 2]}>
             <PiCheckCircleFill size="20" fill={green500Hex} />
           </Box>
         </Tooltip>
       )}
       {deploymentInfo?.status == 'partial' && (
         <Tooltip label="This is a partial deployment. The resulting chain state did not completely match the desired chain definition.">
-          <Box ml={3}>
+          <Box pl={[6, 6, 2]}>
             <PiMinusCircleFill size="20" fill={yellow400Hex} />
           </Box>
         </Tooltip>

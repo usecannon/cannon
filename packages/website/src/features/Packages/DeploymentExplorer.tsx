@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   Heading,
   Link,
   Text,
@@ -212,29 +213,29 @@ export const DeploymentExplorer: FC<{
           )}
           {(!isEmpty(addressesAbis) || !isEmpty(contractState)) && (
             <Box mt={6}>
-              <Heading size="md" px={4} mb={3}>
-                Contract Deployments
-                <Button
-                  ml={4}
-                  variant="outline"
-                  colorScheme="white"
-                  size="xs"
-                  bg="teal.900"
-                  borderColor="teal.500"
-                  _hover={{ bg: 'teal.800' }}
-                  leftIcon={<DownloadIcon boxSize={2.5} />}
-                  onClick={handleDownload}
-                  textTransform="uppercase"
-                  letterSpacing="1px"
-                  pt={0.5}
-                  fontFamily="var(--font-miriam)"
-                  color="gray.200"
-                  fontWeight={500}
-                >
-                  Download Addresses + ABIs
-                </Button>
-              </Heading>
-
+              <Flex px={4} mb={3} direction={['column', 'column', 'row']}>
+                <Heading size="md">Contract Deployments</Heading>
+                <Box ml={[0, 0, 4]} mt={[2, 2, 0]}>
+                  <Button
+                    variant="outline"
+                    colorScheme="white"
+                    size="xs"
+                    bg="teal.900"
+                    borderColor="teal.500"
+                    _hover={{ bg: 'teal.800' }}
+                    leftIcon={<DownloadIcon boxSize={2.5} />}
+                    onClick={handleDownload}
+                    textTransform="uppercase"
+                    letterSpacing="1px"
+                    pt={0.5}
+                    fontFamily="var(--font-miriam)"
+                    color="gray.200"
+                    fontWeight={500}
+                  >
+                    Download Addresses + ABIs
+                  </Button>
+                </Box>
+              </Flex>
               <Box maxW="100%" overflowX="auto">
                 <ContractsTable
                   contractState={contractState}
