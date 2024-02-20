@@ -8,6 +8,7 @@ setup_file() {
   load helpers/bats-helpers.sh
   _setup_file
 
+  echo "============== Packing and installing CLI ==============" >&3
   # Adding npm pack built @usecannon/cli npm package
   cd $WORKDIR 
   cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
@@ -24,6 +25,8 @@ setup_file() {
   # Fork Mainnet to run tests against forked node
   anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent &
   export ANVIL_PID="$!"
+
+  echo "============== Running Test Suite ==============" >&3
 }
 
 # File post-run hook
@@ -45,6 +48,7 @@ teardown() {
   load helpers/bats-helpers.sh
   _teardown
 }
+
 
 @test "Alter - Import contract " {
   run alter-import-contract.sh
