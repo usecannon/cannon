@@ -4,6 +4,12 @@ import Debug from 'debug';
 import FormData from 'form-data';
 import pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
+import axiosRetry from 'axios-retry';
+
+export function setIpfsRetries(count = 3) {
+    // Defines axios client retry configuration
+    axiosRetry(axios, { retries: count });
+}
 
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;
@@ -104,6 +110,8 @@ export async function writeIpfs(
   customHeaders: Headers = {},
   isGateway: boolean
 ): Promise<string> {
+  setIpfsRetries();
+  
   const data = JSON.stringify(info);
   const buf = compress(data);
   const cid = await getContentCID(Buffer.from(buf));
