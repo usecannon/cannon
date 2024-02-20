@@ -4,7 +4,6 @@
   "description": "Injects Cannon data from raw data sources into Redis",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js"
   },
