@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
 import { extendConfig, extendEnvironment } from 'hardhat/config';
 import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
