@@ -128,7 +128,7 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
       chainId = await _provider.getChainId();
     }
   } else {
-    chainId = opts.chainId;
+    chainId = parseInt(opts.chainId);
 
     // use default rpc url for the chain ID if no provider url is specified
     if (opts.privateKey && !opts.providerUrl) {

@@ -45,6 +45,21 @@ export async function trace({
   // will call `trace_transaction`, and decode as much data from the trace
   // as possible, the same way that an error occurs
 
+  if (providerUrl) {
+    // get chain id from provider
+    const publicClient = viem.createPublicClient({
+      transport: viem.http(providerUrl),
+    });
+
+    if (chainId && chainId !== (await publicClient.getChainId())) {
+      throw new Error(
+        "The provided chain ID does not match the provider's chain ID, please ensure both chain ID's match or specify only one option: --chain-id or --provider-url."
+      );
+    }
+
+    chainId = await publicClient.getChainId();
+  }
+
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const artifacts: ChainArtifacts = {};
@@ -158,7 +173,7 @@ export async function trace({
     const receipt = await simulateProvider.getTransactionReceipt({ hash: txnHash });
     const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
     console.log();
-    if (receipt.status == 1) {
+    if (receipt.status == 'success') {
       console.log(
         green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
       );

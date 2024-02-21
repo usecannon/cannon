@@ -148,7 +148,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    console.log(greenBright(`${bold(`${name}:${version}`)} has been deployed to a local node.`));
+    console.log(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
       console.log(gray('Running from fork provider'));
@@ -164,14 +164,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   if (options.logs) {
-    return; /* {
-      signers,
-      outputs: buildOutputs,
-      provider,
-      node,
-    };*/
+    await new Promise(() => {
+      console.log('Displaying node logs.....');
+      nodeLogging.enable();
+    });
   }
-
   const mergedOutputs =
     buildOutputs.length == 1
       ? buildOutputs[0].outputs
@@ -189,7 +186,10 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     for (const txn of bwt.transactions) {
       try {
-        const traces = (await provider.request({ method: 'trace_transaction' as any, params: [txn.hash] })) as TraceEntry[];
+        const traces = (await provider.request({
+          method: 'trace_transaction' as any,
+          params: [txn.hash],
+        })) as TraceEntry[];
 
         let renderedTrace = renderTrace(mergedOutputs, traces);
 
