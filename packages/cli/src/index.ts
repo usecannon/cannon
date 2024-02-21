@@ -419,6 +419,10 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
 applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
+  if (!options.providerUrl && !options.chainId) {
+    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  }
+
   await trace({
     packageRef,
     data,

@@ -53,9 +53,11 @@ export async function trace({
 
     if (chainId && chainId !== (await publicClient.getChainId())) {
       throw new Error(
-        "The provided chain ID does not match the provider url's chain ID, please ensure both chain ID's match or specify only one chain ID."
+        "The provided chain ID does not match the provider's chain ID, please ensure both chain ID's match or specify only one option: --chain-id or --provider-url."
       );
     }
+
+    chainId = await publicClient.getChainId();
   }
 
   const deployInfos = await readDeployRecursive(packageRef, chainId);
