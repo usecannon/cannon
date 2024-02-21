@@ -2,14 +2,34 @@ import fs from 'node:fs';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';
-import { ChainBuilderRuntime } from '../src/runtime';
 import { CannonHelperContext, CannonSigner, InMemoryRegistry } from '../src';
+import { ChainBuilderRuntime } from '../src/runtime';
+import { ChainBuilderContextWithHelpers, ChainBuilderRuntimeInfo } from '../src/types';
 
 const Greeter = JSON.parse(fs.readFileSync(`${__dirname}/data/Greeter.json`).toString());
 
 export const fixtureAddress = () => privateKeyToAccount(generatePrivateKey()).address;
 export const fixtureTxHash = () => viem.keccak256(Buffer.from(Math.random().toString()));
+
+export function fixtureTransactionReceipt(attrs: Partial<viem.TransactionReceipt> = {}) {
+  return {
+    blockHash: fixtureTxHash(),
+    blockNumber: BigInt(0),
+    from: fixtureAddress(),
+    to: fixtureAddress(),
+    transactionHash: fixtureTxHash(),
+    logsBloom: '0x',
+    transactionIndex: 1,
+    contractAddress: fixtureAddress(),
+    gasUsed: BigInt(1234),
+    logs: [],
+    status: 'success',
+    effectiveGasPrice: BigInt(5678),
+    cumulativeGasUsed: BigInt(567856785678),
+    type: 'eip1559',
+    ...attrs,
+  } satisfies viem.TransactionReceipt;
+}
 
 export const fixtureCtx = (overrides: Partial<ChainBuilderContextWithHelpers> = {}) =>
   _.merge(
