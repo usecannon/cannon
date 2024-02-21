@@ -88,7 +88,7 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        throw new Error('no more providers');
+        throw err;
       }
 
       return await resolveProviderAndSigners({
