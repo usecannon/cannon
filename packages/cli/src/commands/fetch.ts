@@ -8,13 +8,12 @@ import {
   PackageReference,
   ChainDefinition,
   createInitialContext,
+  getCannonRepoRegistryUrl,
 } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'node:fs';
 import path from 'path';
 import util from 'util';
-
-import { getCannonRepoRegistryUrl } from './../constants';
 
 const debug = Debug('cannon:cli:clean');
 
