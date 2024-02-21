@@ -209,7 +209,7 @@ describe('alter', () => {
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
       [packageName],
-      String(chainId),
+      chainId,
       newUrl,
       metaUrl
     );
