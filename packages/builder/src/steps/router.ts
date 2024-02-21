@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:router');
@@ -166,7 +166,7 @@ const routerStep = {
           gasCost: receipt.effectiveGasPrice.toString(),
           //sourceCode
         },
-      },
+      } as ContractMap,
     };
   },
 };

@@ -1,19 +1,18 @@
+import {
+  CannonStorage,
+  ChainDefinition,
+  createInitialContext,
+  DeploymentInfo,
+  getCannonContract,
+  IPFSLoader,
+  OnChainRegistry,
+  PackageReference,
+  StepState,
+} from '@usecannon/builder';
+import { createClient, RedisClientType } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
 import { mainnet } from 'viem/chains';
-import { createClient, RedisClientType } from 'redis';
-
-import {
-  ChainDefinition,
-  CannonStorage,
-  DeploymentInfo,
-  getCannonContract,
-  PackageReference,
-  IPFSLoader,
-  OnChainRegistry,
-  StepState,
-  createInitialContext,
-} from '@usecannon/builder';
 
 const RKEY_LAST_IDX = 'reg:lastBlock';
 const RKEY_ADDRESS_TO_PACKAGE = 'reg:addressToPackage';
