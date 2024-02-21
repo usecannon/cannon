@@ -1,4 +1,3 @@
-import { Function } from '@/features/Packages/Function';
 import {
   Alert,
   AlertIcon,
@@ -9,15 +8,17 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ChainArtifacts } from '@usecannon/builder';
-import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
+import * as viem from 'viem';
 import NextLink from 'next/link';
+import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useEffect, useMemo, useRef } from 'react';
-import { Address } from 'viem';
+import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
+
+import { Function } from '@/features/Packages/Function';
 
 export const Abi: FC<{
   abi: AbiType;
-  address: Address;
+  address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
 }> = ({ abi, address, cannonOutputs, chainId }) => {
@@ -65,16 +66,6 @@ export const Abi: FC<{
       clearTimeout(timerId); // Clear the timeout when the component unmounts
     };
   }, []);
-
-  function sanitizeForIdAndURI(anchor: string) {
-    let sanitized = encodeURIComponent(anchor);
-    sanitized = sanitized.replace(/%20/g, '_');
-    if (/^[0-9]/.test(sanitized)) {
-      sanitized = 'id_' + sanitized;
-    }
-    sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
-    return sanitized;
-  }
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
@@ -124,11 +115,7 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#${sanitizeForIdAndURI(
-                    `${f.name}(${f.inputs
-                      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
-                      .join(',')})`
-                  )}`}
+                  href={`#selector=${viem.toFunctionSelector(f)}`}
                   textDecoration="none"
                 >
                   {f.name}(
@@ -165,11 +152,7 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#${sanitizeForIdAndURI(
-                    `${f.name}(${f.inputs
-                      .map((i) => `${i.type}${i.name ? ' ' + i.name : ''}`)
-                      .join(',')})`
-                  )}`}
+                  href={`#selector=${viem.toFunctionSelector(f)}`}
                   textDecoration="none"
                 >
                   {f.name}(

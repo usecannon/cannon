@@ -13,6 +13,7 @@ subtask(SUBTASK_RUN_ANVIL_NODE).setAction(async ({ dryRun, anvilOptions }, hre):
   if (!dryRun && hre.network.name !== 'cannon') return;
 
   const nodeOptions: AnvilOptions = {
+    accounts: 10, // in hardhat, default is 10
     ...(anvilOptions || {}),
   };
 

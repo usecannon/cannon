@@ -199,7 +199,7 @@ const TransactionDetailsPage: FC<{
 
   const etherscanUrl =
     (Object.values(chains).find((chain) => chain.id === safe.chainId) as any)
-      ?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+      ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const signers: Array<string> = stager.existingSigners.length
     ? stager.existingSigners
