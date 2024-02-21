@@ -51,8 +51,10 @@ export async function trace({
       transport: viem.http(providerUrl),
     });
 
-    if (chainId !== await publicClient.getChainId()) {
-      throw new Error("The provided chain ID does not match the provider url's chain ID, please ensure both chain ID's match or specify only one chain ID.")
+    if (chainId && chainId !== (await publicClient.getChainId())) {
+      throw new Error(
+        "The provided chain ID does not match the provider url's chain ID, please ensure both chain ID's match or specify only one chain ID."
+      );
     }
   }
 
