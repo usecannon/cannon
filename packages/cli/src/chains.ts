@@ -14,15 +14,15 @@ export const cannonChain: Chain = {
 
 export const chains: Chain[] = [cannonChain, ...Object.values(viemChains)];
 
-export function getChainById(id: any): Chain {
+export function getChainById(id: number): Chain {
   const chain = extractChain({
     chains,
-    id: parseInt(id),
+    id,
   });
 
   if (chain?.id !== id) {
     return {
-      id: parseInt(id),
+      id,
       name: 'Unknown Network',
       nativeCurrency: {
         name: 'Ether',

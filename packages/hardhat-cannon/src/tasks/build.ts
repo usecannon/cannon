@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { CannonSigner } from '@usecannon/builder';
+import { CANNON_CHAIN_ID, CannonSigner } from '@usecannon/builder';
 import { build, createDryRunRegistry, loadCannonfile, parseSettings, resolveCliSettings } from '@usecannon/cli';
 import { getChainById } from '@usecannon/cli/dist/src/chains';
 import { getProvider } from '@usecannon/cli/dist/src/rpc';
@@ -93,7 +93,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
               .extend(viem.publicActions as any)
           : (viem.createTestClient({
               mode: 'anvil',
-              chain: getChainById(hre.network.config.chainId),
+              chain: getChainById(hre.network.config.chainId || CANNON_CHAIN_ID),
               transport: viem.http((hre.network.config as HttpNetworkConfig).url),
             }) as any);
 
