@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
+  CANNON_CHAIN_ID,
   CannonStorage,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -215,7 +216,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
   const { verify } = await import('./commands/verify');
-  await verify(packageName, options.apiKey, options.preset, options.chainId);
+  await verify(packageName, options.apiKey, options.preset, parseInt(options.chainId));
 });
 
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
@@ -226,7 +227,7 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
 ) {
   const { alter } = await import('./commands/alter');
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {});
+  await alter(packageName, parseInt(flags.chainId), flags.preset, {}, command, options, {});
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {
@@ -248,7 +249,7 @@ applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async
     options.chainId = chainIdPrompt.value;
   }
 
-  await fetch(packageName, options.chainId, ipfsHash, options.metaHash);
+  await fetch(packageName, parseInt(options.chainId), ipfsHash, options.metaHash);
 });
 
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (ipfsHash, options) {
@@ -421,7 +422,7 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
   await trace({
     packageRef,
     data,
-    chainId: options.chainId,
+    chainId: parseInt(options.chainId),
     preset: options.preset,
     providerUrl: options.providerUrl,
     from: options.from,
@@ -438,7 +439,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   await decode({
     packageRef,
     data,
-    chainId: options.chainId,
+    chainId: parseInt(options.chainId || CANNON_CHAIN_ID),
     presetArg: options.preset,
     json: options.json,
   });

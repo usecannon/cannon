@@ -117,7 +117,7 @@ describe('build', () => {
       await cli.parseAsync(args);
       // create write provider with expected values
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl.split(',')[0]).toEqual('frame');
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(String(chainId));
+      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
       expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
 
       // The same provider is passed to build command
