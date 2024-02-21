@@ -96,7 +96,7 @@ describe('steps/contract.ts', () => {
     it('resolves correct properties with minimal config', async () => {
       const result = await action.getState(fakeRuntime, fakeCtx, { artifact: 'hello' });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         bytecode: '0xabcd',
         args: [],
         salt: undefined,
@@ -116,7 +116,7 @@ describe('steps/contract.ts', () => {
         value: '1234',
       });
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         bytecode: '0xabcd',
         args: ['one', 'two', '{"three":"four"}'],
         salt: 'wohoo',
@@ -248,16 +248,17 @@ describe('steps/contract.ts', () => {
           },
         });
 
-        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith(
-          makeArachnidCreate2Txn(
+        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith({
+          ...makeArachnidCreate2Txn(
             'wohoo',
             viem.encodeDeployData({
               bytecode: '0xabcd',
               abi: fakeAbi,
               args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
             })
-          )[0]
-        );
+          )[0],
+          account: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        });
       });
     });
 

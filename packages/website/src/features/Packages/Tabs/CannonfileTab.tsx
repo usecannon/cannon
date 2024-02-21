@@ -4,10 +4,10 @@ import { FC, useEffect, useState } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { Flex } from '@chakra-ui/react';
-import { DeploymentExplorer } from '@/features/Packages/DeploymentExplorer';
+import { CannonfileExplorer } from '@/features/Packages/CannonfileExplorer';
 import { CustomSpinner } from '@/components/CustomSpinner';
 
-export const DeploymentTab: FC<{
+export const CannonfileTab: FC<{
   name: string;
   tag: string;
   variant: string;
@@ -27,9 +27,9 @@ export const DeploymentTab: FC<{
   );
 
   return (
-    <Flex flexDirection="column" width="100%">
+    <Flex flexDirection="column" width="100%" flex="1">
       {currentVariant ? (
-        <DeploymentExplorer pkgName={pkg.name} variant={currentVariant} />
+        <CannonfileExplorer pkgName={pkg.name} variant={currentVariant} />
       ) : (
         <CustomSpinner m="auto" />
       )}
@@ -37,4 +37,4 @@ export const DeploymentTab: FC<{
   );
 };
 
-export default DeploymentTab;
+export default CannonfileTab;

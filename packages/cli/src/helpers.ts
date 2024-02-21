@@ -18,7 +18,9 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import prompts from 'prompts';
 import semver from 'semver';
-import { AbiFunction, Hex, Chain } from 'viem';
+import * as viem from 'viem';
+import { AbiEvent } from 'abitype';
+import { AbiFunction, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
@@ -83,8 +85,26 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
-export function formatAbiFunction(v: AbiFunction) {
-  return `${v.name}(${v.inputs.map((i) => i.type).join(',')})`;
+export function getSighash(fragment: AbiFunction | AbiEvent) {
+  let sighash = '';
+
+  switch (fragment.type) {
+    case 'function':
+      sighash = viem.toFunctionSelector(fragment);
+      break;
+    case 'event':
+      sighash = viem.toEventSelector(fragment);
+      break;
+  }
+
+  return sighash;
+}
+
+export function formatAbiFunction(v: viem.AbiFunction) {
+  return `${v.type} ${v.name}(${v.inputs
+    .map((param) => ` ${param.type} ${param.name}`)
+    .join(',')
+    .trim()})`;
 }
 
 async function getAnvilVersionDate(): Promise<Date | false> {
@@ -357,7 +377,7 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @param privateKey The private key to verify
  * @returns boolean If the private key is valid
  */
-export function isPrivateKey(privateKey: Hex) {
+export function isPrivateKey(privateKey: viem.Hex) {
   try {
     privateKeyToAccount(privateKey);
     return true;

@@ -152,7 +152,7 @@ describe('alter', () => {
   it('should perform alteration for mark-complete', async () => {
     const command = 'mark-complete';
     const targets = ['provision.dummyStep'];
-    const hash = '0xmark-complete-fffffffffffffffffffffffffffffffffffffffffffffffff';
+    const hash = ['0xmark-complete-fffffffffffffffffffffffffffffffffffffffffffffffff'];
     jest.spyOn(ChainDefinition.prototype, 'getState').mockResolvedValue(hash);
 
     // Call the 'alter' function with the necessary arguments
@@ -163,7 +163,7 @@ describe('alter', () => {
 
     // TODO: I am not sure the package status must be changed to another value
     // expect(testPkgData.status).toEqual('complete');
-    expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash);
+    expect(testPkgData.state['provision.dummyStep'].hash).toEqual(hash[0]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
       [packageName],
       chainId,
@@ -204,12 +204,12 @@ describe('alter', () => {
 
     await cli.parseAsync(['node', 'cannon.ts', 'alter', packageName, command, ...targets, '-c', String(chainId)]);
 
-    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, String(chainId));
+    expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
     expect(testPkgData.state['provision.dummyStep'].artifacts.contracts!.TestContract.address).toEqual(targets[1]);
     expect(mockedFallBackRegistry.publish as jest.Mock<any, any>).toHaveBeenCalledWith(
       [packageName],
-      String(chainId),
+      chainId,
       newUrl,
       metaUrl
     );

@@ -126,7 +126,7 @@ describe('builder.ts', () => {
 
   let initialCtx: ChainBuilderContext;
 
-  jest.mocked(contractStep.getState).mockResolvedValue({} as any);
+  jest.mocked(contractStep.getState).mockResolvedValue([{}] as any);
 
   jest.mocked(contractStep.exec).mockResolvedValue({
     contracts: {

@@ -102,10 +102,12 @@ const runAction = {
     // also hash the executed file itself
     auxHashes.push(newConfig.exec);
 
-    return {
-      auxHashes,
-      config: newConfig,
-    };
+    return [
+      {
+        auxHashes,
+        config: newConfig,
+      },
+    ];
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {

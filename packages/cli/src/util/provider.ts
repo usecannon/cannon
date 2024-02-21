@@ -11,6 +11,10 @@ import { getChainById } from '../chains';
 
 const debug = Debug('cannon:cli:provider');
 
+function normalizePrivateKey(pkey: string): viem.Hash {
+  return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
+}
+
 export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
@@ -84,7 +88,7 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        throw new Error('no more providers');
+        throw err;
       }
 
       return await resolveProviderAndSigners({
@@ -97,7 +101,7 @@ export async function resolveProviderAndSigners({
     if (privateKey) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(k as viem.Hash);
+          const account = privateKeyToAccount(normalizePrivateKey(k));
           return {
             address: account.address,
             wallet: viem.createWalletClient({

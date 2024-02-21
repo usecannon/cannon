@@ -101,7 +101,7 @@ export const Interact: FC<{
       Object.values(chains).find(
         (chain) => chain.id === currentVariant?.chain_id
       ) as any
-    )?.blockExplorers?.etherscan?.url ?? 'https://etherscan.io';
+    )?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const isSmall = useBreakpointValue({
     base: true,

@@ -4,7 +4,6 @@ import {
   Box,
   Link,
   Popover,
-  PopoverArrow,
   PopoverContent,
   PopoverTrigger,
   Portal,
@@ -55,7 +54,6 @@ export const ChainFilter: FC<ChainFilterProps> = ({
                 maxWidth="250px"
                 borderColor="gray.800"
               >
-                <PopoverArrow bg="gray.700" />
                 <Text p={2} fontSize="sm" color="gray.200">
                   These packages can be{' '}
                   <Link as={NextLink} href={links.DOCS_CLI_RUN}>
