@@ -519,9 +519,7 @@ const commandsConfig = {
     options: [
       {
         flags: '-c --chain-id <chainId>',
-        description: 'Chain ID of the variant to inspect',
-        defaultValue: '13370',
-        required: true,
+        description: 'Chain ID of the variant to trace',
       },
       {
         flags: '-f --from <source>',
@@ -541,7 +539,7 @@ const commandsConfig = {
       },
       {
         flags: '-p --preset <preset>',
-        description: '(DEPRECATED) Preset of the variant to inspect',
+        description: '(DEPRECATED) Preset of the variant to trace',
       },
       {
         flags: '-n --provider-url [url]',
