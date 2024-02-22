@@ -20,7 +20,7 @@ export async function resolveWriteProvider(
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
-      "\nUsing Frame as the default provider. If Frame is not installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
+      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
     );
     console.warn(
       `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
