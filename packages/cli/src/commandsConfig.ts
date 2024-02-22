@@ -618,6 +618,11 @@ const commandsConfig = {
         flags: '--registry-priority <registry>',
         description: 'Change the default registry to read from first. Default: onchain',
       },
+      {
+        flags: '--forge-cmd <command>',
+        description: 'Use an alternative forge call, such as "coverage"',
+        defaultValue: 'test',
+      },
     ],
   },
   interact: {
