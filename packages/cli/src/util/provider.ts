@@ -1,7 +1,6 @@
-import os from 'node:os';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { bold, red } from 'chalk';
+import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
 
@@ -21,7 +20,7 @@ export async function resolveWriteProvider(
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
     console.warn(
-      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
+      "\nUsing Frame as the default provider. If Frame is not installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
     );
     console.warn(
       `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
@@ -34,6 +33,7 @@ export async function resolveWriteProvider(
     chainId,
     checkProviders: settings.providerUrl.split(','),
     privateKey: settings.privateKey,
+    origin: 'write',
   }) as any;
 }
 
@@ -44,6 +44,7 @@ export async function resolveRegistryProvider(
     chainId: parseInt(settings.registryChainId),
     checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
+    origin: 'registry',
   });
 }
 
@@ -51,11 +52,18 @@ export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
   privateKey,
+  origin,
 }: {
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
+  origin: 'registry' | 'write';
 }): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+  if (origin === 'write') {
+    console.log(grey(`Initiating connection attempt to: ${bold(checkProviders[0])}`));
+    if (checkProviders.length === 1) console.log('');
+  }
+
   debug(
     'resolving provider',
     checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p)),
@@ -88,13 +96,21 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        throw err;
+        console.error(
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
+        );
+        process.exit(1);
       }
 
       return await resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
+        origin,
       });
     }
 
@@ -118,14 +134,15 @@ export async function resolveProviderAndSigners({
   } else {
     debug('use frame eth provider');
     // Use eth-provider wrapped in Web3Provider as default
-    publicClient = (
-      viem
-        .createPublicClient({
-          transport: viem.custom(rawProvider),
-        })
-        .extend(viem.walletActions) as any
-    ).extend(traceActions({}));
     try {
+      publicClient = (
+        viem
+          .createPublicClient({
+            transport: viem.custom(rawProvider),
+          })
+          .extend(viem.walletActions) as any
+      ).extend(traceActions({}));
+
       // Attempt to load from eth-provider
       await rawProvider.enable();
 
@@ -136,29 +153,23 @@ export async function resolveProviderAndSigners({
         });
       }
     } catch (err: any) {
-      // try to do it with the next provider instead
-      try {
-        if (checkProviders.length <= 1) {
-          throw new Error('no more providers');
-        }
-
-        return await resolveProviderAndSigners({
-          chainId,
-          checkProviders: checkProviders.slice(1),
-          privateKey,
-        });
-      } catch (e: any) {
-        console.error(red('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), '')));
-        console.error();
+      if (checkProviders.length <= 1) {
         console.error(
-          'Please ensure your wallet application is open, a wallet is selected, and the wallet is granting access to cannon.'
-        );
-        console.error();
-        console.error(
-          'Alternatively, you can supply a private key and RPC in the terminal by setting CANNON_PROVIDER_URL and CANNON_PRIVATE_KEY.'
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
         );
         process.exit(1);
       }
+
+      return await resolveProviderAndSigners({
+        chainId,
+        checkProviders: checkProviders.slice(1),
+        privateKey,
+        origin,
+      });
     }
   }
 

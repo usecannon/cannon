@@ -2,7 +2,7 @@ import path from 'node:path';
 import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { chains } from '../chains';
+import { chains, getChainById } from '../chains';
 import { getFoundryArtifact } from '../foundry';
 import { filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
@@ -122,6 +122,7 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
         ...pickAnvilOptions(opts),
       });
 
+      chainId = node.chainId;
       provider = getProvider(node)!;
     } else {
       const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
@@ -129,20 +130,15 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
     }
   } else {
     chainId = parseInt(opts.chainId);
-
-    // use default rpc url for the chain ID if no provider url is specified
-    if (opts.privateKey && !opts.providerUrl) {
-      const chainData = chains.find((chain) => Number(chain.id) === Number(chainId));
-      if (!chainData || chainData.rpcUrls.default.http.length === 0) {
-        throw new Error(`No RPC URL found for chain ID ${chainId}`);
-      }
-
-      cliSettings.providerUrl = chainData.rpcUrls.default.http.join(',');
-    }
   }
 
+  const chainData = getChainById(chainId);
+  // add viem's default rpc urls and remove any duplicates
+  const providers = [...new Set([...cliSettings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
+  cliSettings.providerUrl = providers.join(',');
+
   if (!provider) {
-    const _provider = await resolveWriteProvider(cliSettings, chainId!);
+    const _provider = await resolveWriteProvider(cliSettings, chainId);
     provider = _provider.provider as any;
     signers = _provider.signers;
   }
