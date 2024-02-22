@@ -11,7 +11,7 @@
     "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && eslint --fix '{packages,examples}/**/*.{js,ts}'",
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint:fix": "npm-run-parallel lint:fix:js lint:fix:sol",
-    "build": "lerna run build --ignore cannon-website",
+    "build": "lerna run build --ignore cannon-website --ignore indexer",
     "publish": "lerna publish",
     "test": "npm run test --workspaces --if-present",
     "docgen-md": "cd ./packages/builder && npm run docgen && cd - && cd ./packages/cli && npm run docgen",
