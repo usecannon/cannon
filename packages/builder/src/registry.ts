@@ -268,17 +268,13 @@ export class OnChainRegistry extends CannonRegistry {
   private async checkPackageOwnership(packageName: string) {
     const packageHash = viem.stringToHex(packageName, { size: 32 });
 
-    console.log(packageHash);
-
     const packageOwner = await this.provider?.readContract({
       ...this.contract,
       functionName: 'getPackageOwner',
       args: [packageHash],
     });
 
-    console.log(packageOwner);
-
-    if (!this.signer?.address !== packageOwner) {
+    if (packageOwner !== viem.zeroAddress && !this.signer?.address !== packageOwner) {
       throw new Error(`Signer at address "${this.signer?.address}" is not the owner of the "${packageName}" package`);
     }
   }
