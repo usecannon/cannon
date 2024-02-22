@@ -1,4 +1,5 @@
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import * as viem from 'viem';
 import { runRpc } from '@usecannon/cli';
 import { subtask } from 'hardhat/config';
 import { SUBTASK_RUN_ANVIL_NODE } from '../task-names';
@@ -23,10 +24,21 @@ subtask(SUBTASK_RUN_ANVIL_NODE).setAction(async ({ dryRun, anvilOptions }, hre):
     nodeOptions.port = hre.config.networks.cannon.port;
   }
 
+  console.log(await hre.network.provider.request({ method: 'eth_chainId', params: [] }));
+
   if (!nodeOptions.chainId) {
     nodeOptions.chainId =
-      hre.network.name === 'cannon' ? CANNON_CHAIN_ID : (await (hre as any).ethers.provider.getNetwork()).chainId;
+      hre.network.name === 'cannon'
+        ? CANNON_CHAIN_ID
+        : parseInt((await hre.network.provider.request({ method: 'eth_chainId', params: [] })) as string);
   }
+
+  if (hre.network.name !== 'cannon') {
+    // dry run fork
+    rpcOptions.forkProvider = viem.createPublicClient({ transport: viem.custom(hre.network.provider) });
+  }
+
+  console.log('Running anvil with', nodeOptions, rpcOptions);
 
   return runRpc(nodeOptions, rpcOptions);
 });
