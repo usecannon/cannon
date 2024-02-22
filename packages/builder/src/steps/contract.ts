@@ -319,7 +319,9 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(_.assign(txn, overrides, { account: signer.address }));
+        const hash = await signer.wallet.sendTransaction(
+          _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+        );
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }
