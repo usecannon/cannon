@@ -7,17 +7,8 @@
 setup_file() {
   load helpers/bats-helpers.sh
   _setup_file
-
-  # Adding npm pack built @usecannon/cli npm package
-  cd $WORKDIR 
-  cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
-  tar -xzf $cli
-
-  # Installing tarball package dependencies
-  cd $WORKDIR/package
-  npm i
   
-  export CANNON="node $WORKDIR/package/bin/cannon.js"
+  export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
 
   cd $CANNON_DIRECTORY
 
@@ -150,5 +141,11 @@ teardown() {
   run inspect.sh
   echo $output
   assert_file_exists "$CANNON_DIRECTORY/deployments/synthetix/CoreProxy.json"
+  assert_success
+}
+
+@test "Trace - Trace transaction Data" {
+  run trace.sh
+  echo $output
   assert_success
 }

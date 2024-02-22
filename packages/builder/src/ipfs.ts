@@ -55,7 +55,8 @@ export async function readIpfs(
   ipfsUrl: string,
   hash: string,
   customHeaders: Headers = {},
-  isGateway: boolean
+  isGateway: boolean,
+  timeout: number
 ): Promise<any> {
   debug(`downloading content from ${hash}`);
 
@@ -67,8 +68,7 @@ export async function readIpfs(
         responseType: 'arraybuffer',
         responseEncoding: 'application/octet-stream',
         headers: customHeaders,
-        // 5 minutes timeout
-        timeout: 5 * 60 * 1000,
+        timeout,
       });
     } else {
       // the +ipfs extension used to indicate a gateway is not recognized by
@@ -81,8 +81,7 @@ export async function readIpfs(
           responseEncoding: 'application/octet-stream',
           responseType: 'arraybuffer',
           headers: customHeaders,
-          // 5 minutes timeout
-          timeout: 5 * 60 * 1000,
+          timeout,
         }
       );
     }
@@ -108,7 +107,8 @@ export async function writeIpfs(
   ipfsUrl: string,
   info: any,
   customHeaders: Headers = {},
-  isGateway: boolean
+  isGateway: boolean,
+  timeout: number
 ): Promise<string> {
   setIpfsRetries();
   
@@ -132,7 +132,10 @@ export async function writeIpfs(
 
   let result: AxiosResponse<any, any>;
   try {
-    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true', formData, { headers: customHeaders });
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true', formData, {
+      headers: customHeaders,
+      timeout,
+    });
   } catch (err) {
     throw new Error(
       'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
@@ -153,7 +156,8 @@ export async function deleteIpfs(
   ipfsUrl: string,
   hash: string,
   customHeaders: Headers = {},
-  isGateway: boolean
+  isGateway: boolean,
+  timeout: number
 ): Promise<void> {
   if (isGateway) {
     // cannot write to IPFS on gateway
@@ -163,7 +167,7 @@ export async function deleteIpfs(
   debug('delete from ipfs:', hash);
 
   try {
-    await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/pin/rm?arg=' + hash, {}, { headers: customHeaders });
+    await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/pin/rm?arg=' + hash, {}, { headers: customHeaders, timeout });
   } catch (err) {
     throw new Error('Failed to delete from IPFS. ' + err);
   }

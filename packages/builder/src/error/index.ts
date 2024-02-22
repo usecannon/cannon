@@ -1,10 +1,9 @@
+import Debug from 'debug';
 /* eslint-disable no-case-declarations */
 import * as viem from 'viem';
-import { simulateContract, prepareTransactionRequest } from 'viem/actions';
+import { estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
+import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace';
 import { ChainArtifacts, ContractData } from '../types';
-import { TraceEntry, renderTrace, parseContractErrorReason } from '../trace';
-
-import Debug from 'debug';
 
 const NONCE_EXPIRED = 'NONCE_EXPIRED';
 const debug = Debug('cannon:builder:error');
@@ -12,6 +11,13 @@ const debug = Debug('cannon:builder:error');
 export function traceActions(artifacts: ChainArtifacts) {
   return (client: viem.Client) => {
     return {
+      estimateGas: async (args: viem.EstimateGasParameters) => {
+        try {
+          return await estimateGas(client, args);
+        } catch (err) {
+          await handleTxnError(artifacts, client, err, args as viem.PrepareTransactionRequestParameters);
+        }
+      },
       prepareTransactionRequest: async (args: viem.PrepareTransactionRequestParameters) => {
         try {
           return await prepareTransactionRequest(client, args);
@@ -23,17 +29,13 @@ export function traceActions(artifacts: ChainArtifacts) {
         try {
           return await simulateContract(client, args);
         } catch (err) {
-          try {
-            await handleTxnError(artifacts, client, err, {
-              account: args.account,
-              to: args.address,
-              chain: args.chain,
-              data: viem.encodeFunctionData(args),
-              value: args.value,
-            });
-          } catch (err2) {
-            throw err;
-          }
+          await handleTxnError(artifacts, client, err, {
+            account: args.account,
+            to: args.address,
+            chain: args.chain,
+            data: viem.encodeFunctionData(args),
+            value: args.value,
+          });
         }
       },
     };
@@ -140,7 +142,13 @@ class CannonTraceError extends Error {
     }
 
     // now we can make ourselves a thing
-    super(`transaction reverted in contract ${contractName}: ${decodedMsg}\n\n${renderTrace(ctx, traces)}\n\n`);
+    const message = [`transaction reverted in contract ${contractName}: ${decodedMsg}`];
+
+    if (Array.isArray(traces) && traces.length) {
+      message.push(renderTrace(ctx, traces));
+    }
+
+    super(message.join('\n\n'));
 
     this.error = error;
   }
@@ -172,8 +180,4 @@ export function findContract(
   }
 
   return null;
-}
-
-export function renderResult(result: any) {
-  return '(' + result.map((v: any) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
 }

@@ -1,14 +1,12 @@
+import { ChainArtifacts, ChainDefinition, findContract, getArtifacts, renderTrace, TraceEntry } from '@usecannon/builder';
+import { bold, gray, green, red, yellow } from 'chalk';
+import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
-import { gray, yellow, green, red, bold } from 'chalk';
 import { readDeployRecursive } from '../package';
-import { resolveWriteProvider } from '../util/provider';
+import { getProvider, runRpc } from '../rpc';
 import { resolveCliSettings } from '../settings';
-
-import { runRpc, getProvider } from '../rpc';
-import { getArtifacts, renderTrace, findContract, ChainDefinition, ChainArtifacts, TraceEntry } from '@usecannon/builder';
-
-import Debug from 'debug';
+import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:trace');
 
@@ -45,6 +43,21 @@ export async function trace({
   // will call `trace_transaction`, and decode as much data from the trace
   // as possible, the same way that an error occurs
 
+  if (providerUrl) {
+    // get chain id from provider
+    const publicClient = viem.createPublicClient({
+      transport: viem.http(providerUrl),
+    });
+
+    if (chainId && chainId !== (await publicClient.getChainId())) {
+      throw new Error(
+        "The provided chain ID does not match the provider's chain ID, please ensure both chain ID's match or specify only one option: --chain-id or --provider-url."
+      );
+    }
+
+    chainId = await publicClient.getChainId();
+  }
+
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const artifacts: ChainArtifacts = {};
@@ -66,11 +79,11 @@ export async function trace({
       // this is a transaction hash
       console.log(gray('Detected transaction hash'));
 
-      data = txData.data;
+      data = (txData as any).data;
       value = value || txData.value;
       block = block || txReceipt.blockNumber.toString();
       from = from || txData.from;
-      to = to || txData.to;
+      if (!to && txData.to) to = txData.to;
     } catch (err) {
       throw new Error('could not get transaction information. The transaction may not exist?');
     }
@@ -104,9 +117,13 @@ export async function trace({
     const blockInfo = await provider.getBlock(
       (block || 'latest').match(/^[0-9]*$/) ? { blockNumber: BigInt(block) } : { blockTag: block as viem.BlockTag }
     );
-    const timestamp = blockInfo.timestamp - 1;
+    const timestamp = blockInfo.timestamp - BigInt(1);
     rpc = await runRpc(
-      { port: 0, forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number - 1).toString(), timestamp },
+      {
+        port: 0,
+        forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number! - BigInt(1)).toString(),
+        timestamp,
+      },
       { forkProvider: provider as any }
     );
   } else {
@@ -158,7 +175,7 @@ export async function trace({
     const receipt = await simulateProvider.getTransactionReceipt({ hash: txnHash });
     const totalGasUsed = computeGasUsed(traces, fullTxn).toLocaleString();
     console.log();
-    if (receipt.status == 1) {
+    if (receipt.status == 'success') {
       console.log(
         green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
       );

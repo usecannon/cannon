@@ -1,6 +1,5 @@
-import { CannonRpcNode, runRpc } from '../rpc';
-
 import * as viem from 'viem';
+import { CannonRpcNode, runRpc } from '../rpc';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');
@@ -88,26 +87,36 @@ describe('build', () => {
       jest.spyOn(utilProvider, 'resolveWriteProvider').mockResolvedValue({ provider: provider as any, signers: [] });
     });
 
-    it('should resolve chainId from provider url', async () => {
-      // this test needs a node for the client to connect to
-      const cannonNode = await runRpc({ port: 8588, chainId: 999 });
-
-      const providerUrl = 'http://localhost:8588';
+    describe('when resolving chainId', () => {
       const chainId = 999;
+      const port = 8589;
+      let cannonNode: CannonRpcNode;
 
-      jest.mocked(provider.getChainId).mockResolvedValue(chainId);
+      beforeEach(async () => {
+        // this test needs a node for the client to connect to
+        cannonNode = await runRpc({ port, chainId });
+      }, 30000);
 
-      await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
+      afterEach(async () => {
+        cannonNode?.kill('SIGTERM');
+      });
 
-      // create write provider with expected values
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl).toEqual(providerUrl);
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
-      expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
+      it('should resolve chainId from provider url', async () => {
+        const providerUrl = `http://127.0.0.1:${port}`;
 
-      // The same provider is passed to build command
-      expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
-      cannonNode.kill('SIGTERM');
-    }, 30000);
+        jest.mocked(provider.getChainId).mockResolvedValue(chainId);
+
+        await cli.parseAsync([...fixedArgs, '--provider-url', providerUrl]);
+
+        // create write provider with expected values
+        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl).toEqual(providerUrl);
+        expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
+        expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
+
+        // The same provider is passed to build command
+        expect((buildCommand.build as jest.Mock).mock.calls[0][0].provider).toEqual(provider);
+      });
+    });
 
     it('should connect to frame with provided chainId', async () => {
       const chainId = 999;
@@ -117,7 +126,7 @@ describe('build', () => {
       await cli.parseAsync(args);
       // create write provider with expected values
       expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][0].providerUrl.split(',')[0]).toEqual('frame');
-      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(String(chainId));
+      expect((utilProvider.resolveWriteProvider as jest.Mock).mock.calls[0][1]).toEqual(chainId);
       expect(utilProvider.resolveWriteProvider).toHaveBeenCalledTimes(1);
 
       // The same provider is passed to build command

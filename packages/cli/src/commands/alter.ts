@@ -193,7 +193,7 @@ export async function alter(
       // compute the state hash for the step
       for (const target of targets) {
         const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
-        deployInfo.state[targets[0]].hash = h;
+        deployInfo.state[targets[0]].hash = h ? h[0] : null;
       }
       // clear txn hash if we have it
       break;

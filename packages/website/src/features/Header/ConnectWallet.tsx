@@ -1,6 +1,6 @@
-import { FC, ReactNode } from 'react';
 import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { FC, ReactNode } from 'react';
 
 const styleMap = {
   primary: {

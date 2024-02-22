@@ -33,7 +33,7 @@ export default {
   validate: keeperSchema,
 
   async getState(_runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContext, config: Config) {
-    return this.configInject(ctx, config);
+    return [this.configInject(ctx, config)];
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {

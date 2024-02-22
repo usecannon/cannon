@@ -1,7 +1,7 @@
 import * as viem from 'viem';
+import { fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
+import { CannonSigner } from './';
 import { CannonRegistry, OnChainRegistry } from './registry';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
-import { CannonSigner } from '.';
 
 describe('registry.ts', () => {
   describe('CannonRegistry', () => {
@@ -105,9 +105,8 @@ describe('registry.ts', () => {
           .mockResolvedValueOnce({} as any)
           .mockResolvedValueOnce({} as any);
 
-        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue({
-          transactionHash: '0x1234',
-        });
+        const rx = fixtureTransactionReceipt();
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
@@ -116,7 +115,7 @@ describe('registry.ts', () => {
         );
 
         // should only return the first receipt because its a multicall
-        expect(retValue).toStrictEqual(['0x1234']);
+        expect(retValue).toStrictEqual([rx.transactionHash]);
 
         // TODO: check the transaction which was sent (its hard to do here because it comes in as the signed txn)
       });

@@ -16,12 +16,14 @@ export class IPFSLoader implements CannonLoader {
   gatewayChecked = false;
   isGateway = false;
   customHeaders: Headers = {};
+  timeout: number;
 
   static PREFIX = 'ipfs://';
 
-  constructor(ipfsUrl: string, customHeaders: Headers = {}) {
+  constructor(ipfsUrl: string, customHeaders: Headers = {}, timeout = 300000) {
     this.ipfsUrl = ipfsUrl.replace('+ipfs://', '://');
     this.customHeaders = customHeaders;
+    this.timeout = timeout;
   }
 
   async checkGateway() {
@@ -39,7 +41,7 @@ export class IPFSLoader implements CannonLoader {
 
     debug('ipfs put');
 
-    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway);
+    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway, this.timeout);
 
     return IPFSLoader.PREFIX + hash;
   }
@@ -49,7 +51,13 @@ export class IPFSLoader implements CannonLoader {
 
     debug('ipfs read', url);
 
-    return await readIpfs(this.ipfsUrl, url.replace(IPFSLoader.PREFIX, ''), this.customHeaders, this.isGateway);
+    return await readIpfs(
+      this.ipfsUrl,
+      url.replace(IPFSLoader.PREFIX, ''),
+      this.customHeaders,
+      this.isGateway,
+      this.timeout
+    );
   }
 
   async remove(url: string) {
@@ -59,7 +67,7 @@ export class IPFSLoader implements CannonLoader {
 
     const hash = url.replace(IPFSLoader.PREFIX, '');
 
-    await deleteIpfs(this.ipfsUrl, hash, this.customHeaders, this.isGateway);
+    await deleteIpfs(this.ipfsUrl, hash, this.customHeaders, this.isGateway, this.timeout);
   }
 
   async list() {

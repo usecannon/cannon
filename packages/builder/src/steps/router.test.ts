@@ -1,5 +1,5 @@
+import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
 import action from './router';
-import { fixtureContractData, fixtureCtx, fixtureSigner } from '../../test/fixtures';
 import { fakeRuntime } from './utils.test.helper';
 
 describe('steps/router.ts', () => {
@@ -41,11 +41,11 @@ describe('steps/router.ts', () => {
 
       const result = await action.getState(runtime, ctx, config);
 
-      expect(result.contractAbis.GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
-      expect(result.contractAddresses.GreeterOne).toStrictEqual(contracts.GreeterOne.address);
+      expect(result[0].contractAbis.GreeterOne).toStrictEqual(contracts.GreeterOne.abi);
+      expect(result[0].contractAddresses.GreeterOne).toStrictEqual(contracts.GreeterOne.address);
 
-      expect(result.contractAbis.GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
-      expect(result.contractAddresses.GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
+      expect(result[0].contractAbis.GreeterTwo).toStrictEqual(contracts.GreeterTwo.abi);
+      expect(result[0].contractAddresses.GreeterTwo).toStrictEqual(contracts.GreeterTwo.address);
     });
   });
 
@@ -82,12 +82,10 @@ describe('steps/router.ts', () => {
       (runtime as any).getSigner = jest.fn();
       jest.mocked(runtime.getSigner).mockResolvedValue(signer);
       jest.mocked(signer.wallet.sendTransaction).mockResolvedValue('0x8484');
-      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue({
-        contractAddress: '0x12345678',
-        gasUsed: BigInt(1234),
-        effectiveGasPrice: BigInt(5678),
-        transactionHash: '0x8484',
-      });
+
+      const rx = fixtureTransactionReceipt();
+
+      jest.mocked(runtime.provider.waitForTransactionReceipt).mockResolvedValue(rx);
 
       const res = await action.exec(runtime, ctx, config, step);
 
@@ -95,14 +93,14 @@ describe('steps/router.ts', () => {
 
       expect(res.contracts).toMatchObject({
         Router: {
-          address: '0x12345678',
+          address: rx.contractAddress,
           abi: contracts.Greeter.abi,
           deployedOn: step.currentLabel,
-          deployTxnHash: '0x8484',
+          deployTxnHash: rx.transactionHash,
           contractName: 'Router',
           sourceName: 'Router.sol',
-          gasCost: '5678',
-          gasUsed: 1234,
+          gasCost: rx.effectiveGasPrice.toString(),
+          gasUsed: Number(rx.gasUsed.toString()),
         },
       });
     });

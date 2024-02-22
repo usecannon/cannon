@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
-import { ChainBuilderContext, ChainArtifacts, CannonSigner, Contract } from './types';
+import { ChainArtifacts, CannonSigner, Contract } from './types';
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new
@@ -63,7 +63,7 @@ available in your configuration. Please double check your configuration & integr
   return signer;
 }
 
-export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: string) {
+export function getContractDefinitionFromPath(ctx: ChainArtifacts, path: string) {
   const pathPieces = path.split('.');
 
   let importsBase: ChainArtifacts = ctx;
@@ -76,7 +76,7 @@ export function getContractDefinitionFromPath(ctx: ChainBuilderContext, path: st
   return c || null;
 }
 
-export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: string[]) {
+export function getMergedAbiFromContractPaths(ctx: ChainArtifacts, paths: string[]) {
   return paths
     .flatMap((contractPath) => {
       const c = getContractDefinitionFromPath(ctx, contractPath);
@@ -101,7 +101,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainBuilderContext, paths: s
     });
 }
 
-export function getContractFromPath(ctx: ChainBuilderContext, path: string): Contract | null {
+export function getContractFromPath(ctx: ChainArtifacts, path: string): Contract | null {
   const contract = getContractDefinitionFromPath(ctx, path);
 
   if (contract) {

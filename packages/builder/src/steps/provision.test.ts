@@ -70,7 +70,7 @@ describe('steps/provision.ts', () => {
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         url: 'https://something.com',
         options: undefined,
         targetPreset: 'with-who',
@@ -87,7 +87,7 @@ describe('steps/provision.ts', () => {
         { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
       );
 
-      expect(result).toStrictEqual({
+      expect(result).toContainEqual({
         url: 'https://something-else.com',
         options: { bar: 'baz' },
         targetPreset: 'voop',

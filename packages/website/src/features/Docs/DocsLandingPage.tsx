@@ -62,8 +62,8 @@ export const DocsLandingPage = () => {
         <Text mb={4}>
           Cannonfiles describe the desired state of a blockchain (rather than a
           list of transactions to execute). For example, you may want a chain to
-          have particular protocols deployed with certain functions called on
-          them.
+          have particular smart contracts and protocols deployed with certain
+          functions called on them.
         </Text>
         <Text mb={4}>
           Then you can <strong>build</strong> the chain into this state using
