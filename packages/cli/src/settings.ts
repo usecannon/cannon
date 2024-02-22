@@ -116,8 +116,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PRIVATE_KEY: z
       .string()
       .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
-      .default(fileSettings.privateKey as string)
-      .optional(),
+      .optional()
+      .default(fileSettings.privateKey as string),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -130,7 +130,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .default(fileSettings.publishIpfsUrl as string),
     CANNON_REGISTRY_PROVIDER_URL: z
       .string()
-      .default(fileSettings.registryProviderUrl || `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`),
+      .default(fileSettings.registryProviderUrl || `${DEFAULT_REGISTRY_PROVIDER_URL},frame`),
     CANNON_REGISTRY_CHAIN_ID: z.string().default(fileSettings.registryChainId || '1'),
     CANNON_REGISTRY_ADDRESS: z
       .string()
