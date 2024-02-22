@@ -14,6 +14,11 @@ function normalizePrivateKey(pkey: string): viem.Hash {
   return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
 }
 
+enum ProviderOrigin {
+  Registry = 'registry',
+  Write = 'write',
+}
+
 export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
@@ -33,7 +38,7 @@ export async function resolveWriteProvider(
     chainId,
     checkProviders: settings.providerUrl.split(','),
     privateKey: settings.privateKey,
-    origin: 'write',
+    origin: ProviderOrigin.Write,
   }) as any;
 }
 
@@ -44,7 +49,7 @@ export async function resolveRegistryProvider(
     chainId: parseInt(settings.registryChainId),
     checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
-    origin: 'registry',
+    origin: ProviderOrigin.Registry,
   });
 }
 
@@ -57,9 +62,9 @@ export async function resolveProviderAndSigners({
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
-  origin: 'registry' | 'write';
+  origin: ProviderOrigin;
 }): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
-  if (origin === 'write') {
+  if (origin === ProviderOrigin.Write) {
     console.log(grey(`Initiating connection attempt to: ${bold(checkProviders[0])}`));
     if (checkProviders.length === 1) console.log('');
   }
