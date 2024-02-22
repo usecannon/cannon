@@ -24,8 +24,6 @@ subtask(SUBTASK_RUN_ANVIL_NODE).setAction(async ({ dryRun, anvilOptions }, hre):
     nodeOptions.port = hre.config.networks.cannon.port;
   }
 
-  console.log(await hre.network.provider.request({ method: 'eth_chainId', params: [] }));
-
   if (!nodeOptions.chainId) {
     nodeOptions.chainId =
       hre.network.name === 'cannon'
@@ -37,8 +35,6 @@ subtask(SUBTASK_RUN_ANVIL_NODE).setAction(async ({ dryRun, anvilOptions }, hre):
     // dry run fork
     rpcOptions.forkProvider = viem.createPublicClient({ transport: viem.custom(hre.network.provider) });
   }
-
-  console.log('Running anvil with', nodeOptions, rpcOptions);
 
   return runRpc(nodeOptions, rpcOptions);
 });
