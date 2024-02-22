@@ -1,11 +1,11 @@
 import * as viem from 'viem';
-import '../actions';
+import { fixtureTransactionReceipt } from '../../test/fixtures';
+import { ARACHNID_CREATE2_PROXY } from '../constants';
+import { makeArachnidCreate2Txn } from '../create2';
 import { ContractArtifact } from '../types';
 import action from './contract';
-
-import { fakeRuntime, fakeCtx, makeFakeSigner } from './utils.test.helper';
-import { makeArachnidCreate2Txn } from '../create2';
-import { ARACHNID_CREATE2_PROXY } from '../constants';
+import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
+import '../actions';
 
 describe('steps/contract.ts', () => {
   const fakeAbi = [
@@ -36,6 +36,7 @@ describe('steps/contract.ts', () => {
       type: 'constructor',
     },
   ];
+  const fakeRx = fixtureTransactionReceipt();
 
   beforeAll(async () => {
     jest.mocked(fakeRuntime.getArtifact).mockResolvedValue({
@@ -44,12 +45,7 @@ describe('steps/contract.ts', () => {
     } as unknown as ContractArtifact);
 
     jest.mocked((fakeRuntime.provider as any).sendTransaction).mockResolvedValue('0x1234');
-    jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue({
-      transactionHash: '0x1234',
-      contractAddress: '0x2345234523452345234523452345234523452345',
-      gasUsed: BigInt(1234),
-      effectiveGasPrice: BigInt(5678),
-    });
+    jest.mocked(fakeRuntime.provider.waitForTransactionReceipt).mockResolvedValue(fakeRx);
   });
 
   describe('configInject()', () => {
@@ -237,7 +233,7 @@ describe('steps/contract.ts', () => {
                 { three: 'four' },
               ],
               contractName: undefined,
-              deployTxnHash: '0x1234',
+              deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -281,14 +277,14 @@ describe('steps/contract.ts', () => {
           contracts: {
             Woot: {
               abi: fakeAbi,
-              address: '0x2345234523452345234523452345234523452345',
+              address: fakeRx.contractAddress,
               constructorArgs: [
                 viem.stringToHex('one', { size: 32 }),
                 viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
-              deployTxnHash: '0x1234',
+              deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -326,14 +322,14 @@ describe('steps/contract.ts', () => {
           contracts: {
             Woot: {
               abi: fakeAbi,
-              address: '0x2345234523452345234523452345234523452345',
+              address: fakeRx.contractAddress,
               constructorArgs: [
                 viem.stringToHex('one', { size: 32 }),
                 viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
-              deployTxnHash: '0x1234',
+              deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,
@@ -362,14 +358,14 @@ describe('steps/contract.ts', () => {
           contracts: {
             Woot: {
               abi: fakeAbi,
-              address: '0x2345234523452345234523452345234523452345',
+              address: fakeRx.contractAddress,
               constructorArgs: [
                 viem.stringToHex('one', { size: 32 }),
                 viem.stringToHex('two', { size: 32 }),
                 { three: 'four' },
               ],
               contractName: undefined,
-              deployTxnHash: '0x1234',
+              deployTxnHash: fakeRx.transactionHash,
               deployedOn: 'contract.Woot',
               linkedLibraries: {},
               sourceName: undefined,

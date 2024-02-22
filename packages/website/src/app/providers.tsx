@@ -1,13 +1,16 @@
 'use client';
-import { theme } from '@/theme/theme';
-import { CacheProvider } from '@chakra-ui/next-js';
-import { ChakraProvider } from '@chakra-ui/react';
-import { ReactNode } from 'react';
+
 import apolloClient from '@/graphql/ApolloClient';
-import { ApolloProvider } from '@apollo/client';
 import LogsProvider from '@/providers/logsProvider';
 import WalletProvider from '@/providers/walletProvider';
+import { theme } from '@/theme/theme';
+import { ApolloProvider } from '@apollo/client';
+import { CacheProvider } from '@chakra-ui/next-js';
+import { ChakraProvider } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
+// Polyfill for localStorage, makes sure that the build work during build on CI/backend
+import 'storagepoly';
 
 const queryClient = new QueryClient({
   defaultOptions: {

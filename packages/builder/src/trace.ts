@@ -4,7 +4,7 @@ import * as viem from 'viem';
 import { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
 import { green, grey, bold, red } from 'chalk';
 
-const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
+export const CONSOLE_LOG_ADDRESS = '0x000000000000000000636f6e736f6c652e6c6f67';
 
 /* eslint-disable no-case-declarations */
 
@@ -45,7 +45,7 @@ export function renderTrace(ctx: ChainArtifacts, traces: TraceEntry[]): string {
   return traces.map((t) => renderTraceEntry(ctx, t)).join('\n');
 }
 
-function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
+export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string {
   let str;
 
   switch (trace.type) {
@@ -140,12 +140,12 @@ export function parseFunctionData(
 
         // its actually easier to start by trying to parse the output first
         try {
+          const abiItem = viem.getAbiItem({ ...info.contract, name: decodedInput.functionName }) as viem.AbiFunction;
           const decodedOutput = viem.decodeFunctionResult({
-            ...info.contract,
-            functionName: decodedInput.functionName,
+            abi: [abiItem],
             data: output,
-          })! as any[];
-          parsedOutput = renderResult(decodedOutput);
+          })!;
+          parsedOutput = renderResult(abiItem.outputs.length > 1 ? decodedOutput : [decodedOutput]);
         } catch (err) {
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
@@ -269,7 +269,7 @@ export function renderResult(result: readonly any[]) {
         if (typeof v === 'object') {
           return JSON.stringify(v);
         } else {
-          v.toString ? '"' + v.toString() + '"' : v;
+          return v.toString ? '"' + v.toString() + '"' : v;
         }
       })
       .join(', ') +

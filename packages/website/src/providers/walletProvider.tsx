@@ -1,15 +1,13 @@
-import '@rainbow-me/rainbowkit/styles.css';
-
+import { supportedChains, useProviders } from '@/hooks/providers';
 import {
-  getDefaultWallets,
   darkTheme,
+  getDefaultWallets,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
+import { createConfig } from '@wagmi/core';
 import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
-import { createConfig } from '@wagmi/core';
-
-import { useProviders, supportedChains } from '@/hooks/providers';
+import '@rainbow-me/rainbowkit/styles.css';
 
 const { connectors } = getDefaultWallets({
   appName: 'Cannon',
@@ -38,11 +36,11 @@ function WalletProvider({ children }: IWalletProvider) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-            div.ju367v1i {
-              max-height: 90vh;
-              overflow: auto;
-            }
-          `,
+             div.ju367v1i {
+               max-height: 90vh;
+               overflow: auto;
+             }
+           `,
           }}
         />
         {children}

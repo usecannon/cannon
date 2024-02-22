@@ -181,7 +181,3 @@ export function findContract(
 
   return null;
 }
-
-export function renderResult(result: any) {
-  return '(' + result.map((v: any) => (v.toString ? '"' + v.toString() + '"' : v)).join(', ') + ')';
-}

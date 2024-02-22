@@ -57,7 +57,7 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
-    "@usecannon/builder": "2.11.7",
+    "@usecannon/builder": "^2.11.7",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
     "debug": "^4.3.4",
