@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
 import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:router');
@@ -142,10 +142,10 @@ const routerStep = {
       ? await runtime.getSigner(config.from as Address)
       : await runtime.getDefaultSigner({ data: solidityInfo.bytecode as Hex }, config.salt);
 
-    debug('using deploy signer with address', await signer.address);
+    debug('using deploy signer with address', signer.address);
 
     const hash = await signer.wallet.deployContract({
-      account: signer.address,
+      account: signer.wallet.account || signer.address,
       bytecode: solidityInfo.bytecode as Hex,
       chain: undefined,
       abi: [],
@@ -166,7 +166,7 @@ const routerStep = {
           gasCost: receipt.effectiveGasPrice.toString(),
           //sourceCode
         },
-      },
+      } as ContractMap,
     };
   },
 };

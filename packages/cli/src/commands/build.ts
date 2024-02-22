@@ -312,7 +312,7 @@ export async function build({
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner!();
     if (defaultSigner) {
-      defaultSignerAddress = await defaultSigner.address;
+      defaultSignerAddress = defaultSigner.address;
       console.log(`Using ${defaultSignerAddress}`);
     } else {
       console.log();

@@ -25,7 +25,7 @@ import {
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, http, isAddressEqual } from 'viem';
+import { Abi, Address, createPublicClient, createWalletClient, custom, http, isAddressEqual, PublicClient } from 'viem';
 import { mainnet } from 'viem/chains';
 import { useChainId } from 'wagmi';
 
@@ -139,7 +139,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     currentRuntime = new ChainBuilderRuntime(
       {
-        provider,
+        provider: provider as PublicClient,
         chainId: safe.chainId,
         getSigner: async (addr: Address) => {
           if (!isAddressEqual(addr, safe.address)) {

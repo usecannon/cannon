@@ -143,7 +143,7 @@ async function runTxn(
       address: contract.address,
       abi: [neededFuncAbi],
       functionName: neededFuncAbi.name,
-      account: callSigner.address,
+      account: callSigner.wallet.account || callSigner.address,
       args: config.args,
       ...overrides,
     });
@@ -153,7 +153,7 @@ async function runTxn(
     const txnSimulation = await runtime.provider.simulateContract({
       address: contract.address,
       abi: [neededFuncAbi],
-      account: signer.address,
+      account: signer.wallet.account || signer.address,
       functionName: neededFuncAbi.name,
       args: config.args,
       ...overrides,
