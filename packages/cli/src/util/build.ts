@@ -2,7 +2,6 @@ import path from 'node:path';
 import { CannonSigner, ChainArtifacts, ChainBuilderRuntime } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { chains, getChainById } from '../chains';
 import { getFoundryArtifact } from '../foundry';
 import { filterSettings, loadCannonfile } from '../helpers';
 import { createDryRunRegistry } from '../registry';
@@ -131,11 +130,6 @@ async function configureProvider(opts: any, cliSettings: CliSettings) {
   } else {
     chainId = parseInt(opts.chainId);
   }
-
-  const chainData = getChainById(chainId);
-  // add viem's default rpc urls and remove any duplicates
-  const providers = [...new Set([...cliSettings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-  cliSettings.providerUrl = providers.join(',');
 
   if (!provider) {
     const _provider = await resolveWriteProvider(cliSettings, chainId);

@@ -3,10 +3,10 @@ import * as viem from 'viem';
 import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
-
-import { CliSettings } from '../settings';
 import { CannonSigner, traceActions } from '@usecannon/builder';
+
 import { getChainById } from '../chains';
+import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -33,6 +33,12 @@ export async function resolveWriteProvider(
       )}).\n\n`
     );
   }
+
+  const chainData = getChainById(chainId);
+  // add viem's default rpc urls and remove any duplicates
+  const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
+  // override settings with the new provider list
+  settings.providerUrl = providers.join(',');
 
   return resolveProviderAndSigners({
     chainId,
