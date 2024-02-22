@@ -278,6 +278,8 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
   const { publish } = await import('./commands/publish');
 
+  const cliSettings = resolveCliSettings(options);
+
   if (!options.chainId) {
     const chainIdPrompt = await prompts({
       type: 'number',
@@ -294,7 +296,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!options.privateKey) {
+  if (!options.privateKey && !cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
@@ -311,7 +313,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.privateKey = keyPrompt.value;
   }
 
-  const cliSettings = resolveCliSettings(options);
+  if (options.privateKey) {
+    cliSettings.privateKey = options.privateKey;
+  }
 
   const { provider, signers } = await resolveRegistryProvider(cliSettings);
 
