@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@usecannon/builder": "^2.11.7",
+    "@usecannon/builder": "^2.11.8",
     "lodash": "^4.17.21",
     "redis": "^4.6.13",
     "viem": "^2.7.10"
