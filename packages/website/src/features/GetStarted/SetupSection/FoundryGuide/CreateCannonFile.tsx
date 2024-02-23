@@ -84,11 +84,11 @@ export const CreateCannonFile = () => {
         <CommandPreview command="cannon build" />
       </Box>
       <Text mb={4}>
-        This created a local deployment of your nascent protocol. You can now
-        run this package locally using the command-line tool. (Here, we add the{' '}
-        <Code>--registry-priority local</Code> option to ensure we’re using the
-        version of this package that you just built, regardless of what others
-        have published.)
+        This compiled your code and created a local deployment of your nascent
+        protocol. You can now run this package locally using the command-line
+        tool. (Here, we add the <Code>--registry-priority local</Code> option to
+        ensure we’re using the version of this package that you just built,
+        regardless of what others have published.)
       </Text>
       <Box mb={4}>
         <CommandPreview command="cannon sample-foundry-project --registry-priority local" />
