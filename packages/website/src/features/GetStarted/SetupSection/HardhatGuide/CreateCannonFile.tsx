@@ -74,7 +74,7 @@ export const CreateCannonFile = () => {
         <Code colorScheme="blackAlpha" variant="solid">
           {"import 'hardhat-cannon';"}
         </Code>
-        &nbsp;if your&apos;re using Typescript.
+        &nbsp;if you&apos;re using Typescript.
       </Text>
       <Text mb={4}>
         In the configuration file, set the default network like so:{' '}
