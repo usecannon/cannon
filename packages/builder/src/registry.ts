@@ -362,13 +362,7 @@ export class OnChainRegistry extends CannonRegistry {
 
         console.log('\n-----');
 
-        const tx = this.generatePublishTransactionData(
-          name,
-          versions.map((p) => viem.stringToHex(p, { size: 32 })),
-          variant,
-          pub.url,
-          pub.metaUrl
-        );
+        const tx = this.generatePublishTransactionData(name, versions, variant, pub.url, pub.metaUrl);
 
         datas.push(tx);
       }
