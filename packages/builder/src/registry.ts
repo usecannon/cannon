@@ -292,6 +292,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     const tx = await this.provider?.simulateContract({
       ...this.contract,
+      account: this.signer.wallet.account || this.signer.address,
       functionName: 'multicall',
       args: [datas],
       ...this.overrides,
