@@ -39,13 +39,6 @@ export const DeployYourProtocol = () => {
         <CommandPreview command="npx hardhat cannon:verify" />
       </Box>
       <Text mb={4}>
-        Beforing publishing your package, run the setup command and set an IPFS
-        endpoint that supports pinning.
-      </Text>
-      <Box mb={4}>
-        <CommandPreview command="cannon setup" />
-      </Box>
-      <Text mb={4}>
         Finally, publish your package on the&nbsp;
         <Link as={NextLink} href={links.EXPLORE}>
           Cannon registry

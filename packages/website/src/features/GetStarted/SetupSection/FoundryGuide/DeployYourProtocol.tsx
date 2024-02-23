@@ -27,13 +27,6 @@ export const DeployYourProtocol = () => {
         <CommandPreview command="cannon verify sample-foundry-project --api-key REPLACE_WITH_ETHERSCAN_API_KEY --chain-id REPLACE_WITH_CHAIN_ID" />
       </Box>
       <Text mb={4}>
-        Beforing publishing your package, run the setup command and set an IPFS
-        endpoint that supports pinning.
-      </Text>
-      <Box mb={4}>
-        <CommandPreview command="cannon setup" />
-      </Box>
-      <Text mb={4}>
         Finally, publish your package on the&nbsp;
         <Link as={NextLink} href={links.EXPLORE}>
           Cannon registry
