@@ -1,3 +1,5 @@
+'use client';
+
 import { Box, Text, useClipboard } from '@chakra-ui/react';
 import { FC } from 'react';
 import { Copy } from 'react-feather';
@@ -11,7 +13,7 @@ interface ICommandPreviewProps {
 export const CommandPreview: FC<ICommandPreviewProps> = ({
   command,
   className,
-  backgroundColor = 'gray.800',
+  backgroundColor = 'black',
 }) => {
   const { hasCopied, onCopy } = useClipboard(command);
   const index = command.indexOf(' ');

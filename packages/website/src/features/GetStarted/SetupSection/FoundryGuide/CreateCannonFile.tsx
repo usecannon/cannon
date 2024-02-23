@@ -64,7 +64,7 @@ export const CreateCannonFile = () => {
       <Box mb={4}>
         <CodePreview code={code2} language="ini" />
       </Box>
-      <Alert status="info" mb={4} bg="gray.800">
+      <Alert status="info" mb={4} bg="gray.700">
         <AlertIcon />
         <Box>
           <AlertTitle>Include Idempotent Functions</AlertTitle>

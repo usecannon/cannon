@@ -3,36 +3,62 @@ import { links } from '@/constants/links';
 import {
   Flex,
   Box,
-  useTheme,
   Heading,
   Link,
   Text,
   Button,
   SimpleGrid,
   Icon,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import React from 'react';
 import NextLink from 'next/link';
+import { createGlobalStyle } from 'styled-components';
+
+const VideoStyles = createGlobalStyle`
+video {   
+  object-fit: fit;   
+  width: 100%;
+  position: fixed;
+  z-index: 1;
+  opacity:.033;
+  top:10%;
+  left:0; 
+  pointer-events:none;
+}
+video.alt {
+  transform: scaleX(-1);
+}
+@media screen and ( min-width: 900px ) {
+  video {
+    top:-2%;
+  }
+}
+`;
 
 export const DocsLandingPage = () => {
-  const theme = useTheme();
+  const isLargeScreen = useBreakpointValue({ base: false, md: true });
+
   return (
     <Flex
-      background={theme.gradients.dark}
+      background="black"
       backgroundAttachment="fixed"
       flex="1"
       py={[4, 4, 8]}
       p={4}
     >
       <Box
+        position="relative"
+        zIndex={2}
         overflowX="hidden"
         p={8}
         maxW="container.md"
         m="auto"
         background="black"
         border="1px solid"
-        borderColor="gray.800"
-        borderRadius="md"
+        borderColor="#4e4d4d"
+        borderRadius="lg"
+        boxShadow="0px 0px 8px 4px rgba(26, 214, 255, 0.2)"
       >
         <Heading
           as="h2"
@@ -245,6 +271,21 @@ export const DocsLandingPage = () => {
           </Button>
         </Link>
       </Box>
+
+      {isLargeScreen && (
+        <>
+          <VideoStyles />
+          <video autoPlay muted loop>
+            <source src="/videos/homepage_background.mp4" type="video/mp4" />
+          </video>
+          <video autoPlay muted loop className="alt">
+            <source
+              src="/videos/homepage_background.mp4#t=10"
+              type="video/mp4"
+            />
+          </video>
+        </>
+      )}
     </Flex>
   );
 };

@@ -17,7 +17,7 @@ export const SetupCustomAlert: FC<ISetupCustomAlertProps> = ({
   href,
 }) => {
   return (
-    <Alert status="info" mt={3} mb={4} bg="gray.800">
+    <Alert status="info" mt={3} mb={4} bg="gray.700">
       <AlertIcon />
       <Box>
         <AlertDescription>
