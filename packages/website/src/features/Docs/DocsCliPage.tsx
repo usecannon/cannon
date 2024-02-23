@@ -346,8 +346,14 @@ export const DocsCliPage: FC = () => {
                 Installation
               </Heading>
               <Text mb="3">
-                Run one of the following commands in your terminal to install
-                (or upgrade) Cannon:
+                <Link
+                  isExternal
+                  href="https://book.getfoundry.sh/getting-started/installation"
+                >
+                  Install Foundry
+                </Link>{' '}
+                if you haven’t already. Then, run one of the following commands
+                in your terminal to install (or upgrade) Cannon:
               </Text>
 
               <Tabs mb="6">

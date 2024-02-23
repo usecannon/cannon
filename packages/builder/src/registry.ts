@@ -306,12 +306,14 @@ export class OnChainRegistry extends CannonRegistry {
 
     const tx = await this.provider?.simulateContract({
       ...this.contract,
+      account: this.signer.wallet.account || this.signer.address,
       functionName: 'multicall',
       args: [datas],
       ...this.overrides,
     });
-    // TODO: why does sendTransaction not like output from tx
-    const hash = await this.signer?.wallet.sendTransaction(tx.request as any);
+
+    // Loose typing necessary because of this.overrides above?
+    const hash = await this.signer?.wallet.writeContract(tx.request as any);
     const receipt = await this.provider?.waitForTransactionReceipt({ hash });
 
     return receipt.transactionHash;
@@ -378,13 +380,7 @@ export class OnChainRegistry extends CannonRegistry {
 
         console.log('\n-----');
 
-        const tx = this.generatePublishTransactionData(
-          name,
-          versions.map((p) => viem.stringToHex(p, { size: 32 })),
-          variant,
-          pub.url,
-          pub.metaUrl
-        );
+        const tx = this.generatePublishTransactionData(name, versions, variant, pub.url, pub.metaUrl);
 
         datas.push(tx);
       }

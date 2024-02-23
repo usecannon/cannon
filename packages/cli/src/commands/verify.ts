@@ -121,7 +121,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
           // NOTE: below: yes, the etherscan api is misspelling
           constructorArguements: viem
             .encodeAbiParameters(
-              contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor').inputs,
+              contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
               contractInfo.constructorArgs || []
             )
             .slice(2),

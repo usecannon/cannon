@@ -1,15 +1,6 @@
 import { CommandPreview } from '@/components/CommandPreview';
 import { links } from '@/constants/links';
-import {
-  Heading,
-  Text,
-  Box,
-  Link,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from '@chakra-ui/react';
+import { Heading, Text, Box, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
 export const RunPackage = () => {
@@ -19,48 +10,45 @@ export const RunPackage = () => {
         as="h2"
         size="lg"
         fontWeight={600}
-        pb={4}
-        mb={4}
-        borderBottom="1px solid"
-        borderBottomColor="gray.800"
         letterSpacing="0.2px"
+        mb={2.5}
       >
         Run a Cannon Package
       </Heading>
-      <Alert status="info" mb={4} bg="gray.800">
-        <AlertIcon />
-        <Box>
-          <AlertTitle>Install Forge before proceeding</AlertTitle>
-          <AlertDescription>
-            The steps in this guide require Anvil, which is included as part of
-            Forge. If you do not have Forge installed, you can{' '}
-            <Link
-              href="https://book.getfoundry.sh/getting-started/installation"
-              isExternal
-            >
-              follow their installation guide
-            </Link>
-            {'.'}
-          </AlertDescription>
-        </Box>
-      </Alert>
-      <Text mb={4}>Start by installing Cannon with the following command:</Text>
+      <Text
+        pb={4}
+        mb={4}
+        borderBottom="1px solid"
+        borderBottomColor="gray.600"
+        fontSize="xl"
+        color="gray.400"
+      >
+        Run a package from the explorer on a local node in seconds
+      </Text>
+      <Text mb={4}>
+        <Link
+          isExternal
+          href="https://book.getfoundry.sh/getting-started/installation"
+        >
+          Install Foundry
+        </Link>{' '}
+        if you haven’t already.
+      </Text>
+      <Box mb={4}>
+        <CommandPreview command="curl -L https://foundry.paradigm.xyz | bash" />
+      </Box>
+      <Text mb={4}>
+        Install Cannon’s <Link href={links.CLI}>command-line interface</Link>.
+      </Text>
       <Box mb={4}>
         <CommandPreview command="npm install -g @usecannon/cli" />
       </Box>
       <Text mb={4}>
-        Now you can run any package available on&nbsp;
+        Run any package from{' '}
         <Link href={links.EXPLORE} as={NextLink}>
-          the registry
-        </Link>
-        , like so:
-      </Text>
-      <Box mb={4}>
-        <CommandPreview command="cannon synthetix-omnibus@andromeda" />
-      </Box>
-
-      <Text mb={4}>
-        This will start an&nbsp;
+          the explorer
+        </Link>{' '}
+        with a <em>Cannon</em> deployment. This will start an&nbsp;
         <Link
           href="https://github.com/foundry-rs/foundry/tree/master/crates/anvil"
           isExternal
@@ -74,12 +62,19 @@ export const RunPackage = () => {
         >
           a deployment of Synthetix V3
         </Link>{' '}
-        for local testing and development. Press <kbd>i</kbd> to interact with
-        the contracts directly in the command-line interface.
+        for local testing and development. For example, run a development
+        version of{' '}
+        <Link href="/packages/synthetix-omnibus/latest/13370-andromeda">
+          Synthetix’s Andromeda deployment
+        </Link>
+        :
       </Text>
+      <Box mb={4}>
+        <CommandPreview command="cannon synthetix-omnibus@andromeda" />
+      </Box>
       <Text mb={4}>
-        You can use the inspect command to retrieve the contract addresses and
-        ABIs. For example:
+        Export the contract addresses and ABIs as a folder of JSON files. For
+        example:
       </Text>
       <Box mb={4}>
         <CommandPreview command="cannon inspect synthetix-omnibus@andromeda --write-deployments ./deployments" />

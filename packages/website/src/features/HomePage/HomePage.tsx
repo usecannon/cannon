@@ -76,29 +76,6 @@ video.alt {
 }
 `;
 
-const CustomLink = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) => (
-  <Link
-    href={href}
-    as={href.startsWith('https://') ? undefined : NextLink}
-    isExternal={href.startsWith('https://')}
-    textDecoration="none"
-    borderBottom="1px solid"
-    borderBottomColor="gray.600"
-    _hover={{
-      color: 'gray.200',
-      borderBottomColor: 'teal.500',
-    }}
-  >
-    {children}
-  </Link>
-);
-
 const CustomLinkButton = ({
   href,
   children,
@@ -196,7 +173,7 @@ export default function HomePage() {
         <Container maxW="container.xl">
           <Heading
             as="h1"
-            mb={[4, 4, 7]}
+            mb={[4, 4, 6]}
             fontFamily="var(--font-inter)"
             fontWeight={400}
             fontSize={['30px', '30px', '64px']}
@@ -216,12 +193,8 @@ export default function HomePage() {
             lineHeight={['23px', '23px', '46px']}
             letterSpacing={['-0.8px', '-0.8px', '-1.6px']}
             color="gray.300"
-            maxW={['340px', '340px', '680px']}
           >
-            <CustomLink href={links.DEPLOY}>Deploy</CustomLink> protocols and
-            publish packages to the{' '}
-            <CustomLink href={links.EXPLORE}>registry</CustomLink>, hosted on
-            Ethereum and IPFS.
+            A DevOps tool for building on Ethereum.
           </Heading>
           <Link href={links.LEARN} color="white" as={NextLink}>
             <Button

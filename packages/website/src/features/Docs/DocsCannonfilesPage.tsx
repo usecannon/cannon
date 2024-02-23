@@ -194,7 +194,7 @@ export const DocsCannonfilesPage: FC = () => {
                 Cannonfile Documentation
               </Heading>
               <Text mb={4}>
-                Cannonfiles include actions that specify the desired state of a
+                Cannonfiles include steps that specify the desired state of a
                 blockchain. They are typically{' '}
                 <Link isExternal href="https://toml.io/en/">
                   TOML files
@@ -207,7 +207,7 @@ export const DocsCannonfilesPage: FC = () => {
                 The return object is accessible in steps executed at later
                 steps. The resulting return object is provided to any cannonfile
                 that imports it with the <Code>import</Code> or{' '}
-                <Code>provision</Code> actions.
+                <Code>provision</Code> steps.
               </Text>
               <Text mb={4}>
                 Cannonfiles are used to <strong>build</strong> chains into the
