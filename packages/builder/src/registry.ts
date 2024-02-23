@@ -297,8 +297,9 @@ export class OnChainRegistry extends CannonRegistry {
       args: [datas],
       ...this.overrides,
     });
-    // TODO: why does sendTransaction not like output from tx
-    const hash = await this.signer?.wallet.sendTransaction(tx.request as any);
+
+    // Loose typing necessary because of this.overrides above?
+    const hash = await this.signer?.wallet.writeContract(tx.request as any);
     const receipt = await this.provider?.waitForTransactionReceipt({ hash });
 
     return receipt.transactionHash;
