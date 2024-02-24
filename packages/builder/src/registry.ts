@@ -274,7 +274,7 @@ export class OnChainRegistry extends CannonRegistry {
       args: [packageHash],
     });
 
-    if (packageOwner !== viem.zeroAddress && !this.signer?.address !== packageOwner) {
+    if (packageOwner !== viem.zeroAddress && this.signer?.address !== packageOwner) {
       throw new Error(`Signer at address "${this.signer?.address}" is not the owner of the "${packageName}" package`);
     }
   }
