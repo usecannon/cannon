@@ -3,6 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
+import { encodeDeployData } from '../helpers';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
@@ -146,10 +147,10 @@ const routerStep = {
 
     const hash = await signer.wallet.sendTransaction({
       account: signer.wallet.account || signer.address,
-      data: `0x${viem.encodeDeployData({
+      data: encodeDeployData({
         abi: solidityInfo.abi,
         bytecode: solidityInfo.bytecode as viem.Hash,
-      })}`,
+      }),
       chain: undefined,
     });
 
