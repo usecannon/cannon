@@ -2,6 +2,7 @@ import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
 import { ARACHNID_CREATE2_PROXY } from '../constants';
 import { makeArachnidCreate2Txn } from '../create2';
+import { encodeDeployData } from '../helpers';
 import { ContractArtifact } from '../types';
 import action from './contract';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
@@ -247,7 +248,7 @@ describe('steps/contract.ts', () => {
         expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith({
           ...makeArachnidCreate2Txn(
             'wohoo',
-            viem.encodeDeployData({
+            encodeDeployData({
               bytecode: '0xabcd',
               abi: fakeAbi,
               args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],

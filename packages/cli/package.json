@@ -8,6 +8,7 @@
     "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
+    "test-e2e-prepare": "git submodule update --init --recursive",
     "test-e2e": "./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats",
     "test-snx-ci": "./test/e2e/helpers/bats/bin/bats test/e2e/synthetix-ci.bats",
     "start": "node bin/cannon.js",
