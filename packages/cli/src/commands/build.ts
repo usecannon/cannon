@@ -222,8 +222,8 @@ export async function build({
         );
       }
     }
-    for (const extra in o.extras) {
-      console.log(gray(`${'  '.repeat(d)}  Stored Event Data: ${extra} = ${o.extras[extra]}`));
+    for (const setting in o.settings) {
+      console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
     }
     stepsExecuted = true;
 

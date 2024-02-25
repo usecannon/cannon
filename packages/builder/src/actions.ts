@@ -2,12 +2,13 @@ import { z } from 'zod';
 import { handleZodErrors } from './error/zod';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
-import contractSpec from './steps/contract';
-import importSpec from './steps/import';
+import deploySpec from './steps/deploy';
+import pullSpec from './steps/pull';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
 import provisionSpec from './steps/provision';
 import routerSpec from './steps/router';
+import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
 
 export interface CannonAction {
@@ -105,9 +106,15 @@ export function registerAction(action: CannonAction) {
   )[label] = { values: action.validate };
 }
 
-registerAction(contractSpec);
-registerAction(importSpec);
+registerAction(deploySpec);
+registerAction(pullSpec);
 registerAction(invokeSpec);
 registerAction(keeperSpec);
 registerAction(provisionSpec);
 registerAction(routerSpec);
+registerAction(varSpec);
+
+// backwards compatibility
+registerAction(Object.assign({}, deploySpec, { label: 'contract' }));
+registerAction(Object.assign({}, pullSpec, { label: 'import' }));
+registerAction(Object.assign({}, varSpec, { label: 'setting' }));

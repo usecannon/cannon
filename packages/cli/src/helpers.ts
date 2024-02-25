@@ -206,7 +206,7 @@ export async function loadCannonfile(filepath: string) {
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    overrideSettings: {},
   };
 
   const name = def.getName(ctx);

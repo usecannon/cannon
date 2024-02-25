@@ -3,18 +3,21 @@ version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
-[var.salt]
-value = "greeter"
+[setting.value]
+defaultValue = "15"
 
-[var.msg]
-value = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
+[setting.salt]
+defaultValue = "greeter"
+
+[setting.msg]
+defaultValue = "Hello world!"
 description="The greeting passed to the constructor"
 
-[deploy.library]
+[contract.library]
 artifact = "Library"
 value = "2929372"
 
-[deploy.greeter]
+[contract.greeter]
 artifact = "Greeter"
 args = ["<%= settings.msg %>"]
 libraries.Library = "<%= contracts.library.address %>"
