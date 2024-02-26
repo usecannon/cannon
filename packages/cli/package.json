@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.11.16",
+  "version": "2.11.17",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -8,6 +8,7 @@
     "watch": "tsc -p tsconfig.build.json -w",
     "prepublishOnly": "npm run build",
     "test": "jest",
+    "test-e2e-prepare": "git submodule update --init --recursive",
     "test-e2e": "./test/e2e/helpers/bats/bin/bats test/e2e/e2e-tests.bats",
     "test-snx-ci": "./test/e2e/helpers/bats/bin/bats test/e2e/synthetix-ci.bats",
     "start": "node bin/cannon.js",
@@ -58,7 +59,7 @@
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
     "abitype": "^1.0.0",
-    "@usecannon/builder": "2.11.15",
+    "@usecannon/builder": "2.11.17",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
     "debug": "^4.3.4",

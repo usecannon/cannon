@@ -28,7 +28,7 @@ jobs:
         run: cd ./examples/sample-foundry-project && npm i
 
       - name: Initialize submodules
-        run: git submodule update --init --recursive
+        run: cd ./packages/cli && npm run test-e2e-prepare
 
       - name: E2E Tests
         run: cd ./packages/cli && npm run test-e2e
