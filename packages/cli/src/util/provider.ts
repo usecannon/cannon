@@ -23,7 +23,34 @@ export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
+  console.log('1 - settings.providerUrl: ', settings.providerUrl);
+
+  // Check if the first provider URL doesn't start with 'http'
+  if (!settings.providerUrl.split(',')[0].startsWith('http')) {
+    const chainData = getChainById(chainId);
+
+    // If privateKey is present or no valid http URLs are available in rpcUrls
+    if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+      if (chainData.rpcUrls.default.http.length === 0) {
+        console.error(
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
+        );
+        process.exit(1);
+      }
+      // Use default http URLs from chainData
+      settings.providerUrl = chainData.rpcUrls.default.http.join(',');
+    } else {
+      // Merge with viem's default rpc URLs, remove duplicates
+      const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
+      settings.providerUrl = providers.join(',');
+    }
+  }
+
+  if (settings.providerUrl.split(',')[0] === 'frame' && !settings.quiet) {
     console.warn(
       "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
     );
@@ -33,12 +60,6 @@ export async function resolveWriteProvider(
       )}).\n\n`
     );
   }
-
-  const chainData = getChainById(chainId);
-  // add viem's default rpc urls and remove any duplicates
-  const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
-  // override settings with the new provider list
-  settings.providerUrl = providers.join(',');
 
   return resolveProviderAndSigners({
     chainId,
