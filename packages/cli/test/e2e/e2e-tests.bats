@@ -7,13 +7,13 @@
 setup_file() {
   load helpers/bats-helpers.sh
   _setup_file
-  
+
   export CANNON="node $CANNON_REPO_DIR/packages/cli/bin/cannon.js"
 
   cd $CANNON_DIRECTORY
 
   # Fork Mainnet to run tests against forked node
-  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent &
+  anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
 }
 
@@ -60,7 +60,7 @@ teardown() {
   assert_output --partial 'uint128 poolId 1'
   assert_output --partial 'address collateralType 0x8700dAec35aF8Ff88c16BdF0418774CB3D7599B4'
   assert_output --partial 'uint256 amount 4000000000000000000'
-  assert_success  
+  assert_success
 }
 
 @test "Decode - Synthetix burnUsd transaction" {
@@ -115,6 +115,23 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_13370-main.txt"
 }
 
+@test "Build - Building hardhat router example locally" {
+  run build-router-local.sh
+  echo $output
+  assert_output --partial 'examples-router-architecture:0.0.1@main built for Cannon (Chain ID: 13370)'
+  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_13370-main.txt"
+  assert_success
+}
+
+@test "Build - Building hardhat router example live network" {
+  set_custom_config # Uses custom settings.json
+  run build-router-live.sh
+  echo $output
+  assert_output --partial 'examples-router-architecture:0.0.1@main built on Ethereum (Chain ID: 1)'
+  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_13370-main.txt"
+  assert_success
+}
+
 @test "Verify - Verify greeter packages" {
   set_custom_config # Uses custom settings.json
   run verify.sh
@@ -130,7 +147,7 @@ teardown() {
   assert_file_exists "$CANNON_DIRECTORY/tags/synthetix_3.3.4_13370-main.txt"
 }
 
-@test "Publish - Publishing greeter package" {  
+@test "Publish - Publishing greeter package" {
   set_custom_config # Uses custom settings.json
   run publish.sh
   echo $output

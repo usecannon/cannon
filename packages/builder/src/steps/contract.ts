@@ -4,6 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { encodeDeployData } from '../helpers';
 import { contractSchema } from '../schemas';
 import {
   ChainArtifacts,
@@ -73,7 +74,7 @@ function generateOutputs(
   const [injectedBytecode, linkedLibraries] = resolveBytecode(artifactData, config);
 
   const txn = {
-    data: viem.encodeDeployData({
+    data: encodeDeployData({
       abi: artifactData.abi,
       bytecode: injectedBytecode,
       args: config.args || [],
@@ -243,7 +244,7 @@ const contractSpec = {
 
     // finally, deploy
     const txn = {
-      data: viem.encodeDeployData({
+      data: encodeDeployData({
         abi: artifactData.abi,
         bytecode: injectedBytecode,
         args: config.args || [],
@@ -319,7 +320,9 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(_.assign(txn, overrides, { account: signer.address }));
+        const hash = await signer.wallet.sendTransaction(
+          _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+        );
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }

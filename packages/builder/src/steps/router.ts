@@ -1,8 +1,9 @@
 import Debug from 'debug';
 import _ from 'lodash';
-import { Abi, Address, Hex } from 'viem';
+import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
+import { encodeDeployData } from '../helpers';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, ContractMap, PackageState } from '../types';
@@ -29,7 +30,7 @@ const routerStep = {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const newConfig = this.configInject(ctx, config);
 
-    const contractAbis: { [contractName: string]: Abi } = {};
+    const contractAbis: { [contractName: string]: viem.Abi } = {};
     const contractAddresses: { [contractName: string]: string } = {};
 
     for (const n of newConfig.contracts) {
@@ -129,7 +130,7 @@ const routerStep = {
       contractName,
       sourceName: `${contractName}.sol`,
       abi: routableAbi,
-      bytecode: solidityInfo.bytecode as Hex,
+      bytecode: solidityInfo.bytecode as viem.Hex,
       deployedBytecode: solidityInfo.deployedBytecode,
       linkReferences: {},
       source: {
@@ -139,16 +140,18 @@ const routerStep = {
     });
 
     const signer = config.from
-      ? await runtime.getSigner(config.from as Address)
-      : await runtime.getDefaultSigner({ data: solidityInfo.bytecode as Hex }, config.salt);
+      ? await runtime.getSigner(config.from as viem.Address)
+      : await runtime.getDefaultSigner({ data: solidityInfo.bytecode as viem.Hex }, config.salt);
 
-    debug('using deploy signer with address', await signer.address);
+    debug('using deploy signer with address', signer.address);
 
-    const hash = await signer.wallet.deployContract({
-      account: signer.address,
-      bytecode: solidityInfo.bytecode as Hex,
+    const hash = await signer.wallet.sendTransaction({
+      account: signer.wallet.account || signer.address,
+      data: encodeDeployData({
+        abi: solidityInfo.abi,
+        bytecode: solidityInfo.bytecode as viem.Hash,
+      }),
       chain: undefined,
-      abi: [],
     });
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
@@ -164,7 +167,6 @@ const routerStep = {
           sourceName: contractName + '.sol',
           gasUsed: Number(receipt.gasUsed),
           gasCost: receipt.effectiveGasPrice.toString(),
-          //sourceCode
         },
       } as ContractMap,
     };
