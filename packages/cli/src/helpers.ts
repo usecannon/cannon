@@ -254,6 +254,11 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
+/**
+ * Forge added a breaking change where it stopped returning the ast on build artifacts,
+ * and the user has to add the `--ast` param to have them included.
+ * This check is so we make sure to have asts regardless the user's foundry version.
+ */
 export async function checkForgeAstSupport() {
   try {
     const result = await execPromise('forge build --help');
