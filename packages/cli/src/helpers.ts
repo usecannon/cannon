@@ -254,6 +254,15 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
+export async function checkForgeAstSupport() {
+  try {
+    const result = await execPromise('forge build --help');
+    return result.toString().includes('--ast');
+  } catch (error) {
+    throw new Error('Could not determine if forge ast flag is available');
+  }
+}
+
 export function getChainName(chainId: number): string {
   return getChainDataFromId(chainId)?.name || 'unknown';
 }
