@@ -45,6 +45,7 @@ describe('registry.ts', () => {
     beforeAll(async () => {
       provider = makeFakeProvider();
       signer = fixtureSigner();
+
       registry = new OnChainRegistry({
         address: fakeRegistryAddress,
         provider,
@@ -84,8 +85,9 @@ describe('registry.ts', () => {
         );
       });
 
-      it('makes call to register all specified packages, and returns list of published packages', async () => {
+      it('throws if signer is not the owner of the package', async () => {
         jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+
         jest.mocked(provider.getFeeHistory).mockResolvedValue({
           //lastBaseFeePerGas: null,
           baseFeePerGas: [],
@@ -94,14 +96,41 @@ describe('registry.ts', () => {
           //gasPrice: viem.parseGwei('10'),
         });
 
-        //jest.mocked(provider.resolveName).mockResolvedValue(fakeRegistryAddress);
-
         jest.mocked(provider.getChainId).mockResolvedValue(12341234);
-
         jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.readContract).mockResolvedValue('0xdeadbeef');
 
         jest
-          .mocked(signer.wallet.sendTransaction)
+          .mocked(signer.wallet.writeContract)
+          .mockResolvedValueOnce({} as any)
+          .mockResolvedValueOnce({} as any);
+
+        const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        await expect(
+          registry.publish(['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'], 1, 'ipfs://Qmsomething')
+        ).rejects.toThrow(`Signer at address "${signer.address}" is not the owner of the "dummyPackage" package`);
+      });
+
+      it('makes call to register all specified packages, and returns list of published packages', async () => {
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+
+        jest.mocked(provider.getFeeHistory).mockResolvedValue({
+          //lastBaseFeePerGas: null,
+          baseFeePerGas: [],
+          gasUsedRatio: [],
+          oldestBlock: BigInt(0),
+          //gasPrice: viem.parseGwei('10'),
+        });
+
+        jest.mocked(provider.getChainId).mockResolvedValue(12341234);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.readContract).mockResolvedValue(signer.address);
+
+        jest
+          .mocked(signer.wallet.writeContract)
           .mockResolvedValueOnce({} as any)
           .mockResolvedValueOnce({} as any);
 

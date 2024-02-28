@@ -265,6 +265,20 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
+  private async checkPackageOwnership(packageName: string) {
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+
+    const packageOwner = await this.provider?.readContract({
+      ...this.contract,
+      functionName: 'getPackageOwner',
+      args: [packageHash],
+    });
+
+    if (packageOwner !== viem.zeroAddress && this.signer?.address !== packageOwner) {
+      throw new Error(`Signer at address "${this.signer?.address}" is not the owner of the "${packageName}" package`);
+    }
+  }
+
   private generatePublishTransactionData(
     packagesName: string,
     packageTags: string[],
@@ -319,6 +333,8 @@ export class OnChainRegistry extends CannonRegistry {
 
       const ref = new PackageReference(registerPackage);
       const { name, preset } = new PackageReference(registerPackage);
+
+      await this.checkPackageOwnership(name);
       const variant = `${chainId}-${preset}`;
 
       console.log(`Package: ${ref.fullPackageRef}`);
@@ -353,6 +369,8 @@ export class OnChainRegistry extends CannonRegistry {
           .map((p) => new PackageReference(p).version);
 
         const { name, preset } = new PackageReference(registerPackage);
+
+        await this.checkPackageOwnership(name);
         const variant = `${pub.chainId}-${preset}`;
 
         console.log(`Package: ${name}`);
