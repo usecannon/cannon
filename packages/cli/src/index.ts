@@ -20,7 +20,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, isPrivateKey } from './helpers';
+import { checkCannonVersion, isPrivateKey, checkForgeAstSupport } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -180,7 +180,13 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
     console.log(bold('Building the foundry project...'));
     if (!opts.skipCompile) {
-      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory, shell: true });
+      let forgeBuildArgs = ['build'];
+      if (await checkForgeAstSupport()) {
+        forgeBuildArgs = [...forgeBuildArgs, '--ast'];
+      }
+
+      const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+
       await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
