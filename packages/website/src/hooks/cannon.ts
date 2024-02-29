@@ -26,7 +26,6 @@ import {
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Abi, Address, Chain, createPublicClient, createWalletClient, custom, http, isAddressEqual, PublicClient } from 'viem';
-import { mainnet } from 'viem/chains';
 import { useChainId } from 'wagmi';
 
 export type BuildState =
@@ -126,7 +125,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     const readOnlyRegistry = new OnChainRegistry({
       address: settings.registryAddress,
       provider: createPublicClient({
-        chain: mainnet,
+        chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
         transport: http(),
       }),
     });
@@ -334,7 +333,7 @@ export function useCannonPackage(packageRef: string, chainId?: number) {
       const registry = new OnChainRegistry({
         address: settings.registryAddress,
         provider: createPublicClient({
-          chain: mainnet,
+          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
           transport: http(),
         }),
       });

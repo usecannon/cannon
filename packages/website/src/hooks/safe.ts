@@ -71,7 +71,6 @@ function _createSafeApiKit(chainId: number) {
 
   return new SafeApiKit({
     chainId: BigInt(chain.id),
-    txServiceUrl: new URL('/api', chain.serviceUrl).toString(),
   });
 }
 
