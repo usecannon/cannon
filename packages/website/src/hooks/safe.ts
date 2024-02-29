@@ -70,14 +70,14 @@ function _createSafeApiKit(chainId: number) {
   if (!chain?.serviceUrl) return null;
 
   return new SafeApiKit({
-    // txServiceUrl: chain.serviceUrl, 
-    chainId: chain.id as unknown as bigint
+    chainId: BigInt(chain.id),
+    txServiceUrl: new URL('/api', chain.serviceUrl).toString(),
   });
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition) {
   const txsQuery = useQuery({
-    queryKey: ['safe-service', 'all-txns', safe?.chainId, safe?.address],
+    queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return null;
       const safeService = _createSafeApiKit(safe.chainId);
@@ -85,8 +85,8 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
       if (!safeService) {
         throw new Error(`Safe Chain ID "${safe.chainId}" is not supported by Gnosis"`);
       }
-      
-      const res = await safeService?.getMultisigTransactions(safe.address);
+
+      const res = await safeService.getMultisigTransactions(safe.address);
 
       return {
         count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,
