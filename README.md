@@ -58,19 +58,30 @@ cd ./packages/website && npm run dev
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ### Version and Publish
-We use [changesets](https://github.com/changesets/changesets) to manage versions on our monorepo.
+
+We bump and publish manually using lerna's [version and publish](https://lerna.js.org/docs/features/version-and-publish) workflow.
+
+#### Stable Release
+
+1. To create a `stable` release, just run `npm run publish` and select the version you want to be deployed.
+2. Run `npm run update-stables` to make sure that all the other private packages reference to new release.
+
+#### Alpha Release
+
+For creating an `alpha` release, use `npm run publish --canary`, which will deploy a version with the format `x.x.x-alpha.<gitref>`.
+
+#### Changesets
+
+We can also use [changesets](https://github.com/changesets/changesets) to manage versions on our monorepo.
 
 Currently our [release workflow](.github/workflows/release.yml) on our CI handles bumping package versions and publishing releases to npm through lerna.
 It only publishes releases if any changeset PR's have been added to the commit history merged into main.
 
 To trigger a new version bump run the following command (from the root of the repo):
-``` 
+
+```
   npm run changeset
 ```
-
-If a situation where a commit was merged without a changeset, we can always bump and publish manually using lerna's [version and publish](https://lerna.js.org/docs/features/version-and-publish) workflow:
-
-`npx lerna publish --no-private` will bump package versions and find npm packages that need to be published in the repo.
 
 ## License
 
