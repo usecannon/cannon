@@ -25,7 +25,7 @@ import {
 } from '@usecannon/builder';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Abi, Address, createPublicClient, createWalletClient, custom, http, isAddressEqual, PublicClient } from 'viem';
+import { Abi, Address, Chain, createPublicClient, createWalletClient, custom, http, isAddressEqual, PublicClient } from 'viem';
 import { mainnet } from 'viem/chains';
 import { useChainId } from 'wagmi';
 

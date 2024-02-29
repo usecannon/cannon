@@ -49,6 +49,7 @@ import { useAccount, useChainId, useWriteContract } from 'wagmi';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
+import PublishUtility from './PublishUtility';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -457,6 +458,11 @@ const TransactionDetailsPage: FC<{
                       <Heading size="sm" mb="2">
                         Cannon Package
                       </Heading>
+
+                      <PublishUtility
+                        deployUrl={hintData.cannonPackage}
+                        targetChainId={safe.chainId}
+                      />
                     </Box>
                   )}
                 </Box>
