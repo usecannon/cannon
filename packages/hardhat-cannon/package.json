@@ -44,10 +44,10 @@
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "2.11.18",
     "@usecannon/cli": "2.11.18",
-    "chalk": "^4.1.2",
-    "debug": "^4.3.3",
-    "fs-extra": "^10.0.1",
-    "viem": "^2.6.1"
+    "chalk": "^5.3.0",
+    "debug": "^4.3.4",
+    "fs-extra": "^11.2.0",
+    "viem": "^2.7.16"
   },
   "gitHead": "069b9d75b513ea0721f0e02c56942e045d559ff3"
 }
