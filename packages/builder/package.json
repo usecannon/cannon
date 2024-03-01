@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@synthetixio/router": "^3.3.7",
-    "axios": "^1.6.2",
+    "axios": "^1.6.7",
     "buffer": "^6.0.3",
     "debug": "^4.3.4",
     "form-data": "^4.0.0",
@@ -47,7 +47,7 @@
     "promise-events": "^0.2.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typestub-ipfs-only-hash": "^4.0.0",
-    "viem": "^2.6.1",
+    "viem": "^2.7.16",
     "zod": "^3.22.4"
   },
   "engines": {
