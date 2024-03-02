@@ -81,7 +81,6 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const chainId = await provider.getChainId();
-
   const basicRuntime = new ChainBuilderRuntime(
     {
       provider: provider,

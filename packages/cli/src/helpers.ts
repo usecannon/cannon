@@ -291,6 +291,17 @@ export function getChainDataFromId(chainId: number): Chain | null {
   return chains.find((c: Chain) => c.id == chainId) || null;
 }
 
+export async function checkChainIdConsistency(providerUrl: string, chainId: number): Promise<void> {
+  const provider = viem.createPublicClient({
+    transport: viem.http(providerUrl),
+  });
+
+  const providerChainId = await provider.getChainId();
+
+  if (chainId !== (await provider.getChainId()))
+    throw new Error(`Supplied provider's chainId ${providerChainId} does not match with chainId you provided ${chainId}`);
+}
+
 function getMetadataPath(packageName: string): string {
   const cliSettings = resolveCliSettings();
   return path.join(cliSettings.cannonDirectory, 'metadata_cache', `${packageName.replace(':', '_')}.txt`);
