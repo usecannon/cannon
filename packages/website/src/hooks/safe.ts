@@ -1,6 +1,6 @@
 import SafeApiKit from '@safe-global/api-kit';
 import { useQuery } from '@tanstack/react-query';
-import { Address, getAddress, isAddress, keccak256, stringToBytes, createWalletClient, custom } from 'viem';
+import { Address, getAddress, isAddress, keccak256, stringToBytes } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 import { chains } from '@/constants/deployChains';
 import * as onchainStore from '@/helpers/onchain-store';
@@ -71,6 +71,7 @@ function _createSafeApiKit(chainId: number) {
 
   return new SafeApiKit({
     chainId: BigInt(chain.id),
+    txServiceUrl: new URL('/api', chain.serviceUrl).toString(),
   });
 }
 
@@ -80,7 +81,7 @@ export function useExecutedTransactions(safe?: SafeDefinition) {
     queryFn: async () => {
       if (!safe) return null;
       const safeService = _createSafeApiKit(safe.chainId);
-      
+
       if (!safeService) {
         throw new Error(`Safe Chain ID "${safe.chainId}" is not supported by Gnosis"`);
       }
