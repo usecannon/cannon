@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@usecannon/builder": "^2.11.9",
+    "@usecannon/builder": "^2.11.17",
     "@usecannon/cli": "^2.11.17",
     "lodash": "^4.17.21",
     "redis": "^4.6.13",
