@@ -4,7 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { encodeDeployData } from '../helpers';
+import { encodeDeployData } from '../util';
 import { contractSchema } from '../schemas';
 import {
   ChainArtifacts,
