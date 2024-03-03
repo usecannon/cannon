@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { ContractArtifact } from '@usecannon/builder';
 import _ from 'lodash';
-import { execPromise } from './helpers';
+import { execPromise, checkForgeAstSupport } from './helpers';
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:foundry');
@@ -64,9 +64,12 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
   const artifactBuffer = await fs.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;
 
+  const isAstFlagSupported = await checkForgeAstSupport();
   // save build metadata
   const foundryInfo = JSON.parse(
-    await execPromise(`forge inspect ${name} metadata` + (baseDir ? ` --root ${baseDir}` : ''))
+    await execPromise(
+      `forge inspect ${name} metadata  ${baseDir ? `--root ${baseDir}` : ''} ${isAstFlagSupported ? '--ast' : ''}`
+    )
   );
 
   const evmVersionInfo = JSON.parse(await execPromise('forge config --json')).evm_version;

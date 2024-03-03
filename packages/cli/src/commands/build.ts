@@ -299,7 +299,7 @@ export async function build({
   }
   console.log('');
 
-  const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
+  const providerUrlMsg = provider.transport.type === 'http' ? provider.transport.url : providerUrl!.split(',')[0];
   console.log(
     bold(
       `Building the chain (ID ${chainId})${

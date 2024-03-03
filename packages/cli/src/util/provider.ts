@@ -1,13 +1,12 @@
-import os from 'node:os';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { bold, red } from 'chalk';
+import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
-
-import { CliSettings } from '../settings';
 import { CannonSigner, traceActions } from '@usecannon/builder';
+
 import { getChainById } from '../chains';
+import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -15,13 +14,43 @@ function normalizePrivateKey(pkey: string): viem.Hash {
   return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
 }
 
+enum ProviderOrigin {
+  Registry = 'registry',
+  Write = 'write',
+}
+
 export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
-  if (settings.providerUrl.split(',')[0] == 'frame' && !settings.quiet) {
+  // Check if the first provider URL doesn't start with 'http'
+  if (!settings.providerUrl.split(',')[0].startsWith('http')) {
+    const chainData = getChainById(chainId);
+
+    // If privateKey is present or no valid http URLs are available in rpcUrls
+    if (settings.privateKey || chainData.rpcUrls.default.http.length === 0) {
+      if (chainData.rpcUrls.default.http.length === 0) {
+        console.error(
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
+        );
+        process.exit(1);
+      }
+      // Use default http URLs from chainData
+      settings.providerUrl = chainData.rpcUrls.default.http.join(',');
+    } else {
+      // Merge with viem's default rpc URLs, remove duplicates
+      const providers = [...new Set([...settings.providerUrl.split(','), ...chainData.rpcUrls.default.http])];
+      settings.providerUrl = providers.join(',');
+    }
+  }
+
+  if (settings.providerUrl.split(',')[0] === 'frame' && !settings.quiet) {
     console.warn(
-      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
+      "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults first to http://localhost:8545, then to Viem's default RPCs.\n\n"
     );
     console.warn(
       `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
@@ -34,6 +63,7 @@ export async function resolveWriteProvider(
     chainId,
     checkProviders: settings.providerUrl.split(','),
     privateKey: settings.privateKey,
+    origin: ProviderOrigin.Write,
   }) as any;
 }
 
@@ -44,6 +74,7 @@ export async function resolveRegistryProvider(
     chainId: parseInt(settings.registryChainId),
     checkProviders: settings.registryProviderUrl?.split(','),
     privateKey: settings.privateKey,
+    origin: ProviderOrigin.Registry,
   });
 }
 
@@ -51,11 +82,18 @@ export async function resolveProviderAndSigners({
   chainId,
   checkProviders = ['frame'],
   privateKey,
+  origin,
 }: {
   chainId: number;
   checkProviders?: string[];
   privateKey?: string;
+  origin: ProviderOrigin;
 }): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
+  if (origin === ProviderOrigin.Write) {
+    console.log(grey(`Initiating connection attempt to: ${bold(checkProviders[0])}`));
+    if (checkProviders.length === 1) console.log('');
+  }
+
   debug(
     'resolving provider',
     checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p)),
@@ -88,13 +126,21 @@ export async function resolveProviderAndSigners({
       ).extend(traceActions({}));
     } catch (err) {
       if (checkProviders.length <= 1) {
-        throw err;
+        console.error(
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
+        );
+        process.exit(1);
       }
 
       return await resolveProviderAndSigners({
         chainId,
         checkProviders: checkProviders.slice(1),
         privateKey,
+        origin,
       });
     }
 
@@ -118,14 +164,15 @@ export async function resolveProviderAndSigners({
   } else {
     debug('use frame eth provider');
     // Use eth-provider wrapped in Web3Provider as default
-    publicClient = (
-      viem
-        .createPublicClient({
-          transport: viem.custom(rawProvider),
-        })
-        .extend(viem.walletActions) as any
-    ).extend(traceActions({}));
     try {
+      publicClient = (
+        viem
+          .createPublicClient({
+            transport: viem.custom(rawProvider),
+          })
+          .extend(viem.walletActions) as any
+      ).extend(traceActions({}));
+
       // Attempt to load from eth-provider
       await rawProvider.enable();
 
@@ -136,29 +183,23 @@ export async function resolveProviderAndSigners({
         });
       }
     } catch (err: any) {
-      // try to do it with the next provider instead
-      try {
-        if (checkProviders.length <= 1) {
-          throw new Error('no more providers');
-        }
-
-        return await resolveProviderAndSigners({
-          chainId,
-          checkProviders: checkProviders.slice(1),
-          privateKey,
-        });
-      } catch (e: any) {
-        console.error(red('Failed to connect signers: ', (err.stack as string)?.replace(os.homedir(), '')));
-        console.error();
+      if (checkProviders.length <= 1) {
         console.error(
-          'Please ensure your wallet application is open, a wallet is selected, and the wallet is granting access to cannon.'
-        );
-        console.error();
-        console.error(
-          'Alternatively, you can supply a private key and RPC in the terminal by setting CANNON_PROVIDER_URL and CANNON_PRIVATE_KEY.'
+          red(
+            `Failed to establish a connection with any provider. Please specify a valid RPC url using the ${bold(
+              '--provider-url'
+            )} flag.`
+          )
         );
         process.exit(1);
       }
+
+      return await resolveProviderAndSigners({
+        chainId,
+        checkProviders: checkProviders.slice(1),
+        privateKey,
+        origin,
+      });
     }
   }
 
