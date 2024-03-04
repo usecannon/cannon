@@ -12,7 +12,7 @@ import {
   ContractMap,
   RawChainDefinition,
 } from '@usecannon/builder';
-import { bold, magentaBright, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, yellow, yellowBright, red } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -291,15 +291,24 @@ export function getChainDataFromId(chainId: number): Chain | null {
   return chains.find((c: Chain) => c.id == chainId) || null;
 }
 
-export async function checkChainIdConsistency(providerUrl: string, chainId: number): Promise<void> {
-  const provider = viem.createPublicClient({
-    transport: viem.http(providerUrl),
-  });
+export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+  // only if both are defined
+  if (providerUrl && chainId) {
+    const provider = viem.createPublicClient({
+      transport: viem.http(providerUrl),
+    });
 
-  const providerChainId = await provider.getChainId();
+    const providerChainId = await provider.getChainId();
 
-  if (chainId !== (await provider.getChainId()))
-    throw new Error(`Supplied provider's chainId ${providerChainId} does not match with chainId you provided ${chainId}`);
+    // throw an expected error if the chainId is not consistent with the provider's chainId
+    if (Number(chainId) !== Number(providerChainId))
+      console.log(
+        red(
+          `Supplied provider's chainId ${providerChainId} does not match with ${bold('--chain-id')} you provided ${chainId}`
+        )
+      );
+    process.exit(1);
+  }
 }
 
 function getMetadataPath(packageName: string): string {
