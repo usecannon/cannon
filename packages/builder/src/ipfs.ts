@@ -24,9 +24,13 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
 }
 
 export function setAxiosRetries(count = 3) {
-  axiosRetry(axios, { retries: count , onRetry: (retryCount, error, requestConfig) => {
-    console.log("Failed with error: ", error, "Retrying...");
-  }});
+  axiosRetry(axios, {
+    retries: count,
+    onRetry: (error) => {
+      /* eslint-disable no-console */
+      console.log('Failed with error: ', error, 'Retrying...');
+    },
+  });
 }
 
 export async function isIpfsGateway(ipfsUrl: string, customHeaders: Headers = {}) {
@@ -56,10 +60,8 @@ export async function readIpfs(
   hash: string,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number,
-  retries: number = 3
+  timeout: number
 ): Promise<any> {
-  
   debug(`downloading content from ${hash}`);
 
   let result: AxiosResponse;
@@ -111,7 +113,7 @@ export async function writeIpfs(
   customHeaders: Headers = {},
   isGateway: boolean,
   timeout: number,
-  retries: number = 3
+  retries = 3
 ): Promise<string> {
   setAxiosRetries(retries);
 

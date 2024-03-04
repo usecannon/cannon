@@ -246,10 +246,10 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
-      console.log(gray(`    ${fullPackageRef} (Chain ID: ${chainId}) found`));
+    console.log(gray(`    ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
-  
+
       if (!pkgInfo) {
         pkgInfo = oldDeployData.meta;
       }
