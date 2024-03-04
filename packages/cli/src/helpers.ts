@@ -301,7 +301,7 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
     const providerChainId = await provider.getChainId();
 
     // throw an expected error if the chainId is not consistent with the provider's chainId
-    if (Number(chainId) !== Number(providerChainId))
+    if (Number(chainId) !== Number(providerChainId)) {
       console.log(
         red(
           `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
@@ -311,7 +311,9 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
           )} value matches the network your provider is connected to.`
         )
       );
-    process.exit(1);
+
+      process.exit(1);
+    }
   }
 }
 
