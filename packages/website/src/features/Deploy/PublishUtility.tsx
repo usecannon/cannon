@@ -69,7 +69,6 @@ export default function PublishUtility(props: {
 
       const [walletAddress] = await wc.data.getAddresses();
 
-
       const targetRegistry = new OnChainRegistry({
         signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
