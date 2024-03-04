@@ -304,7 +304,11 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
     if (Number(chainId) !== Number(providerChainId))
       console.log(
         red(
-          `Supplied provider's chainId ${providerChainId} does not match with ${bold('--chain-id')} you provided ${chainId}`
+          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            '--chain-id'
+          )} value (${chainId}). Please ensure that the ${bold(
+            '--chain-id'
+          )} value matches the network your provider is connected to.`
         )
       );
     process.exit(1);
