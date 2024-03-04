@@ -245,18 +245,20 @@ export async function build({
   oldDeployData = await runtime.readDeploy(prevPkg, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
-  if (oldDeployData && !wipe) {
-    console.log(`${fullPackageRef} (Chain ID: ${chainId}) found`);
-    await runtime.restoreMisc(oldDeployData.miscUrl);
-
-    if (!pkgInfo) {
-      pkgInfo = oldDeployData.meta;
+  if (oldDeployData) {
+      console.log(gray(`    ${fullPackageRef} (Chain ID: ${chainId}) found`));
+    if (!wipe) {
+      await runtime.restoreMisc(oldDeployData.miscUrl);
+  
+      if (!pkgInfo) {
+        pkgInfo = oldDeployData.meta;
+      }
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`${prevPkg} (Chain ID: ${chainId}) not found`);
+      throw new Error(`    ${prevPkg} (Chain ID: ${chainId}) not found`);
     } else {
-      console.log(gray(`${prevPkg} (Chain ID: ${chainId}) not found`));
+      console.log(gray(`    ${prevPkg} (Chain ID: ${chainId}) not found`));
     }
   }
 
