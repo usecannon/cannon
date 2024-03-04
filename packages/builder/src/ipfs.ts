@@ -6,9 +6,11 @@ import pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
 import axiosRetry from 'axios-retry';
 
-export function setIpfsRetries(count = 3) {
-    // Defines axios client retry configuration
-    axiosRetry(axios, { retries: count });
+export function setAxiosRetries(count = 3) {
+  // Defines axios client retry configuration
+  axiosRetry(axios, { retries: count , onRetry: (retryCount, error, requestConfig) => {
+    console.log("Failed with error: ", error, "Retrying...");
+  }});
 }
 
 export interface Headers {
@@ -56,8 +58,10 @@ export async function readIpfs(
   hash: string,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
+  retries: number = 3
 ): Promise<any> {
+
   debug(`downloading content from ${hash}`);
 
   let result: AxiosResponse;
@@ -108,10 +112,11 @@ export async function writeIpfs(
   info: any,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
+  retries: number = 3
 ): Promise<string> {
-  setIpfsRetries();
-  
+  setAxiosRetries(retries);
+
   const data = JSON.stringify(info);
   const buf = compress(data);
   const cid = await getContentCID(Buffer.from(buf));
