@@ -10,7 +10,10 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
+import { Chain, createPublicClient, extractChain, http } from 'viem';
+import chains from "@/helpers/chains";
 import { useWalletClient } from 'wagmi';
+import { findChain } from '@/helpers/rpc';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -69,6 +72,10 @@ export default function PublishUtility(props: {
       const targetRegistry = new OnChainRegistry({
         signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
+        provider: createPublicClient({
+          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
+          transport: http(),
+        }), 
       });
 
       const fakeLocalRegistry = new InMemoryRegistry();
@@ -154,12 +161,11 @@ export default function PublishUtility(props: {
           </Text>
         )}
 
-        {wc.data?.chain?.id === 1 ? (
+        {wc.data?.chain?.id === Number.parseInt(settings.registryChainId) ? (
           <Button
             isDisabled={
               settings.isIpfsGateway ||
               settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-              wc.data?.chain?.id !== 1 ||
               publishMutation.isPending
             }
             colorScheme="teal"
@@ -176,7 +182,7 @@ export default function PublishUtility(props: {
         ) : (
           <Text fontSize="xs" fontWeight="medium">
             <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
-            Connect a wallet using chain ID 1 to publish
+            Connect a wallet using chain ID {settings.registryChainId} to publish
           </Text>
         )}
       </>

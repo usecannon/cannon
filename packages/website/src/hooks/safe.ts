@@ -70,29 +70,24 @@ function _createSafeApiKit(chainId: number) {
   if (!chain?.serviceUrl) return null;
 
   return new SafeApiKit({
-    txServiceUrl: chain.serviceUrl,
-    // hack to avoid using the web3 adapter for write operations,
-    // we only need service read only methods.
-    ethAdapter: {} as any,
-    // ethAdapter: new Web3Adapter({
-    // }),
+    chainId: BigInt(chain.id),
+    txServiceUrl: new URL('/api', chain.serviceUrl).toString(),
   });
 }
 
 export function useExecutedTransactions(safe?: SafeDefinition) {
   const txsQuery = useQuery({
-    queryKey: ['safe-service', 'all-txns', safe?.chainId, safe?.address],
+    queryKey: ['executed-transactions', safe?.chainId, safe?.address],
     queryFn: async () => {
       if (!safe) return null;
       const safeService = _createSafeApiKit(safe.chainId);
 
       if (!safeService) {
-        // TODO: show some helpful information on ui to indicate that this network is unsupported rather
-        // than just returning emptiness
-        return { count: 0, next: null, previous: null, results: [] };
+        throw new Error(`Safe Chain ID "${safe.chainId}" is not supported by Gnosis"`);
       }
 
-      const res = await safeService?.getMultisigTransactions(safe.address);
+      const res = await safeService.getMultisigTransactions(safe.address);
+
       return {
         count: (res as unknown as { countUniqueNonce: number }).countUniqueNonce || res?.count,
         next: res?.next,

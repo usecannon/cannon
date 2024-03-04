@@ -22,7 +22,7 @@ export function findChainUrl(chainId: number) {
   const chain = findChain(chainId);
   const url = chain.rpcUrls.default.http[0];
 
-  if (!url) throw new Error(`Chaind ${chain.name} dos not have a default url`);
+  if (!url) throw new Error(`Chain "${chain.name}" does not have a default url`);
 
   return url;
 }
