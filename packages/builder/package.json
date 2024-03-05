@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.11.19-alpha.4+754e94f0",
+  "version": "2.11.19-alpha.7+a20d4d65",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -54,5 +54,5 @@
     "node": ">=16.0.0"
   },
   "engineStrict": true,
-  "gitHead": "754e94f03034732e0c45c1687943cae8caeadde1"
+  "gitHead": "a20d4d65cbeb3e9ebf23da3ba411d33c1a6a20f5"
 }
