@@ -154,6 +154,5 @@ export function getMainLoader(cliSettings: CliSettings) {
       new IPFSLoader(getCannonRepoRegistryUrl()),
       path.join(cliSettings.cannonDirectory, 'ipfs_cache')
     ),
-    file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),
   };
 }

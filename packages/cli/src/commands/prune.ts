@@ -28,6 +28,10 @@ export async function prune(
   }
 
   const registryUrls: Set<string> = new Set();
+  if (!packageFilters) {
+    debug('load all urls from registry');
+    (await storage.registry.getAllUrls()).forEach(registryUrls.add, registryUrls);
+  }
   for (const packageFilter of packageFilters) {
     debug('load urls from registry', packageFilter);
     if (!chainIds.length) {

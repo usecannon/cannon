@@ -179,10 +179,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
   }
 
   async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
-    const { preset } = new PackageReference(filterPackageRef!);
-    const filterVariant = `${chainId}-${preset}`;
-
-    const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackageRef, filterVariant)));
+    const r = await Promise.all(this.registries.map((r) => r.getAllUrls(filterPackageRef, chainId)));
 
     // apparently converting back to an array is the most efficient way to merge sets
     return new Set(r.flatMap((s) => Array.from(s)));
@@ -439,28 +436,49 @@ export class OnChainRegistry extends CannonRegistry {
     return url || null;
   }
 
-  // TODO: viem does not seems to support querying historical logs, even tho its part of a balanced provider diet
-  async getAllUrls(/*filterPackageRef?: string, chainId?: number*/): Promise<Set<string>> {
-    // TODO: someday
-    /*if (!filterPackageRef) {
-      // unfortunately it really isnt practical to search for all packages. also the use case is mostly to search for a specific package
-      // in the future we might have a way to give the urls to search for and then limit
-      return super.getAllUrls(filterPackageRef, chainId);
+  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
+    if (!this.provider) {
+      throw new Error('no provider');
     }
 
-    const { name, version, preset } = new PackageReference(filterPackageRef!);
-    const filterVariant = `${chainId}-${preset}`;
+    let filterName = null;
+    let filterVersion = null;
+    let filterVariant = null;
+    if (filterPackageRef) {
+      const { name, version, preset } = new PackageReference(filterPackageRef!);
+      const variant = `${chainId}-${preset}`;
+      filterName = name ? viem.stringToHex(name) : null;
+      filterVersion = version ? viem.stringToHex(version) : null;
+      filterVariant = variant ? viem.stringToHex(variant) : null;
+    }
 
-    const filter = this.contract.filters.PackagePublish(
-      name ? viem.stringToHex(name) : null,
-      version ? viem.stringToHex(version) : null,
-      filterVariant ? viem.stringToHex(filterVariant) : null
-    );
+    const curBlock = Number(await this.provider!.getBlockNumber());
+    // most of these apis max their results at 10000
+    // currently we dont see so many publishes to go over 10000 easily in a single request, but to make sure
+    // we also check that the returned request items is not equal to 10000 exactly (otherwise something probably borked up)
+    const BLOCK_SCAN_BATCH = filterName ? 1e10 : 50000;
+    const rawEvents: viem.Log[] = [];
+    for (let i = 16490000; i < curBlock; i += BLOCK_SCAN_BATCH) {
+      debug(`scan events for getAllUrls ${i} -- ${i + BLOCK_SCAN_BATCH}`);
+      rawEvents.push(
+        ...(await this.provider!.getLogs({
+          address: this.contract.address,
+          event: viem.getAbiItem({ abi: this.contract.abi, name: 'PackagePublish' }) as any,
+          args: [filterName, filterVersion, filterVariant],
+          fromBlock: BigInt(i),
+          toBlock: BigInt(Math.min(curBlock, i + BLOCK_SCAN_BATCH)),
+        }))
+      );
+    }
 
-    const events = await this.contract.queryFilter(filter, 0, 'latest');
+    debug(`received ${rawEvents.length} package publish events`);
+    const decodedEvents = viem.parseEventLogs({
+      logs: rawEvents,
+      eventName: 'PackagePublish',
+      abi: this.contract.abi,
+    });
 
-    return new Set(events.flatMap((e) => [e.args!.deployUrl, e.args!.metaUrl]));*/
-    throw new Error('verifying upstream package urls temporarily not supported');
+    return new Set(decodedEvents.flatMap((e) => [(e.args as any).deployUrl, (e.args as any).metaUrl]));
   }
 
   private async logMultiCallEstimatedGas(datas: any): Promise<void> {
