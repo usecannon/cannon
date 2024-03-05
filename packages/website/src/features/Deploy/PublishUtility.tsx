@@ -1,19 +1,21 @@
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { useStore } from '@/helpers/store';
-import { useCannonPackage } from '@/hooks/cannon';
+import { useWalletClient } from 'wagmi';
+import { Chain, createPublicClient, http } from 'viem';
+import { useMutation } from '@tanstack/react-query';
 import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
-import { useMutation } from '@tanstack/react-query';
+
+import { findChain } from '@/helpers/rpc';
+import { useStore } from '@/helpers/store';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+
+import { useCannonPackage } from '@/hooks/cannon';
+
 import {
   CannonStorage,
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { Chain, createPublicClient, extractChain, http } from 'viem';
-import chains from "@/helpers/chains";
-import { useWalletClient } from 'wagmi';
-import { findChain } from '@/helpers/rpc';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -75,7 +77,7 @@ export default function PublishUtility(props: {
         provider: createPublicClient({
           chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
           transport: http(),
-        }), 
+        }),
       });
 
       const fakeLocalRegistry = new InMemoryRegistry();
@@ -182,7 +184,8 @@ export default function PublishUtility(props: {
         ) : (
           <Text fontSize="xs" fontWeight="medium">
             <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
-            Connect a wallet using chain ID {settings.registryChainId} to publish
+            Connect a wallet using chain ID {settings.registryChainId} to
+            publish
           </Text>
         )}
       </>
