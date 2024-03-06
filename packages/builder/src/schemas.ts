@@ -80,7 +80,11 @@ export const contractSchema = z
         /**
          *    Determines whether to deploy the contract using create2
          */
-        create2: z.boolean().describe('Determines whether to deploy the contract using create2'),
+        create2: z
+          .union([z.boolean(), z.string().refine((val) => viem.isAddress(val))])
+          .describe(
+            'Determines whether to deploy the contract using create2. If an address is specified, the arachnid create2 contract will be deployed/used from this address.'
+          ),
         /**
          *    Contract deployer address.
          *    Must match the ethereum address format
