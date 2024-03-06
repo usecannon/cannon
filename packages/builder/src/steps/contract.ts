@@ -3,7 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
+import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import { encodeDeployData } from '../helpers';
 import { contractSchema } from '../schemas';
 import {
@@ -81,7 +81,14 @@ function generateOutputs(
     }),
   };
 
-  const [, create2Addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
+  const [, create2Addr] = makeArachnidCreate2Txn(
+    config.salt || '',
+    txn.data!,
+    viem.getCreateAddress({
+      from: typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
+      nonce: 0n,
+    })
+  );
 
   let abi = artifactData.abi;
   // override abi?
@@ -272,10 +279,13 @@ const contractSpec = {
     let receipt: viem.TransactionReceipt | null = null;
 
     if (config.create2) {
-      await ensureArachnidCreate2Exists(runtime);
+      const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+        runtime,
+        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+      );
 
       debug('performing arachnid create2');
-      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
+      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
       debug('create2 address is', addr);
 
       const bytecode = await runtime.provider.getBytecode({ address: addr });

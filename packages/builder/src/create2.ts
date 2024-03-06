@@ -3,13 +3,11 @@ import { Address, Hash, Hex } from 'viem';
 
 import { ChainBuilderRuntimeInfo } from '.';
 
-import { ARACHNID_CREATE2_PROXY } from './constants';
-
 import Debug from 'debug';
 
 const debug = Debug('cannon:builder:create2');
 
-export const ARACHNID_DEPLOY_ADDR = '0x3fab184622dc19b6109349b94811493bf2a45362';
+export const ARACHNID_DEFAULT_DEPLOY_ADDR = '0x3fab184622dc19b6109349b94811493bf2a45362';
 
 export const ARACHNID_DEPLOY_TXN =
   '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222';
@@ -18,9 +16,13 @@ export const ARACHNID_DEPLOY_TXN =
  * If arachnid create2 proxy is not already deployed, this function can deploy it.
  * @param runtime the runtime which can be used to deploy
  */
-export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeInfo) {
+export async function ensureArachnidCreate2Exists(
+  runtime: ChainBuilderRuntimeInfo,
+  deployer: viem.Address
+): Promise<viem.Address> {
   // if arachnid create2 contract is not deployed
-  if ((await runtime.provider.getBytecode({ address: ARACHNID_CREATE2_PROXY })) === '0x') {
+  const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: 0n });
+  if ((await runtime.provider.getBytecode({ address: proxyAddress })) === '0x') {
     debug('arachnid create2 contract not found. attempting to deploy...');
     // on local testnets the arachnid contract is not deployed,
     // but we can deploy it easily
@@ -28,7 +30,7 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
     // first "get" the signer (which will populate it for use and with enough eth for gas)
     // if signer doesn't exist then this isnt local testing network, and this txn will fail
     try {
-      await runtime.getSigner(ARACHNID_DEPLOY_ADDR);
+      await runtime.getSigner(deployer);
     } catch (err) {
       debug('got arachnid signer error', err);
       throw new Error(
@@ -43,6 +45,8 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
 
     await runtime.provider.waitForTransactionReceipt({ hash });
   }
+
+  return proxyAddress;
 }
 
 /**
@@ -51,7 +55,7 @@ export async function ensureArachnidCreate2Exists(runtime: ChainBuilderRuntimeIn
 export function makeArachnidCreate2Txn(
   salt: string,
   initcode: Hex,
-  arachnidAddress = ARACHNID_CREATE2_PROXY
+  arachnidAddress: viem.Address
 ): [Pick<viem.TransactionRequest, 'to' | 'data'>, Address] {
   const saltHash: Hash = !viem.isHash(salt) ? viem.keccak256(viem.toBytes(salt)) : (salt as Hash);
 
