@@ -60,9 +60,11 @@ export async function readIpfs(
   hash: string,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
+  retries = 3
 ): Promise<any> {
   debug(`downloading content from ${hash}`);
+  setAxiosRetries(retries);
 
   let result: AxiosResponse;
 
