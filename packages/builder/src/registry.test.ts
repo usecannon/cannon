@@ -98,7 +98,10 @@ describe('registry.ts', () => {
 
         jest.mocked(provider.getChainId).mockResolvedValue(12341234);
         jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
-        jest.mocked(provider.readContract).mockResolvedValue('0xdeadbeef');
+        jest
+          .mocked(provider.readContract)
+          .mockResolvedValueOnce('0x69D36DFe281136ef662ED1A2E80a498A5461226D')
+          .mockResolvedValueOnce(['0x69D36DFe281136ef662ED1A2E80a498A5461226D']);
 
         jest
           .mocked(signer.wallet.writeContract)
@@ -136,6 +139,8 @@ describe('registry.ts', () => {
 
         const rx = fixtureTransactionReceipt();
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],

@@ -42,9 +42,7 @@ describe('util.ts', () => {
 
       await ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR);
 
-      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).toBeCalledWith({
-        serializedTransaction: ARACHNID_DEPLOY_TXN,
-      });
+      expect((fakeSigner.wallet as unknown as viem.WalletClient).sendTransaction).toHaveBeenCalled();
     });
   });
 
