@@ -83,6 +83,8 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   extras: { [label: string]: string };
 
   imports: BundledChainBuilderOutputs;
+
+  [additionalProperties: string]: any;
 }
 
 const etherUnitNames = ['wei', 'kwei', 'mwei', 'gwei', 'szabo', 'finney', 'ether'];

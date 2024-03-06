@@ -385,19 +385,22 @@ export async function getOutputs(
 // TODO: this func is dumb but I need to walk through this time period before I want to turn it into something of beauty
 function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
   const imports = outputs.imports;
-
   for (const imp in imports) {
     ctx.imports[imp] = imports[imp];
   }
 
   const contracts = outputs.contracts as ContractMap;
-
-  for (const contract in contracts) {
-    ctx.contracts[contract] = contracts[contract];
+  for (const contractName in contracts) {
+    ctx.contracts[contractName] = contracts[contractName];
+    
+    const contractData = contracts[contractName];
+    if (contractData && contractData.address) {
+      const simplifiedPath = `${contractName}.address`;
+      ctx[simplifiedPath] = contractData.address;
+    }
   }
 
   const txns = outputs.txns as TransactionMap;
-
   for (const txn in txns) {
     ctx.txns[txn] = txns[txn];
   }
