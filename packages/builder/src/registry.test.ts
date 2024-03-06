@@ -136,6 +136,8 @@ describe('registry.ts', () => {
 
         const rx = fixtureTransactionReceipt();
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
 
         const retValue = await registry.publish(
           ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],

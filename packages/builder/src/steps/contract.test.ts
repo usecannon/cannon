@@ -2,7 +2,7 @@ import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
 import { ARACHNID_CREATE2_PROXY } from '../constants';
 import { makeArachnidCreate2Txn } from '../create2';
-import { encodeDeployData } from '../helpers';
+import { encodeDeployData } from '../util';
 import { ContractArtifact } from '../types';
 import action from './contract';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
