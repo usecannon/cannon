@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import { Address, Hash, Hex } from 'viem';
 
-import { ChainBuilderRuntimeInfo } from '.';
+import { CannonSigner, ChainBuilderRuntimeInfo } from '.';
 
 import Debug from 'debug';
 
@@ -22,15 +22,17 @@ export async function ensureArachnidCreate2Exists(
 ): Promise<viem.Address> {
   // if arachnid create2 contract is not deployed
   const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: 0n });
-  if ((await runtime.provider.getBytecode({ address: proxyAddress })) === '0x') {
+  const detectedBytecode = await runtime.provider.getBytecode({ address: proxyAddress });
+  if (!detectedBytecode || detectedBytecode === '0x') {
     debug('arachnid create2 contract not found. attempting to deploy...');
     // on local testnets the arachnid contract is not deployed,
     // but we can deploy it easily
 
     // first "get" the signer (which will populate it for use and with enough eth for gas)
     // if signer doesn't exist then this isnt local testing network, and this txn will fail
+    let signer: CannonSigner;
     try {
-      await runtime.getSigner(deployer);
+      signer = await runtime.getSigner(deployer);
     } catch (err) {
       debug('got arachnid signer error', err);
       throw new Error(
@@ -41,7 +43,11 @@ export async function ensureArachnidCreate2Exists(
     }
 
     // now run the presigned deployment txn
-    const hash = await runtime.provider.sendRawTransaction({ serializedTransaction: ARACHNID_DEPLOY_TXN });
+    const hash = await signer.wallet.sendTransaction({
+      account: signer.address,
+      chain: runtime.provider.chain,
+      data: '0x604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3',
+    });
 
     await runtime.provider.waitForTransactionReceipt({ hash });
   }

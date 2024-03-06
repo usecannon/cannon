@@ -286,7 +286,7 @@ const contractSpec = {
 
       debug('performing arachnid create2');
       const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
-      debug('create2 address is', addr);
+      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
 
       const bytecode = await runtime.provider.getBytecode({ address: addr });
 
@@ -298,9 +298,10 @@ const contractSpec = {
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const hash = await signer.wallet.sendTransaction(
-          _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address })
-        );
+        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+        debug('final create2 txn', fullCreate2Txn);
+
+        const hash = await signer.wallet.sendTransaction(fullCreate2Txn);
 
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
         debug('arachnid create2 complete', receipt);
