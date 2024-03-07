@@ -6,7 +6,7 @@ import deploySpec from './steps/deploy';
 import pullSpec from './steps/pull';
 import invokeSpec from './steps/invoke';
 import keeperSpec from './steps/keeper';
-import provisionSpec from './steps/provision';
+import cloneSpec from './steps/clone';
 import routerSpec from './steps/router';
 import varSpec from './steps/var';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from './types';
@@ -110,11 +110,12 @@ registerAction(deploySpec);
 registerAction(pullSpec);
 registerAction(invokeSpec);
 registerAction(keeperSpec);
-registerAction(provisionSpec);
+registerAction(cloneSpec);
 registerAction(routerSpec);
 registerAction(varSpec);
 
 // backwards compatibility
 registerAction(Object.assign({}, deploySpec, { label: 'contract' }));
 registerAction(Object.assign({}, pullSpec, { label: 'import' }));
+registerAction(Object.assign({}, pullSpec, { label: 'provision' }));
 registerAction(Object.assign({}, varSpec, { label: 'setting' }));

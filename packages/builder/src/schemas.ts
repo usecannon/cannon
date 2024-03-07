@@ -470,7 +470,7 @@ export const invokeSchema = z
       .partial()
   );
 
-export const provisionSchema = z
+export const cloneSchema = z
   .object({
     /**
      *  Name of the package to provision
@@ -507,10 +507,19 @@ export const provisionSchema = z
          *  The settings to be used when initializing this Cannonfile.
          *  Overrides any defaults preset in the source package.
          */
-        options: z
+        var: z
           .record(z.string())
           .describe(
             'The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
+          ),
+        /**
+         *  (DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile.
+         *  Overrides any defaults preset in the source package.
+         */
+        options: z
+          .record(z.string())
+          .describe(
+            '(DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
           ),
         /**
          * Additional tags to set on the registry for when this provisioned package is published.
@@ -554,18 +563,19 @@ export const routerSchema = z.object({
   depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
 });
 
-export const varSchema = z.object({
-  /**
-   *   The setting value to apply
-   */
-  value: z.string().optional().describe('The value to set in the setting'),
-  defaultValue: z.string().optional().describe('(DEPRECATED) Use `value`. The value to set in the setting'),
-  description: z.string().optional().describe('Helpful explanation of the variable being set'),
-  /**
-   *  List of steps that this action depends on
-   */
-  depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
-});
+export const varSchema = z
+  .object({
+    /**
+     *   The setting value to apply
+     */
+    defaultValue: z.string().optional().describe('(DEPRECATED) Use `value`. The value to set in the setting'),
+    description: z.string().optional().describe('Helpful explanation of the variable being set'),
+    /**
+     *  List of steps that this action depends on
+     */
+    depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
+  })
+  .catchall(z.string());
 
 /**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
@@ -663,10 +673,18 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        provision: z
-          .record(provisionSchema)
+        clone: z
+          .record(cloneSchema)
           .describe(
             'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+          ),
+        /**
+         * @internal
+         */
+        provision: z
+          .record(cloneSchema)
+          .describe(
+            '(DEPRECATED) use `clone` instead. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
           ),
         /**
          * @internal

@@ -35,26 +35,31 @@ const varSpec = {
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
     config = _.cloneDeep(config);
-    if (config.value) {
-      config.value = _.template(config.value)(ctx);
+    for (const c in _.omit(config, 'depends')) {
+      config[c] = _.template(config[c])(ctx);
     }
 
-    if (config.defaultValue) {
-      config.defaultValue = _.template(config.defaultValue)(ctx);
-    }
     return config;
   },
 
   getInputs(config: Config) {
     const accesses: string[] = [];
 
-    accesses.push(...computeTemplateAccesses(config.value));
+    for (const c in _.omit(config, 'depends')) {
+      accesses.push(...computeTemplateAccesses(config[c]));
+    }
 
     return accesses;
   },
 
-  getOutputs(_: Config, packageState: PackageState) {
-    return [`settings.${packageState.currentLabel.split('.')[1]}`];
+  getOutputs(config: Config, packageState: PackageState) {
+    if (packageState.currentLabel.startsWith('setting.')) {
+      return [`settings.${packageState.currentLabel.split('.')[1]}`];
+    }
+
+    return Object.keys(config)
+      .filter((k) => k !== 'depends')
+      .map((k) => `settings.${k}`);
   },
 
   async exec(
@@ -66,17 +71,28 @@ const varSpec = {
     const varLabel = packageState.currentLabel?.split('.')[1] || '';
     debug('exec', config);
 
-    const value = config.value || config.defaultValue;
+    // backwards compatibility
+    if (packageState.currentLabel.startsWith('setting.')) {
+      const value = config.value || config.defaultValue;
 
-    if (!value) {
-      throw new Error('at least one of `value` or `defaultValue` must be specified');
+      if (!value) {
+        throw new Error('at least one of `value` or `defaultValue` must be specified');
+      }
+
+      return {
+        settings: {
+          [varLabel]: value,
+        },
+      };
+    } else {
+      const settings: { [k: string]: string } = {};
+
+      for (const c in _.omit(config, 'depends')) {
+        settings[c] = config[c];
+      }
+
+      return { settings };
     }
-
-    return {
-      settings: {
-        [varLabel]: value,
-      },
-    };
   },
 };
 

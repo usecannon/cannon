@@ -3,12 +3,10 @@ version = "<%= package.version %>"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "greeter"]
 
-[var.salt]
-value = "greeter"
 
-[var.msg]
-value = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
-description="The greeting passed to the constructor"
+[var.main]
+salt = "greeter"
+msg = "my library was deployed in txn <%= contracts.library.deployTxnHash %>"
 
 [deploy.library]
 artifact = "Library"

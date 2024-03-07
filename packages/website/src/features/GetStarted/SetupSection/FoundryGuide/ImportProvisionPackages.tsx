@@ -5,17 +5,17 @@ import NextLink from 'next/link';
 import { links } from '@/constants/links';
 import { Link as ChakraLink } from '@chakra-ui/react';
 
-const code1 = `[import.synthetix_omnibus]
+const code1 = `[pull.synthetix_omnibus]
 source ="synthetix-omnibus:latest"
 
-[contract.sample_integration]
+[deploy.sample_integration]
 artifact = "SampleIntegration"
 args = [
     "<%= imports.synthetix_omnibus.contracts.system.CoreProxy %>",
     "<%= imports.synthetix_omnibus.contracts.system.USDProxy %>"
 ]`;
 
-const code2 = `[provision.synthetix]
+const code2 = `[clone.synthetix]
 source = "synthetix:latest"
 owner = "<%= settings.owner %>"
 

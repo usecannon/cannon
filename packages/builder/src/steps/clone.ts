@@ -8,7 +8,7 @@ import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
 import { ChainBuilderRuntime, Events } from '../runtime';
-import { provisionSchema } from '../schemas';
+import { cloneSchema } from '../schemas';
 import {
   ChainArtifacts,
   ChainBuilderContext,
@@ -17,14 +17,14 @@ import {
   PackageState,
 } from '../types';
 
-const debug = Debug('cannon:builder:provision');
+const debug = Debug('cannon:builder:clone');
 
 /**
- *  Available properties for provision step
+ *  Available properties for clone step
  *  @public
- *  @group Provision
+ *  @group clone
  */
-export type Config = z.infer<typeof provisionSchema>;
+export type Config = z.infer<typeof cloneSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -33,10 +33,10 @@ export interface Outputs {
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-const provisionSpec = {
-  label: 'provision',
+const cloneSpec = {
+  label: 'clone',
 
-  validate: provisionSchema,
+  validate: cloneSchema,
 
   async getState(
     runtime: ChainBuilderRuntime,
@@ -66,7 +66,7 @@ const provisionSpec = {
     return [
       {
         url: srcUrl,
-        options: cfg.options,
+        options: cfg.var || cfg.options,
         targetPreset: cfg.targetPreset,
       },
     ];
@@ -86,14 +86,18 @@ const provisionSpec = {
     config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
-    if (config.options) {
+    if (config.var) {
+      config.var = _.mapValues(config.var, (v) => {
+        return _.template(v)(ctx);
+      });
+    } else if (config.options) {
       config.options = _.mapValues(config.options, (v) => {
         return _.template(v)(ctx);
       });
     }
 
     if (config.tags) {
-      config.tags = config.tags.map((t) => _.template(t)(ctx));
+      config.tags = config.tags.map((t: string) => _.template(t)(ctx));
     }
 
     return config;
@@ -146,9 +150,9 @@ const provisionSpec = {
       );
     }
 
-    const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.options || {}) };
+    const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('provisioning package options', importPkgOptions);
+    debug('cloneing package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
@@ -215,7 +219,7 @@ const provisionSpec = {
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
       // TODO: add cannon version number?
-      generator: 'cannon provision',
+      generator: 'cannon clone',
       timestamp: Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
@@ -252,4 +256,4 @@ const provisionSpec = {
   timeout: 3600000,
 };
 
-export default provisionSpec;
+export default cloneSpec;

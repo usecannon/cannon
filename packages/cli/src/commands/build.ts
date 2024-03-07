@@ -161,82 +161,6 @@ export async function build({
 
   const dump = writeScript ? await createWriteScript(runtime, writeScript, writeScriptFormat) : null;
 
-  let partialDeploy = false;
-  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
-    console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
-  );
-  runtime.on(Events.SkipDeploy, (n, err, d) => {
-    partialDeploy = true;
-    console.log(
-      yellowBright(
-        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
-          typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
-        })`
-      )
-    );
-  });
-  runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
-    for (const txnKey in o.txns) {
-      const txn = o.txns[txnKey];
-      console.log(
-        `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
-          ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
-          .join(', ')})`
-      );
-      if (txn.signer != defaultSignerAddress) {
-        console.log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
-      }
-      const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
-      if (contractAddress) {
-        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
-      }
-      console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
-      const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
-      totalCost = totalCost + cost;
-      console.log(
-        gray(
-          `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-            cost
-          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
-        )
-      );
-    }
-    for (const contractKey in o.contracts) {
-      const contract = o.contracts[contractKey];
-      if (contract.deployTxnHash) {
-        console.log(
-          `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
-            c.create2 ? ' using CREATE2' : ''
-          }`
-        );
-        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
-        console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
-        const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
-        totalCost = totalCost + cost;
-        console.log(
-          gray(
-            `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-              cost
-            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
-          )
-        );
-      }
-    }
-    for (const setting in o.settings) {
-      console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
-    }
-    stepsExecuted = true;
-
-    console.log();
-  });
-
-  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-    console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
-  );
-  runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
-  );
-
   // Check for existing package
   let oldDeployData: DeploymentInfo | null = null;
   const prevPkg = upgradeFrom || fullPackageRef;
@@ -260,7 +184,7 @@ export async function build({
     }
   }
 
-  const resolvedSettings = _.assign(oldDeployData?.options ?? {}, packageDefinition.settings);
+  const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
 
   def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
 
@@ -331,9 +255,9 @@ export async function build({
     }
   }
 
-  if (!_.isEmpty(packageDefinition.settings)) {
-    console.log(gray('Overriding the default values for the cannonfile’s settings with the following:'));
-    for (const [key, value] of Object.entries(packageDefinition.settings)) {
+  if (!_.isEmpty(resolvedSettings)) {
+    console.log(gray('Overriding settings in the cannonfile with the following:'));
+    for (const [key, value] of Object.entries(resolvedSettings)) {
       console.log(gray(`  - ${key} = ${value}`));
     }
     console.log('');
@@ -347,6 +271,86 @@ export async function build({
     }
   }
   console.log('');
+
+  let partialDeploy = false;
+  runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
+    console.log(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+  );
+  runtime.on(Events.SkipDeploy, (n, err, d) => {
+    partialDeploy = true;
+    console.log(
+      yellowBright(
+        `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
+          typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
+        })`
+      )
+    );
+  });
+  runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
+    for (const txnKey in o.txns) {
+      const txn = o.txns[txnKey];
+      console.log(
+        `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
+          ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
+          .join(', ')})`
+      );
+      if (txn.signer != defaultSignerAddress) {
+        console.log(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
+      }
+      const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
+      if (contractAddress) {
+        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+      }
+      console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
+      const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
+      totalCost = totalCost + cost;
+      console.log(
+        gray(
+          `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
+            cost
+          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
+        )
+      );
+    }
+    for (const contractKey in o.contracts) {
+      const contract = o.contracts[contractKey];
+      if (contract.deployTxnHash) {
+        console.log(
+          `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
+            c.create2 ? ' using CREATE2' : ''
+          }`
+        );
+        console.log(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
+        console.log(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
+        const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
+        totalCost = totalCost + cost;
+        console.log(
+          gray(
+            `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
+              cost
+            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
+          )
+        );
+      }
+    }
+    for (const setting in o.settings) {
+      if (ctx.overrideSettings[setting]) {
+        console.log(red(`${'  '.repeat(d)}  Overridden Setting: ${setting} = ${ctx.overrideSettings[setting]}`));
+      } else {
+        console.log(gray(`${'  '.repeat(d)}  Setting: ${setting} = ${o.settings[setting]}`));
+      }
+    }
+    stepsExecuted = true;
+
+    console.log();
+  });
+
+  runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
+    console.log(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
+  );
+  runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
+    console.log(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
+  );
 
   // attach control-c handler
   let ctrlcs = 0;
