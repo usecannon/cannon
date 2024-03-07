@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.11.17",
+  "version": "2.11.19",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -58,7 +58,8 @@
   "dependencies": {
     "@iarna/toml": "^3.0.0",
     "@synthetixio/wei": "^2.74.1",
-    "@usecannon/builder": "2.11.17",
+    "@usecannon/builder": "2.11.19",
+    "abitype": "^1.0.0",
     "chalk": "^4.1.2",
     "commander": "^9.5.0",
     "debug": "^4.3.4",
@@ -76,5 +77,5 @@
     "znv": "^0.4.0",
     "zod": "^3.22.4"
   },
-  "gitHead": "cc1863744d5b4b0a531ee236437df64f3b3e5fdf"
+  "gitHead": "a20d4d65cbeb3e9ebf23da3ba411d33c1a6a20f5"
 }

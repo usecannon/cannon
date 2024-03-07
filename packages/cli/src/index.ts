@@ -20,7 +20,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, isPrivateKey } from './helpers';
+import { checkCannonVersion, isPrivateKey, checkForgeAstSupport, ensureChainIdConsistency } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -148,14 +148,8 @@ function configureRun(program: Command) {
 
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
-      if (options.providerUrl) {
-        const providerChainId = await provider.getChainId();
-        if (providerChainId != options.chainId) {
-          throw new Error(
-            `Supplied providerUrl's blockchain chainId ${providerChainId} does not match with chainId you provided ${options.chainId}`
-          );
-        }
-      }
+      // throw an error if the chainId is not consistent with the provider's chainId
+      await ensureChainIdConsistency(options.providerUrl, options.chainId);
 
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider,
@@ -178,9 +172,18 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
+    // throw an error if the chainId is not consistent with the provider's chainId
+    await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
+
     console.log(bold('Building the foundry project...'));
     if (!opts.skipCompile) {
-      const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory, shell: true });
+      let forgeBuildArgs = ['build'];
+      if (await checkForgeAstSupport()) {
+        forgeBuildArgs = [...forgeBuildArgs, '--ast'];
+      }
+
+      const forgeBuildProcess = spawn('forge', forgeBuildArgs, { cwd: projectDirectory, shell: true });
+
       await new Promise((resolve, reject) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
@@ -427,6 +430,9 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
     throw new Error('Please provide one of the following options: --chain-id or --provider-url');
   }
 
+  // throw an error if the chainId is not consistent with the provider's chainId
+  await ensureChainIdConsistency(options.providerUrl, options.chainId);
+
   await trace({
     packageRef,
     data,
@@ -460,6 +466,9 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     opts.dryRun = true;
   }
 
+  // throw an error if the chainId is not consistent with the provider's chainId
+  await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
+
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
@@ -491,6 +500,9 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   opts
 ) {
   const cliSettings = resolveCliSettings(opts);
+
+  // throw an error if the chainId is not consistent with the provider's chainId
+  await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
 

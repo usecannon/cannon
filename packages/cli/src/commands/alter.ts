@@ -4,6 +4,9 @@ import * as viem from 'viem';
 
 import { bold, yellow } from 'chalk';
 
+import { ActionKinds } from '@usecannon/builder/dist/actions';
+import { PackageReference } from '@usecannon/builder/dist/package';
+
 import { createDefaultReadRegistry } from '../registry';
 import {
   createInitialContext,
@@ -13,10 +16,8 @@ import {
   CANNON_CHAIN_ID,
   DeploymentInfo,
 } from '@usecannon/builder';
-import { ActionKinds } from '@usecannon/builder/dist/actions';
-import { resolveCliSettings } from '../settings';
 import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder/dist/package';
+import { resolveCliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');

@@ -164,3 +164,10 @@ ${def.allActionNames.join('\n')}`);
 
   return str;
 }
+
+// Noticed that viem is not adding the '0x' at the beggining, contratry to what
+// the docs say, so just keeping the check in case is needed in the future.
+export function encodeDeployData(...args: Parameters<typeof viem.encodeDeployData>) {
+  const data = viem.encodeDeployData(...args);
+  return data.startsWith('0x') ? data : (`0x${data}` as viem.Hex);
+}

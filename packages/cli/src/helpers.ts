@@ -12,7 +12,7 @@ import {
   ContractMap,
   RawChainDefinition,
 } from '@usecannon/builder';
-import { bold, magentaBright, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, yellow, yellowBright, red } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -254,6 +254,21 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   return [assembledDef, buf];
 }
 
+/**
+ * Forge added a breaking change where it stopped returning the ast on build artifacts,
+ * and the user has to add the `--ast` param to have them included.
+ * This check is so we make sure to have asts regardless the user's foundry version.
+ * Ref: https://github.com/foundry-rs/foundry/pull/7197
+ */
+export async function checkForgeAstSupport() {
+  try {
+    const result = await execPromise('forge build --help');
+    return result.toString().includes('--ast');
+  } catch (error) {
+    throw new Error('Could not determine if forge ast flag is available');
+  }
+}
+
 export function getChainName(chainId: number): string {
   return getChainDataFromId(chainId)?.name || 'unknown';
 }
@@ -274,6 +289,32 @@ export function getChainDataFromId(chainId: number): Chain | null {
     return cannonChain;
   }
   return chains.find((c: Chain) => c.id == chainId) || null;
+}
+
+export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+  // only if both are defined
+  if (providerUrl && chainId) {
+    const provider = viem.createPublicClient({
+      transport: viem.http(providerUrl),
+    });
+
+    const providerChainId = await provider.getChainId();
+
+    // throw an expected error if the chainId is not consistent with the provider's chainId
+    if (Number(chainId) !== Number(providerChainId)) {
+      console.log(
+        red(
+          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            '--chain-id'
+          )} value (${chainId}). Please ensure that the ${bold(
+            '--chain-id'
+          )} value matches the network your provider is connected to.`
+        )
+      );
+
+      process.exit(1);
+    }
+  }
 }
 
 function getMetadataPath(packageName: string): string {

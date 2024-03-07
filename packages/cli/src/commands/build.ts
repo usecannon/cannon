@@ -2,6 +2,7 @@ import {
   build as cannonBuild,
   CANNON_CHAIN_ID,
   CannonRegistry,
+  ChainArtifacts,
   ChainBuilderRuntime,
   ChainDefinition,
   ContractArtifact,
@@ -11,13 +12,13 @@ import {
   getContractFromPath,
   getOutputs,
   PackageReference,
-  ChainArtifacts,
   traceActions,
 } from '@usecannon/builder';
+import { CannonSigner } from '@usecannon/builder/src';
 import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
-import * as viem from 'viem';
 import _ from 'lodash';
 import { table } from 'table';
+import * as viem from 'viem';
 import pkg from '../../package.json';
 import { getChainById } from '../chains';
 import { readMetadataCache } from '../helpers';
@@ -27,7 +28,6 @@ import { createDefaultReadRegistry } from '../registry';
 import { resolveCliSettings } from '../settings';
 import { PackageSpecification } from '../types';
 import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { CannonSigner } from '@usecannon/builder/src';
 
 interface Params {
   provider: viem.PublicClient;
@@ -299,7 +299,12 @@ export async function build({
   }
   console.log('');
 
-  const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
+  const providerUrlMsg =
+    provider.transport.type === 'http'
+      ? provider.transport.url
+      : typeof providerUrl === 'string'
+      ? providerUrl.split(',')[0]
+      : providerUrl;
   console.log(
     bold(
       `Building the chain (ID ${chainId})${

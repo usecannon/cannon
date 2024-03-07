@@ -116,8 +116,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PRIVATE_KEY: z
       .string()
       .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
-      .default(fileSettings.privateKey as string)
-      .optional(),
+      .optional()
+      .default(fileSettings.privateKey as string),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -141,8 +141,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_ETHERSCAN_API_URL: z
       .string()
       .url()
-      .default(fileSettings.etherscanApiUrl as string)
-      .optional(),
+      .optional()
+      .default(fileSettings.etherscanApiUrl as string),
     CANNON_ETHERSCAN_API_KEY: z.string().length(34).optional().default(fileSettings.etherscanApiKey),
     CANNON_QUIET: z.boolean().default(fileSettings.quiet || false),
     TRACE: z.boolean().default(false),

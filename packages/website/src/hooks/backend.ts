@@ -131,7 +131,7 @@ export function useTxnStager(
         const signature = viem.toBytes(sig);
         signature[signature.length - 1] -= 4; // remove 4 at the end from gnosis signature version code
         const signerAddress = await viem.recoverAddress({
-          hash: hashToSign,
+          hash: viem.hashMessage({ raw: hashToSign }),
           signature,
         });
         signers.push(signerAddress);
