@@ -81,7 +81,15 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     ]);
   }
 
-  const opts = toArgs(anvilOptions);
+  let opts = {};
+
+  // Anvil fails to accept the `forkUrl` option and `chainId` on the Arbitrum network.
+  // Ref: https://github.com/foundry-rs/foundry/issues/4786
+  if ('forkUrl' in anvilOptions) {
+    opts = toArgs(_.omit(anvilOptions, ['chainId']));
+  } else {
+    opts = toArgs(anvilOptions);
+  }
 
   debug('starting anvil instance with options: ', anvilOptions);
 
@@ -132,7 +140,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           anvilProvider = viem
             .createTestClient({
               mode: 'anvil',
-              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
+              chain: anvilInstance!.chainId ? getChainById(anvilInstance!.chainId) || cannonChain : cannonChain,
               transport: viem.http(host),
             })
             .extend(viem.publicActions)
