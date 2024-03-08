@@ -140,7 +140,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
           anvilProvider = viem
             .createTestClient({
               mode: 'anvil',
-              chain: anvilOptions!.chainId ? getChainById(anvilOptions!.chainId) || cannonChain : cannonChain,
+              chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
               transport: viem.http(host),
             })
             .extend(viem.publicActions)
