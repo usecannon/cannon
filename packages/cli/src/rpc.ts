@@ -81,14 +81,12 @@ export async function runRpc(anvilOptions: AnvilOptions, rpcOptions: RpcOptions 
     ]);
   }
 
-  let opts = {};
+  let opts = toArgs(anvilOptions);
 
-  // Anvil fails to accept the `forkUrl` option and `chainId` on the Arbitrum network.
+  // Anvil fails to accept the `forkUrl` and `chainId` options on the Arbitrum network.
   // Ref: https://github.com/foundry-rs/foundry/issues/4786
   if ('forkUrl' in anvilOptions) {
     opts = toArgs(_.omit(anvilOptions, ['chainId']));
-  } else {
-    opts = toArgs(anvilOptions);
   }
 
   debug('starting anvil instance with options: ', anvilOptions);
