@@ -139,26 +139,23 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    const txnSimulation = await runtime.provider.simulateContract({
-      address: contract.address,
-      abi: [neededFuncAbi],
-      functionName: neededFuncAbi.name,
+    const preparedTxn = await callSigner.wallet.prepareTransactionRequest({
       account: callSigner.wallet.account || callSigner.address,
-      args: config.args,
+      to: contract.address,
+      data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+      value: config.value,
       ...overrides,
     });
-    // TODO: why does viem hate having `txnSimulation.request` below without the any, despiset hte example on how to do this on the guide? https://viem.sh/docs/contract/writeContract#writecontract
-    txn = await callSigner.wallet.writeContract(txnSimulation.request as any);
+    txn = await callSigner.wallet.sendTransaction(preparedTxn as any);
   } else {
-    const txnSimulation = await runtime.provider.simulateContract({
-      address: contract.address,
-      abi: [neededFuncAbi],
+    const preparedTxn = await signer.wallet.prepareTransactionRequest({
       account: signer.wallet.account || signer.address,
-      functionName: neededFuncAbi.name,
-      args: config.args,
+      to: contract.address,
+      data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+      value: config.value,
       ...overrides,
     });
-    txn = await signer.wallet.writeContract(txnSimulation.request as any);
+    txn = await signer.wallet.sendTransaction(preparedTxn as any);
   }
 
   const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
