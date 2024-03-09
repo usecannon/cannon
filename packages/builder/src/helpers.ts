@@ -1,4 +1,3 @@
-import * as viem from 'viem';
 import { getArtifacts } from './builder';
 import { CANNON_CHAIN_ID, getCannonRepoRegistryUrl } from './constants';
 import { ChainDefinition } from './definition';
