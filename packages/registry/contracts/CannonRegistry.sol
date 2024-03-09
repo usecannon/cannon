@@ -5,8 +5,9 @@ import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnedUpgradable} from "./OwnedUpgradable.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {Storage} from "./Storage.sol";
+import {StorageReader} from "./debug/StorageReader.sol";
 
-contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
+contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable, StorageReader {
   using SetUtil for SetUtil.Bytes32Set;
 
   error Unauthorized();

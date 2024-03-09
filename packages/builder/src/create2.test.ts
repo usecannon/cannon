@@ -1,13 +1,6 @@
-import {
-  ARACHNID_DEFAULT_DEPLOY_ADDR,
-  ARACHNID_DEPLOY_TXN,
-  ensureArachnidCreate2Exists,
-  makeArachnidCreate2Txn,
-} from './create2';
-
-import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
-
 import * as viem from 'viem';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
+import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 

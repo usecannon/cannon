@@ -41,7 +41,6 @@ interface Params {
   getDefaultSigner?: () => Promise<CannonSigner>;
   projectDirectory?: string;
   presetArg?: string;
-  chainId?: number;
   overrideResolver?: CannonRegistry;
   wipe?: boolean;
   persist?: boolean;

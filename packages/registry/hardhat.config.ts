@@ -6,8 +6,9 @@ import 'solidity-coverage';
 import 'hardhat-gas-reporter';
 import 'hardhat-contract-sizer';
 import '@nomiclabs/hardhat-ethers';
-
 import 'hardhat-cannon';
+
+import './tasks/storage';
 
 dotenv.config();
 
