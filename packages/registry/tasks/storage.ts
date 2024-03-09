@@ -14,11 +14,9 @@ task('storage:get-legacy-store-values')
 
     for (const packageName of packageNames) {
       const name = hre.ethers.utils.formatBytes32String(packageName);
-      try {
-        const data = await StorageReader.getStoreData(name);
-        console.log(packageName, data);
-      } catch (err) {
-        console.error(packageName, 'error');
+      const usesOldStorage = await StorageReader.usesOldStorage(name);
+      if (usesOldStorage) {
+        console.log(packageName);
       }
     }
   });
