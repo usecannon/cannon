@@ -139,7 +139,7 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    const preparedTxn = await callSigner.wallet.prepareTransactionRequest({
+    const preparedTxn = await runtime.provider.prepareTransactionRequest({
       account: callSigner.wallet.account || callSigner.address,
       to: contract.address,
       data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
@@ -148,7 +148,7 @@ async function runTxn(
     });
     txn = await callSigner.wallet.sendTransaction(preparedTxn as any);
   } else {
-    const preparedTxn = await signer.wallet.prepareTransactionRequest({
+    const preparedTxn = await runtime.provider.prepareTransactionRequest({
       account: signer.wallet.account || signer.address,
       to: contract.address,
       data: viem.encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
