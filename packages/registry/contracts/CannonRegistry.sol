@@ -6,7 +6,13 @@ import {OwnedUpgradable} from "./OwnedUpgradable.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {Storage} from "./Storage.sol";
 
-contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
+import { IOptimismL1Sender } from "./IOptimismL1Sender.sol";
+import { IOptimismL2Receiver } from "./IOptimismL2Receiver.sol";
+
+contract CannonRegistry is EfficientStorage, OwnedUpgradable {
+  IOptimismL1Sender private constant OPTIMISM_MESSENGER = IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
+  IOptimismL2Receiver private constant OPTIMISM_RECEIVER = IOptimismL2Receiver(0x4200000000000000000000000000000000000007);
+
   using SetUtil for SetUtil.Bytes32Set;
 
   error Unauthorized();
@@ -15,6 +21,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   error InvalidTags();
   error PackageNotFound();
   error FeeRequired(uint256 amount);
+  error WrongChain();
 
   event PackagePublish(
     bytes32 indexed name,
@@ -28,7 +35,8 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
-  uint256 public constant PUBLISH_FEE = 1 wei;
+  uint256 public publishFee = 0 wei;
+  uint256 public registerFee = 0 wei;
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset
@@ -62,6 +70,11 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     return true;
   }
 
+  function setFees(uint256 _publishFee, uint256 _registerFee) external onlyOwner {
+    publishFee = _publishFee;
+    registerFee = _registerFee;
+  }
+
   function publish(
     bytes32 _packageName,
     bytes32 _variant,
@@ -69,8 +82,8 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external payable {
-    if (msg.value != PUBLISH_FEE) {
-      revert FeeRequired(PUBLISH_FEE);
+    if (msg.value != publishFee) {
+      revert FeeRequired(publishFee);
     }
 
     if (_packageTags.length == 0 || _packageTags.length > 5) {
@@ -83,9 +96,9 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
 
     Package storage _p = _store().packages[_packageName];
 
-    address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
+    address owner = _p.owner;
 
-    if (owner != address(0) && owner != msg.sender) {
+    if (owner != msg.sender) {
       uint256 additionalDeployersLength = _p.additionalDeployersLength;
       bool foundAdditionalDeployer = false;
       for (uint256 i = 0; i < additionalDeployersLength; i++) {
@@ -95,12 +108,6 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       if (!foundAdditionalDeployer) {
         revert Unauthorized();
       }
-    } else if (owner == address(0)) {
-      if (!validatePackageName(_packageName)) {
-        revert InvalidName(_packageName);
-      }
-
-      _p.owner = msg.sender;
     }
 
     bytes16 packageDeployString = bytes16(_writeString(_packageDeployUrl));
@@ -120,34 +127,49 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       }
     }
   }
+  
+  function setOwner(bytes32 _packageName, address _owner, address[] memory _additionalDeployers) external payable {
+    // we can only receive new ownership requests from mainnet
+    if (msg.sender != address(OPTIMISM_RECEIVER) && block.chainid != 1) {
+      revert WrongChain();
+    }
 
-  function setAdditionalDeployers(bytes32 _packageName, address[] memory additionalDeployers) external {
-    Package storage _p = _store().packages[_packageName];
-    address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
-
-    if (owner != msg.sender) {
+    // we can only receive change ownership requests from our counterpart on mainnnet
+    if (block.chainid != 1 && OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
       revert Unauthorized();
     }
 
-    for (uint256 i = 0; i < additionalDeployers.length; i++) {
-      _p.additionalDeployers[i] = additionalDeployers[i];
-    }
 
-    _p.additionalDeployersLength = additionalDeployers.length;
-  }
-
-  function getAdditionalDeployers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
     Package storage _p = _store().packages[_packageName];
-    additionalDeployers = new address[](_p.additionalDeployersLength);
+    address owner = _p.owner;
 
-    for (uint256 i = 0; i < additionalDeployers.length; i++) {
-      additionalDeployers[i] = _p.additionalDeployers[i];
+    // we cannot change owner if its already owned and the owner is incorrect
+    if (block.chainid != 1 && owner != address(0) && msg.sender != owner) {
+      revert Unauthorized();
     }
+    // if the owner is changing, we reset additionalDeployers always. TODO: we may want to add a check here to ensure hte user isnt trying to set deployers also
+    else if (_owner != _p.owner) {
+      if (block.chainid == 1 && msg.value != registerFee) {
+        revert FeeRequired(registerFee);
+      }
+
+      _p.owner = _owner;
+      _p.additionalDeployersLength = 0;
+    } else {
+      for (uint256 i = 0; i < _additionalDeployers.length; i++) {
+        _p.additionalDeployers[i] = _additionalDeployers[i];
+      }
+
+      _p.additionalDeployersLength = _additionalDeployers.length;
+    }
+
+    // finally, ensure our changes continue downstream
+    _propogatePackageOwner(_packageName, _p.owner, _additionalDeployers);
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
     Package storage _p = _store().packages[_packageName];
-    address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
+    address owner = _p.owner;
 
     if (owner != msg.sender) {
       revert Unauthorized();
@@ -188,7 +210,7 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
 
   function getPackageOwner(bytes32 _packageName) external view returns (address) {
     Package storage _p = _store().packages[_packageName];
-    address owner = _p.owner != address(0) ? _p.owner : _oldStore().packages[_packageName].owner;
+    address owner = _p.owner;
     return owner;
   }
 
@@ -205,10 +227,6 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy
     ];
 
-    if (bytes(v).length == 0) {
-      v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].deploy;
-    }
-
     return v;
   }
 
@@ -221,11 +239,19 @@ contract CannonRegistry is Storage, EfficientStorage, OwnedUpgradable {
       _store().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta
     ];
 
-    if (bytes(v).length == 0) {
-      v = _oldStore().packages[_packageName].deployments[_packageVersionName][_packageVariant].meta;
+    return v;
+  }
+
+  function _propogatePackageOwner(bytes32 _packageName, address _owner, address[] memory _additionalDeployers) internal {
+    if (block.chainid != 1) {
+      return;
     }
 
-    return v;
+    OPTIMISM_MESSENGER.sendMessage(
+      address(this),
+      abi.encodeWithSelector(this.setOwner.selector, _packageName, _owner, _additionalDeployers),
+      100000
+    );
   }
 
   function _writeString(string memory str) internal returns (bytes32) {
