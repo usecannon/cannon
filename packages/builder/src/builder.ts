@@ -387,12 +387,21 @@ function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) 
   const imports = outputs.imports;
   for (const imp in imports) {
     ctx.imports[imp] = imports[imp];
+    //also add simplified syntax
+    ctx[imp] = { ...imports[imp], contracts: undefined };
+    delete ctx[imp].contracts;
+
+    if (imports[imp].contracts != undefined) {
+      for (const contractName in imports[imp].contracts) {
+        ctx[imp][contractName] = imports[imp].contracts![contractName];
+      }
+    }
   }
 
   const contracts = outputs.contracts as ContractMap;
   for (const contractName in contracts) {
     ctx.contracts[contractName] = contracts[contractName];
-    
+    //also add simplified syntax
     const contractData = contracts[contractName];
     if (contractData && contractData.address) {
       const simplifiedPath = `${contractName}.address`;
