@@ -20,7 +20,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, isPrivateKey, checkForgeAstSupport, ensureChainIdConsistency } from './helpers';
+import { checkCannonVersion, checkForgeAstSupport, ensureChainIdConsistency, isPrivateKey } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -204,7 +204,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
 
     if (opts.keepAlive && node) {
-      console.log(`Built package RPC URL available at http://${node.host}`);
+      console.log(`Built package RPC URL available at ${node.host}`);
       const { run } = await import('./commands/run');
       await run([{ ...pkgSpec, settings: {} }], {
         ...opts,
