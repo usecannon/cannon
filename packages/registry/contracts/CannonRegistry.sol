@@ -128,43 +128,72 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
   }
   
-  function setOwner(bytes32 _packageName, address _owner, address[] memory _additionalDeployers) external payable {
-    // we can only receive new ownership requests from mainnet
-    if (msg.sender != address(OPTIMISM_RECEIVER) && block.chainid != 1) {
-      revert WrongChain();
-    }
-
-    // we can only receive change ownership requests from our counterpart on mainnnet
-    if (block.chainid != 1 && OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
-      revert Unauthorized();
-    }
-
-
+  function setPackageOwnership(bytes32 _packageName, address _owner) external payable {
     Package storage _p = _store().packages[_packageName];
-    address owner = _p.owner;
 
-    // we cannot change owner if its already owned and the owner is incorrect
-    if (block.chainid != 1 && owner != address(0) && msg.sender != owner) {
-      revert Unauthorized();
-    }
-    // if the owner is changing, we reset additionalDeployers always. TODO: we may want to add a check here to ensure hte user isnt trying to set deployers also
-    else if (_owner != _p.owner) {
-      if (block.chainid == 1 && msg.value != registerFee) {
+    if (block.chainid == 1) {
+      address owner = _p.owner;
+      // we cannot change owner if its already owned and the nominated owner is incorrect
+      if (owner != address(0) && (msg.sender != _owner || _owner != _p.nominatedOwner)) {
+        revert Unauthorized();
+      }
+
+      // if the owner is changing, we reset additionalDeployers always. TODO: we may want to add a check here to ensure the user isnt trying to set deployers also
+      if (msg.value != registerFee) {
         revert FeeRequired(registerFee);
       }
 
-      _p.owner = _owner;
-      _p.additionalDeployersLength = 0;
-    } else {
-      for (uint256 i = 0; i < _additionalDeployers.length; i++) {
-        _p.additionalDeployers[i] = _additionalDeployers[i];
+      // name must be valid in order to register package
+      if (owner == address(0) && !validatePackageName(_packageName)) {
+        revert InvalidName(_packageName);
       }
 
-      _p.additionalDeployersLength = _additionalDeployers.length;
+      OPTIMISM_MESSENGER.sendMessage(
+        address(this),
+        abi.encodeWithSelector(this.setPackageOwnership.selector, _packageName, _owner),
+        100000
+      );
+    } else {
+      _checkCrossDomainSender();
     }
 
-    // finally, ensure our changes continue downstream
-    _propogatePackageOwner(_packageName, _p.owner, _additionalDeployers);
+    _p.owner = _owner;
+    _p.additionalDeployersLength = 0;
+  }
+
+  function setAdditionalDeployers(bytes32 _packageName, address[] memory _additionalDeployers) external {
+    Package storage _p = _store().packages[_packageName];
+    address owner = _p.owner;
+
+    if (block.chainid == 1) {
+      if (owner != msg.sender) {
+        revert Unauthorized();
+      }
+
+      OPTIMISM_MESSENGER.sendMessage(
+        address(this),
+        abi.encodeWithSelector(this.setAdditionalDeployers.selector, _packageName, _additionalDeployers),
+        uint32(30000 * _additionalDeployers.length + 100000)
+      );
+    } else {
+      _checkCrossDomainSender();
+    }
+
+    for (uint256 i = 0; i < _additionalDeployers.length; i++) {
+      _p.additionalDeployers[i] = _additionalDeployers[i];
+    }
+
+    _p.additionalDeployersLength = _additionalDeployers.length;
+  }
+
+  
+  function getAdditionalDeployers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
+    Package storage _p = _store().packages[_packageName];
+    additionalDeployers = new address[](_p.additionalDeployersLength);
+
+    for (uint256 i = 0; i < additionalDeployers.length; i++) {
+      additionalDeployers[i] = _p.additionalDeployers[i];
+    }
   }
 
   function nominatePackageOwner(bytes32 _packageName, address _newPackageOwner) external {
@@ -176,20 +205,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
 
     _p.nominatedOwner = _newPackageOwner;
-  }
-
-  function acceptPackageOwnership(bytes32 _packageName) external {
-    Package storage _p = _store().packages[_packageName];
-
-    address newOwner = _p.nominatedOwner;
-
-    if (msg.sender != newOwner) {
-      revert Unauthorized();
-    }
-
-    _p.owner = newOwner;
-    _p.nominatedOwner = address(0);
-    _p.additionalDeployersLength = 0;
   }
 
   function verifyPackage(bytes32 _packageName) external {
@@ -242,16 +257,23 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     return v;
   }
 
+  function _checkCrossDomainSender() internal {
+    // we can only receive new ownership requests from mainnet
+    if (msg.sender != address(OPTIMISM_RECEIVER) && block.chainid != 1) {
+      revert WrongChain();
+    }
+
+    // we can only receive change ownership requests from our counterpart on mainnnet
+    if (OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
+      revert Unauthorized();
+    }
+  }
+
   function _propogatePackageOwner(bytes32 _packageName, address _owner, address[] memory _additionalDeployers) internal {
     if (block.chainid != 1) {
       return;
     }
 
-    OPTIMISM_MESSENGER.sendMessage(
-      address(this),
-      abi.encodeWithSelector(this.setOwner.selector, _packageName, _owner, _additionalDeployers),
-      100000
-    );
   }
 
   function _writeString(string memory str) internal returns (bytes32) {

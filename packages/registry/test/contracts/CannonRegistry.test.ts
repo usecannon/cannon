@@ -19,6 +19,14 @@ describe('CannonRegistry', function () {
   });
 
   before('deploy contract', async function () {
+    const MockOptimismBridge = await ethers.getContractFactory('MockOptimismBridge');
+    const MockOPBridgeImpl = await MockOptimismBridge.deploy();
+    await MockOPBridgeImpl.deployed();
+    const MockOPBridgeImplCode = await ethers.provider.send('eth_getCode', [MockOPBridgeImpl.address]);
+
+    await ethers.provider.send('hardhat_setCode', ['0x4200000000000000000000000000000000000007', MockOPBridgeImplCode]);
+    await ethers.provider.send('hardhat_setCode', ['0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1', MockOPBridgeImplCode]);
+
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
     const Implementation = await CannonRegistryFactory.deploy();
     await Implementation.deployed();
@@ -29,7 +37,11 @@ describe('CannonRegistry', function () {
 
     CannonRegistry = (await ethers.getContractAt('CannonRegistry', Proxy.address)) as TCannonRegistry;
 
-    fee = await CannonRegistry.PUBLISH_FEE();
+    fee = await CannonRegistry.publishFee();
+  });
+
+  before('register', async () => {
+    await CannonRegistry.setPackageOwnership(toBytes32('some-module'), await owner.getAddress());
   });
 
   describe('Upgradedability', function () {
@@ -72,8 +84,42 @@ describe('CannonRegistry', function () {
     });
   });
 
+  describe('setPackageOwnership()', () => {
+    let snapshotId: number;
+    before('snapshot', async () => {
+      snapshotId = await ethers.provider.send('evm_snapshot', []);
+    });
+    before('nominate', async () => {
+      await CannonRegistry.nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
+    });
+    it('should not allow invalid name', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.setPackageOwnership(toBytes32('some-module-'), await user2.getAddress());
+      }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
+    });
+
+    it('only nominated owner can accept ownership', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(user3).setPackageOwnership(toBytes32('some-module'), await user3.getAddress());
+      }, 'Unauthorized()');
+    });
+
+    it('accepts ownership', async function () {
+      await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('some-module'), await user2.getAddress());
+    });
+
+    it('returns new package owner', async function () {
+      const result = await CannonRegistry.getPackageOwner(toBytes32('some-module'));
+      deepEqual(result, await user2.getAddress());
+    });
+    after('snapshot restore', async () => {
+      await ethers.provider.send('evm_revert', [snapshotId]);
+    });
+  });
+
   describe('publish()', function () {
     it('should fail when not paying any fee', async function () {
+      await CannonRegistry.setFees(100, 0);
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module-'),
@@ -83,7 +129,8 @@ describe('CannonRegistry', function () {
           'ipfs://some-module-meta@0.0.1',
           { value: 0 }
         );
-      }, `FeeRequired(${fee})`);
+      }, 'FeeRequired(100)');
+      await CannonRegistry.setFees(0, 0);
     });
 
     it('should fail when paying wrong amount of fee', async function () {
@@ -112,19 +159,6 @@ describe('CannonRegistry', function () {
       }, 'InvalidUrl("")');
     });
 
-    it('should not allow invalid name', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.publish(
-          toBytes32('some-module-'),
-          toBytes32('1337-main'),
-          [toBytes32('0.0.1')],
-          'ipfs://some-module-hash@0.0.1',
-          'ipfs://some-module-meta@0.0.1',
-          { value: fee }
-        );
-      }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
-    });
-
     it('should validate missing tags', async function () {
       await assertRevert(async () => {
         await CannonRegistry.publish(
@@ -151,36 +185,6 @@ describe('CannonRegistry', function () {
       }, 'InvalidTags()');
     });
 
-    it('should create the first package and assign the owner', async function () {
-      const tx = await CannonRegistry.connect(owner).publish(
-        toBytes32('some-module'),
-        toBytes32('1337-main'),
-        [toBytes32('0.0.1')],
-        'ipfs://some-module-hash@0.0.1',
-        'ipfs://some-module-meta@0.0.1',
-        { value: fee }
-      );
-
-      const { events } = await tx.wait();
-
-      equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
-
-      const resultUrl = await CannonRegistry.getPackageUrl(
-        toBytes32('some-module'),
-        toBytes32('0.0.1'),
-        toBytes32('1337-main')
-      );
-      const metaUrl = await CannonRegistry.getPackageMeta(
-        toBytes32('some-module'),
-        toBytes32('0.0.1'),
-        toBytes32('1337-main')
-      );
-
-      equal(resultUrl, 'ipfs://some-module-hash@0.0.1');
-      equal(metaUrl, 'ipfs://some-module-meta@0.0.1');
-    });
-
     it('should be able to publish new version', async function () {
       const tx = await CannonRegistry.connect(owner).publish(
         toBytes32('some-module'),
@@ -195,6 +199,20 @@ describe('CannonRegistry', function () {
 
       equal(events!.length, 1);
       equal(events![0].event, 'PackagePublish');
+
+      const resultUrl = await CannonRegistry.getPackageUrl(
+        toBytes32('some-module'),
+        toBytes32('0.0.2'),
+        toBytes32('1337-main')
+      );
+      const metaUrl = await CannonRegistry.getPackageMeta(
+        toBytes32('some-module'),
+        toBytes32('0.0.2'),
+        toBytes32('1337-main')
+      );
+
+      equal(resultUrl, 'ipfs://some-module-hash@0.0.2');
+      equal(metaUrl, 'ipfs://some-module-meta@0.0.2');
     });
 
     it('should be able to update an older version', async function () {
@@ -312,27 +330,6 @@ describe('CannonRegistry', function () {
       await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
 
       equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
-    });
-  });
-
-  describe('acceptPackageOwnership()', function () {
-    before('nominate new owner', async function () {
-      await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
-    });
-
-    it('only nominated owner can accept ownership', async function () {
-      await assertRevert(async () => {
-        await CannonRegistry.connect(user3).acceptPackageOwnership(toBytes32('some-module'));
-      }, 'Unauthorized()');
-    });
-
-    it('accepts ownership', async function () {
-      await CannonRegistry.connect(user2).acceptPackageOwnership(toBytes32('some-module'));
-    });
-
-    it('returns new package owner', async function () {
-      const result = await CannonRegistry.getPackageOwner(toBytes32('some-module'));
-      deepEqual(result, await user2.getAddress());
     });
   });
 
