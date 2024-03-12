@@ -5,6 +5,8 @@ import FormData from 'form-data';
 import pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
 import axiosRetry from 'axios-retry';
+import tty from 'tty';
+import prompts from 'prompts';
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;
 }
@@ -26,9 +28,19 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
 export function setAxiosRetries(count = 3) {
   axiosRetry(axios, {
     retries: count,
-    onRetry: (error) => {
+    shouldResetTimeout: true,
+    onRetry: async (retryCount, error) => {
       /* eslint-disable no-console */
       console.log('Failed with error: ', error, 'Retrying...');
+      if (retryCount == count && tty.isatty(process.stdout.fd)) {
+        console.log('Failed with error: ', error)
+        await prompts({
+          type: 'confirm',
+          name: 'value',
+          message: 'Retry?',
+          initial: true,
+        });
+      }
     },
   });
 }

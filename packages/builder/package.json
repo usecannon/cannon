@@ -46,6 +46,7 @@
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "promise-events": "^0.2.4",
+    "prompts": "^2.4.2",
     "typedoc-plugin-markdown": "^3.17.1",
     "typestub-ipfs-only-hash": "^4.0.0",
     "viem": "^2.6.1",
