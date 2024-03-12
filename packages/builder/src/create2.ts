@@ -1,9 +1,6 @@
-import * as viem from 'viem';
-import { Address, Hash, Hex } from 'viem';
-
-import { CannonSigner, ChainBuilderRuntimeInfo } from '.';
-
 import Debug from 'debug';
+import * as viem from 'viem';
+import { CannonSigner, ChainBuilderRuntimeInfo } from './';
 
 const debug = Debug('cannon:builder:create2');
 
@@ -21,7 +18,7 @@ export async function ensureArachnidCreate2Exists(
   deployer: viem.Address
 ): Promise<viem.Address> {
   // if arachnid create2 contract is not deployed
-  const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: 0n });
+  const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: BigInt(0) });
   const detectedBytecode = await runtime.provider.getBytecode({ address: proxyAddress });
   if (!detectedBytecode || detectedBytecode === '0x') {
     debug('arachnid create2 contract not found. attempting to deploy...');
@@ -60,10 +57,10 @@ export async function ensureArachnidCreate2Exists(
  */
 export function makeArachnidCreate2Txn(
   salt: string,
-  initcode: Hex,
+  initcode: viem.Hex,
   arachnidAddress: viem.Address
-): [Pick<viem.TransactionRequest, 'to' | 'data'>, Address] {
-  const saltHash: Hash = !viem.isHash(salt) ? viem.keccak256(viem.toBytes(salt)) : (salt as Hash);
+): [Pick<viem.TransactionRequest, 'to' | 'data'>, viem.Address] {
+  const saltHash: viem.Hash = !viem.isHash(salt) ? viem.keccak256(viem.toBytes(salt)) : (salt as viem.Hash);
 
   const txn = {
     to: arachnidAddress,
