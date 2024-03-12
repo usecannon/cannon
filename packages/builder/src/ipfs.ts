@@ -24,7 +24,7 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
 }
 
 export class RetryError extends Error {
-  code = 'RETRY_ERROR'
+  code = 'RETRY_ERROR';
 }
 
 export function setAxiosRetries(count = 3) {
@@ -35,7 +35,7 @@ export function setAxiosRetries(count = 3) {
       /* eslint-disable no-console */
       console.log('Failed with error:', error.cause, '\nRetrying...\n');
       if (retryCount == count) {
-        throw new RetryError(`${error}`)
+        throw new RetryError(`${error}`);
       }
     },
   });

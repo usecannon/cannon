@@ -154,20 +154,20 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
     try {
       return super.put(misc);
     } catch (err) {
-      console.log("ERRRR", (err as any).code)
-      console.log("IS TTTY?", tty.isatty(process.stdout.fd))
-      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)){
+      console.log('ERRRR', (err as any).code);
+      console.log('IS TTTY?', tty.isatty(process.stdout.fd));
+      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)) {
         const confirm = await prompts({
           type: 'confirm',
           name: 'value',
           message: 'Retry?',
           initial: true,
         });
-  
+
         if (confirm.value) {
           return super.put(misc);
         }
-      } 
+      }
       throw err;
     }
   }
@@ -176,14 +176,14 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
     try {
       return super.read(url);
     } catch (err) {
-      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)){
+      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)) {
         const confirm = await prompts({
           type: 'confirm',
           name: 'value',
           message: 'Retry?',
           initial: true,
         });
-  
+
         if (confirm.value) {
           return super.read(url);
         }
@@ -192,7 +192,6 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
     }
   }
 }
-
 
 export function getMainLoader(cliSettings: CliSettings) {
   return {
