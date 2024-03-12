@@ -12,7 +12,7 @@ import {
   ContractMap,
   RawChainDefinition,
 } from '@usecannon/builder';
-import { bold, magentaBright, yellow, yellowBright } from 'chalk';
+import { bold, magentaBright, yellow, yellowBright, red } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
@@ -289,6 +289,32 @@ export function getChainDataFromId(chainId: number): Chain | null {
     return cannonChain;
   }
   return chains.find((c: Chain) => c.id == chainId) || null;
+}
+
+export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
+  // only if both are defined
+  if (providerUrl && chainId) {
+    const provider = viem.createPublicClient({
+      transport: viem.http(providerUrl),
+    });
+
+    const providerChainId = await provider.getChainId();
+
+    // throw an expected error if the chainId is not consistent with the provider's chainId
+    if (Number(chainId) !== Number(providerChainId)) {
+      console.log(
+        red(
+          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+            '--chain-id'
+          )} value (${chainId}). Please ensure that the ${bold(
+            '--chain-id'
+          )} value matches the network your provider is connected to.`
+        )
+      );
+
+      process.exit(1);
+    }
+  }
 }
 
 function getMetadataPath(packageName: string): string {

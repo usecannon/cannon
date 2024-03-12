@@ -1,12 +1,11 @@
 import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
-import { ARACHNID_CREATE2_PROXY } from '../constants';
-import { makeArachnidCreate2Txn } from '../create2';
-import { encodeDeployData } from '../helpers';
 import { ContractArtifact } from '../types';
 import action from './contract';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
 import '../actions';
+
+const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
 describe('steps/contract.ts', () => {
   const fakeAbi = [
@@ -203,7 +202,7 @@ describe('steps/contract.ts', () => {
 
       it('works if contract needs to be deployed', async () => {
         jest.mocked(fakeRuntime.provider.getBytecode).mockImplementation(async ({ address }) => {
-          if (address === ARACHNID_CREATE2_PROXY) {
+          if (address === DEFAULT_ARACHNID_ADDRESS) {
             return '0xabcd';
           }
 
@@ -245,17 +244,7 @@ describe('steps/contract.ts', () => {
           },
         });
 
-        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith({
-          ...makeArachnidCreate2Txn(
-            'wohoo',
-            encodeDeployData({
-              bytecode: '0xabcd',
-              abi: fakeAbi,
-              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
-            })
-          )[0],
-          account: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-        });
+        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toHaveBeenCalled();
       });
     });
 

@@ -1,16 +1,20 @@
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { useStore } from '@/helpers/store';
-import { useCannonPackage } from '@/hooks/cannon';
-import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
+import { useWalletClient } from 'wagmi';
+import { Chain, createPublicClient, http } from 'viem';
 import { useMutation } from '@tanstack/react-query';
+import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { Button, Link, Spinner, Text, useToast, Flex } from '@chakra-ui/react';
+import * as chains from '@wagmi/core/chains';
+import { findChain } from '@/helpers/rpc';
+import { useStore } from '@/helpers/store';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { useCannonPackage } from '@/hooks/cannon';
 import {
   CannonStorage,
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { useWalletClient } from 'wagmi';
+import { find } from 'lodash';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -69,6 +73,10 @@ export default function PublishUtility(props: {
       const targetRegistry = new OnChainRegistry({
         signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
+        provider: createPublicClient({
+          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
+          transport: http(),
+        }),
       });
 
       const fakeLocalRegistry = new InMemoryRegistry();
@@ -120,6 +128,11 @@ export default function PublishUtility(props: {
     },
   });
 
+  const chainName = find(
+    chains,
+    (chain: any) => chain.id == settings.registryChainId
+  )?.name;
+
   // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
@@ -130,54 +143,55 @@ export default function PublishUtility(props: {
   } else if (existingRegistryUrl !== props.deployUrl) {
     return (
       <>
-        {!existingRegistryUrl ? (
-          <Text fontSize="sm" mb={3}>
-            The package resulting from this deployment has not been published
-            yet.
-          </Text>
+        {wc.data?.chain?.id === Number.parseInt(settings.registryChainId) ? (
+          <>
+            {!existingRegistryUrl ? (
+              <Text fontSize="sm" mb={3}>
+                The package resulting from this deployment has not been
+                published yet.
+              </Text>
+            ) : (
+              <Text fontSize="sm" mb={3}>
+                A different package has been published to the registry with a
+                matching name and version.
+              </Text>
+            )}
+            {settings.isIpfsGateway && (
+              <Text fontSize="sm" mb={3}>
+                You cannot publish on an IPFS gateway, only read operations can
+                be done.
+              </Text>
+            )}
+            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+              <Text fontSize="sm" mb={3}>
+                You cannot publish on an repo endpoint, only read operations can
+                be done.
+              </Text>
+            )}
+            <Button
+              isDisabled={
+                settings.isIpfsGateway ||
+                settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
+                publishMutation.isPending
+              }
+              colorScheme="teal"
+              size="sm"
+              onClick={() => publishMutation.mutate()}
+              leftIcon={
+                publishMutation.isPending ? <Spinner size="sm" /> : undefined
+              }
+            >
+              {publishMutation.isPending
+                ? 'Publishing...'
+                : 'Publish to Registry'}
+            </Button>
+          </>
         ) : (
-          <Text fontSize="sm" mb={3}>
-            A different package has been published to the registry with a
-            matching name and version.
-          </Text>
-        )}
-        {settings.isIpfsGateway && (
-          <Text fontSize="sm" mb={3}>
-            You cannot publish on an IPFS gateway, only read operations can be
-            done.
-          </Text>
-        )}
-        {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-          <Text fontSize="sm" mb={3}>
-            You cannot publish on an repo endpoint, only read operations can be
-            done.
-          </Text>
-        )}
-
-        {wc.data?.chain?.id === 1 ? (
-          <Button
-            isDisabled={
-              settings.isIpfsGateway ||
-              settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-              wc.data?.chain?.id !== 1 ||
-              publishMutation.isPending
-            }
-            colorScheme="teal"
-            size="sm"
-            onClick={() => publishMutation.mutate()}
-            leftIcon={
-              publishMutation.isPending ? <Spinner size="sm" /> : undefined
-            }
-          >
-            {publishMutation.isPending
-              ? 'Publishing...'
-              : 'Publish to Registry'}
-          </Button>
-        ) : (
-          <Text fontSize="xs" fontWeight="medium">
-            <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
-            Connect a wallet using chain ID 1 to publish
-          </Text>
+          <Flex fontSize="xs" fontWeight="medium" align="top">
+            <InfoOutlineIcon mt="3px" mr={1.5} />
+            Connect your wallet {chainName && `to ${chainName}`} to publish a
+            package with data about this deployment
+          </Flex>
         )}
       </>
     );

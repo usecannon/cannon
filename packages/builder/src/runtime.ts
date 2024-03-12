@@ -210,6 +210,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     if (this.snapshots) {
       debug('load state', stateDump.length);
       await (this.provider as viem.TestClient & viem.PublicClient).loadState({ state: stateDump });
+      // after loading state, sometimes block cannot be found during waitForTransactionReceipt check. So just mine a block to ensure it exists
+      await (this.provider as viem.TestClient & viem.PublicClient).mine({ blocks: 1 });
     }
   }
 

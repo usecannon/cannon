@@ -2,6 +2,17 @@ export default [
   {
     inputs: [
       {
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'FeeRequired',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: 'implementation',
         type: 'address',
@@ -242,6 +253,19 @@ export default [
   },
   {
     inputs: [],
+    name: 'PUBLISH_FEE',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'acceptOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -258,6 +282,25 @@ export default [
     name: 'acceptPackageOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getAdditionalDeployers',
+    outputs: [
+      {
+        internalType: 'address[]',
+        name: 'additionalDeployers',
+        type: 'address[]',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -385,7 +428,7 @@ export default [
         type: 'bytes[]',
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -475,12 +518,30 @@ export default [
     ],
     name: 'publish',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [],
     name: 'renounceNomination',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address[]',
+        name: 'additionalDeployers',
+        type: 'address[]',
+      },
+    ],
+    name: 'setAdditionalDeployers',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',

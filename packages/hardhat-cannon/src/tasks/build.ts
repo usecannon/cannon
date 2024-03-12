@@ -161,7 +161,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           if (impersonate || hre.network.name === 'cannon' || hre.network.name === 'hardhat') {
             // on test network any user can be conjured
             await provider.impersonateAccount({ address: addr });
-            await provider.setBalance({ address: addr, value: BigInt(1e22) });
+            await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
             return { address: addr, wallet: provider };
           } else {
             // return the actual signer with private key

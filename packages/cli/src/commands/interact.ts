@@ -439,7 +439,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
   const isBoolean = input.type.includes('bool');
 
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
-  if (isBytes32 && !viem.isBytes(processed)) {
+  if (isBytes32 && !viem.isHex(processed)) {
     if (isArray) {
       processed = processed.map((item: string) => viem.stringToHex(item));
     } else {
