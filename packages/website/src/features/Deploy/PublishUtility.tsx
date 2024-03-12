@@ -3,19 +3,18 @@ import { Chain, createPublicClient, http } from 'viem';
 import { useMutation } from '@tanstack/react-query';
 import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { Button, Link, Spinner, Text, useToast } from '@chakra-ui/react';
-
+import * as chains from '@wagmi/core/chains';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
-
 import { useCannonPackage } from '@/hooks/cannon';
-
 import {
   CannonStorage,
   InMemoryRegistry,
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
+import { find } from 'lodash';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -129,6 +128,11 @@ export default function PublishUtility(props: {
     },
   });
 
+  const chainName = find(
+    chains,
+    (chain: any) => chain.id == settings.registryChainId
+  )?.name;
+
   // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
@@ -184,8 +188,7 @@ export default function PublishUtility(props: {
         ) : (
           <Text fontSize="xs" fontWeight="medium">
             <InfoOutlineIcon transform="translateY(-1.5px)" mr={1.5} />
-            Connect a wallet using chain ID {settings.registryChainId} to
-            publish
+            Connect a wallet {chainName && `to ${chainName}`} to publish
           </Text>
         )}
       </>

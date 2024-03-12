@@ -122,10 +122,10 @@ export function TransactionDisplay(props: {
             borderColor="gray.700"
             mb={8}
           >
-            <Box display={['none','block']}>
+            <Box display={['none', 'block']}>
               <GitHub size="28" strokeWidth={1} />
             </Box>
-            <Box ml={[0,3]}>
+            <Box ml={[0, 3]}>
               <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
                 GitOps Deployment
               </AlertTitle>
