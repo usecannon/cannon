@@ -1,9 +1,4 @@
-import {
-  ARACHNID_DEFAULT_DEPLOY_ADDR,
-  ARACHNID_DEPLOY_TXN,
-  ensureArachnidCreate2Exists,
-  makeArachnidCreate2Txn,
-} from './create2';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
 
 import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
 

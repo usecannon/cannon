@@ -33,6 +33,8 @@ import {
   Text,
   Tooltip,
   useToast,
+  Image,
+  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
@@ -374,8 +376,8 @@ const TransactionDetailsPage: FC<{
                               transform="translateY(-1.5px)"
                               mr={1.5}
                             />
-                            Connect a wallet {chainName && `to ${chainName}`} to
-                            sign
+                            Connect your wallet {chainName && `to ${chainName}`}{' '}
+                            to sign
                           </Text>
                         )}
                       </Box>
@@ -419,14 +421,15 @@ const TransactionDetailsPage: FC<{
                       {prevDeployPackageUrl &&
                         hintData.cannonUpgradeFromPackage !==
                           prevDeployPackageUrl && (
-                          <Text fontSize="sm" mb="2">
-                            <WarningIcon />
-                            &nbsp;Previous Deploy Hash does not derive from
-                            on-chain record
-                          </Text>
+                          <Flex fontSize="xs" fontWeight="medium" align="top">
+                            <InfoOutlineIcon mt="3px" mr={1.5} />
+                            The previous deploy hash does not derive from an
+                            on-chain record.
+                          </Flex>
                         )}
                       {safeTxn && (
                         <Button
+                          mt={3}
                           size="xs"
                           as="a"
                           href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
@@ -440,12 +443,26 @@ const TransactionDetailsPage: FC<{
                           )}&network=${
                             safe.chainId
                           }&headerBlockNumber=&headerTimestamp=`}
-                          colorScheme="purple"
-                          rightIcon={<ExternalLinkIcon />}
+                          colorScheme="whiteAlpha"
+                          background="whiteAlpha.100"
+                          border="1px solid"
+                          borderColor="whiteAlpha.300"
+                          leftIcon={
+                            <Image
+                              height="14px"
+                              src="/images/tenderly.svg"
+                              alt="Safe"
+                              objectFit="cover"
+                            />
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
+                          _hover={{
+                            bg: 'whiteAlpha.200',
+                            borderColor: 'whiteAlpha.400',
+                          }}
                         >
-                          Simulate on Tenderly
+                          Simulate Transaction
                         </Button>
                       )}
                     </Box>
