@@ -258,13 +258,11 @@ const TransactionDetailsPage: FC<{
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={8}
             >
-              <Box>
-                <TransactionDisplay
-                  safe={safe}
-                  safeTxn={safeTxn as any}
-                  allowPublishing={allowPublishing}
-                />
-              </Box>
+              <TransactionDisplay
+                safe={safe}
+                safeTxn={safeTxn as any}
+                allowPublishing={allowPublishing}
+              />
               <Box position="relative">
                 <Box position="sticky" top={8}>
                   {verify && allowPublishing && (
