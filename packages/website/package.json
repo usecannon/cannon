@@ -85,5 +85,11 @@
     "@types/pako": "^2.0.3",
     "@types/react-syntax-highlighter": "^15.5.7",
     "sass": "^1.63.6"
+  },
+  "optionalDependencies": {
+    "@nx/nx-darwin-arm64": "18.0.4",
+    "@nx/nx-darwin-x64": "18.0.4",
+    "@nx/nx-linux-x64-gnu": "18.0.4",
+    "@nx/nx-win32-x64-msvc": "18.0.4"
   }
 }
