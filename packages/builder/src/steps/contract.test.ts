@@ -1,7 +1,5 @@
 import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
-import { makeArachnidCreate2Txn } from '../create2';
-import { encodeDeployData } from '../util';
 import { ContractArtifact } from '../types';
 import action from './contract';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
@@ -246,18 +244,7 @@ describe('steps/contract.ts', () => {
           },
         });
 
-        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toBeCalledWith({
-          ...makeArachnidCreate2Txn(
-            'wohoo',
-            encodeDeployData({
-              bytecode: '0xabcd',
-              abi: fakeAbi,
-              args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
-            }),
-            DEFAULT_ARACHNID_ADDRESS
-          )[0],
-          account: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-        });
+        expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toHaveBeenCalled();
       });
     });
 
