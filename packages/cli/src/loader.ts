@@ -4,9 +4,9 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import path from 'path';
-import { CliSettings } from './settings';
 import prompts from 'prompts';
 import tty from 'tty';
+import { CliSettings } from './settings';
 
 const debug = Debug('cannon:cli:loader');
 
