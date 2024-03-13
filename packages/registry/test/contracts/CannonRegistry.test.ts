@@ -118,11 +118,15 @@ describe('CannonRegistry', function () {
       await CannonRegistry.setFees(0, 0);
     });
 
-    it('should allow new module to be registered with fee', async function () {
+    it('should allow new package to be registered with fee', async function () {
       await CannonRegistry.setFees(0, 100);
-      await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('new-module'), await user2.getAddress(), {
+      const tx = await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('new-module'), await user2.getAddress(), {
         value: 100,
       });
+      const { events } = await tx.wait();
+      equal(events!.length, 2);
+      equal(events![0].event, 'PackageRegistered');
+      equal(events![1].event, 'PackageOwnerChanged');
       await CannonRegistry.setFees(0, 0);
     });
 
@@ -133,9 +137,12 @@ describe('CannonRegistry', function () {
     });
 
     it('accepts ownership', async function () {
-      // should not require any fee
+      // should not require any fee, so we set fee here without sending money to verify that
       await CannonRegistry.setFees(0, 100);
-      await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('some-module'), await user2.getAddress());
+      const tx = await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('some-module'), await user2.getAddress());
+      const { events } = await tx.wait();
+      equal(events!.length, 1);
+      equal(events![0].event, 'PackageOwnerChanged');
       await CannonRegistry.setFees(0, 0);
     });
 
@@ -385,7 +392,13 @@ describe('CannonRegistry', function () {
     });
 
     it('nominates', async function () {
-      await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
+      const tx = await CannonRegistry.connect(owner).nominatePackageOwner(
+        toBytes32('some-module'),
+        await user2.getAddress()
+      );
+      const { events } = await tx.wait();
+      equal(events!.length, 1);
+      equal(events![0].event, 'PackageOwnerNominated');
 
       equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
     });

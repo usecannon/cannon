@@ -23,12 +23,31 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   error FeeRequired(uint256 amount);
   error WrongChain();
 
+  event PackageRegistered(
+    bytes32 indexed name,
+    address registrant
+  );
+  event PackageOwnerNominated(
+    bytes32 indexed name,
+    address currentOwner,
+    address nominatedOwner
+  );
+  event PackageOwnerChanged(
+    bytes32 indexed name,
+    address owner
+  );
   event PackagePublish(
     bytes32 indexed name,
     bytes32 indexed tag,
     bytes32 indexed variant,
     string deployUrl,
     string metaUrl,
+    address owner
+  );
+  event PackageUnpublish(
+    bytes32 indexed name,
+    bytes32 indexed tag,
+    bytes32 indexed variant,
     address owner
   );
   event PackageVerify(bytes32 indexed name, address indexed verifier);
@@ -127,6 +146,35 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       }
     }
   }
+
+  function unpublish(
+    bytes32 _packageName,
+    bytes32 _variant,
+    bytes32[] memory _packageTags
+  ) external {
+    Package storage _p = _store().packages[_packageName];
+
+    address owner = _p.owner;
+
+    if (owner != msg.sender) {
+      uint256 additionalDeployersLength = _p.additionalDeployersLength;
+      bool foundAdditionalDeployer = false;
+      for (uint256 i = 0; i < additionalDeployersLength; i++) {
+        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
+      }
+
+      if (!foundAdditionalDeployer) {
+        revert Unauthorized();
+      }
+    }
+
+    for (uint256 i = 1; i < _packageTags.length; i++) {
+      bytes32 _tag = _packageTags[i];
+      _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: ""});
+
+      emit PackageUnpublish(_packageName, _tag, _variant, msg.sender);
+    }
+  }
   
   function setPackageOwnership(bytes32 _packageName, address _owner) external payable {
     Package storage _p = _store().packages[_packageName];
@@ -140,8 +188,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
         revert Unauthorized();
       }
 
+      // package new or old check
       if (owner == address(0) && msg.value != registerFee) {
         revert FeeRequired(registerFee);
+      } else if (owner == address(0)) {
+        emit PackageRegistered(_packageName, msg.sender);
       }
 
       // name must be valid in order to register package
@@ -160,6 +211,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     _p.owner = _owner;
     _p.additionalDeployersLength = 0;
+    emit PackageOwnerChanged(_packageName, _owner);
   }
 
   function setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalDeployers) external {
@@ -209,6 +261,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
 
     _p.nominatedOwner = _newPackageOwner;
+    emit PackageOwnerNominated(_packageName, msg.sender, _newPackageOwner);
   }
 
   function verifyPackage(bytes32 _packageName) external {
