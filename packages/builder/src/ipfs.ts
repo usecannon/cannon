@@ -28,7 +28,8 @@ export function setAxiosRetries(totalRetries = 3) {
     retries: totalRetries,
     shouldResetTimeout: true,
     onRetry: (currentRetry, error) => {
-      debug('Failed with error:', error.cause, '\nRetrying...\n');
+      debug('Failed with error:', error);
+      debug('Retrying...');
 
       if (currentRetry == totalRetries) {
         error.code = 'RETRY_ERROR';
