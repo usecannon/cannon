@@ -154,14 +154,11 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
     try {
       return super.put(misc);
     } catch (err) {
-      console.log('ERRRR', (err as any).code);
-      console.log('IS TTTY?', tty.isatty(process.stdout.fd));
       if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)) {
         const confirm = await prompts({
           type: 'confirm',
           name: 'value',
           message: 'Retry?',
-          initial: true,
         });
 
         if (confirm.value) {
@@ -181,7 +178,6 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
           type: 'confirm',
           name: 'value',
           message: 'Retry?',
-          initial: true,
         });
 
         if (confirm.value) {

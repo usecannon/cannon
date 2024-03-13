@@ -23,19 +23,16 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
   return Hash.of(value);
 }
 
-export class RetryError extends Error {
-  code = 'RETRY_ERROR';
-}
-
-export function setAxiosRetries(count = 3) {
+export function setAxiosRetries(totalRetries = 3) {
   axiosRetry(axios, {
-    retries: count,
+    retries: totalRetries,
     shouldResetTimeout: true,
-    onRetry: (retryCount, error) => {
-      /* eslint-disable no-console */
-      console.log('Failed with error:', error.cause, '\nRetrying...\n');
-      if (retryCount == count) {
-        throw new RetryError(`${error}`);
+    onRetry: (currentRetry, error) => {
+      debug('Failed with error:', error.cause, '\nRetrying...\n');
+
+      if (currentRetry == totalRetries) {
+        error.code = 'RETRY_ERROR';
+        throw error;
       }
     },
   });

@@ -123,7 +123,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
       .optional()
       .default(fileSettings.privateKey as string),
-    CANNON_IPFS_RETRIES: z.number().optional(),
+    CANNON_IPFS_RETRIES: z.number().optional().default(3),
     CANNON_IPFS_URL: z
       .string()
       .url()

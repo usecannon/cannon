@@ -25,7 +25,7 @@ describe('loader.ts', () => {
       it('calls ipfs write and returns the resulting ipfs Qmhash', async () => {
         jest.mocked(writeIpfs).mockResolvedValue('Qmfun');
         expect(await loader.put({ hello: 'fun' })).toEqual('ipfs://Qmfun');
-        expect(writeIpfs).toBeCalledWith('hello', { hello: 'fun' }, {}, undefined, 300000);
+        expect(writeIpfs).toBeCalledWith('hello', { hello: 'fun' }, {}, undefined, 300000, 3);
       });
     });
 
