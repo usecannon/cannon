@@ -168,7 +168,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       }
     }
 
-    for (uint256 i = 1; i < _packageTags.length; i++) {
+    for (uint256 i = 0; i < _packageTags.length; i++) {
       bytes32 _tag = _packageTags[i];
       _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: ""});
 

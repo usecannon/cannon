@@ -346,6 +346,43 @@ describe('CannonRegistry', function () {
     });
   });
 
+  describe('unpublish()', function () {
+    it('should be able to unpublish', async function () {
+      const tx = await CannonRegistry.connect(owner).unpublish(toBytes32('some-module'), toBytes32('1337-main'), [
+        toBytes32('0.0.2'),
+      ]);
+
+      const { events } = await tx.wait();
+
+      equal(events!.length, 1);
+      equal(events![0].event, 'PackageUnpublish');
+
+      const resultUrl = await CannonRegistry.getPackageUrl(
+        toBytes32('some-module'),
+        toBytes32('0.0.2'),
+        toBytes32('1337-main')
+      );
+      const metaUrl = await CannonRegistry.getPackageMeta(
+        toBytes32('some-module'),
+        toBytes32('0.0.2'),
+        toBytes32('1337-main')
+      );
+
+      equal(resultUrl, '');
+      equal(metaUrl, '');
+    });
+
+    it('should not allow to modify package from another owner', async function () {
+      await assertRevert(async () => {
+        await CannonRegistry.connect(user2).unpublish(
+          toBytes32('some-module'),
+          toBytes32('1337-main'),
+          ['0.0.4', 'latest', 'stable'].map(toBytes32)
+        );
+      }, 'Unauthorized()');
+    });
+  });
+
   describe('setAdditionalPublishers()', function () {
     it('only works for owner', async function () {
       await assertRevert(async () => {
