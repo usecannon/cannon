@@ -163,10 +163,18 @@ export async function trace({
     console.log();
     if (receipt.status == 'success') {
       console.log(
-        green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
+        green(
+          bold(
+            `Transaction completes successfully with return value: ${
+              traces[0].result?.output ?? 'unknown'
+            } (${totalGasUsed} gas)`
+          )
+        )
       );
     } else {
-      console.log(red(bold(`Transaction completes with error: ${traces[0].result.output} (${totalGasUsed} gas)`)));
+      console.log(
+        red(bold(`Transaction completes with error: ${traces[0].result?.output ?? 'unknown'} (${totalGasUsed} gas)`))
+      );
     }
   } else {
     console.log(JSON.stringify(traces, null, 2));
@@ -180,5 +188,5 @@ function computeGasUsed(traces: TraceEntry[], txn: viem.TransactionRequest): num
   const txnData = viem.hexToBytes(txn.data || '0x');
   const zeroDataCount = txnData.filter((d) => d === 0).length;
   const nonZeroDataCount = txnData.length - zeroDataCount;
-  return parseInt(traces[0].result.gasUsed) + 21000 + 4 * zeroDataCount + 16 * nonZeroDataCount;
+  return parseInt(traces[0].result?.gasUsed ?? '0') + 21000 + 4 * zeroDataCount + 16 * nonZeroDataCount;
 }
