@@ -31,7 +31,7 @@
     "@usecannon/builder": "^2.11.19",
     "@usecannon/cli": "^2.11.19",
     "@vercel/analytics": "^1.1.1",
-    "axios": "^1.6.2",
+    "axios": "^1.6.7",
     "browser-level": "^1.0.1",
     "chakra-react-select": "^4.7.0",
     "crypto-js": "^4.1.1",

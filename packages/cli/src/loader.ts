@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import path from 'path';
+import prompts from 'prompts';
+import tty from 'tty';
 import { CliSettings } from './settings';
 
 const debug = Debug('cannon:cli:loader');
@@ -147,11 +149,51 @@ export class CliLoader implements CannonLoader {
   }
 }
 
+export class IPFSLoaderWithRetries extends IPFSLoader {
+  async put(misc: any): Promise<string> {
+    try {
+      return super.put(misc);
+    } catch (err) {
+      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)) {
+        const confirm = await prompts({
+          type: 'confirm',
+          name: 'value',
+          message: 'Retry?',
+        });
+
+        if (confirm.value) {
+          return super.put(misc);
+        }
+      }
+      throw err;
+    }
+  }
+
+  async read(url: string) {
+    try {
+      return super.read(url);
+    } catch (err) {
+      if ((err as any).code === 'RETRY_ERROR' && tty.isatty(process.stdout.fd)) {
+        const confirm = await prompts({
+          type: 'confirm',
+          name: 'value',
+          message: 'Retry?',
+        });
+
+        if (confirm.value) {
+          return super.read(url);
+        }
+      }
+      throw err;
+    }
+  }
+}
+
 export function getMainLoader(cliSettings: CliSettings) {
   return {
     ipfs: new CliLoader(
-      cliSettings.ipfsUrl ? new IPFSLoader(cliSettings.ipfsUrl) : undefined,
-      new IPFSLoader(getCannonRepoRegistryUrl()),
+      cliSettings.ipfsUrl ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, 30000, cliSettings.ipfsRetries) : undefined,
+      new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, 30000, cliSettings.ipfsRetries),
       path.join(cliSettings.cannonDirectory, 'ipfs_cache')
     ),
     file: new LocalLoader(path.join(cliSettings.cannonDirectory, 'blobs')),

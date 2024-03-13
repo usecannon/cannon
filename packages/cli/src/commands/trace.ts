@@ -108,11 +108,12 @@ export async function trace({
         port: 0,
         forkBlockNumber: !block || block === 'latest' ? undefined : (blockInfo.number! - BigInt(1)).toString(),
         timestamp,
+        chainId,
       },
       { forkProvider: provider as any }
     );
   } else {
-    rpc = await runRpc({ port: 0 }, { forkProvider: provider as any });
+    rpc = await runRpc({ port: 0, chainId }, { forkProvider: provider as any });
   }
   const simulateProvider = getProvider(rpc)!;
 
