@@ -5,15 +5,32 @@ import "./IOptimismL1Sender.sol";
 import "./IOptimismL2Receiver.sol";
 
 contract MockOptimismBridge is IOptimismL1Sender, IOptimismL2Receiver {
+  bytes public lastCrossChainMessage;
+
+  address public xDomainMessageSender;
+
   function sendMessage(
       address _target,
       bytes memory _message,
       uint32 _minGasLimit
   ) external {
-    
+    lastCrossChainMessage = _message;
   }
   
-  function xDomainMessageSender() external returns (address) {
-    return address(0x1234123412341234123412341234123412341234);
+  function setXDomainMessageSender(address _sender) external returns (address) {
+    xDomainMessageSender = _sender;
+  }
+
+  function doCall(address to, bytes memory data) external returns (bytes memory) {
+    (bool success, bytes memory result) = to.call(data);
+
+    if (!success) {
+      uint256 len = result.length;
+      assembly {
+        revert(add(result, 0x20), len)
+      }
+    }
+
+    return result;
   }
 }

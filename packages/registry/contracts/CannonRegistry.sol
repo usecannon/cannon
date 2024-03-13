@@ -131,7 +131,9 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   function setPackageOwnership(bytes32 _packageName, address _owner) external payable {
     Package storage _p = _store().packages[_packageName];
 
-    if (block.chainid == 1) {
+    if (msg.sender == address(OPTIMISM_RECEIVER)) {
+      _checkCrossDomainSender();
+    } else if (block.chainid == 1) {
       address owner = _p.owner;
       // we cannot change owner if its already owned and the nominated owner is incorrect
       if (owner != address(0) && (msg.sender != _owner || _owner != _p.nominatedOwner)) {
@@ -154,29 +156,32 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
         100000
       );
     } else {
-      _checkCrossDomainSender();
+      revert Unauthorized();
     }
 
     _p.owner = _owner;
     _p.additionalDeployersLength = 0;
   }
 
-  function setAdditionalDeployers(bytes32 _packageName, address[] memory _additionalDeployers) external {
+  function setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalDeployers) external {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
-    if (block.chainid == 1) {
+    if (msg.sender == address(OPTIMISM_RECEIVER)) {
+      _checkCrossDomainSender();
+    }
+    else if (block.chainid == 1) {
       if (owner != msg.sender) {
         revert Unauthorized();
       }
 
       OPTIMISM_MESSENGER.sendMessage(
         address(this),
-        abi.encodeWithSelector(this.setAdditionalDeployers.selector, _packageName, _additionalDeployers),
+        abi.encodeWithSelector(this.setAdditionalPublishers.selector, _packageName, _additionalDeployers),
         uint32(30000 * _additionalDeployers.length + 100000)
       );
     } else {
-      _checkCrossDomainSender();
+      revert Unauthorized();
     }
 
     for (uint256 i = 0; i < _additionalDeployers.length; i++) {
@@ -187,7 +192,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   
-  function getAdditionalDeployers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
+  function getAdditionalPublishers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
     Package storage _p = _store().packages[_packageName];
     additionalDeployers = new address[](_p.additionalDeployersLength);
 
@@ -258,11 +263,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   function _checkCrossDomainSender() internal {
-    // we can only receive new ownership requests from mainnet
-    if (msg.sender != address(OPTIMISM_RECEIVER) && block.chainid != 1) {
-      revert WrongChain();
-    }
-
     // we can only receive change ownership requests from our counterpart on mainnnet
     if (OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
       revert Unauthorized();

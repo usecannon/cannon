@@ -2,6 +2,7 @@ import { Signer, BigNumber } from 'ethers';
 import { ok, equal, deepEqual } from 'assert/strict';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
+import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
 
 import assertRevert from '../helpers/assert-revert';
 
@@ -9,6 +10,8 @@ const toBytes32 = ethers.utils.formatBytes32String;
 
 describe('CannonRegistry', function () {
   let CannonRegistry: TCannonRegistry;
+  let MockOPSendBridge: TMockOptimismBridge;
+  let MockOPRecvBridge: TMockOptimismBridge;
   let owner: Signer, user2: Signer, user3: Signer;
   let ownerAddress: string;
   let fee: BigNumber;
@@ -26,6 +29,15 @@ describe('CannonRegistry', function () {
 
     await ethers.provider.send('hardhat_setCode', ['0x4200000000000000000000000000000000000007', MockOPBridgeImplCode]);
     await ethers.provider.send('hardhat_setCode', ['0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1', MockOPBridgeImplCode]);
+
+    MockOPSendBridge = (await ethers.getContractAt(
+      'MockOptimismBridge',
+      '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1'
+    )) as TMockOptimismBridge;
+    MockOPRecvBridge = (await ethers.getContractAt(
+      'MockOptimismBridge',
+      '0x4200000000000000000000000000000000000007'
+    )) as TMockOptimismBridge;
 
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
     const Implementation = await CannonRegistryFactory.deploy();
@@ -112,6 +124,40 @@ describe('CannonRegistry', function () {
       const result = await CannonRegistry.getPackageOwner(toBytes32('some-module'));
       deepEqual(result, await user2.getAddress());
     });
+
+    it('sends package ownership change function', async function () {
+      equal(
+        await MockOPSendBridge.lastCrossChainMessage(),
+        '0xbc1fe85d736f6d652d6d6f64756c6500000000000000000000000000000000000000000000000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8'
+      );
+    });
+
+    describe('l2', () => {
+      it('only works when the cross domain sender is correct', async () => {
+        await assertRevert(async () => {
+          await MockOPRecvBridge.doCall(
+            CannonRegistry.address,
+            CannonRegistry.interface.encodeFunctionData('setPackageOwnership' as any, [
+              toBytes32('some-module'),
+              await user2.getAddress(),
+            ])
+          );
+        }, 'Unauthorized()');
+      });
+
+      it('works', async () => {
+        await MockOPRecvBridge.setXDomainMessageSender(CannonRegistry.address);
+        await MockOPRecvBridge.doCall(
+          CannonRegistry.address,
+          CannonRegistry.interface.encodeFunctionData('setPackageOwnership' as any, [
+            toBytes32('some-module'),
+            await user2.getAddress(),
+          ])
+        );
+        await MockOPRecvBridge.setXDomainMessageSender(await user2.getAddress());
+      });
+    });
+
     after('snapshot restore', async () => {
       await ethers.provider.send('evm_revert', [snapshotId]);
     });
@@ -274,20 +320,20 @@ describe('CannonRegistry', function () {
     });
   });
 
-  describe('setAdditionalDeployers()', function () {
+  describe('setAdditionalPublishers()', function () {
     it('only works for owner', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user2).setAdditionalDeployers(toBytes32('some-module'), []);
+        await CannonRegistry.connect(user2).setAdditionalPublishers(toBytes32('some-module'), []);
       }, 'Unauthorized()');
     });
 
     describe('successful invoke', function () {
       before('invoke', async function () {
-        await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), [await user2.getAddress()]);
+        await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), [await user2.getAddress()]);
       });
 
       it('returns the current list of deployers', async function () {
-        deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), [await user2.getAddress()]);
+        deepEqual(await CannonRegistry.getAdditionalPublishers(toBytes32('some-module')), [await user2.getAddress()]);
       });
 
       it('grants permission to publish to the user', async function () {
@@ -301,13 +347,20 @@ describe('CannonRegistry', function () {
         );
       });
 
+      it('sends cross chain message', async function () {
+        equal(
+          await MockOPSendBridge.lastCrossChainMessage(),
+          '0xb63e6b15736f6d652d6d6f64756c650000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8'
+        );
+      });
+
       describe('remove', function () {
         before('invoke', async function () {
-          await CannonRegistry.connect(owner).setAdditionalDeployers(toBytes32('some-module'), []);
+          await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), []);
         });
 
         it('returns the current list of deployers', async function () {
-          deepEqual(await CannonRegistry.getAdditionalDeployers(toBytes32('some-module')), []);
+          deepEqual(await CannonRegistry.getAdditionalPublishers(toBytes32('some-module')), []);
         });
       });
     });
@@ -316,6 +369,32 @@ describe('CannonRegistry', function () {
       await CannonRegistry.connect(owner).nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
 
       equal(await CannonRegistry.getPackageNominatedOwner(toBytes32('some-module')), await user2.getAddress());
+    });
+
+    describe('l2', () => {
+      it('only works when the cross domain sender is correct', async () => {
+        await assertRevert(async () => {
+          await MockOPRecvBridge.doCall(
+            CannonRegistry.address,
+            CannonRegistry.interface.encodeFunctionData('setAdditionalPublishers' as any, [
+              toBytes32('some-module'),
+              [await user3.getAddress()],
+            ])
+          );
+        }, 'Unauthorized()');
+      });
+
+      it('works', async () => {
+        await MockOPRecvBridge.setXDomainMessageSender(CannonRegistry.address);
+        await MockOPRecvBridge.doCall(
+          CannonRegistry.address,
+          CannonRegistry.interface.encodeFunctionData('setAdditionalPublishers' as any, [
+            toBytes32('some-module'),
+            [await user3.getAddress()],
+          ])
+        );
+        await MockOPRecvBridge.setXDomainMessageSender(await user2.getAddress());
+      });
     });
   });
 
