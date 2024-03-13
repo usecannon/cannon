@@ -140,8 +140,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
         revert Unauthorized();
       }
 
-      // if the owner is changing, we reset additionalDeployers always. TODO: we may want to add a check here to ensure the user isnt trying to set deployers also
-      if (msg.value != registerFee) {
+      if (owner == address(0) && msg.value != registerFee) {
         revert FeeRequired(registerFee);
       }
 
@@ -153,7 +152,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       OPTIMISM_MESSENGER.sendMessage(
         address(this),
         abi.encodeWithSelector(this.setPackageOwnership.selector, _packageName, _owner),
-        100000
+        200000
       );
     } else {
       revert Unauthorized();
@@ -178,7 +177,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       OPTIMISM_MESSENGER.sendMessage(
         address(this),
         abi.encodeWithSelector(this.setAdditionalPublishers.selector, _packageName, _additionalDeployers),
-        uint32(30000 * _additionalDeployers.length + 100000)
+        uint32(30000 * _additionalDeployers.length + 200000)
       );
     } else {
       revert Unauthorized();

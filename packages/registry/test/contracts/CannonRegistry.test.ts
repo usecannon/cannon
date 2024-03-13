@@ -110,6 +110,22 @@ describe('CannonRegistry', function () {
       }, 'InvalidName("0x736f6d652d6d6f64756c652d0000000000000000000000000000000000000000")');
     });
 
+    it('should fail when not paying any fee on new module', async function () {
+      await CannonRegistry.setFees(0, 100);
+      await assertRevert(async () => {
+        await CannonRegistry.setPackageOwnership(toBytes32('new-module'), await user2.getAddress());
+      }, 'FeeRequired(100)');
+      await CannonRegistry.setFees(0, 0);
+    });
+
+    it('should allow new module to be registered with fee', async function () {
+      await CannonRegistry.setFees(0, 100);
+      await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('new-module'), await user2.getAddress(), {
+        value: 100,
+      });
+      await CannonRegistry.setFees(0, 0);
+    });
+
     it('only nominated owner can accept ownership', async function () {
       await assertRevert(async () => {
         await CannonRegistry.connect(user3).setPackageOwnership(toBytes32('some-module'), await user3.getAddress());
@@ -117,7 +133,10 @@ describe('CannonRegistry', function () {
     });
 
     it('accepts ownership', async function () {
+      // should not require any fee
+      await CannonRegistry.setFees(0, 100);
       await CannonRegistry.connect(user2).setPackageOwnership(toBytes32('some-module'), await user2.getAddress());
+      await CannonRegistry.setFees(0, 0);
     });
 
     it('returns new package owner', async function () {
