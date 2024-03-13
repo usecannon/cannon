@@ -36,6 +36,6 @@ teardown() {
 @test "Synthetix CI - Build Synthetix Deployments contracts" {
   run downstream-ci-synthetix-deployments.sh
   echo $output
-  assert_line --regexp 'synthetix-omnibus:.+@andromeda built on Base Mainnet \(Chain ID: 8453\)'
+  assert_line --regexp 'synthetix-omnibus:.+@andromeda built on Base \(Chain ID: 8453\)'
   assert_success
 }
