@@ -391,7 +391,7 @@ function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) 
     ctx[imp] = { ...imports[imp], contracts: undefined };
     delete ctx[imp].contracts;
 
-    if (imports[imp].contracts != undefined) {
+    if (imports[imp].contracts) {
       for (const contractName in imports[imp].contracts) {
         ctx[imp][contractName] = imports[imp].contracts![contractName];
       }
