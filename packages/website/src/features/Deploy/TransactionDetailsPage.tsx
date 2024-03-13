@@ -324,12 +324,13 @@ const TransactionDetailsPage: FC<{
                       </Box>
                     )}
                     {verify && !stager.alreadySigned && (
-                      <Box>
+                      <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
                           <>
                             <Tooltip label={stager.signConditionFailed}>
                               <Button
+                                colorScheme="teal"
                                 mb={3}
                                 w="100%"
                                 isDisabled={
@@ -343,6 +344,7 @@ const TransactionDetailsPage: FC<{
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
                               <Button
+                                colorScheme="teal"
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -380,7 +382,7 @@ const TransactionDetailsPage: FC<{
                             to sign
                           </Text>
                         )}
-                      </Box>
+                      </Flex>
                     )}
                   </Box>
 
