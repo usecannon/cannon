@@ -6,8 +6,8 @@ yarn
 cli=$(npm pack $CANNON_REPO_DIR/packages/cli)
 builder=$(npm pack $CANNON_REPO_DIR/packages/builder)
 
-yarn add $cli
-yarn add $builder
+yarn add ./$cli
+yarn add ./$builder
 
 yarn cannon build omnibus-base-mainnet-andromeda.toml \
   --port 8545 \
