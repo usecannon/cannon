@@ -25,6 +25,7 @@ const debug = Debug('cannon:cli:alter');
 export async function alter(
   packageRef: string,
   chainId: number,
+  providerUrl: string,
   presetArg: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete',
@@ -46,19 +47,17 @@ export async function alter(
     );
   }
 
-  const cliSettings = resolveCliSettings();
-
-  // create temporary provider
-  // todo: really shouldn't be necessary
-  // const node = await runRpc({
-  //   port: 30000 + Math.floor(Math.random() * 30000),
-  // });
-  // const provider = getProvider(node);
+  const cliSettings = resolveCliSettings({ providerUrl });
 
   const { provider } = await resolveWriteProvider(cliSettings, chainId);
-
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
+
+  // if chain id is not specified, get it from the provider
+  if (!chainId) {
+    chainId = await provider.getChainId();
+  }
+
   const runtime = new ChainBuilderRuntime(
     {
       provider,
