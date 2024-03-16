@@ -28,10 +28,10 @@
     "@types/node": "20.3.2",
     "@types/react": "18.2.37",
     "@types/react-dom": "18.2.6",
-    "@usecannon/builder": "^2.11.17",
-    "@usecannon/cli": "^2.11.17",
+    "@usecannon/builder": "^2.11.21",
+    "@usecannon/cli": "^2.11.21",
     "@vercel/analytics": "^1.1.1",
-    "axios": "^1.6.2",
+    "axios": "^1.6.7",
     "browser-level": "^1.0.1",
     "chakra-react-select": "^4.7.0",
     "crypto-js": "^4.1.1",
@@ -85,5 +85,11 @@
     "@types/pako": "^2.0.3",
     "@types/react-syntax-highlighter": "^15.5.7",
     "sass": "^1.63.6"
+  },
+  "optionalDependencies": {
+    "@nx/nx-darwin-arm64": "18.0.4",
+    "@nx/nx-darwin-x64": "18.0.4",
+    "@nx/nx-linux-x64-gnu": "18.0.4",
+    "@nx/nx-win32-x64-msvc": "18.0.4"
   }
 }

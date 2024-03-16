@@ -29,7 +29,7 @@ export type TraceEntry = {
   action: CreateTraceAction | CallTraceAction;
   blockHash: string;
   blockNumber: string;
-  result: {
+  result?: {
     gasUsed: string;
     code?: string;
     output: Hex;
@@ -56,7 +56,7 @@ export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string
         ctx,
         callTraceAction.to,
         callTraceAction.input,
-        trace.result.output
+        trace.result?.output ?? '0x'
       );
 
       const actionStr = bold(`${callTraceAction.callType.toUpperCase()} `);

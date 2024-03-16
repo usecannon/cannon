@@ -145,14 +145,15 @@ const routerStep = {
 
     debug('using deploy signer with address', signer.address);
 
-    const hash = await signer.wallet.sendTransaction({
-      account: signer.wallet.account || signer.address,
+    const preparedTxn = await signer.wallet.prepareTransactionRequest({
+      account: signer.wallet.account || signer.address!,
       data: encodeDeployData({
         abi: solidityInfo.abi,
         bytecode: solidityInfo.bytecode as viem.Hash,
       }),
       chain: undefined,
     });
+    const hash = await signer.wallet.sendTransaction(preparedTxn as any);
 
     const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
 
