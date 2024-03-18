@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnedUpgradable} from "./OwnedUpgradable.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
-import {Storage} from "./Storage.sol";
+import {ERC2771Context} from "./ERC2771Context.sol";
 
 import { IOptimismL1Sender } from "./IOptimismL1Sender.sol";
 import { IOptimismL2Receiver } from "./IOptimismL2Receiver.sol";
@@ -12,6 +12,7 @@ import { IOptimismL2Receiver } from "./IOptimismL2Receiver.sol";
 contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   IOptimismL1Sender private constant OPTIMISM_MESSENGER = IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
   IOptimismL2Receiver private constant OPTIMISM_RECEIVER = IOptimismL2Receiver(0x4200000000000000000000000000000000000007);
+
 
   using SetUtil for SetUtil.Bytes32Set;
 
@@ -117,11 +118,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     address owner = _p.owner;
 
-    if (owner != msg.sender) {
+    if (owner != ERC2771Context._msgSender()) {
       uint256 additionalDeployersLength = _p.additionalDeployersLength;
       bool foundAdditionalDeployer = false;
       for (uint256 i = 0; i < additionalDeployersLength; i++) {
-        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
+        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == ERC2771Context._msgSender();
       }
 
       if (!foundAdditionalDeployer) {
@@ -135,14 +136,14 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     bytes32 _firstTag = _packageTags[0];
     _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
     CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
-    emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, msg.sender);
+    emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, ERC2771Context._msgSender());
 
     if (_packageTags.length > 1) {
       for (uint256 i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
-        emit PackagePublish(_packageName, _tag, _variant, _packageDeployUrl, _packageMetaUrl, msg.sender);
+        emit PackagePublish(_packageName, _tag, _variant, _packageDeployUrl, _packageMetaUrl, ERC2771Context._msgSender());
       }
     }
   }
@@ -156,11 +157,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     address owner = _p.owner;
 
-    if (owner != msg.sender) {
+    if (owner != ERC2771Context._msgSender()) {
       uint256 additionalDeployersLength = _p.additionalDeployersLength;
       bool foundAdditionalDeployer = false;
       for (uint256 i = 0; i < additionalDeployersLength; i++) {
-        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == msg.sender;
+        foundAdditionalDeployer = foundAdditionalDeployer || _p.additionalDeployers[i] == ERC2771Context._msgSender();
       }
 
       if (!foundAdditionalDeployer) {
@@ -172,19 +173,19 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       bytes32 _tag = _packageTags[i];
       _p.deployments[_tag][_variant] = CannonDeployInfo({deploy: "", meta: ""});
 
-      emit PackageUnpublish(_packageName, _tag, _variant, msg.sender);
+      emit PackageUnpublish(_packageName, _tag, _variant, ERC2771Context._msgSender());
     }
   }
   
   function setPackageOwnership(bytes32 _packageName, address _owner) external payable {
     Package storage _p = _store().packages[_packageName];
 
-    if (msg.sender == address(OPTIMISM_RECEIVER)) {
+    if (ERC2771Context._msgSender() == address(OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
     } else if (block.chainid == 1) {
       address owner = _p.owner;
       // we cannot change owner if its already owned and the nominated owner is incorrect
-      if (owner != address(0) && (msg.sender != _owner || _owner != _p.nominatedOwner)) {
+      if (owner != address(0) && (ERC2771Context._msgSender() != _owner || _owner != _p.nominatedOwner)) {
         revert Unauthorized();
       }
 
@@ -192,7 +193,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       if (owner == address(0) && msg.value != registerFee) {
         revert FeeRequired(registerFee);
       } else if (owner == address(0)) {
-        emit PackageRegistered(_packageName, msg.sender);
+        emit PackageRegistered(_packageName, ERC2771Context._msgSender());
       }
 
       // name must be valid in order to register package
@@ -218,11 +219,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
-    if (msg.sender == address(OPTIMISM_RECEIVER)) {
+    if (ERC2771Context._msgSender() == address(OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
     }
     else if (block.chainid == 1) {
-      if (owner != msg.sender) {
+      if (owner != ERC2771Context._msgSender()) {
         revert Unauthorized();
       }
 
@@ -256,12 +257,12 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
-    if (owner != msg.sender) {
+    if (owner != ERC2771Context._msgSender()) {
       revert Unauthorized();
     }
 
     _p.nominatedOwner = _newPackageOwner;
-    emit PackageOwnerNominated(_packageName, msg.sender, _newPackageOwner);
+    emit PackageOwnerNominated(_packageName, ERC2771Context._msgSender(), _newPackageOwner);
   }
 
   function verifyPackage(bytes32 _packageName) external {
@@ -269,7 +270,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       revert PackageNotFound();
     }
 
-    emit PackageVerify(_packageName, msg.sender);
+    emit PackageVerify(_packageName, ERC2771Context._msgSender());
   }
 
   function unverifyPackage(bytes32 _packageName) external {
@@ -277,7 +278,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       revert PackageNotFound();
     }
 
-    emit PackageUnverify(_packageName, msg.sender);
+    emit PackageUnverify(_packageName, ERC2771Context._msgSender());
   }
 
   function getPackageOwner(bytes32 _packageName) external view returns (address) {
@@ -336,29 +337,5 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
 
     return k;
-  }
-
-  // @title Function that enables calling multiple methods of the system in a single transaction.
-  // @dev Implementation adapted from https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/Multicall.sol
-  function multicall(bytes[] calldata data) public returns (bytes[] memory results) {
-    results = new bytes[](data.length);
-
-    for (uint256 i = 0; i < data.length; i++) {
-      (bool success, bytes memory result) = address(this).delegatecall(data[i]);
-
-      if (!success) {
-        // Next 6 lines from https://ethereum.stackexchange.com/a/83577
-        // solhint-disable-next-line reason-string
-        if (result.length < 68) revert();
-
-        assembly {
-          result := add(result, 0x04)
-        }
-
-        revert(abi.decode(result, (string)));
-      }
-
-      results[i] = result;
-    }
   }
 }
