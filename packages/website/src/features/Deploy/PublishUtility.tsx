@@ -1,8 +1,16 @@
 import { useWalletClient } from 'wagmi';
 import { Chain, createPublicClient, http } from 'viem';
 import { useMutation } from '@tanstack/react-query';
-import { ExternalLinkIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { Button, Link, Spinner, Text, useToast, Flex } from '@chakra-ui/react';
+import { InfoOutlineIcon, QuestionOutlineIcon } from '@chakra-ui/icons';
+import {
+  Button,
+  Link,
+  Spinner,
+  Text,
+  useToast,
+  Flex,
+  Tooltip,
+} from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
@@ -198,12 +206,34 @@ export default function PublishUtility(props: {
   } else {
     return (
       <>
-        <Text fontSize="xs">
-          <Link href={packageUrl}>
-            {packageDisplay}
-            <ExternalLinkIcon ml={1} transform="translateY(-0.5px)" />
-          </Link>
+        <Text mb={1} fontSize="sm">
+          <strong>Name:</strong> {resolvedName}
         </Text>
+        {resolvedVersion !== 'latest' && (
+          <Text mb={1} fontSize="sm">
+            <strong>Version:</strong> {resolvedVersion}
+          </Text>
+        )}
+        {resolvedPreset !== 'main' && (
+          <Text mb={1} fontSize="sm">
+            <strong>Preset:</strong> {resolvedPreset}
+            <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
+              <QuestionOutlineIcon ml={1.5} opacity={0.8} />
+            </Tooltip>
+          </Text>
+        )}
+
+        <Button
+          mt={2}
+          size="xs"
+          colorScheme="teal"
+          as={Link}
+          href={packageUrl}
+          textDecoration="none"
+          _hover={{ textDecoration: 'none' }}
+        >
+          {packageDisplay}
+        </Button>
       </>
     );
   }

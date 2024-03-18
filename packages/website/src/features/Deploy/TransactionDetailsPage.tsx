@@ -238,14 +238,14 @@ const TransactionDetailsPage: FC<{
         <Box maxWidth="100%" mb="6">
           <Box
             bg="black"
-            py={12}
+            py={[6, 6, 12]}
             borderBottom="1px solid"
             borderColor="gray.700"
           >
             <Container maxW="container.lg">
               <Heading size="lg">Transaction #{nonce}</Heading>
               {(hintData.type == 'deploy' || hintData.type == 'invoke') && (
-                <Box mt={3}>
+                <Box mt={4}>
                   <TransactionStepper
                     chainId={parsedChainId}
                     cannonPackage={cannonPackage}
@@ -260,10 +260,10 @@ const TransactionDetailsPage: FC<{
             </Container>
           </Box>
 
-          <Container maxW="container.lg" mt={8}>
+          <Container maxW="container.lg" mt={[6, 6, 12]}>
             <Grid
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
-              gap={8}
+              gap={6}
             >
               <TransactionDisplay
                 safe={safe}
@@ -277,9 +277,17 @@ const TransactionDetailsPage: FC<{
                     p={4}
                     borderWidth="1px"
                     borderColor="gray.700"
-                    mb={8}
+                    mb={6}
                   >
-                    <Heading size="sm" mb="3">
+                    <Heading
+                      size="sm"
+                      mb="3"
+                      fontWeight="medium"
+                      textTransform="uppercase"
+                      letterSpacing="1.5px"
+                      fontFamily="var(--font-miriam)"
+                      textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                    >
                       Signatures
                     </Heading>
 
@@ -296,8 +304,13 @@ const TransactionDetailsPage: FC<{
                         >
                           <CheckIcon color="white" boxSize={2.5} />
                         </Box>
-                        <Text display="inline">
-                          {`${s.substring(0, 6)}...${s.slice(-4)}`}
+                        <Text
+                          display="inline"
+                          fontFamily="mono"
+                          fontWeight={200}
+                          color="gray.200"
+                        >
+                          {`${s.substring(0, 8)}...${s.slice(-6)}`}
                           <Link
                             isExternal
                             styleConfig={{ 'text-decoration': 'none' }}
@@ -478,8 +491,19 @@ const TransactionDetailsPage: FC<{
                       borderColor="gray.700"
                       mb={8}
                     >
-                      <Heading size="sm" mb="2">
+                      <Heading
+                        size="sm"
+                        mb={2}
+                        fontWeight="medium"
+                        textTransform="uppercase"
+                        letterSpacing="1.5px"
+                        fontFamily="var(--font-miriam)"
+                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                      >
                         Cannon Package
+                        <Tooltip label="Packages includes data about this deployment (including smart contract addresses, ABIs, and source code).">
+                          <InfoOutlineIcon ml={1.5} opacity={0.8} mt={-0.5} />
+                        </Tooltip>
                       </Heading>
 
                       <PublishUtility
