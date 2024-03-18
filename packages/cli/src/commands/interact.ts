@@ -1,16 +1,11 @@
 import _ from 'lodash';
-
 import * as viem from 'viem';
-
-import chalk from 'chalk';
-
-const { red, bold, gray, green, yellow, cyan } = chalk;
-
+import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
-import { PackageSpecification } from '../types';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
+import { PackageSpecification } from '../types';
 import { formatAbiFunction } from '../helpers';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
@@ -20,7 +15,6 @@ type InteractTaskArgs = {
   packagesArtifacts?: ChainArtifacts[];
   contracts: { [name: string]: Contract }[];
   provider: viem.PublicClient;
-
   signer?: CannonSigner;
   blockTag?: number;
 };
@@ -318,7 +312,7 @@ async function query({
 
     console.log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      printReturnedValue(output, functionAbi.outputs!.length > 1 ? result[i] : result)
+      renderArgs(output, functionAbi.outputs!.length > 1 ? result[i] : result)
     );
   }
 
@@ -495,27 +489,62 @@ function parseWeiValue(v: string): bigint {
   }
 }
 
-function printReturnedValue(output: viem.AbiParameter, value: any): string {
-  if (output.type === 'tuple') {
-    // handle structs
-    // TODO: for some reason viem's types die here
-    return (
-      '\n' +
-      (output as any).components
-        .map((comp: viem.AbiParameter, ind: number) => `${comp.name}: ${printReturnedValue(comp, value[ind])}`)
-        .join('\n')
-    );
-  } else if (output.type === 'array' && Array.isArray(value)) {
-    // handle arrays
-    return value.map((item) => printReturnedValue((output as any).arrayChildren, item)).join(', ');
-  } else if (output.type.startsWith('uint') || output.type.startsWith('int')) {
-    return `${value.toString()} (${wei(value).toString(5)})`;
-  } else if (output.type.startsWith('bytes')) {
-    return `${value} (${Buffer.from(value.slice(2), 'hex').toString('utf8')})`;
-  } else {
-    return value;
+function _renderValue(type: viem.AbiParameter, value: string | bigint) {
+  switch (true) {
+    case type.type.startsWith('uint'):
+    case type.type.startsWith('int'):
+      return value.toString();
+
+    case type.type === 'address':
+      return viem.getAddress(value as viem.Hex);
+
+    case type.type == 'bool':
+      return Boolean(value);
+
+    case type.type.startsWith('bytes'):
+      try {
+        return value.toString();
+      } catch (err) {
+        console.error(err);
+      }
+
+      return value;
+    default:
+      return value;
   }
 }
+
+const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
+  switch (true) {
+    case input.type.startsWith('tuple'):
+      // @ts-ignore: for some reason viem types die here
+      input.components.forEach((component, index) => {
+        const componentValue = Array.isArray(value) ? value[index] : value[component.name];
+        renderArgs(component, componentValue, offset + '  ');
+      });
+      break;
+
+    case input.type.endsWith('[]'):
+      // @ts-ignore: for some reason viem types die here
+      value.forEach((item, index) => {
+        console.log(`${offset}  [${index}]:`);
+        // @ts-ignore: for some reason viem types die here
+        if (input.type.includes('tuple') && input.components) {
+          // @ts-ignore: for some reason viem types die here
+          input.components.forEach((component, componentIndex) => {
+            renderArgs(component, item[componentIndex], offset + '    ');
+          });
+        } else {
+          // Handle simple array types
+          return _renderValue({ type: input.type.replace('[]', '') }, item);
+        }
+      });
+      break;
+
+    default:
+      return _renderValue(input, value);
+  }
+};
 
 // Avoid 'false' and '0' being interpreted as bool = true
 function boolify(value: any) {
@@ -558,7 +587,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           for (const [a, arg] of ((eventAbiDef.inputs || []) as viem.AbiParameter[]).entries()) {
             const output = parsedLog.args![arg.name || (`${a}` as any)];
 
-            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), printReturnedValue(arg, output));
+            console.log(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
           }
 
           break;
