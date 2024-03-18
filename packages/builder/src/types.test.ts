@@ -20,7 +20,7 @@ describe('types.ts', () => {
           timestamp: '0',
           chainId: 0,
           package: {},
-          settings: {
+          overrideSettings: {
             foo: 'bar',
           },
           contracts: {
@@ -55,30 +55,30 @@ describe('types.ts', () => {
               signer: '0x9293',
             },
           },
-          extras: {
-            fake: 'hello',
-          },
           imports: {
             fake: {
               url: 'http://two',
             },
           },
+          settings: {},
         },
         {
           timestamp: '0',
           chainId: 0,
           package: {},
-          settings: {},
+          overrideSettings: {
+            fake: 'hello',
+          },
           contracts: {},
           txns: {},
-          extras: {},
           imports: {},
+          settings: {},
         },
         {
           timestamp: '0',
           chainId: 0,
           package: {},
-          settings: {},
+          overrideSettings: {},
           contracts: {
             faker: {
               address: '0xfbff',
@@ -102,7 +102,7 @@ describe('types.ts', () => {
             },
           },
           txns: {},
-          extras: {},
+          settings: {},
           imports: {},
         },
       ];
@@ -112,7 +112,7 @@ describe('types.ts', () => {
       expect(combinedCtx.timestamp).toEqual(Math.floor(CUR_TIME / 1000).toString());
       expect(Object.keys(combinedCtx.contracts)).toEqual(expect.arrayContaining(['fake', 'fake2', 'faker', 'faker2']));
       expect(Object.keys(combinedCtx.txns)).toEqual(expect.arrayContaining(['fake']));
-      expect(Object.keys(combinedCtx.extras)).toEqual(expect.arrayContaining(['fake']));
+      expect(Object.keys(combinedCtx.settings)).toEqual(expect.arrayContaining(['fake']));
       expect(Object.keys(combinedCtx.imports)).toEqual(expect.arrayContaining(['fake']));
     });
   });

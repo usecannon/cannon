@@ -1,19 +1,19 @@
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
-import { contractSchema } from '../schemas';
-import contractAction from './contract';
-import action from './provision';
+import { deploySchema } from '../schemas';
+import deployAction from './deploy';
+import action from './clone';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 import '../actions';
 
 jest.mock('../loader');
-jest.mock('./contract');
+jest.mock('./deploy');
 
 // Mocking the contract action causes a weird bug with the zod schema
 // this mock just replaces the mock generated value with our imported value.
-jest.mocked((contractAction.validate = contractSchema));
+jest.mocked((deployAction.validate = deploySchema));
 
-describe('steps/provision.ts', () => {
+describe('steps/clone.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
@@ -22,10 +22,10 @@ describe('steps/provision.ts', () => {
 
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
-    jest.mocked(contractAction.getOutputs).mockReturnValue([]);
-    jest.mocked(contractAction.getInputs).mockReturnValue([]);
+    jest.mocked(deployAction.getOutputs).mockReturnValue([]);
+    jest.mocked(deployAction.getInputs).mockReturnValue([]);
 
-    jest.mocked(contractAction.exec).mockResolvedValue({
+    jest.mocked(deployAction.exec).mockResolvedValue({
       contracts: {
         Woot: {
           address: '0xfoobar',

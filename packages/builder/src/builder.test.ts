@@ -7,17 +7,17 @@ import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
-import { contractSchema } from './schemas';
-import contractStep from './steps/contract';
+import { deploySchema } from './schemas';
+import deployStep from './steps/deploy';
 import invokeStep from './steps/invoke';
 import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
-jest.mock('./steps/contract');
+jest.mock('./steps/deploy');
 jest.mock('./steps/invoke');
 
 // Mocking the contract action causes a weird bug with the zod schema
 // this mock just replaces the mock generated value with our imported value.
-jest.mocked((contractStep.validate = contractSchema));
+jest.mocked((deployStep.validate = deploySchema));
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
@@ -126,9 +126,9 @@ describe('builder.ts', () => {
 
   let initialCtx: ChainBuilderContext;
 
-  jest.mocked(contractStep.getState).mockResolvedValue([{}] as any);
+  jest.mocked(deployStep.getState).mockResolvedValue([{}] as any);
 
-  jest.mocked(contractStep.exec).mockResolvedValue({
+  jest.mocked(deployStep.exec).mockResolvedValue({
     contracts: {
       Yoop: {
         address: '0x0987098709870987098709870987098709870987',
@@ -142,8 +142,8 @@ describe('builder.ts', () => {
       },
     },
   });
-  jest.mocked(contractStep.getInputs).mockReturnValue([]);
-  jest.mocked(contractStep.getOutputs).mockReturnValue([]);
+  jest.mocked(deployStep.getInputs).mockReturnValue([]);
+  jest.mocked(deployStep.getOutputs).mockReturnValue([]);
 
   jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
@@ -285,7 +285,6 @@ describe('builder.ts', () => {
       expect(ctx.settings.baz).toStrictEqual('boop');
       expect(parseInt(ctx.timestamp)).toBeCloseTo(Date.now() / 1000, -2);
       expect(ctx.contracts).toStrictEqual({});
-      expect(ctx.extras).toStrictEqual({});
       expect(ctx.txns).toStrictEqual({});
       expect(ctx.imports).toStrictEqual({});
     });
