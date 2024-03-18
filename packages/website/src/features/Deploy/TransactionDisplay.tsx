@@ -120,7 +120,7 @@ export function TransactionDisplay(props: {
             bg="gray.800"
             border="1px solid"
             borderColor="gray.700"
-            mb={8}
+            mb={6}
           >
             <Box display={['none', 'block']}>
               <GitHub size="28" strokeWidth={1} />
