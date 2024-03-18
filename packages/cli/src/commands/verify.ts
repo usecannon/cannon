@@ -134,6 +134,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
         });
 
         if (res.data.status === '0') {
+          debug('etherscan failed', res.data);
           console.log(`${c}:\tcannot verify:`, res.data.result);
         } else {
           console.log(`${c}:\tsubmitted verification (${contractInfo.address})`);

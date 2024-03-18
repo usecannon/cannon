@@ -3,8 +3,7 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { encodeDeployData } from '../helpers';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { contractSchema } from '../schemas';
 import {
   ChainArtifacts,
@@ -14,7 +13,7 @@ import {
   ContractArtifact,
   PackageState,
 } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -81,7 +80,14 @@ function generateOutputs(
     }),
   };
 
-  const [, create2Addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
+  const [, create2Addr] = makeArachnidCreate2Txn(
+    config.salt || '',
+    txn.data!,
+    viem.getCreateAddress({
+      from: typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
+      nonce: BigInt(0),
+    })
+  );
 
   let abi = artifactData.abi;
   // override abi?
@@ -272,11 +278,14 @@ const contractSpec = {
     let receipt: viem.TransactionReceipt | null = null;
 
     if (config.create2) {
-      await ensureArachnidCreate2Exists(runtime);
+      const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+        runtime,
+        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+      );
 
       debug('performing arachnid create2');
-      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!);
-      debug('create2 address is', addr);
+      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
+      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
 
       const bytecode = await runtime.provider.getBytecode({ address: addr });
 
@@ -288,10 +297,11 @@ const contractSpec = {
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const hash = await signer.wallet.sendTransaction(
-          _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address })
-        );
+        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+        debug('final create2 txn', fullCreate2Txn);
 
+        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
         debug('arachnid create2 complete', receipt);
       }
@@ -320,9 +330,10 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(
+        const preparedTxn = await runtime.provider.prepareTransactionRequest(
           _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
         );
+        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }

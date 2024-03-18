@@ -16,7 +16,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'cannon',
   networks: {
     hardhat: {
-      chainId: 31337,
+      chainId: 1, // required for tests
     },
     local: {
       url: 'http://127.0.0.1:8545/',

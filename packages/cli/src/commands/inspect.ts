@@ -50,7 +50,7 @@ export async function inspect(
     );
   }
 
-  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs' | 'file'].read(deployUrl);
+  const deployData = await loader[deployUrl.split(':')[0] as 'ipfs'].read(deployUrl);
 
   if (!deployData) {
     throw new Error(`deployment data could not be downloaded for ${deployUrl} from ${fullPackageRef}.`);

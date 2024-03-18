@@ -1,1 +1,1 @@
-CANNON_PROVIDER_URL=https://gateway.tenderly.co/public/base-goerli $CANNON alter synthetix:latest@andromeda --chain-id 84531 import invoke.register_const_one_oracle 0xb864b8ee3b3608e31971f92c3c2fd9ee87af32f1ecc91de1fafe8b8c3347657b
+CANNON_PROVIDER_URL=https://gateway.tenderly.co/public/base-sepolia $CANNON alter synthetix:latest@andromeda --chain-id 84532 import invoke.register_const_one_oracle 0x3309f414ec6118eb2f6d448bd1ab06f7cf8ce2de8a830ce935457391049504ee

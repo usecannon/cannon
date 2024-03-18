@@ -84,7 +84,7 @@ export function validateConfig(schema: z.ZodSchema, config: any) {
 
 export function registerAction(action: CannonAction) {
   if (typeof action.label !== 'string') {
-    throw new Error('missing "label" property on plugin definition');
+    throw new Error(`missing "label" property on plugin definition ${JSON.stringify(action)}`);
   }
 
   const { label } = action;

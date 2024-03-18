@@ -1,9 +1,8 @@
-import { ARACHNID_CREATE2_PROXY } from './constants';
-import { ARACHNID_DEPLOY_ADDR, ARACHNID_DEPLOY_TXN, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
-
+import * as viem from 'viem';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from './create2';
 import { fakeRuntime, makeFakeSigner } from './steps/utils.test.helper';
 
-import * as viem from 'viem';
+const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
 describe('util.ts', () => {
   describe('ensureArachnidCreate2Exists()', () => {
@@ -11,7 +10,7 @@ describe('util.ts', () => {
       jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0x1234');
 
       // if it tries to do get a signer that function isnt defined so it will fail
-      await ensureArachnidCreate2Exists(fakeRuntime);
+      expect(await ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).toEqual(DEFAULT_ARACHNID_ADDRESS);
     });
 
     it('fails if deploy signer is not defined', async () => {
@@ -20,7 +19,7 @@ describe('util.ts', () => {
         throw new Error('no signer');
       };
 
-      await expect(() => ensureArachnidCreate2Exists(fakeRuntime)).rejects.toThrowError(
+      await expect(() => ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR)).rejects.toThrowError(
         'could not populate arachnid signer address'
       );
     });
@@ -28,17 +27,15 @@ describe('util.ts', () => {
     it('calls sendTransaction to create aracnid contract if not deployed', async () => {
       jest.mocked(fakeRuntime.provider.getBytecode).mockResolvedValue('0x');
 
-      const fakeSigner = makeFakeSigner(ARACHNID_DEPLOY_ADDR);
+      const fakeSigner = makeFakeSigner(ARACHNID_DEFAULT_DEPLOY_ADDR);
 
       (fakeRuntime.getSigner as any) = async () => fakeSigner;
 
       //jest.mocked((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).mockResolvedValue({ wait: jest.fn() } as any);
 
-      await ensureArachnidCreate2Exists(fakeRuntime);
+      await ensureArachnidCreate2Exists(fakeRuntime, ARACHNID_DEFAULT_DEPLOY_ADDR);
 
-      expect((fakeRuntime.provider as unknown as viem.WalletClient).sendRawTransaction).toBeCalledWith({
-        serializedTransaction: ARACHNID_DEPLOY_TXN,
-      });
+      expect((fakeSigner.wallet as unknown as viem.WalletClient).sendTransaction).toHaveBeenCalled();
     });
   });
 
@@ -56,10 +53,11 @@ describe('util.ts', () => {
     it('returns the correct txn', async () => {
       const [txn] = makeArachnidCreate2Txn(
         '0x0987654321000000000000000000000000000000000000000000000000000000',
-        '0x1234567890'
+        '0x1234567890',
+        DEFAULT_ARACHNID_ADDRESS
       );
 
-      expect(txn.to).toEqual(ARACHNID_CREATE2_PROXY);
+      expect(txn.to).toEqual(DEFAULT_ARACHNID_ADDRESS);
       expect(txn.data).toEqual('0x09876543210000000000000000000000000000000000000000000000000000001234567890');
     });
 

@@ -113,21 +113,23 @@ export function TransactionDisplay(props: {
   }
 
   return (
-    <Box>
+    <Box maxW="100%" overflowX="auto">
       {props.allowPublishing && (
         <>
           <ChakraAlert
             bg="gray.800"
             border="1px solid"
             borderColor="gray.700"
-            mb={8}
+            mb={6}
           >
-            <GitHub strokeWidth={1.5} />
-            <Box ml={2.5}>
+            <Box display={['none', 'block']}>
+              <GitHub size="28" strokeWidth={1} />
+            </Box>
+            <Box ml={[0, 3]}>
               <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
                 GitOps Deployment
               </AlertTitle>
-              <AlertDescription display="block" lineHeight={1} fontSize="sm">
+              <AlertDescription display="block" lineHeight={1.4} fontSize="sm">
                 {cannonDefInfo.isFetching ? (
                   <>
                     <Spinner size="xs" mr={0.5} /> Loading...

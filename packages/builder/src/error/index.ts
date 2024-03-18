@@ -1,7 +1,7 @@
 import Debug from 'debug';
 /* eslint-disable no-case-declarations */
 import * as viem from 'viem';
-import { estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
+import { estimateContractGas, estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
 import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace';
 import { ChainArtifacts, ContractData } from '../types';
 
@@ -16,6 +16,19 @@ export function traceActions(artifacts: ChainArtifacts) {
           return await estimateGas(client, args);
         } catch (err) {
           await handleTxnError(artifacts, client, err, args as viem.PrepareTransactionRequestParameters);
+        }
+      },
+      estimateContractGas: async (args: viem.EstimateContractGasParameters) => {
+        try {
+          return await estimateContractGas(client, args);
+        } catch (err) {
+          await handleTxnError(artifacts, client, err, {
+            account: args.account,
+            to: args.address,
+            value: args.value,
+            data: viem.encodeFunctionData(args),
+            chain: client.chain,
+          });
         }
       },
       prepareTransactionRequest: async (args: viem.PrepareTransactionRequestParameters) => {
@@ -80,10 +93,15 @@ export async function handleTxnError(
 
     // then, run it for real so we can get a trace
     try {
+      fullTxn.account = fullTxn.account || viem.zeroAddress;
       const accountAddr: viem.Address =
         typeof fullTxn.account === 'string' ? fullTxn.account : (fullTxn.account as viem.Account).address;
       const fullProvider = provider.extend(viem.publicActions).extend(viem.walletActions);
       await fullProvider.request({ method: 'anvil_impersonateAccount' as any, params: [accountAddr] });
+      await fullProvider.request({
+        method: 'anvil_setBalance' as any,
+        params: [accountAddr, viem.toHex(viem.parseEther('10000'))],
+      });
       // TODO: reevaluate typings
       txnHash = await fullProvider.sendTransaction(fullTxn as any);
 
