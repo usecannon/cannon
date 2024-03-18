@@ -66,13 +66,13 @@ describe('types.ts', () => {
           timestamp: '0',
           chainId: 0,
           package: {},
-          overrideSettings: {
-            fake: 'hello',
-          },
+          overrideSettings: {},
           contracts: {},
           txns: {},
           imports: {},
-          settings: {},
+          settings: {
+            fake: 'hello',
+          },
         },
         {
           timestamp: '0',

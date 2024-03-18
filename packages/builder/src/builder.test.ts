@@ -7,17 +7,13 @@ import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
 import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
-import { deploySchema } from './schemas';
 import deployStep from './steps/deploy';
+import varStep from './steps/var';
 import invokeStep from './steps/invoke';
 import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
 jest.mock('./steps/deploy');
 jest.mock('./steps/invoke');
-
-// Mocking the contract action causes a weird bug with the zod schema
-// this mock just replaces the mock generated value with our imported value.
-jest.mocked((deployStep.validate = deploySchema));
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
@@ -46,6 +42,10 @@ describe('builder.ts', () => {
     jest.mocked(provider.dumpState).mockImplementation(async () => {
       return '0xfoobar';
     });
+    jest.mocked(provider.extend).mockReturnThis();
+    deployStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
+    varStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
+    invokeStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     runtime = new ChainBuilderRuntime(
       {
         allowPartialDeploy: true,
@@ -65,11 +65,10 @@ describe('builder.ts', () => {
   const fakeDefinition: RawChainDefinition = {
     name: 'super-duper',
     version: '0.1.0',
-    setting: {
-      foo: { defaultValue: 'bar' },
-      baz: {},
+    var: {
+      setStuff: { foo: 'bar' },
     },
-    contract: {
+    deploy: {
       Yoop: {
         artifact: 'Wohoo',
       },
@@ -80,13 +79,13 @@ describe('builder.ts', () => {
         func: 'smartFunc',
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
-        depends: ['contract.Yoop'],
+        depends: ['deploy.Yoop'],
       },
     },
   } as RawChainDefinition;
 
   const expectedStateOut: DeploymentState = {
-    'contract.Yoop': {
+    'deploy.Yoop': {
       artifacts: {
         contracts: {
           Yoop: {
@@ -95,7 +94,7 @@ describe('builder.ts', () => {
             sourceName: 'Wohoo.sol',
             contractName: 'Wohoo',
             abi: [],
-            deployedOn: 'contract.Yoop',
+            deployedOn: 'deploy.Yoop',
             gasCost: '0',
             gasUsed: 0,
           },
@@ -122,6 +121,16 @@ describe('builder.ts', () => {
       hash: '56786789',
       chainDump: '0x5678',
     },
+    'var.setStuff': {
+      artifacts: {
+        settings: {
+          foo: 'bar',
+        },
+      },
+      version: BUILD_VERSION,
+      hash: '827372',
+      chainDump: '0x999999999',
+    },
   };
 
   let initialCtx: ChainBuilderContext;
@@ -136,7 +145,7 @@ describe('builder.ts', () => {
         sourceName: 'Wohoo.sol',
         contractName: 'Wohoo',
         abi: [],
-        deployedOn: 'contract.Yoop',
+        deployedOn: 'deploy.Yoop',
         gasCost: '0',
         gasUsed: 0,
       },
@@ -145,7 +154,7 @@ describe('builder.ts', () => {
   jest.mocked(deployStep.getInputs).mockReturnValue([]);
   jest.mocked(deployStep.getOutputs).mockReturnValue([]);
 
-  jest.mocked(invokeStep.getState).mockResolvedValue({} as any);
+  jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
   jest.mocked(invokeStep.exec).mockResolvedValue({
     txns: {
       smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
@@ -164,7 +173,7 @@ describe('builder.ts', () => {
     it('checks chain definition', async () => {
       // build with an invalid dependency
       const fakeDefWithBadDep = _.assign({}, fakeDefinition, {
-        invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['contract.Fake'] } },
+        invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['deploy.Fake'] } },
       });
       expect(() => build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).toThrowError(
         'invalid dependency'
@@ -186,7 +195,7 @@ describe('builder.ts', () => {
 
       it('returns correct (partial) state', async () => {
         // should have state for contract, but not state for invoke
-        expect(newState['contract.Yoop'].artifacts).toStrictEqual(expectedStateOut['contract.Yoop'].artifacts);
+        expect(newState['deploy.Yoop'].artifacts).toStrictEqual(expectedStateOut['deploy.Yoop'].artifacts);
 
         expect(newState['invoke.smartFunc']).toBeUndefined();
       });
@@ -200,13 +209,13 @@ describe('builder.ts', () => {
         runtime.on(Events.PostStepExecute, handler);
         runtime.on(Events.SkipDeploy, handler);
 
-        jest.mocked(invokeStep.exec).mockRejectedValueOnce(new Error('cant do this right now'));
+        jest.mocked(invokeStep.exec).mockRejectedValue(new Error('cant do this right now'));
 
         newState = await build(runtime, new ChainDefinition(fakeDefinition), {}, initialCtx);
       });
 
       it('returns correct state', async () => {
-        expect(newState['contract.Yoop'].artifacts).toStrictEqual({
+        expect(newState['deploy.Yoop'].artifacts).toStrictEqual({
           contracts: {
             Yoop: {
               address: '0x0987098709870987098709870987098709870987',
@@ -214,25 +223,30 @@ describe('builder.ts', () => {
               sourceName: 'Wohoo.sol',
               contractName: 'Wohoo',
               abi: [],
-              deployedOn: 'contract.Yoop',
+              deployedOn: 'deploy.Yoop',
               gasCost: '0',
               gasUsed: 0,
             },
+          },
+        });
+        expect(newState['var.setStuff'].artifacts).toStrictEqual({
+          settings: {
+            foo: 'bar',
           },
         });
       });
 
       it('re-running with same state causes no events on subsequent invoke', async () => {
         const handler = jest.fn();
-        runtime.on(Events.PreStepExecute, handler);
+        runtime.on(Events.PostStepExecute, handler);
 
         const nextState = await build(runtime, new ChainDefinition(fakeDefinition), newState, initialCtx);
 
         // state should not have been changed at all
-        expect(newState).toStrictEqual(nextState);
+        expect(nextState).toStrictEqual(newState);
 
         // handler should have gotten no calls because no steps were run
-        expect(handler).toBeCalledTimes(0);
+        expect(handler).toHaveBeenCalledTimes(0);
       });
     });
   });
@@ -242,7 +256,7 @@ describe('builder.ts', () => {
       const artifacts = await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
       expect(artifacts?.contracts?.Yoop.address).toStrictEqual(
-        expectedStateOut['contract.Yoop'].artifacts.contracts!.Yoop.address
+        expectedStateOut['deploy.Yoop'].artifacts.contracts!.Yoop.address
       );
       expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('0x');
     });
@@ -254,7 +268,7 @@ describe('builder.ts', () => {
 
       // should only be called for the leaf
       expect(provider.loadState).toBeCalledWith({ state: '0x5678' });
-      expect(provider.loadState).toBeCalledTimes(1);
+      expect(provider.loadState).toBeCalledTimes(2);
     });
   });
 
@@ -265,12 +279,12 @@ describe('builder.ts', () => {
       runtime.on(Events.PostStepExecute, handler);
       const stepData = await runStep(
         runtime,
-        { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'contract.Yoop' },
-        (fakeDefinition as any).contract.Yoop,
+        { name: fakeDefinition.name, version: fakeDefinition.version, currentLabel: 'deploy.Yoop' },
+        (fakeDefinition as any).deploy.Yoop,
         initialCtx
       );
 
-      expect(stepData).toStrictEqual(expectedStateOut['contract.Yoop'].artifacts);
+      expect(stepData).toStrictEqual(expectedStateOut['deploy.Yoop'].artifacts);
     });
   });
 
@@ -281,12 +295,12 @@ describe('builder.ts', () => {
 
       expect(ctx.chainId).toBe(5);
       expect(ctx.package).toBe(pkg);
-      expect(ctx.settings.foo).toStrictEqual('bar');
-      expect(ctx.settings.baz).toStrictEqual('boop');
+      expect(ctx.overrideSettings.baz).toStrictEqual('boop');
       expect(parseInt(ctx.timestamp)).toBeCloseTo(Date.now() / 1000, -2);
       expect(ctx.contracts).toStrictEqual({});
       expect(ctx.txns).toStrictEqual({});
       expect(ctx.imports).toStrictEqual({});
+      expect(ctx.settings).toStrictEqual({ baz: 'boop' });
     });
   });
 });

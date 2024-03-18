@@ -134,7 +134,7 @@ function generateOutputs(
 const deploySpec = {
   label: 'deploy',
 
-  validate: deploySchema,
+  validate: _.cloneDeep(deploySchema),
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);

@@ -1,6 +1,5 @@
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
-import { deploySchema } from '../schemas';
 import deployAction from './deploy';
 import action from './clone';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
@@ -8,10 +7,6 @@ import '../actions';
 
 jest.mock('../loader');
 jest.mock('./deploy');
-
-// Mocking the contract action causes a weird bug with the zod schema
-// this mock just replaces the mock generated value with our imported value.
-jest.mocked((deployAction.validate = deploySchema));
 
 describe('steps/clone.ts', () => {
   const registry = new InMemoryRegistry();
@@ -33,12 +28,14 @@ describe('steps/clone.ts', () => {
           deployTxnHash: '0x',
           contractName: 'Woot',
           sourceName: 'Woot.sol',
-          deployedOn: 'contract.Woot',
+          deployedOn: 'deploy.Woot',
           gasCost: '0',
           gasUsed: 0,
         },
       },
     });
+
+    jest.mocked(deployAction.validate.safeParse).mockReturnValue({ success: true } as any);
   });
 
   describe('configInject()', () => {
@@ -48,7 +45,7 @@ describe('steps/clone.ts', () => {
         {
           source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         },
-        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+        { name: 'who', version: '1.0.0', currentLabel: 'clone.whatever' }
       );
 
       expect(result).toStrictEqual({
@@ -67,7 +64,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+        { name: 'who', version: '1.0.0', currentLabel: 'clone.whatever' }
       );
 
       expect(result).toContainEqual({
@@ -84,7 +81,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0', sourcePreset: 'main', chainId: 1234, targetPreset: 'voop', options: { bar: 'baz' } },
-        { name: 'who', version: '1.0.0', currentLabel: 'provision.whatever' }
+        { name: 'who', version: '1.0.0', currentLabel: 'clone.whatever' }
       );
 
       expect(result).toContainEqual({
@@ -102,7 +99,7 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefined-deployment:1.0.0' },
-          { name: 'package', version: '1.0.0', currentLabel: 'provision.whatever' }
+          { name: 'package', version: '1.0.0', currentLabel: 'clone.whatever' }
         )
       ).rejects.toThrowError('deployment not found');
     });
@@ -114,7 +111,7 @@ describe('steps/clone.ts', () => {
         generator: 'cannon test',
         timestamp: 1234,
         state: {
-          'contract.Woot': {
+          'deploy.Woot': {
             version: BUILD_VERSION,
             hash: 'arst',
             artifacts: {
@@ -125,7 +122,7 @@ describe('steps/clone.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot',
+                  deployedOn: 'deploy.Woot',
                   gasCost: '0',
                   gasUsed: 0,
                 },
@@ -152,7 +149,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0@main' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
       );
 
       expect(result.imports!['something'].url).toEqual('ipfs://Qmsomething');
@@ -169,7 +166,7 @@ describe('steps/clone.ts', () => {
         generator: 'cannon test',
         timestamp: 1234,
         state: {
-          'contract.Woot': {
+          'deploy.Woot': {
             version: BUILD_VERSION,
             hash: 'arst',
             artifacts: {
@@ -180,7 +177,7 @@ describe('steps/clone.ts', () => {
                   deployTxnHash: '0x',
                   contractName: 'Woot',
                   sourceName: 'Woot.sol',
-                  deployedOn: 'contract.Woot',
+                  deployedOn: 'deploy.Woot',
                   gasCost: '0',
                   gasUsed: 0,
                 },
@@ -206,7 +203,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { name: 'package', version: '1.0.0', currentLabel: 'import.something' }
+        { name: 'package', version: '1.0.0', currentLabel: 'clone.something' }
       );
 
       expect(result).toStrictEqual({
@@ -222,7 +219,7 @@ describe('steps/clone.ts', () => {
                 deployTxnHash: '0x',
                 contractName: 'Woot',
                 sourceName: 'Woot.sol',
-                deployedOn: 'contract.Woot',
+                deployedOn: 'deploy.Woot',
                 gasCost: '0',
                 gasUsed: 0,
               },

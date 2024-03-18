@@ -141,7 +141,7 @@ ${printChainDefinitionProblems(problems)}`);
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
         } catch (err: any) {
-          debug(`got error ${err}`);
+          debug('got error', err);
           if (runtime.allowPartialDeploy) {
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
