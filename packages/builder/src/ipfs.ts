@@ -4,7 +4,7 @@ import Debug from 'debug';
 import FormData from 'form-data';
 import pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
-
+import axiosRetry from 'axios-retry';
 export interface Headers {
   [key: string]: string | string[] | number | boolean | null;
 }
@@ -21,6 +21,22 @@ export function uncompress(data: any) {
 
 export async function getContentCID(value: string | Buffer): Promise<string> {
   return Hash.of(value);
+}
+
+export function setAxiosRetries(totalRetries = 3) {
+  axiosRetry(axios, {
+    retries: totalRetries,
+    shouldResetTimeout: true,
+    onRetry: (currentRetry, error) => {
+      debug('Failed with error:', error);
+      debug('Retrying...');
+
+      if (currentRetry == totalRetries) {
+        error.code = 'RETRY_ERROR';
+        throw error;
+      }
+    },
+  });
 }
 
 export async function isIpfsGateway(ipfsUrl: string, customHeaders: Headers = {}) {
@@ -50,9 +66,11 @@ export async function readIpfs(
   hash: string,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
+  retries = 3
 ): Promise<any> {
   debug(`downloading content from ${hash}`);
+  setAxiosRetries(retries);
 
   let result: AxiosResponse;
 
@@ -102,8 +120,11 @@ export async function writeIpfs(
   info: any,
   customHeaders: Headers = {},
   isGateway: boolean,
-  timeout: number
+  timeout: number,
+  retries = 3
 ): Promise<string> {
+  setAxiosRetries(retries);
+
   const data = JSON.stringify(info);
   const buf = compress(data);
   const cid = await getContentCID(Buffer.from(buf));

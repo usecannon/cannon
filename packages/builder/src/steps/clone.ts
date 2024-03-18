@@ -134,10 +134,11 @@ const cloneSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
+    const targetPreset = config.targetPreset ?? 'main';
+    const sourcePreset = config.sourcePreset;
     const sourceRef = new PackageReference(config.source);
     const source = sourceRef.fullPackageRef;
-    const sourcePreset = config.sourcePreset;
-    const targetPreset = config.targetPreset ?? 'main';
+    const target = `${sourceRef.name}:${sourceRef.version}@${targetPreset}`;
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
     // try to read the chain definition we are going to use
@@ -234,7 +235,7 @@ const cloneSpec = {
       debug('warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
-        [config.source, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
+        [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         newSubDeployUrl,
         (await runtime.registry.getMetaUrl(source, chainId)) || ''

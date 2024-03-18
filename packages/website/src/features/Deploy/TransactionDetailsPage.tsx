@@ -33,9 +33,11 @@ import {
   Text,
   Tooltip,
   useToast,
+  Image,
+  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
-import _ from 'lodash';
+import _, { find } from 'lodash';
 import { useRouter } from 'next/navigation';
 import { FC, useEffect } from 'react';
 import {
@@ -199,7 +201,7 @@ const TransactionDetailsPage: FC<{
       }));
 
   const etherscanUrl =
-    (Object.values(chains).find((chain) => chain.id === safe.chainId) as any)
+    (Object.values(chains).find((chain) => chain.id == safe.chainId) as any)
       ?.blockExplorers?.default?.url ?? 'https://etherscan.io';
 
   const signers: Array<string> = stager.existingSigners.length
@@ -210,6 +212,11 @@ const TransactionDetailsPage: FC<{
     Number(stager.requiredSigners) || safeTxn?.confirmationsRequired || 0;
 
   const remainingSignatures = threshold - signers.length;
+
+  const chainName = find(
+    chains,
+    (chain: any) => chain.id === safe.chainId
+  )?.name;
 
   return (
     <>
@@ -258,84 +265,13 @@ const TransactionDetailsPage: FC<{
               templateColumns={{ base: 'repeat(1, 1fr)', lg: '2fr 1fr' }}
               gap={8}
             >
-              <Box>
-                <TransactionDisplay
-                  safe={safe}
-                  safeTxn={safeTxn as any}
-                  allowPublishing={allowPublishing}
-                />
-              </Box>
+              <TransactionDisplay
+                safe={safe}
+                safeTxn={safeTxn as any}
+                allowPublishing={allowPublishing}
+              />
               <Box position="relative">
                 <Box position="sticky" top={8}>
-                  {verify && allowPublishing && (
-                    <Box
-                      background="gray.800"
-                      p={4}
-                      borderWidth="1px"
-                      borderColor="gray.700"
-                      mb={8}
-                    >
-                      <Heading size="sm" mb="2">
-                        Verify Transactions
-                      </Heading>
-                      {buildInfo.buildStatus && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildStatus}
-                        </Text>
-                      )}
-                      {buildInfo.buildError && (
-                        <Text fontSize="sm" mb="2">
-                          {buildInfo.buildError}
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && !unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          The transactions queued to the Safe match the Git
-                          Target
-                        </Text>
-                      )}
-                      {buildInfo.buildResult && unequalTransaction && (
-                        <Text fontSize="sm" mb="2">
-                          <WarningIcon />
-                          &nbsp;Proposed Transactions Do not Match Git Diff.
-                          Could be an attack.
-                        </Text>
-                      )}
-                      {prevDeployPackageUrl &&
-                        hintData.cannonUpgradeFromPackage !==
-                          prevDeployPackageUrl && (
-                          <Text fontSize="sm" mb="2">
-                            <WarningIcon />
-                            &nbsp;Previous Deploy Hash does not derive from
-                            on-chain record
-                          </Text>
-                        )}
-                      {safeTxn && (
-                        <Button
-                          size="xs"
-                          as="a"
-                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-                            safe.address
-                          }&gas=${8000000}&gasPrice=0&value=${
-                            safeTxn?.value
-                          }&contractAddress=${
-                            safe?.address
-                          }&rawFunctionInput=${createSimulationData(
-                            safeTxn
-                          )}&network=${
-                            safe.chainId
-                          }&headerBlockNumber=&headerTimestamp=`}
-                          colorScheme="purple"
-                          rightIcon={<ExternalLinkIcon />}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Simulate on Tenderly
-                        </Button>
-                      )}
-                    </Box>
-                  )}
-
                   <Box
                     background="gray.800"
                     p={4}
@@ -375,10 +311,10 @@ const TransactionDetailsPage: FC<{
                     ))}
 
                     {verify && remainingSignatures > 0 && (
-                      <Text mt="3">
-                        {remainingSignatures} more{' '}
+                      <Text fontWeight="bold" mt="3">
+                        {remainingSignatures} additional{' '}
                         {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
-                        required.
+                        required
                       </Text>
                     )}
 
@@ -388,12 +324,13 @@ const TransactionDetailsPage: FC<{
                       </Box>
                     )}
                     {verify && !stager.alreadySigned && (
-                      <Box>
+                      <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
                           <>
                             <Tooltip label={stager.signConditionFailed}>
                               <Button
+                                colorScheme="teal"
                                 mb={3}
                                 w="100%"
                                 isDisabled={
@@ -407,6 +344,7 @@ const TransactionDetailsPage: FC<{
                             </Tooltip>
                             <Tooltip label={stager.execConditionFailed}>
                               <Button
+                                colorScheme="teal"
                                 w="100%"
                                 isDisabled={
                                   (safeTxn &&
@@ -440,13 +378,98 @@ const TransactionDetailsPage: FC<{
                               transform="translateY(-1.5px)"
                               mr={1.5}
                             />
-                            Connect a wallet using chain ID {safe.chainId} to
-                            sign
+                            Connect your wallet {chainName && `to ${chainName}`}{' '}
+                            to sign
                           </Text>
                         )}
-                      </Box>
+                      </Flex>
                     )}
                   </Box>
+
+                  {verify && allowPublishing && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={8}
+                    >
+                      <Heading size="sm" mb="2">
+                        Verify Transactions
+                      </Heading>
+                      {buildInfo.buildStatus && (
+                        <Text fontSize="sm" mb="2">
+                          {buildInfo.buildStatus}
+                        </Text>
+                      )}
+                      {buildInfo.buildError && (
+                        <Text fontSize="sm" mb="2">
+                          {buildInfo.buildError}
+                        </Text>
+                      )}
+                      {buildInfo.buildResult && !unequalTransaction && (
+                        <Text fontSize="sm" mb="2">
+                          The transactions queued to the Safe match the Git
+                          Target
+                        </Text>
+                      )}
+                      {buildInfo.buildResult && unequalTransaction && (
+                        <Text fontSize="sm" mb="2">
+                          <WarningIcon />
+                          &nbsp;Proposed Transactions Do not Match Git Diff.
+                          Could be an attack.
+                        </Text>
+                      )}
+                      {prevDeployPackageUrl &&
+                        hintData.cannonUpgradeFromPackage !==
+                          prevDeployPackageUrl && (
+                          <Flex fontSize="xs" fontWeight="medium" align="top">
+                            <InfoOutlineIcon mt="3px" mr={1.5} />
+                            The previous deploy hash does not derive from an
+                            on-chain record.
+                          </Flex>
+                        )}
+                      {safeTxn && (
+                        <Button
+                          mt={3}
+                          size="xs"
+                          as="a"
+                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
+                            safe.address
+                          }&gas=${8000000}&gasPrice=0&value=${
+                            safeTxn?.value
+                          }&contractAddress=${
+                            safe?.address
+                          }&rawFunctionInput=${createSimulationData(
+                            safeTxn
+                          )}&network=${
+                            safe.chainId
+                          }&headerBlockNumber=&headerTimestamp=`}
+                          colorScheme="whiteAlpha"
+                          background="whiteAlpha.100"
+                          border="1px solid"
+                          borderColor="whiteAlpha.300"
+                          leftIcon={
+                            <Image
+                              height="14px"
+                              src="/images/tenderly.svg"
+                              alt="Safe"
+                              objectFit="cover"
+                            />
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          _hover={{
+                            bg: 'whiteAlpha.200',
+                            borderColor: 'whiteAlpha.400',
+                          }}
+                        >
+                          Simulate Transaction
+                        </Button>
+                      )}
+                    </Box>
+                  )}
+
                   {allowPublishing && (
                     <Box
                       background="gray.800"

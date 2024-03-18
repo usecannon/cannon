@@ -107,18 +107,13 @@ export function DisplayedTransaction(props: {
 
   return (
     <Box p={6} border="1px solid" borderColor="gray.600" bgColor="black">
-      <Box maxW="container.xl">
+      <Box maxW="100%" overflowX="auto">
         <Flex
           alignItems="center"
           mb={execFuncFragment?.inputs?.length > 0 ? 4 : 0}
         >
           <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
-            {`${parsedContract}.${execFunc}(${execFuncFragment.inputs
-              .map(
-                (input: any) =>
-                  input.type + (input.name ? ' ' + input.name : '')
-              )
-              .join(',')})`}
+            {`${parsedContract}.${execFunc}`}
           </Heading>
         </Flex>
         <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
