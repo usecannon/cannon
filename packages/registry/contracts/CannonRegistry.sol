@@ -277,9 +277,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   function _canPublishPackage(Package storage _package, address _publisher) internal view returns (bool) {
-    address owner = _package.owner;
-
-    if (owner == _publisher) return true;
+    if (_package.owner == _publisher) return true;
 
     uint256 additionalDeployersLength = _package.additionalDeployersLength;
     for (uint256 i = 0; i < additionalDeployersLength; i++) {
