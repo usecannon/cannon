@@ -1,6 +1,6 @@
 {
   "name": "sample-foundry-project",
-  "version": "2.4.21",
+  "version": "2.11.18",
   "private": true,
   "scripts": {
     "test": "forge test",

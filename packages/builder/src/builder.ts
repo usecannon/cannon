@@ -25,26 +25,11 @@ export async function createInitialContext(
     package: pkg,
     timestamp: Math.floor(Date.now() / 1000).toString(),
     chainId,
+    overrideSettings: opts,
   };
-
-  const settings: ChainBuilderContext['settings'] = {};
-
-  const pkgSettings = def.getSettings(preCtx);
-
-  for (const s in pkgSettings) {
-    if (opts[s] !== undefined) {
-      settings[s] = opts[s];
-    } else if (pkgSettings[s].defaultValue !== undefined) {
-      settings[s] = pkgSettings[s].defaultValue!;
-    } else {
-      throw new Error(`Required setting not supplied: ${s}`);
-    }
-  }
 
   return {
     ...preCtx,
-
-    settings,
 
     contracts: {},
 
@@ -52,7 +37,7 @@ export async function createInitialContext(
 
     imports: {},
 
-    extras: {},
+    settings: _.clone(opts),
   };
 }
 
@@ -156,7 +141,7 @@ ${printChainDefinitionProblems(problems)}`);
 
           built.set(n, _.merge(artifacts, state[n].artifacts));
         } catch (err: any) {
-          debug(`got error ${err}`);
+          debug('got error', err);
           if (runtime.allowPartialDeploy) {
             runtime.emit(Events.SkipDeploy, n, err, 0);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
@@ -414,7 +399,11 @@ function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) 
     ctx.txns[txn] = txns[txn];
   }
 
-  for (const n in outputs.extras) {
-    ctx.extras[n] = outputs.extras[n];
+  for (const n in outputs.settings) {
+    ctx.settings[n] = outputs.settings[n];
+  }
+
+  for (const override in ctx.overrideSettings) {
+    ctx.settings[override] = ctx.overrideSettings[override];
   }
 }

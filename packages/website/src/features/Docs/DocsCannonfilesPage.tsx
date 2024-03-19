@@ -175,7 +175,10 @@ export const DocsCannonfilesPage: FC = () => {
                   href: '#factory-deployed-contracts',
                   text: 'Factory-deployed Contracts',
                 },
-                { href: '#extras', text: '’Extra’ Event Data' },
+                {
+                  href: '#extras',
+                  text: 'Save Emitted Event Data in a Variable',
+                },
                 { href: '#event-error-logging', text: 'Event Error Logging' },
               ]}
             />
@@ -206,8 +209,8 @@ export const DocsCannonfilesPage: FC = () => {
                 set of inputs (documented below) and modifies a return object.
                 The return object is accessible in steps executed at later
                 steps. The resulting return object is provided to any cannonfile
-                that imports it with the <Code>import</Code> or{' '}
-                <Code>provision</Code> steps.
+                that imports it with the <Code>pull</Code> or <Code>clone</Code>{' '}
+                steps.
               </Text>
               <Text mb={4}>
                 Cannonfiles are used to <strong>build</strong> chains into the
@@ -497,9 +500,9 @@ export const DocsCannonfilesPage: FC = () => {
                 </Text>
               </Box>
 
-              <Box mb={16} id="extras">
+              <Box mb={16} id="var">
                 <Heading mb={4} fontSize="lg">
-                  ’Extra’ Event Data
+                  Save Emitted Event Data in a Variable
                   <Link
                     color="gray.300"
                     ml={2}
@@ -512,13 +515,13 @@ export const DocsCannonfilesPage: FC = () => {
                 </Heading>
                 <Text mb="4">
                   If an invoked function emits an event, cannon can parse the
-                  event data in your cannonfile by using the extras property,
-                  This lets you reference previously emitted event’s data in
+                  event data in your cannonfile by using the var property, This
+                  lets you reference previously emitted event’s data in
                   subsequent invoke steps.
                 </Text>
                 <Text mb={4}>
                   For example, to track the NewDeployment event data from the
-                  PoolFactory deployment from the example above, add the extra
+                  PoolFactory deployment from the example above, add the var
                   property and set an attribute for the event like so:
                 </Text>
 
@@ -529,13 +532,13 @@ export const DocsCannonfilesPage: FC = () => {
                   </Code>
                   <Code display="block"># ....</Code>
                   <Code display="block">
-                    extra.NewDeploymentEvent.event = &quot;NewDeployment&quot;
+                    var.NewDeploymentEvent.event = &quot;NewDeployment&quot;
                   </Code>
-                  <Code display="block">extra.NewDeploymentEvent.arg = 0</Code>
+                  <Code display="block">var.NewDeploymentEvent.arg = 0</Code>
                 </Box>
 
                 <Text mb={4}>
-                  Now, calling &quot;&lt;% = extras.NewDeploymentEvent
+                  Now, calling &quot;&lt;% = settings.NewDeploymentEvent
                   %&gt;&quot; in a subsequent invoke step would return the first
                   data argument for NewDeployment.
                 </Text>
@@ -547,9 +550,9 @@ export const DocsCannonfilesPage: FC = () => {
 
                 <Text mb={4}>
                   For example if the PoolFactory emitted multiple NewDeployment
-                  events: &lt;%= extras.NewDeploymentEvent_0 %&gt; would return
-                  the first emitted event of this kind. &lt;%=
-                  extras.NewDeploymentEvent_4 %&gt; would reference the fifth
+                  events: &lt;%= settings.NewDeploymentEvent_0 %&gt; would
+                  return the first emitted event of this kind. &lt;%=
+                  settings.NewDeploymentEvent_4 %&gt; would reference the fifth
                   emitted event of this kind.
                 </Text>
               </Box>
@@ -576,14 +579,11 @@ export const DocsCannonfilesPage: FC = () => {
 
                 <Text mb="4">
                   You can bypass the event error logging by setting it like
-                  <Code>
-                    extras.NewDeploymentEvent.allowEmptyEvents = true
-                  </Code>{' '}
-                  or
+                  <Code>var.NewDeploymentEvent.allowEmptyEvents = true</Code> or
                   <Code>
                     factory.MyPoolDeployment.allowEmptyEvents = true
                   </Code>{' '}
-                  under the factory or extra property that throws an error.
+                  under the factory or var property that throws an error.
                 </Text>
                 <Text mb="4">
                   An useful example would for this would be when an event is
@@ -593,8 +593,8 @@ export const DocsCannonfilesPage: FC = () => {
                 </Text>
                 <Text mb="4">
                   Keep in mind you wont be able to reference event or contract
-                  data through the contracts or extras properties if a matching
-                  event wasnt emitted
+                  data through the contracts or settings properties if a
+                  matching event wasnt emitted
                 </Text>
               </Box>
             </Box>

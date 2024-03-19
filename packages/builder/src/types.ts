@@ -5,8 +5,6 @@ import _ from 'lodash';
 
 import type { RawChainDefinition } from './actions';
 
-export type OptionTypesTs = string | number | boolean;
-
 // loosely based on the hardhat `Artifact` type
 export type ContractArtifact = {
   contractName: string;
@@ -71,16 +69,16 @@ export interface PreChainBuilderContext {
   package: any;
 
   timestamp: string;
+
+  overrideSettings: { [label: string]: string };
 }
 
 export interface ChainBuilderContext extends PreChainBuilderContext {
-  settings: ChainBuilderOptions;
-
   contracts: ContractMap;
 
   txns: TransactionMap;
 
-  extras: { [label: string]: string };
+  settings: { [label: string]: string };
 
   imports: BundledChainBuilderOutputs;
 
@@ -154,7 +152,7 @@ export const CannonHelperContext = {
 
 export type ChainBuilderContextWithHelpers = ChainBuilderContext & typeof CannonHelperContext;
 
-export type BuildOptions = { [val: string]: OptionTypesTs };
+export type BuildOptions = { [val: string]: string };
 
 export type StorageMode = 'all' | 'metadata' | 'none';
 
@@ -207,10 +205,10 @@ export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'extras'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings'>>;
 
 export interface ChainBuilderOptions {
-  [key: string]: OptionTypesTs;
+  [key: string]: string;
 }
 
 /**
@@ -301,7 +299,7 @@ export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
     ctx.contracts = { ...ctx.contracts, ...additionalCtx.contracts };
     ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
     ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
-    ctx.extras = { ...ctx.extras, ...additionalCtx.extras };
+    ctx.settings = { ...ctx.settings, ...additionalCtx.settings };
   }
 
   return ctx;

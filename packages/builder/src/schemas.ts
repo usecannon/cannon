@@ -57,7 +57,7 @@ function tryParseJson(jsonString: string) {
 
 const targetSchema = targetString.or(z.array(targetString).nonempty());
 
-export const contractSchema = z
+export const deploySchema = z
   .object({
     /**
      *    Artifact name of the target contract
@@ -190,7 +190,7 @@ export const contractSchema = z
       .deepPartial()
   );
 
-export const importSchema = z
+export const pullSchema = z
   .object({
     /**
      *  Source of the cannonfile package to import from.
@@ -237,6 +237,43 @@ export const importSchema = z
           ),
       })
       .deepPartial()
+  );
+
+const invokeVarRecord = z
+  .record(
+    z.object({
+      /**
+       *   Name of the event to get data for
+       */
+      event: z.string().describe('Name of the event to get data for'),
+      /**
+       *   Data argument of the event output
+       */
+      arg: z.number().int().describe('Data argument of the event output'),
+      /**
+       *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
+       */
+      expectCount: z
+        .number()
+        .int()
+        .optional()
+        .describe(
+          'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
+        ),
+
+      /**
+       *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+       */
+      allowEmptyEvents: z
+        .boolean()
+        .optional()
+        .describe(
+          'Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.'
+        ),
+    })
+  )
+  .describe(
+    'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps'
   );
 
 export const invokeSchema = z
@@ -330,42 +367,10 @@ export const invokeSchema = z
          *   Object defined to hold extra transaction result data.
          *   For now its limited to getting event data so it can be reused in other steps
          */
-        extra: z
-          .record(
-            z.object({
-              /**
-               *   Name of the event to get data for
-               */
-              event: z.string().describe('Name of the event to get data for'),
-              /**
-               *   Data argument of the event output
-               */
-              arg: z.number().int().describe('Data argument of the event output'),
-              /**
-               *   Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)
-               */
-              expectCount: z
-                .number()
-                .int()
-                .optional()
-                .describe(
-                  'Number of matching contract events which should be seen by this event (default 1) (set to 0 to make optional)'
-                ),
-
-              /**
-               *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
-               */
-              allowEmptyEvents: z
-                .boolean()
-                .optional()
-                .describe(
-                  'Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.'
-                ),
-            })
-          )
-          .describe(
-            'Object defined to hold extra transaction result data. For now its limited to getting event data so it can be reused in other steps'
-          ),
+        var: invokeVarRecord,
+        extra: invokeVarRecord.describe(
+          '(DEPRECATED) Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps. Use `var` instead.'
+        ),
         /**
          *   Object defined to hold deployment transaction result data.
          *   For now its limited to getting deployment event data so it can be reused in other steps
@@ -465,7 +470,7 @@ export const invokeSchema = z
       .partial()
   );
 
-export const provisionSchema = z
+export const cloneSchema = z
   .object({
     /**
      *  Name of the package to provision
@@ -502,10 +507,19 @@ export const provisionSchema = z
          *  The settings to be used when initializing this Cannonfile.
          *  Overrides any defaults preset in the source package.
          */
-        options: z
+        var: z
           .record(z.string())
           .describe(
             'The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
+          ),
+        /**
+         *  (DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile.
+         *  Overrides any defaults preset in the source package.
+         */
+        options: z
+          .record(z.string())
+          .describe(
+            '(DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
           ),
         /**
          * Additional tags to set on the registry for when this provisioned package is published.
@@ -548,6 +562,20 @@ export const routerSchema = z.object({
    */
   depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
 });
+
+export const varSchema = z
+  .object({
+    /**
+     *   The setting value to apply
+     */
+    defaultValue: z.string().optional().describe('(DEPRECATED) Use `value`. The value to set in the setting'),
+    description: z.string().optional().describe('Helpful explanation of the variable being set'),
+    /**
+     *  List of steps that this action depends on
+     */
+    depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
+  })
+  .catchall(z.string());
 
 /**
  * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
@@ -629,23 +657,43 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        import: z
-          .record(importSchema)
+        pull: z
+          .record(pullSchema)
           .describe(
             'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
           ),
         /**
          * @internal
          */
-        provision: z
-          .record(provisionSchema)
+        import: z
+          .record(pullSchema)
+          .describe(
+            '(DEPRECATED) use `pull` instead. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+          ),
+        /**
+         * @internal
+         */
+        clone: z
+          .record(cloneSchema)
           .describe(
             'Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
           ),
         /**
          * @internal
          */
-        contract: z.record(contractSchema).describe('Deploy a contract.'),
+        provision: z
+          .record(cloneSchema)
+          .describe(
+            '(DEPRECATED) use `clone` instead. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+          ),
+        /**
+         * @internal
+         */
+        deploy: z.record(deploySchema).describe('Deploy a contract.'),
+        /**
+         * @internal
+         */
+        contract: z.record(deploySchema).describe('(DEPRECATED) Use `deploy` instead. Deploy a contract.'),
         /**
          * @internal
          */
@@ -656,6 +704,10 @@ export const chainDefinitionSchema = z
         router: z
           .record(routerSchema)
           .describe('Generate a contract that proxies calls to multiple contracts using the synthetix router codegen.'),
+        /**
+         * @internal
+         */
+        var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
         // ... there may be others that come from plugins
       })
       .deepPartial()

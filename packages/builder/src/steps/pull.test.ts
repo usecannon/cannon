@@ -1,12 +1,12 @@
 import '../actions';
 import { BUILD_VERSION } from '../constants';
 import { InMemoryRegistry } from '../registry';
-import action from './import';
+import action from './pull';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 
 jest.mock('../loader');
 
-describe('steps/import.ts', () => {
+describe('steps/pull.ts', () => {
   const registry = new InMemoryRegistry();
 
   beforeAll(async () => {
