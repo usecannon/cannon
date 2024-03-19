@@ -9,12 +9,13 @@ contract MockOptimismBridge is IOptimismL1Sender, IOptimismL2Receiver {
 
   address public xDomainMessageSender;
 
-  function sendMessage(address _target, bytes memory _message, uint32 _minGasLimit) external {
+  function sendMessage(address, bytes memory _message, uint32) external {
     lastCrossChainMessage = _message;
   }
 
   function setXDomainMessageSender(address _sender) external returns (address) {
     xDomainMessageSender = _sender;
+    return _sender;
   }
 
   function doCall(address to, bytes memory data) external returns (bytes memory) {

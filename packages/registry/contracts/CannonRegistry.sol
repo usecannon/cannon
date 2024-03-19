@@ -5,7 +5,6 @@ import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {OwnedUpgradable} from "./OwnedUpgradable.sol";
 import {EfficientStorage} from "./EfficientStorage.sol";
 import {ERC2771Context} from "./ERC2771Context.sol";
-
 import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
 
@@ -297,12 +296,6 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     // we can only receive change ownership requests from our counterpart on mainnnet
     if (_OPTIMISM_RECEIVER.xDomainMessageSender() != address(this)) {
       revert Unauthorized();
-    }
-  }
-
-  function _propogatePackageOwner(bytes32 _packageName, address _owner, address[] memory _additionalDeployers) internal {
-    if (block.chainid != 1) {
-      return;
     }
   }
 
