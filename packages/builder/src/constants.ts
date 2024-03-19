@@ -3,7 +3,7 @@ import Debug from 'debug';
 const debug = Debug('cannon:builder:constants');
 
 export const CANNON_CHAIN_ID = 13370;
-export const BUILD_VERSION = 6;
+export const BUILD_VERSION = 7;
 
 export function getCannonRepoRegistryUrl() {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

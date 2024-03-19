@@ -136,12 +136,12 @@ describe('util.ts', () => {
         },
       },
     },
+    overrideSettings: {},
     settings: {},
     txns: {},
     chainId: 0,
     timestamp: '0',
     package: {},
-    extras: {},
   };
 
   describe('getContractFromPath()', () => {

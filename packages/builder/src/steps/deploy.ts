@@ -3,8 +3,8 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { contractSchema } from '../schemas';
+import { deploySchema } from '../schemas';
+import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import {
   ChainArtifacts,
   ChainBuilderContext,
@@ -22,7 +22,7 @@ const debug = Debug('cannon:builder:contract');
  *  @public
  *  @group Contract
  */
-export type Config = z.infer<typeof contractSchema>;
+export type Config = z.infer<typeof deploySchema>;
 
 export interface ContractOutputs {
   abi: string;
@@ -131,10 +131,10 @@ function generateOutputs(
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-const contractSpec = {
-  label: 'contract',
+const deploySpec = {
+  label: 'deploy',
 
-  validate: contractSchema,
+  validate: _.cloneDeep(deploySchema),
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
@@ -362,4 +362,4 @@ const contractSpec = {
   },
 };
 
-export default contractSpec;
+export default deploySpec;

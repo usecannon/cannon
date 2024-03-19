@@ -176,14 +176,14 @@ async function runTxn(
   return [receipt, txnEvents];
 }
 
-function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
+function parseEventOutputs(config: Config['var'], txnEvents: EncodedTxnEvents[]): { [label: string]: string } {
   const vals: { [label: string]: string } = {};
   let expectedEvent = '';
 
   if (config) {
     for (const n in txnEvents) {
-      for (const [name, extra] of Object.entries(config)) {
-        const events = _.entries(txnEvents[n][extra.event]);
+      for (const [name, varData] of Object.entries(config)) {
+        const events = _.entries(txnEvents[n][varData.event]);
 
         // Check for an event defined in the cannonfile
         if (
@@ -212,7 +212,7 @@ function parseEventOutputs(config: Config['extra'], txnEvents: EncodedTxnEvents[
             label += '_' + i;
           }
 
-          const v = e.args[extra.arg];
+          const v = e.args[varData.arg];
 
           vals[label] = typeof v == 'bigint' ? v.toString() : v;
         }
@@ -281,12 +281,12 @@ async function importTxnData(
     }
   }
 
-  const extras: ChainArtifacts['extras'] = parseEventOutputs(config.extra, _.map(txns, 'events'));
+  const settings: ChainArtifacts['settings'] = parseEventOutputs(config.var || config.extra, _.map(txns, 'events'));
 
   return {
     contracts,
     txns,
-    extras,
+    settings,
   };
 }
 
@@ -312,7 +312,15 @@ const invokeSpec = {
         args: cfg.args?.map((v) => JSON.stringify(v)),
         value: cfg.value || '0',
         factory: cfg.factory,
-        extra: cfg.extra,
+        var: cfg.var || cfg.extra,
+      },
+      {
+        to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
+        func: cfg.func,
+        args: cfg.args?.map((v) => JSON.stringify(v)),
+        value: cfg.value || '0',
+        factory: cfg.factory,
+        extra: cfg.var || cfg.extra,
       },
       {
         to: cfg.target?.map((t) => getContractFromPath(ctx, t)?.address),
@@ -382,8 +390,10 @@ const invokeSpec = {
       }
     }
 
-    for (const name in config.extra) {
-      const f = config.extra[name];
+    const varsConfig = config.var || config.extra;
+
+    for (const name in varsConfig) {
+      const f = varsConfig[name];
       f.event = _.template(f.event)(ctx);
     }
 
@@ -429,8 +439,9 @@ const invokeSpec = {
       _.forEach(f.abiOf, (a) => accesses.push(...computeTemplateAccesses(a)));
     }
 
-    for (const name in config.extra) {
-      const f = config.extra[name];
+    const varsConfig = config.var || config.extra;
+    for (const name in varsConfig) {
+      const f = varsConfig[name];
       accesses.push(...computeTemplateAccesses(f.event));
     }
 
@@ -440,7 +451,7 @@ const invokeSpec = {
   getOutputs(config: Config, packageState: PackageState) {
     const outputs = [`txns.${packageState.currentLabel.split('.')[1]}`];
 
-    // factories can output contracts, and extras can output extras
+    // factories can output contracts, and var can output vars
     if (config.factory) {
       for (const k in config.factory) {
         if ((config.factory[k].expectCount || 1) > 1) {
@@ -453,14 +464,15 @@ const invokeSpec = {
       }
     }
 
-    if (config.extra) {
-      for (const k in config.extra) {
-        if ((config.extra[k].expectCount || 1) > 1) {
-          for (let i = 0; i < config.extra[k].expectCount!; i++) {
-            outputs.push(`extras.${k}_${i}`);
+    const varsConfig = config.var || config.extra;
+    if (varsConfig) {
+      for (const k in varsConfig) {
+        if ((varsConfig[k].expectCount || 1) > 1) {
+          for (let i = 0; i < varsConfig[k].expectCount!; i++) {
+            outputs.push(`settings.${k}_${i}`);
           }
         } else {
-          outputs.push(`extras.${k}`);
+          outputs.push(`settings.${k}`);
         }
       }
     }

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { ActionKinds, RawChainDefinition, validateConfig } from './actions';
 import { ChainBuilderRuntime } from './runtime';
 import { chainDefinitionSchema } from './schemas';
-import { CannonHelperContext, ChainBuilderContext, PreChainBuilderContext } from './types';
+import { CannonHelperContext, ChainBuilderContext } from './types';
 
 const debug = Debug('cannon:builder:definition');
 const debugVerbose = Debug('cannon:verbose:builder:definition');
@@ -71,7 +71,7 @@ export class ChainDefinition {
 
     // best way to get a list of actions is just to iterate over the entire def, and filter out anything
     // that are not an actions (because those are known)
-    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords', 'setting');
+    const actionsDef = _.omit(def, 'name', 'version', 'preset', 'description', 'keywords');
 
     // Used to validate that there are not 2 steps with the same name
     const actionNames: string[] = [];
@@ -258,22 +258,6 @@ export class ChainDefinition {
       debugVerbose('creating hash of', objs.map(JSON.stringify as any));
       return objs.map((o) => crypto.createHash('md5').update(JSON.stringify(o)).digest('hex'));
     }
-  }
-
-  /**
-   * Gets the `setting` field in the raw chain definition
-   * @returns definition of settings
-   */
-  getSettings(ctx: PreChainBuilderContext) {
-    const loadedSettings: Record<string, any> = {};
-    const _ctx = { ...ctx, ...CannonHelperContext, settings: loadedSettings };
-
-    return _.mapValues(this.raw.setting, (sValue, sKey) => {
-      const newSetting = _.clone(sValue);
-      newSetting.defaultValue = _.template(sValue.defaultValue)(_ctx);
-      loadedSettings[sKey] = newSetting.defaultValue;
-      return newSetting;
-    });
   }
 
   /**

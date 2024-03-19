@@ -1,7 +1,7 @@
 import * as viem from 'viem';
 import { fixtureTransactionReceipt } from '../../test/fixtures';
 import { ContractArtifact } from '../types';
-import action from './contract';
+import action from './deploy';
 import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
 import '../actions';
 

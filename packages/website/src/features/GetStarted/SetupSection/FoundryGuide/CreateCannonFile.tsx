@@ -30,11 +30,10 @@ const code2 = `name = "sample-foundry-project"
 version = "0.1"
 description = "Sample Foundry Project"
 
-[setting.number]
-defaultValue = "420"
-description="Initialization value for the number"
+[var.main]
+number = "420"
 
-[contract.counter]
+[deploy.counter]
 artifact = "Counter"
 
 [invoke.set_number]

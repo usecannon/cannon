@@ -6,7 +6,7 @@ import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
 import { ChainBuilderRuntime } from '../runtime';
-import { importSchema } from '../schemas';
+import { pullSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
 const debug = Debug('cannon:builder:import');
@@ -16,7 +16,7 @@ const debug = Debug('cannon:builder:import');
  *  @public
  *  @group Import
  */
-export type Config = z.infer<typeof importSchema>;
+export type Config = z.infer<typeof pullSchema>;
 
 export interface Outputs {
   [key: string]: string;
@@ -25,10 +25,10 @@ export interface Outputs {
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-const importSpec = {
-  label: 'import',
+const pullSpec = {
+  label: 'pull',
 
-  validate: importSchema,
+  validate: pullSchema,
 
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
@@ -110,4 +110,4 @@ const importSpec = {
   },
 };
 
-export default importSpec;
+export default pullSpec;
