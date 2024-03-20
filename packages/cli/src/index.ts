@@ -506,7 +506,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
 
-  const p = await resolveWriteProvider(cliSettings, opts.chainId);
+  const p = await resolveWriteProvider(cliSettings, Number.parseInt(opts.chainId));
 
   const chainId = await p.provider.getChainId();
 
