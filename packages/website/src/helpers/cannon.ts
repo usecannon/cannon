@@ -37,11 +37,10 @@ export async function loadCannonfile(repo: string, ref: string, filepath: string
     chainId: CANNON_CHAIN_ID,
     settings: {},
     timestamp: '0',
-
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    overrideSettings: {},
   };
 
   const name = def.getName(ctx);
