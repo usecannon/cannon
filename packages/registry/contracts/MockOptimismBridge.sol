@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./IOptimismL1Sender.sol";
-import "./IOptimismL2Receiver.sol";
+import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
+import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
 
 contract MockOptimismBridge is IOptimismL1Sender, IOptimismL2Receiver {
   bytes public lastCrossChainMessage;
