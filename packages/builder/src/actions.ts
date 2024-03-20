@@ -117,5 +117,5 @@ registerAction(varSpec);
 // backwards compatibility
 registerAction(Object.assign({}, deploySpec, { label: 'contract' }));
 registerAction(Object.assign({}, pullSpec, { label: 'import' }));
-registerAction(Object.assign({}, pullSpec, { label: 'provision' }));
+registerAction(Object.assign({}, cloneSpec, { label: 'provision' }));
 registerAction(Object.assign({}, varSpec, { label: 'setting' }));
