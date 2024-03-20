@@ -3,18 +3,19 @@ version = "0.0.1"
 description = "Simple project to verify the functionality of cannon"
 keywords = ["sample", "consumer"]
 
-[setting.change_greeting2]
-defaultValue = "new greeting!"
+[var.change_greeting2]
+change_greeting2 = "new greeting!"
 
-[import.greeters]
+[pull.greeters]
 source = "greeter-foundry"
 
-[import.more_greeters]
+[clone.more_greeters]
 source = "greeter-foundry"
-options.salt = "second"
-options.msg = "a message from second greeter set"
+targetPreset = "secondary"
+var.salt = "second"
+var.msg = "a message from second greeter set"
 
-[invoke.change_greeting2]
+[invoke.do_change_greeting2]
 target = ["greeters.greeter"]
 func = "setGreeting"
 args = ["<%= settings.change_greeting2 %>"]
@@ -38,19 +39,19 @@ target = ["greeters.greeter"]
 func = "changeCloneGreeting"
 args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greeting!') %>"]
 
-extra.NewCloneGreeting.event = "NewGreetingAdded"
-extra.NewCloneGreeting.arg = 0
-extra.NewCloneGreeting.artifact = "Greeter"
+var.NewCloneGreeting.event = "NewGreetingAdded"
+var.NewCloneGreeting.arg = 0
+var.NewCloneGreeting.artifact = "Greeter"
 
-extra.OldCloneGreeting.event = "OldGreetingRemoved"
-extra.OldCloneGreeting.arg = 0
-extra.OldCloneGreeting.artifact = "Greeter"
+var.OldCloneGreeting.event = "OldGreetingRemoved"
+var.OldCloneGreeting.arg = 0
+var.OldCloneGreeting.artifact = "Greeter"
 
 # test to parse through previous emitted event values
 [invoke.set_new_greeting_for_next_clones]
 target = ["greeters.greeter"]
 func = "setGreeting"
-args = ["<%= extras.NewCloneGreeting %>"]
+args = ["<%= settings.NewCloneGreeting %>"]
 
 # Clone 2 greeters iteratively (used to test multiple emissions of the same event)
 # Testing this using extras object instead of factory 
@@ -64,12 +65,12 @@ factory.clonedWithIter.arg = 0
 factory.clonedWithIter.artifact = "Greeter"
 factory.clonedWithIter.expectCount = 2
 
-extra.NewClonedGreeterEvent.event = "NewClonedGreeter"
-extra.NewClonedGreeterEvent.arg = 0
-extra.NewClonedGreeterEvent.expectCount = 2
+var.NewClonedGreeterEvent.event = "NewClonedGreeter"
+var.NewClonedGreeterEvent.arg = 0
+var.NewClonedGreeterEvent.expectCount = 2
 
 # Change clone greeting enables changing greetings for greeter clones at specified addresses
 [invoke.change_last_clone_greeting]
 target = ["greeters.greeter"]
 func = "changeCloneGreeting"
-args = ["<%= extras.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]
+args = ["<%= settings.NewClonedGreeterEvent_1 %>", "<%= formatBytes32String('Newest Greeting!') %>"]

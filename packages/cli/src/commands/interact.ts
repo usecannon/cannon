@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import * as viem from 'viem';
-import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
+import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
-import { PackageSpecification } from '../types';
 import { formatAbiFunction } from '../helpers';
+import { PackageSpecification } from '../types';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -345,7 +345,7 @@ async function execTxn({
   // estimate gas
   try {
     txn = (await provider.prepareTransactionRequest({
-      account: signer.address,
+      account: signer.wallet.account || signer.address,
       chain: provider.chain,
       to: contract.address,
       data: callData,
@@ -381,7 +381,9 @@ async function execTxn({
 
     let txHash;
     try {
-      txHash = await signer.wallet.sendTransaction({ account: signer.address, chain: signer.wallet.chain, ...txn! });
+      txHash = await signer.wallet.sendTransaction({
+        ...(txn as any)!,
+      });
 
       console.log('> hash: ', txHash);
       console.log('confirming...');
@@ -433,7 +435,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
   const isBoolean = input.type.includes('bool');
 
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
-  if (isBytes32 && !viem.isBytes(processed)) {
+  if (isBytes32 && !viem.isHex(processed)) {
     if (isArray) {
       processed = processed.map((item: string) => viem.stringToHex(item));
     } else {

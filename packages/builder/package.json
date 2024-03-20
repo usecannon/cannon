@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.11.19",
+  "version": "2.11.21",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,7 +38,8 @@
   },
   "dependencies": {
     "@synthetixio/router": "^3.3.7",
-    "axios": "^1.6.2",
+    "axios": "^1.6.7",
+    "axios-retry": "^4.0.0",
     "buffer": "^6.0.3",
     "debug": "^4.3.4",
     "form-data": "^4.0.0",

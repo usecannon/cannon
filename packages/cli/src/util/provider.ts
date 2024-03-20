@@ -116,7 +116,10 @@ export async function resolveProviderAndSigners({
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
   if (checkProviders[0].startsWith('http')) {
-    debug('use explicit provider url', checkProviders);
+    debug(
+      'use explicit provider url',
+      checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p))
+    );
     try {
       publicClient = (
         viem.createPublicClient({

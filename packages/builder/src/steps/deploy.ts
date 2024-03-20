@@ -3,9 +3,8 @@ import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
+import { deploySchema } from '../schemas';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
-import { encodeDeployData } from '../util';
-import { contractSchema } from '../schemas';
 import {
   ChainArtifacts,
   ChainBuilderContext,
@@ -14,7 +13,7 @@ import {
   ContractArtifact,
   PackageState,
 } from '../types';
-import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -23,7 +22,7 @@ const debug = Debug('cannon:builder:contract');
  *  @public
  *  @group Contract
  */
-export type Config = z.infer<typeof contractSchema>;
+export type Config = z.infer<typeof deploySchema>;
 
 export interface ContractOutputs {
   abi: string;
@@ -86,7 +85,7 @@ function generateOutputs(
     txn.data!,
     viem.getCreateAddress({
       from: typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
-      nonce: 0n,
+      nonce: BigInt(0),
     })
   );
 
@@ -132,10 +131,10 @@ function generateOutputs(
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export address, abi, etc.
 // if already deployed, reexport deployment options for usage downstream and exit with no changes
-const contractSpec = {
-  label: 'contract',
+const deploySpec = {
+  label: 'deploy',
 
-  validate: contractSchema,
+  validate: _.cloneDeep(deploySchema),
 
   async getState(runtime: ChainBuilderRuntimeInfo, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const parsedConfig = this.configInject(ctx, config);
@@ -301,8 +300,8 @@ const contractSpec = {
         const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
         debug('final create2 txn', fullCreate2Txn);
 
-        const hash = await signer.wallet.sendTransaction(fullCreate2Txn);
-
+        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
         debug('arachnid create2 complete', receipt);
       }
@@ -331,9 +330,10 @@ const contractSpec = {
         const signer = config.from
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
-        const hash = await signer.wallet.sendTransaction(
+        const preparedTxn = await runtime.provider.prepareTransactionRequest(
           _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
         );
+        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       }
     }
@@ -362,4 +362,4 @@ const contractSpec = {
   },
 };
 
-export default contractSpec;
+export default deploySpec;

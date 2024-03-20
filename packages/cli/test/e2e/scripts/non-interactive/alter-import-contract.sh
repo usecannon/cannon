@@ -1,1 +1,1 @@
-CANNON_PROVIDER_URL=https://gateway.tenderly.co/public/base-goerli $CANNON alter synthetix:latest@andromeda --chain-id 84531 import contract.AccountModule 0x009deee64034427b0fe2ab6fb223d79a1b97c59f6374cc910e581c3f5fbf933e
+CANNON_PROVIDER_URL=https://gateway.tenderly.co/public/base-sepolia $CANNON alter synthetix:latest@andromeda --chain-id 84532 import contract.AccountModule 0xb35d3cfb76e54c95b16cff00a9effee3af11b7d4abda167f45574c490ce0d6ff

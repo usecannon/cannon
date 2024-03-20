@@ -79,23 +79,25 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         throw new Error('You cannot use --dry-run param when using the "hardhat" network');
       }
 
-      let provider: viem.PublicClient & viem.TestClient & viem.WalletClient =
+      const providerOptions =
         hre.network.name === 'hardhat'
           ? // hardhat network is "special" in that it looks like its a jsonrpc provider,
             // but really you can't use it like that.
-            viem
-              .createTestClient({
-                mode: 'hardhat',
-                chain: getChainById(31337),
-                transport: viem.custom(hre.network.provider),
-              })
-              .extend(viem.walletActions)
-              .extend(viem.publicActions as any)
-          : (viem.createTestClient({
+            {
+              mode: 'hardhat',
+              chain: getChainById(31337),
+              transport: viem.custom(hre.network.provider),
+            }
+          : {
               mode: 'anvil',
               chain: getChainById(hre.network.config.chainId || CANNON_CHAIN_ID),
               transport: viem.http((hre.network.config as HttpNetworkConfig).url),
-            }) as any);
+            };
+
+      let provider: viem.PublicClient & viem.TestClient & viem.WalletClient = viem
+        .createTestClient(providerOptions as any)
+        .extend(viem.walletActions)
+        .extend(viem.publicActions as any);
 
       if (dryRun) {
         console.log(
@@ -119,7 +121,11 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
           if (viem.isAddressEqual(signer.address, address))
             return {
               address: signer.address,
-              wallet: viem.createWalletClient({ account: signer, transport: viem.custom(provider.transport) }),
+              wallet: viem.createWalletClient({
+                account: signer,
+                chain: provider.chain,
+                transport: viem.custom(provider.transport),
+              }),
             };
         }
 
@@ -180,7 +186,6 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
         wipe,
         registryPriority,
         persist: !dryRun && hre.network.name !== 'hardhat',
-        chainId: await provider.getChainId(),
         overrideResolver: dryRun ? await createDryRunRegistry(resolveCliSettings()) : undefined,
         plugins: !!usePlugins,
         publicSourceCode: hre.config.cannon.publicSourceCode,
