@@ -346,6 +346,10 @@ const commandsConfig = {
         description: 'Chain ID of deployment to alter',
       },
       {
+        flags: '-n --provider-url [url]',
+        description: 'RPC endpoint to alter to',
+      },
+      {
         flags: '-p --preset <preset>',
         description: '(DEPRECATED) Preset of the deployment to alter',
       },

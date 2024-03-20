@@ -229,8 +229,21 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   flags
 ) {
   const { alter } = await import('./commands/alter');
+
+  // throw an error if the chainId is not consistent with the provider's chainId
+  await ensureChainIdConsistency(flags.providerUrl, flags.chainId);
+
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(packageName, parseInt(flags.chainId), flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    parseInt(flags.chainId),
+    flags.providerUrl,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
 
   console.log(newUrl);
 });
@@ -503,12 +516,16 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 ) {
   const cliSettings = resolveCliSettings(opts);
 
+  let chainId = opts.chainId;
+
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
+  await ensureChainIdConsistency(opts.providerUrl, chainId);
 
-  const p = await resolveWriteProvider(cliSettings, opts.chainId);
+  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId);
 
-  const chainId = await p.provider.getChainId();
+  if (!chainId) {
+    chainId = await provider.getChainId();
+  }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -531,13 +548,13 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const runtime = new ChainBuilderRuntime(
     {
-      provider: p.provider,
-      chainId: chainId,
+      provider,
+      chainId,
       async getSigner(address: viem.Address) {
         // on test network any user can be conjured
         //await p.provider.impersonateAccount({ address: addr });
         //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
-        return { address: address, wallet: p.provider };
+        return { address: address, wallet: provider };
       },
       snapshots: false,
       allowPartialDeploy: false,
@@ -567,13 +584,13 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   const contracts = [getContractsRecursive(outputs)];
 
-  p.provider = p.provider.extend(traceActions(outputs) as any);
+  const extendedProvider = provider.extend(traceActions(outputs) as any);
 
   await interact({
     packages: [packageDefinition],
     contracts,
-    signer: p.signers[0],
-    provider: p.provider,
+    signer: signers[0],
+    provider: extendedProvider,
   });
 });
 

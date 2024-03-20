@@ -43,6 +43,14 @@ export async function trace({
   // will call `trace_transaction`, and decode as much data from the trace
   // as possible, the same way that an error occurs
 
+  // get transaction data from the provider
+  const { provider } = await resolveWriteProvider(cliSettings, chainId);
+
+  // if chain id is not specified, get it from the provider
+  if (!chainId) {
+    chainId = await provider.getChainId();
+  }
+
   const deployInfos = await readDeployRecursive(packageRef, chainId);
 
   const artifacts: ChainArtifacts = {};
@@ -50,9 +58,6 @@ export async function trace({
   for (const di of deployInfos) {
     _.merge(artifacts, getArtifacts(new ChainDefinition(di.def), di.state));
   }
-
-  // get transaction data from the provider
-  const { provider } = await resolveWriteProvider(cliSettings, chainId);
 
   if (viem.isHash(data)) {
     const txHash = data as viem.Hash;
