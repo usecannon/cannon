@@ -28,7 +28,7 @@ export async function alter(
   providerUrl: string,
   presetArg: string,
   meta: any,
-  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete',
+  command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>
 ) {
@@ -48,6 +48,7 @@ export async function alter(
   }
 
   const cliSettings = resolveCliSettings({ providerUrl });
+
   const { provider } = await resolveWriteProvider(cliSettings, chainId);
   const resolver = await createDefaultReadRegistry(cliSettings);
   const loader = getMainLoader(cliSettings);
@@ -200,6 +201,37 @@ export async function alter(
       // invalidate the state hash
       deployInfo.state[targets[0]].hash = 'INCOMPLETE';
       break;
+    case 'migrate-212':
+      // nested provisions also have to be updated
+      for (const k in deployInfo.state) {
+        if (k.startsWith('provision.')) {
+          const oldUrl = deployInfo.state[k].artifacts.imports![k.split('.')[1]].url;
+
+          const newUrl = await alter(
+            `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
+            chainId,
+            presetArg,
+            meta,
+            'migrate-212',
+            targets,
+            runtimeOverrides
+          );
+
+          deployInfo.state[k].artifacts.imports![k.split('.')[1]].url = newUrl;
+        }
+      }
+
+      // `contract` steps renamed to `deploy`
+      // `import` steps renamed to `pull`
+      // `provision` steps renamed to `clone`
+      // we just need to update the key that the state for these releases is stored on
+      deployInfo.state = _.mapKeys(deployInfo.state, (_v, k) => {
+        return k
+          .replace(/^contract\./, 'deploy.')
+          .replace(/^import\./, 'pull.')
+          .replace(/^provision\./, 'clone.');
+      });
+      break;
   }
 
   const newUrl = await runtime.putDeploy(deployInfo);
@@ -208,7 +240,7 @@ export async function alter(
     throw new Error('loader is not writable');
   }
 
-  console.log(newUrl);
-
   await resolver.publish([fullPackageRef], chainId, newUrl, metaUrl || '');
+
+  return newUrl;
 }

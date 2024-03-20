@@ -1,4 +1,4 @@
-import { extractChain, Chain } from 'viem';
+import { Chain, extractChain } from 'viem';
 import * as viemChains from 'viem/chains';
 
 export const cannonChain: Chain = {

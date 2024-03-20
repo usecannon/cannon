@@ -149,7 +149,7 @@ function QueueFromGitOps() {
     : cannonfileUrlInput &&
       'The format of your URL appears incorrect. Please double check and try again.';
 
-  // TODO: is there any way to make a better ocntext? maybe this means we should get rid of name using context?
+  // TODO: is there any way to make a better context? maybe this means we should get rid of name using context?
   const ctx: ChainBuilderContext = {
     chainId: 0,
     package: {},
@@ -158,7 +158,7 @@ function QueueFromGitOps() {
     contracts: {},
     txns: {},
     imports: {},
-    extras: {},
+    overrideSettings: {},
   };
 
   const settings = useStore((s) => s.settings);

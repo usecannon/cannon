@@ -16,20 +16,25 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'cannon',
   networks: {
     hardhat: {
-      chainId: 31337,
+      chainId: 1, // required for tests
     },
     local: {
       url: 'http://127.0.0.1:8545/',
       chainId: 31337,
     },
+    optimism: {
+      url: process.env.PROVIDER_URL || `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
+      chainId: 10,
+    },
     mainnet: {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: process.env.PRIVATE_KEY?.split(','),
+      accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
       chainId: 1,
     },
     goerli: {
       url: process.env.PROVIDER_URL || `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: process.env.PRIVATE_KEY?.split(','),
+      accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
       chainId: 5,
     },
   },

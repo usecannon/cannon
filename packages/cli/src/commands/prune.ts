@@ -28,6 +28,10 @@ export async function prune(
   }
 
   const registryUrls: Set<string> = new Set();
+  if (!packageFilters) {
+    debug('load all urls from registry');
+    (await storage.registry.getAllUrls()).forEach(registryUrls.add, registryUrls);
+  }
   for (const packageFilter of packageFilters) {
     debug('load urls from registry', packageFilter);
     if (!chainIds.length) {
@@ -66,12 +70,11 @@ export async function prune(
   for (const url of loaderUrls) {
     try {
       const deployInfo = (await storage.readBlob(url)) as DeploymentInfo;
-      console.log('deploy info', deployInfo);
 
-      /*if (!deployInfo.generator || !deployInfo.generator.startsWith('cannon ')) {
-        debug(`${url}: not cannon package`);
+      if (!deployInfo.generator || !deployInfo.generator.startsWith('cannon ')) {
+        debug(`${url}: parsed, but not cannon package`);
         pruneStats.notCannonPackage++;
-      } else*/ if (deployInfo.timestamp && deployInfo.timestamp >= now - keepAge) {
+      } else if (deployInfo.timestamp && deployInfo.timestamp >= now - keepAge) {
         debug(`${url}: not expired (${deployInfo.timestamp}, ${now - keepAge})`);
         pruneStats.notExpired++;
         keepUrls.add(normalizeMiscUrl(deployInfo.miscUrl));

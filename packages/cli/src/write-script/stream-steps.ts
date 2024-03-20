@@ -54,7 +54,7 @@ class StepEventsStream extends Readable {
 
   _construct(cb: (err?: Error | null | undefined) => void): void {
     const handlePreStepExecute = (type: DumpLine['type'], label: string, step: DumpLine['step'], depth: number) => {
-      if (type === 'provision') {
+      if (type === 'clone') {
         this.push({ type, label, depth, step, txns: [] });
       }
     };

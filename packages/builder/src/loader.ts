@@ -17,13 +17,15 @@ export class IPFSLoader implements CannonLoader {
   isGateway = false;
   customHeaders: Headers = {};
   timeout: number;
+  retries: number;
 
   static PREFIX = 'ipfs://';
 
-  constructor(ipfsUrl: string, customHeaders: Headers = {}, timeout = 300000) {
+  constructor(ipfsUrl: string, customHeaders: Headers = {}, timeout = 300000, retries = 3) {
     this.ipfsUrl = ipfsUrl.replace('+ipfs://', '://');
     this.customHeaders = customHeaders;
     this.timeout = timeout;
+    this.retries = retries;
   }
 
   async checkGateway() {
@@ -41,7 +43,7 @@ export class IPFSLoader implements CannonLoader {
 
     debug('ipfs put');
 
-    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway, this.timeout);
+    const hash = await writeIpfs(this.ipfsUrl, misc, this.customHeaders, this.isGateway, this.timeout, this.retries);
 
     return IPFSLoader.PREFIX + hash;
   }
@@ -56,7 +58,8 @@ export class IPFSLoader implements CannonLoader {
       url.replace(IPFSLoader.PREFIX, ''),
       this.customHeaders,
       this.isGateway,
-      this.timeout
+      this.timeout,
+      this.retries
     );
   }
 

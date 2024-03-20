@@ -1,9 +1,9 @@
 import type { ChainArtifacts } from '@usecannon/builder';
-import type { Config as StepContract } from '@usecannon/builder/src/steps/contract';
+import type { Config as StepDeploy } from '@usecannon/builder/src/steps/deploy';
 import type { Config as StepInvoke } from '@usecannon/builder/src/steps/invoke';
 import type { Config as StepRouter } from '@usecannon/builder/src/steps/router';
-import type { Config as StepImport } from '@usecannon/builder/src/steps/import';
-import type { Config as StepProvision } from '@usecannon/builder/src/steps/provision';
+import type { Config as StepPull } from '@usecannon/builder/src/steps/pull';
+import type { Config as StepClone } from '@usecannon/builder/src/steps/clone';
 import * as viem from 'viem';
 
 type BaseDumpLine = {
@@ -19,8 +19,8 @@ type BaseDumpLine = {
  */
 export type DumpLine =
   | (BaseDumpLine & {
-      type: 'contract';
-      step: StepContract;
+      type: 'deploy';
+      step: StepDeploy;
     })
   | (BaseDumpLine & {
       type: 'invoke';
@@ -31,12 +31,12 @@ export type DumpLine =
       step: StepRouter;
     })
   | (BaseDumpLine & {
-      type: 'import';
-      step: StepImport;
+      type: 'pull';
+      step: StepPull;
     })
   | (BaseDumpLine & {
-      type: 'provision';
-      step: StepProvision;
+      type: 'clone';
+      step: StepClone;
     });
 
 export type DumpRenderer = () => any;

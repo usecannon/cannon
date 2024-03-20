@@ -41,11 +41,10 @@ const code2 = `name = "sample-hardhat-project"
 version = "0.1"
 description = "Sample Hardhat Project"
 
-[setting.unlock_time]
-defaultValue = "1700000000"
-description="Initialization value for the unlock time"
+[var.main]
+unlock_time = "1700000000"
 
-[contract.lock]
+[deploy.lock]
 artifact = "Lock"
 args = ["<%= settings.unlock_time %>"]`;
 
