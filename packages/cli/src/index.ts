@@ -516,7 +516,18 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 ) {
   const cliSettings = resolveCliSettings(opts);
 
-  let chainId = opts.chainId;
+  let chainId: number | undefined = opts.chainId ? Number(opts.chainId) : undefined;
+
+  // throw an error if both chainId and providerUrl are not provided
+  if (!chainId && !opts.providerUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  }
+
+  // if chainId is not provided, get it from the provider
+  if (!chainId) {
+    const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
+    chainId = await _provider.getChainId();
+  }
 
   // throw an error if the chainId is not consistent with the provider's chainId
   await ensureChainIdConsistency(opts.providerUrl, chainId);

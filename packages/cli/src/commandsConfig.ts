@@ -636,7 +636,6 @@ const commandsConfig = {
       {
         flags: '-c --chain-id <chainId>',
         description: 'Chain ID of deployment to interact with ',
-        required: true,
       },
       {
         flags: '-n --provider-url [url]',
