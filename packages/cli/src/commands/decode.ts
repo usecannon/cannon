@@ -145,7 +145,7 @@ function _renderValue(type: viem.AbiParameter, value: string | bigint) {
       return value.toString();
 
     case type.type === 'address':
-      return value;
+      return viem.getAddress(value);
 
     case type.type == 'bool':
       return viem.hexToBool(value as viem.Hex);
