@@ -65,7 +65,7 @@ export async function alter(
       async getSigner(addr: viem.Address) {
         // on test network any user can be conjured
         //await provider.impersonateAccount({ address: addr });
-        //await provider.setBalance({ address: addr, value: BigInt(1e22) });
+        //await provider.setBalance({ address: addr, value: viem.parseEther('10000') });
         return { address: addr, wallet: provider as viem.WalletClient };
       },
       snapshots: false,

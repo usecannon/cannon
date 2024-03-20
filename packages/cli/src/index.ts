@@ -568,7 +568,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
       async getSigner(address: viem.Address) {
         // on test network any user can be conjured
         //await p.provider.impersonateAccount({ address: addr });
-        //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
+        //await p.provider.setBalance({ address: addr, value: viem.parseEther('10000') });
         return { address: address, wallet: provider };
       },
       snapshots: false,

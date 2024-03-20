@@ -57,12 +57,13 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   // Start the rpc server
   const node = options.node;
+
   const provider = getProvider(node)!;
   const nodeLogging = await createLoggingInterface(node);
 
   if (options.fundAddresses && options.fundAddresses.length) {
     for (const fundAddress of options.fundAddresses) {
-      await provider?.setBalance({ address: fundAddress as viem.Address, value: BigInt(1e22) });
+      await provider?.setBalance({ address: fundAddress as viem.Address, value: viem.parseEther('10000') });
     }
   }
 
@@ -76,11 +77,12 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   // set up signers
   for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
     await provider.impersonateAccount({ address: addr as viem.Address });
-    await provider.setBalance({ address: addr as viem.Address, value: BigInt(1e22) });
+    await provider.setBalance({ address: addr as viem.Address, value: viem.parseEther('10000') });
     signers = [{ address: addr as viem.Address, wallet: provider }];
   }
 
   const chainId = await provider.getChainId();
+
   const basicRuntime = new ChainBuilderRuntime(
     {
       provider: provider,

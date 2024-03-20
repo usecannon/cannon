@@ -132,7 +132,7 @@ export async function build({
       async function (addr: viem.Address) {
         // on test network any user can be conjured
         await (provider as unknown as viem.TestClient).impersonateAccount({ address: addr });
-        await (provider as unknown as viem.TestClient).setBalance({ address: addr, value: BigInt(1e22) });
+        await (provider as unknown as viem.TestClient).setBalance({ address: addr, value: viem.parseEther('10000') });
 
         return {
           address: addr,
