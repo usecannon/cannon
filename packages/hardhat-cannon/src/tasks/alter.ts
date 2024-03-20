@@ -12,8 +12,9 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
   )
   .addOptionalVariadicPositionalParam('options', 'Additional options for your alteration command')
   .addOptionalParam('chainId', 'Chain ID of the variant to inspect')
+  .addOptionalParam('providerUrl', 'RPC endpoint of the variant to inspect')
   .addOptionalParam('preset', 'Preset of the variant to inspect')
-  .setAction(async ({ packageName, chainId, preset, command, options }, hre) => {
+  .setAction(async ({ packageName, chainId, providerUrl, preset, command, options }, hre) => {
     const packageSpec: PackageSpecification = await hre.run(SUBTASK_LOAD_PACKAGE_DEFINITION, {
       packageWithSettingsParams: packageName ? [packageName] : [],
     });
@@ -25,6 +26,7 @@ task(TASK_ALTER, 'Make a change to a cannon package outside the regular build pr
     await alter(
       `${packageSpec.name}:${packageSpec.version}`,
       chainId,
+      providerUrl,
       preset,
       loadPackageJson(path.join(hre.config.paths.root, 'package.json')),
       command,
