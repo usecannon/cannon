@@ -6,7 +6,7 @@ import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:var');
 
 /**
  *  Available properties for var step

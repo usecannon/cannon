@@ -15,6 +15,7 @@ import {
   getOutputs,
   CANNON_CHAIN_ID,
   DeploymentInfo,
+  StepState,
 } from '@usecannon/builder';
 import { getMainLoader } from '../loader';
 import { resolveCliSettings } from '../settings';
@@ -166,13 +167,53 @@ export async function alter(
 
         // some steps may require access to misc artifacts
         await runtime.restoreMisc(deployInfo.miscUrl);
-        deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+
+        const importExisting = await stepAction.importExisting(
           runtime,
           ctx,
           config,
           { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
           existingKeys
         );
+
+        if (deployInfo.state[stepName]) {
+          deployInfo.state[stepName].artifacts = importExisting;
+        } else {
+          debug(`step ${stepName} not found, populating...`);
+          try {
+            deployInfo.state[stepName] = {} as StepState;
+
+            await runtime.putBlob(deployInfo);
+
+            // some steps may require access to misc artifacts
+            await runtime.restoreMisc(deployInfo.miscUrl);
+
+            const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
+            const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
+
+            _.assign(ctx, outputs);
+
+            deployInfo.state[stepName].artifacts = await stepAction.importExisting(
+              runtime,
+              ctx,
+              config,
+              { currentLabel: stepName, name: def.getName(ctx), version: def.getVersion(ctx) },
+              existingKeys
+            );
+
+            const newDeployUrl = await runtime.putBlob(deployInfo);
+
+            return newDeployUrl!;
+          } catch (err) {
+            throw new Error(
+              `Step ${stepName} not found in deployment state and could not be populated by cannon, here are the available step options: \n ${Object.keys(
+                deployInfo.state
+              )
+                .map((s) => `\n ${s}`)
+                .join('\n')}`
+            );
+          }
+        }
       }
 
       break;
