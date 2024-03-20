@@ -507,17 +507,6 @@ function _isTupleParameter(
 }
 
 /**
- * Formats a given value based on its ABI type.
- *
- * @param {viem.AbiParameter} type - The ABI type information of the value being formatted.
- * @param {string | bigint} value - The value to format, can be a string or bigint.
- * @returns {string} - The formatted value as a string.
- */
-function formatValue(type: viem.AbiParameter, value: string | bigint): string {
-  return type.type === 'address' ? viem.getAddress(value as viem.Hex) : value.toString();
-}
-
-/**
  * Converts an object to a prettified JSON string with a specified indentation and offset.
  *
  * @param {any} obj - The object to be converted into a JSON string.
@@ -525,7 +514,7 @@ function formatValue(type: viem.AbiParameter, value: string | bigint): string {
  * @param {number} indentSpaces - The number of spaces used for indentation in the JSON string. Default is 2.
  * @returns {string} - The prettified and offset JSON string.
  */
-function stringifyWithOffset(obj: any, offsetSpaces = 4, indentSpaces = 2) {
+export function stringifyWithOffset(obj: any, offsetSpaces = 4, indentSpaces = 2) {
   const jsonString = JSON.stringify(obj, null, indentSpaces);
   const offset = ' '.repeat(offsetSpaces);
   return jsonString
@@ -543,7 +532,7 @@ function stringifyWithOffset(obj: any, offsetSpaces = 4, indentSpaces = 2) {
  * @param {string} offset - A string used for initial indentation, facilitating readable output formatting.
  * @returns {string} - A string representation of the argument, formatted for readability.
  */
-function renderArgs(input: viem.AbiParameter, value: any, offset = ' '): string {
+export function renderArgs(input: viem.AbiParameter, value: any, offset = ' '): string {
   const lines: string[] = [];
 
   switch (true) {
@@ -556,7 +545,7 @@ function renderArgs(input: viem.AbiParameter, value: any, offset = ' '): string 
       break;
 
     default:
-      lines.push(`${offset}${formatValue(input, value)}`);
+      lines.push(`${offset}${value.toString()}`);
   }
 
   return lines.join('\n');
