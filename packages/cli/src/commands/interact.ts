@@ -1,17 +1,13 @@
-import _ from 'lodash';
-
-import * as viem from 'viem';
-
+import Wei, { wei } from '@synthetixio/wei';
+import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 import chalk from 'chalk';
+import _ from 'lodash';
+import prompts, { Choice } from 'prompts';
+import * as viem from 'viem';
+import { formatAbiFunction } from '../helpers';
+import { PackageSpecification } from '../types';
 
 const { red, bold, gray, green, yellow, cyan } = chalk;
-
-import prompts, { Choice } from 'prompts';
-import Wei, { wei } from '@synthetixio/wei';
-import { PackageSpecification } from '../types';
-import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
-
-import { formatAbiFunction } from '../helpers';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -351,7 +347,7 @@ async function execTxn({
   // estimate gas
   try {
     txn = (await provider.prepareTransactionRequest({
-      account: signer.address,
+      account: signer.wallet.account || signer.address,
       chain: provider.chain,
       to: contract.address,
       data: callData,
@@ -387,7 +383,9 @@ async function execTxn({
 
     let txHash;
     try {
-      txHash = await signer.wallet.sendTransaction({ account: signer.address, chain: signer.wallet.chain, ...txn! });
+      txHash = await signer.wallet.sendTransaction({
+        ...(txn as any)!,
+      });
 
       console.log('> hash: ', txHash);
       console.log('confirming...');
