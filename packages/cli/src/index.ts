@@ -155,6 +155,10 @@ function configureRun(program: Command) {
         forkProvider: provider,
       });
     } else {
+      if (options.providerUrl) {
+        const _provider = viem.createPublicClient({ transport: viem.http(options.providerUrl) });
+        options.chainId = await _provider.getChainId();
+      }
       node = await runRpc(pickAnvilOptions(options));
     }
 
