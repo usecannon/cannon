@@ -234,7 +234,18 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
   await ensureChainIdConsistency(flags.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, parseInt(flags.chainId), flags.providerUrl, flags.preset, {}, command, options, {});
+  const newUrl = await alter(
+    packageName,
+    parseInt(flags.chainId),
+    flags.providerUrl,
+    flags.preset,
+    {},
+    command,
+    options,
+    {}
+  );
+
+  console.log(newUrl);
 });
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {

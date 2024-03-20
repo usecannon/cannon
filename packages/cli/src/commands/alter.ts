@@ -210,6 +210,7 @@ export async function alter(
           const newUrl = await alter(
             `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
             chainId,
+            providerUrl,
             presetArg,
             meta,
             'migrate-212',
