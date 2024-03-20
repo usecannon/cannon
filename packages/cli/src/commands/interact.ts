@@ -307,12 +307,12 @@ async function query({
     return null;
   }
 
-  for (let i = 0; i < (functionAbi.outputs?.length || 0); i++) {
-    const output = functionAbi.outputs![i];
+  for (let i = 0; i < functionAbi.outputs.length; i++) {
+    const output = functionAbi.outputs[i];
 
     console.log(
       cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      renderArgs(output, functionAbi.outputs!.length > 1 ? result[i] : result)
+      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
     );
   }
 
@@ -489,62 +489,78 @@ function parseWeiValue(v: string): bigint {
   }
 }
 
-function _renderValue(type: viem.AbiParameter, value: string | bigint) {
-  switch (true) {
-    case type.type.startsWith('uint'):
-    case type.type.startsWith('int'):
-      return value.toString();
-
-    case type.type === 'address':
-      return viem.getAddress(value as viem.Hex);
-
-    case type.type == 'bool':
-      return Boolean(value);
-
-    case type.type.startsWith('bytes'):
-      try {
-        return value.toString();
-      } catch (err) {
-        console.error(err);
-      }
-
-      return value;
-    default:
-      return value;
-  }
+/**
+ * Checks if a given ABI parameter is a tuple with components.
+ *
+ * This function acts as a type guard, allowing TypeScript to understand
+ * that the parameter passed to it, if the function returns true,
+ * is not just any AbiParameter, but specifically one that includes
+ * the 'components' property.
+ *
+ * @param {viem.AbiParameter} parameter - The ABI parameter to check.
+ * @returns {boolean} - True if the parameter is a tuple with components, false otherwise.
+ */
+function _isTupleParameter(
+  parameter: viem.AbiParameter
+): parameter is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
+  return 'components' in parameter && parameter.type.startsWith('tuple');
 }
 
-const renderArgs = (input: viem.AbiParameter, value: any, offset = '  ') => {
+/**
+ * Formats a given value based on its ABI type.
+ *
+ * @param {viem.AbiParameter} type - The ABI type information of the value being formatted.
+ * @param {string | bigint} value - The value to format, can be a string or bigint.
+ * @returns {string} - The formatted value as a string.
+ */
+function formatValue(type: viem.AbiParameter, value: string | bigint): string {
+  return type.type === 'address' ? viem.getAddress(value as viem.Hex) : value.toString();
+}
+
+/**
+ * Converts an object to a prettified JSON string with a specified indentation and offset.
+ *
+ * @param {any} obj - The object to be converted into a JSON string.
+ * @param {number} offsetSpaces - The number of spaces to offset the entire JSON string. Default is 4.
+ * @param {number} indentSpaces - The number of spaces used for indentation in the JSON string. Default is 2.
+ * @returns {string} - The prettified and offset JSON string.
+ */
+function stringifyWithOffset(obj: any, offsetSpaces = 4, indentSpaces = 2) {
+  const jsonString = JSON.stringify(obj, null, indentSpaces);
+  const offset = ' '.repeat(offsetSpaces);
+  return jsonString
+    .split('\n')
+    .map((line) => offset + line)
+    .join('\n');
+}
+
+/**
+ * Renders the arguments for a given ABI parameter and its associated value.
+ * This function handles different data structures (tuples, arrays, uint, int, etc).
+ *
+ * @param {viem.AbiParameter} input - The ABI parameter describing the type and structure of the value.
+ * @param {any} value - The value associated with the ABI parameter.
+ * @param {string} offset - A string used for initial indentation, facilitating readable output formatting.
+ * @returns {string} - A string representation of the argument, formatted for readability.
+ */
+function renderArgs(input: viem.AbiParameter, value: any, offset = ' '): string {
+  const lines: string[] = [];
+
   switch (true) {
-    case input.type.startsWith('tuple'):
-      // @ts-ignore: for some reason viem types die here
-      input.components.forEach((component, index) => {
-        const componentValue = Array.isArray(value) ? value[index] : value[component.name];
-        renderArgs(component, componentValue, offset + '  ');
-      });
+    case _isTupleParameter(input):
+      lines.push('', stringifyWithOffset(value));
       break;
 
-    case input.type.endsWith('[]'):
-      // @ts-ignore: for some reason viem types die here
-      value.forEach((item, index) => {
-        console.log(`${offset}  [${index}]:`);
-        // @ts-ignore: for some reason viem types die here
-        if (input.type.includes('tuple') && input.components) {
-          // @ts-ignore: for some reason viem types die here
-          input.components.forEach((component, componentIndex) => {
-            renderArgs(component, item[componentIndex], offset + '    ');
-          });
-        } else {
-          // Handle simple array types
-          return _renderValue({ type: input.type.replace('[]', '') }, item);
-        }
-      });
+    case input.type.endsWith('[]') && Array.isArray(value):
+      lines.push('', stringifyWithOffset(value));
       break;
 
     default:
-      return _renderValue(input, value);
+      lines.push(`${offset}${formatValue(input, value)}`);
   }
-};
+
+  return lines.join('\n');
+}
 
 // Avoid 'false' and '0' being interpreted as bool = true
 function boolify(value: any) {
