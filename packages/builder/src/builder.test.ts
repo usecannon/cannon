@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { RawChainDefinition } from './actions';
-import { build, createInitialContext, getOutputs, runStep } from './builder';
+import { build, createInitialContext, getOutputs, runStep, addOutputsToContext } from './builder';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
@@ -9,6 +9,7 @@ import { InMemoryRegistry } from './registry';
 import { ChainBuilderRuntime, Events } from './runtime';
 import deployStep from './steps/deploy';
 import varStep from './steps/var';
+import pullStep from './steps/pull';
 import invokeStep from './steps/invoke';
 import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
 
@@ -45,6 +46,7 @@ describe('builder.ts', () => {
     jest.mocked(provider.extend).mockReturnThis();
     deployStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     varStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
+    pullStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     invokeStep.validate = { safeParse: jest.fn().mockReturnValue({ success: true } as any) } as any;
     runtime = new ChainBuilderRuntime(
       {
@@ -80,6 +82,14 @@ describe('builder.ts', () => {
         args: [1, 2, 3, '<%= contracts.Yoop.address %>'],
         from: '0x1234123412341234123412341234123412341234',
         depends: ['deploy.Yoop'],
+      },
+    },
+    pull: {
+      thePackage: {
+        source: 'source',
+        chainId: 1234,
+        preset: 'preset',
+        depends: [],
       },
     },
   } as RawChainDefinition;
@@ -120,6 +130,18 @@ describe('builder.ts', () => {
       version: BUILD_VERSION,
       hash: '56786789',
       chainDump: '0x5678',
+    },
+    'pull.thePackage': {
+      artifacts: {
+        imports: {
+          thePackage: {
+            url: '0x1234',
+          },
+        },
+      },
+      version: BUILD_VERSION,
+      hash: '79797979',
+      chainDump: '0x7979',
     },
     'var.setStuff': {
       artifacts: {
@@ -268,7 +290,7 @@ describe('builder.ts', () => {
 
       // should only be called for the leaf
       expect(provider.loadState).toBeCalledWith({ state: '0x5678' });
-      expect(provider.loadState).toBeCalledTimes(2);
+      expect(provider.loadState).toBeCalledTimes(3);
     });
   });
 
@@ -285,6 +307,178 @@ describe('builder.ts', () => {
       );
 
       expect(stepData).toStrictEqual(expectedStateOut['deploy.Yoop'].artifacts);
+    });
+  });
+
+  describe('addOutputsToContext()', () => {
+    let ctx: ChainBuilderContext;
+
+    beforeAll(async () => {
+      const pkg = { foo: 'bard' };
+      ctx = await createInitialContext(new ChainDefinition(fakeDefinition), pkg, 5, { baz: 'boop' });
+    });
+
+    it('adds artifacts to context', async () => {
+      const artifacts = {
+        contracts: {
+          Yoop: {
+            address: '0x0987098709870987098709870987098709870987' as `0x${string}`,
+            deployTxnHash: '0x1234',
+            sourceName: 'Wohoo.sol',
+            contractName: 'Wohoo',
+            abi: [],
+            deployedOn: 'deploy.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
+          },
+        },
+        txns: {
+          smartFunc: {
+            hash: '0x' as `0x${string}`,
+            events: {},
+            deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
+          },
+        },
+        imports: {
+          thePackage: {
+            url: '0x1234',
+          },
+        },
+        settings: {
+          foo: 'bar',
+        },
+      };
+      const expectedCtx = {
+        package: { foo: 'bard' },
+        chainId: 5,
+        overrideSettings: { baz: 'boop' },
+        contracts: {
+          Yoop: {
+            address: '0x0987098709870987098709870987098709870987',
+            deployTxnHash: '0x1234',
+            contractName: 'Wohoo',
+            sourceName: 'Wohoo.sol',
+            abi: [],
+            deployedOn: 'deploy.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
+          },
+        },
+        txns: {
+          smartFunc: {
+            hash: '0x',
+            events: {},
+            deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
+          },
+        },
+        imports: { thePackage: { url: '0x1234' } },
+        settings: { baz: 'boop', foo: 'bar' },
+        thePackage: { url: '0x1234' },
+        'Yoop.address': '0x0987098709870987098709870987098709870987',
+      };
+
+      addOutputsToContext(ctx, artifacts);
+
+      expect(ctx.chainId).toBe(5);
+      expect(ctx.package).toEqual({ foo: 'bard' });
+      expect(ctx.overrideSettings).toStrictEqual({ baz: 'boop' });
+      expect(parseInt(ctx.timestamp)).toBeCloseTo(Date.now() / 1000, -2);
+      expect(ctx.contracts).toStrictEqual(expectedCtx.contracts);
+      expect(ctx.txns).toStrictEqual(expectedCtx.txns);
+      expect(ctx.imports).toStrictEqual(expectedCtx.imports);
+      expect(ctx.settings).toStrictEqual(expectedCtx.settings);
+      expect(ctx.thePackage).toStrictEqual(expectedCtx.thePackage);
+      expect(ctx['Yoop.address']).toStrictEqual(expectedCtx['Yoop.address']);
+    });
+
+    it('supports recursive imports', async () => {
+      const artifacts = {
+        contracts: {
+          Yoop: {
+            address: '0x0987098709870987098709870987098709870987' as `0x${string}`,
+            deployTxnHash: '0x1234',
+            sourceName: 'Wohoo.sol',
+            contractName: 'Wohoo',
+            abi: [],
+            deployedOn: 'deploy.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
+          },
+        },
+        txns: {
+          smartFunc: {
+            hash: '0x' as `0x${string}`,
+            events: {},
+            deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
+          },
+        },
+        imports: {
+          thePackage: {
+            url: '0x1234',
+            imports: {
+              superPackage: {
+                url: '0x4321',
+              },
+            },
+          },
+        },
+        settings: {
+          foo: 'bar',
+        },
+      };
+      const expectedCtx = {
+        package: { foo: 'bard' },
+        chainId: 5,
+        overrideSettings: { baz: 'boop' },
+        contracts: {
+          Yoop: {
+            address: '0x0987098709870987098709870987098709870987',
+            deployTxnHash: '0x1234',
+            contractName: 'Wohoo',
+            sourceName: 'Wohoo.sol',
+            abi: [],
+            deployedOn: 'deploy.Yoop',
+            gasCost: '0',
+            gasUsed: 0,
+          },
+        },
+        txns: {
+          smartFunc: {
+            hash: '0x',
+            events: {},
+            deployedOn: 'invoke.smartFunc',
+            gasCost: '0',
+            gasUsed: 0,
+            signer: '',
+          },
+        },
+        imports: { thePackage: { url: '0x1234', imports: { superPackage: { url: '0x4321' } } } },
+        settings: { baz: 'boop', foo: 'bar' },
+        thePackage: { url: '0x1234', superPackage: { url: '0x4321' } },
+        'Yoop.address': '0x0987098709870987098709870987098709870987',
+      };
+
+      addOutputsToContext(ctx, artifacts);
+
+      expect(ctx.chainId).toBe(5);
+      expect(ctx.package).toEqual({ foo: 'bard' });
+      expect(ctx.overrideSettings).toStrictEqual({ baz: 'boop' });
+      expect(parseInt(ctx.timestamp)).toBeCloseTo(Date.now() / 1000, -2);
+      expect(ctx.contracts).toStrictEqual(expectedCtx.contracts);
+      expect(ctx.txns).toStrictEqual(expectedCtx.txns);
+      expect(ctx.imports).toStrictEqual(expectedCtx.imports);
+      expect(ctx.settings).toStrictEqual(expectedCtx.settings);
+      expect(ctx.thePackage).toStrictEqual(expectedCtx.thePackage);
+      expect(ctx['Yoop.address']).toStrictEqual(expectedCtx['Yoop.address']);
     });
   });
 

@@ -368,25 +368,47 @@ export async function getOutputs(
 }
 
 // TODO: this func is dumb but I need to walk through this time period before I want to turn it into something of beauty
-function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
+export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
   const imports = outputs.imports;
   for (const imp in imports) {
     ctx.imports[imp] = imports[imp];
-    //also add simplified syntax
-    ctx[imp] = { ...imports[imp], contracts: undefined };
-    delete ctx[imp].contracts;
+  }
 
-    if (imports[imp].contracts) {
-      for (const contractName in imports[imp].contracts) {
-        ctx[imp][contractName] = imports[imp].contracts![contractName];
+  //helper function for recursively adding simplified imports notation
+  function addImports(ctx: ChainBuilderContext, imports: any, parentObject: any = null): void {
+    Object.keys(imports).forEach((key) => {
+      const currentImport = imports[key];
+      let targetObject = parentObject;
+
+      if (!targetObject) {
+        targetObject = ctx;
       }
-    }
+
+      if (!targetObject[key]) {
+        targetObject[key] = { url: currentImport.url };
+      } else {
+        targetObject[key].url = currentImport.url;
+      }
+
+      if (currentImport.imports && Object.keys(currentImport.imports).length > 0) {
+        addImports(ctx, currentImport.imports, targetObject[key]);
+      }
+
+      if (currentImport.contracts && Object.keys(currentImport.contracts).length > 0) {
+        targetObject[key].contracts = currentImport.contracts;
+      }
+    });
+  }
+
+  //add simplified imports syntax
+  if (imports) {
+    addImports(ctx, outputs.imports);
   }
 
   const contracts = outputs.contracts as ContractMap;
   for (const contractName in contracts) {
     ctx.contracts[contractName] = contracts[contractName];
-    //also add simplified syntax
+    //also add simplified address syntax
     const contractData = contracts[contractName];
     if (contractData && contractData.address) {
       const simplifiedPath = `${contractName}.address`;
