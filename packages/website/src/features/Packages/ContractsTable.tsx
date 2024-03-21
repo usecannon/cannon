@@ -15,6 +15,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowUpDownIcon,
+  StarIcon,
 } from '@chakra-ui/icons';
 import {
   useReactTable,
@@ -45,6 +46,7 @@ export const ContractsTable: React.FC<{
   chainId: number;
 }> = ({ contractState, chainId }) => {
   type ContractRow = {
+    highlight: boolean;
     name: string;
     address: string;
     deployTxnHash: string;
@@ -53,6 +55,7 @@ export const ContractsTable: React.FC<{
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
       ([key, value]): ContractRow => ({
+        highlight: !!value.highlight,
         name: key?.toString(),
         step: value.deployedOn.toString(),
         address: value.address,
@@ -61,9 +64,19 @@ export const ContractsTable: React.FC<{
     );
   }, [contractState]);
 
+  const hasHighedlighted = data.some((row) => row.highlight);
+
   const columnHelper = createColumnHelper<ContractRow>();
 
   const columns = [
+    ...(hasHighedlighted
+      ? [
+          columnHelper.accessor('highlight', {
+            cell: (info: any) => info.getValue(),
+            header: '',
+          }),
+        ]
+      : []),
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
       header: 'Step',
@@ -83,8 +96,9 @@ export const ContractsTable: React.FC<{
   ];
 
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'step', desc: false },
+    { id: 'highlight', desc: true },
   ]);
+
   const table = useReactTable({
     columns,
     data,
@@ -158,102 +172,111 @@ export const ContractsTable: React.FC<{
         ))}
       </Thead>
       <Tbody>
-        {table.getRowModel().rows.map((row, rowInd) => (
-          <Tr key={row.id}>
-            {row.getVisibleCells().map((cell) => {
-              // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-              const meta: any = cell.column.columnDef.meta;
-              return (
-                <Td
-                  key={cell.id}
-                  isNumeric={meta?.isNumeric}
-                  borderColor="gray.600"
-                  borderBottom={
-                    table.getRowModel().rows.length == rowInd + 1
-                      ? 'none'
-                      : undefined
-                  }
-                  whiteSpace="nowrap"
-                >
-                  {(() => {
-                    switch (cell.column.columnDef.accessorKey) {
-                      case 'step': {
-                        return (
-                          <Text fontFamily="mono">
-                            [{cell.row.original.step}]
-                          </Text>
-                        );
-                      }
-                      case 'name': {
-                        return (
-                          <Text fontWeight="bold">
-                            {cell.row.original.name}
-                          </Text>
-                        );
-                      }
-                      case 'address': {
-                        return etherscanUrl ? (
-                          <Link
-                            isExternal
-                            href={
-                              etherscanUrl +
-                              '/address/' +
-                              cell.row.original.address
-                            }
-                            fontFamily="mono"
-                            borderBottom="1px dotted"
-                            borderBottomColor="gray.300"
-                            textDecoration="none"
-                            _hover={{ textDecoration: 'none' }}
-                          >
-                            {cell.row.original.address}
-                          </Link>
-                        ) : (
-                          <Text fontFamily="mono">
-                            {cell.row.original.address}
-                          </Text>
-                        );
-                      }
-                      case 'deployTxnHash': {
-                        return etherscanUrl ? (
-                          <Link
-                            isExternal
-                            href={
-                              etherscanUrl +
-                              '/tx/' +
-                              cell.row.original.deployTxnHash
-                            }
-                            fontFamily="mono"
-                            borderBottom="1px dotted"
-                            borderBottomColor="gray.300"
-                            textDecoration="none"
-                            _hover={{ textDecoration: 'none' }}
-                          >
-                            {cell.row.original.deployTxnHash}
-                          </Link>
-                        ) : (
-                          <Text fontFamily="mono">
-                            {cell.row.original.deployTxnHash}
-                          </Text>
-                        );
-                      }
-                      default: {
-                        return (
-                          <>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </>
-                        );
-                      }
+        {table.getRowModel().rows.map((row, rowInd) => {
+          return (
+            <Tr key={row.id}>
+              {row.getVisibleCells().map((cell) => {
+                // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
+                const meta: any = cell.column.columnDef.meta;
+                return (
+                  <Td
+                    key={cell.id}
+                    isNumeric={meta?.isNumeric}
+                    borderColor="gray.600"
+                    borderBottom={
+                      table.getRowModel().rows.length == rowInd + 1
+                        ? 'none'
+                        : undefined
                     }
-                  })()}
-                </Td>
-              );
-            })}
-          </Tr>
-        ))}
+                    whiteSpace="nowrap"
+                  >
+                    {(() => {
+                      switch (cell.column.columnDef.accessorKey) {
+                        case 'highlight': {
+                          return cell.row.original.highlight ? (
+                            <StarIcon color="gray.300" />
+                          ) : (
+                            ''
+                          );
+                        }
+                        case 'step': {
+                          return (
+                            <Text fontFamily="mono">
+                              [{cell.row.original.step}]
+                            </Text>
+                          );
+                        }
+                        case 'name': {
+                          return (
+                            <Text fontWeight="bold">
+                              {cell.row.original.name}
+                            </Text>
+                          );
+                        }
+                        case 'address': {
+                          return etherscanUrl ? (
+                            <Link
+                              isExternal
+                              href={
+                                etherscanUrl +
+                                '/address/' +
+                                cell.row.original.address
+                              }
+                              fontFamily="mono"
+                              borderBottom="1px dotted"
+                              borderBottomColor="gray.300"
+                              textDecoration="none"
+                              _hover={{ textDecoration: 'none' }}
+                            >
+                              {cell.row.original.address}
+                            </Link>
+                          ) : (
+                            <Text fontFamily="mono">
+                              {cell.row.original.address}
+                            </Text>
+                          );
+                        }
+                        case 'deployTxnHash': {
+                          return etherscanUrl ? (
+                            <Link
+                              isExternal
+                              href={
+                                etherscanUrl +
+                                '/tx/' +
+                                cell.row.original.deployTxnHash
+                              }
+                              fontFamily="mono"
+                              borderBottom="1px dotted"
+                              borderBottomColor="gray.300"
+                              textDecoration="none"
+                              _hover={{ textDecoration: 'none' }}
+                            >
+                              {cell.row.original.deployTxnHash}
+                            </Link>
+                          ) : (
+                            <Text fontFamily="mono">
+                              {cell.row.original.deployTxnHash}
+                            </Text>
+                          );
+                        }
+                        default: {
+                          return (
+                            <>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </>
+                          );
+                        }
+                      }
+                    })()}
+                  </Td>
+                );
+              })}
+            </Tr>
+          );
+        })}
       </Tbody>
     </Table>
   );
