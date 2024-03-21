@@ -61,11 +61,11 @@ export const InvokesTable: React.FC<{
   const columnHelper = createColumnHelper<InvokeRow>();
 
   const columns = [
-    columnHelper.accessor('step', {
+    columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
       header: 'Step',
     }),
-    columnHelper.accessor('hash', {
+    columnHelper.accessor('value', {
       cell: (info: any) => info.getValue(),
       header: 'Transaction Hash',
     }),
@@ -74,6 +74,7 @@ export const InvokesTable: React.FC<{
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'step', desc: false },
   ]);
+
   const table = useReactTable({
     columns,
     data,
