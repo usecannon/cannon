@@ -136,7 +136,7 @@ task(TASK_BUILD, 'Assemble a defined chain and save it to to a state which can b
       if (hre.network.name !== 'cannon') {
         if (impersonate) {
           await provider.impersonateAccount({ address: impersonate });
-          await provider.setBalance({ address: impersonate, value: BigInt(1e22) });
+          await provider.setBalance({ address: impersonate, value: viem.parseEther('10000') });
           defaultSigner = getSigner(impersonate) || null;
           // Add the impersonated signer if it is not part of the hardhat config
           if (!defaultSigner) {
