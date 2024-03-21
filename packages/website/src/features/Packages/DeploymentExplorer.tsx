@@ -53,21 +53,26 @@ export const DeploymentExplorer: FC<{
       }
     }
   }
-
-  function mergeArtifactsContracts(deploymentInfo: any): any {
-    const mergedContracts: any = {};
-
-    for (const key of Object.keys(deploymentInfo?.state)) {
-      if (key.startsWith('contract.') || key.startsWith('router.')) {
-        const artifactsContracts =
-          deploymentInfo.state[key].artifacts.contracts;
-
-        for (const contractKey of Object.keys(artifactsContracts)) {
-          mergedContracts[contractKey] = artifactsContracts[contractKey];
+  function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
+    // Check if the current level of the object is indeed an object and not null
+    if (obj && typeof obj === 'object') {
+      // Iterate through all keys of the object
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        // If the current property is an object, recursively search it for contracts
+        if (value && typeof value === 'object') {
+          // Specifically merge if we are at a 'contracts' node
+          if (key === 'contracts') {
+            for (const contractKey of Object.keys(value)) {
+              mergedContracts[contractKey] = value[contractKey];
+            }
+          } else {
+            // Continue searching recursively through the object
+            mergeArtifactsContracts(value, mergedContracts);
+          }
         }
       }
     }
-
     return mergedContracts;
   }
 

@@ -15,6 +15,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowUpDownIcon,
+  StarIcon,
 } from '@chakra-ui/icons';
 import {
   useReactTable,
@@ -45,6 +46,7 @@ export const ContractsTable: React.FC<{
   chainId: number;
 }> = ({ contractState, chainId }) => {
   type ContractRow = {
+    highlight: boolean;
     name: string;
     address: string;
     deployTxnHash: string;
@@ -53,6 +55,7 @@ export const ContractsTable: React.FC<{
   const data = React.useMemo(() => {
     return Object.entries(contractState).map(
       ([key, value]): ContractRow => ({
+        highlight: !!value.highlight,
         name: key?.toString(),
         step: value.deployedOn.toString(),
         address: value.address,
@@ -64,6 +67,10 @@ export const ContractsTable: React.FC<{
   const columnHelper = createColumnHelper<ContractRow>();
 
   const columns = [
+    columnHelper.accessor('highlight', {
+      cell: (info: any) => info.getValue(),
+      header: '',
+    }),
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
       header: 'Step',
@@ -83,7 +90,7 @@ export const ContractsTable: React.FC<{
   ];
 
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'step', desc: false },
+    { id: 'highlight', desc: true },
   ]);
   const table = useReactTable({
     columns,
@@ -177,6 +184,13 @@ export const ContractsTable: React.FC<{
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
+                      case 'highlight': {
+                        return cell.row.original.highlight ? (
+                          <StarIcon color="gray.300" />
+                        ) : (
+                          ''
+                        );
+                      }
                       case 'step': {
                         return (
                           <Text fontFamily="mono">
