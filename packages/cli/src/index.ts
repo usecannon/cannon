@@ -522,25 +522,25 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
   let chainId: number | undefined = opts.chainId ? Number(opts.chainId) : undefined;
 
+  const isProviderUrl = cliSettings.providerUrl.startsWith('http');
+
   // throw an error if both chainId and providerUrl are not provided
-  if (!chainId && !opts.providerUrl) {
+  if (!chainId && !isProviderUrl) {
     throw new Error('Please provide one of the following options: --chain-id or --provider-url');
   }
 
   // if chainId is not provided, get it from the provider
   if (!chainId) {
-    const _provider = viem.createPublicClient({ transport: viem.http(opts.providerUrl) });
+    const _provider = viem.createPublicClient({ transport: viem.http(cliSettings.providerUrl) });
     chainId = await _provider.getChainId();
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(opts.providerUrl, chainId);
+  if (isProviderUrl) {
+    await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  }
 
   const { provider, signers } = await resolveWriteProvider(cliSettings, chainId);
-
-  if (!chainId) {
-    chainId = await provider.getChainId();
-  }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
