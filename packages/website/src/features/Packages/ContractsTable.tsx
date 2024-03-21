@@ -64,13 +64,19 @@ export const ContractsTable: React.FC<{
     );
   }, [contractState]);
 
+  const hasHighedlighted = data.some((row) => row.highlight);
+
   const columnHelper = createColumnHelper<ContractRow>();
 
   const columns = [
-    columnHelper.accessor('highlight', {
-      cell: (info: any) => info.getValue(),
-      header: '',
-    }),
+    ...(hasHighedlighted
+      ? [
+          columnHelper.accessor('highlight', {
+            cell: (info: any) => info.getValue(),
+            header: '',
+          }),
+        ]
+      : []),
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
       header: 'Step',
@@ -92,6 +98,7 @@ export const ContractsTable: React.FC<{
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'highlight', desc: true },
   ]);
+
   const table = useReactTable({
     columns,
     data,
