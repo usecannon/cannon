@@ -12,19 +12,18 @@ import {
   ContractMap,
   RawChainDefinition,
 } from '@usecannon/builder';
-import { bold, magentaBright, yellow, yellowBright, red } from 'chalk';
+import { AbiEvent } from 'abitype';
+import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
-import { AbiEvent } from 'abitype';
-import { AbiFunction, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { chains, cannonChain } from './chains';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -85,7 +84,7 @@ export async function setupAnvil(): Promise<void> {
   }
 }
 
-export function getSighash(fragment: AbiFunction | AbiEvent) {
+export function getSighash(fragment: viem.AbiFunction | AbiEvent) {
   let sighash = '';
 
   switch (fragment.type) {
@@ -194,8 +193,9 @@ export async function loadCannonfile(filepath: string) {
 
     [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
+
   const def = new ChainDefinition(rawDef);
-  const pkg = loadPackageJson(path.join(path.dirname(filepath), 'package.json'));
+  const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
   const ctx: ChainBuilderContext = {
     package: pkg,
@@ -212,6 +212,14 @@ export async function loadCannonfile(filepath: string) {
   const name = def.getName(ctx);
   const version = def.getVersion(ctx);
   const preset = def.getPreset(ctx);
+
+  if (!name) {
+    throw new Error('missing "name" on cannon package');
+  }
+
+  if (!version) {
+    throw new Error('missing "version" on cannon package');
+  }
 
   return { def, name, version, preset, cannonfile: buf.toString() };
 }
@@ -276,7 +284,7 @@ export function getChainName(chainId: number): string {
 export function getChainId(chainName: string): number {
   if (chainName == 'cannon') return CANNON_CHAIN_ID;
   if (chainName == 'hardhat') return 31337;
-  const chainData = chains.find((c: Chain) => c.name === chainName);
+  const chainData = chains.find((c: viem.Chain) => c.name === chainName);
   if (!chainData) {
     throw new Error(`Invalid chain "${chainName}"`);
   } else {
@@ -284,11 +292,12 @@ export function getChainId(chainName: string): number {
   }
 }
 
-export function getChainDataFromId(chainId: number): Chain | null {
+export function getChainDataFromId(chainId: number): viem.Chain | null {
   if (chainId == CANNON_CHAIN_ID) {
     return cannonChain;
   }
-  return chains.find((c: Chain) => c.id == chainId) || null;
+
+  return chains.find((c: viem.Chain) => c.id == chainId) || null;
 }
 
 export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
