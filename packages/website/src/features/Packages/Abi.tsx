@@ -11,10 +11,11 @@ import {
 import * as viem from 'viem';
 import NextLink from 'next/link';
 import { ChainArtifacts } from '@usecannon/builder';
-import { FC, useEffect, useMemo, useRef } from 'react';
+import { FC, useContext, useEffect, useMemo, useRef } from 'react';
 import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
 
 import { Function } from '@/features/Packages/Function';
+import { HasSubnavContext } from './Tabs/InteractTab';
 
 export const Abi: FC<{
   abi: AbiType;
@@ -43,6 +44,8 @@ export const Abi: FC<{
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const hasSubnav = useContext(HasSubnavContext);
+
   useEffect(() => {
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
@@ -56,7 +59,8 @@ export const Abi: FC<{
             window.pageYOffset -
             (isSmall ? 24 : 102);
           // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-          window.scrollTo(0, topOffset);
+
+          window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
         }
       }
     }
@@ -88,7 +92,7 @@ export const Abi: FC<{
             px={3}
             pb={2}
             position={{ md: 'sticky' }}
-            top="81"
+            top={hasSubnav ? 81 + 65 : 81}
             maxHeight={{ base: '100%', md: 'calc(100vh - 81px)' }}
             overflowY="auto"
           >
