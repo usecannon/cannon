@@ -368,21 +368,55 @@ export async function getOutputs(
 }
 
 // TODO: this func is dumb but I need to walk through this time period before I want to turn it into something of beauty
-function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
+export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArtifacts) {
   const imports = outputs.imports;
-
   for (const imp in imports) {
     ctx.imports[imp] = imports[imp];
   }
 
-  const contracts = outputs.contracts as ContractMap;
+  //helper function for recursively adding simplified imports notation
+  function addImports(ctx: ChainBuilderContext, imports: any, parentObject: any = null): void {
+    Object.keys(imports).forEach((key) => {
+      const currentImport = imports[key];
+      let targetObject = parentObject;
 
-  for (const contract in contracts) {
-    ctx.contracts[contract] = contracts[contract];
+      if (!targetObject) {
+        targetObject = ctx;
+      }
+
+      if (!targetObject[key]) {
+        targetObject[key] = { url: currentImport.url };
+      } else {
+        targetObject[key].url = currentImport.url;
+      }
+
+      if (currentImport.imports && Object.keys(currentImport.imports).length > 0) {
+        addImports(ctx, currentImport.imports, targetObject[key]);
+      }
+
+      if (currentImport.contracts && Object.keys(currentImport.contracts).length > 0) {
+        targetObject[key].contracts = currentImport.contracts;
+      }
+    });
+  }
+
+  //add simplified imports syntax
+  if (imports) {
+    addImports(ctx, outputs.imports);
+  }
+
+  const contracts = outputs.contracts as ContractMap;
+  for (const contractName in contracts) {
+    ctx.contracts[contractName] = contracts[contractName];
+    //also add simplified address syntax
+    const contractData = contracts[contractName];
+    if (contractData && contractData.address) {
+      const simplifiedPath = `${contractName}.address`;
+      ctx[simplifiedPath] = contractData.address;
+    }
   }
 
   const txns = outputs.txns as TransactionMap;
-
   for (const txn in txns) {
     ctx.txns[txn] = txns[txn];
   }
