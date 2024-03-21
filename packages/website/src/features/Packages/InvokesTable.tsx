@@ -170,7 +170,7 @@ export const InvokesTable: React.FC<{
                       case 'name': {
                         return (
                           <Text fontFamily="mono">
-                            [invoke.{cell.row.original.name}]
+                            [{cell.row.original.name}]
                           </Text>
                         );
                       }

@@ -55,42 +55,39 @@ export const DeploymentExplorer: FC<{
   }
 
   function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
-    // Check if the current level of the object is indeed an object and not null
-    if (obj && typeof obj === 'object') {
-      // Iterate through all keys of the object
-      for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        // If the current property is an object, recursively search it for contracts
-        if (value && typeof value === 'object') {
-          // Specifically merge if we are at a 'contracts' node
-          if (key === 'contracts' || key === 'router') {
-            for (const contractKey of Object.keys(value)) {
-              mergedContracts[contractKey] = value[contractKey];
-            }
-          } else {
-            // Continue searching recursively through the object
-            mergeArtifactsContracts(value, mergedContracts);
+    for (const key in obj) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        // If the current object has both address and abi keys
+        if (obj[key].address && obj[key].abi) {
+          if (
+            obj[key].deployedOn.startsWith('contract') ||
+            obj[key].deployedOn.includes('router')
+          ) {
+            mergedContracts[obj[key].contractName] = obj[key];
           }
         }
+        // Recursively search through nested objects
+        mergeArtifactsContracts(obj[key], mergedContracts);
       }
     }
     return mergedContracts;
   }
 
   const contractState: ChainBuilderContext['contracts'] = deploymentInfo?.state
-    ? mergeArtifactsContracts(deploymentInfo)
+    ? mergeArtifactsContracts(deploymentInfo.state)
     : {};
 
-  function mergeInvoke(deploymentInfo: any): any {
-    const mergedInvokes: any = {};
-
-    for (const key of Object.keys(deploymentInfo?.state)) {
-      if (key.startsWith('invoke.')) {
-        const txns = deploymentInfo.state[key].artifacts.txns;
-
-        for (const contractKey of Object.keys(txns)) {
-          mergedInvokes[contractKey] = txns[contractKey];
+  function mergeInvoke(obj: any, mergedInvokes: any = {}): any {
+    for (const key in obj) {
+      if (obj[key] && typeof obj[key] === 'object') {
+        // If the current object has both address and abi keys
+        if (key === 'txns') {
+          for (const key2 in obj[key]) {
+            mergedInvokes[obj[key][key2].deployedOn] = obj[key][key2];
+          }
         }
+        // Recursively search through nested objects
+        mergeInvoke(obj[key], mergedInvokes);
       }
     }
 
@@ -98,7 +95,7 @@ export const DeploymentExplorer: FC<{
   }
 
   const invokeState: ChainBuilderContext['txns'] = deploymentInfo?.state
-    ? mergeInvoke(deploymentInfo)
+    ? mergeInvoke(deploymentInfo.state)
     : {};
 
   function extractAddressesAbis(obj: any, result: any = {}) {
@@ -118,7 +115,9 @@ export const DeploymentExplorer: FC<{
     return result;
   }
 
-  const addressesAbis = extractAddressesAbis(deploymentInfo);
+  const addressesAbis = deploymentInfo?.state
+    ? extractAddressesAbis(deploymentInfo.state)
+    : {};
 
   type NestedObject = { [key: string]: any };
   function mergeExtras(obj: NestedObject): NestedObject {
