@@ -53,6 +53,7 @@ export const DeploymentExplorer: FC<{
       }
     }
   }
+
   function mergeArtifactsContracts(obj: any, mergedContracts: any = {}): any {
     // Check if the current level of the object is indeed an object and not null
     if (obj && typeof obj === 'object') {
@@ -62,7 +63,7 @@ export const DeploymentExplorer: FC<{
         // If the current property is an object, recursively search it for contracts
         if (value && typeof value === 'object') {
           // Specifically merge if we are at a 'contracts' node
-          if (key === 'contracts') {
+          if (key === 'contracts' || key === 'router') {
             for (const contractKey of Object.keys(value)) {
               mergedContracts[contractKey] = value[contractKey];
             }
