@@ -51,8 +51,12 @@ export const Abi: FC<{
           `#${hash}`
         ) as HTMLElement | null;
         if (section) {
+          const topOffset =
+            section.getBoundingClientRect().top +
+            window.pageYOffset -
+            (isSmall ? 24 : 102);
           // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-          window.scrollTo(0, section.offsetTop - 80);
+          window.scrollTo(0, topOffset);
         }
       }
     }
@@ -65,7 +69,7 @@ export const Abi: FC<{
       window.removeEventListener('hashchange', handleHashChange, false);
       clearTimeout(timerId); // Clear the timeout when the component unmounts
     };
-  }, []);
+  }, [functions]);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
@@ -115,7 +119,7 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#selector=${viem.toFunctionSelector(f)}`}
+                  href={`#selector-${viem.toFunctionSelector(f)}`}
                   textDecoration="none"
                 >
                   {f.name}(
@@ -152,7 +156,7 @@ export const Abi: FC<{
                   overflow="hidden"
                   textOverflow="ellipsis"
                   key={index}
-                  href={`#selector=${viem.toFunctionSelector(f)}`}
+                  href={`#selector-${viem.toFunctionSelector(f)}`}
                   textDecoration="none"
                 >
                   {f.name}(

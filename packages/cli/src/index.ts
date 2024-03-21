@@ -155,6 +155,10 @@ function configureRun(program: Command) {
         forkProvider: provider,
       });
     } else {
+      if (options.providerUrl) {
+        const _provider = viem.createPublicClient({ transport: viem.http(options.providerUrl) });
+        options.chainId = await _provider.getChainId();
+      }
       node = await runRpc(pickAnvilOptions(options));
     }
 
@@ -516,16 +520,27 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 ) {
   const cliSettings = resolveCliSettings(opts);
 
-  let chainId = opts.chainId;
+  let chainId: number | undefined = opts.chainId ? Number(opts.chainId) : undefined;
+
+  const isProviderUrl = cliSettings.providerUrl.startsWith('http');
+
+  // throw an error if both chainId and providerUrl are not provided
+  if (!chainId && !isProviderUrl) {
+    throw new Error('Please provide one of the following options: --chain-id or --provider-url');
+  }
+
+  // if chainId is not provided, get it from the provider
+  if (!chainId) {
+    const _provider = viem.createPublicClient({ transport: viem.http(cliSettings.providerUrl) });
+    chainId = await _provider.getChainId();
+  }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(opts.providerUrl, chainId);
+  if (isProviderUrl) {
+    await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
+  }
 
   const { provider, signers } = await resolveWriteProvider(cliSettings, chainId);
-
-  if (!chainId) {
-    chainId = await provider.getChainId();
-  }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -553,7 +568,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
       async getSigner(address: viem.Address) {
         // on test network any user can be conjured
         //await p.provider.impersonateAccount({ address: addr });
-        //await p.provider.setBalance({ address: addr, value: BigInt(1e22) });
+        //await p.provider.setBalance({ address: addr, value: viem.parseEther('10000') });
         return { address: address, wallet: provider };
       },
       snapshots: false,
