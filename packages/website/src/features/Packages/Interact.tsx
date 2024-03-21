@@ -15,8 +15,9 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
-import { FC, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
+import { HasSubnavContext } from './Tabs/InteractTab';
 
 export const Interact: FC<{
   name: string;
@@ -109,6 +110,8 @@ export const Interact: FC<{
     md: false,
   });
 
+  const hasSubnav = useContext(HasSubnavContext);
+
   return (
     <>
       {isLoading ? (
@@ -119,7 +122,7 @@ export const Interact: FC<{
         <>
           <Flex
             position={{ md: 'sticky' }}
-            top="0"
+            top={hasSubnav ? 65 : 0}
             zIndex={3}
             bg="gray.800"
             p={2}

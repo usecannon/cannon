@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useState } from 'react';
+import { FC, ReactNode, useEffect, useState, createContext } from 'react';
 import { GET_PACKAGE } from '@/graphql/queries';
 import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import { useQueryIpfsData } from '@/hooks/ipfs';
@@ -14,6 +14,7 @@ import {
   PopoverBody,
   PopoverContent,
   PopoverTrigger,
+  Portal,
   Text,
 } from '@chakra-ui/react';
 import { CustomSpinner } from '@/components/CustomSpinner';
@@ -26,6 +27,8 @@ type Option = {
   contractName: string;
   contractAddress: string;
 };
+
+export const HasSubnavContext = createContext(false);
 
 export const InteractTab: FC<{
   name: string;
@@ -177,11 +180,18 @@ export const InteractTab: FC<{
     }
   }, [deploymentData.data]);
 
+  const hasSubnav = otherOptions.length > 0 || highlightedOptions.length > 1;
+
   return (
-    <>
-      {(otherOptions.length > 0 || highlightedOptions.length > 1) && (
+    <HasSubnavContext.Provider value={hasSubnav}>
+      {hasSubnav && (
         <Flex
+          top="0"
+          zIndex={3}
+          bg="gray.900"
+          position={{ md: 'sticky' }}
           overflowX="scroll"
+          overflowY="hidden"
           maxW="100%"
           p={2}
           borderBottom="1px solid"
@@ -279,55 +289,57 @@ export const InteractTab: FC<{
                   </Icon>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                maxHeight={'45vh'}
-                overflowY={'auto'}
-                overflowX={'hidden'}
-                width="auto"
-                bg="gray.900"
-                borderColor="gray.700"
-              >
-                <PopoverBody p={0}>
-                  {otherOptions.map((option, i) => (
-                    <Box
-                      key={i}
-                      cursor={'pointer'}
-                      textAlign="left"
-                      p={2}
-                      background={
-                        isActiveContract(option) ? 'gray.800' : 'transparent'
-                      }
-                      _hover={{
-                        background: 'gray.800',
-                      }}
-                      borderBottom="1px solid"
-                      borderColor="gray.700"
-                      onClick={() => {
-                        setIsPopoverOpen(false);
-                        selectContract(option);
-                      }}
-                    >
-                      <Text
-                        fontSize="xs"
-                        display="block"
-                        fontWeight="normal"
-                        color="gray.400"
-                        mb="1px"
+              <Portal>
+                <PopoverContent
+                  maxHeight={'45vh'}
+                  overflowY={'auto'}
+                  overflowX={'hidden'}
+                  width="auto"
+                  bg="gray.900"
+                  borderColor="gray.700"
+                >
+                  <PopoverBody p={0}>
+                    {otherOptions.map((option, i) => (
+                      <Box
+                        key={i}
+                        cursor={'pointer'}
+                        textAlign="left"
+                        p={2}
+                        background={
+                          isActiveContract(option) ? 'gray.800' : 'transparent'
+                        }
+                        _hover={{
+                          background: 'gray.800',
+                        }}
+                        borderBottom="1px solid"
+                        borderColor="gray.700"
+                        onClick={() => {
+                          setIsPopoverOpen(false);
+                          selectContract(option);
+                        }}
                       >
-                        {option.moduleName}
-                      </Text>
-                      <Heading
-                        fontWeight="500"
-                        size="sm"
-                        color="gray.200"
-                        letterSpacing="0.1px"
-                      >
-                        {option.contractName}
-                      </Heading>
-                    </Box>
-                  ))}
-                </PopoverBody>
-              </PopoverContent>
+                        <Text
+                          fontSize="xs"
+                          display="block"
+                          fontWeight="normal"
+                          color="gray.400"
+                          mb="1px"
+                        >
+                          {option.moduleName}
+                        </Text>
+                        <Heading
+                          fontWeight="500"
+                          size="sm"
+                          color="gray.200"
+                          letterSpacing="0.1px"
+                        >
+                          {option.contractName}
+                        </Heading>
+                      </Box>
+                    ))}
+                  </PopoverBody>
+                </PopoverContent>
+              </Portal>
             </Popover>
           )}
         </Flex>
@@ -338,7 +350,7 @@ export const InteractTab: FC<{
       ) : (
         <CustomSpinner m="auto" />
       )}
-    </>
+    </HasSubnavContext.Provider>
   );
 };
 
