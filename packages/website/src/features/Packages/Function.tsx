@@ -86,15 +86,6 @@ export const Function: FC<{
     [readOnly, simulated, readContractResult, writeContractResult]
   );
 
-  // useEffect(() => {
-  //   _.debounce(() => {
-  //     if (readOnly && f.inputs.length === params.length) {
-  //       void submit();
-  //     }
-  //   }, 200)();
-  // }, [params, readOnly]);
-  //
-
   const submit = async (suppressError = false, simulate = false) => {
     setLoading(true);
     setError(null);
@@ -121,23 +112,11 @@ export const Function: FC<{
       }
     } catch (e: any) {
       if (!suppressError) {
-        // console.error(e);
-        // setError(e?.message || e?.error?.message || e?.error || e);
-        try {
-          /*
-          const provider = new ethers.providers.JsonRpcProvider(
-            publicClient?.chain?.rpcUrls?.public?.http[0] as string
-          );
-
-          await handleTxnError(cannonOutputs, provider, e);
-          */
-        } catch (e2: any) {
-          setError(
-            typeof e2 === 'string'
-              ? e2
-              : e2?.message || e2?.error?.message || e2?.error || e2
-          );
-        }
+        setError(
+          typeof e === 'string'
+            ? e
+            : e?.message || e?.error?.message || e?.error || e
+        );
       }
     } finally {
       setLoading(false);
@@ -317,7 +296,10 @@ export const Function: FC<{
                     for output
                   </Flex>
                 )}
-                <FunctionOutput result={result} output={f.outputs} />
+                <FunctionOutput
+                  result={!error ? result : null}
+                  output={f.outputs}
+                />
               </Box>
             )}
           </Box>
