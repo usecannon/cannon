@@ -183,11 +183,6 @@ export async function alter(
           try {
             deployInfo.state[stepName] = {} as StepState;
 
-            await runtime.putBlob(deployInfo);
-
-            // some steps may require access to misc artifacts
-            await runtime.restoreMisc(deployInfo.miscUrl);
-
             const ctx = await createInitialContext(new ChainDefinition(deployInfo.def), meta, chainId, deployInfo.options);
             const outputs = await getOutputs(runtime, new ChainDefinition(deployInfo.def), deployInfo.state);
 
@@ -201,9 +196,9 @@ export async function alter(
               existingKeys
             );
 
-            const newDeployUrl = await runtime.putBlob(deployInfo);
-
-            return newDeployUrl!;
+            // Recompute hash for this step in case there is a mismatch
+            const h = await new ChainDefinition(deployInfo.def).getState(stepName, runtime, ctx, false);
+            deployInfo.state[stepName].hash = h ? h[0] : null;
           } catch (err) {
             throw new Error(
               `Step ${stepName} not found in deployment state and could not be populated by cannon, here are the available step options: \n ${Object.keys(
