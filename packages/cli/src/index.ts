@@ -142,10 +142,10 @@ function configureRun(program: Command) {
 
     options.port = Number.parseInt(options.port);
 
+    const settings = resolveCliSettings(options);
+
     let node: CannonRpcNode;
     if (options.chainId) {
-      const settings = resolveCliSettings(options);
-
       const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
 
       // throw an error if the chainId is not consistent with the provider's chainId
@@ -158,8 +158,15 @@ function configureRun(program: Command) {
       if (options.providerUrl) {
         const _provider = viem.createPublicClient({ transport: viem.http(options.providerUrl) });
         options.chainId = await _provider.getChainId();
+
+        const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
+
+        node = await runRpc(pickAnvilOptions(options), {
+          forkProvider: provider,
+        });
+      } else {
+        node = await runRpc(pickAnvilOptions(options));
       }
-      node = await runRpc(pickAnvilOptions(options));
     }
 
     await run(packages, {
