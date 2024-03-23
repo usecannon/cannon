@@ -260,7 +260,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (!rawValue && rawValue !== false) {
+    if (_.isNil(rawValue)) {
       return null;
     }
 
@@ -414,10 +414,6 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
           name,
         },
       ]);
-
-      if (!answer[name]) {
-        return null;
-      }
 
       // if there is a problem this will throw and user will be forced to re-enter data
       return parseInput(input, answer[name]);

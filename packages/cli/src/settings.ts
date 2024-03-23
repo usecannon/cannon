@@ -123,9 +123,12 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z.string(),
-    CANNON_REGISTRY_CHAIN_ID: z.string(),
-    CANNON_REGISTRY_ADDRESS: z.string().startsWith('0x').length(42),
+    CANNON_REGISTRY_PROVIDER_URL: z.string().optional(),
+    CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
+    CANNON_REGISTRY_ADDRESS: z
+      .string()
+      .refine((v) => viem.isAddress(v), 'must be address')
+      .optional(),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
@@ -188,7 +191,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     _.pickBy(overrides)
   ) as CliSettings;
 
-  if (CANNON_REGISTRY_PROVIDER_URL) {
+  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID) {
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
       chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
