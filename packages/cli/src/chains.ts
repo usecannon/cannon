@@ -1,7 +1,7 @@
-import { extractChain, Chain } from 'viem';
+import * as viem from 'viem';
 import * as viemChains from 'viem/chains';
 
-export const cannonChain: Chain = {
+export const cannonChain: viem.Chain = {
   id: 13370,
   name: 'Cannon Local',
   nativeCurrency: {
@@ -12,10 +12,10 @@ export const cannonChain: Chain = {
   rpcUrls: { default: { http: ['http://localhost:8545'] } },
 };
 
-export const chains: Chain[] = [cannonChain, ...Object.values(viemChains)];
+export const chains: viem.Chain[] = [cannonChain, ...Object.values(viemChains)];
 
-export function getChainById(id: number): Chain {
-  const chain = extractChain({
+export function getChainById(id: number): viem.Chain {
+  const chain = viem.extractChain({
     chains,
     id,
   });
