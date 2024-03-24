@@ -1,6 +1,6 @@
 {
   "name": "indexer",
-  "version": "2.11.9",
+  "version": "2.11.22",
   "description": "Injects Cannon data from raw data sources into Redis",
   "main": "dist/index.js",
   "private": true,
@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@usecannon/builder": "^2.11.20",
-    "@usecannon/cli": "^2.11.20",
+    "@usecannon/builder": "2.11.22",
+    "@usecannon/cli": "2.11.22",
     "lodash": "^4.17.21",
     "redis": "^4.6.13",
     "viem": "^2.7.10"
