@@ -45,8 +45,8 @@ export const InvokesTable: React.FC<{
   chainId: number;
 }> = ({ invokeState, chainId }) => {
   type InvokeRow = {
-    step: string;
-    hash: string;
+    name: string;
+    value: string;
   };
 
   const data = React.useMemo(() => {
@@ -61,19 +61,20 @@ export const InvokesTable: React.FC<{
   const columnHelper = createColumnHelper<InvokeRow>();
 
   const columns = [
-    columnHelper.accessor('step', {
+    columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
       header: 'Step',
     }),
-    columnHelper.accessor('hash', {
+    columnHelper.accessor('value', {
       cell: (info: any) => info.getValue(),
       header: 'Transaction Hash',
     }),
   ];
 
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'step', desc: false },
+    { id: 'name', desc: false },
   ]);
+
   const table = useReactTable({
     columns,
     data,
@@ -166,14 +167,14 @@ export const InvokesTable: React.FC<{
                 >
                   {(() => {
                     switch (cell.column.columnDef.accessorKey) {
-                      case 'step': {
+                      case 'name': {
                         return (
                           <Text fontFamily="mono">
-                            [invoke.{cell.row.original.name}]
+                            [{cell.row.original.name}]
                           </Text>
                         );
                       }
-                      case 'hash': {
+                      case 'value': {
                         return etherscanUrl ? (
                           <Link
                             isExternal
