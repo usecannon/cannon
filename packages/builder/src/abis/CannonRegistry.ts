@@ -1,3 +1,5 @@
+import * as viem from 'viem';
+
 export default [
   {
     inputs: [
@@ -103,6 +105,11 @@ export default [
   },
   {
     inputs: [],
+    name: 'WrongChain',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'ZeroAddress',
     type: 'error',
   },
@@ -148,6 +155,50 @@ export default [
         type: 'bytes32',
       },
       {
+        indexed: false,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'PackageOwnerChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'currentOwner',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'nominatedOwner',
+        type: 'address',
+      },
+    ],
+    name: 'PackageOwnerNominated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
         indexed: true,
         internalType: 'bytes32',
         name: 'tag',
@@ -179,6 +230,56 @@ export default [
       },
     ],
     name: 'PackagePublish',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'registrant',
+        type: 'address',
+      },
+    ],
+    name: 'PackageRegistered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'tag',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'variant',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+    ],
+    name: 'PackageUnpublish',
     type: 'event',
   },
   {
@@ -253,19 +354,6 @@ export default [
   },
   {
     inputs: [],
-    name: 'PUBLISH_FEE',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
     name: 'acceptOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -279,20 +367,7 @@ export default [
         type: 'bytes32',
       },
     ],
-    name: 'acceptPackageOwnership',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes32',
-        name: '_packageName',
-        type: 'bytes32',
-      },
-    ],
-    name: 'getAdditionalDeployers',
+    name: 'getAdditionalPublishers',
     outputs: [
       {
         internalType: 'address[]',
@@ -415,25 +490,6 @@ export default [
   {
     inputs: [
       {
-        internalType: 'bytes[]',
-        name: 'data',
-        type: 'bytes[]',
-      },
-    ],
-    name: 'multicall',
-    outputs: [
-      {
-        internalType: 'bytes[]',
-        name: 'results',
-        type: 'bytes[]',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
         internalType: 'address',
         name: 'newNominatedOwner',
         type: 'address',
@@ -523,6 +579,32 @@ export default [
   },
   {
     inputs: [],
+    name: 'publishFee',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'registerFee',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'renounceNomination',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -537,13 +619,49 @@ export default [
       },
       {
         internalType: 'address[]',
-        name: 'additionalDeployers',
+        name: '_additionalDeployers',
         type: 'address[]',
       },
     ],
-    name: 'setAdditionalDeployers',
+    name: 'setAdditionalPublishers',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_publishFee',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_registerFee',
+        type: 'uint256',
+      },
+    ],
+    name: 'setFees',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: '_owner',
+        type: 'address',
+      },
+    ],
+    name: 'setPackageOwnership',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -555,6 +673,29 @@ export default [
       },
     ],
     name: 'simulateUpgradeTo',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_packageName',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_variant',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32[]',
+        name: '_packageTags',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'unpublish',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -617,4 +758,4 @@ export default [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] satisfies viem.Abi;

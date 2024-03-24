@@ -114,7 +114,7 @@ describe('registry.ts', () => {
 
         await expect(
           registry.publish(['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'], 1, 'ipfs://Qmsomething')
-        ).rejects.toThrow(`Signer at address "${signer.address}" is not the owner of the "dummyPackage" package`);
+        ).rejects.toThrow(`Signer "${signer.address}" does not have publishing permissions on the "dummyPackage" package`);
       });
 
       it('makes call to register all specified packages, and returns list of published packages', async () => {
