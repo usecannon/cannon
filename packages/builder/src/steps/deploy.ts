@@ -4,7 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { deploySchema } from '../schemas';
-import { bold } from 'chalk';
+import { bold, red } from 'chalk';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import {
   ChainArtifacts,
@@ -347,15 +347,16 @@ const deploySpec = {
 
       // Catch an error when it comes from create2 deployer
       if (config.create2) {
-        if (error.error.data === '0x') {
-          // if the error data is 0x, then the transaction failed.
-          // Arachnid create2 does not return the underlying revert message.
-          // Ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
+        // Arachnid create2 does not return the underlying revert message.
+        // Ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
 
-          // In order to get the underlying revert message, perform a normal deployment
-          config.create2 = false;
-          await this.exec(runtime, ctx, config, packageState);
-        }
+        // In order to get the underlying revert message, perform a normal deployment
+        const simulateConfig = {
+          ...config,
+          create2: false,
+        };
+
+        return await this.exec(runtime, ctx, simulateConfig, packageState);
       }
 
       // Catch an error when it comes from normal deployment
@@ -376,7 +377,7 @@ const deploySpec = {
         }
 
         const errorString = JSON.stringify(decodedError, null, 2);
-        throw new Error(bold('Error in contract\nDecoded error:') + ' ' + errorString);
+        throw new Error(red(bold(`Error sighash: ${error.error.data} \n Decoded error: ${errorString}`)));
       }
     }
 
