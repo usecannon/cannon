@@ -25,6 +25,7 @@ import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { interact } from './interact';
 import { TraceEntry } from '@usecannon/builder/src';
+import { normalizePrivateKey } from '../util/provider';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -77,7 +78,10 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   // set up signers
   const accounts = options.privateKey
-    ? options.privateKey.split(',').map((pk) => privateKeyToAccount(pk as viem.Hex).address)
+    ? options.privateKey
+        .split(',')
+        .map((pk) => normalizePrivateKey(pk))
+        .map((pk) => privateKeyToAccount(pk as viem.Hex).address)
     : (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',');
 
   for (const addr of accounts) {
