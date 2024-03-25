@@ -15,7 +15,6 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { handleTxnError } from '../error';
 
 const debug = Debug('cannon:builder:contract');
 
