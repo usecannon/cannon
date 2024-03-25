@@ -15,6 +15,7 @@ import {
   PackageState,
 } from '../types';
 import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
+import { handleTxnError } from '../error';
 
 const debug = Debug('cannon:builder:contract');
 
@@ -258,7 +259,7 @@ const deploySpec = {
       }),
     };
 
-    const overrides: any = {}; // TODO
+    const overrides: any = {};
 
     if (config.overrides?.gasLimit) {
       overrides.gasLimit = config.overrides.gasLimit;
@@ -344,22 +345,40 @@ const deploySpec = {
       }
     } catch (error: any) {
       let decodedError;
-      if (error.error.data) {
-        try {
-          decodedError = viem.decodeErrorResult({
-            abi: artifactData.abi,
-            data: error.error.data,
-          });
-          debug('Succesfully decoded abi error');
-        } catch (decodeErr) {
-          throw new Error('Failed to decode the error using the ABI' + decodeErr);
+
+      // Catch an error when it comes from create2 deployer
+      if (config.create2) {
+        if (error.error.data === '0x') {
+          // if the error data is 0x, then the transaction failed.
+          // Arachnid create2 does not return the underlying revert message.
+          // Ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
+
+          // In order to get the underlying revert message, perform a normal deployment
+          config.create2 = false;
+          await this.exec(runtime, ctx, config, packageState);
         }
-      } else {
-        throw new Error('An error occurred, but no error data is available for decoding.');
       }
 
-      const errorString = JSON.stringify(decodedError, null, 2);
-      throw new Error(bold('Error in contract\nDecoded error:') + ' ' + errorString);
+      // Catch an error when it comes from normal deployment
+      if (!config.create2) {
+        if (error.error.data) {
+          try {
+            decodedError = viem.decodeErrorResult({
+              abi: artifactData.abi,
+              data: error.error.data,
+            });
+
+            debug('Succesfully decoded abi error');
+          } catch (decodeErr) {
+            throw new Error('Failed to decode the error using the ABI' + decodeErr);
+          }
+        } else {
+          throw new Error('An error occurred, but no error data is available for decoding.');
+        }
+
+        const errorString = JSON.stringify(decodedError, null, 2);
+        throw new Error(bold('Error in contract\nDecoded error:') + ' ' + errorString);
+      }
     }
 
     return generateOutputs(config, ctx, artifactData, receipt, packageState.currentLabel);
