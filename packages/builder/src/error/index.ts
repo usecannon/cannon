@@ -102,10 +102,14 @@ export async function handleTxnError(
         method: 'anvil_setBalance' as any,
         params: [accountAddr, viem.toHex(viem.parseEther('10000'))],
       });
+
       // TODO: reevaluate typings
       txnHash = await fullProvider.sendTransaction(fullTxn as any);
 
-      await fullProvider.waitForTransactionReceipt({ hash: txnHash });
+      await fullProvider.waitForTransactionReceipt({
+        hash: txnHash,
+        pollingInterval: 50,
+      });
     } catch (err) {
       debug('warning: failed to force through transaction:', err);
     }
