@@ -139,7 +139,8 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               mode: 'anvil',
               chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
               transport: viem.http(host),
-              pollingInterval: 50,
+              // Only improve polling interval on local anvil nodes
+              pollingInterval: anvilOptions.forkUrl ? 2_000 : 50,
             })
             .extend(viem.publicActions)
             .extend(viem.walletActions) as any;
