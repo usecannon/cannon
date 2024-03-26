@@ -8,6 +8,7 @@ import {
   getOutputs,
   InMemoryRegistry,
   IPFSLoader,
+  OnChainRegistry,
   PackageReference,
   publishPackage,
   traceActions,
@@ -31,7 +32,7 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
+import { resolveRegistryProviders, resolveWriteProvider } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
@@ -346,7 +347,21 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = options.privateKey;
   }
 
-  const { provider, signers } = await resolveRegistryProvider(cliSettings);
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  let pickedRegistryProvider = registryProviders[0];
+
+  if (registryProviders.length > 1) {
+    pickedRegistryProvider = (
+      await prompts.prompt([
+        {
+          type: 'multiselect',
+          name: 'pickedRegistryProvider',
+          message: 'Please choose a registry to deploy to:',
+          choices: registryProviders.map((p) => ({ title: p.provider.chain?.name ?? 'Unknown Network', value: p })),
+        },
+      ])
+    ).pickedRegistryProvider;
+  }
 
   const overrides: any = {};
 
@@ -362,6 +377,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides.value = options.value;
   }
 
+  const onChainRegistry = new OnChainRegistry({
+    signer: pickedRegistryProvider.signers[0],
+    provider: pickedRegistryProvider.provider,
+    address: cliSettings.registries[0].address,
+    overrides,
+  });
+
   console.log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
@@ -373,15 +395,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
-    provider,
-    signer: signers[0],
+    onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
     includeProvisioned: options.includeProvisioned,
     skipConfirm: options.skipConfirm,
-    overrides,
   });
 });
 

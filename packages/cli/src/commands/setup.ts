@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import untildify from 'untildify';
 import prompts from 'prompts';
-import { CLI_SETTINGS_STORE, DEFAULT_REGISTRY_PROVIDER_URL, DEFAULT_REGISTRY_ADDRESS } from '../constants';
+import { CLI_SETTINGS_STORE } from '../constants';
 import { resolveCliSettings } from '../settings';
 import _ from 'lodash';
 import { bold, italic, yellow } from 'chalk';
@@ -53,19 +53,6 @@ export async function setup() {
         'What IPFS endpoint would you like to use when building? This can be local (e.g. http://localhost:5001 when running a local IPFS daemon) or remote.\n',
       initial: fileSettings.ipfsUrl || fileSettings.publishIpfsUrl || '',
     },
-    {
-      type: 'text',
-      name: 'registryProviderUrl',
-      message:
-        'Which RPC endpoint would you like to use when interacting with the registry? You can leave this blank to continue using the default endpoint, but it may be unreliable or slow.\n',
-      initial: fileSettings.registryProviderUrl,
-    },
-    {
-      type: 'text',
-      name: 'registryAddress',
-      message: 'Optionally, you can set a custom registry address. It is strongly recommended that you use the default.\n',
-      initial: fileSettings.registryAddress,
-    },
   ];
 
   const response = await prompts(questions, {
@@ -82,16 +69,6 @@ export async function setup() {
 
   if (response.ipfsUrl) {
     fileSettings.ipfsUrl = response.ipfsUrl;
-  }
-
-  // Only write this to the file if it's different from the default, so this can be upgraded in the future.
-  if (response.registryProviderUrl && response.registryProviderUrl != DEFAULT_REGISTRY_PROVIDER_URL) {
-    fileSettings.registryProviderUrl = response.registryProviderUrl;
-  }
-
-  // Only write this to the file if it's different from the default, so this can be upgraded in the future.
-  if (response.registryAddress && response.registryAddress != DEFAULT_REGISTRY_ADDRESS) {
-    fileSettings.registryAddress = response.registryAddress;
   }
 
   console.log(`Writing configuration to ${cliSettingsStore}...`);

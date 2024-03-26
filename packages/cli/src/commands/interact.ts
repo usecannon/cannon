@@ -260,7 +260,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (!rawValue && rawValue !== false) {
+    if (_.isNil(rawValue)) {
       return null;
     }
 
@@ -415,10 +415,6 @@ async function promptInputValue(input: viem.AbiParameter): Promise<any> {
         },
       ]);
 
-      if (!answer[name]) {
-        return null;
-      }
-
       // if there is a problem this will throw and user will be forced to re-enter data
       return parseInput(input, answer[name]);
     } catch (err) {
@@ -437,7 +433,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
   let processed = isArray || isTuple ? JSON.parse(rawValue) : rawValue;
   if (isBytes32 && !viem.isHex(processed)) {
     if (isArray) {
-      processed = processed.map((item: string) => viem.stringToHex(item));
+      processed = processed.map((item: string) => viem.stringToHex(item, { size: 32 }));
     } else {
       processed = viem.stringToHex(processed, { size: 32 });
     }

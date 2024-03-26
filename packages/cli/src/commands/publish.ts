@@ -1,7 +1,6 @@
-import { CannonSigner, CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
+import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
 import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
-import * as viem from 'viem';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
@@ -9,15 +8,13 @@ import { resolveCliSettings } from '../settings';
 
 interface Params {
   packageRef: string;
-  signer: CannonSigner;
-  provider: viem.PublicClient;
   tags: string[];
+  onChainRegistry: OnChainRegistry;
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
   includeProvisioned?: boolean;
   skipConfirm?: boolean;
-  overrides?: any;
 }
 
 interface DeployList {
@@ -34,15 +31,13 @@ interface SubPackage {
 
 export async function publish({
   packageRef,
-  signer,
-  provider,
+  onChainRegistry,
   tags = ['latest'],
   chainId,
   presetArg,
   quiet = false,
   includeProvisioned = false,
   skipConfirm = false,
-  overrides,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -67,17 +62,15 @@ export async function publish({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
+  if (!onChainRegistry.signer) {
+    throw new Error('signer not provided in registry');
+  }
+
   if (!quiet) {
-    console.log(blueBright(`Publishing with ${signer.address}`));
+    console.log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
     console.log();
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
-  const onChainRegistry = new OnChainRegistry({
-    signer,
-    provider,
-    address: cliSettings.registryAddress,
-    overrides,
-  });
   const toStorage = new CannonStorage(onChainRegistry, {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
   });

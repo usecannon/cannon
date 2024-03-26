@@ -289,7 +289,11 @@ export class OnChainRegistry extends CannonRegistry {
 
     const signer = viem.getAddress(this.signer.address);
 
-    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) return;
+    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
+      throw new Error(
+        `The package "${packageName}" is not registered to be owned by anyone. Please claim the package before publishing for the first time.`
+      );
+    }
     if (viem.isAddressEqual(signer, packageOwner)) return;
 
     const additionalDeployers: viem.Address[] = await this.provider?.readContract({
