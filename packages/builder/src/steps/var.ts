@@ -76,8 +76,9 @@ const varSpec = {
     if (packageState.currentLabel.startsWith('setting.')) {
       const value = config.value || config.defaultValue;
 
+      /* eslint no-console: "off" */
       if (!value) {
-        console.log(chalk.yellow('At least one of `value` or `defaultValue` must be specified. Skipping...'))
+        console.log(chalk.yellow('At least one of `value` or `defaultValue` must be specified. Skipping...'));
       }
 
       return {
