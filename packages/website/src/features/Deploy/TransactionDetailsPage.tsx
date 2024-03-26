@@ -2,30 +2,19 @@
 
 import { links } from '@/constants/links';
 import { parseHintedMulticall } from '@/helpers/cannon';
-import { createSimulationData, getSafeTransactionHash } from '@/helpers/safe';
+import { getSafeTransactionHash } from '@/helpers/safe';
 import { SafeDefinition } from '@/helpers/store';
 import { useSafeTransactions, useTxnStager } from '@/hooks/backend';
-import {
-  useCannonBuild,
-  useCannonPackage,
-  useLoadCannonDefinition,
-} from '@/hooks/cannon';
-import {
-  useExecutedTransactions,
-  useGetPreviousGitInfoQuery,
-} from '@/hooks/safe';
+import { useCannonBuild, useCannonPackage, useLoadCannonDefinition } from '@/hooks/cannon';
+import { useExecutedTransactions, useGetPreviousGitInfoQuery } from '@/hooks/safe';
 import { SafeTransaction } from '@/types/SafeTransaction';
-import {
-  CheckIcon,
-  ExternalLinkIcon,
-  InfoOutlineIcon,
-  WarningIcon,
-} from '@chakra-ui/icons';
+import { CheckIcon, ExternalLinkIcon, InfoOutlineIcon, WarningIcon } from '@chakra-ui/icons';
 import {
   Alert,
   Box,
   Button,
   Container,
+  Flex,
   Grid,
   Heading,
   Link,
@@ -33,25 +22,18 @@ import {
   Text,
   Tooltip,
   useToast,
-  Image,
-  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
 import { useRouter } from 'next/navigation';
 import { FC, useEffect } from 'react';
-import {
-  Address,
-  hexToString,
-  isAddress,
-  TransactionRequestBase,
-  zeroAddress,
-} from 'viem';
+import * as viem from 'viem';
 import { useAccount, useChainId, useWriteContract } from 'wagmi';
+import PublishUtility from './PublishUtility';
+import SimulateTransactionButton from './SimulateTransactionButton';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import PublishUtility from './PublishUtility';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -72,13 +54,13 @@ const TransactionDetailsPage: FC<{
     // nothing
   }
 
-  if (!isAddress(safeAddress ?? '')) {
-    safeAddress = zeroAddress;
+  if (!viem.isAddress(safeAddress ?? '')) {
+    safeAddress = viem.zeroAddress;
   }
 
   const safe: SafeDefinition = {
     chainId: parsedChainId,
-    address: safeAddress as Address,
+    address: safeAddress as viem.Address,
   };
 
   const { nonce: safeNonce, staged, stagedQuery } = useSafeTransactions(safe);
@@ -154,7 +136,7 @@ const TransactionDetailsPage: FC<{
   }
 
   const prevDeployPackageUrl = prevDeployHashQuery.data
-    ? hexToString(prevDeployHashQuery.data[1].result || ('' as any))
+    ? viem.hexToString(prevDeployHashQuery.data[1].result || ('' as any))
     : '';
 
   const prevCannonDeployInfo = useCannonPackage(
@@ -186,7 +168,7 @@ const TransactionDetailsPage: FC<{
 
   // compare proposed build info with expected transaction batch
   const expectedTxns = buildInfo.buildResult?.steps?.map(
-    (s) => s.tx as unknown as Partial<TransactionRequestBase>
+    (s) => s.tx as unknown as Partial<viem.TransactionRequestBase>
   );
 
   const unequalTransaction =
@@ -442,44 +424,10 @@ const TransactionDetailsPage: FC<{
                             on-chain record.
                           </Flex>
                         )}
-                      {safeTxn && (
-                        <Button
-                          mt={3}
-                          size="xs"
-                          as="a"
-                          href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-                            safe.address
-                          }&gas=${8000000}&gasPrice=0&value=${
-                            safeTxn?.value
-                          }&contractAddress=${
-                            safe?.address
-                          }&rawFunctionInput=${createSimulationData(
-                            safeTxn
-                          )}&network=${
-                            safe.chainId
-                          }&headerBlockNumber=&headerTimestamp=`}
-                          colorScheme="whiteAlpha"
-                          background="whiteAlpha.100"
-                          border="1px solid"
-                          borderColor="whiteAlpha.300"
-                          leftIcon={
-                            <Image
-                              height="14px"
-                              src="/images/tenderly.svg"
-                              alt="Safe"
-                              objectFit="cover"
-                            />
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          _hover={{
-                            bg: 'whiteAlpha.200',
-                            borderColor: 'whiteAlpha.400',
-                          }}
-                        >
-                          Simulate Transaction
-                        </Button>
-                      )}
+                      <SimulateTransactionButton
+                        safe={safe}
+                        safeTxn={safeTxn}
+                      />
                     </Box>
                   )}
 
