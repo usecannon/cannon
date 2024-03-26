@@ -1,15 +1,14 @@
+import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
-import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
-import * as viem from 'viem';
+import { gray } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
+import * as viem from 'viem';
+import { cannonChain, getChainById } from './chains';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
-import { gray } from 'chalk';
-
-import { cannonChain, getChainById } from './chains';
 
 const debug = Debug('cannon:cli:rpc');
 
@@ -140,6 +139,7 @@ For more info, see https://book.getfoundry.sh/getting-started/installation.html
               mode: 'anvil',
               chain: anvilOptions.chainId ? getChainById(anvilOptions.chainId) || cannonChain : cannonChain,
               transport: viem.http(host),
+              pollingInterval: 50,
             })
             .extend(viem.publicActions)
             .extend(viem.walletActions) as any;
