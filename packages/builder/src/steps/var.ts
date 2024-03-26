@@ -5,6 +5,7 @@ import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
+import chalk from 'chalk';
 
 const debug = Debug('cannon:builder:var');
 
@@ -76,12 +77,12 @@ const varSpec = {
       const value = config.value || config.defaultValue;
 
       if (!value) {
-        throw new Error('at least one of `value` or `defaultValue` must be specified');
+        console.log(chalk.yellow('At least one of `value` or `defaultValue` must be specified. Skipping...'))
       }
 
       return {
         settings: {
-          [varLabel]: value,
+          [varLabel]: value!,
         },
       };
     } else {
