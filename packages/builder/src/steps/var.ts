@@ -72,7 +72,7 @@ const varSpec = {
     debug('exec', config, ctx);
 
     // backwards compatibility
-    if (packageState.currentLabel.startsWith('setting.')) { 
+    if (packageState.currentLabel.startsWith('setting.')) {
       const stepName = packageState.currentLabel.split('.')[1];
       const value = config.value || config.defaultValue || ctx.overrideSettings[stepName];
 
