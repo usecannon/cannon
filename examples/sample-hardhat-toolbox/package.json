@@ -12,6 +12,6 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "hardhat": "^2.19.2",
     "hardhat-cannon": "file:../../packages/hardhat-cannon",
-    "viem": "^2.6.1"
+    "viem": "^2.9.3"
   }
 }
