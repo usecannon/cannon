@@ -79,4 +79,10 @@ export const chains = [
     shortName: 'aurora',
     serviceUrl: 'https://safe-transaction-aurora.safe.global',
   },
+  {
+    id: 1729,
+    name: 'Reya Network',
+    shortName: 'reyaNetwork',
+    serviceUrl: 'https://transaction.safe.reya.network',
+  },
 ] as const;
