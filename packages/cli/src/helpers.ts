@@ -460,7 +460,7 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   normalizedPrivateKeys.forEach((key: viem.Hex) => {
     if (!isPrivateKey(key)) {
       throw new Error(
-        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your configuration file, or check the value supplied to the --private-key flag'
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
       );
     }
   });
