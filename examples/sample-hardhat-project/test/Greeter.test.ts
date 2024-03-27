@@ -6,7 +6,7 @@ describe('Greeter', function () {
   let Greeter: Greeter;
 
   before('load', async function () {
-    const contractInfo = await hre.cannon.getContract('greeter');
+    const contractInfo = await hre.cannon.getContract('Greeter');
     Greeter = (await hre.ethers.getContractAt('Greeter', contractInfo.address)) as Greeter;
   });
 

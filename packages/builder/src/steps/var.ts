@@ -5,7 +5,6 @@ import { computeTemplateAccesses } from '../access-recorder';
 import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
-import chalk from 'chalk';
 
 const debug = Debug('cannon:builder:var');
 
@@ -70,20 +69,20 @@ const varSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const varLabel = packageState.currentLabel?.split('.')[1] || '';
-    debug('exec', config);
+    debug('exec', config, ctx);
 
     // backwards compatibility
-    if (packageState.currentLabel.startsWith('setting.')) {
-      const value = config.value || config.defaultValue;
+    if (packageState.currentLabel.startsWith('setting.')) { 
+      const stepName = packageState.currentLabel.split('.')[1];
+      const value = config.value || config.defaultValue || ctx.overrideSettings[stepName];
 
-      /* eslint no-console: "off" */
       if (!value) {
-        console.log(chalk.yellow('At least one of `value` or `defaultValue` must be specified. Skipping...'));
+        throw new Error('at least one of `value` or `defaultValue` must be specified');
       }
 
       return {
         settings: {
-          [varLabel]: value!,
+          [varLabel]: value,
         },
       };
     } else {
