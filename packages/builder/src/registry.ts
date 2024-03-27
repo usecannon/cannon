@@ -276,7 +276,7 @@ export class OnChainRegistry extends CannonRegistry {
 
   /**
    * Checks if package needs to be registered before publishing.
-   * @param packageName 
+   * @param packageName
    * @returns Boolean
    */
   private async isPackageRegistered(packageName: string) {
@@ -327,7 +327,7 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing signer for executing registry operations');
     }
 
-    let txs: txData[] = [];
+    const txs: txData[] = [];
     for (const data of packages) {
       const publishTx = {
         abi: this.contract.abi,
@@ -349,18 +349,14 @@ export class OnChainRegistry extends CannonRegistry {
           abi: this.contract.abi,
           address: this.contract.address,
           functionName: 'setPackageOwnership',
-          args: [
-            viem.stringToHex(data.name, { size: 32 }),
-            this.signer?.wallet.account?.address! || this.signer?.address!
-          ]
-        }
-        
-       txs.push(registerTx)
-      } 
+          args: [viem.stringToHex(data.name, { size: 32 }), this.signer.wallet.account?.address || this.signer.address],
+        };
 
-      txs.push(publishTx)
+        txs.push(registerTx);
+      }
+
+      txs.push(publishTx);
     }
-
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
