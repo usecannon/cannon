@@ -7,12 +7,9 @@ import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { getChainById } from '../chains';
 import { CliSettings } from '../settings';
+import { normalizePrivateKey } from '../helpers';
 
 const debug = Debug('cannon:cli:provider');
-
-export function normalizePrivateKey(pkey: string): viem.Hash {
-  return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
-}
 
 enum ProviderOrigin {
   Registry = 'registry',

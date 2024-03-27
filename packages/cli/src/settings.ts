@@ -1,19 +1,19 @@
-import Debug from 'debug';
-import { z } from 'zod';
-import { parseEnv } from 'znv';
-import fs from 'fs-extra';
 import _ from 'lodash';
+import { z } from 'zod';
 import path from 'path';
+import Debug from 'debug';
+import fs from 'fs-extra';
+import * as viem from 'viem';
+import { parseEnv } from 'znv';
 import untildify from 'untildify';
+
 import {
   CLI_SETTINGS_STORE,
   DEFAULT_REGISTRY_ADDRESS,
   DEFAULT_CANNON_DIRECTORY,
   DEFAULT_REGISTRY_PROVIDER_URL,
 } from './constants';
-import { filterSettings } from './helpers';
-import * as viem from 'viem';
-import { Address, Hash } from 'viem';
+import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -29,7 +29,7 @@ export type CliSettings = {
   /**
    * private key(s) of default signer that should be used for build, comma separated
    */
-  privateKey?: Hash;
+  privateKey?: viem.Hex;
 
   /**
    * The amount of times ipfs should retry requests (applies to read and write)
@@ -59,7 +59,7 @@ export type CliSettings = {
   /**
    * Address of the registry
    */
-  registryAddress: Address;
+  registryAddress: viem.Address;
 
   /**
    * Which registry to read from first. Defaults to `onchain`
@@ -120,7 +120,6 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
     CANNON_PRIVATE_KEY: z
       .string()
-      .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
       .optional()
       .default(fileSettings.privateKey as string),
     CANNON_IPFS_RETRIES: z.number().optional().default(3),
@@ -206,6 +205,9 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     },
     _.pickBy(overrides)
   ) as CliSettings;
+
+  // Check and normalize private keys
+  finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
   debug('got settings', filterSettings(finalSettings));
 

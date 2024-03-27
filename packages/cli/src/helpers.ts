@@ -427,11 +427,43 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @param privateKey The private key to verify
  * @returns boolean If the private key is valid
  */
-export function isPrivateKey(privateKey: viem.Hex) {
+export function isPrivateKey(privateKey: viem.Hex): boolean {
   try {
     privateKeyToAccount(privateKey);
     return true;
   } catch (e) {
     return false;
   }
+}
+
+/**
+ * Normalizes a private key
+ * @param privateKey The private key to normalize
+ * @returns The normalized private key
+ */
+export function normalizePrivateKey(privateKey: string | viem.Hex): viem.Hex {
+  return (privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`) as viem.Hex;
+}
+
+/**
+ * Checks and normalizes a private key
+ * @param privateKey
+ * @returnsThe normalized private keys
+ */
+export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | undefined): viem.Hex | undefined {
+  if (!privateKey) return undefined;
+
+  const privateKeys = privateKey.split(',');
+
+  const normalizedPrivateKeys = privateKeys.map((key: string | viem.Hex) => normalizePrivateKey(key));
+
+  normalizedPrivateKeys.forEach((key: viem.Hex) => {
+    if (!isPrivateKey(key)) {
+      throw new Error(
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your configuration file, or check the value supplied to the --private-key flag'
+      );
+    }
+  });
+
+  return normalizedPrivateKeys.join(',') as viem.Hex;
 }
