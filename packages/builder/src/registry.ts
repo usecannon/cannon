@@ -6,7 +6,7 @@ import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
-import { prepareMulticall } from './multicall';
+import { prepareMulticall, txData } from './multicall';
 import { PackageReference } from './package';
 import { CannonSigner } from './types';
 
@@ -274,7 +274,26 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
-  private async checkPackageOwnership(packageName: string) {
+  /**
+   * Checks if package needs to be registered before publishing.
+   * @param packageName 
+   * @returns Boolean
+   */
+  private async isPackageRegistered(packageName: string) {
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+
+    const packageOwner: viem.Address = await this.provider!.readContract({
+      ...this.contract,
+      functionName: 'getPackageOwner',
+      args: [packageHash],
+    });
+
+    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) return false;
+
+    return true;
+  }
+
+  private async checkPackagePermissions(packageName: string) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -308,19 +327,40 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing signer for executing registry operations');
     }
 
-    const txs = packages.map((data) => ({
-      abi: this.contract.abi,
-      address: this.contract.address,
-      functionName: 'publish',
-      value: BigInt(0),
-      args: [
-        viem.stringToHex(data.name, { size: 32 }),
-        viem.stringToHex(data.variant, { size: 32 }),
-        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
-        data.url,
-        data.metaUrl || '',
-      ],
-    }));
+    let txs: txData[] = [];
+    for (const data of packages) {
+      const publishTx = {
+        abi: this.contract.abi,
+        address: this.contract.address,
+        functionName: 'publish',
+        value: BigInt(0),
+        args: [
+          viem.stringToHex(data.name, { size: 32 }),
+          viem.stringToHex(data.variant, { size: 32 }),
+          data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+          data.url,
+          data.metaUrl || '',
+        ],
+      };
+
+      // if package is not registered, we register it (aka set ownership) here.
+      if (!(await this.isPackageRegistered(data.name))) {
+        const registerTx = {
+          abi: this.contract.abi,
+          address: this.contract.address,
+          functionName: 'setPackageOwnership',
+          args: [
+            viem.stringToHex(data.name, { size: 32 }),
+            this.signer?.wallet.account?.address! || this.signer?.address!
+          ]
+        }
+        
+       txs.push(registerTx)
+      } 
+
+      txs.push(publishTx)
+    }
+
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
@@ -355,7 +395,7 @@ export class OnChainRegistry extends CannonRegistry {
 
       const { name, preset, fullPackageRef } = new PackageReference(registerPackage);
 
-      await this.checkPackageOwnership(name);
+      await this.checkPackagePermissions(name);
       const variant = `${chainId}-${preset}`;
 
       console.log(`Package: ${fullPackageRef}`);
@@ -395,7 +435,7 @@ export class OnChainRegistry extends CannonRegistry {
 
         const { name, preset } = new PackageReference(registerPackage);
 
-        await this.checkPackageOwnership(name);
+        await this.checkPackagePermissions(name);
         const variant = `${pub.chainId}-${preset}`;
 
         console.log(`Package: ${name}`);
