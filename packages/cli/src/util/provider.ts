@@ -7,7 +7,6 @@ import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { getChainById } from '../chains';
 import { CliSettings } from '../settings';
-import { normalizePrivateKey } from '../helpers';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -147,7 +146,7 @@ export async function resolveProviderAndSigners({
     if (privateKey) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(normalizePrivateKey(k));
+          const account = privateKeyToAccount(k);
           return {
             address: account.address,
             wallet: viem.createWalletClient({
