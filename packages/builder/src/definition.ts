@@ -83,7 +83,12 @@ export class ChainDefinition {
         }
 
         const fullActionName = `${action}.${name}`;
-        actionNames.push(name);
+
+        // backwards-compatibility: We dont store setting or var names as they can have duplicate names
+        if (action !== 'setting' && action !== 'var') {
+          actionNames.push(name);
+        }
+
         actions.push(fullActionName);
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
