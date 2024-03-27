@@ -10,7 +10,7 @@ import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-function normalizePrivateKey(pkey: string): viem.Hash {
+export function normalizePrivateKey(pkey: string): viem.Hash {
   return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
 }
 
