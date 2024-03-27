@@ -83,6 +83,6 @@ export const chains = [
     id: 1729,
     name: 'Reya Network',
     shortName: 'reyaNetwork',
-    serviceUrl: 'https://transaction.safe.reya.network'
+    serviceUrl: 'https://transaction.safe.reya.network',
   },
 ] as const;
