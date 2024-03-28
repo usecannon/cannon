@@ -360,7 +360,11 @@ export async function getOutputs(
         }
       }
 
-      await runtime.loadState(state[layer.actions[0]].chainDump!);
+      if (state[layer.actions[0]]) {
+        await runtime.loadState(state[layer.actions[0]].chainDump!);
+      } else {
+        debug(`couldn't load state for ${layer.actions[0]}, action doesn't exist in state.`);
+      }
     }
   }
 
