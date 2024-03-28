@@ -145,7 +145,7 @@ export async function writeIpfs(
 
   let result: AxiosResponse<any, any>;
   try {
-    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true', formData, {
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true&to-files=%2F' + cid, formData, {
       headers: customHeaders,
       timeout,
     });
