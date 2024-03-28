@@ -96,6 +96,8 @@ export function DisplayedTransaction(props: {
       );
     } else if (type == 'bool') {
       return val ? 'true' : 'false';
+    } else if (type.startsWith('uint') || type.startsWith('int')) {
+      return val ? BigInt(val).toString() : '0';
     }
 
     return val.toString();
