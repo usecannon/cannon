@@ -407,7 +407,15 @@ const TransactionDetailsPage: FC<{
                       borderColor="gray.700"
                       mb={8}
                     >
-                      <Heading size="sm" mb="2">
+                      <Heading
+                        size="sm"
+                        mb={3}
+                        fontWeight="medium"
+                        textTransform="uppercase"
+                        letterSpacing="1.5px"
+                        fontFamily="var(--font-miriam)"
+                        textShadow="0px 0px 4px rgba(255, 255, 255, 0.33)"
+                      >
                         Verify Transactions
                       </Heading>
                       {buildInfo.buildStatus && (
