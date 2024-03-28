@@ -31,8 +31,6 @@ export type ContractData = {
   abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
-  // only should be supplied when generated solidity as a single file
-  sourceCode?: string;
   deployTxnHash: string;
   contractName: string;
   sourceName: string;
@@ -181,9 +179,6 @@ export interface ChainBuilderRuntimeInfo {
 
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
-
-  // Should publish contract sources along with bytecode?
-  publicSourceCode?: boolean;
 
   // Gas price to use for transactions
   gasPrice?: string;

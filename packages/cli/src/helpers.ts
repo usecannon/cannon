@@ -399,12 +399,10 @@ export function getContractsAndDetails(state: {
   const contractsAndDetails: { [contractName: string]: ContractData } = {};
 
   for (const key in state) {
-    if (key.startsWith('contract.')) {
-      const contracts = state[key]?.artifacts?.contracts;
-      if (contracts) {
-        for (const contractName in contracts) {
-          contractsAndDetails[contractName] = contracts[contractName];
-        }
+    const contracts = state[key]?.artifacts?.contracts;
+    if (contracts) {
+      for (const contractName in contracts) {
+        contractsAndDetails[contractName] = contracts[contractName];
       }
     }
   }

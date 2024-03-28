@@ -11,9 +11,7 @@ import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
-  config.cannon = {
-    publicSourceCode: userConfig.cannon?.publicSourceCode || false,
-  };
+  config.cannon = {};
 
   config.networks.cannon = {
     port: 8545,

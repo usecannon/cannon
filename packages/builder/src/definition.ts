@@ -189,6 +189,10 @@ export class ChainDefinition {
     return _.template(this.raw.preset)(ctx) || 'main';
   }
 
+  isPublicSourceCode() {
+    return this.raw.publicSourceCode ?? true;
+  }
+
   getConfig(n: string, ctx: ChainBuilderContext) {
     if (_.sortedIndexOf(this.allActionNames, n) === -1) {
       throw new Error(`getConfig step name not found: ${n}`);

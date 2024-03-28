@@ -5,9 +5,7 @@ import type * as viem from 'viem';
 
 declare module 'hardhat/types/config' {
   export interface HardhatUserConfig {
-    cannon?: {
-      publicSourceCode: boolean;
-    };
+    cannon?: Record<string, never>;
   }
 
   export interface NetworksConfig {
@@ -26,9 +24,7 @@ declare module 'hardhat/types/config' {
   }
 
   export interface HardhatConfig {
-    cannon: {
-      publicSourceCode: boolean;
-    };
+    cannon: Record<string, never>;
   }
 }
 
