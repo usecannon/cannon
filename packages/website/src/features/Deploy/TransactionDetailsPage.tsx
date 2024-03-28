@@ -221,8 +221,8 @@ const TransactionDetailsPage: FC<{
   return (
     <>
       {!hintData && (
-        <Container p={16}>
-          <Spinner m="auto" />
+        <Container p={24} textAlign="center">
+          <Spinner />
         </Container>
       )}
       {hintData && !safeTxn && stagedQuery.isFetched && (
@@ -493,7 +493,7 @@ const TransactionDetailsPage: FC<{
                     >
                       <Heading
                         size="sm"
-                        mb={2}
+                        mb={3}
                         fontWeight="medium"
                         textTransform="uppercase"
                         letterSpacing="1.5px"
