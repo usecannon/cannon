@@ -6,6 +6,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry-mainnet",
+    "deploy-optimism": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry-optimism --network optimism",
     "create-local": "graph create --node http://localhost:8020/ noahlitvin/cannon-registry-mainnet",
     "remove-local": "graph remove --node http://localhost:8020/ noahlitvin/cannon-registry-mainnet",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 noahlitvin/cannon-registry-mainnet"

@@ -1,10 +1,8 @@
 'use client';
 
-import apolloClient from '@/graphql/ApolloClient';
 import LogsProvider from '@/providers/logsProvider';
 import WalletProvider from '@/providers/walletProvider';
 import { theme } from '@/theme/theme';
-import { ApolloProvider } from '@apollo/client';
 import { CacheProvider } from '@chakra-ui/next-js';
 import { ChakraProvider } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,13 +26,11 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <CacheProvider>
       <ChakraProvider theme={theme} colorModeManager={csm as any}>
-        <ApolloProvider client={apolloClient}>
-          <QueryClientProvider client={queryClient}>
-            <LogsProvider>
-              <WalletProvider>{children}</WalletProvider>
-            </LogsProvider>
-          </QueryClientProvider>
-        </ApolloProvider>
+        <QueryClientProvider client={queryClient}>
+          <LogsProvider>
+            <WalletProvider>{children}</WalletProvider>
+          </LogsProvider>
+        </QueryClientProvider>
       </ChakraProvider>
     </CacheProvider>
   );
