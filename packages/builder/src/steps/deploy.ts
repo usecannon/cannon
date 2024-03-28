@@ -4,6 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { computeTemplateAccesses } from '../access-recorder';
 import { deploySchema } from '../schemas';
+import { bold, red } from 'chalk';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import {
   ChainArtifacts,
@@ -257,7 +258,7 @@ const deploySpec = {
       }),
     };
 
-    const overrides: any = {}; // TODO
+    const overrides: any = {};
 
     if (config.overrides?.gasLimit) {
       overrides.gasLimit = config.overrides.gasLimit;
@@ -277,64 +278,106 @@ const deploySpec = {
 
     let receipt: viem.TransactionReceipt | null = null;
 
-    if (config.create2) {
-      const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
-        runtime,
-        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
-      );
+    try {
+      if (config.create2) {
+        const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
+          runtime,
+          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+        );
 
-      debug('performing arachnid create2');
-      const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
-      debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
+        debug('performing arachnid create2');
+        const [create2Txn, addr] = makeArachnidCreate2Txn(config.salt || '', txn.data!, arachnidDeployerAddress);
+        debug(`create2: deploy ${addr} by ${arachnidDeployerAddress}`);
 
-      const bytecode = await runtime.provider.getBytecode({ address: addr });
+        const bytecode = await runtime.provider.getBytecode({ address: addr });
 
-      if (bytecode && bytecode !== '0x') {
-        debug('create2 contract already completed');
-        // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
-      } else {
-        const signer = config.from
-          ? await runtime.getSigner(config.from as viem.Address)
-          : await runtime.getDefaultSigner!(txn, config.salt);
+        if (bytecode && bytecode !== '0x') {
+          debug('create2 contract already completed');
+          // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
+        } else {
+          const signer = config.from
+            ? await runtime.getSigner(config.from as viem.Address)
+            : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
-        debug('final create2 txn', fullCreate2Txn);
+          const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+          debug('final create2 txn', fullCreate2Txn);
 
-        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
-        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-        debug('arachnid create2 complete', receipt);
-      }
-    } else {
-      if (
-        config.from &&
-        config.nonce?.length &&
-        parseInt(config.nonce) < (await runtime.provider.getTransactionCount({ address: config.from as viem.Address }))
-      ) {
-        const contractAddress = viem.getContractAddress({ from: config.from as viem.Address, nonce: BigInt(config.nonce) });
-
-        debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
-
-        // check that the contract bytecode that was deployed matches the requested
-        const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
-        // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
-        // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
-        // length should be sufficient
-        if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
-          debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
-          throw new Error(
-            `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
-          );
+          const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
+          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+          debug('arachnid create2 complete', receipt);
         }
       } else {
-        const signer = config.from
-          ? await runtime.getSigner(config.from as viem.Address)
-          : await runtime.getDefaultSigner!(txn, config.salt);
-        const preparedTxn = await runtime.provider.prepareTransactionRequest(
-          _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-        );
-        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+        if (
+          config.from &&
+          config.nonce?.length &&
+          parseInt(config.nonce) < (await runtime.provider.getTransactionCount({ address: config.from as viem.Address }))
+        ) {
+          const contractAddress = viem.getContractAddress({
+            from: config.from as viem.Address,
+            nonce: BigInt(config.nonce),
+          });
+
+          debug(`contract appears already deployed to address ${contractAddress} (nonce too high)`);
+
+          // check that the contract bytecode that was deployed matches the requested
+          const actualBytecode = await runtime.provider.getBytecode({ address: contractAddress });
+          // we only check the length because solidity puts non-substantial changes (ex. comments) in bytecode and that
+          // shouldn't trigger any significant change. And also this is just kind of a sanity check so just verifying the
+          // length should be sufficient
+          if (!actualBytecode || artifactData.deployedBytecode.length !== actualBytecode.length) {
+            debug('bytecode does not match up', artifactData.deployedBytecode, actualBytecode);
+            throw new Error(
+              `the address at ${config.from!} should have deployed a contract at nonce ${config.nonce!} at address ${contractAddress}, but the bytecode does not match up.`
+            );
+          }
+        } else {
+          const signer = config.from
+            ? await runtime.getSigner(config.from as viem.Address)
+            : await runtime.getDefaultSigner!(txn, config.salt);
+          const preparedTxn = await runtime.provider.prepareTransactionRequest(
+            _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+          );
+          const hash = await signer.wallet.sendTransaction(preparedTxn as any);
+          receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+        }
+      }
+    } catch (error: any) {
+      let decodedError;
+
+      // Catch an error when it comes from create2 deployer
+      if (config.create2) {
+        // Arachnid create2 does not return the underlying revert message.
+        // Ref: https://github.com/Arachnid/deterministic-deployment-proxy/blob/master/source/deterministic-deployment-proxy.yul#L13
+
+        // In order to get the underlying revert message, perform a normal deployment
+        const simulateConfig = {
+          ...config,
+          create2: false,
+        };
+
+        return await this.exec(runtime, ctx, simulateConfig, packageState);
+      }
+
+      // Catch an error when it comes from normal deployment
+      if (!config.create2) {
+        if (error.error.data) {
+          try {
+            decodedError = viem.decodeErrorResult({
+              abi: artifactData.abi,
+              data: error.error.data,
+            });
+
+            debug('Succesfully decoded abi error');
+          } catch (decodeErr) {
+            throw new Error('Failed to decode the error using the ABI' + decodeErr);
+          }
+        } else {
+          throw new Error('An error occurred, but no error data is available for decoding.');
+        }
+
+        const errorString = JSON.stringify(decodedError, null, 2);
+        throw new Error(red(bold(`Error sighash: ${error.error.data} \n Decoded error: ${errorString}`)));
       }
     }
 
