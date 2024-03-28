@@ -613,6 +613,11 @@ export const chainDefinitionSchema = z
       })
       .describe('Preset of the package')
       .optional(),
+    /**
+     * Whether or not source code from local package should be bundled in the package.
+     * NOTE: If this is set to false, it will not be possible to verify your contracts with cannon
+     */
+    publicSourceCode: z.boolean().default(true),
   })
   .merge(
     z
