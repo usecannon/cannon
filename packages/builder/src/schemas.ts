@@ -615,9 +615,10 @@ export const chainDefinitionSchema = z
       .optional(),
     /**
      * Whether or not source code from local package should be bundled in the package.
-     * NOTE: If this is set to false, it will not be possible to verify your contracts with cannon
+     * NOTE: If this is set to true, it will not be possible to verify your contracts on etherscan with cannon
+     * If not specified, the value is treated as `false` (ie contract source codes included)
      */
-    publicSourceCode: z.boolean().default(true),
+    privateSourceCode: z.boolean().optional(),
   })
   .merge(
     z

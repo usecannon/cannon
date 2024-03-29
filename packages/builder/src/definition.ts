@@ -190,7 +190,7 @@ export class ChainDefinition {
   }
 
   isPublicSourceCode() {
-    return this.raw.publicSourceCode ?? true;
+    return !this.raw.privateSourceCode;
   }
 
   getConfig(n: string, ctx: ChainBuilderContext) {
