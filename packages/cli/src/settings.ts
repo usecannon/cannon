@@ -127,8 +127,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
       .string()
-      .refine((v) => viem.isAddress(v), 'must be address')
-      .optional(),
+      .optional()
+      .refine((v) => viem.isAddress(v), 'must be address'),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
