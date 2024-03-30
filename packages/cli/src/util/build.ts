@@ -251,7 +251,6 @@ async function prepareBuildConfig(
     wipe: opts.wipe,
     persist: !opts.dryRun,
     overrideResolver,
-    publicSourceCode: true, // TODO: foundry doesn't really have a way to specify whether the contract sources should be public or private
     providerUrl: cliSettings.providerUrl,
     writeScript: opts.writeScript,
     writeScriptFormat: opts.writeScriptFormat,
