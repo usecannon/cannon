@@ -47,7 +47,7 @@
     "chalk": "^4.1.2",
     "debug": "^4.3.3",
     "fs-extra": "^10.0.1",
-    "viem": "^2.6.1"
+    "viem": "^2.9.3"
   },
   "gitHead": "a20d4d65cbeb3e9ebf23da3ba411d33c1a6a20f5"
 }

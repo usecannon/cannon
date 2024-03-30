@@ -194,7 +194,7 @@ export default function HomePage() {
             letterSpacing={['-0.8px', '-0.8px', '-1.6px']}
             color="gray.300"
           >
-            A DevOps tool for building on Ethereum.
+            A DevOps tool for building on Ethereum
           </Heading>
           <Link href={links.LEARN} color="white" as={NextLink}>
             <Button

@@ -73,6 +73,9 @@ ${printChainDefinitionProblems(problems)}`);
   const name = def.getName(initialCtx);
   const version = def.getVersion(initialCtx);
 
+  // whether or not source code is included in deployment artifacts or not is controlled by cannonfile config, so we set it here
+  runtime.setPublicSourceCode(def.isPublicSourceCode());
+
   try {
     if (runtime.snapshots) {
       debug('building by layer');
