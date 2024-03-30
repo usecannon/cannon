@@ -73,6 +73,9 @@ ${printChainDefinitionProblems(problems)}`);
   const name = def.getName(initialCtx);
   const version = def.getVersion(initialCtx);
 
+  // whether or not source code is included in deployment artifacts or not is controlled by cannonfile config, so we set it here
+  runtime.setPublicSourceCode(def.isPublicSourceCode());
+
   try {
     if (runtime.snapshots) {
       debug('building by layer');
@@ -251,7 +254,12 @@ export async function buildLayer(
     await runtime.clearNode();
 
     for (const dep of layer.depends) {
-      await runtime.loadState(state[dep].chainDump!);
+      if (state[dep].chainDump) {
+        // chain dump may not exist if the package is a little older
+        await runtime.loadState(state[dep].chainDump!);
+      } else {
+        debug('warning: chain dump not recorded for layer:', dep);
+      }
     }
 
     for (const action of layer.actions) {
@@ -360,10 +368,10 @@ export async function getOutputs(
         }
       }
 
-      if (state[layer.actions[0]]) {
+      if (state[layer.actions[0]]?.chainDump) {
         await runtime.loadState(state[layer.actions[0]].chainDump!);
       } else {
-        debug(`couldn't load state for ${layer.actions[0]}, action doesn't exist in state.`);
+        debug(`warning: state dump not recorded for ${layer.actions[0]}`);
       }
     }
   }

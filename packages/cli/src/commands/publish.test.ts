@@ -26,6 +26,7 @@ describe('publish command', () => {
   const otherPreset = 'other';
   let signer: CannonSigner;
   let provider: viem.PublicClient;
+  let onChainRegistry: OnChainRegistry;
   const deployDataLocalFileName = `${basePackageRef.replace(':', '_')}_${chainId}-${preset}.txt`;
   const deployDataLocalFileNameLatest = `package_latest_${chainId}-${preset}.txt`;
   const miscData = { misc: 'info' };
@@ -72,6 +73,7 @@ describe('publish command', () => {
 
     const privateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
     signer = { address: privateKeyToAccount(privateKey).address, wallet: {} as any };
+    onChainRegistry = new OnChainRegistry({ signer, provider, address: '0x' });
   });
 
   beforeEach(() => {
@@ -144,13 +146,11 @@ describe('publish command', () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
       packageRef: fullPackageRef,
-      provider,
-      signer,
+      onChainRegistry,
       tags,
       chainId,
       quiet: true,
       skipConfirm: true,
-      overrides: {},
     });
 
     expect(OnChainRegistry.prototype.publish as jest.Mock).toHaveBeenCalledTimes(1);
@@ -166,14 +166,12 @@ describe('publish command', () => {
     tags = [];
     await publish({
       packageRef: fullPackageRef,
-      provider,
-      signer,
+      onChainRegistry,
       tags,
       chainId,
       quiet: true,
       skipConfirm: true,
       includeProvisioned: true,
-      overrides: {},
     });
 
     expect(OnChainRegistry.prototype.publishMany as jest.Mock).toHaveBeenCalledTimes(1);
@@ -201,14 +199,12 @@ describe('publish command', () => {
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
-        provider,
-        signer,
+        onChainRegistry,
         tags,
         chainId,
         quiet: true,
         skipConfirm: true,
         includeProvisioned: true,
-        overrides: {},
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
@@ -221,14 +217,12 @@ describe('publish command', () => {
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
         packageRef: fullPackageRef,
-        provider,
-        signer,
+        onChainRegistry,
         tags,
         chainId,
         presetArg: '',
         quiet: true,
         skipConfirm: true,
-        overrides: {},
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);
@@ -241,14 +235,12 @@ describe('publish command', () => {
     it('should find multiple deploy files on preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
-        provider,
-        signer,
+        onChainRegistry,
         tags,
         chainId: 0,
         presetArg: preset,
         quiet: true,
         skipConfirm: true,
-        overrides: {},
       });
 
       expect(publishPackage as jest.Mock).toHaveBeenCalledTimes(1);

@@ -12,6 +12,7 @@ import {
 } from '@usecannon/builder';
 import { bold, gray, green, greenBright, yellow } from 'chalk';
 import * as viem from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import _ from 'lodash';
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
@@ -24,6 +25,7 @@ import onKeypress from '../util/on-keypress';
 import { build } from './build';
 import { interact } from './interact';
 import { TraceEntry } from '@usecannon/builder/src';
+import { normalizePrivateKey } from '../util/provider';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -72,13 +74,20 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
 
-  let signers: CannonSigner[] = [];
+  const signers: CannonSigner[] = [];
 
   // set up signers
-  for (const addr of (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',')) {
+  const accounts = options.privateKey
+    ? options.privateKey
+        .split(',')
+        .map((pk) => normalizePrivateKey(pk))
+        .map((pk) => privateKeyToAccount(pk as viem.Hex).address)
+    : (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',');
+
+  for (const addr of accounts) {
     await provider.impersonateAccount({ address: addr as viem.Address });
     await provider.setBalance({ address: addr as viem.Address, value: viem.parseEther('10000') });
-    signers = [{ address: addr as viem.Address, wallet: provider }];
+    signers.push({ address: addr as viem.Address, wallet: provider });
   }
 
   const chainId = await provider.getChainId();

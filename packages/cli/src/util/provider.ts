@@ -10,7 +10,7 @@ import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-function normalizePrivateKey(pkey: string): viem.Hash {
+export function normalizePrivateKey(pkey: string): viem.Hash {
   return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
 }
 
@@ -67,15 +67,22 @@ export async function resolveWriteProvider(
   }) as any;
 }
 
-export async function resolveRegistryProvider(
+export async function resolveRegistryProviders(
   settings: CliSettings
-): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }> {
-  return resolveProviderAndSigners({
-    chainId: parseInt(settings.registryChainId),
-    checkProviders: settings.registryProviderUrl?.split(','),
-    privateKey: settings.privateKey,
-    origin: ProviderOrigin.Registry,
-  });
+): Promise<{ provider: viem.PublicClient; signers: CannonSigner[] }[]> {
+  const resolvedProviders = [];
+  for (const registryInfo of settings.registries) {
+    resolvedProviders.push(
+      await resolveProviderAndSigners({
+        chainId: registryInfo.chainId,
+        checkProviders: registryInfo.providerUrl,
+        privateKey: settings.privateKey,
+        origin: ProviderOrigin.Registry,
+      })
+    );
+  }
+
+  return resolvedProviders;
 }
 
 export async function resolveProviderAndSigners({
