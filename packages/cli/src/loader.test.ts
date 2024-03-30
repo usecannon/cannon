@@ -54,11 +54,9 @@ function getMainLoaderTestCases() {
   it('should return object with instances of loaders', () => {
     const settings: CliSettings = {
       providerUrl: '',
-      registryProviderUrl: '',
+      registries: [],
       ipfsUrl: 'ipfs',
       cannonDirectory: 'directory',
-      registryChainId: 'chainId',
-      registryAddress: '0xaddress',
       registryPriority: 'onchain',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
@@ -75,10 +73,8 @@ function getMainLoaderTestCases() {
   it('should use default ipfs url if not provided in settings', () => {
     const settings: CliSettings = {
       providerUrl: '',
-      registryProviderUrl: '',
+      registries: [],
       cannonDirectory: 'directory',
-      registryChainId: 'chainId',
-      registryAddress: '0xaddress',
       registryPriority: 'onchain',
       etherscanApiUrl: 'etherscanApiUrl',
       etherscanApiKey: 'etherscanApiKey',
