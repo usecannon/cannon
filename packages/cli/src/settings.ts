@@ -47,7 +47,7 @@ export type CliSettings = {
   registries: {
     chainId: number;
     providerUrl: string[];
-    address: Address;
+    address: viem.Address;
   }[];
 
   /**
@@ -197,7 +197,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
       chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
-      address: CANNON_REGISTRY_ADDRESS as Address,
+      address: CANNON_REGISTRY_ADDRESS as viem.Address,
     });
   } else {
     finalSettings.registries = DEFAULT_REGISTRY_CONFIG;
