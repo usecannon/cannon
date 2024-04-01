@@ -149,9 +149,9 @@ function checkAndNormalizePrivateKeyTestCases() {
     const result = checkAndNormalizePrivateKey(validPrivateKey);
 
     // Assuming normalizePrivateKey would return the key in a specific format, adjust accordingly
-    expect(isPrivateKey(result!)).toBe(true);
+    expect(result).toBeDefined();
     expect(result!.startsWith('0x')).toBe(true);
-    expect(isPrivateKey(normalizePrivateKey(validPrivateKey))).toBe(true);
+    expect(isPrivateKey(result!)).toBe(true);
   });
 
   it('normalize and validates a group of private keys', () => {
@@ -161,14 +161,14 @@ function checkAndNormalizePrivateKeyTestCases() {
 
     const result = checkAndNormalizePrivateKey(validPrivateKeys);
 
-    const expectedOutput = result!.split(',') as viem.Hex[];
+    const expectedPrivateKeys = result!.split(',') as viem.Hex[];
 
     // Assuming normalizePrivateKey would return the key in a specific format, adjust accordingly
-    expect(result).toEqual(expectedOutput.join(','));
-    expect(expectedOutput[0].startsWith('0x')).toBe(true);
-    expect(expectedOutput[1].startsWith('0x')).toBe(true);
-    expect(isPrivateKey(expectedOutput[0])).toBe(true);
-    expect(isPrivateKey(expectedOutput[1])).toBe(true);
+    expect(result).toEqual(expectedPrivateKeys.join(','));
+    expectedPrivateKeys.forEach((key) => {
+      expect(key.startsWith('0x')).toBe(true);
+      expect(isPrivateKey(key)).toBe(true);
+    });
   });
 
   it('throws an error for invalid private keys', () => {
@@ -179,5 +179,19 @@ function checkAndNormalizePrivateKeyTestCases() {
     }).toThrow(
       'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
     );
+  });
+
+  it('returns undefined for empty input', () => {
+    expect(checkAndNormalizePrivateKey('')).toBeUndefined();
+  });
+
+  it('handles inputs with leading or trailing whitespace', () => {
+    const validPrivateKey = ' ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 ';
+    const expectedResult = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+
+    const result = checkAndNormalizePrivateKey(validPrivateKey);
+
+    expect(result).toEqual(expectedResult);
+    expect(isPrivateKey(result!)).toBe(true);
   });
 }

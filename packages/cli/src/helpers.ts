@@ -453,7 +453,7 @@ export function normalizePrivateKey(privateKey: string | viem.Hex): viem.Hex {
 export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | undefined): viem.Hex | undefined {
   if (!privateKey) return undefined;
 
-  const privateKeys = privateKey.split(',');
+  const privateKeys = privateKey.split(',').map((pk) => pk.trim());
 
   const normalizedPrivateKeys = privateKeys.map((key: string | viem.Hex) => normalizePrivateKey(key));
 
