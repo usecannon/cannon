@@ -3,7 +3,6 @@ import { InMemoryRegistry } from '@usecannon/builder/src';
 import {
   getContractsAndDetails,
   checkAndNormalizePrivateKey,
-  normalizePrivateKey,
   isPrivateKey,
   getSourceFromRegistry,
   getChainId,
