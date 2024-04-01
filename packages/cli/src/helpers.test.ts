@@ -1,5 +1,15 @@
+import * as viem from 'viem';
 import { InMemoryRegistry } from '@usecannon/builder/src';
-import { getContractsAndDetails, getSourceFromRegistry, getChainId, getChainDataFromId, getChainName } from './helpers';
+import {
+  getContractsAndDetails,
+  checkAndNormalizePrivateKey,
+  normalizePrivateKey,
+  isPrivateKey,
+  getSourceFromRegistry,
+  getChainId,
+  getChainDataFromId,
+  getChainName,
+} from './helpers';
 import { LocalRegistry } from './registry';
 import { ChainArtifacts, FallbackRegistry } from '@usecannon/builder';
 
@@ -8,6 +18,7 @@ describe('getChainName', getChainNameTestCases);
 describe('getChainDataFromId', getChainDataFromIdTestCases);
 describe('getContractsAndDetails', getContractsAndDetailsTestCases);
 describe('getSourceFromLocalRegistry', getSourceFromLocalRegistryTestCases);
+describe('checkAndNormalizePrivateKey', checkAndNormalizePrivateKeyTestCases);
 
 function getChainIdTestCases() {
   it('should return the chainId for a valid chain name', () => {
@@ -127,5 +138,46 @@ function getSourceFromLocalRegistryTestCases() {
     const result = getSourceFromRegistry(registries);
 
     expect(result).toBe(mockSource);
+  });
+}
+
+function checkAndNormalizePrivateKeyTestCases() {
+  it('normalize and validates a single valid private key', () => {
+    // Without 0x prefix
+    const validPrivateKey = 'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+
+    const result = checkAndNormalizePrivateKey(validPrivateKey);
+
+    // Assuming normalizePrivateKey would return the key in a specific format, adjust accordingly
+    expect(isPrivateKey(result!)).toBe(true);
+    expect(result!.startsWith('0x')).toBe(true);
+    expect(isPrivateKey(normalizePrivateKey(validPrivateKey))).toBe(true);
+  });
+
+  it('normalize and validates a group of private keys', () => {
+    // With and without 0x prefix
+    const validPrivateKeys =
+      'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80,0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
+
+    const result = checkAndNormalizePrivateKey(validPrivateKeys);
+
+    const expectedOutput = result!.split(',') as viem.Hex[];
+
+    // Assuming normalizePrivateKey would return the key in a specific format, adjust accordingly
+    expect(result).toEqual(expectedOutput.join(','));
+    expect(expectedOutput[0].startsWith('0x')).toBe(true);
+    expect(expectedOutput[1].startsWith('0x')).toBe(true);
+    expect(isPrivateKey(expectedOutput[0])).toBe(true);
+    expect(isPrivateKey(expectedOutput[1])).toBe(true);
+  });
+
+  it('throws an error for invalid private keys', () => {
+    const invalidPrivateKey = '0xdeadbeef';
+
+    expect(() => {
+      checkAndNormalizePrivateKey(invalidPrivateKey);
+    }).toThrow(
+      'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+    );
   });
 }

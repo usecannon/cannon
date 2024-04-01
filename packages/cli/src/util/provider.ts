@@ -146,7 +146,7 @@ export async function resolveProviderAndSigners({
     if (privateKey) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(k);
+          const account = privateKeyToAccount(k as viem.Hex);
           return {
             address: account.address,
             wallet: viem.createWalletClient({
