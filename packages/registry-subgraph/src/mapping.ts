@@ -57,7 +57,7 @@ export function handleUnpublish(event: PackageUnpublish): void {
   let tagId = package_name + ':' + tag_name;
   let tag = Tag.load(tagId);
   if (tag) {
-    let variants = store.get('Variant', { where: { tag: tagId } });
+    let variants = tag.variants.load();
     if (variants.length === 0) {
       // If no variants are associated with this tag, delete the tag
       store.remove('Tag', tag.id);
@@ -65,12 +65,12 @@ export function handleUnpublish(event: PackageUnpublish): void {
   }
 
   // Check if the package has other tags
-  let package = Package.load(package_name);
-  if (package) {
-    let tags = store.get('Tag', { where: { cannon_package: package_name } });
+  let pkg = Package.load(package_name);
+  if (pkg) {
+    let tags = pkg.tags.load();
     if (tags.length === 0) {
       // If no tags are associated with this package, delete the package
-      store.remove('Package', package.id);
+      store.remove('Package', pkg.id);
     }
   }
 }
