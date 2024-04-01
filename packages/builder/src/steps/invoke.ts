@@ -470,9 +470,13 @@ const invokeSpec = {
         if ((varsConfig[k].expectCount || 1) > 1) {
           for (let i = 0; i < varsConfig[k].expectCount!; i++) {
             outputs.push(`settings.${k}_${i}`);
+            // backwards compatibility
+            outputs.push(`extras.${k}_${i}`);
           }
         } else {
           outputs.push(`settings.${k}`);
+          //backwards compatibility
+          outputs.push(`extras.${k}`);
         }
       }
     }

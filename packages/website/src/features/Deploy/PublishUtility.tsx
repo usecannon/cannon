@@ -10,6 +10,7 @@ import {
   useToast,
   Flex,
   Tooltip,
+  Image,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import { findChain } from '@/helpers/rpc';
@@ -144,13 +145,41 @@ export default function PublishUtility(props: {
   // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
-      <Text opacity={0.8}>
-        <Spinner boxSize={3} mx="auto" />
+      <Text textAlign="center">
+        <Spinner boxSize={6} opacity={0.8} mt={3} />
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
     return (
       <>
+        {props.deployUrl && (
+          <Link
+            href={`/ipfs?cid=${props.deployUrl.substring(7)}`}
+            textDecoration="none"
+            _hover={{ textDecoration: 'none' }}
+            display="flex"
+            alignItems="center"
+            mb={3}
+          >
+            <Image
+              display="inline-block"
+              src="/images/ipfs.svg"
+              alt="IPFS"
+              height="14px"
+              mr={1.5}
+            />
+            <Text
+              fontSize="xs"
+              display="inline"
+              borderBottom="1px dotted"
+              borderBottomColor="gray.300"
+            >
+              {`${props.deployUrl.substring(0, 13)}...${props.deployUrl.slice(
+                -6
+              )}`}
+            </Text>
+          </Link>
+        )}
         {wc.data?.chain?.id === Number.parseInt(settings.registryChainId) ? (
           <>
             {!existingRegistryUrl ? (
@@ -197,7 +226,7 @@ export default function PublishUtility(props: {
         ) : (
           <Flex fontSize="xs" fontWeight="medium" align="top">
             <InfoOutlineIcon mt="3px" mr={1.5} />
-            Connect your wallet {chainName && `to ${chainName}`} to publish a
+            Connect your wallet {chainName && `to ${chainName}`} to publish the
             package with data about this deployment
           </Flex>
         )}

@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { resolveRegistryProvider } from './util/provider';
+import { resolveRegistryProviders } from './util/provider';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -170,10 +170,12 @@ export async function createDefaultReadRegistry(
   settings: CliSettings,
   additionalRegistries: CannonRegistry[] = []
 ): Promise<FallbackRegistry> {
-  const { provider } = await resolveRegistryProvider(settings);
+  const registryProviders = await resolveRegistryProviders(settings);
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
-  const onChainRegistry = new OnChainRegistry({ provider, address: settings.registryAddress });
+  const onChainRegistries = registryProviders.map(
+    (p, i) => new OnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+  );
 
   if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
@@ -182,10 +184,10 @@ export async function createDefaultReadRegistry(
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (settings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');
-    return new FallbackRegistry([...additionalRegistries, localRegistry, onChainRegistry]);
+    return new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
   } else {
     debug('on-chain registry is the priority, using on-chain registry first');
-    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, onChainRegistry, localRegistry]);
+    const fallbackRegistry = new FallbackRegistry([...additionalRegistries, ...onChainRegistries, localRegistry]);
 
     if (!settings.quiet) {
       fallbackRegistry.on('getUrl', checkLocalRegistryOverride).catch((err: Error) => {

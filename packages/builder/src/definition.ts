@@ -189,6 +189,10 @@ export class ChainDefinition {
     return _.template(this.raw.preset)(ctx) || 'main';
   }
 
+  isPublicSourceCode() {
+    return !this.raw.privateSourceCode;
+  }
+
   getConfig(n: string, ctx: ChainBuilderContext) {
     if (_.sortedIndexOf(this.allActionNames, n) === -1) {
       throw new Error(`getConfig step name not found: ${n}`);
@@ -322,7 +326,7 @@ export class ChainDefinition {
   }
 
   getDependencies(node: string) {
-    return this.resolvedDependencies.get(node)!;
+    return this.resolvedDependencies.get(node) || [];
   }
 
   /**
@@ -477,6 +481,11 @@ export class ChainDefinition {
   getLayerDependencyTree(n: string, layers: StateLayers): string[] {
     const deps = [];
 
+    if (!layers[n]) {
+      debug('WARN: layer dependency tree not computable for step because not found:', n);
+      return [];
+    }
+
     for (const dep of layers[n].depends) {
       deps.push(...this.getLayerDependencyTree(dep, layers));
     }
@@ -527,6 +536,10 @@ export class ChainDefinition {
       // first. filter any deps which are extraneous. This is a dependency which is a subdepenendency of an assigned layer for a dependency.
       // @note this is the slowest part of cannon atm. Improvements here would be most important.
       for (const dep of deps) {
+        if (!layers[dep]) {
+          debug('WARN: unknown dependency recorded in cannonfile:', dep);
+          continue;
+        }
         for (const depdep of layers[dep].depends) {
           const depTree = this.getLayerDependencyTree(depdep, layers);
           deps = deps.filter((d) => depTree.indexOf(d) === -1);
@@ -591,6 +604,10 @@ export class ChainDefinition {
   }
 
   private getPrintLinesUsed(n: string, layers = this.getStateLayers()): number {
+    if (!layers[n]) {
+      debug('WARN: cannot calculate print lines used for layer becuase undefined:', n);
+      return 0;
+    }
     return Math.max(
       layers[n].actions.length + 2,
       _.sumBy(layers[n].depends, (d) => this.getPrintLinesUsed(d, layers))

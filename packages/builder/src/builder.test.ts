@@ -53,7 +53,6 @@ describe('builder.ts', () => {
         allowPartialDeploy: true,
         provider: provider,
         chainId: 1234,
-        publicSourceCode: true,
         snapshots: false,
         getSigner,
         getDefaultSigner,
