@@ -42,12 +42,12 @@
   },
   "dependencies": {
     "@iarna/toml": "^3.0.0",
-    "@usecannon/builder": "2.11.21",
-    "@usecannon/cli": "2.11.21",
-    "chalk": "^4.1.2",
-    "debug": "^4.3.3",
-    "fs-extra": "^10.0.1",
-    "viem": "^2.9.3"
+    "@usecannon/builder": "2.11.24",
+    "@usecannon/cli": "2.11.24",
+    "chalk": "^5.3.0",
+    "debug": "^4.3.4",
+    "fs-extra": "^11.2.0",
+    "viem": "^2.9.6"
   },
   "gitHead": "a20d4d65cbeb3e9ebf23da3ba411d33c1a6a20f5"
 }
