@@ -8,11 +8,9 @@ import {
   Spinner,
   Text,
   useToast,
-  Flex,
   Tooltip,
   Image,
 } from '@chakra-ui/react';
-import * as chains from '@wagmi/core/chains';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
@@ -67,12 +65,6 @@ export default function PublishUtility(props: {
         );
       }
 
-      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-        throw new Error(
-          'Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.'
-        );
-      }
-
       if (!wc.data) {
         throw new Error('Wallet not connected');
       }
@@ -83,7 +75,7 @@ export default function PublishUtility(props: {
         signer: { address: walletAddress, wallet: wc.data },
         address: settings.registryAddress,
         provider: createPublicClient({
-          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
+          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain, // TODO: use Chain ID based on button or link used
           transport: http(),
         }),
       });
@@ -137,11 +129,6 @@ export default function PublishUtility(props: {
     },
   });
 
-  const chainName = find(
-    chains,
-    (chain: any) => chain.id == settings.registryChainId
-  )?.name;
-
   // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
@@ -180,31 +167,25 @@ export default function PublishUtility(props: {
             </Text>
           </Link>
         )}
-        {wc.data?.chain?.id === Number.parseInt(settings.registryChainId) ? (
+
+        {/* TODO: more like 'alert' style */}
+        {!!existingRegistryUrl && (
+          <Text fontSize="sm" mb={3}>
+            A different package has been published to the registry with a
+            matching name and version at {existingRegistryUrl}. Publishing will
+            overwrite.
+          </Text>
+        )}
+
+        {/* TODO: these should change wallet chain id if necessary */}
+        {/* TODO: verify loading/refresh UX works after submission, for both networks */}
+        {settings.isIpfsGateway ? (
+          <Text fontSize="sm" mb={3}>
+            You cannot publish on an IPFS gateway. Please use an Kubo-compliant
+            API. Link to update it
+          </Text>
+        ) : (
           <>
-            {!existingRegistryUrl ? (
-              <Text fontSize="sm" mb={3}>
-                The package resulting from this deployment has not been
-                published yet.
-              </Text>
-            ) : (
-              <Text fontSize="sm" mb={3}>
-                A different package has been published to the registry with a
-                matching name and version.
-              </Text>
-            )}
-            {settings.isIpfsGateway && (
-              <Text fontSize="sm" mb={3}>
-                You cannot publish on an IPFS gateway, only read operations can
-                be done.
-              </Text>
-            )}
-            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-              <Text fontSize="sm" mb={3}>
-                You cannot publish on an repo endpoint, only read operations can
-                be done.
-              </Text>
-            )}
             <Button
               isDisabled={
                 settings.isIpfsGateway ||
@@ -220,15 +201,15 @@ export default function PublishUtility(props: {
             >
               {publishMutation.isPending
                 ? 'Publishing...'
-                : 'Publish to Registry'}
+                : 'Publish to Optimism'}
             </Button>
+            <Text size="xs">
+              <Link>Publish to Mainnet</Link>{' '}
+              <Tooltip label="TODO: note about prioritization">
+                <InfoOutlineIcon />
+              </Tooltip>
+            </Text>
           </>
-        ) : (
-          <Flex fontSize="xs" fontWeight="medium" align="top">
-            <InfoOutlineIcon mt="3px" mr={1.5} />
-            Connect your wallet {chainName && `to ${chainName}`} to publish the
-            package with data about this deployment
-          </Flex>
         )}
       </>
     );
@@ -252,6 +233,7 @@ export default function PublishUtility(props: {
           </Text>
         )}
 
+        {/* TODO: different button style */}
         <Button
           mt={2}
           size="xs"
