@@ -35,7 +35,7 @@ import { FaYarn } from 'react-icons/fa';
 import { SiPnpm } from 'react-icons/si';
 import commandsConfig from '@usecannon/cli/src/commandsConfig';
 
-const basicCommands = ['run', 'setup', 'build', 'verify', 'publish'];
+const basicCommands = ['run', 'build', 'verify', 'publish'];
 
 const commandsData: any[] = [];
 
