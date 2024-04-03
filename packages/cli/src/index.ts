@@ -522,18 +522,18 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
+  const forgeProcess = spawn('forge', [opts.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeCmd.stdout.on('data', (data: Buffer) => {
+  forgeProcess.stdout.on('data', (data: Buffer) => {
     process.stdout.write(data);
   });
 
-  forgeCmd.stderr.on('data', (data: Buffer) => {
+  forgeProcess.stderr.on('data', (data: Buffer) => {
     process.stderr.write(data);
   });
 
   await new Promise((resolve) => {
-    forgeCmd.on('close', (code: number) => {
+    forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
       resolve({});
