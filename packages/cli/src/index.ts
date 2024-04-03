@@ -364,7 +364,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     pickedRegistryProvider = (
       await prompts.prompt([
         {
-          type: 'multiselect',
+          type: 'select',
           name: 'pickedRegistryProvider',
           message: 'Please choose a registry to deploy to:',
           choices: registryProviders.map((p) => ({ title: p.provider.chain?.name ?? 'Unknown Network', value: p })),
