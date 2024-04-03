@@ -23,6 +23,7 @@ import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
+import { isURL } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 
 const debug = Debug('cannon:cli:helpers');
@@ -303,25 +304,29 @@ export function getChainDataFromId(chainId: number): viem.Chain | null {
 export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
   if (providerUrl && chainId) {
-    const provider = viem.createPublicClient({
-      transport: viem.http(providerUrl),
-    });
+    const isProviderUrl = isURL(providerUrl);
 
-    const providerChainId = await provider.getChainId();
+    if (isProviderUrl) {
+      const provider = viem.createPublicClient({
+        transport: viem.http(providerUrl),
+      });
 
-    // throw an expected error if the chainId is not consistent with the provider's chainId
-    if (Number(chainId) !== Number(providerChainId)) {
-      console.log(
-        red(
-          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
-            '--chain-id'
-          )} value (${chainId}). Please ensure that the ${bold(
-            '--chain-id'
-          )} value matches the network your provider is connected to.`
-        )
-      );
+      const providerChainId = await provider.getChainId();
 
-      process.exit(1);
+      // throw an expected error if the chainId is not consistent with the provider's chainId
+      if (Number(chainId) !== Number(providerChainId)) {
+        console.log(
+          red(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+              '--chain-id'
+            )} value (${chainId}). Please ensure that the ${bold(
+              '--chain-id'
+            )} value matches the network your provider is connected to.`
+          )
+        );
+
+        process.exit(1);
+      }
     }
   }
 }

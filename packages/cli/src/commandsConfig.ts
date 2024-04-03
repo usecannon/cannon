@@ -1,3 +1,5 @@
+import { ANVIL_FIRST_ADDRESS } from './constants';
+
 const anvilOptions = [
   {
     flags: '-p --port <number>',
@@ -199,7 +201,7 @@ const commandsConfig = {
       {
         flags: '--impersonate <address>',
         description: 'Impersonate all calls from the given signer instead of a real wallet. Only works with --fork',
-        defaultValue: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+        defaultValue: ANVIL_FIRST_ADDRESS,
       },
       {
         flags: '--mnemonic <phrase>',
