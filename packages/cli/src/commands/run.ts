@@ -70,6 +70,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const cliSettings = resolveCliSettings(options);
+
   const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
@@ -77,8 +78,8 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   const signers: CannonSigner[] = [];
 
   // set up signers
-  const accounts = options.privateKey
-    ? options.privateKey.split(',').map((pk) => privateKeyToAccount(pk as viem.Hex).address)
+  const accounts = cliSettings.privateKey
+    ? cliSettings.privateKey.split(',').map((pk) => privateKeyToAccount(pk as viem.Hex).address)
     : (options.impersonate || ANVIL_FIRST_ADDRESS).split(',');
 
   for (const addr of accounts) {

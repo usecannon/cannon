@@ -178,10 +178,10 @@ function configureRun(program: Command) {
 
     // Override options with CLI settings
     const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-    const normalizedOptions = _.assign({}, options, pickedCliSettings);
+    const mergedOptions = _.assign({}, options, pickedCliSettings);
 
     await run(packages, {
-      ...normalizedOptions,
+      ...mergedOptions,
       node,
       helpInformation: program.helpInformation(),
     });
@@ -225,19 +225,19 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
-    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, options);
+    // Override options with CLI settings
+    const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
+    const mergedOptions = _.assign({}, options, pickedCliSettings);
+
+    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
 
     if (options.keepAlive && node) {
       console.log(`Built package RPC URL available at ${node.host}`);
 
       const { run } = await import('./commands/run');
 
-      // Override options with CLI settings
-      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-      const normalizedOptions = _.assign({}, options, pickedCliSettings);
-
       await run([{ ...pkgSpec, settings: {} }], {
-        ...normalizedOptions,
+        ...mergedOptions,
         resolver: runtime.registry,
         node,
         helpInformation: program.helpInformation(),
