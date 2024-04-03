@@ -23,7 +23,7 @@ import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
-import { isURL } from './util/provider';
+import { isURL, getChainIdFromProviderUrl } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 
 const debug = Debug('cannon:cli:helpers');
@@ -307,11 +307,7 @@ export async function ensureChainIdConsistency(providerUrl?: string, chainId?: n
     const isProviderUrl = isURL(providerUrl);
 
     if (isProviderUrl) {
-      const provider = viem.createPublicClient({
-        transport: viem.http(providerUrl),
-      });
-
-      const providerChainId = await provider.getChainId();
+      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
 
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {

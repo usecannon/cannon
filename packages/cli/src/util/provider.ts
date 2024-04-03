@@ -27,8 +27,8 @@ export const isURL = (url: string): boolean => {
 export const getChainIdFromProviderUrl = async (providerUrl: string) => {
   if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
 
-  const _provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
-  return _provider.getChainId();
+  const provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
+  return provider.getChainId();
 };
 
 export async function resolveWriteProvider(
