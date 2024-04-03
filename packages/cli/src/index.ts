@@ -23,6 +23,7 @@ import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
 import {
   checkAndNormalizePrivateKey,
+  normalizePrivateKey,
   checkCannonVersion,
   checkForgeAstSupport,
   ensureChainIdConsistency,
@@ -338,7 +339,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
