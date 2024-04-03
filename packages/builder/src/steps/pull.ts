@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
@@ -58,10 +58,8 @@ const pullSpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.source));
-    accesses.push(...computeTemplateAccesses(config.preset));
+    let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset));
 
     return accesses;
   },
