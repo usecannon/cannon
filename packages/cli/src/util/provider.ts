@@ -15,12 +15,30 @@ enum ProviderOrigin {
   Write = 'write',
 }
 
+export const isURL = (url: string): boolean => {
+  try {
+    const tmpUrl = new URL(url);
+    return ['http:', 'https:'].includes(tmpUrl.protocol);
+  } catch {
+    return false;
+  }
+};
+
+export const getChainIdFromProviderUrl = async (providerUrl: string) => {
+  if (!isURL(providerUrl)) throw new Error('Provider URL has not a valid format');
+
+  const _provider = viem.createPublicClient({ transport: viem.http(providerUrl) });
+  return _provider.getChainId();
+};
+
 export async function resolveWriteProvider(
   settings: CliSettings,
   chainId: number
 ): Promise<{ provider: viem.PublicClient & viem.WalletClient; signers: CannonSigner[] }> {
   // Check if the first provider URL doesn't start with 'http'
-  if (!settings.providerUrl.split(',')[0].startsWith('http')) {
+  const isProviderUrl = isURL(settings.providerUrl.split(',')[0]);
+
+  if (!isProviderUrl) {
     const chainData = getChainById(chainId);
 
     // If privateKey is present or no valid http URLs are available in rpcUrls
@@ -118,7 +136,7 @@ export async function resolveProviderAndSigners({
   // TODO: if at any point we let users provide multiple urls, this will have to be changed.
   // force provider to use JSON-RPC instead of Web3Provider for local http urls
   const signers: CannonSigner[] = [];
-  if (checkProviders[0].startsWith('http')) {
+  if (isURL(checkProviders[0])) {
     debug(
       'use explicit provider url',
       checkProviders.map((p) => (p ? p.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : p))
