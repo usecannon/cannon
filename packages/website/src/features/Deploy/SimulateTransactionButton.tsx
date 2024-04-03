@@ -11,18 +11,40 @@ interface Props {
 export default function SimulateTransactionButton({ safe, safeTxn }: Props) {
   if (!safeTxn) return null;
 
+  const queryParams = {
+    block: '',
+    blockIndex: '0',
+    from: safe.address,
+    gas: '8000000',
+    gasPrice: '0',
+    value: safeTxn.value || '0',
+    contractAddress: safe.address,
+    rawFunctionInput: createSimulationData(safeTxn),
+    network: `${safe.chainId}`,
+    headerBlockNumber: '',
+    headerTimestamp: '',
+    // set Safe signers threshold to 0
+    stateOverrides: JSON.stringify([
+      {
+        contractAddress: safe.address,
+        storage: [
+          {
+            key: '0x0000000000000000000000000000000000000000000000000000000000000004',
+            value:
+              '0x0000000000000000000000000000000000000000000000000000000000000001',
+          },
+        ],
+      },
+    ]),
+  } satisfies { [key: string]: string };
+
+  const searchParams = new URLSearchParams(queryParams).toString();
+
   return (
     <Button
-      mt={3}
       size="xs"
       as="a"
-      href={`https://dashboard.tenderly.co/simulator/new?block=&blockIndex=0&from=${
-        safe.address
-      }&gas=${8000000}&gasPrice=0&value=${safeTxn?.value}&contractAddress=${
-        safe?.address
-      }&rawFunctionInput=${createSimulationData(safeTxn)}&network=${
-        safe.chainId
-      }&headerBlockNumber=&headerTimestamp=`}
+      href={`https://dashboard.tenderly.co/simulator/new?${searchParams}`}
       colorScheme="whiteAlpha"
       background="whiteAlpha.100"
       border="1px solid"
@@ -42,7 +64,7 @@ export default function SimulateTransactionButton({ safe, safeTxn }: Props) {
         borderColor: 'whiteAlpha.400',
       }}
     >
-      Simulate Transaction
+      Simulate on Tenderly
     </Button>
   );
 }

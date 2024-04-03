@@ -554,7 +554,7 @@ function TransactionDetailsPage({
                       p={4}
                       borderWidth="1px"
                       borderColor="gray.700"
-                      mb={8}
+                      mb={6}
                     >
                       <Heading
                         size="sm"
@@ -599,6 +599,17 @@ function TransactionDetailsPage({
                             on-chain record.
                           </Flex>
                         )}
+                    </Box>
+                  )}
+
+                  {!isTransactionExecuted && (
+                    <Box
+                      background="gray.800"
+                      p={4}
+                      borderWidth="1px"
+                      borderColor="gray.700"
+                      mb={6}
+                    >
                       <SimulateTransactionButton
                         safe={safe}
                         safeTxn={safeTxn}
@@ -612,7 +623,7 @@ function TransactionDetailsPage({
                       p={4}
                       borderWidth="1px"
                       borderColor="gray.700"
-                      mb={8}
+                      mb={6}
                     >
                       <Heading
                         size="sm"
