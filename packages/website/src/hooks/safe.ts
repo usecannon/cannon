@@ -151,6 +151,7 @@ export function useWalletPublicSafes() {
               results.push({ chainId: chain.id, address: safe as Address });
             }
           } catch (e) {
+            // eslint-disable-next-line no-console
             console.error(
               `Error fetching safes for chain ${chain.id}
             `,
