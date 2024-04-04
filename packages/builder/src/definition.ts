@@ -48,6 +48,7 @@ export function validatePackageVersion(v: string) {
 
 export class ChainDefinition {
   private raw: RawChainDefinition;
+  private sensitiveDependencies: boolean;
 
   readonly allActionNames: string[];
 
@@ -63,9 +64,10 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
-  constructor(def: RawChainDefinition) {
+  constructor(def: RawChainDefinition, sensitiveDependencies = false) {
     debug('begin chain def init');
     this.raw = def;
+    this.sensitiveDependencies = sensitiveDependencies;
 
     const actions = [];
 
@@ -323,7 +325,7 @@ export class ChainDefinition {
       });
 
       // Only throw this error if the user hasn't explicitly defined dependencies
-      if (accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
+      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
         throw new Error(
           `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
             _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
