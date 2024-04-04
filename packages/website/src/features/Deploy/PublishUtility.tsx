@@ -63,7 +63,6 @@ export default function PublishUtility(props: {
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
   const prepareAndPublishPackage = async (registryChainId: number) => {
-
     if (settings.isIpfsGateway) {
       // TODO: prompt to connect wallet and switch to Chain ID registryChainId
 
@@ -79,6 +78,7 @@ export default function PublishUtility(props: {
 
     const [walletAddress] = await wc.data.getAddresses();
 
+    // TODO: This needs to check both registries? Should it just check subgraph?
     const targetRegistry = new OnChainRegistry({
       signer: { address: walletAddress, wallet: wc.data },
       address: settings.registryAddress,
