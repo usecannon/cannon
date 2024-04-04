@@ -6,7 +6,7 @@ import { ChainBuilderRuntime } from '../runtime';
 import { varSchema } from '../schemas';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, PackageState } from '../types';
 
-const debug = Debug('cannon:builder:import');
+const debug = Debug('cannon:builder:var');
 
 /**
  *  Available properties for var step
@@ -69,11 +69,12 @@ const varSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const varLabel = packageState.currentLabel?.split('.')[1] || '';
-    debug('exec', config);
+    debug('exec', config, ctx);
 
     // backwards compatibility
     if (packageState.currentLabel.startsWith('setting.')) {
-      let value = config.value || config.defaultValue;
+      const stepName = packageState.currentLabel.split('.')[1];
+      let value = config.value || config.defaultValue || ctx.overrideSettings[stepName];
 
       if (!value) {
         value = '';
