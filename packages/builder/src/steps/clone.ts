@@ -2,7 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
@@ -75,18 +75,16 @@ const cloneSpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.source));
-    accesses.push(...computeTemplateAccesses(config.sourcePreset));
-    accesses.push(...computeTemplateAccesses(config.targetPreset));
+    let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
 
     if (config.options) {
-      _.forEach(config.options, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     return accesses;

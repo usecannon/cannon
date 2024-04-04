@@ -3,7 +3,7 @@ import * as viem from 'viem';
 import { AbiFunction } from 'viem';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { invokeSchema } from '../schemas';
 import {
   CannonSigner,
@@ -401,48 +401,54 @@ const invokeSpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
+    let accesses = computeTemplateAccesses(config.abi);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.func));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.from));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value));
 
     for (const target of config.target) {
       if (!viem.isAddress(target)) {
         if (target.includes('.')) {
-          accesses.push(`imports.${target.split('.')[0]}`);
+          accesses.accesses.push(`imports.${target.split('.')[0]}`);
         } else {
-          accesses.push(`contracts.${target}`);
+          accesses.accesses.push(`contracts.${target}`);
         }
       }
     }
 
-    accesses.push(...computeTemplateAccesses(config.abi));
-    accesses.push(...computeTemplateAccesses(config.func));
-    accesses.push(...computeTemplateAccesses(config.from));
-    accesses.push(...computeTemplateAccesses(config.value));
-
     if (config.args) {
-      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+      _.forEach(
+        config.args,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a))))
+      );
     }
 
     if (config.fromCall) {
-      accesses.push(...computeTemplateAccesses(config.fromCall.func));
-      _.forEach(config.fromCall.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.fromCall.func));
+
+      _.forEach(
+        config.fromCall.args,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(a))))
+      );
     }
 
     if (config?.overrides) {
-      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     for (const name in config.factory) {
       const f = config.factory[name];
 
-      accesses.push(...computeTemplateAccesses(f.event));
-      accesses.push(...computeTemplateAccesses(f.artifact));
-      _.forEach(f.abiOf, (a) => accesses.push(...computeTemplateAccesses(a)));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.artifact));
+
+      _.forEach(f.abiOf, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     const varsConfig = config.var || config.extra;
     for (const name in varsConfig) {
       const f = varsConfig[name];
-      accesses.push(...computeTemplateAccesses(f.event));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(f.event));
     }
 
     return accesses;

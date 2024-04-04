@@ -18,7 +18,7 @@ describe('steps/clone.ts', () => {
     jest.mocked(fakeRuntime.derive).mockReturnThis();
 
     jest.mocked(deployAction.getOutputs).mockReturnValue([]);
-    jest.mocked(deployAction.getInputs).mockReturnValue([]);
+    jest.mocked(deployAction.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
 
     jest.mocked(deployAction.exec).mockResolvedValue({
       contracts: {

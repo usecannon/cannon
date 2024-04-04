@@ -438,11 +438,18 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
     ctx.settings[n] = outputs.settings[n];
   }
 
+  if (!ctx.extras) {
+    ctx.extras = {};
+  }
+
+  for (const n in outputs.extras) {
+    ctx.extras[n] = outputs.extras[n];
+  }
+
   for (const override in ctx.overrideSettings) {
     ctx.settings[override] = ctx.overrideSettings[override];
   }
 
-  ctx.extras = {};
   for (const n in ctx.settings) {
     ctx.extras[n] = ctx.settings[n];
   }
