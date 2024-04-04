@@ -42,16 +42,18 @@ describe('registry.ts', () => {
 
     const fakeRegistryAddress = '0x1234123412341234123412341234123412341234';
 
-    beforeAll(async () => {
-      provider = makeFakeProvider();
-      signer = fixtureSigner();
-
-      registry = new OnChainRegistry({
+    const createRegistry = () =>
+      new OnChainRegistry({
         address: fakeRegistryAddress,
         provider,
         signer,
         overrides: { gasLimit: 1234000 },
       });
+
+    beforeAll(async () => {
+      provider = makeFakeProvider();
+      signer = fixtureSigner();
+      registry = createRegistry();
 
       providerOnlyRegistry = new OnChainRegistry({ provider, address: fakeRegistryAddress });
     });
@@ -74,11 +76,14 @@ describe('registry.ts', () => {
       it('throws if signer is not specified', async () => {
         await expect(() =>
           providerOnlyRegistry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')
-        ).rejects.toThrowError('Missing signer needed for publishing');
+        ).rejects.toThrowError('Missing signer for executing registry operations');
       });
 
       it('checks signer balance', async () => {
         jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
+
+        const registry = createRegistry();
+        registry._checkPackageOwnership = jest.fn();
 
         await expect(() => registry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
           /Signer at .* is not funded with ETH./
@@ -113,8 +118,8 @@ describe('registry.ts', () => {
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
 
         await expect(
-          registry.publish(['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'], 1, 'ipfs://Qmsomething')
-        ).rejects.toThrow(`Signer "${signer.address}" does not have publishing permissions on the "dummyPackage" package`);
+          registry.publish(['dummy-package:0.0.1@main', 'dummy-package:latest@main'], 1, 'ipfs://Qmsomething')
+        ).rejects.toThrow(`Signer "${signer.address}" does not have publishing permissions on the "dummy-package" package`);
       });
 
       it('makes call to register all specified packages, and returns list of published packages', async () => {
@@ -143,7 +148,7 @@ describe('registry.ts', () => {
         jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
 
         const retValue = await registry.publish(
-          ['dummyPackage:0.0.1@main', 'anotherPkg:1.2.3@main'],
+          ['dummy-package:0.0.1@main', 'dummy-package:latest@main'],
           1,
           'ipfs://Qmsomething'
         );

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
 import CannonRegistryAbi from './abis/CannonRegistry';
-import { prepareMulticall, txData } from './multicall';
+import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package';
 import { CannonSigner } from './types';
 
@@ -262,24 +262,12 @@ export class OnChainRegistry extends CannonRegistry {
     return `${this.contract.address}`;
   }
 
-  private async checkSigner() {
-    if (!this.signer) {
-      throw new Error('Missing signer needed for publishing');
-    }
-
-    if (!(await this.provider?.getBalance({ address: this.signer.address }))) {
-      throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
-      );
-    }
-  }
-
   /**
    * Checks if package needs to be registered before publishing.
    * @param packageName
    * @returns Boolean
    */
-  private async isPackageRegistered(packageName: string) {
+  private async _isPackageRegistered(packageName: string) {
     const packageHash = viem.stringToHex(packageName, { size: 32 });
 
     const packageOwner: viem.Address = await this.provider!.readContract({
@@ -288,12 +276,10 @@ export class OnChainRegistry extends CannonRegistry {
       args: [packageHash],
     });
 
-    if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) return false;
-
-    return true;
+    return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
   }
 
-  private async checkPackagePermissions(packageName: string) {
+  async _checkPackageOwnership(packageName: string) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -326,41 +312,75 @@ export class OnChainRegistry extends CannonRegistry {
     }
   }
 
+  private _preparePackageData(packagesNames: string[], chainId: number, url: string, metaUrl?: string): PackageData {
+    const refs = packagesNames.map((name) => new PackageReference(name));
+
+    // Sanity check, all package definitions should have the same name
+    if (_.uniq(refs.map((r) => r.name)).length !== 1) {
+      throw new Error(`packages should have the same name: ${packagesNames.join(', ')}`);
+    }
+
+    // Sanity check, all package definitions should have the same preset
+    if (_.uniq(refs.map((r) => r.preset)).length !== 1) {
+      throw new Error(`packages should have the same preset: ${packagesNames.join(', ')}`);
+    }
+
+    const { name, preset } = refs[0];
+    const variant = `${chainId}-${preset}`;
+    const tags = refs.map((ref) => ref.version);
+
+    console.log(`Package: ${name}`);
+    if (preset !== PackageReference.DEFAULT_PRESET) {
+      console.log(`Preset: ${preset}`);
+    }
+    console.log(`Tags: ${tags}`);
+    console.log(`Package URL: ${url}`);
+    if (metaUrl) {
+      console.log(`Metadata URL: ${metaUrl}`);
+    }
+
+    console.log('\n');
+
+    return { name, variant, tags, url, metaUrl };
+  }
+
   private async _publishPackages(packages: PackageData[]): Promise<string> {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
 
-    const txs: txData[] = [];
-    for (const data of packages) {
-      const publishTx = {
-        abi: this.contract.abi,
-        address: this.contract.address,
-        functionName: 'publish',
-        value: BigInt(0),
-        args: [
-          viem.stringToHex(data.name, { size: 32 }),
-          viem.stringToHex(data.variant, { size: 32 }),
-          data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
-          data.url,
-          data.metaUrl || '',
-        ],
-      };
+    debug('signer', this.signer);
 
-      // if package is not registered, we register it (aka set ownership) here.
-      if (!(await this.isPackageRegistered(data.name))) {
-        const registerTx = {
-          abi: this.contract.abi,
-          address: this.contract.address,
-          functionName: 'setPackageOwnership',
-          args: [viem.stringToHex(data.name, { size: 32 }), this.signer.wallet.account?.address || this.signer.address],
-        };
+    const ownerAddress = this.signer.wallet.account?.address || this.signer.address;
 
-        txs.push(registerTx);
-      }
+    const txs: TxData[] = packages.map((data) => ({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'publish',
+      value: BigInt(0),
+      args: [
+        viem.stringToHex(data.name, { size: 32 }),
+        viem.stringToHex(data.variant, { size: 32 }),
+        data.tags.map((t) => viem.stringToHex(t, { size: 32 })),
+        data.url,
+        data.metaUrl || '',
+      ],
+    }));
 
-      txs.push(publishTx);
-    }
+    await Promise.all(
+      packages.map(async ({ name }) => {
+        if (await this._isPackageRegistered(name)) {
+          await this._checkPackageOwnership(name);
+        } else {
+          txs.unshift({
+            abi: this.contract.abi,
+            address: this.contract.address,
+            functionName: 'setPackageOwnership',
+            args: [viem.stringToHex(name, { size: 32 }), ownerAddress],
+          });
+        }
+      })
+    );
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
 
@@ -384,81 +404,18 @@ export class OnChainRegistry extends CannonRegistry {
     return receipt.transactionHash;
   }
 
-  // this is sort of confusing to have two publish functions that are both used to publish multiple packages
   async publish(packagesNames: string[], chainId: number, url: string, metaUrl?: string): Promise<string[]> {
-    await this.checkSigner();
-    const datas: PackageData[] = [];
-
-    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
-    for (const registerPackage of packagesNames) {
-      const tags = packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
-
-      const { name, preset, fullPackageRef } = new PackageReference(registerPackage);
-
-      await this.checkPackagePermissions(name);
-      const variant = `${chainId}-${preset}`;
-
-      console.log(`Package: ${fullPackageRef}`);
-      console.log(`Tags: ${tags}`);
-      console.log(`Package URL: ${url}`);
-
-      if (metaUrl) {
-        console.log(`Package Metadata URL: ${metaUrl}`);
-      }
-
-      console.log('\n');
-
-      const existant = datas.find((data) => _.isMatch(data, { name, variant, url, metaUrl }));
-
-      if (existant) {
-        existant.tags = _.union(existant.tags, tags);
-      } else {
-        datas.push({ name, tags, variant, url, metaUrl });
-      }
-    }
-
-    return [await this._publishPackages(datas)];
+    console.log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
+    const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl);
+    return [await this._publishPackages([packageData])];
   }
 
   async publishMany(
-    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl: string }[]
+    toPublish: { packagesNames: string[]; chainId: number; url: string; metaUrl?: string }[]
   ): Promise<string[]> {
-    await this.checkSigner();
-    debug('signer', this.signer);
-    const datas: PackageData[] = [];
-
-    console.log(bold(blueBright('\nPublishing packages to the On-Chain registry...\n')));
-    for (const pub of toPublish) {
-      const { url, metaUrl } = pub;
-      for (const registerPackage of pub.packagesNames) {
-        const tags = pub.packagesNames.filter((pkg) => pkg === registerPackage).map((p) => new PackageReference(p).version);
-
-        const { name, preset } = new PackageReference(registerPackage);
-
-        await this.checkPackagePermissions(name);
-        const variant = `${pub.chainId}-${preset}`;
-
-        console.log(`Package: ${name}`);
-        console.log(`Tags: ${tags}`);
-        console.log(`Package URL: ${url}`);
-
-        if (metaUrl) {
-          console.log(`Package Metadata URL: ${metaUrl}`);
-        }
-
-        console.log('\n-----');
-
-        const existant = datas.find((data) => _.isMatch(data, { name, variant, url, metaUrl }));
-
-        if (existant) {
-          existant.tags = _.union(existant.tags, tags);
-        } else {
-          datas.push({ name, tags, variant, url, metaUrl });
-        }
-      }
-    }
-
-    return [await this._publishPackages(datas)];
+    console.log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
+    const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
+    return [await this._publishPackages(packageDatas)];
   }
 
   async getUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
@@ -561,6 +518,14 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('Missing signer for executing registry operations');
     }
 
+    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+
+    if (!userBalance) {
+      throw new Error(
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to publish.`
+      );
+    }
+
     console.log(`\nEstimated gas: ${simulatedGas} wei`);
 
     const gasPrice = BigInt(this.overrides.maxFeePerGas || this.overrides.gasPrice || (await this.provider.getGasPrice()));
@@ -568,7 +533,6 @@ export class OnChainRegistry extends CannonRegistry {
     const transactionFeeWei = simulatedGas * gasPrice;
     console.log(`\nEstimated transaction Fee: ${viem.formatEther(transactionFeeWei)} ETH\n\n`);
 
-    const userBalance = await this.provider.getBalance({ address: this.signer.address });
     if (this.signer && userBalance < transactionFeeWei) {
       console.log(
         bold(
