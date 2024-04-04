@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { deploySchema } from '../schemas';
 import { ensureArachnidCreate2Exists, makeArachnidCreate2Txn, ARACHNID_DEFAULT_DEPLOY_ADDR } from '../create2';
 import {
@@ -191,29 +191,30 @@ const deploySpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.from));
-    accesses.push(...computeTemplateAccesses(config.nonce));
-    accesses.push(...computeTemplateAccesses(config.artifact));
-    accesses.push(...computeTemplateAccesses(config.value));
-    accesses.push(...computeTemplateAccesses(config.abi));
-    accesses.push(...computeTemplateAccesses(config.salt));
+    let accesses = computeTemplateAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.abi));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt));
 
     if (config.abiOf) {
-      config.abiOf.forEach((v) => accesses.push(...computeTemplateAccesses(v)));
+      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v))));
     }
 
     if (config.args) {
-      _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(JSON.stringify(a))));
+      _.forEach(
+        config.args,
+        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v))))
+      );
     }
 
     if (config.libraries) {
-      _.forEach(config.libraries, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
-      accesses.push(...computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     return accesses;
