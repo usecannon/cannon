@@ -81,6 +81,6 @@ export function computeTemplateAccesses(str?: string): AccessComputationResult {
 export function mergeTemplateAccesses(r1: AccessComputationResult, r2: AccessComputationResult): AccessComputationResult {
   return {
     accesses: [...r1.accesses, ...r2.accesses],
-    unableToCompute: r1.unableToCompute || r2.unableToCompute
+    unableToCompute: r1.unableToCompute || r2.unableToCompute,
   };
 }

@@ -210,14 +210,11 @@ const deploySpec = {
     }
 
     if (config.libraries) {
-      _.forEach(
-        config.libraries,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v)))
-      );
+      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
     }
 
     return accesses;

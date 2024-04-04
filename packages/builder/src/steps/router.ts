@@ -71,7 +71,9 @@ const routerStep = {
   getInputs(config: Config) {
     let accesses = computeTemplateAccesses(config.from);
     accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt));
-    accesses.accesses.push(...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)))
+    accesses.accesses.push(
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+    );
 
     return accesses;
   },
