@@ -89,6 +89,7 @@ ${printChainDefinitionProblems(problems)}`);
       doActions: for (const n of topologicalActions) {
         debug(`check action ${n}`);
         if (runtime.isCancelled()) {
+          debug('runtime cancelled');
           break;
         }
 

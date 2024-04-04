@@ -38,38 +38,9 @@ const cloneSpec = {
 
   validate: cloneSchema,
 
-  async getState(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContextWithHelpers,
-    config: Config,
-    packageState: PackageState
-  ) {
-    const importLabel = packageState.currentLabel?.split('.')[1] || '';
-    const cfg = this.configInject(ctx, config, packageState);
-
-    const source = cfg.source;
-    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
-
-    if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url!;
-
-      if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
-        // partial build always need to be re-evaluated
-        debug('forcing rebuild because deployment is partial');
-        // returning an empty array for force a rebuild because any provided state hash will never match
-        return [];
-      }
-    }
-
-    const srcUrl = await runtime.registry.getUrl(source, chainId);
-
-    return [
-      {
-        url: srcUrl,
-        options: cfg.var || cfg.options,
-        targetPreset: cfg.targetPreset,
-      },
-    ];
+  async getState() {
+    // Always re-run the step
+    return [];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
@@ -212,6 +183,15 @@ const cloneSpec = {
     }
 
     debug('finish build. is partial:', partialDeploy);
+
+    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+      debug('built state is exactly equal to previous state. skip generation of new deploy url');
+      return {
+        imports: {
+          [importLabel]: ctx.imports[importLabel],
+        },
+      };
+    }
 
     const newMiscUrl = await importRuntime.recordMisc();
 
