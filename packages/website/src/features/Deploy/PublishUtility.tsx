@@ -62,62 +62,71 @@ export default function PublishUtility(props: {
     resolvedVersion ? ':' + resolvedVersion : ''
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
-  const publishMutation = useMutation({
+  const prepareAndPublishPackage = async (registryChainId: number) => {
+
+    if (settings.isIpfsGateway) {
+      // TODO: prompt to connect wallet and switch to Chain ID registryChainId
+
+      // UI should prevent this from happening
+      throw new Error(
+        'You cannot publish on an IPFS gateway, only read operations can be done'
+      );
+    }
+
+    if (!wc.data) {
+      throw new Error('Wallet not connected');
+    }
+
+    const [walletAddress] = await wc.data.getAddresses();
+
+    const targetRegistry = new OnChainRegistry({
+      signer: { address: walletAddress, wallet: wc.data },
+      address: settings.registryAddress,
+      provider: createPublicClient({
+        chain: findChain(registryChainId) as Chain,
+        transport: http(),
+      }),
+    });
+
+    const fakeLocalRegistry = new InMemoryRegistry();
+
+    // TODO: set meta url
+    await fakeLocalRegistry.publish(
+      [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
+      props.targetChainId,
+      props.deployUrl,
+      ''
+    );
+
+    const loader = new IPFSBrowserLoader(
+      settings.ipfsApiUrl || 'https://repo.usecannon.com/'
+    );
+
+    const fromStorage = new CannonStorage(
+      fakeLocalRegistry,
+      { ipfs: loader },
+      'ipfs'
+    );
+    const toStorage = new CannonStorage(
+      targetRegistry,
+      { ipfs: loader },
+      'ipfs'
+    );
+
+    await publishPackage({
+      packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+      tags: ['latest'],
+      chainId: props.targetChainId,
+      fromStorage,
+      toStorage,
+      includeProvisioned: true,
+    });
+  };
+
+
+  const publishMainnetMutation = useMutation({
     mutationFn: async () => {
-      if (settings.isIpfsGateway) {
-        throw new Error(
-          'You cannot publish on an IPFS gateway, only read operations can be done'
-        );
-      }
-
-      if (!wc.data) {
-        throw new Error('Wallet not connected');
-      }
-
-      const [walletAddress] = await wc.data.getAddresses();
-
-      const targetRegistry = new OnChainRegistry({
-        signer: { address: walletAddress, wallet: wc.data },
-        address: settings.registryAddress,
-        provider: createPublicClient({
-          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain, // TODO: use Chain ID based on button or link used
-          transport: http(),
-        }),
-      });
-
-      const fakeLocalRegistry = new InMemoryRegistry();
-
-      // TODO: set meta url
-      await fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
-        props.targetChainId,
-        props.deployUrl,
-        ''
-      );
-
-      const loader = new IPFSBrowserLoader(
-        settings.ipfsApiUrl || 'https://repo.usecannon.com/'
-      );
-
-      const fromStorage = new CannonStorage(
-        fakeLocalRegistry,
-        { ipfs: loader },
-        'ipfs'
-      );
-      const toStorage = new CannonStorage(
-        targetRegistry,
-        { ipfs: loader },
-        'ipfs'
-      );
-
-      await publishPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
-        tags: ['latest'],
-        chainId: props.targetChainId,
-        fromStorage,
-        toStorage,
-        includeProvisioned: true,
-      });
+      await prepareAndPublishPackage(1);
     },
     onSuccess() {
       void registryQuery.refetch();
@@ -125,8 +134,23 @@ export default function PublishUtility(props: {
     onError() {
       toast({
         title: 'Error Publishing Package',
-        description:
-          'Confirm that the connected wallet is allowed to publish this package and a valid IPFS URL for pinning is in your settings.',
+        status: 'error',
+        duration: 30000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const publishOptimismMutation = useMutation({
+    mutationFn: async () => {
+      await prepareAndPublishPackage(10);
+    },
+    onSuccess() {
+      void registryQuery.refetch();
+    },
+    onError() {
+      toast({
+        title: 'Error Publishing Package',
         status: 'error',
         duration: 30000,
         isClosable: true,
@@ -183,7 +207,6 @@ export default function PublishUtility(props: {
           </Alert>
         )}
 
-        {/* TODO: these should change wallet chain id if necessary */}
         {settings.isIpfsGateway ? (
           <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
             <AlertIcon boxSize={4} mr={3} />
@@ -209,16 +232,31 @@ export default function PublishUtility(props: {
               fontFamily="var(--font-miriam)"
               color="gray.200"
               fontWeight={500}
-              isDisabled={settings.isIpfsGateway || publishMutation.isPending}
+              isDisabled={
+                settings.isIpfsGateway ||
+                publishOptimismMutation.isPending ||
+                publishMainnetMutation.isPending
+              }
               mb={2}
               w="full"
-              onClick={() => publishMutation.mutate()}
-              isLoading={publishMutation.isPending}
+              onClick={() => publishOptimismMutation.mutate()}
+              isLoading={publishOptimismMutation.isPending}
             >
               Publish to Optimism
             </Button>
             <Text fontSize="xs" textAlign="center">
-              <Link>Publish to Mainnet</Link>{' '}
+              <Link
+                isDisabled={
+                  settings.isIpfsGateway ||
+                  publishOptimismMutation.isPending ||
+                  publishMainnetMutation.isPending
+                }
+                onClick={() => publishMainnetMutation.mutate()}
+              >
+                {publishMainnetMutation.isPending
+                  ? 'Publishing...'
+                  : 'Publish to Mainnet'}
+              </Link>{' '}
               <Tooltip label="Cannon will detect packages published to Optimism or Mainnet.">
                 <InfoOutlineIcon />
               </Tooltip>
