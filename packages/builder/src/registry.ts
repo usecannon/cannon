@@ -549,7 +549,7 @@ export class OnChainRegistry extends CannonRegistry {
     const params = {
       abi: this.contract.abi,
       address: this.contract.address,
-      functionName: 'publish',
+      functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
       account: this.signer.wallet.account || this.signer.address,
@@ -563,7 +563,9 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (cost > userBalance) {
       throw new Error(
-        `Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas and fee`
+        `Account "${this.signer.address}" does not have the required ${viem.formatEther(
+          cost
+        )} ETH for gas and registration fee`
       );
     }
 

@@ -12,7 +12,7 @@ export async function register({ packageRef, mainRegistry }: Params) {
   const packageOwner = await mainRegistry.getPackageOwner(packageName);
 
   if (!viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
-    throw new Error(`The package "${packageName}" is already owned by "${packageOwner}".`);
+    throw new Error(`The package "${packageName}" is already registered by "${packageOwner}".`);
   }
 
   const hash = await mainRegistry.setPackageOwnership(packageName);
