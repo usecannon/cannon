@@ -44,32 +44,7 @@ const cloneSpec = {
     config: Config,
     packageState: PackageState
   ) {
-    const importLabel = packageState.currentLabel?.split('.')[1] || '';
-    const cfg = this.configInject(ctx, config, packageState);
-
-    const source = cfg.source;
-    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
-
-    if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url!;
-
-      if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
-        // partial build always need to be re-evaluated
-        debug('forcing rebuild because deployment is partial');
-        // returning an empty array for force a rebuild because any provided state hash will never match
-        return [];
-      }
-    }
-
-    const srcUrl = await runtime.registry.getUrl(source, chainId);
-
-    return [
-      {
-        url: srcUrl,
-        options: cfg.var || cfg.options,
-        targetPreset: cfg.targetPreset,
-      },
-    ];
+    return []; // always re-run this step
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
@@ -221,7 +196,7 @@ const cloneSpec = {
     const newSubDeployUrl = await runtime.putDeploy({
       // TODO: add cannon version number?
       generator: 'cannon clone',
-      timestamp: Math.floor(Date.now() / 1000),
+      timestamp: prevState && (prevState == builtState) ? Number.parseInt(ctx.timestamp) : Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
       options: importPkgOptions,
