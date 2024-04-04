@@ -333,7 +333,7 @@ export class OnChainRegistry extends CannonRegistry {
     if (preset !== PackageReference.DEFAULT_PRESET) {
       console.log(`Preset: ${preset}`);
     }
-    console.log(`Tags: ${tags}`);
+    console.log(`Tags: ${tags.join(', ')}`);
     console.log(`Package URL: ${url}`);
     if (metaUrl) {
       console.log(`Metadata URL: ${metaUrl}`);

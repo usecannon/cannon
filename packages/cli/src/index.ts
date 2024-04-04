@@ -351,13 +351,18 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   let pickedRegistryProvider = registryProviders[0];
 
   if (registryProviders.length > 1) {
+    const choices = registryProviders.map((p) => ({
+      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+      value: p,
+    }));
+
     pickedRegistryProvider = (
       await prompts.prompt([
         {
           type: 'select',
           name: 'pickedRegistryProvider',
           message: 'Please choose a registry to deploy to:',
-          choices: registryProviders.map((p) => ({ title: p.provider.chain?.name ?? 'Unknown Network', value: p })),
+          choices,
         },
       ])
     ).pickedRegistryProvider;
