@@ -184,6 +184,15 @@ const cloneSpec = {
 
     debug('finish build. is partial:', partialDeploy);
 
+    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+      debug('built state is exactly equal to previous state. skip generation of new deploy url');
+      return {
+        imports: {
+          [importLabel]: ctx.imports[importLabel],
+        },
+      };
+    }
+
     const newMiscUrl = await importRuntime.recordMisc();
 
     debug('new misc:', newMiscUrl);
