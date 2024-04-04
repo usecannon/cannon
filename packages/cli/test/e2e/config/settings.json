@@ -3,7 +3,6 @@
   "ipfsUrl": "https://repo.usecannon.com",
   "providerUrl": "http://127.0.0.1:9545",
   "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-  "registryPriority": "local",
   "registryProviderUrl": "http://127.0.0.1:9545",
   "etherscanApiUrl": "https://api.etherscan.io/api",
   "etherscanApiKey": "A7PNIZCEI2HDRUTDJBWS36XBGIB7Q74YMK"

@@ -153,7 +153,7 @@ const cloneSpec = {
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('cloneing package options', importPkgOptions);
+    debug('cloning package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
