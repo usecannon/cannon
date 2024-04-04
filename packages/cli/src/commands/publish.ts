@@ -1,5 +1,11 @@
-import { CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
-import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
+import {
+  CannonStorage,
+  getProvisionedPackages,
+  IPFSLoader,
+  OnChainRegistry,
+  PackageReference,
+  publishPackage,
+} from '@usecannon/builder';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';

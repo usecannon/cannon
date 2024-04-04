@@ -13,7 +13,7 @@ import {
   publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { blueBright, bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
@@ -361,7 +361,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         {
           type: 'select',
           name: 'pickedRegistryProvider',
-          message: 'Please choose a registry to deploy to:',
+          message: 'Please choose a registry to publish to:',
           choices,
         },
       ])
@@ -408,6 +408,64 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     includeProvisioned: options.includeProvisioned,
     skipConfirm: options.skipConfirm,
   });
+});
+
+applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
+  const { register } = await import('./commands/register');
+
+  const cliSettings = resolveCliSettings(options);
+
+  if (!options.privateKey && !cliSettings.privateKey) {
+    const keyPrompt = await prompts({
+      type: 'text',
+      name: 'value',
+      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
+      style: 'password',
+      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+    });
+
+    if (!keyPrompt.value) {
+      console.log('A valid private key is required.');
+      process.exit(1);
+    }
+
+    options.privateKey = keyPrompt.value;
+  }
+
+  if (options.privateKey) {
+    cliSettings.privateKey = options.privateKey;
+  }
+
+  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
+
+  const overrides: any = {};
+
+  if (options.maxFeePerGas) {
+    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
+  }
+
+  if (options.gasLimit) {
+    overrides.gasLimit = options.gasLimit;
+  }
+
+  if (options.value) {
+    overrides.value = options.value;
+  }
+
+  const mainRegistry = new OnChainRegistry({
+    signer: mainRegistryProvider.signers[0],
+    provider: mainRegistryProvider.provider,
+    address: cliSettings.registries[0].address,
+    overrides,
+  });
+
+  const hash = await register({
+    packageRef,
+    mainRegistry,
+  });
+
+  console.log(blueBright('Transaction:'));
+  console.log(`  - ${hash}`);
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {

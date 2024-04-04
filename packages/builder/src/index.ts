@@ -20,7 +20,7 @@ export * from './types';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
-export { publishPackage, PackageReference } from './package';
+export { publishPackage, PackageReference, getProvisionedPackages } from './package';
 
 export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl } from './constants';
 
