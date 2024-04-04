@@ -4,7 +4,6 @@ import deployAction from './deploy';
 import action from './clone';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
 import '../actions';
-import { combineCtx } from '..';
 
 jest.mock('../loader');
 jest.mock('./deploy');
