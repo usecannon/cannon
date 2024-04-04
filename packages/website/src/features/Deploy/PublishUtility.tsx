@@ -1,7 +1,11 @@
 import { useWalletClient } from 'wagmi';
 import { Chain, createPublicClient, http } from 'viem';
 import { useMutation } from '@tanstack/react-query';
-import { InfoOutlineIcon, QuestionOutlineIcon } from '@chakra-ui/icons';
+import {
+  InfoOutlineIcon,
+  QuestionOutlineIcon,
+  ExternalLinkIcon,
+} from '@chakra-ui/icons';
 import {
   Button,
   Link,
@@ -10,6 +14,8 @@ import {
   useToast,
   Tooltip,
   Image,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
@@ -21,7 +27,6 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { find } from 'lodash';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -129,7 +134,6 @@ export default function PublishUtility(props: {
     },
   });
 
-  // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text textAlign="center">
@@ -137,6 +141,7 @@ export default function PublishUtility(props: {
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
+    // Any difference means that this deployment is not technically published
     return (
       <>
         {props.deployUrl && (
@@ -146,7 +151,7 @@ export default function PublishUtility(props: {
             _hover={{ textDecoration: 'none' }}
             display="flex"
             alignItems="center"
-            mb={3}
+            mb={4}
           >
             <Image
               display="inline-block"
@@ -168,44 +173,53 @@ export default function PublishUtility(props: {
           </Link>
         )}
 
-        {/* TODO: more like 'alert' style */}
         {!!existingRegistryUrl && (
-          <Text fontSize="sm" mb={3}>
-            A different package has been published to the registry with a
-            matching name and version at {existingRegistryUrl}. Publishing will
-            overwrite.
-          </Text>
+          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
+            <AlertIcon boxSize={4} mr={3} />
+            <Text>
+              A different package has already been published to {packageDisplay}
+              . Publishing again will overwrite it.
+            </Text>
+          </Alert>
         )}
 
         {/* TODO: these should change wallet chain id if necessary */}
-        {/* TODO: verify loading/refresh UX works after submission, for both networks */}
         {settings.isIpfsGateway ? (
-          <Text fontSize="sm" mb={3}>
-            You cannot publish on an IPFS gateway. Please use an Kubo-compliant
-            API. Link to update it
-          </Text>
+          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
+            <AlertIcon boxSize={4} mr={3} />
+            <Text>
+              You cannot publish using an IPFS gateway. Please{' '}
+              <Link href="/settings" isExternal>
+                use a Kubo RPC API
+              </Link>
+              .
+            </Text>
+          </Alert>
         ) : (
           <>
             <Button
-              isDisabled={
-                settings.isIpfsGateway ||
-                settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-                publishMutation.isPending
-              }
-              colorScheme="teal"
+              variant="outline"
+              colorScheme="white"
               size="sm"
+              bg="teal.900"
+              borderColor="teal.500"
+              _hover={{ bg: 'teal.800' }}
+              textTransform="uppercase"
+              letterSpacing="1px"
+              fontFamily="var(--font-miriam)"
+              color="gray.200"
+              fontWeight={500}
+              isDisabled={settings.isIpfsGateway || publishMutation.isPending}
+              mb={2}
+              w="full"
               onClick={() => publishMutation.mutate()}
-              leftIcon={
-                publishMutation.isPending ? <Spinner size="sm" /> : undefined
-              }
+              isLoading={publishMutation.isPending}
             >
-              {publishMutation.isPending
-                ? 'Publishing...'
-                : 'Publish to Optimism'}
+              Publish to Optimism
             </Button>
-            <Text size="xs">
+            <Text fontSize="xs" textAlign="center">
               <Link>Publish to Mainnet</Link>{' '}
-              <Tooltip label="TODO: note about prioritization">
+              <Tooltip label="Cannon will detect packages published to Optimism or Mainnet.">
                 <InfoOutlineIcon />
               </Tooltip>
             </Text>
@@ -233,17 +247,26 @@ export default function PublishUtility(props: {
           </Text>
         )}
 
-        {/* TODO: different button style */}
         <Button
           mt={2}
-          size="xs"
-          colorScheme="teal"
           as={Link}
           href={packageUrl}
+          variant="outline"
+          colorScheme="white"
+          size="sm"
+          bg="teal.900"
+          borderColor="teal.500"
+          _hover={{ bg: 'teal.800', textDecoration: 'none' }}
+          textTransform="uppercase"
+          letterSpacing="1px"
+          fontFamily="var(--font-miriam)"
+          color="gray.200"
+          fontWeight={500}
           textDecoration="none"
-          _hover={{ textDecoration: 'none' }}
+          isExternal
+          rightIcon={<ExternalLinkIcon transform="translateY(-1px)" />}
         >
-          {packageDisplay}
+          View Package
         </Button>
       </>
     );
