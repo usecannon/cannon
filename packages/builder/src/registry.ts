@@ -268,14 +268,7 @@ export class OnChainRegistry extends CannonRegistry {
    * @returns Boolean
    */
   private async _isPackageRegistered(packageName: string) {
-    const packageHash = viem.stringToHex(packageName, { size: 32 });
-
-    const packageOwner: viem.Address = await this.provider!.readContract({
-      ...this.contract,
-      functionName: 'getPackageOwner',
-      args: [packageHash],
-    });
-
+    const packageOwner = await this.getPackageOwner(packageName);
     return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
   }
 
