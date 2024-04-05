@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
+import { fixtureAddress, fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
 import { CannonSigner } from './';
 import { CannonRegistry, OnChainRegistry } from './registry';
 
@@ -42,12 +42,13 @@ describe('registry.ts', () => {
 
     const fakeRegistryAddress = '0x1234123412341234123412341234123412341234';
 
-    const createRegistry = () =>
+    const createRegistry = (overrides: any = {}) =>
       new OnChainRegistry({
         address: fakeRegistryAddress,
         provider,
         signer,
         overrides: { gasLimit: 1234000 },
+        ...overrides,
       });
 
     beforeAll(async () => {
@@ -75,22 +76,29 @@ describe('registry.ts', () => {
     describe('publish()', () => {
       it('throws if signer is not specified', async () => {
         await expect(() =>
-          providerOnlyRegistry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')
+          providerOnlyRegistry.publish(['dummy-package:0.0.1'], 1, 'ipfs://Qmsomething')
         ).rejects.toThrowError('Missing signer for executing registry operations');
       });
 
       it('checks signer balance', async () => {
-        jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
-
         const registry = createRegistry();
+
+        registry._isPackageRegistered = jest.fn().mockReturnValue(true);
         registry._checkPackageOwnership = jest.fn();
 
-        await expect(() => registry.publish(['dummyPackage:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
+        jest.mocked(provider.getBalance).mockResolvedValue(BigInt(0));
+
+        await expect(() => registry.publish(['dummy-package:0.0.1'], 1, 'ipfs://Qmsomething')).rejects.toThrowError(
           /Signer at .* is not funded with ETH./
         );
       });
 
       it('throws if signer is not the owner of the package', async () => {
+        const registry = createRegistry();
+
+        registry.getPackageOwner = jest.fn().mockImplementation(() => fixtureAddress());
+        registry.getAdditionalPublishers = jest.fn().mockReturnValue([]);
+
         jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
 
         jest.mocked(provider.getFeeHistory).mockResolvedValue({
@@ -123,6 +131,10 @@ describe('registry.ts', () => {
       });
 
       it('makes call to register all specified packages, and returns list of published packages', async () => {
+        const registry = createRegistry();
+
+        registry._isPackageRegistered = jest.fn().mockReturnValue(false);
+
         jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
 
         jest.mocked(provider.getFeeHistory).mockResolvedValue({
@@ -168,16 +180,19 @@ describe('registry.ts', () => {
       });
 
       it('calls `getPackageUrl`', async () => {
+        const provider = makeFakeProvider();
+        const registry = createRegistry({ provider });
+
         jest.mocked(provider.readContract).mockResolvedValue('ipfs://Qmwohoo');
 
-        const url = await registry.getUrl('dummyPackage:0.0.1@main', 13370);
+        const url = await registry.getUrl('dummy-package:0.0.1@main', 13370);
 
         expect(url).toBe('ipfs://Qmwohoo');
 
         expect(jest.mocked(provider.readContract).mock.lastCall?.[0]).toMatchObject({
           functionName: 'getPackageUrl',
           args: [
-            viem.stringToHex('dummyPackage', { size: 32 }),
+            viem.stringToHex('dummy-package', { size: 32 }),
             viem.stringToHex('0.0.1', { size: 32 }),
             viem.stringToHex('13370-main', { size: 32 }),
           ],
