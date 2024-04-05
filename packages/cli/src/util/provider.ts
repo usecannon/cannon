@@ -10,10 +10,6 @@ import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-export function normalizePrivateKey(pkey: string): viem.Hash {
-  return (pkey.startsWith('0x') ? pkey : `0x${pkey}`) as viem.Hash;
-}
-
 enum ProviderOrigin {
   Registry = 'registry',
   Write = 'write',
@@ -157,7 +153,7 @@ export async function resolveProviderAndSigners({
     if (privateKey) {
       signers.push(
         ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(normalizePrivateKey(k));
+          const account = privateKeyToAccount(k as viem.Hex);
           return {
             address: account.address,
             wallet: viem.createWalletClient({

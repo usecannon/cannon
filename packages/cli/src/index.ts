@@ -21,7 +21,14 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, checkForgeAstSupport, ensureChainIdConsistency, isPrivateKey } from './helpers';
+import {
+  checkAndNormalizePrivateKey,
+  normalizePrivateKey,
+  checkCannonVersion,
+  checkForgeAstSupport,
+  ensureChainIdConsistency,
+  isPrivateKey,
+} from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -332,7 +339,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
@@ -340,7 +347,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
+    options.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
   if (options.privateKey) {
