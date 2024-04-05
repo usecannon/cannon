@@ -1,5 +1,5 @@
 export { createInitialContext, build, getArtifacts, getOutputs } from './builder';
-export { computeTemplateAccesses } from './access-recorder';
+export { computeTemplateAccesses, mergeTemplateAccesses } from './access-recorder';
 export { registerAction } from './actions';
 export type { CannonAction } from './actions';
 export type { RawChainDefinition } from './actions';
@@ -20,7 +20,7 @@ export * from './types';
 
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 
-export { publishPackage, PackageReference, PKG_REG_EXP } from './package';
+export { publishPackage, PackageReference, getProvisionedPackages } from './package';
 
 export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl } from './constants';
 

@@ -134,7 +134,7 @@ describe('steps/invoke.ts', () => {
             args: ['<%= contracts.h %>', '<%= contracts.i %>'],
             overrides: { gasLimit: '<%= contracts.j %>' },
           })
-          .sort()
+          .accesses.sort()
       ).toEqual([
         'contracts.a',
         'contracts.b',
@@ -162,7 +162,7 @@ describe('steps/invoke.ts', () => {
           },
           { name: '', version: '', currentLabel: 'invoke.Hello' }
         )
-      ).toEqual(['txns.Hello', 'contracts.something', 'settings.else']);
+      ).toEqual(['txns.Hello', 'contracts.something', 'settings.else', 'extras.else']);
     });
   });
 

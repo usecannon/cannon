@@ -78,6 +78,9 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
   settings: { [label: string]: string };
 
+  // Legacy
+  extras?: { [label: string]: string };
+
   imports: BundledChainBuilderOutputs;
 
   [shortContract: string]: any;
@@ -200,7 +203,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings' | 'extras'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: string;

@@ -26,6 +26,7 @@ export type CliSettings = {
    */
   privateKey?: viem.Hex;
 
+
   /**
    * The amount of times ipfs should retry requests (applies to read and write)
    */
@@ -42,7 +43,9 @@ export type CliSettings = {
   publishIpfsUrl?: string;
 
   /**
-   * List of registries that should be read from to find packages. Earlier registries in the array get priority for resolved packages over later ones.
+   * List of registries that should be read from to find packages.
+   * Earlier registries in the array get priority for resolved packages over later ones.
+   * First registry on the list is the one that handles setPackageOwnership() calls to create packages.
    */
   registries: {
     chainId: number;

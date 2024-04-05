@@ -194,7 +194,8 @@ export async function loadCannonfile(filepath: string) {
     [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
 
-  const def = new ChainDefinition(rawDef);
+  // second argument ensures "sensitive" dependency verification--which ensures users are always specifying dependencies when they cant be reliably determined
+  const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
   const ctx: ChainBuilderContext = {

@@ -1,8 +1,5 @@
-import Debug from 'debug';
 import _ from 'lodash';
 import { CannonHelperContext } from './types';
-
-const debug = Debug('cannon:builder:access-recorder');
 
 class ExtendableProxy {
   readonly accessed = new Map<string, AccessRecorder>();
@@ -41,10 +38,11 @@ export class AccessRecorder extends ExtendableProxy {
     return acc;
   }
 }
+export type AccessComputationResult = { accesses: string[]; unableToCompute: boolean };
 
-export function computeTemplateAccesses(str?: string) {
+export function computeTemplateAccesses(str?: string): AccessComputationResult {
   if (!str) {
-    return [];
+    return { accesses: [], unableToCompute: false };
   }
   //const recorder = new AccessRecorder();
   const recorders: { [k: string]: AccessRecorder } = {
@@ -64,13 +62,11 @@ export function computeTemplateAccesses(str?: string) {
     },
   });
 
+  let unableToCompute = false;
   try {
     baseTemplate();
   } catch (err) {
-    debug('encountered error while parsing template for dependencies:', err);
-    debug(
-      'usually this happens because the access recorder is getting passed into a function that expects certain types. If you are finding some of your dependencies are not being resolved, please add them manually to `depends`.'
-    );
+    unableToCompute = true;
   }
 
   const accesses: string[] = [];
@@ -79,5 +75,12 @@ export function computeTemplateAccesses(str?: string) {
     accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
   }
 
-  return accesses;
+  return { accesses, unableToCompute };
+}
+
+export function mergeTemplateAccesses(r1: AccessComputationResult, r2: AccessComputationResult): AccessComputationResult {
+  return {
+    accesses: [...r1.accesses, ...r2.accesses],
+    unableToCompute: r1.unableToCompute || r2.unableToCompute,
+  };
 }
