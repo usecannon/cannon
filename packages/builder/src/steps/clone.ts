@@ -2,7 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
@@ -38,38 +38,9 @@ const cloneSpec = {
 
   validate: cloneSchema,
 
-  async getState(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContextWithHelpers,
-    config: Config,
-    packageState: PackageState
-  ) {
-    const importLabel = packageState.currentLabel?.split('.')[1] || '';
-    const cfg = this.configInject(ctx, config, packageState);
-
-    const source = cfg.source;
-    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
-
-    if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url!;
-
-      if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
-        // partial build always need to be re-evaluated
-        debug('forcing rebuild because deployment is partial');
-        // returning an empty array for force a rebuild because any provided state hash will never match
-        return [];
-      }
-    }
-
-    const srcUrl = await runtime.registry.getUrl(source, chainId);
-
-    return [
-      {
-        url: srcUrl,
-        options: cfg.var || cfg.options,
-        targetPreset: cfg.targetPreset,
-      },
-    ];
+  async getState() {
+    // Always re-run the step
+    return [];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
@@ -104,18 +75,16 @@ const cloneSpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.source));
-    accesses.push(...computeTemplateAccesses(config.sourcePreset));
-    accesses.push(...computeTemplateAccesses(config.targetPreset));
+    let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
 
     if (config.options) {
-      _.forEach(config.options, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     return accesses;
@@ -153,7 +122,7 @@ const cloneSpec = {
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('cloneing package options', importPkgOptions);
+    debug('cloning package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
@@ -212,6 +181,15 @@ const cloneSpec = {
     }
 
     debug('finish build. is partial:', partialDeploy);
+
+    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+      debug('built state is exactly equal to previous state. skip generation of new deploy url');
+      return {
+        imports: {
+          [importLabel]: ctx.imports[importLabel],
+        },
+      };
+    }
 
     const newMiscUrl = await importRuntime.recordMisc();
 

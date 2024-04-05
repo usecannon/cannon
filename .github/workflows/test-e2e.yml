@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

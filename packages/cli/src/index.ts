@@ -14,7 +14,7 @@ import {
   publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow } from 'chalk';
+import { blueBright, bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
@@ -362,13 +362,18 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   let pickedRegistryProvider = registryProviders[0];
 
   if (registryProviders.length > 1) {
+    const choices = registryProviders.map((p) => ({
+      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+      value: p,
+    }));
+
     pickedRegistryProvider = (
       await prompts.prompt([
         {
           type: 'select',
           name: 'pickedRegistryProvider',
-          message: 'Please choose a registry to deploy to:',
-          choices: registryProviders.map((p) => ({ title: p.provider.chain?.name ?? 'Unknown Network', value: p })),
+          message: 'Please choose a registry to publish to:',
+          choices,
         },
       ])
     ).pickedRegistryProvider;
@@ -414,6 +419,64 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     includeProvisioned: options.includeProvisioned,
     skipConfirm: options.skipConfirm,
   });
+});
+
+applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
+  const { register } = await import('./commands/register');
+
+  const cliSettings = resolveCliSettings(options);
+
+  if (!options.privateKey && !cliSettings.privateKey) {
+    const keyPrompt = await prompts({
+      type: 'text',
+      name: 'value',
+      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
+      style: 'password',
+      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+    });
+
+    if (!keyPrompt.value) {
+      console.log('A valid private key is required.');
+      process.exit(1);
+    }
+
+    options.privateKey = keyPrompt.value;
+  }
+
+  if (options.privateKey) {
+    cliSettings.privateKey = options.privateKey;
+  }
+
+  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
+
+  const overrides: any = {};
+
+  if (options.maxFeePerGas) {
+    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
+  }
+
+  if (options.gasLimit) {
+    overrides.gasLimit = options.gasLimit;
+  }
+
+  if (options.value) {
+    overrides.value = options.value;
+  }
+
+  const mainRegistry = new OnChainRegistry({
+    signer: mainRegistryProvider.signers[0],
+    provider: mainRegistryProvider.provider,
+    address: cliSettings.registries[0].address,
+    overrides,
+  });
+
+  const hash = await register({
+    packageRef,
+    mainRegistry,
+  });
+
+  console.log(blueBright('Transaction:'));
+  console.log(`  - ${hash}`);
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
@@ -557,18 +620,18 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeCmd = spawn('forge', ['test', '--fork-url', node!.host, ...forgeOpts]);
+  const forgeProcess = spawn('forge', [opts.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
-  forgeCmd.stdout.on('data', (data: Buffer) => {
+  forgeProcess.stdout.on('data', (data: Buffer) => {
     process.stdout.write(data);
   });
 
-  forgeCmd.stderr.on('data', (data: Buffer) => {
+  forgeProcess.stderr.on('data', (data: Buffer) => {
     process.stderr.write(data);
   });
 
   await new Promise((resolve) => {
-    forgeCmd.on('close', (code: number) => {
+    forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
       resolve({});

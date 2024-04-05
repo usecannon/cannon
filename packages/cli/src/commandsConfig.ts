@@ -448,6 +448,41 @@ const commandsConfig = {
       },
     ],
   },
+  register: {
+    description: 'Register a Cannon package on the main registry',
+    arguments: [
+      {
+        flags: '<packageRef>',
+        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
+      },
+    ],
+    options: [
+      {
+        flags: '-n --registry-provider-url [url]',
+        description: 'RPC endpoint to publish to',
+      },
+      {
+        flags: '--private-key <key>',
+        description: 'Private key to use for publishing the registry package',
+      },
+      {
+        flags: '--gas-limit <gasLimit>',
+        description: 'The maximum units of gas spent for the registration transaction',
+      },
+      {
+        flags: '--value <value>',
+        description: 'Value in wei to send with the transaction (defaults to registerFee)',
+      },
+      {
+        flags: '--max-fee-per-gas <maxFeePerGas>',
+        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
+      },
+      {
+        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
+        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
+      },
+    ],
+  },
   inspect: {
     description: 'Inspect the details of a Cannon package',
     arguments: [
@@ -623,6 +658,11 @@ const commandsConfig = {
       {
         flags: '--registry-priority <registry>',
         description: 'Change the default registry to read from first. Default: onchain',
+      },
+      {
+        flags: '--forge-cmd <command>',
+        description: 'Use an alternative forge call, such as "coverage"',
+        defaultValue: 'test',
       },
     ],
   },

@@ -7,6 +7,7 @@ import {
   computeTemplateAccesses,
   PackageState,
   registerAction,
+  mergeTemplateAccesses,
 } from '@usecannon/builder';
 import crypto from 'crypto';
 import Debug from 'debug';
@@ -136,12 +137,11 @@ const runAction = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
+    let accesses = computeTemplateAccesses(config.exec);
 
-    accesses.push(...computeTemplateAccesses(config.exec));
-    _.forEach(config.modified, (a) => accesses.push(...computeTemplateAccesses(a)));
-    _.forEach(config.args, (a) => accesses.push(...computeTemplateAccesses(a)));
-    _.forEach(config.env, (a) => accesses.push(...computeTemplateAccesses(a)));
+    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
 
     return accesses;
   },
