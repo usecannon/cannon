@@ -26,7 +26,6 @@ export type CliSettings = {
    */
   privateKey?: viem.Hex;
 
-
   /**
    * The amount of times ipfs should retry requests (applies to read and write)
    */
