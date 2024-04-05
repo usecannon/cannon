@@ -38,13 +38,8 @@ const cloneSpec = {
 
   validate: cloneSchema,
 
-  async getState(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContextWithHelpers,
-    config: Config,
-    packageState: PackageState
-  ) {
-    return []; // always re-run this step
+  async getState() {
+    return [];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
@@ -203,7 +198,7 @@ const cloneSpec = {
     const newSubDeployUrl = await runtime.putDeploy({
       // TODO: add cannon version number?
       generator: 'cannon clone',
-      timestamp: prevState && (prevState == builtState) ? Number.parseInt(ctx.timestamp) : Math.floor(Date.now() / 1000),
+      timestamp: prevState && prevState == builtState ? Number.parseInt(ctx.timestamp) : Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
       options: importPkgOptions,
