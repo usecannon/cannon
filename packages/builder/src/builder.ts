@@ -1,7 +1,7 @@
 import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
-import { ContractMap, DeploymentState, TransactionMap } from './';
+import { ContractMap, DeploymentState, TransactionMap, withTimeout } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
@@ -325,18 +325,21 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.updateProviderArtifacts(ctx);
 
-  const result = await Promise.race([
-    ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
-    new Promise<false>((resolve) => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT)),
-  ]);
+  try {
+    const result = await withTimeout(() => {
+      return ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState);
+    }, ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT);
 
-  if (result === false) {
-    throw new Error('timed out without error');
+    runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
+
+    return result;
+  } catch (err) {
+    if (err instanceof withTimeout.TimeoutError) {
+      throw new Error('timed out without error');
+    }
+
+    throw err;
   }
-
-  runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
-
-  return result;
 }
 
 export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
