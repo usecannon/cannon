@@ -2,7 +2,8 @@ import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSL
 import { generatePrivateKey } from 'viem/accounts';
 import _ from 'lodash';
 import { dirSync } from 'tmp-promise';
-import cli from '../index';
+
+import { resolveCliSettings } from '../settings';
 import { CliLoader, getMainLoader, LocalLoader } from '../loader';
 import { createDefaultReadRegistry } from '../registry';
 import { alter } from './alter';
@@ -27,7 +28,6 @@ jest.mock('../rpc');
 
 describe('alter', () => {
   const chainId = 123;
-  const providerUrl = 'http//localhost:8545';
   const preset = 'your-preset';
   const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
@@ -35,6 +35,7 @@ describe('alter', () => {
   const metaUrl = 'meta-url';
   const url = 'file:/usecannon.com/url';
   const newUrl = 'file:/usecannon.com/new-url';
+  const cliSettings = resolveCliSettings();
   let testPkgData: DeploymentInfo;
   let localLoader: LocalLoader;
   let ipfsLoader: CliLoader;
@@ -119,7 +120,7 @@ describe('alter', () => {
     jest.spyOn(localLoader, 'read').mockImplementation(mockReadDeploy);
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, chainId, providerUrl, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(newTestPkgData);
@@ -137,7 +138,7 @@ describe('alter', () => {
     const targets = ['TestContract', '0x2222222222222222222222222222222222222222'];
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, chainId, providerUrl, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -157,7 +158,7 @@ describe('alter', () => {
     jest.spyOn(ChainDefinition.prototype, 'getState').mockResolvedValue(hash);
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, chainId, providerUrl, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -179,7 +180,7 @@ describe('alter', () => {
     const targets = ['provision.dummyStep'];
 
     // Call the 'alter' function with the necessary arguments
-    await alter(packageName, chainId, providerUrl, preset, testPkgData.meta, command, targets, runtimeOverrides);
+    await alter(packageName, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);
@@ -195,15 +196,13 @@ describe('alter', () => {
     );
   });
 
-  test('should perform alteration for set-contract-address command - cli', async () => {
+  test('should perform alteration for set-contract-address command', async () => {
     // Set up test data and variables
     const command = 'set-contract-address';
     const targets: string[] = ['TestContract', '0x2222222222222222222222222222222222222222'];
 
     // Call the 'alter' function with the necessary arguments
-    // await alter(packageName, chainId, preset, testPkgData.meta, command, targets, runtimeOverrides);
-
-    await cli.parseAsync(['node', 'cannon.ts', 'alter', packageName, command, ...targets, '-c', String(chainId)]);
+    await alter(packageName, chainId, cliSettings, preset, testPkgData.meta, command, targets, runtimeOverrides);
 
     expect(CannonStorage.prototype.readDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(packageName, chainId);
     expect(CannonStorage.prototype.putDeploy as jest.Mock<any, any>).toHaveBeenCalledWith(testPkgData);

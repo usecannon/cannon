@@ -18,7 +18,7 @@ import {
   StepState,
 } from '@usecannon/builder';
 import { getMainLoader } from '../loader';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
 
 const debug = Debug('cannon:cli:alter');
@@ -26,7 +26,7 @@ const debug = Debug('cannon:cli:alter');
 export async function alter(
   packageRef: string,
   chainId: number,
-  providerUrl: string,
+  cliSettings: CliSettings,
   presetArg: string,
   meta: any,
   command: 'set-url' | 'set-contract-address' | 'import' | 'mark-complete' | 'mark-incomplete' | 'migrate-212',
@@ -47,8 +47,6 @@ export async function alter(
       )
     );
   }
-
-  const cliSettings = resolveCliSettings({ providerUrl });
 
   const { provider } = await resolveWriteProvider(cliSettings, chainId);
   const resolver = await createDefaultReadRegistry(cliSettings);
@@ -246,7 +244,7 @@ export async function alter(
           const newUrl = await alter(
             `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
             chainId,
-            providerUrl,
+            cliSettings,
             presetArg,
             meta,
             'migrate-212',
