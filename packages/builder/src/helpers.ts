@@ -40,26 +40,3 @@ export async function getCannonContract(args: {
 
   return contract;
 }
-
-/**
- * Execute the given async function, but with a timeout.
- */
-export async function withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new withTimeout.TimeoutError());
-    }, ms);
-
-    fn()
-      .then((result) => {
-        clearTimeout(timeout);
-        resolve(result);
-      })
-      .catch((err) => {
-        clearTimeout(timeout);
-        reject(err);
-      });
-  });
-}
-
-withTimeout.TimeoutError = class TimeoutError extends Error {};
