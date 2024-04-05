@@ -369,7 +369,7 @@ export const invokeSchema = z
          */
         var: invokeVarRecord,
         extra: invokeVarRecord.describe(
-          '(DEPRECATED) Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps. Use `var` instead.'
+          '⚠ Deprecated in favor of var. Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps. Use `var` instead.'
         ),
         /**
          *   Object defined to hold deployment transaction result data.
@@ -497,7 +497,11 @@ export const cloneSchema = z
          *  Override the preset to use when provisioning this package.
          * Default - "main"
          */
-        sourcePreset: z.string().describe('Override the preset to use when provisioning this package. Default - "main"'),
+        sourcePreset: z
+          .string()
+          .describe(
+            '⚠ Deprecated in favor of appending @PRESET_NAME to source. Override the preset to use when provisioning this package. Default - "main"'
+          ),
         /**
          *  Set the new preset to use for this package.
          * Default - "main"
@@ -519,7 +523,7 @@ export const cloneSchema = z
         options: z
           .record(z.string())
           .describe(
-            '(DEPRECATED) use `var`. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
+            '⚠ Deprecated in favor of var. The settings to be used when initializing this Cannonfile. Overrides any defaults preset in the source package.'
           ),
         /**
          * Additional tags to set on the registry for when this provisioned package is published.
@@ -568,7 +572,7 @@ export const varSchema = z
     /**
      *   The setting value to apply
      */
-    defaultValue: z.string().optional().describe('(DEPRECATED) Use `value`. The value to set in the setting'),
+    defaultValue: z.string().optional().describe('⚠ Deprecated in favor of var. The value to set in the setting'),
     description: z.string().optional().describe('Helpful explanation of the variable being set'),
     /**
      *  List of steps that this action depends on
@@ -602,7 +606,9 @@ export const chainDefinitionSchema = z
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Version cannot contain any special characters',
       })
-      .describe('Version of the package'),
+      .describe(
+        'Version of the package. Publishes as the "latest" version by default in addition to the version specified here.'
+      ),
     /**
      *  Preset of the package
      */
@@ -611,14 +617,21 @@ export const chainDefinitionSchema = z
       .refine((val) => !!val.match(RegExp(/[\w.]+/, 'gm')), {
         message: 'Preset cannot contain any special characters',
       })
-      .describe('Preset of the package')
+      .describe(
+        'Preset of the package (Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.) Defaults to "main".'
+      )
       .optional(),
     /**
      * Whether or not source code from local package should be bundled in the package.
      * NOTE: If this is set to true, it will not be possible to verify your contracts on etherscan with cannon
      * If not specified, the value is treated as `false` (ie contract source codes included)
      */
-    privateSourceCode: z.boolean().optional(),
+    privateSourceCode: z
+      .boolean()
+      .describe(
+        'Turns off inclusion of source code in packages. When set to true, Cannon cannot verify contracts on Etherscan.'
+      )
+      .optional(),
   })
   .merge(
     z
@@ -658,7 +671,7 @@ export const chainDefinitionSchema = z
               .partial()
           )
           .describe(
-            'A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
+            '⚠ Deprecated in favor of var. A setting is a variable that can be set (or overriden using the CLI) when building a Cannonfile. It is accessible elsewhere in the file a property of the settings object. For example, [setting.sampleSetting] can be referenced with <%= settings.sampleSetting %>'
           ),
         /**
          * @internal
@@ -674,7 +687,7 @@ export const chainDefinitionSchema = z
         import: z
           .record(pullSchema)
           .describe(
-            '(DEPRECATED) use `pull` instead. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
           ),
         /**
          * @internal
@@ -690,7 +703,7 @@ export const chainDefinitionSchema = z
         provision: z
           .record(cloneSchema)
           .describe(
-            '(DEPRECATED) use `clone` instead. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
+            '⚠ Deprecated in favor of clone. Deploy a new instance of a package from the registry. Packages may only be provisioned if they include a local, Cannon deployment (Chain ID: 13370).'
           ),
         /**
          * @internal
@@ -699,7 +712,7 @@ export const chainDefinitionSchema = z
         /**
          * @internal
          */
-        contract: z.record(deploySchema).describe('(DEPRECATED) Use `deploy` instead. Deploy a contract.'),
+        contract: z.record(deploySchema).describe('⚠ Deprecated in favor of deploy. Deploy a contract.'),
         /**
          * @internal
          */

@@ -202,7 +202,11 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       address: CANNON_REGISTRY_ADDRESS as viem.Address,
     });
   } else {
-    finalSettings.registries = DEFAULT_REGISTRY_CONFIG;
+    finalSettings.registries = DEFAULT_REGISTRY_CONFIG as {
+      chainId: number;
+      providerUrl: string[];
+      address: `0x${string}`;
+    }[];
   }
 
   debug('got settings', filterSettings(finalSettings));
