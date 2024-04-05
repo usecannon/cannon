@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
@@ -21,7 +22,14 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
-import { checkCannonVersion, checkForgeAstSupport, ensureChainIdConsistency, isPrivateKey } from './helpers';
+import {
+  checkAndNormalizePrivateKey,
+  normalizePrivateKey,
+  checkCannonVersion,
+  checkForgeAstSupport,
+  ensureChainIdConsistency,
+  isPrivateKey,
+} from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
 import { createDefaultReadRegistry } from './registry';
@@ -32,7 +40,7 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { resolveRegistryProviders, resolveWriteProvider } from './util/provider';
+import { resolveRegistryProviders, resolveWriteProvider, getChainIdFromProviderUrl, isURL } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
@@ -143,24 +151,23 @@ function configureRun(program: Command) {
 
     options.port = Number.parseInt(options.port);
 
-    const settings = resolveCliSettings(options);
+    const cliSettings = resolveCliSettings(options);
 
     let node: CannonRpcNode;
     if (options.chainId) {
-      const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
+      const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
 
       // throw an error if the chainId is not consistent with the provider's chainId
-      await ensureChainIdConsistency(options.providerUrl, options.chainId);
+      await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
 
       node = await runRpc(pickAnvilOptions(options), {
         forkProvider: provider,
       });
     } else {
-      if (options.providerUrl) {
-        const _provider = viem.createPublicClient({ transport: viem.http(options.providerUrl) });
-        options.chainId = await _provider.getChainId();
+      if (isURL(cliSettings.providerUrl)) {
+        options.chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
 
-        const { provider } = await resolveWriteProvider(settings, Number.parseInt(options.chainId));
+        const { provider } = await resolveWriteProvider(cliSettings, Number.parseInt(options.chainId));
 
         node = await runRpc(pickAnvilOptions(options), {
           forkProvider: provider,
@@ -170,8 +177,12 @@ function configureRun(program: Command) {
       }
     }
 
+    // Override options with CLI settings
+    const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
+    const mergedOptions = _.assign({}, options, pickedCliSettings);
+
     await run(packages, {
-      ...options,
+      ...mergedOptions,
       node,
       helpInformation: program.helpInformation(),
     });
@@ -180,15 +191,17 @@ function configureRun(program: Command) {
 
 applyCommandsConfig(program.command('build'), commandsConfig.build)
   .showHelpAfterError('Use --help for more information.')
-  .action(async (cannonfile, settings, opts) => {
+  .action(async (cannonfile, settings, options) => {
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
+    const cliSettings = resolveCliSettings(options);
+
     // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
+    await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
 
     console.log(bold('Building the foundry project...'));
-    if (!opts.skipCompile) {
+    if (!options.skipCompile) {
       let forgeBuildArgs = ['build'];
       if (await checkForgeAstSupport()) {
         forgeBuildArgs = [...forgeBuildArgs, '--ast'];
@@ -213,13 +226,19 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
     }
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
-    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, opts);
+    // Override options with CLI settings
+    const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
+    const mergedOptions = _.assign({}, options, pickedCliSettings);
 
-    if (opts.keepAlive && node) {
+    const [node, pkgSpec, , runtime] = await doBuild(cannonfile, settings, mergedOptions);
+
+    if (options.keepAlive && node) {
       console.log(`Built package RPC URL available at ${node.host}`);
+
       const { run } = await import('./commands/run');
+
       await run([{ ...pkgSpec, settings: {} }], {
-        ...opts,
+        ...mergedOptions,
         resolver: runtime.registry,
         node,
         helpInformation: program.helpInformation(),
@@ -231,7 +250,10 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
   const { verify } = await import('./commands/verify');
-  await verify(packageName, options.apiKey, options.preset, parseInt(options.chainId));
+
+  const cliSettings = resolveCliSettings(options);
+
+  await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
 });
 
 applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
@@ -242,20 +264,13 @@ applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async
 ) {
   const { alter } = await import('./commands/alter');
 
+  const cliSettings = resolveCliSettings(flags);
+
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(flags.providerUrl, flags.chainId);
+  await ensureChainIdConsistency(cliSettings.providerUrl, flags.chainId);
 
   // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  const newUrl = await alter(
-    packageName,
-    parseInt(flags.chainId),
-    flags.providerUrl,
-    flags.preset,
-    {},
-    command,
-    options,
-    {}
-  );
+  const newUrl = await alter(packageName, parseInt(flags.chainId), cliSettings, flags.preset, {}, command, options, {});
 
   console.log(newUrl);
 });
@@ -326,13 +341,13 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     options.chainId = chainIdPrompt.value;
   }
 
-  if (!options.privateKey && !cliSettings.privateKey) {
+  if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
       message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
       style: 'password',
-      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
@@ -340,11 +355,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
-  }
-
-  if (options.privateKey) {
-    cliSettings.privateKey = options.privateKey;
+    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
   const registryProviders = await resolveRegistryProviders(cliSettings);
@@ -470,17 +481,28 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
   const { inspect } = await import('./commands/inspect');
-  resolveCliSettings(options);
-  await inspect(packageName, options.chainId, options.preset, options.json, options.writeDeployments, options.sources);
+
+  const cliSettings = resolveCliSettings(options);
+
+  await inspect(
+    packageName,
+    cliSettings,
+    options.chainId,
+    options.preset,
+    options.json,
+    options.writeDeployments,
+    options.sources
+  );
 });
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
   const { prune } = await import('./commands/prune');
-  resolveCliSettings(options);
 
-  const registry = await createDefaultReadRegistry(resolveCliSettings());
+  const cliSettings = resolveCliSettings(options);
 
-  const loader = getMainLoader(resolveCliSettings());
+  const registry = await createDefaultReadRegistry(cliSettings);
+
+  const loader = getMainLoader(cliSettings);
 
   const storage = new CannonStorage(registry, loader);
 
@@ -535,19 +557,30 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
 applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
-  if (!options.providerUrl && !options.chainId) {
+  const cliSettings = resolveCliSettings(options);
+
+  const isProviderUrl = isURL(cliSettings.providerUrl);
+
+  let chainId = options.chainId ? Number(options.chainId) : undefined;
+
+  if (!chainId && isProviderUrl) {
+    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  }
+
+  // throw an error if both chainId and providerUrl are not provided
+  if (!chainId && !isProviderUrl) {
     throw new Error('Please provide one of the following options: --chain-id or --provider-url');
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(options.providerUrl, options.chainId);
+  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
 
   await trace({
     packageRef,
     data,
-    chainId: parseInt(options.chainId),
+    chainId: chainId!, // chainId is guaranteed to be defined here
     preset: options.preset,
-    providerUrl: options.providerUrl,
+    cliSettings,
     from: options.from,
     to: options.to,
     value: options.value,
@@ -568,24 +601,26 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
   });
 });
 
-applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  opts.port = 0;
+applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, options) {
+  options.port = 0;
 
-  if (opts.providerUrl) {
-    opts.dryRun = true;
+  const cliSettings = resolveCliSettings(options);
+
+  if (cliSettings.providerUrl) {
+    options.dryRun = true;
   }
 
   // throw an error if the chainId is not consistent with the provider's chainId
-  await ensureChainIdConsistency(opts.providerUrl, opts.chainId);
+  await ensureChainIdConsistency(cliSettings.providerUrl, options.chainId);
 
-  const [node, , outputs] = await doBuild(cannonfile, [], opts);
+  const [node, , outputs] = await doBuild(cannonfile, [], options);
 
   // basically we need to write deployments here
   await writeModuleDeployments(path.join(process.cwd(), 'deployments/test'), '', outputs);
 
   // after the build is done we can run the forge tests for the user
   await getProvider(node!)!.mine({ blocks: 1 });
-  const forgeProcess = spawn('forge', [opts.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
+  const forgeProcess = spawn('forge', [options.forgeCmd, '--fork-url', node!.host, ...forgeOpts]);
 
   forgeProcess.stdout.on('data', (data: Buffer) => {
     process.stdout.write(data);
@@ -606,31 +641,28 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
 applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
   packageDefinition: PackageSpecification,
-  opts
+  options
 ) {
-  const cliSettings = resolveCliSettings(opts);
+  const cliSettings = resolveCliSettings(options);
 
-  let chainId: number | undefined = opts.chainId ? Number(opts.chainId) : undefined;
+  let chainId: number | undefined = options.chainId ? Number(options.chainId) : undefined;
 
-  const isProviderUrl = cliSettings.providerUrl.startsWith('http');
+  const isProviderUrl = isURL(cliSettings.providerUrl);
+
+  // if chainId is not provided, get it from the provider
+  if (!chainId && isProviderUrl) {
+    chainId = await getChainIdFromProviderUrl(cliSettings.providerUrl);
+  }
 
   // throw an error if both chainId and providerUrl are not provided
   if (!chainId && !isProviderUrl) {
     throw new Error('Please provide one of the following options: --chain-id or --provider-url');
   }
 
-  // if chainId is not provided, get it from the provider
-  if (!chainId) {
-    const _provider = viem.createPublicClient({ transport: viem.http(cliSettings.providerUrl) });
-    chainId = await _provider.getChainId();
-  }
-
   // throw an error if the chainId is not consistent with the provider's chainId
-  if (isProviderUrl) {
-    await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
-  }
+  await ensureChainIdConsistency(cliSettings.providerUrl, chainId);
 
-  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId);
+  const { provider, signers } = await resolveWriteProvider(cliSettings, chainId!);
 
   const resolver = await createDefaultReadRegistry(cliSettings);
 
@@ -638,7 +670,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   let preset = packageDefinition.preset;
 
   // Handle deprecated preset specification
-  if (opts.preset) {
+  if (options.preset) {
     console.warn(
       yellow(
         bold(
@@ -646,7 +678,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
         )
       )
     );
-    preset = opts.preset;
+    preset = options.preset;
   }
 
   const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
@@ -654,7 +686,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const runtime = new ChainBuilderRuntime(
     {
       provider,
-      chainId,
+      chainId: chainId!, // chainId is guaranteed to be defined here
       async getSigner(address: viem.Address) {
         // on test network any user can be conjured
         //await p.provider.impersonateAccount({ address: addr });
@@ -663,9 +695,9 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
       },
       snapshots: false,
       allowPartialDeploy: false,
-      gasPrice: opts.gasPrice,
-      gasFee: opts.maxGasFee,
-      priorityGasFee: opts.maxPriorityFee,
+      gasPrice: options.gasPrice,
+      gasFee: options.maxGasFee,
+      priorityGasFee: options.maxPriorityFee,
     },
     resolver,
     getMainLoader(cliSettings)

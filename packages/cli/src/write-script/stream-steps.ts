@@ -1,9 +1,7 @@
 import { Readable, Transform } from 'node:stream';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntime, Events } from '@usecannon/builder';
-import { timeout, TimeoutError } from 'promise-timeout';
+import * as viem from 'viem';
 import { DumpLine } from './types';
-
-import { Hash, Transaction } from 'viem';
 
 /**
  * Create an event stream from step execution events from the ChainBuilderRuntime
@@ -12,16 +10,16 @@ export function createStepsStream(runtime: ChainBuilderRuntime) {
   // Listen to step execution events and parse them as DumpLines
   const stream = new StepEventsStream(runtime);
 
-  const getTransaction = async (hash: Hash): Promise<Transaction> => {
-    try {
-      // TODO: why do types poop out here
-      return (await timeout(runtime.provider.getTransaction({ hash }), 15000)) as Transaction;
-    } catch (err) {
-      if (err instanceof TimeoutError) {
-        throw new Error(`TimeoutError: Could not get transaction "${hash}"`);
+  const getTransaction = async (hash: viem.Hash): Promise<viem.Transaction> => {
+    return viem.withTimeout(
+      () => {
+        return runtime.provider.getTransaction({ hash });
+      },
+      {
+        timeout: 15000,
+        errorInstance: new Error(`TimeoutError: Could not get transaction "${hash}"`),
       }
-      throw err;
-    }
+    );
   };
 
   // Asynchronically fetch for transactions executed by the step (contract deployments and method calls)
@@ -32,7 +30,7 @@ export function createStepsStream(runtime: ChainBuilderRuntime) {
       const txHashes = [
         ...Object.values(line.result?.txns || {}).map((tx) => tx.hash),
         ...Object.values(line.result?.contracts || {}).map((c) => c.deployTxnHash),
-      ].filter((hash) => !!hash) as Hash[];
+      ].filter((hash) => !!hash) as viem.Hash[];
 
       line.txns = await Promise.all(txHashes.map((hash) => getTransaction(hash)));
 
