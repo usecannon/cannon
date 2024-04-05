@@ -19,6 +19,8 @@ import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
 import * as viem from 'viem';
+import { mainnet, optimism } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
@@ -322,6 +324,7 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
   const { publish } = await import('./commands/publish');
+  const { register } = await import('./commands/register');
 
   const cliSettings = resolveCliSettings(options);
 
@@ -358,25 +361,64 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
+  const optimismClient = viem.createPublicClient({
+    chain: optimism,
+    transport: viem.http(),
+  });
+
+  const mainnetClient = viem.createPublicClient({
+    chain: mainnet,
+    transport: viem.http(),
+  });
+
   const registryProviders = await resolveRegistryProviders(cliSettings);
+
+  // Set a default value
   let pickedRegistryProvider = registryProviders[0];
 
-  if (registryProviders.length > 1) {
-    const choices = registryProviders.map((p) => ({
-      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-      value: p,
-    }));
+  // TODO: Check if the package is already registered on the registry
+  const isPackageAlreadyRegistered = true;
 
-    pickedRegistryProvider = (
-      await prompts.prompt([
-        {
-          type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Please choose a registry to publish to:',
-          choices,
-        },
-      ])
-    ).pickedRegistryProvider;
+  if (!isPackageAlreadyRegistered) {
+    const getBalanceParams = {
+      address: privateKeyToAccount(cliSettings.privateKey!).address,
+    };
+
+    const [optimismUserBalance, mainnetUserBalance] = await Promise.all([
+      optimismClient.getBalance(getBalanceParams),
+      mainnetClient.getBalance(getBalanceParams),
+    ]);
+
+    // TODO: Replace this with a more accurate gas cost estimation
+    const optimismEstimatedGasCost = viem.parseEther('0.1');
+    const mainnetEstimatedGasCost = viem.parseEther('0.1');
+
+    if (optimismUserBalance > optimismEstimatedGasCost) {
+      // Proceed to register the package with Optimism Network
+      pickedRegistryProvider = registryProviders.find((providers) => optimism.id === providers.provider.chain?.id)!;
+    } else if (mainnetUserBalance > mainnetEstimatedGasCost) {
+      console.log(
+        'The address balance on Optimism Network is too low to publish a package. Proceeding to publish on Mainnet Network.'
+      );
+
+      const confirm = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Are you sure?',
+        initial: true,
+      });
+
+      if (!confirm) {
+        process.exit(1);
+      }
+
+      // Proceed to register the package with Optimism Network
+      pickedRegistryProvider = registryProviders.find((providers) => mainnet.id === providers.provider.chain?.id)!;
+    } else {
+      throw new Error(
+        'The address balance on Optimism Network and Mainnet Network is too low to publish a package. Please, provide a private key with enough ETH balance.'
+      );
+    }
   }
 
   const overrides: any = {};
@@ -400,6 +442,18 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides,
   });
 
+  if (!isPackageAlreadyRegistered) {
+    console.log(`We're going to procced to register the package "${packageRef}" on the registry...`);
+
+    const hash = await register({
+      packageRef,
+      pickedRegistryProvider,
+    });
+
+    console.log(blueBright('Transaction:'));
+    console.log(`  - ${hash}`);
+  }
+
   console.log(
     `\nSettings:\n - Max Fee Per Gas: ${
       overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
@@ -411,6 +465,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   await publish({
     packageRef,
+    cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
