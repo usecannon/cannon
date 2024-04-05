@@ -1,14 +1,13 @@
 import Debug from 'debug';
-import { z } from 'zod';
-import { parseEnv } from 'znv';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import untildify from 'untildify';
+import * as viem from 'viem';
+import { parseEnv } from 'znv';
+import { z } from 'zod';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
 import { filterSettings } from './helpers';
-import * as viem from 'viem';
-import { Address, Hash } from 'viem';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -24,7 +23,7 @@ export type CliSettings = {
   /**
    * private key(s) of default signer that should be used for build, comma separated
    */
-  privateKey?: Hash;
+  privateKey?: viem.Hash;
 
   /**
    * The amount of times ipfs should retry requests (applies to read and write)
@@ -42,12 +41,14 @@ export type CliSettings = {
   publishIpfsUrl?: string;
 
   /**
-   * List of registries that should be read from to find packages. Earlier registries in the array get priority for resolved packages over later ones.
+   * List of registries that should be read from to find packages.
+   * Earlier registries in the array get priority for resolved packages over later ones.
+   * First registry on the list is the one that handles setPackageOwnership() calls to create packages.
    */
   registries: {
     chainId: number;
     providerUrl: string[];
-    address: Address;
+    address: viem.Address;
   }[];
 
   /**
@@ -195,7 +196,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
       chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
-      address: CANNON_REGISTRY_ADDRESS as Address,
+      address: CANNON_REGISTRY_ADDRESS as viem.Address,
     });
   } else {
     finalSettings.registries = DEFAULT_REGISTRY_CONFIG;

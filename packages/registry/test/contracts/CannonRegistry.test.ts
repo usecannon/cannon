@@ -1,9 +1,8 @@
-import { Signer, BigNumber } from 'ethers';
-import { ok, equal, deepEqual } from 'assert/strict';
+import { deepEqual, equal, ok } from 'assert/strict';
+import { BigNumber, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
-
 import assertRevert from '../helpers/assert-revert';
 
 const toBytes32 = ethers.utils.formatBytes32String;
@@ -98,12 +97,15 @@ describe('CannonRegistry', function () {
 
   describe('setPackageOwnership()', () => {
     let snapshotId: number;
+
     before('snapshot', async () => {
       snapshotId = await ethers.provider.send('evm_snapshot', []);
     });
+
     before('nominate', async () => {
       await CannonRegistry.nominatePackageOwner(toBytes32('some-module'), await user2.getAddress());
     });
+
     it('should not allow invalid name', async function () {
       await assertRevert(async () => {
         await CannonRegistry.setPackageOwnership(toBytes32('some-module-'), await user2.getAddress());
