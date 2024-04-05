@@ -1,6 +1,7 @@
 import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
+import * as viem from 'viem';
 import { ContractMap, DeploymentState, TransactionMap } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
@@ -325,14 +326,15 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.updateProviderArtifacts(ctx);
 
-  const result = await Promise.race([
-    ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
-    new Promise<false>((resolve) => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT)),
-  ]);
-
-  if (result === false) {
-    throw new Error('timed out without error');
-  }
+  const result = await viem.withTimeout(
+    () => {
+      return ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState);
+    },
+    {
+      timeout: ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT,
+      errorInstance: new Error('timed out without error'),
+    }
+  );
 
   runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
 
