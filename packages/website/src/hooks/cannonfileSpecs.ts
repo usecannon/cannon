@@ -71,7 +71,7 @@ export function useCannonfileSpecs() {
 
       const result = new Map<string, CannonfileSpec>();
 
-      const metadataKeys = ['name', 'preset', 'version', 'description', 'keywords'];
+      const metadataKeys = ['name', 'preset', 'version', 'description', 'keywords', 'privateSourceCode'];
       const metadataSpecs: Spec[] = [];
       for (const key of metadataKeys) {
         metadataSpecs.push(await getSpec(chainDefinitionJsonSchema, key));
@@ -89,7 +89,7 @@ export function useCannonfileSpecs() {
         const stepSpecs: Spec[] = [];
         const stepJsonSchema = (chainDefinitionJsonSchema as any).properties[stepName].additionalProperties;
 
-        for (const key in stepJsonSchema.properties) {
+        for (const key in stepJsonSchema?.properties) {
           stepSpecs.push(await getSpec(stepJsonSchema, key));
         }
         result.set(stepName, {
@@ -104,7 +104,7 @@ export function useCannonfileSpecs() {
       }
       result.set('run', {
         description:
-          'Execute a custom script. This script is passed aChainBuilder object as parameter. This action breaks composability—only use this as a last resort. Instead, you should use a custom Cannon plug-in if this is necessary for your deployment.',
+          '⚠ This action breaks composability—only use this as a last resort. (Instead, you should use a custom Cannon plug-in if this is necessary for your deployment.) Execute a custom script. This script is passed a ChainBuilder object as parameter.',
         specs: runSpecs,
       });
 

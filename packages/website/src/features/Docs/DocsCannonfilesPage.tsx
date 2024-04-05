@@ -87,7 +87,7 @@ const CustomTable: React.FC<{
           <Th color="gray.300" borderColor="gray.500">
             Type
           </Th>
-          <Th color="gray.300" borderColor="gray.500">
+          <Th color="gray.300" borderColor="gray.500" maxWidth="180px">
             Description
           </Th>
         </Tr>
@@ -103,7 +103,9 @@ const CustomTable: React.FC<{
                 {row.dataType}
               </Text>
             </Td>
-            <Td borderColor="gray.500">{row.value}</Td>
+            <Td borderColor="gray.500" maxWidth="180px">
+              {row.value}
+            </Td>
           </Tr>
         ))}
       </Tbody>

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { supportedChains, useProviders } from '@/hooks/providers';
+import { supportedChains } from '@/hooks/providers';
 import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { ReactNode } from 'react';
 import { WagmiProvider } from 'wagmi';
