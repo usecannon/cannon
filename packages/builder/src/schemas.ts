@@ -32,7 +32,7 @@ const targetString = z.string().refine(
     !!val.match(artifactNameRegex) ||
     !!val.match(artifactPathRegex),
   (val) => ({
-    message: `"${val}" must be a valid ethereum address, existing contract step name, contract artifact name or filepath`,
+    message: `"${val}" must be a valid ethereum address, existing contract operation name, contract artifact name or filepath`,
   })
 );
 
@@ -144,11 +144,11 @@ export const deploySchema = z
          */
         args: z.array(argsUnion).describe('Constructor or initializer args'),
         /**
-         *  An array of contract action names that deploy libraries this contract depends on.
+         *  An array of contract operation names that deploy libraries this contract depends on.
          */
         libraries: z
           .record(z.string())
-          .describe('An array of contract action names that deploy libraries this contract depends on.'),
+          .describe('An array of contract operation names that deploy libraries this contract depends on.'),
 
         /**
          *   Used to force new copy of a contract (not actually used)
@@ -174,18 +174,20 @@ export const deploySchema = z
           .describe('Override transaction settings'),
 
         /**
-         *  List of steps that this action depends on
+         *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
          */
         depends: z
           .array(
             z.string().refine(
               (val) => !!val.match(stepRegex),
               (val) => ({
-                message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'`,
+                message: `Bad format for "${val}". Must reference a previous operation, example: 'contract.Storage'`,
               })
             )
           )
-          .describe('List of steps that this action depends on'),
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .deepPartial()
   );
@@ -194,17 +196,17 @@ export const pullSchema = z
   .object({
     /**
      *  Source of the cannonfile package to import from.
-     *  Can be a cannonfile step name or package name
+     *  Can be a cannonfile operation name or package name
      */
     source: z
       .string()
       .refine(
         (val) => !!val.match(packageRegex) || !!val.match(stepRegex) || !!val.match(interpolatedRegex),
         (val) => ({
-          message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or step format "import.Contract" or be an interpolated value`,
+          message: `Source value: ${val} must match package formats: "package:version" or "package:version@preset" or operation name "import.Contract" or be an interpolated value`,
         })
       )
-      .describe('Source of the cannonfile package to import from. Can be a cannonfile step name or package name'),
+      .describe('Source of the cannonfile package to import from. Can be a cannonfile operation name or package name'),
   })
   .merge(
     z
@@ -218,7 +220,7 @@ export const pullSchema = z
          */
         preset: z.string().describe('Preset label of the package being imported'),
         /**
-         *  Previous steps this step is dependent on
+         *  Previous operations this operation is dependent on
          *  ```toml
          *    depends = ['contract.Storage', 'import.Contract']
          *  ```
@@ -228,12 +230,12 @@ export const pullSchema = z
             z.string().refine(
               (val) => !!val.match(stepRegex),
               (val) => ({
-                message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+                message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
               })
             )
           )
           .describe(
-            "Previous steps this step is dependent on. Example in toml: depends = ['contract.Storage', 'import.Contract']"
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
           ),
       })
       .deepPartial()
@@ -262,26 +264,26 @@ const invokeVarRecord = z
         ),
 
       /**
-       *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+       *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
        */
       allowEmptyEvents: z
         .boolean()
         .optional()
         .describe(
-          'Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.'
+          'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
         ),
     })
   )
   .describe(
-    'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps'
+    'Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations'
   );
 
 export const invokeSchema = z
   .object({
     /**
-     *  Names of the contract to call or contract action that deployed the contract to call
+     *  Names of the contract to call or contract operation that deployed the contract to call
      */
-    target: targetSchema.describe('Names of the contract to call or contract action that deployed the contract to call'),
+    target: targetSchema.describe('Names of the contract to call or contract operation that deployed the contract to call'),
     /**
      *  Name of the function to call on the contract
      */
@@ -292,7 +294,7 @@ export const invokeSchema = z
       .object({
         /**
          *  JSON file of the contract ABI.
-         *  Required if the target contains an address rather than a contract action name.
+         *  Required if the target contains an address rather than a contract operation name.
          */
         abi: z
           .string()
@@ -308,7 +310,7 @@ export const invokeSchema = z
             }
           )
           .describe(
-            'JSON file of the contract ABI. Required if the target contains an address rather than a contract action name.'
+            'JSON file of the contract ABI. Required if the target contains an address rather than a contract operation name.'
           ),
 
         /**
@@ -365,15 +367,15 @@ export const invokeSchema = z
           .describe('Override transaction settings'),
         /**
          *   Object defined to hold extra transaction result data.
-         *   For now its limited to getting event data so it can be reused in other steps
+         *   For now its limited to getting event data so it can be reused in other operations
          */
         var: invokeVarRecord,
         extra: invokeVarRecord.describe(
-          '⚠ Deprecated in favor of var. Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other steps. Use `var` instead.'
+          '⚠ Deprecated in favor of var. Object defined to hold transaction result data in a setting. For now its limited to getting event data so it can be reused in other operations. Use `var` instead.'
         ),
         /**
          *   Object defined to hold deployment transaction result data.
-         *   For now its limited to getting deployment event data so it can be reused in other steps
+         *   For now its limited to getting deployment event data so it can be reused in other operations
          */
         factory: z
           .record(
@@ -419,7 +421,7 @@ export const invokeSchema = z
                   z.string().refine(
                     (val) => !!val.match(artifactNameRegex) || !!val.match(stepRegex),
                     (val) => ({
-                      message: `"${val}" must match a previously defined contract step name or contract artifact name or path`,
+                      message: `"${val}" must match a previously defined contract operation name or contract artifact name or path`,
                     })
                   )
                 )
@@ -434,13 +436,13 @@ export const invokeSchema = z
               constructorArgs: z.array(argsUnion).optional().describe('Constructor or initializer args'),
 
               /**
-               *   Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.
+               *   Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.
                */
               allowEmptyEvents: z
                 .boolean()
                 .optional()
                 .describe(
-                  'Bypass error messages if an event is expected in the invoke action but none are emitted in the transaction.'
+                  'Bypass error messages if an event is expected in the invoke operation but none are emitted in the transaction.'
                 ),
 
               /**
@@ -451,21 +453,23 @@ export const invokeSchema = z
           )
           .optional()
           .describe(
-            'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other steps'
+            'Object defined to hold deployment transaction result data. For now its limited to getting deployment event data so it can be reused in other operations'
           ),
         /**
-         *  Previous steps this step is dependent on
+         *  Previous operations this operation is dependent on
          */
         depends: z
           .array(
             z.string().refine(
               (val) => !!val.match(stepRegex),
               (val) => ({
-                message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+                message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
               })
             )
           )
-          .describe('Previous steps this step is dependent on'),
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .partial()
   );
@@ -532,18 +536,20 @@ export const cloneSchema = z
           .array(z.string())
           .describe('Additional tags to set on the registry for when this provisioned package is published.'),
         /**
-         *  Previous steps this step is dependent on
+         *  Previous operations this operation is dependent on
          */
         depends: z
           .array(
             z.string().refine(
               (val) => !!val.match(stepRegex),
               (val) => ({
-                message: `"${val}" is invalid. Must reference a previous step, example: 'contract.Storage'`,
+                message: `"${val}" is invalid. Must reference a previous operation, example: 'contract.Storage'`,
               })
             )
           )
-          .describe('Previous steps this step is dependent on'),
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .deepPartial()
   );
@@ -562,9 +568,14 @@ export const routerSchema = z.object({
    */
   salt: z.string().optional().describe('Used to force new copy of a contract (not actually used)'),
   /**
-   *  List of steps that this action depends on
+   *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
    */
-  depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
+  depends: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+    ),
 });
 
 export const varSchema = z
@@ -575,14 +586,19 @@ export const varSchema = z
     defaultValue: z.string().optional().describe('⚠ Deprecated in favor of var. The value to set in the setting'),
     description: z.string().optional().describe('Helpful explanation of the variable being set'),
     /**
-     *  List of steps that this action depends on
+     *  List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.
      */
-    depends: z.array(z.string()).optional().describe('List of steps that this action depends on'),
+    depends: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+      ),
   })
   .catchall(z.string());
 
 /**
- * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-action components
+ * @internal NOTE: if you edit this schema, please also edit the constructor of ChainDefinition in 'definition.ts' to account for non-operation components
  */
 export const chainDefinitionSchema = z
   .object({
@@ -645,7 +661,7 @@ export const chainDefinitionSchema = z
          */
         keywords: z.array(z.string()).describe('Keywords for search indexing'),
         /**
-         * Object that allows the definition of values for use in next steps
+         * Object that allows the definition of values for use in next operations
          * ```toml
          *  [settings.owner]
          *  defaultValue: "some-eth-address"
@@ -679,7 +695,7 @@ export const chainDefinitionSchema = z
         pull: z
           .record(pullSchema)
           .describe(
-            'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+            'Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
           ),
         /**
          * @internal
@@ -687,7 +703,7 @@ export const chainDefinitionSchema = z
         import: z
           .record(pullSchema)
           .describe(
-            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other actions in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
+            '⚠ Deprecated in favor of pull. Import a package from the registry. This will make the output of that deployment, such as contract addresses, available to other operations in your Cannonfile. Imported packages must include deployments with chain ID that matches the chain ID of the network you are deploying to.'
           ),
         /**
          * @internal

@@ -183,14 +183,16 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        addLog(`cannon.ts: on Events.PostStepExecute step ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`);
+        addLog(
+          `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
+        );
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the step ${stepName}`);
+      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
       skippedSteps.push({ name: stepName, err });
     });
 
@@ -215,7 +217,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const steps = await Promise.all(
       simulatedTxs.map(async (executedTx) => {
-        if (!executedTx) throw new Error('Invalid step');
+        if (!executedTx) throw new Error('Invalid operation');
         const tx = await provider.getTransaction({ hash: executedTx.hash });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash });
         return {

@@ -6,6 +6,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 interface CannonfileSpec {
   description: string;
+  deprecated?: boolean;
   specs: Spec[];
 }
 
@@ -104,9 +105,20 @@ export function useCannonfileSpecs() {
       }
       result.set('run', {
         description:
-          '⚠ This action breaks composability—only use this as a last resort. (Instead, you should use a custom Cannon plug-in if this is necessary for your deployment.) Execute a custom script. This script is passed a ChainBuilder object as parameter.',
+          '⚠ This operation breaks composability—only use this as a last resort. (Instead, you should use a custom Cannon plug-in if this is necessary for your deployment.) Execute a custom script. This script is passed a ChainBuilder object as parameter.',
         specs: runSpecs,
       });
+
+      const deprecatedKeys = ['setting', 'provision', 'import', 'contract'];
+      for (const key of deprecatedKeys) {
+        if (result.has(key)) {
+          const step = result.get(key);
+          if (step) {
+            step.deprecated = true;
+            result.set(key, step);
+          }
+        }
+      }
 
       setCannonfileSpecs(result);
     };
