@@ -45,6 +45,8 @@ import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import { resolveRegistryProviders, resolveWriteProvider, getChainIdFromProviderUrl, isURL } from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
+import { DEFAULT_REGISTRY_CONFIG } from './constants';
+import { checkIfPackageAlreadyExist } from './util/register';
 
 export * from './types';
 export * from './constants';
@@ -361,66 +363,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const optimismClient = viem.createPublicClient({
-    chain: optimism,
-    transport: viem.http(),
-  });
-
-  const mainnetClient = viem.createPublicClient({
-    chain: mainnet,
-    transport: viem.http(),
-  });
-
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-
-  // Set a default value
-  let pickedRegistryProvider = registryProviders[0];
-
-  // TODO: Check if the package is already registered on the registry
-  const isPackageAlreadyRegistered = true;
-
-  if (!isPackageAlreadyRegistered) {
-    const getBalanceParams = {
-      address: privateKeyToAccount(cliSettings.privateKey!).address,
-    };
-
-    const [optimismUserBalance, mainnetUserBalance] = await Promise.all([
-      optimismClient.getBalance(getBalanceParams),
-      mainnetClient.getBalance(getBalanceParams),
-    ]);
-
-    // TODO: Replace this with a more accurate gas cost estimation
-    const optimismEstimatedGasCost = viem.parseEther('0.1');
-    const mainnetEstimatedGasCost = viem.parseEther('0.1');
-
-    if (optimismUserBalance > optimismEstimatedGasCost) {
-      // Proceed to register the package with Optimism Network
-      pickedRegistryProvider = registryProviders.find((providers) => optimism.id === providers.provider.chain?.id)!;
-    } else if (mainnetUserBalance > mainnetEstimatedGasCost) {
-      console.log(
-        'The address balance on Optimism Network is too low to publish a package. Proceeding to publish on Mainnet Network.'
-      );
-
-      const confirm = await prompts({
-        type: 'confirm',
-        name: 'value',
-        message: 'Are you sure?',
-        initial: true,
-      });
-
-      if (!confirm) {
-        process.exit(1);
-      }
-
-      // Proceed to register the package with Optimism Network
-      pickedRegistryProvider = registryProviders.find((providers) => mainnet.id === providers.provider.chain?.id)!;
-    } else {
-      throw new Error(
-        'The address balance on Optimism Network and Mainnet Network is too low to publish a package. Please, provide a private key with enough ETH balance.'
-      );
-    }
-  }
-
   const overrides: any = {};
 
   if (options.maxFeePerGas) {
@@ -435,6 +377,127 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides.value = options.value;
   }
 
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+
+  // Use first position as a default provider
+  let [pickedRegistryProvider] = registryProviders;
+
+  const results = await checkIfPackageAlreadyExist(registryProviders, packageRef, cliSettings);
+
+  const getBalanceParams = {
+    address: privateKeyToAccount(cliSettings.privateKey!).address,
+  };
+
+  if (_.isEqual(registryProviders, DEFAULT_REGISTRY_CONFIG)) {
+    // User has not provided any custom registry provider
+    const [isPackageRegisteredOnMainnet, isPackageRegisteredOnOptimism] = results;
+
+    const [mainnetClient, optimismClient] = cliSettings.registries.map((registry) =>
+      viem.createPublicClient({
+        transport: viem.http(registry.providerUrl[0]),
+      })
+    );
+
+    // New package
+    if (!isPackageRegisteredOnMainnet && !isPackageRegisteredOnOptimism) {
+      const [optimismUserBalance, mainnetUserBalance] = await Promise.all([
+        optimismClient.getBalance(getBalanceParams),
+        mainnetClient.getBalance(getBalanceParams),
+      ]);
+
+      // TODO: Replace this with a more accurate gas cost estimation
+      const optimismEstimatedGasCost = viem.parseEther('0.1');
+      const mainnetEstimatedGasCost = viem.parseEther('0.1');
+
+      if (optimismUserBalance > optimismEstimatedGasCost) {
+        // Proceed to register the package with Optimism Network
+        pickedRegistryProvider = registryProviders.find((providers) => optimism.id === providers.provider.chain?.id)!;
+      } else if (mainnetUserBalance > mainnetEstimatedGasCost) {
+        // Proceed to register the package with Optimism Network
+        pickedRegistryProvider = registryProviders.find((providers) => mainnet.id === providers.provider.chain?.id)!;
+      } else {
+        throw new Error(
+          'The address balance on Optimism Network and Mainnet Network is too low to publish a package. Please, provide a private key with enough ETH balance.'
+        );
+      }
+
+      console.log(
+        `We're going to register the package "${packageRef}" on the ${pickedRegistryProvider.provider.chain?.name} registry...`
+      );
+
+      const confirm = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Are you sure?',
+        initial: true,
+      });
+
+      if (!confirm) {
+        process.exit(1);
+      }
+
+      const onChainRegistry = new OnChainRegistry({
+        signer: pickedRegistryProvider.signers[0],
+        provider: pickedRegistryProvider.provider,
+        address: cliSettings.registries[0].address,
+        overrides,
+      });
+
+      const hash = await register({
+        packageRef,
+        mainRegistry: onChainRegistry,
+      });
+
+      console.log(blueBright('Transaction:'));
+      console.log(`  - ${hash}`);
+    }
+
+    // Package already registered on Mainnet, but not on Optimism
+    // Start migration process
+    if (isPackageRegisteredOnMainnet && !isPackageRegisteredOnOptimism) {
+      // Migration process
+    }
+
+    // Package already registered on Optimism, but not on Mainnet
+    if (!isPackageRegisteredOnMainnet && isPackageRegisteredOnOptimism) {
+      // Go for OP
+    }
+  } else {
+    // User has provided custom registry provider
+    const [isPackageAlreadyRegistered] = results;
+
+    const estimatedGasCost = viem.parseEther('0.1');
+
+    if (!isPackageAlreadyRegistered) {
+      const customClient = viem.createPublicClient({
+        transport: viem.http(cliSettings.registries[0].providerUrl[0]),
+      });
+
+      const userBalance = await customClient.getBalance(getBalanceParams);
+
+      if (userBalance < estimatedGasCost) {
+        throw new Error(
+          'The address balance is too low to register a package. Please, provide a private key with enough ETH balance.'
+        );
+      }
+
+      const onChainRegistry = new OnChainRegistry({
+        signer: pickedRegistryProvider.signers[0],
+        provider: pickedRegistryProvider.provider,
+        address: cliSettings.registries[0].address,
+        overrides,
+      });
+
+      const hash = await register({
+        packageRef,
+        mainRegistry: onChainRegistry,
+      });
+
+      console.log(blueBright('Transaction:'));
+      console.log(`  - ${hash}`);
+    }
+  }
+
   const onChainRegistry = new OnChainRegistry({
     signer: pickedRegistryProvider.signers[0],
     provider: pickedRegistryProvider.provider,
@@ -442,17 +505,19 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides,
   });
 
+  /*
   if (!isPackageAlreadyRegistered) {
     console.log(`We're going to procced to register the package "${packageRef}" on the registry...`);
 
     const hash = await register({
       packageRef,
-      pickedRegistryProvider,
+      mainRegistry: onChainRegistry,
     });
 
     console.log(blueBright('Transaction:'));
     console.log(`  - ${hash}`);
   }
+  */
 
   console.log(
     `\nSettings:\n - Max Fee Per Gas: ${
