@@ -147,7 +147,9 @@ export function printChainDefinitionProblems(problems: ChainDefinitionProblems, 
   const str: string[] = [];
 
   for (const missing of problems.missing) {
-    str.push(`${counter}: In operation "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`);
+    str.push(
+      `${counter}: In operation "${missing.action}", the dependency "${missing.dependency}" is not defined elsewhere.`
+    );
     counter++;
   }
 
