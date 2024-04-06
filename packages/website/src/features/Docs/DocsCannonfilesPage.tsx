@@ -17,6 +17,7 @@ import {
   Th,
   Thead,
   Tr,
+  Badge,
 } from '@chakra-ui/react';
 import React, { FC } from 'react';
 
@@ -84,7 +85,7 @@ const CustomTable: React.FC<{
           <Th color="gray.300" pl={0} borderColor="gray.500">
             Name
           </Th>
-          <Th color="gray.300" borderColor="gray.500">
+          <Th color="gray.300" borderColor="gray.500" maxWidth="180px">
             Type
           </Th>
           <Th color="gray.300" borderColor="gray.500" maxWidth="180px">
@@ -98,7 +99,7 @@ const CustomTable: React.FC<{
             <Td pl={0} borderColor="gray.500">
               <Code>{row.key}</Code>
             </Td>
-            <Td borderColor="gray.500">
+            <Td borderColor="gray.500" maxWidth="180px">
               <Text color="gray.300" fontSize="xs" fontWeight="medium">
                 {row.dataType}
               </Text>
@@ -146,7 +147,11 @@ export const DocsCannonfilesPage: FC = () => {
                 { href: '#cannonfile-metadata', text: 'Cannonfile Metadata' },
                 { href: '#constants', text: 'Constants' },
                 ...Array.from(cannonfileSpecs, ([key]) => key)
-                  .filter((key) => key !== 'metadata')
+                  .filter(
+                    (key) =>
+                      key !== 'metadata' &&
+                      !cannonfileSpecs.get(key)?.deprecated
+                  )
                   .map((key) => ({
                     href: `#${key}`,
                     text: key as string,
@@ -315,6 +320,15 @@ export const DocsCannonfilesPage: FC = () => {
                 />
               </Box>
               {Array.from(cannonfileSpecs)
+                .sort((a, b) => {
+                  const aDeprecated = cannonfileSpecs?.get(a[0])?.deprecated
+                    ? 1
+                    : 0;
+                  const bDeprecated = cannonfileSpecs?.get(b[0])?.deprecated
+                    ? 1
+                    : 0;
+                  return aDeprecated - bDeprecated;
+                })
                 .filter(([key]) => key !== 'metadata')
                 .map(([key, value]) => (
                   <Box key={key} id={key} mb={16}>
@@ -331,6 +345,16 @@ export const DocsCannonfilesPage: FC = () => {
                       >
                         #
                       </Link>
+                      {value.deprecated && (
+                        <Badge
+                          colorScheme="teal"
+                          ml="3"
+                          transform="translateY(-1.5px)"
+                          pt={0.5}
+                        >
+                          Deprecated
+                        </Badge>
+                      )}
                     </Heading>
                     <Text mb="4">{value.description}</Text>
                     <CustomTable
