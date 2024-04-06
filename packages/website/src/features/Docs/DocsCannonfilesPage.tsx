@@ -212,11 +212,11 @@ export const DocsCannonfilesPage: FC = () => {
                 .
               </Text>
               <Text mb={4}>
-                Each action has a type and a name. Each type accepts a specific
-                set of inputs (documented below) and modifies a return object.
-                The return object is accessible in operations executed at later
-                operations. The resulting return object is provided to any
-                cannonfile that imports it with the <Code>pull</Code> or{' '}
+                Each operation has a type and a name. Each type accepts a
+                specific set of inputs (documented below) and modifies a return
+                object. The return object is accessible in operations executed
+                at later operations. The resulting return object is provided to
+                any cannonfile that imports it with the <Code>pull</Code> or{' '}
                 <Code>clone</Code> operations.
               </Text>
               <Text mb={4}>
