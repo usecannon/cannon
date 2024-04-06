@@ -6,6 +6,7 @@ import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
+import TupleInput from './FunctionInput/TupleInput';
 
 export const FunctionInput: FC<{
   input: AbiParameter;
@@ -32,10 +33,11 @@ export const FunctionInput: FC<{
   };
 
   useEffect(() => {
+    if (!isArray) return;
     valueUpdated(dataArray.map((item) => item.val));
-  }, [dataArray]);
+  }, [dataArray, isArray]);
 
-  const handleUpdate = (index: number | null, value: any) => {
+  const handleUpdate = (index: number | null, value: any, type: string) => {
     if (isArray) {
       const updatedArray = [...dataArray];
       updatedArray[index as number].val = value;
@@ -53,6 +55,8 @@ export const FunctionInput: FC<{
         return <AddressInput handleUpdate={_handleUpdate} />;
       case input.type.startsWith('int') || input.type.startsWith('uint'):
         return <NumberInput handleUpdate={_handleUpdate} />;
+      case input.type === 'tuple':
+        return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
         return (
           <DefaultInput handleUpdate={_handleUpdate} inputType={input.type} />
@@ -66,7 +70,9 @@ export const FunctionInput: FC<{
     c = (
       <Flex direction="row" align="center">
         <Flex flex="1">
-          {getInputComponent((value: any) => handleUpdate(null, value))}
+          {getInputComponent((value: any) =>
+            handleUpdate(null, value, input.type)
+          )}
         </Flex>
       </Flex>
     );
@@ -77,7 +83,9 @@ export const FunctionInput: FC<{
           {dataArray.map((inp, index) => {
             return (
               <Flex flex="1" alignItems="center" mb="4" key={inp.id}>
-                {getInputComponent((value: any) => handleUpdate(index, value))}
+                {getInputComponent((value: any) =>
+                  handleUpdate(index, value, input.type)
+                )}
                 {dataArray.length > 1 && (
                   <Box onClick={() => remove(index)} ml="4">
                     <CloseIcon name="close" color="red.500" />{' '}
