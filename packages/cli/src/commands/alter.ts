@@ -144,7 +144,7 @@ export async function alter(
     case 'import':
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for import. Should be <stepName> <existingArtifacts (comma separated)>'
+          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>'
         );
       }
 
@@ -156,7 +156,7 @@ export async function alter(
 
         if (!stepAction.importExisting) {
           throw new Error(
-            `the given step ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
           );
         }
 
@@ -177,7 +177,7 @@ export async function alter(
         if (deployInfo.state[stepName]) {
           deployInfo.state[stepName].artifacts = importExisting;
         } else {
-          debug(`step ${stepName} not found, populating...`);
+          debug(`Operation ${stepName} not found, populating...`);
           try {
             deployInfo.state[stepName] = {} as StepState;
 
@@ -199,7 +199,7 @@ export async function alter(
             deployInfo.state[stepName].hash = h ? h[0] : null;
           } catch (err) {
             throw new Error(
-              `Step ${stepName} not found in deployment state and could not be populated by cannon, here are the available step options: \n ${Object.keys(
+              `Operation ${stepName} not found in deployment state and could not be populated by Cannon, here are the available operation options: \n ${Object.keys(
                 deployInfo.state
               )
                 .map((s) => `\n ${s}`)

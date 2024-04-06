@@ -25,7 +25,7 @@ import {
 const debug = Debug('cannon:builder:invoke');
 
 /**
- *  Available properties for invoke step
+ *  Available properties for invoke operation
  *  @public
  *  @group Invoke
  */

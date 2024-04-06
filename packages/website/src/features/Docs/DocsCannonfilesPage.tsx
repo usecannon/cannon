@@ -204,8 +204,8 @@ export const DocsCannonfilesPage: FC = () => {
                 Cannonfile Documentation
               </Heading>
               <Text mb={4}>
-                Cannonfiles include steps that specify the desired state of a
-                blockchain. They are typically{' '}
+                Cannonfiles include operations that specify the desired state of
+                a blockchain. They are typically{' '}
                 <Link isExternal href="https://toml.io/en/">
                   TOML files
                 </Link>
@@ -214,10 +214,10 @@ export const DocsCannonfilesPage: FC = () => {
               <Text mb={4}>
                 Each action has a type and a name. Each type accepts a specific
                 set of inputs (documented below) and modifies a return object.
-                The return object is accessible in steps executed at later
-                steps. The resulting return object is provided to any cannonfile
-                that imports it with the <Code>pull</Code> or <Code>clone</Code>{' '}
-                steps.
+                The return object is accessible in operations executed at later
+                operations. The resulting return object is provided to any
+                cannonfile that imports it with the <Code>pull</Code> or{' '}
+                <Code>clone</Code> operations.
               </Text>
               <Text mb={4}>
                 Cannonfiles are used to <strong>build</strong> chains into the
@@ -502,15 +502,16 @@ export const DocsCannonfilesPage: FC = () => {
                   an event named NewDeployment with a contract address as the
                   first data argument (per arg, a zero-based index). This
                   contract should implement the Pool contract. Now, a subsequent
-                  invoke step could set target = [&quot;MyPoolDeployment&quot;].
+                  invoke operation could set target =
+                  [&quot;MyPoolDeployment&quot;].
                 </Text>
 
                 <Text mb="4">
                   To reference contract information for a contract deployed on a
-                  previous invoke step such as the example shown above call the
-                  contracts object inside your cannonfile. For example &lt;%=
-                  contracts.MyPoolDeployment.address %&gt; would return the
-                  address of the Pool contract deployed by the PoolFactory
+                  previous invoke operation such as the example shown above call
+                  the contracts object inside your cannonfile. For example
+                  &lt;%= contracts.MyPoolDeployment.address %&gt; would return
+                  the address of the Pool contract deployed by the PoolFactory
                   contract.
                 </Text>
 
@@ -522,7 +523,7 @@ export const DocsCannonfilesPage: FC = () => {
                   contracts.MyPoolDeployment_0.address %&gt; would return the
                   second deployed Pool contract address. These contracts are
                   added to the return object as they would be if deployed by a
-                  contract step.
+                  contract operation.
                 </Text>
               </Box>
 
@@ -543,7 +544,7 @@ export const DocsCannonfilesPage: FC = () => {
                   If an invoked function emits an event, cannon can parse the
                   event data in your cannonfile by using the var property, This
                   lets you reference previously emitted event’s data in
-                  subsequent invoke steps.
+                  subsequent invoke operations.
                 </Text>
                 <Text mb={4}>
                   For example, to track the NewDeployment event data from the
@@ -565,8 +566,8 @@ export const DocsCannonfilesPage: FC = () => {
 
                 <Text mb={4}>
                   Now, calling &quot;&lt;% = settings.NewDeploymentEvent
-                  %&gt;&quot; in a subsequent invoke step would return the first
-                  data argument for NewDeployment.
+                  %&gt;&quot; in a subsequent invoke operation would return the
+                  first data argument for NewDeployment.
                 </Text>
 
                 <Text mb={4}>
@@ -600,7 +601,7 @@ export const DocsCannonfilesPage: FC = () => {
                   If an event is specified in the cannonfile but the invoke
                   function does not emit any events or emits an event that
                   doesn’t match the one specified in the cannonfile, the invoke
-                  step will fail with an error.
+                  operation will fail with an error.
                 </Text>
 
                 <Text mb="4">
