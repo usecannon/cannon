@@ -40,7 +40,7 @@ const TupleInput = ({
       w="100%"
     >
       {input.components.map((component: any, index: number) => (
-        <FormControl mb="4">
+        <FormControl mb="4" key={index}>
           <FormLabel fontSize="sm" mb={1}>
             {component.name && <Text display="inline">{component.name}</Text>}
             {component.type && (
@@ -51,7 +51,6 @@ const TupleInput = ({
             )}
           </FormLabel>
           <FunctionInput
-            key={index}
             input={component}
             valueUpdated={(value) => {
               // Since tuple components are represented as a JSON object,

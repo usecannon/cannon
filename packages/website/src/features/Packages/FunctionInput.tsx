@@ -37,7 +37,7 @@ export const FunctionInput: FC<{
     valueUpdated(dataArray.map((item) => item.val));
   }, [dataArray, isArray]);
 
-  const handleUpdate = (index: number | null, value: any, type: string) => {
+  const handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
       const updatedArray = [...dataArray];
       updatedArray[index as number].val = value;
@@ -70,9 +70,7 @@ export const FunctionInput: FC<{
     c = (
       <Flex direction="row" align="center">
         <Flex flex="1">
-          {getInputComponent((value: any) =>
-            handleUpdate(null, value, input.type)
-          )}
+          {getInputComponent((value: any) => handleUpdate(null, value))}
         </Flex>
       </Flex>
     );
@@ -83,9 +81,7 @@ export const FunctionInput: FC<{
           {dataArray.map((inp, index) => {
             return (
               <Flex flex="1" alignItems="center" mb="4" key={inp.id}>
-                {getInputComponent((value: any) =>
-                  handleUpdate(index, value, input.type)
-                )}
+                {getInputComponent((value: any) => handleUpdate(index, value))}
                 {dataArray.length > 1 && (
                   <Box onClick={() => remove(index)} ml="4">
                     <CloseIcon name="close" color="red.500" />{' '}

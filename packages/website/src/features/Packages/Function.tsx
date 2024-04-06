@@ -30,7 +30,6 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
-import TupleInput from './FunctionInput/TupleInput';
 
 export const Function: FC<{
   f: AbiFunction;
