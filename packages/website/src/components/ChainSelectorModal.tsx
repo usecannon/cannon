@@ -1,5 +1,5 @@
 import { useSwitchChain, useChainId } from 'wagmi';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Modal,
@@ -11,6 +11,8 @@ import {
   Flex,
   Heading,
   Text,
+  Box,
+  Input,
 } from '@chakra-ui/react';
 import {
   Ethereum,
@@ -19,6 +21,8 @@ import {
   Optimism,
   Arbitrum,
 } from '@thirdweb-dev/chain-icons';
+import { debounce } from 'lodash';
+import { CloseIcon } from '@chakra-ui/icons';
 
 const ChainButton = ({
   switching,
@@ -95,6 +99,7 @@ const ChainSelectorModal = ({
   onClose: () => void;
   isOpen: boolean;
 }) => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { chains, switchChain, isSuccess, isError, isPending } =
     useSwitchChain();
 
@@ -102,15 +107,27 @@ const ChainSelectorModal = ({
     null
   );
   const chainId = useChainId();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredChains = chains.filter((chain) =>
+    chain.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Close the modal when the chain switch is successful or failed,
   // use the switchingToChainId to determine if the chain switch is in progress
   useEffect(() => {
-    if ((isSuccess || isError) && switchingToChainId !== null) {
+    if (isSuccess && switchingToChainId !== null) {
       onClose();
       setSwitchingToChainId(null);
+      setSearchTerm('');
     }
-  }, [isSuccess, isError, isPending, onClose]);
+  }, [isSuccess, onClose]);
+
+  useEffect(() => {
+    if (isError && switchingToChainId !== null) {
+      setSwitchingToChainId(null);
+    }
+  }, [isError, onClose]);
 
   // Popular chains
   // Cannon, Ethereum, Polygon, Avalanche, Optimism, Arbitrum
@@ -121,6 +138,14 @@ const ChainSelectorModal = ({
 
   const otherChains = chains.filter(
     (chain) => !popularChainsIds.includes(chain.id)
+  );
+
+  const handleSearchChange = debounce(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+      console.log('setting search term', e.target.value);
+    },
+    300
   );
 
   return (
@@ -147,46 +172,116 @@ const ChainSelectorModal = ({
               mt="2"
               gap={2}
             >
-              <Heading size="sm" color="gray.200">
-                Popular Networks
-              </Heading>
-              {popularChains.map((chain) => (
-                <ChainButton
-                  key={chain.id}
-                  connected={chainId === chain.id}
-                  switching={switchingToChainId === chain.id}
-                  chain={{
-                    id: chain.id,
-                    name: chain.name,
-                  }}
-                  onClick={() => {
-                    setSwitchingToChainId(chain.id);
-                    switchChain({
-                      chainId: chain.id,
-                    });
-                  }}
-                />
-              ))}
-              <Heading size="sm" color="gray.200" mt="4" mb="2">
-                Other Networks
-              </Heading>
-              {otherChains.map((chain) => (
-                <ChainButton
-                  key={chain.id}
-                  switching={switchingToChainId === chain.id}
-                  connected={chainId === chain.id}
-                  chain={{
-                    id: chain.id,
-                    name: chain.name,
-                  }}
-                  onClick={() => {
-                    setSwitchingToChainId(chain.id);
-                    switchChain({
-                      chainId: chain.id,
-                    });
-                  }}
-                />
-              ))}
+              <Box width="full" paddingBottom={4}>
+                <Flex
+                  borderStyle={'solid'}
+                  borderWidth={1}
+                  borderColor={'whiteAlpha.400'}
+                  bg="transparent"
+                  alignItems="center"
+                >
+                  <Input
+                    type="text"
+                    border={'none'}
+                    placeholder="Search Network..."
+                    onChange={handleSearchChange}
+                    ref={searchInputRef}
+                    _focus={{ borderColor: 'transparent' }}
+                    _focusVisible={{
+                      outline: 'none',
+                    }}
+                  />
+                  {/* close button deletes search term */}
+                  {searchTerm && (
+                    <Button
+                      bg={'transparent'}
+                      _hover={{ bg: 'transparent' }}
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        if (searchInputRef.current) {
+                          searchInputRef.current.value = '';
+                        }
+                      }}
+                    >
+                      <CloseIcon color={'gray.200'} />
+                    </Button>
+                  )}
+                </Flex>
+              </Box>
+              {searchTerm && filteredChains.length === 0 && (
+                <Heading size="sm" color="gray.200">
+                  No networks found
+                </Heading>
+              )}
+              {searchTerm && filteredChains.length > 0 && (
+                <>
+                  <Heading size="sm" color="gray.200">
+                    Search Results
+                  </Heading>
+                  {filteredChains.map((chain, k) => (
+                    <ChainButton
+                      key={`${chain.id} - ${k}`}
+                      connected={chainId === chain.id}
+                      switching={switchingToChainId === chain.id}
+                      chain={{
+                        id: chain.id,
+                        name: chain.name,
+                      }}
+                      onClick={() => {
+                        setSwitchingToChainId(chain.id);
+                        switchChain({
+                          chainId: chain.id,
+                        });
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+              {!searchTerm && (
+                <>
+                  <Heading size="sm" color="gray.200">
+                    Popular Networks
+                  </Heading>
+                  {popularChains.map((chain, k) => (
+                    <ChainButton
+                      key={`${chain.id} - ${k}`}
+                      connected={chainId === chain.id}
+                      switching={switchingToChainId === chain.id}
+                      chain={{
+                        id: chain.id,
+                        name: chain.name,
+                      }}
+                      onClick={() => {
+                        setSwitchingToChainId(chain.id);
+                        switchChain({
+                          chainId: chain.id,
+                        });
+                      }}
+                    />
+                  ))}
+                  <Heading size="sm" color="gray.200" mt="4" mb="2">
+                    Other Networks
+                  </Heading>
+                  {otherChains.map((chain, k) => (
+                    <ChainButton
+                      key={`${chain.id} - ${k}`}
+                      switching={switchingToChainId === chain.id}
+                      connected={chainId === chain.id}
+                      chain={{
+                        id: chain.id,
+                        name: chain.name,
+                      }}
+                      onClick={() => {
+                        setSwitchingToChainId(chain.id);
+                        switchChain({
+                          chainId: chain.id,
+                        });
+                      }}
+                    />
+                  ))}
+                </>
+              )}
             </Flex>
           </ModalBody>
         </ModalContent>
