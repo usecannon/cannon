@@ -22,7 +22,7 @@ export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } f
 
 export { publishPackage, PackageReference, getProvisionedPackages } from './package';
 
-export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl } from './constants';
+export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl, BUILD_VERSION } from './constants';
 
 export * from './access-recorder';
 export { renderTrace, findContract } from './trace';

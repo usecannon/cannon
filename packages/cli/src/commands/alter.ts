@@ -1,4 +1,5 @@
 import {
+  BUILD_VERSION,
   CANNON_CHAIN_ID,
   ChainBuilderRuntime,
   ChainDefinition,
@@ -226,11 +227,10 @@ export async function alter(
         const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
 
         if (!deployInfo.state[target]) {
-          // throw new Error(`Could not find an executed step named "${target}"`);
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
             hash: h ? h[0] : null,
-            version: 6,
+            version: BUILD_VERSION,
           };
         } else {
           deployInfo.state[target].hash = h ? h[0] : null;
