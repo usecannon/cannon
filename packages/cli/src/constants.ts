@@ -11,10 +11,12 @@ export const DEFAULT_REGISTRY_CONFIG = [
     providerUrl: ['https://ethereum-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
+  /*
   {
     chainId: 10,
     providerUrl: ['https://optimism-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
+  */
 ];
 export const CLI_SETTINGS_STORE = 'settings.json';
