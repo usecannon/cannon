@@ -1,23 +1,21 @@
-import _ from 'lodash';
-import Debug from 'debug';
-import * as viem from 'viem';
-
-import { bold, yellow } from 'chalk';
-
-import { ActionKinds } from '@usecannon/builder/dist/actions';
-import { PackageReference } from '@usecannon/builder/dist/package';
-
-import { createDefaultReadRegistry } from '../registry';
 import {
-  createInitialContext,
-  ChainDefinition,
-  ChainBuilderRuntime,
-  getOutputs,
+  BUILD_VERSION,
   CANNON_CHAIN_ID,
+  ChainBuilderRuntime,
+  ChainDefinition,
+  createInitialContext,
   DeploymentInfo,
+  getOutputs,
   StepState,
 } from '@usecannon/builder';
+import { ActionKinds } from '@usecannon/builder/dist/actions';
+import { PackageReference } from '@usecannon/builder/dist/package';
+import { bold, yellow } from 'chalk';
+import Debug from 'debug';
+import _ from 'lodash';
+import * as viem from 'viem';
 import { getMainLoader } from '../loader';
+import { createDefaultReadRegistry } from '../registry';
 import { CliSettings } from '../settings';
 import { resolveWriteProvider } from '../util/provider';
 
@@ -227,7 +225,16 @@ export async function alter(
       // compute the state hash for the step
       for (const target of targets) {
         const h = await new ChainDefinition(deployInfo.def).getState(target, runtime, ctx, false);
-        deployInfo.state[targets[0]].hash = h ? h[0] : null;
+
+        if (!deployInfo.state[target]) {
+          deployInfo.state[target] = {
+            artifacts: { contracts: {}, txns: {}, extras: {} },
+            hash: h ? h[0] : null,
+            version: BUILD_VERSION,
+          };
+        } else {
+          deployInfo.state[target].hash = h ? h[0] : null;
+        }
       }
       // clear txn hash if we have it
       break;
