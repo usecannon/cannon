@@ -19,7 +19,6 @@ import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { mainnet } from 'viem/chains';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
