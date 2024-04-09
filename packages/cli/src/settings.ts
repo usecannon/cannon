@@ -8,7 +8,7 @@ import { parseEnv } from 'znv';
 import untildify from 'untildify';
 
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
-import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
+import { checkAndNormalizePrivateKey } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -47,8 +47,8 @@ export type CliSettings = {
    * First registry on the list is the one that handles setPackageOwnership() calls to create packages.
    */
   registries: {
-    chainId: number;
-    providerUrl: string[];
+    chainId?: number;
+    providerUrl?: string[];
     address: viem.Address;
   }[];
 
@@ -71,6 +71,16 @@ export type CliSettings = {
    * URL of etherscan API for verification
    */
   etherscanApiUrl?: string;
+
+  /**
+   * Provider used for `register` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   */
+  registryProviderUrl?: string;
+
+  /**
+   * chain id used for `register`
+   */
+  registryChainId?: number;
 
   /**
    * Etherscan API Key for verification
@@ -182,7 +192,16 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       ipfsRetries: CANNON_IPFS_RETRIES,
       ipfsUrl: CANNON_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
-      registries: [],
+      registries:
+        CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID
+          ? [
+              {
+                providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
+                chainId: CANNON_REGISTRY_CHAIN_ID ? Number(CANNON_REGISTRY_CHAIN_ID) : undefined,
+                address: CANNON_REGISTRY_ADDRESS as viem.Address,
+              },
+            ]
+          : DEFAULT_REGISTRY_CONFIG,
       registryPriority: CANNON_REGISTRY_PRIORITY,
       etherscanApiUrl: CANNON_ETHERSCAN_API_URL,
       etherscanApiKey: CANNON_ETHERSCAN_API_KEY,
@@ -195,17 +214,15 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID) {
-    finalSettings.registries.push({
-      providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
-      chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
-      address: CANNON_REGISTRY_ADDRESS as viem.Address,
-    });
-  } else {
-    finalSettings.registries = DEFAULT_REGISTRY_CONFIG;
+  if (overrides.registryProviderUrl || overrides.registryChainId) {
+    finalSettings.registries = [
+      {
+        providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
+        chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
+        address: CANNON_REGISTRY_ADDRESS as viem.Address,
+      },
+    ];
   }
-
-  debug('got settings', filterSettings(finalSettings));
 
   return finalSettings;
 }

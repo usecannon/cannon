@@ -19,8 +19,7 @@ import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { mainnet, optimism } from 'viem/chains';
-import { privateKeyToAccount } from 'viem/accounts';
+import { mainnet } from 'viem/chains';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
@@ -42,11 +41,19 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import { resolveRegistryProviders, resolveWriteProvider, getChainIdFromProviderUrl, isURL } from './util/provider';
+import {
+  resolveRegistryProviders,
+  resolveProviderAndSigners,
+  resolveWriteProvider,
+  getChainIdFromProviderUrl,
+  isURL,
+  ProviderOrigin,
+} from './util/provider';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
-import { checkIfPackageAlreadyExist } from './util/register';
+
+import { checkIfPackageRegistered } from './util/register';
+import { getChainById } from './chains';
 
 export * from './types';
 export * from './constants';
@@ -326,9 +333,18 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (packageRef, options) {
   const { publish } = await import('./commands/publish');
-  const { register } = await import('./commands/register');
 
   const cliSettings = resolveCliSettings(options);
+
+  await ensureChainIdConsistency(cliSettings.registries[0].providerUrl![0], cliSettings.registries[0].chainId);
+
+  if (!cliSettings.registries[0].chainId) {
+    if (!isURL(cliSettings.registries[0].providerUrl![0])) {
+      throw new Error('Please provide a valid --chain-id or --registry-provider-url value to publish a package.');
+    }
+
+    cliSettings.registries[0].chainId = await getChainIdFromProviderUrl(cliSettings.registries[0].providerUrl![0]);
+  }
 
   if (!options.chainId) {
     const chainIdPrompt = await prompts({
@@ -343,7 +359,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       process.exit(1);
     }
 
-    options.chainId = chainIdPrompt.value;
+    options.chainId = Number(chainIdPrompt.value);
   }
 
   if (!cliSettings.privateKey) {
@@ -363,6 +379,50 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+
+  // Initialize pickedRegistryProvider with the first provider
+  let [pickedRegistryProvider] = registryProviders;
+
+  if (registryProviders.length > 1) {
+    const choices = registryProviders.map((p) => ({
+      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+      value: p,
+    }));
+
+    // Override pickedRegistryProvider with the selected provider
+    pickedRegistryProvider = (
+      await prompts.prompt([
+        {
+          type: 'select',
+          name: 'pickedRegistryProvider',
+          message: 'Please choose a registry to publish to:',
+          choices,
+        },
+      ])
+    ).pickedRegistryProvider;
+  }
+
+  // If users want to publish on other network than Ethereum Mainnet
+  // Check if the package is already registered on the Mainnet registry
+  const isMainnet = pickedRegistryProvider.provider.chain?.id === mainnet.id;
+
+  if (!isMainnet) {
+    const mainnetProvider = await resolveProviderAndSigners({
+      chainId: cliSettings.registries[0].chainId,
+      checkProviders: cliSettings.registries[0].providerUrl,
+      origin: ProviderOrigin.Registry,
+    });
+
+    const [isRegistered] = await checkIfPackageRegistered([mainnetProvider], packageRef, cliSettings);
+
+    if (!isRegistered) {
+      throw new Error(
+        `Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.`
+      );
+    }
+  }
+
   const overrides: any = {};
 
   if (options.maxFeePerGas) {
@@ -377,147 +437,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides.value = options.value;
   }
 
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-
-  // Use first position as a default provider
-  let [pickedRegistryProvider] = registryProviders;
-
-  const results = await checkIfPackageAlreadyExist(registryProviders, packageRef, cliSettings);
-
-  const getBalanceParams = {
-    address: privateKeyToAccount(cliSettings.privateKey!).address,
-  };
-
-  if (_.isEqual(registryProviders, DEFAULT_REGISTRY_CONFIG)) {
-    // User has not provided any custom registry provider
-    const [isPackageRegisteredOnMainnet, isPackageRegisteredOnOptimism] = results;
-
-    const [mainnetClient, optimismClient] = cliSettings.registries.map((registry) =>
-      viem.createPublicClient({
-        transport: viem.http(registry.providerUrl[0]),
-      })
-    );
-
-    // New package
-    if (!isPackageRegisteredOnMainnet && !isPackageRegisteredOnOptimism) {
-      const [optimismUserBalance, mainnetUserBalance] = await Promise.all([
-        optimismClient.getBalance(getBalanceParams),
-        mainnetClient.getBalance(getBalanceParams),
-      ]);
-
-      // TODO: Replace this with a more accurate gas cost estimation
-      const optimismEstimatedGasCost = viem.parseEther('0.1');
-      const mainnetEstimatedGasCost = viem.parseEther('0.1');
-
-      if (optimismUserBalance > optimismEstimatedGasCost) {
-        // Proceed to register the package with Optimism Network
-        pickedRegistryProvider = registryProviders.find((providers) => optimism.id === providers.provider.chain?.id)!;
-      } else if (mainnetUserBalance > mainnetEstimatedGasCost) {
-        // Proceed to register the package with Optimism Network
-        pickedRegistryProvider = registryProviders.find((providers) => mainnet.id === providers.provider.chain?.id)!;
-      } else {
-        throw new Error(
-          'The address balance on Optimism Network and Mainnet Network is too low to publish a package. Please, provide a private key with enough ETH balance.'
-        );
-      }
-
-      console.log(
-        `We're going to register the package "${packageRef}" on the ${pickedRegistryProvider.provider.chain?.name} registry...`
-      );
-
-      const confirm = await prompts({
-        type: 'confirm',
-        name: 'value',
-        message: 'Are you sure?',
-        initial: true,
-      });
-
-      if (!confirm) {
-        process.exit(1);
-      }
-
-      const onChainRegistry = new OnChainRegistry({
-        signer: pickedRegistryProvider.signers[0],
-        provider: pickedRegistryProvider.provider,
-        address: cliSettings.registries[0].address,
-        overrides,
-      });
-
-      const hash = await register({
-        packageRef,
-        mainRegistry: onChainRegistry,
-      });
-
-      console.log(blueBright('Transaction:'));
-      console.log(`  - ${hash}`);
-    }
-
-    // Package already registered on Mainnet, but not on Optimism
-    // Start migration process
-    if (isPackageRegisteredOnMainnet && !isPackageRegisteredOnOptimism) {
-      // Migration process
-    }
-
-    // Package already registered on Optimism, but not on Mainnet
-    if (!isPackageRegisteredOnMainnet && isPackageRegisteredOnOptimism) {
-      // Go for OP
-    }
-  } else {
-    // User has provided custom registry provider
-    const [isPackageAlreadyRegistered] = results;
-
-    const estimatedGasCost = viem.parseEther('0.1');
-
-    if (!isPackageAlreadyRegistered) {
-      const customClient = viem.createPublicClient({
-        transport: viem.http(cliSettings.registries[0].providerUrl[0]),
-      });
-
-      const userBalance = await customClient.getBalance(getBalanceParams);
-
-      if (userBalance < estimatedGasCost) {
-        throw new Error(
-          'The address balance is too low to register a package. Please, provide a private key with enough ETH balance.'
-        );
-      }
-
-      const onChainRegistry = new OnChainRegistry({
-        signer: pickedRegistryProvider.signers[0],
-        provider: pickedRegistryProvider.provider,
-        address: cliSettings.registries[0].address,
-        overrides,
-      });
-
-      const hash = await register({
-        packageRef,
-        mainRegistry: onChainRegistry,
-      });
-
-      console.log(blueBright('Transaction:'));
-      console.log(`  - ${hash}`);
-    }
-  }
-
   const onChainRegistry = new OnChainRegistry({
     signer: pickedRegistryProvider.signers[0],
     provider: pickedRegistryProvider.provider,
     address: cliSettings.registries[0].address,
     overrides,
   });
-
-  /*
-  if (!isPackageAlreadyRegistered) {
-    console.log(`We're going to procced to register the package "${packageRef}" on the registry...`);
-
-    const hash = await register({
-      packageRef,
-      mainRegistry: onChainRegistry,
-    });
-
-    console.log(blueBright('Transaction:'));
-    console.log(`  - ${hash}`);
-  }
-  */
 
   console.log(
     `\nSettings:\n - Max Fee Per Gas: ${
@@ -533,7 +458,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     cliSettings,
     onChainRegistry,
     tags: options.tags ? options.tags.split(',') : undefined,
-    chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
+    chainId: options.chainId ? options.chainId : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
     includeProvisioned: options.includeProvisioned,
@@ -546,13 +471,39 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  if (!options.privateKey && !cliSettings.privateKey) {
+  let chainName = 'Unknown Network';
+
+  const registryProviderUrl = cliSettings.registries[0].providerUrl ? cliSettings.registries[0].providerUrl[0] : undefined;
+  const registryChainId = cliSettings.registries[0].chainId;
+
+  if (registryProviderUrl) {
+    if (isURL(registryProviderUrl)) {
+      const chainId = await getChainIdFromProviderUrl(registryProviderUrl);
+      chainName = getChainById(Number(chainId)).name || 'Unknown Network';
+    } else {
+      if (!registryChainId) {
+        throw new Error(
+          'Please, provide a valid --registry-chain-id or --registry-provider-url value to register a package.'
+        );
+      }
+
+      chainName = getChainById(Number(registryChainId)).name || 'Unknown Network';
+    }
+  } else {
+    if (!registryChainId) {
+      throw new Error('Please, provide a valid --registry-chain-id or --registry-provider-url value to register a package.');
+    }
+
+    chainName = getChainById(Number(registryChainId)).name || 'Unknown Network';
+  }
+
+  if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
+      message: `Provide a private key with gas on ${chainName} to publish this package on the registry`,
       style: 'password',
-      validate: (key) => isPrivateKey(key) || 'Private key is not valid',
+      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
 
     if (!keyPrompt.value) {
@@ -560,11 +511,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
       process.exit(1);
     }
 
-    options.privateKey = keyPrompt.value;
-  }
-
-  if (options.privateKey) {
-    cliSettings.privateKey = options.privateKey;
+    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
   const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);

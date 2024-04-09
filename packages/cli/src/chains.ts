@@ -20,7 +20,7 @@ export function getChainById(id: number): viem.Chain {
     id,
   });
 
-  if (chain?.id !== id) {
+  if (Number(chain?.id) !== Number(id)) {
     return {
       id,
       name: 'Unknown Network',

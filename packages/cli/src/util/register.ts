@@ -2,7 +2,7 @@ import * as viem from 'viem';
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { CliSettings } from '../settings';
 
-export const checkIfPackageAlreadyExist = async (
+export const checkIfPackageRegistered = async (
   registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
   cliSettings: CliSettings
@@ -18,7 +18,7 @@ export const checkIfPackageAlreadyExist = async (
       const packageName = new PackageReference(packageRef).name;
       const packageOwner = await onChainRegistry.getPackageOwner(packageName);
 
-      return viem.isAddressEqual(packageOwner, viem.zeroAddress);
+      return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
     })
   );
 };

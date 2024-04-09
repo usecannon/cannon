@@ -5,6 +5,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
+import { mainnet } from 'viem/chains';
 import CannonRegistryAbi from './abis/CannonRegistry';
 import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package';

@@ -459,7 +459,11 @@ const commandsConfig = {
     options: [
       {
         flags: '-n --registry-provider-url [url]',
-        description: 'RPC endpoint to publish to',
+        description: 'RPC endpoint to register your package to',
+      },
+      {
+        flags: '-c --registry-chain-id <chainId>',
+        description: 'Chain ID of the package to register',
       },
       {
         flags: '--private-key <key>',

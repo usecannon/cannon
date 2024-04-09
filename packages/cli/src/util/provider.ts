@@ -10,7 +10,7 @@ import { CliSettings } from '../settings';
 
 const debug = Debug('cannon:cli:provider');
 
-enum ProviderOrigin {
+export enum ProviderOrigin {
   Registry = 'registry',
   Write = 'write',
 }
@@ -88,7 +88,7 @@ export async function resolveRegistryProviders(
   for (const registryInfo of cliSettings.registries) {
     resolvedProviders.push(
       await resolveProviderAndSigners({
-        chainId: registryInfo.chainId,
+        chainId: registryInfo.chainId!,
         checkProviders: registryInfo.providerUrl,
         privateKey: cliSettings.privateKey,
         origin: ProviderOrigin.Registry,
