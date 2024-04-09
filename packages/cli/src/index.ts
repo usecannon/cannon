@@ -52,8 +52,9 @@ import {
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
-import { checkIfPackageRegistered } from './util/register';
+import { checkIfPackageIsRegistered } from './util/register';
 import { getChainById } from './chains';
+import { DEFAULT_REGISTRY_CONFIG } from './constants';
 
 export * from './types';
 export * from './constants';
@@ -336,16 +337,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
   const cliSettings = resolveCliSettings(options);
 
-  await ensureChainIdConsistency(cliSettings.registries[0].providerUrl![0], cliSettings.registries[0].chainId);
-
-  if (!cliSettings.registries[0].chainId) {
-    if (!isURL(cliSettings.registries[0].providerUrl![0])) {
-      throw new Error('Please provide a valid --chain-id or --registry-provider-url value to publish a package.');
-    }
-
-    cliSettings.registries[0].chainId = await getChainIdFromProviderUrl(cliSettings.registries[0].providerUrl![0]);
-  }
-
   if (!options.chainId) {
     const chainIdPrompt = await prompts({
       type: 'number',
@@ -366,7 +357,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Provide a private key with gas on ETH mainnet to publish this package on the registry',
+      message: 'Provide a private key with gas to publish this package on the registry',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
@@ -384,7 +375,8 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   // Initialize pickedRegistryProvider with the first provider
   let [pickedRegistryProvider] = registryProviders;
 
-  if (registryProviders.length > 1) {
+  // if it's using the default config, prompt the user to choose a registry provider
+  if (_.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG)) {
     const choices = registryProviders.map((p) => ({
       title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
       value: p,
@@ -401,26 +393,37 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         },
       ])
     ).pickedRegistryProvider;
+  } else {
+    // If there is only one registry provider, the user has customized the provider and chain id
+    const [customRegistryProvider] = cliSettings.registries;
+
+    await ensureChainIdConsistency(customRegistryProvider.providerUrl![0], customRegistryProvider.chainId);
+
+    // Ensure to override the chainId
+    if (!customRegistryProvider.chainId) {
+      if (!isURL(customRegistryProvider.providerUrl![0])) {
+        throw new Error('Please provide a valid --chain-id or --registry-provider-url value to publish a package.');
+      }
+
+      // Override the chainId with the chainId from the provider URL
+      cliSettings.registries[0].chainId = await getChainIdFromProviderUrl(customRegistryProvider.providerUrl![0]);
+    }
   }
 
-  // If users want to publish on other network than Ethereum Mainnet
   // Check if the package is already registered on the Mainnet registry
-  const isMainnet = pickedRegistryProvider.provider.chain?.id === mainnet.id;
+  const [mainnet] = DEFAULT_REGISTRY_CONFIG;
+  const mainnetProvider = await resolveProviderAndSigners({
+    chainId: mainnet.chainId,
+    checkProviders: mainnet.providerUrl,
+    origin: ProviderOrigin.Registry,
+  });
 
-  if (!isMainnet) {
-    const mainnetProvider = await resolveProviderAndSigners({
-      chainId: cliSettings.registries[0].chainId,
-      checkProviders: cliSettings.registries[0].providerUrl,
-      origin: ProviderOrigin.Registry,
-    });
+  const [isRegistered] = await checkIfPackageIsRegistered([mainnetProvider], packageRef, cliSettings);
 
-    const [isRegistered] = await checkIfPackageRegistered([mainnetProvider], packageRef, cliSettings);
-
-    if (!isRegistered) {
-      throw new Error(
-        `Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.`
-      );
-    }
+  if (!isRegistered) {
+    throw new Error(
+      `Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.`
+    );
   }
 
   const overrides: any = {};

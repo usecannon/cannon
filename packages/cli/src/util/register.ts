@@ -2,7 +2,7 @@ import * as viem from 'viem';
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { CliSettings } from '../settings';
 
-export const checkIfPackageRegistered = async (
+export const checkIfPackageIsRegistered = async (
   registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
   cliSettings: CliSettings
