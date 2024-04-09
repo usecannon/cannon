@@ -219,7 +219,12 @@ export function TransactionDisplay(props: {
             mb={6}
           >
             <Box display={['none', 'block']}>
-              <Image opacity={0.66} alt="Cannon Logomark" height="28px" src="/images/cannon-logomark.svg" />
+              <Image
+                opacity={0.66}
+                alt="Cannon Logomark"
+                height="28px"
+                src="/images/cannon-logomark.svg"
+              />
             </Box>
             <Box ml={[0, 3]}>
               <AlertTitle lineHeight={1} fontSize="sm" mb={1.5}>
