@@ -18,7 +18,7 @@ import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContra
 const debug = Debug('cannon:builder:contract');
 
 /**
- *  Available properties for contract step
+ *  Available properties for contract operation
  *  @public
  *  @group Contract
  */

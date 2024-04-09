@@ -9,7 +9,7 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, Pa
 const debug = Debug('cannon:builder:var');
 
 /**
- *  Available properties for var step
+ *  Available properties for var operation
  *  @public
  *  @group Var
  */

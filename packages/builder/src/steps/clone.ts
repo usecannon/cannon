@@ -20,7 +20,7 @@ import {
 const debug = Debug('cannon:builder:clone');
 
 /**
- *  Available properties for clone step
+ *  Available properties for clone operation
  *  @public
  *  @group clone
  */
@@ -39,6 +39,7 @@ const cloneSpec = {
   validate: cloneSchema,
 
   async getState() {
+    // Always re-run the operation
     return [];
   },
 

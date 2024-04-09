@@ -12,7 +12,7 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, Pa
 const debug = Debug('cannon:builder:import');
 
 /**
- *  Available properties for import step
+ *  Available properties for import operation
  *  @public
  *  @group Import
  */

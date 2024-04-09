@@ -49,7 +49,7 @@ export * from './constants';
 export * from './util/params';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
-export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
+export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
 export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { clean } from './commands/clean';

@@ -12,7 +12,7 @@ import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '..
 const debug = Debug('cannon:builder:router');
 
 /**
- *  Available properties for router step
+ *  Available properties for router operation
  *  @public
  *  @group Router
  */
