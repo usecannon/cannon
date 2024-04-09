@@ -12,6 +12,15 @@ const NoSSR = dynamic(
 
 export const metadata: Metadata = {
   title: 'Cannon | Queue Transactions',
+  description: 'Queue Transactions',
+  openGraph: {
+    title: 'Cannon | Queue Transactions',
+    description: 'Queue Transactions',
+    url: 'https://usecannon.com',
+    siteName: 'Cannon',
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function QueueTransactions() {

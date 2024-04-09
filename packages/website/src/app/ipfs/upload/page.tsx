@@ -12,6 +12,15 @@ const NoSSR = dynamic(
 
 export const metadata: Metadata = {
   title: 'Cannon | IPFS Upload',
+  description: 'IPFS Upload',
+  openGraph: {
+    title: 'Cannon | IPFS Upload',
+    description: 'IPFS Upload',
+    url: 'https://usecannon.com',
+    siteName: 'Cannon',
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function IpfsUpload() {
