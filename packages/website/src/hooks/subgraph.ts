@@ -29,8 +29,8 @@ export function useQueryCannonSubgraphData<TData = any, TVariables extends Opera
           variables: options?.variables,
         });
 
-        // Merge results, with mainnet data taking precedence
-        const merged = merge({}, optimismData, mainnetData);
+        // Merge results, with optimism data taking precedence
+        const merged = merge({}, mainnetData, optimismData);
         setMergedData(merged);
       } catch (e) {
         setError(e instanceof Error ? e : new Error('An error occurred'));
