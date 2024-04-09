@@ -1,6 +1,7 @@
 import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
+import * as viem from 'viem';
 import { ContractMap, DeploymentState, TransactionMap } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
@@ -89,6 +90,7 @@ ${printChainDefinitionProblems(problems)}`);
       doActions: for (const n of topologicalActions) {
         debug(`check action ${n}`);
         if (runtime.isCancelled()) {
+          debug('runtime cancelled');
           break;
         }
 
@@ -100,8 +102,8 @@ ${printChainDefinitionProblems(problems)}`);
 
         for (const dep of def.getDependencies(n)) {
           if (!built.has(dep)) {
-            debug(`skip ${n} because previous step incomplete`);
-            runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
+            debug(`skip ${n} because previous operation incomplete`);
+            runtime.emit(Events.SkipDeploy, n, new Error(`dependency operation not completed: ${dep}`), 0);
             continue doActions;
           }
 
@@ -230,7 +232,7 @@ export async function buildLayer(
       if (isCompleteLayer) {
         debug('comparing layer states', state[action] ? state[action].hash : null, curHashes);
         if (!state[action] || (curHashes && !curHashes.includes(state[action].hash || ''))) {
-          debug('step', action, 'in layer needs to be rebuilt');
+          debug('operation', action, 'in layer needs to be rebuilt');
           isCompleteLayer = false;
           break;
         }
@@ -243,7 +245,7 @@ export async function buildLayer(
       debug('error', err);
 
       // now log a more friendly message
-      throw new Error(`Failure on step ${action}: ${(err as Error).toString()}`);
+      throw new Error(`Failure on operation ${action}: ${(err as Error).toString()}`);
     }
   }
 
@@ -319,19 +321,20 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
-  debugVerbose('ctx for step', pkgState.currentLabel, ctx);
+  debugVerbose('ctx for operation', pkgState.currentLabel, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.updateProviderArtifacts(ctx);
 
-  const result = await Promise.race([
-    ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState),
-    new Promise<false>((resolve) => setTimeout(() => resolve(false), ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT)),
-  ]);
-
-  if (result === false) {
-    throw new Error('timed out without error');
-  }
+  const result = await viem.withTimeout(
+    () => {
+      return ActionKinds[type].exec(runtime, ctx, cfg as any, pkgState);
+    },
+    {
+      timeout: ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT,
+      errorInstance: new Error('timed out without error'),
+    }
+  );
 
   runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
 
@@ -437,11 +440,18 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
     ctx.settings[n] = outputs.settings[n];
   }
 
+  if (!ctx.extras) {
+    ctx.extras = {};
+  }
+
+  for (const n in outputs.extras) {
+    ctx.extras[n] = outputs.extras[n];
+  }
+
   for (const override in ctx.overrideSettings) {
     ctx.settings[override] = ctx.overrideSettings[override];
   }
 
-  ctx.extras = {};
   for (const n in ctx.settings) {
     ctx.extras[n] = ctx.settings[n];
   }

@@ -24,12 +24,14 @@ export type CopyPackageOpts = {
   includeProvisioned?: boolean;
 };
 
-export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
-
 /**
  * Used to format any reference to a cannon package and split it into it's core parts
  */
 export class PackageReference {
+  static DEFAULT_TAG = 'latest';
+  static DEFAULT_PRESET = 'main';
+  static PACKAGE_REGEX = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
+
   /**
    * Anything before the colon or an @ (if no version is present) is the package name.
    */
@@ -63,7 +65,7 @@ export class PackageReference {
    * Parse package reference without normalizing it
    */
   static parse(ref: string) {
-    const match = ref.match(PKG_REG_EXP);
+    const match = ref.match(PackageReference.PACKAGE_REGEX);
 
     if (!match || !match.groups?.name) {
       throw new Error(
@@ -80,18 +82,18 @@ export class PackageReference {
   }
 
   static isValid(ref: string) {
-    return !!PKG_REG_EXP.test(ref);
+    return !!PackageReference.PACKAGE_REGEX.test(ref);
   }
 
   static from(name: string, version?: string, preset?: string) {
-    version = version || 'latest';
-    preset = preset || 'main';
+    version = version || PackageReference.DEFAULT_TAG;
+    preset = preset || PackageReference.DEFAULT_PRESET;
     return new PackageReference(`${name}:${version}@${preset}`);
   }
 
   constructor(ref: string) {
     const parsed = PackageReference.parse(ref);
-    const { name, version = 'latest', preset = 'main' } = parsed;
+    const { name, version = PackageReference.DEFAULT_TAG, preset = PackageReference.DEFAULT_PRESET } = parsed;
 
     this.name = name;
     this.version = version;

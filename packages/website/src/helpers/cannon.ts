@@ -75,8 +75,8 @@ async function loadChainDefinitionToml(
 
   const assembledDef: Partial<RawChainDefinition> = {};
 
-  // we only want to "override" new steps with old steps. So, if we get 2 levels deep, that means we are parsing
-  // a step contents, and we should just take the srcValue
+  // we only want to "override" new operations with old operations. So, if we get 2 levels deep, that means we are parsing
+  // a operation contents, and we should just take the srcValue
   const customMerge = (_objValue: any, srcValue: any, _key: string, _object: string, _source: any, stack: any) => {
     if (stack.size === 2) {
       // cut off merge for any deeper than this

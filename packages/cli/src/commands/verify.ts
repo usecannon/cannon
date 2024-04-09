@@ -3,7 +3,7 @@ import * as viem from 'viem';
 import axios from 'axios';
 import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 import Debug from 'debug';
 import { forPackageTree, PackageReference } from '@usecannon/builder/dist/package';
 import { getMainLoader } from '../loader';
@@ -13,7 +13,7 @@ import { getChainById } from '../chains';
 
 const debug = Debug('cannon:cli:verify');
 
-export async function verify(packageRef: string, apiKey: string, presetArg: string, chainId: number) {
+export async function verify(packageRef: string, cliSettings: CliSettings, presetArg: string, chainId: number) {
   // Handle deprecated preset specification
   if (presetArg) {
     console.warn(
@@ -35,9 +35,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
   });
   const provider = getProvider(node)!;
 
-  const settings = resolveCliSettings();
-
-  const resolver = await createDefaultReadRegistry(settings);
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
   const runtime = new ChainBuilderRuntime(
     {
@@ -51,11 +49,10 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(settings)
+    getMainLoader(cliSettings)
   );
 
-  const etherscanApi = settings.etherscanApiUrl || getChainById(chainId)?.blockExplorers?.default.apiUrl;
-  //const etherscanUrl = getChainDataFromId(chainId)?.etherscanUrl; // in case we need it later
+  const etherscanApi = cliSettings.etherscanApiUrl || getChainById(chainId)?.blockExplorers?.default.apiUrl;
 
   if (!etherscanApi) {
     throw new Error(
@@ -63,10 +60,10 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     );
   }
 
-  apiKey = apiKey || settings.etherscanApiKey;
-
-  if (!apiKey) {
-    throw new Error('etherscan api key not supplied. Please set it with --api-key');
+  if (!cliSettings.etherscanApiKey) {
+    throw new Error(
+      'Etherscan Api Key not supplied. Please set it with --api-key or CANNON_ETHERSCAN_API_KEY environment variable'
+    );
   }
 
   const guids: { [c: string]: string } = {};
@@ -108,7 +105,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
         inputData.settings.libraries = contractInfo.linkedLibraries;
 
         const reqData: { [k: string]: string } = {
-          apikey: apiKey,
+          apikey: cliSettings.etherscanApiKey,
           module: 'contract',
           action: 'verifysourcecode',
           contractaddress: contractInfo.address,
@@ -167,7 +164,7 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
       const res = await axios.post(
         etherscanApi,
         {
-          apiKey,
+          apiKey: cliSettings.etherscanApiKey,
           module: 'contract',
           action: 'checkverifystatus',
           guid: guids[c],

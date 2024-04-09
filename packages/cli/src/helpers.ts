@@ -23,6 +23,7 @@ import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
+import { isURL, getChainIdFromProviderUrl } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 
 const debug = Debug('cannon:cli:helpers');
@@ -194,7 +195,8 @@ export async function loadCannonfile(filepath: string) {
     [rawDef, buf] = (await loadChainDefinitionToml(filepath, [])) as [RawChainDefinition, Buffer];
   }
 
-  const def = new ChainDefinition(rawDef);
+  // second argument ensures "sensitive" dependency verification--which ensures users are always specifying dependencies when they cant be reliably determined
+  const def = new ChainDefinition(rawDef, true);
   const pkg = loadPackageJson(path.join(path.dirname(path.resolve(filepath)), 'package.json'));
 
   const ctx: ChainBuilderContext = {
@@ -303,25 +305,25 @@ export function getChainDataFromId(chainId: number): viem.Chain | null {
 export async function ensureChainIdConsistency(providerUrl?: string, chainId?: number): Promise<void> {
   // only if both are defined
   if (providerUrl && chainId) {
-    const provider = viem.createPublicClient({
-      transport: viem.http(providerUrl),
-    });
+    const isProviderUrl = isURL(providerUrl);
 
-    const providerChainId = await provider.getChainId();
+    if (isProviderUrl) {
+      const providerChainId = await getChainIdFromProviderUrl(providerUrl);
 
-    // throw an expected error if the chainId is not consistent with the provider's chainId
-    if (Number(chainId) !== Number(providerChainId)) {
-      console.log(
-        red(
-          `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
-            '--chain-id'
-          )} value (${chainId}). Please ensure that the ${bold(
-            '--chain-id'
-          )} value matches the network your provider is connected to.`
-        )
-      );
+      // throw an expected error if the chainId is not consistent with the provider's chainId
+      if (Number(chainId) !== Number(providerChainId)) {
+        console.log(
+          red(
+            `Error: The chainId (${providerChainId}) obtained from the ${bold('--provider-url')} does not match with ${bold(
+              '--chain-id'
+            )} value (${chainId}). Please ensure that the ${bold(
+              '--chain-id'
+            )} value matches the network your provider is connected to.`
+          )
+        );
 
-      process.exit(1);
+        process.exit(1);
+      }
     }
   }
 }
@@ -425,11 +427,43 @@ export function getSourceFromRegistry(registries: CannonRegistry[]): string | un
  * @param privateKey The private key to verify
  * @returns boolean If the private key is valid
  */
-export function isPrivateKey(privateKey: viem.Hex) {
+export function isPrivateKey(privateKey: viem.Hex): boolean {
   try {
     privateKeyToAccount(privateKey);
     return true;
   } catch (e) {
     return false;
   }
+}
+
+/**
+ * Normalizes a private key
+ * @param privateKey The private key to normalize
+ * @returns The normalized private key
+ */
+export function normalizePrivateKey(privateKey: string | viem.Hex): viem.Hex {
+  return (privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`) as viem.Hex;
+}
+
+/**
+ * Checks and normalizes a private key
+ * @param privateKey
+ * @returnsThe normalized private keys
+ */
+export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | undefined): viem.Hex | undefined {
+  if (!privateKey) return undefined;
+
+  const privateKeys = privateKey.split(',').map((pk) => pk.trim());
+
+  const normalizedPrivateKeys = privateKeys.map((key: string | viem.Hex) => normalizePrivateKey(key));
+
+  normalizedPrivateKeys.forEach((key: viem.Hex) => {
+    if (!isPrivateKey(key)) {
+      throw new Error(
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+      );
+    }
+  });
+
+  return normalizedPrivateKeys.join(',') as viem.Hex;
 }

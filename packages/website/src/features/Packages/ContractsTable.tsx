@@ -31,7 +31,7 @@ import chains from '@/helpers/chains';
 /*
   * Smart Contract Deployments
 
-  * Step
+  * Operation
   * Address {linked to etherscan}
   * Transaction Hash {linked to etherscan}
   * Used CREATE2?
@@ -79,7 +79,7 @@ export const ContractsTable: React.FC<{
       : []),
     columnHelper.accessor('step', {
       cell: (info: any) => info.getValue(),
-      header: 'Step',
+      header: 'Operation',
     }),
     columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),

@@ -269,7 +269,7 @@ export const DeploymentExplorer: FC<{
               <Heading size="md" px={4} mb={3}>
                 Event Data{' '}
                 <Tooltip
-                  label="This includes event data captured during the build, to be referenced in dependent steps."
+                  label="This includes event data captured during the build, to be referenced in dependent operations."
                   placement="right"
                   hasArrow
                 >

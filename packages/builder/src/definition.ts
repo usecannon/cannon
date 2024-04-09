@@ -48,6 +48,7 @@ export function validatePackageVersion(v: string) {
 
 export class ChainDefinition {
   private raw: RawChainDefinition;
+  private sensitiveDependencies: boolean;
 
   readonly allActionNames: string[];
 
@@ -63,9 +64,10 @@ export class ChainDefinition {
   readonly dependencyFor = new Map<string, string>();
   readonly resolvedDependencies = new Map<string, string[]>();
 
-  constructor(def: RawChainDefinition) {
+  constructor(def: RawChainDefinition, sensitiveDependencies = false) {
     debug('begin chain def init');
     this.raw = def;
+    this.sensitiveDependencies = sensitiveDependencies;
 
     const actions = [];
 
@@ -79,11 +81,16 @@ export class ChainDefinition {
     for (const [action, data] of Object.entries(actionsDef)) {
       for (const name of Object.keys(data as any)) {
         if (actionNames.includes(name)) {
-          throw new Error(`Duplicated step name found "${name}"`);
+          throw new Error(`Duplicated operation name found "${name}"`);
         }
 
         const fullActionName = `${action}.${name}`;
-        actionNames.push(name);
+
+        // backwards-compatibility: We dont store setting or var names as they can have duplicate names
+        if (action !== 'setting' && action !== 'var') {
+          actionNames.push(name);
+        }
+
         actions.push(fullActionName);
 
         if (ActionKinds[action] && ActionKinds[action].getOutputs) {
@@ -195,7 +202,7 @@ export class ChainDefinition {
 
   getConfig(n: string, ctx: ChainBuilderContext) {
     if (_.sortedIndexOf(this.allActionNames, n) === -1) {
-      throw new Error(`getConfig step name not found: ${n}`);
+      throw new Error(`getConfig operation name not found: ${n}`);
     }
 
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
@@ -297,9 +304,9 @@ export class ChainDefinition {
         stepList.push(dep);
       });
 
-      throw new Error(`invalid dependency: ${node}. Available "${stepName}" steps:
-        ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
-      `);
+      throw new Error(`invalid dependency: ${node}. Available "${stepName}" operations:
+          ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
+        `);
     }
 
     const deps = (_.get(this.raw, node)!.depends || []) as string[];
@@ -311,12 +318,27 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      for (const input of ActionKinds[n].getInputs!(_.get(this.raw, node), { name: '', version: '', currentLabel: node })) {
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), {
+        name: '',
+        version: '',
+        currentLabel: node,
+      });
+
+      // Only throw this error if the user hasn't explicitly defined dependencies
+      if (this.sensitiveDependencies && accessComputationResults.unableToCompute && !_.get(this.raw, node).depends) {
+        throw new Error(
+          `Unable to compute dependencies for [${node}] because of advanced logic in template strings. Specify dependencies manually, like "depends = ['${_.uniq(
+            _.uniq(accessComputationResults.accesses).map((a) => `${this.dependencyFor.get(a)}`)
+          ).join("', '")}']"`
+        );
+      }
+
+      for (const input of accessComputationResults.accesses) {
         debug(`deps: ${node} consumes ${input}`);
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
         } else if (!input.startsWith('settings.')) {
-          debug(`WARNING: dependency ${input} not found for step ${node}`);
+          debug(`WARNING: dependency ${input} not found for operation ${node}`);
         }
       }
     }
@@ -482,7 +504,7 @@ export class ChainDefinition {
     const deps = [];
 
     if (!layers[n]) {
-      debug('WARN: layer dependency tree not computable for step because not found:', n);
+      debug('WARN: layer dependency tree not computable for operation because not found:', n);
       return [];
     }
 

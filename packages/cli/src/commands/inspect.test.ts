@@ -1,5 +1,6 @@
 import { inspect } from './inspect';
 import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings';
 import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
@@ -21,6 +22,7 @@ describe('inspect', () => {
   const preset = 'your-preset';
   const basePkgName = 'package:1.2.3';
   const packageName = `${basePkgName}@${preset}`;
+  const cliSettings = resolveCliSettings();
 
   let testPkgData: any;
   let mockedFallBackRegistry: any;
@@ -132,7 +134,7 @@ describe('inspect', () => {
   });
 
   test('should inspect package deployment', async () => {
-    const result = await inspect(packageName, chainId, preset, false, '', false);
+    const result = await inspect(packageName, cliSettings, chainId, preset, false, '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -146,7 +148,7 @@ describe('inspect', () => {
 
   test('should write deployment files', async () => {
     const writeDeployments = 'contracts';
-    const result = await inspect(packageName, chainId, preset, false, writeDeployments, false);
+    const result = await inspect(packageName, cliSettings, chainId, preset, false, writeDeployments, false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -155,7 +157,7 @@ describe('inspect', () => {
   });
 
   test('should call inspect with sources flag ', async () => {
-    const result = await inspect(packageName, chainId, preset, false, '', true);
+    const result = await inspect(packageName, cliSettings, chainId, preset, false, '', true);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);
@@ -168,7 +170,7 @@ describe('inspect', () => {
   });
 
   test('should call inspect with json flag ', async () => {
-    const result = await inspect(packageName, chainId, preset, true, '', false);
+    const result = await inspect(packageName, cliSettings, chainId, preset, true, '', false);
 
     expect(result).toEqual(testPkgData);
     expect(mockedFallBackRegistry.getUrl).toHaveBeenCalledWith(packageName, chainId);

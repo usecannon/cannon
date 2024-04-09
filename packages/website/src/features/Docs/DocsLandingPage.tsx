@@ -86,10 +86,10 @@ export const DocsLandingPage = () => {
           .
         </Text>
         <Text mb={4}>
-          Cannonfiles describe the desired state of a blockchain (rather than a
-          list of transactions to execute). For example, you may want a chain to
-          have particular smart contracts and protocols deployed with certain
-          functions called on them.
+          Cannonfiles consist of operations that acheive a desired state of a
+          blockchain (rather than a list of transactions to execute). For
+          example, you may want a chain to have particular smart contracts and
+          protocols deployed with certain functions called on them.
         </Text>
         <Text mb={4}>
           Then you can <strong>build</strong> the chain into this state using
@@ -110,14 +110,14 @@ export const DocsLandingPage = () => {
         </Text>
         <Text mb={4}>
           Packages enable composability in Cannonfiles. If a package includes a
-          ”Cannon” deployment, it can be <em>provisioned</em> to{' '}
+          ”Cannon” deployment, it can be <em>cloned</em> to{' '}
           <Link
             isExternal
             href="https://github.com/Synthetixio/synthetix-sandbox/blob/main/cannonfile.toml#L27"
           >
             create a new instance of the protocol or smart contract
           </Link>
-          . Packages with live network deployments can be <em>imported</em>,
+          . Packages with live network deployments can be <em>pulled</em>,
           allowing protocols to connect with{' '}
           <Link
             isExternal

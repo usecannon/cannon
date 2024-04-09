@@ -1,7 +1,7 @@
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { getOutputs } from '../builder';
 import { ChainDefinition } from '../definition';
 import { PackageReference } from '../package';
@@ -12,7 +12,7 @@ import { ChainArtifacts, ChainBuilderContext, ChainBuilderContextWithHelpers, Pa
 const debug = Debug('cannon:builder:import');
 
 /**
- *  Available properties for import step
+ *  Available properties for import operation
  *  @public
  *  @group Import
  */
@@ -52,16 +52,14 @@ const pullSpec = {
     const packageRef = new PackageReference(_.template(config.source)(ctx));
 
     config.source = packageRef.fullPackageRef;
-    config.preset = _.template(config.preset)(ctx);
+    config.preset = _.template(config.preset)(ctx) || packageRef.preset;
 
     return config;
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.source));
-    accesses.push(...computeTemplateAccesses(config.preset));
+    let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset));
 
     return accesses;
   },
