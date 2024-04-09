@@ -310,8 +310,8 @@ describe('util.ts', () => {
       });
 
       expect(problemsInfo).toStrictEqual([
-        '1: In action "contract.One", the dependency "contract.Foo" is not defined elsewhere.',
-        '2: In action "contract.One", the dependency "contract.Bar" is not defined elsewhere.',
+        '1: In operation "contract.One", the dependency "contract.Foo" is not defined elsewhere.',
+        '2: In operation "contract.One", the dependency "contract.Bar" is not defined elsewhere.',
       ]);
     });
 
@@ -326,8 +326,8 @@ describe('util.ts', () => {
       });
 
       expect(problemsInfo).toStrictEqual([
-        '1: The actions contract.One, contract.Two, contract.Three form a dependency cycle and therefore cannot be deployed.',
-        '2: The actions contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.',
+        '1: The operations contract.One, contract.Two, contract.Three form a dependency cycle and therefore cannot be deployed.',
+        '2: The operations contract.Three, contract.Five form a dependency cycle and therefore cannot be deployed.',
       ]);
     });
   });

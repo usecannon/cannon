@@ -584,7 +584,7 @@ function QueueFromGitOps() {
           {buildInfo.buildSkippedSteps.length > 0 && (
             <Flex flexDir="column" mt="6">
               <Text mb="2" fontWeight="bold">
-                This safe will not be able to complete the following steps:
+                This safe will not be able to complete the following operations:
               </Text>
               {buildInfo.buildSkippedSteps.map((s, i) => (
                 <Text fontFamily="monospace" key={i} mb="2">

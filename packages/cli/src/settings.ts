@@ -1,13 +1,14 @@
+import _ from 'lodash';
+import { z } from 'zod';
+import path from 'path';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
-import path from 'path';
-import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
-import { z } from 'zod';
+import untildify from 'untildify';
+
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
-import { filterSettings } from './helpers';
+import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -23,7 +24,7 @@ export type CliSettings = {
   /**
    * private key(s) of default signer that should be used for build, comma separated
    */
-  privateKey?: viem.Hash;
+  privateKey?: viem.Hex;
 
   /**
    * The amount of times ipfs should retry requests (applies to read and write)
@@ -110,7 +111,6 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_PROVIDER_URL: z.string().default(fileSettings.providerUrl || 'frame,direct'),
     CANNON_PRIVATE_KEY: z
       .string()
-      .refine((val) => viem.isHash(val), { message: 'Private key is invalid' })
       .optional()
       .default(fileSettings.privateKey as string),
     CANNON_IPFS_RETRIES: z.number().optional().default(3),
@@ -192,6 +192,9 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     _.pickBy(overrides)
   ) as CliSettings;
 
+  // Check and normalize private keys
+  finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
+
   if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID) {
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
@@ -199,7 +202,11 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       address: CANNON_REGISTRY_ADDRESS as viem.Address,
     });
   } else {
-    finalSettings.registries = DEFAULT_REGISTRY_CONFIG;
+    finalSettings.registries = DEFAULT_REGISTRY_CONFIG as {
+      chainId: number;
+      providerUrl: string[];
+      address: `0x${string}`;
+    }[];
   }
 
   debug('got settings', filterSettings(finalSettings));

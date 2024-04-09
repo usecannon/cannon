@@ -6,7 +6,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-      
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -15,15 +14,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      # The logic below handles the npm publication:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Setup Node
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20.5.0'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '20.5.1'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
@@ -39,5 +34,3 @@ jobs:
         run: npx lerna publish from-package --no-push --no-private --yes
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-
