@@ -213,7 +213,7 @@ const ChainSelectorModal = ({
                       fontSize="sm"
                       fontWeight={500}
                     >
-                      Popular Networks
+                      Popular Chains
                     </Heading>
                     {popularChains.map((chain, k) => (
                       <ChainButton
@@ -239,7 +239,7 @@ const ChainSelectorModal = ({
                     fontSize="sm"
                     fontWeight={500}
                   >
-                    Other Networks
+                    Other Chains
                   </Heading>
                   {otherChains.map((chain, k) => (
                     <ChainButton
