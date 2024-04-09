@@ -31,8 +31,6 @@ export type ContractData = {
   abi: Abi;
   constructorArgs?: any[]; // only needed for external verification
   linkedLibraries?: { [sourceName: string]: { [libName: string]: string } }; // only needed for external verification
-  // only should be supplied when generated solidity as a single file
-  sourceCode?: string;
   deployTxnHash: string;
   contractName: string;
   sourceName: string;
@@ -79,6 +77,9 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   txns: TransactionMap;
 
   settings: { [label: string]: string };
+
+  // Legacy
+  extras?: { [label: string]: string };
 
   imports: BundledChainBuilderOutputs;
 
@@ -182,9 +183,6 @@ export interface ChainBuilderRuntimeInfo {
   // Should gracefully continue after failures and return a partial release?
   allowPartialDeploy: boolean;
 
-  // Should publish contract sources along with bytecode?
-  publicSourceCode?: boolean;
-
   // Gas price to use for transactions
   gasPrice?: string;
 
@@ -205,7 +203,7 @@ export interface BundledChainBuilderOutputs {
   [module: string]: BundledOutput;
 }
 
-export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings'>>;
+export type ChainArtifacts = Partial<Pick<ChainBuilderContext, 'imports' | 'contracts' | 'txns' | 'settings' | 'extras'>>;
 
 export interface ChainBuilderOptions {
   [key: string]: string;

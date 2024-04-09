@@ -1,7 +1,12 @@
-import { CannonSigner, CannonStorage, IPFSLoader, OnChainRegistry, publishPackage } from '@usecannon/builder';
-import { getProvisionedPackages, PackageReference } from '@usecannon/builder/dist/package';
+import {
+  CannonStorage,
+  getProvisionedPackages,
+  IPFSLoader,
+  OnChainRegistry,
+  PackageReference,
+  publishPackage,
+} from '@usecannon/builder';
 import { blueBright, bold, gray, italic, yellow } from 'chalk';
-import * as viem from 'viem';
 import prompts from 'prompts';
 import { getMainLoader } from '../loader';
 import { LocalRegistry } from '../registry';
@@ -9,15 +14,13 @@ import { resolveCliSettings } from '../settings';
 
 interface Params {
   packageRef: string;
-  signer: CannonSigner;
-  provider: viem.PublicClient;
   tags: string[];
+  onChainRegistry: OnChainRegistry;
   chainId?: number;
   presetArg?: string;
   quiet?: boolean;
   includeProvisioned?: boolean;
   skipConfirm?: boolean;
-  overrides?: any;
 }
 
 interface DeployList {
@@ -34,15 +37,13 @@ interface SubPackage {
 
 export async function publish({
   packageRef,
-  signer,
-  provider,
+  onChainRegistry,
   tags = ['latest'],
   chainId,
   presetArg,
   quiet = false,
   includeProvisioned = false,
   skipConfirm = false,
-  overrides,
 }: Params) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -67,17 +68,15 @@ export async function publish({
     packageRef = packageRef.split('@')[0] + `@${presetArg}`;
   }
 
+  if (!onChainRegistry.signer) {
+    throw new Error('signer not provided in registry');
+  }
+
   if (!quiet) {
-    console.log(blueBright(`Publishing with ${signer.address}`));
+    console.log(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
     console.log();
   }
   // Generate CannonStorage to publish ipfs remotely and write to the registry
-  const onChainRegistry = new OnChainRegistry({
-    signer,
-    provider,
-    address: cliSettings.registryAddress,
-    overrides,
-  });
   const toStorage = new CannonStorage(onChainRegistry, {
     ipfs: new IPFSLoader(cliSettings.publishIpfsUrl),
   });
@@ -104,7 +103,7 @@ export async function publish({
   }
 
   // Select screen for when a user is looking for all the local deploys
-  if (!skipConfirm) {
+  if (!skipConfirm && deploys.length > 1) {
     const prompt = await prompts({
       type: 'select',
       message: 'Select the package you want to publish:\n',
@@ -180,7 +179,7 @@ export async function publish({
       parentPackages.forEach((deploy) => {
         console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
         deploy.versions.concat(tags).map((version) => {
-          console.log(`- ${version} (preset: ${deploy.preset})`);
+          console.log(` - ${version} (preset: ${deploy.preset})`);
         });
       });
       console.log('\n');
@@ -188,22 +187,22 @@ export async function publish({
       subPackages!.forEach((pkg: SubPackage, index) => {
         console.log(
           blueBright(
-            `This will publish ${bold(pkg.packagesNames[index].split(':')[0])} ${bold(
+            `This will publish ${bold(new PackageReference(pkg.packagesNames[index]).name)} ${bold(
               italic('(Provisioned)')
             )} to the registry:`
           )
         );
         pkg.packagesNames.forEach((pkgName) => {
           const { version, preset } = new PackageReference(pkgName);
-          console.log(`- ${version} (preset: ${preset})`);
+          console.log(` - ${version} (preset: ${preset})`);
         });
       });
       console.log('\n');
     } else {
       parentPackages.forEach((deploy) => {
-        console.log(blueBright(`This will publish ${bold(deploy.name)} to the registry:`));
+        console.log(blueBright(`This will publish ${bold(deploy.name)}@${deploy.preset} to the registry:`));
         deploy.versions.concat(tags).forEach((version) => {
-          console.log(`- ${version} (preset: ${deploy.preset})`);
+          console.log(` - ${version}`);
         });
       });
       console.log('\n');

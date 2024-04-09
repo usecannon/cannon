@@ -20,6 +20,7 @@ export function useSafeTransactions(safe?: SafeDefinition) {
       if (!safe) return;
       return axios.get(`${stagingUrl}/${safe.chainId}/${safe.address}`);
     },
+    refetchInterval: 10000,
   });
 
   const nonceQuery = useReadContract({

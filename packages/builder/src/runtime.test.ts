@@ -38,7 +38,6 @@ describe('runtime.ts', () => {
           allowPartialDeploy: true,
           provider,
           chainId: 1234,
-          publicSourceCode: true,
           snapshots: true,
           getSigner,
           getDefaultSigner,
@@ -58,7 +57,6 @@ describe('runtime.ts', () => {
         expect(runtime.getSigner).toBe(getSigner);
         expect(runtime.loaders.ipfs).toBe(loader);
         expect(runtime.provider).toBe(provider);
-        expect(runtime.publicSourceCode).toBe(true);
         expect(runtime.snapshots).toBe(true);
       });
     });

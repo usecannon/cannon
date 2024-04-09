@@ -2,7 +2,7 @@ import Debug from 'debug';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { encodeDeployData } from '../util';
 import { ChainBuilderRuntime } from '../runtime';
 import { routerSchema } from '../schemas';
@@ -12,7 +12,7 @@ import { getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '..
 const debug = Debug('cannon:builder:router');
 
 /**
- *  Available properties for router step
+ *  Available properties for router operation
  *  @public
  *  @group Router
  */
@@ -69,12 +69,13 @@ const routerStep = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
+    let accesses = computeTemplateAccesses(config.from);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt));
+    accesses.accesses.push(
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+    );
 
-    accesses.push(...computeTemplateAccesses(config.from));
-    accesses.push(...computeTemplateAccesses(config.salt));
-
-    return config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`));
+    return accesses;
   },
 
   getOutputs(_: Config, packageState: PackageState) {
