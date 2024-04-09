@@ -24,6 +24,7 @@ import {
   publishPackage,
 } from '@usecannon/builder';
 import { find } from 'lodash';
+import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -81,9 +82,9 @@ export default function PublishUtility(props: {
 
       const targetRegistry = new OnChainRegistry({
         signer: { address: walletAddress, wallet: wc.data },
-        address: settings.registryAddress,
+        address: DEFAULT_REGISTRY_ADDRESS,
         provider: createPublicClient({
-          chain: findChain(Number.parseInt(settings.registryChainId)) as Chain,
+          chain: findChain(1) as Chain,
           transport: http(),
         }),
       });
@@ -137,10 +138,7 @@ export default function PublishUtility(props: {
     },
   });
 
-  const chainName = find(
-    chains,
-    (chain: any) => chain.id == settings.registryChainId
-  )?.name;
+  const chainName = find(chains, (chain: any) => chain.id == 1)?.name;
 
   // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
@@ -180,7 +178,7 @@ export default function PublishUtility(props: {
             </Text>
           </Link>
         )}
-        {wc.data?.chain?.id === Number.parseInt(settings.registryChainId) ? (
+        {wc.data?.chain?.id === 1 ? (
           <>
             {!existingRegistryUrl ? (
               <Text fontSize="sm" mb={3}>

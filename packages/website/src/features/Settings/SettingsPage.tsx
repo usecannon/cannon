@@ -53,16 +53,6 @@ const SETTINGS: Record<
     description:
       'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
   },
-  registryAddress: {
-    title: 'Registry Address',
-    placeholder: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    description: 'Contract address of the Cannon Registry.',
-  },
-  registryChainId: {
-    title: 'Registry Chain Id',
-    placeholder: '1',
-    description: 'Chain ID of the network.',
-  },
 };
 
 export function useSettingsValidation() {

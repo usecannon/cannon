@@ -75,7 +75,7 @@ export const RouterPage = () => {
         <Link isExternal href="https://github.com/synthetixio/synthetix-router">
           Synthetix’s Router plug-in
         </Link>
-        . This can be used by defining a <Code>router</Code> step in
+        . This can be used by defining a <Code>router</Code> operation in
         Cannonfiles. This accepts an array of contracts and automatically
         generates a router contract which will delegate calls to them. For a
         more technical explanation of the router, review its{' '}

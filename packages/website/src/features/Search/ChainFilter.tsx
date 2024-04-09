@@ -61,7 +61,7 @@ export const ChainFilter: FC<ChainFilterProps> = ({
                   </Link>{' '}
                   and{' '}
                   <Link as={NextLink} href={links.DOCS_CANNONFILE_PROVISION}>
-                    deployed by cannonfiles
+                    cloned by cannonfiles
                   </Link>
                   .
                 </Text>
