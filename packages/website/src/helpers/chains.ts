@@ -58,7 +58,8 @@ const newChain = {
 };
 
 const enrichedChainData: Record<string, ChainData> = {
-  ...merge({ cannon: newChain }, chains, metadata),
+  ...merge(chains, metadata),
+  cannon: newChain,
 };
 
 const chainsById = Object.values(enrichedChainData).reduce((acc, chain) => {
