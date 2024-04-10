@@ -32,6 +32,11 @@ export type CliSettings = {
   ipfsRetries?: number;
 
   /**
+   * The amount of times ipfs should retry requests (applies to read and write)
+   */
+  ipfsTimeout?: number;
+
+  /**
    * the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
    */
   ipfsUrl?: string;
@@ -113,7 +118,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .optional()
       .default(fileSettings.privateKey as string),
-    CANNON_IPFS_RETRIES: z.number().optional().default(3),
+    CANNON_IPFS_TIMEOUT: z.number().optional().default(fileSettings.ipfsTimeout || 30000),
+    CANNON_IPFS_RETRIES: z.number().optional().default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -160,6 +166,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_SETTINGS,
     CANNON_PROVIDER_URL,
     CANNON_PRIVATE_KEY,
+    CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
     CANNON_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
