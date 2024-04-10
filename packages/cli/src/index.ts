@@ -410,7 +410,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   // Check if the package is already registered on the Mainnet registry
-  const [mainnet] = DEFAULT_REGISTRY_CONFIG;
+  const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
   const mainnetProvider = await resolveProviderAndSigners({
     chainId: mainnet.chainId,
     checkProviders: mainnet.providerUrl,
