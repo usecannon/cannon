@@ -121,7 +121,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_IPFS_TIMEOUT: z
       .number()
       .optional()
-      .default(fileSettings.ipfsTimeout || 30000),
+      .default(fileSettings.ipfsTimeout || 300000),
     CANNON_IPFS_RETRIES: z
       .number()
       .optional()
