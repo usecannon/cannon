@@ -16,15 +16,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Cannon | Transaction Details',
     description: 'Transaction Details',
-    url: 'https://usecannon.com',
-    siteName: 'Cannon',
-    locale: 'en_US',
-    type: 'website',
-    images: [
-      {
-        url: 'https://usecannon.com/images/og.png',
-      },
-    ],
   },
 };
 

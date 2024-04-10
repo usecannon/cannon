@@ -7,11 +7,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Cannon | Build',
     description: 'Build',
-    images: [
-      {
-        url: 'https://usecannon.com/images/og.png',
-      },
-    ],
   },
 };
 

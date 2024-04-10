@@ -11,15 +11,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Cannon | IPFS Download',
     description: 'IPFS Download',
-    url: 'https://usecannon.com',
-    siteName: 'Cannon',
-    locale: 'en_US',
-    type: 'website',
-    images: [
-      {
-        url: 'https://usecannon.com/images/og.png',
-      },
-    ],
   },
 };
 
