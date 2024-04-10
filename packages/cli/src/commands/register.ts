@@ -1,12 +1,15 @@
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
-import * as viem from 'viem';
-
-import { CliSettings } from '../settings';
-import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders } from '../util/provider';
-import { getChainById } from '../chains';
-import prompts from 'prompts';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { blueBright } from 'chalk';
+import prompts from 'prompts';
+import * as viem from 'viem';
+import _ from 'lodash';
+
+import { getChainById } from '../chains';
+import { CliSettings } from '../settings';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders } from '../util/provider';
+import { waitUntilPackageIsRegistered } from '../util/register';
+import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 
 interface Params {
   cliSettings: CliSettings;
@@ -18,8 +21,17 @@ interface Params {
 export async function register({ cliSettings, options, packageRef }: Params) {
   let chainName = 'Unknown Network';
 
-  const registryProviderUrl = cliSettings.registries[0].providerUrl ? cliSettings.registries[0].providerUrl[0] : undefined;
-  const registryChainId = cliSettings.registries[0].chainId;
+  // if registry settings have been changed by the user, use the first option
+  let registryChainId = cliSettings.registries[0].chainId;
+  let registryProviderUrl = cliSettings.registries[0].providerUrl![0];
+
+  // if registry settings have not been changed, use the default registry settings
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  if (isDefaultSettings) {
+    const [, mainnet] = cliSettings.registries;
+    registryChainId = mainnet.chainId;
+    registryProviderUrl = mainnet.providerUrl![0];
+  }
 
   if (registryProviderUrl) {
     if (isURL(registryProviderUrl)) {
@@ -90,6 +102,10 @@ export async function register({ cliSettings, options, packageRef }: Params) {
   }
 
   const hash = await mainRegistry.setPackageOwnership(packageName);
+
+  if (isDefaultSettings) {
+    await waitUntilPackageIsRegistered();
+  }
 
   console.log(blueBright('Transaction:'));
   console.log(`  - ${hash}`);
