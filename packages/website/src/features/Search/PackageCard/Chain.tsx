@@ -3,7 +3,7 @@ import { Flex, Box, Text } from '@chakra-ui/react';
 import { chainsById } from '@/helpers/chains';
 import { Image } from '@chakra-ui/react';
 
-type ChainData = {
+export type ChainData = {
   id: number;
   name: string;
   color?: string;

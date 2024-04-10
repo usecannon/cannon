@@ -12,6 +12,11 @@ const NoSSR = dynamic(
 
 export const metadata: Metadata = {
   title: 'Cannon | Transaction Details',
+  description: 'Transaction Details',
+  openGraph: {
+    title: 'Cannon | Transaction Details',
+    description: 'Transaction Details',
+  },
 };
 
 export default function TransactionDetails({
