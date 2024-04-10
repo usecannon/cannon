@@ -14,7 +14,7 @@ import {
   publishPackage,
   traceActions,
 } from '@usecannon/builder';
-import { blueBright, bold, gray, green, red, yellow } from 'chalk';
+import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
 import prompts from 'prompts';
@@ -52,7 +52,6 @@ import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
 
 import { checkIfPackageIsRegistered } from './util/register';
-import { getChainById } from './chains';
 import { DEFAULT_REGISTRY_CONFIG } from './constants';
 
 export * from './types';
@@ -420,9 +419,24 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   const [isRegistered] = await checkIfPackageIsRegistered([mainnetProvider], packageRef, cliSettings);
 
   if (!isRegistered) {
-    throw new Error(
-      `Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.`
+    console.log();
+    console.log(
+      gray(`Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.`)
     );
+    console.log();
+
+    const registerPrompt = await prompts({
+      type: 'confirm',
+      name: 'value',
+      message: 'Would you like to register the package now?',
+      initial: true,
+    });
+
+    if (registerPrompt) {
+      const { register } = await import('./commands/register');
+
+      await register({ cliSettings, options, packageRef });
+    }
   }
 
   const overrides: any = {};
@@ -473,79 +487,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  let chainName = 'Unknown Network';
-
-  const registryProviderUrl = cliSettings.registries[0].providerUrl ? cliSettings.registries[0].providerUrl[0] : undefined;
-  const registryChainId = cliSettings.registries[0].chainId;
-
-  if (registryProviderUrl) {
-    if (isURL(registryProviderUrl)) {
-      const chainId = await getChainIdFromProviderUrl(registryProviderUrl);
-      chainName = getChainById(Number(chainId)).name || 'Unknown Network';
-    } else {
-      if (!registryChainId) {
-        throw new Error(
-          'Please, provide a valid --registry-chain-id or --registry-provider-url value to register a package.'
-        );
-      }
-
-      chainName = getChainById(Number(registryChainId)).name || 'Unknown Network';
-    }
-  } else {
-    if (!registryChainId) {
-      throw new Error('Please, provide a valid --registry-chain-id or --registry-provider-url value to register a package.');
-    }
-
-    chainName = getChainById(Number(registryChainId)).name || 'Unknown Network';
-  }
-
-  if (!cliSettings.privateKey) {
-    const keyPrompt = await prompts({
-      type: 'text',
-      name: 'value',
-      message: `Provide a private key with gas on ${chainName} to publish this package on the registry`,
-      style: 'password',
-      validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
-    });
-
-    if (!keyPrompt.value) {
-      console.log('A valid private key is required.');
-      process.exit(1);
-    }
-
-    cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
-  }
-
-  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
-
-  const overrides: any = {};
-
-  if (options.maxFeePerGas) {
-    overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
-  }
-
-  if (options.gasLimit) {
-    overrides.gasLimit = options.gasLimit;
-  }
-
-  if (options.value) {
-    overrides.value = options.value;
-  }
-
-  const mainRegistry = new OnChainRegistry({
-    signer: mainRegistryProvider.signers[0],
-    provider: mainRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
-    overrides,
-  });
-
-  const hash = await register({
-    packageRef,
-    mainRegistry,
-  });
-
-  console.log(blueBright('Transaction:'));
-  console.log(`  - ${hash}`);
+  await register({ cliSettings, options, packageRef });
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
