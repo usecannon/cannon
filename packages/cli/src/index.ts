@@ -432,11 +432,11 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       initial: true,
     });
 
-    if (registerPrompt) {
-      const { register } = await import('./commands/register');
+    if (!registerPrompt.value) return process.exit(1);
 
-      await register({ cliSettings, options, packageRef });
-    }
+    const { register } = await import('./commands/register');
+
+    await register({ cliSettings, options, packageRef });
   }
 
   const overrides: any = {};
