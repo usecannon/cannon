@@ -27,12 +27,12 @@ export type CliSettings = {
   privateKey?: viem.Hex;
 
   /**
-   * The amount of times ipfs should retry requests (applies to read and write)
+   * The amount of times axios should retry IPFS requests (applies to read and write)
    */
   ipfsRetries?: number;
 
   /**
-   * The amount of times ipfs should retry requests (applies to read and write)
+   * The interval in seconds that axios should wait before timing out requests
    */
   ipfsTimeout?: number;
 
