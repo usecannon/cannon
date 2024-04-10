@@ -192,7 +192,9 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
 export function getMainLoader(cliSettings: CliSettings) {
   return {
     ipfs: new CliLoader(
-      cliSettings.ipfsUrl ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries) : undefined,
+      cliSettings.ipfsUrl
+        ? new IPFSLoaderWithRetries(cliSettings.ipfsUrl, {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries)
+        : undefined,
       new IPFSLoaderWithRetries(getCannonRepoRegistryUrl(), {}, cliSettings.ipfsTimeout, cliSettings.ipfsRetries),
       path.join(cliSettings.cannonDirectory, 'ipfs_cache')
     ),

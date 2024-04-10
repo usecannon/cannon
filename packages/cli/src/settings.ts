@@ -118,8 +118,14 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .optional()
       .default(fileSettings.privateKey as string),
-    CANNON_IPFS_TIMEOUT: z.number().optional().default(fileSettings.ipfsTimeout || 30000),
-    CANNON_IPFS_RETRIES: z.number().optional().default(fileSettings.ipfsRetries || 3),
+    CANNON_IPFS_TIMEOUT: z
+      .number()
+      .optional()
+      .default(fileSettings.ipfsTimeout || 30000),
+    CANNON_IPFS_RETRIES: z
+      .number()
+      .optional()
+      .default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
       .url()
@@ -186,6 +192,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       cannonSettings: CANNON_SETTINGS,
       providerUrl: CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
+      ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
       ipfsUrl: CANNON_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
