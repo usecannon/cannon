@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as viem from 'viem';
 import { optimism } from 'viem/chains';
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
@@ -53,16 +52,26 @@ export const waitUntilPackageIsRegistered = async () => {
     const onTimeout = () => reject(new Error('Timed out waiting for package to be registered'));
 
     // Start watching for the event
-    client.watchEvent({
+    const unwatch = client.watchEvent({
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
       onLogs: (logs) => {
         // TODO: check values?
         console.log('logs: ', logs);
+        // unwatch the event
+        unwatch();
         // Clear the timeout
         clearTimeout(timeoutId);
-        // Return the logs
+        // Resolve the promise
         resolve(logs);
+      },
+      onError: (err) => {
+        // unwatch the event
+        unwatch();
+        // Clear the timeout
+        clearTimeout(timeoutId);
+        // Reject the promise
+        reject(new Error(`Error watching for package registration event: ${err}`));
       },
     });
 
