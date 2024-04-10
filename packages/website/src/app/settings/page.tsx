@@ -11,6 +11,11 @@ export const metadata: Metadata = {
     siteName: 'Cannon',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: 'https://usecannon.com/images/og.png',
+      },
+    ],
   },
 };
 

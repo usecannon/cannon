@@ -25,6 +25,11 @@ export async function generateMetadata({
       siteName: 'Cannon',
       locale: 'en_US',
       type: 'website',
+      images: [
+        {
+          url: 'https://usecannon.com/images/og.png',
+        },
+      ],
     },
   };
   return metadata;
