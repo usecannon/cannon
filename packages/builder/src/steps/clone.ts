@@ -101,7 +101,7 @@ const cloneSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
-    debug('exec', config);
+    debug(`[clone.${importLabel}]`, 'exec', config);
 
     const targetPreset = config.targetPreset ?? 'main';
     const sourcePreset = config.sourcePreset;
@@ -122,7 +122,7 @@ const cloneSpec = {
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('cloning package options', importPkgOptions);
+    debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
@@ -132,7 +132,7 @@ const cloneSpec = {
     let prevMiscUrl = null;
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
-      debug(`using state from previous deploy: ${prevUrl}`);
+      debug(`[clone.${importLabel}]`, `using state from previous deploy: ${prevUrl}`);
       const prevDeployInfo = await runtime.readBlob(prevUrl);
       prevState = prevDeployInfo!.state;
       prevMiscUrl = prevDeployInfo!.miscUrl;
@@ -141,13 +141,14 @@ const cloneSpec = {
       // if there is, we need to overwrite it. print out a warning.
       if (await runtime.readDeploy(source, runtime.chainId)) {
         debug(
+          `[clone.${importLabel}]`,
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
         );
       }
 
-      debug('no previous state found, deploying from scratch');
+      debug(`[clone.${importLabel}]`, 'no previous state found, deploying from scratch');
     }
 
     // TODO: needs npm package from the manifest
@@ -170,20 +171,24 @@ const cloneSpec = {
 
     // need to import the misc data for the imported package
     if (prevMiscUrl) {
-      debug('load misc');
+      debug(`[clone.${importLabel}]`, 'load misc');
       await importRuntime.restoreMisc(prevMiscUrl);
     }
 
-    debug('start build');
+    debug(`[clone.${importLabel}]`, 'start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
     if (importRuntime.isCancelled()) {
       partialDeploy = true;
     }
 
-    debug('finish build. is partial:', partialDeploy);
+    debug(`[clone.${importLabel}]`, 'finish build. is partial:', partialDeploy);
 
     if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
-      debug('built state is exactly equal to previous state. skip generation of new deploy url');
+      debug(
+        `[clone.${importLabel}]`,
+        'built state is exactly equal to previous state. skip generation of new deploy url',
+        importLabel
+      );
       return {
         imports: {
           [importLabel]: ctx.imports[importLabel],
@@ -193,7 +198,7 @@ const cloneSpec = {
 
     const newMiscUrl = await importRuntime.recordMisc();
 
-    debug('new misc:', newMiscUrl);
+    debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
@@ -210,7 +215,7 @@ const cloneSpec = {
     });
 
     if (!newSubDeployUrl) {
-      debug('warn: cannot record built state for import nested state');
+      debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
