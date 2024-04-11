@@ -1,6 +1,6 @@
 {
   "name": "@usecannon/cli",
-  "version": "2.12.1-alpha.18+95929f8d",
+  "version": "2.12.1-alpha.19+f8a4e83d",
   "description": "Utility for instantly loading cannon packages in standalone contexts",
   "main": "dist/src/index.js",
   "scripts": {
@@ -75,5 +75,5 @@
     "znv": "^0.4.0",
     "zod": "^3.22.4"
   },
-  "gitHead": "95929f8dcc33f12a663092fd2aa32af866b3dbda"
+  "gitHead": "f8a4e83d010696c5f1939bf4aeb53e86038d6915"
 }
