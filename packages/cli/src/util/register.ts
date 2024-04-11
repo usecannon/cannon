@@ -1,36 +1,33 @@
 import * as viem from 'viem';
+import { green } from 'chalk';
 import { optimism } from 'viem/chains';
 import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { CliSettings } from '../settings';
+
 import { DEFAULT_REGISTRY_ADDRESS } from '../constants';
 
 /**
- * Checks if a package is registered across multiple registry providers.
+ * Checks if a package is registered on a registry provider.
  *
  * @param {Object[]} registryProviders - An array of objects containing viem.PublicClient and array of CannonSigner.
  * @param {string} packageRef - The reference string of the package to check.
- * @param {CliSettings} cliSettings - CLI settings that include registry addresses.
+ * @param {viem.Address} contractAddress - Target registry address
  * @returns {Promise<boolean[]>} - A promise that resolves to an array of booleans, each indicating if the package is registered in the corresponding registry.
  */
-export const checkIfPackageIsRegistered = async (
-  registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
+export const isPackageRegistered = async (
+  registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] },
   packageRef: string,
-  cliSettings: CliSettings
+  contractAddress: viem.Address
 ) => {
-  return Promise.all(
-    registryProviders.map(async (provider, index) => {
-      const onChainRegistry = new OnChainRegistry({
-        signer: provider.signers[0],
-        provider: provider.provider,
-        address: cliSettings.registries[index].address,
-      });
+  const onChainRegistry = new OnChainRegistry({
+    signer: registryProviders.signers[0],
+    provider: registryProviders.provider,
+    address: contractAddress,
+  });
 
-      const packageName = new PackageReference(packageRef).name;
-      const packageOwner = await onChainRegistry.getPackageOwner(packageName);
+  const packageName = new PackageReference(packageRef).name;
+  const packageOwner = await onChainRegistry.getPackageOwner(packageName);
 
-      return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
-    })
-  );
+  return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
 };
 
 /**
@@ -38,7 +35,7 @@ export const checkIfPackageIsRegistered = async (
  *
  * @returns {Promise<void>} - A promise that resolves when the event is received or rejects on timeout.
  */
-export const waitUntilPackageIsRegistered = async () => {
+export const waitUntilPackageIsRegistered = () => {
   const event = viem.parseAbiItem('event PackageOwnerChanged(bytes32 _packageName, address _owner)');
 
   const client = viem.createPublicClient({
@@ -48,16 +45,15 @@ export const waitUntilPackageIsRegistered = async () => {
 
   let timeoutId: ReturnType<typeof setTimeout>;
 
-  await new Promise((resolve, reject) => {
-    const onTimeout = () => reject(new Error('Timed out waiting for package to be registered'));
+  return new Promise((resolve, reject) => {
+    const onTimeout = () => reject(new Error('Timed out waiting for package to be confirmed'));
 
-    // Start watching for the event
+    // Start watching for the event to confirm the package registration on OP Registry
     const unwatch = client.watchEvent({
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
-      onLogs: (logs) => {
-        // TODO: check values?
-        console.log('logs: ', logs);
+      onLogs: async (logs) => {
+        console.log(green('The package is confirmed on OP Cannon Registry successfully.'));
         // unwatch the event
         unwatch();
         // Clear the timeout
@@ -76,6 +72,9 @@ export const waitUntilPackageIsRegistered = async () => {
     });
 
     // Set the timeout and store its id for cancellation
-    timeoutId = setTimeout(onTimeout, 10000);
+    // Docs say that the timeout should be max 3 minutes, but we add an extra minute to be safe
+    // Ref: https://docs.optimism.io/builders/app-developers/bridging/messaging#for-l1-to-l2-transactions
+    const waitTime = 180000 + 60000;
+    timeoutId = setTimeout(onTimeout, waitTime);
   });
 };
