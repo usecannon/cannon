@@ -161,8 +161,14 @@ teardown() {
   assert_success
 }
 
-@test "Trace - Trace transaction Data" {
+@test "Trace - Trace Transaction Data" {
   run trace.sh
+  echo $output
+  assert_success
+}
+
+@test "Trace - Trace Verify Parsing" {
+  run trace-output.sh
   echo $output
   assert_success
 }
