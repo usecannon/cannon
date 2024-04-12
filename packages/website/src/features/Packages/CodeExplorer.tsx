@@ -218,6 +218,15 @@ export const CodeExplorer: FC<{
     isLoadingMiscData ||
     isLoadingProvisionedMiscData;
 
+  useEffect(() => {
+    if (isEmpty(miscData?.artifacts) && provisionedPackagesKeys.length) {
+      setSelectedPackage({
+        name: provisionedPackagesKeys[0],
+        key: 0,
+      });
+    }
+  }, [miscData]);
+
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       {!!provisionedPackagesKeys.length && (
