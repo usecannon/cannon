@@ -23,7 +23,7 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-// need to use `any` type here instead of HardhatUserConfig becuase somethign borky is going on with typescript resolution of cannon config overrides
+// need to use `any` type here instead of HardhatUserConfig because something borky is going on with typescript resolution of cannon config overrides
 const config: any = {
   solidity: '0.8.4',
   defaultNetwork: 'cannon',
