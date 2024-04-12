@@ -63,7 +63,7 @@ export const InvokesTable: React.FC<{
   const columns = [
     columnHelper.accessor('name', {
       cell: (info: any) => info.getValue(),
-      header: 'Step',
+      header: 'Operation',
     }),
     columnHelper.accessor('value', {
       cell: (info: any) => info.getValue(),

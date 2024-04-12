@@ -8,7 +8,9 @@ import { parseEnv } from 'znv';
 import untildify from 'untildify';
 
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
-import { checkAndNormalizePrivateKey } from './helpers';
+
+import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
+import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -27,9 +29,14 @@ export type CliSettings = {
   privateKey?: viem.Hex;
 
   /**
-   * The amount of times ipfs should retry requests (applies to read and write)
+   * The amount of times axios should retry IPFS requests (applies to read and write)
    */
   ipfsRetries?: number;
+
+  /**
+   * The interval in seconds that axios should wait before timing out requests
+   */
+  ipfsTimeout?: number;
 
   /**
    * the url of the IPFS endpoint to use as a storage base. defaults to localhost IPFS
@@ -53,6 +60,21 @@ export type CliSettings = {
   }[];
 
   /**
+   * URL to use to write a package to the registry.
+   */
+  registryProviderUrl?: string;
+
+  /**
+   * chain Id of the registry. Defaults to `1`.
+   */
+  registryChainId?: string;
+
+  /**
+   * Address of the registry.
+   */
+  registryAddress?: viem.Address;
+
+  /**
    * Which registry to read from first. Defaults to `onchain`
    */
   registryPriority: 'local' | 'onchain';
@@ -71,21 +93,6 @@ export type CliSettings = {
    * URL of etherscan API for verification
    */
   etherscanApiUrl?: string;
-
-  /**
-   * Provider used for the registry
-   */
-  registryProviderUrl?: string;
-
-  /**
-   * Chain id used for the registry
-   */
-  registryChainId?: number;
-
-  /**
-   * Address used for the registry
-   */
-  registryAddress?: viem.Address;
 
   /**
    * Etherscan API Key for verification
@@ -128,23 +135,38 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .optional()
       .default(fileSettings.privateKey as string),
-    CANNON_IPFS_RETRIES: z.number().optional().default(3),
+    CANNON_IPFS_TIMEOUT: z
+      .number()
+      .optional()
+      .default(fileSettings.ipfsTimeout || 300000),
+    CANNON_IPFS_RETRIES: z
+      .number()
+      .optional()
+      .default(fileSettings.ipfsRetries || 3),
     CANNON_IPFS_URL: z
       .string()
       .url()
       .optional()
-      .default(fileSettings.ipfsUrl as string),
+      .default(fileSettings.ipfsUrl || getCannonRepoRegistryUrl()),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z.string().optional(),
-    CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
+    CANNON_REGISTRY_PROVIDER_URL: z
+      .string()
+      .url()
+      .optional()
+      .default(fileSettings.registryProviderUrl || DEFAULT_REGISTRY_CONFIG[0].providerUrl[0]),
+    CANNON_REGISTRY_CHAIN_ID: z
+      .string()
+      .optional()
+      .default(fileSettings.registryChainId || DEFAULT_REGISTRY_CONFIG[0].chainId.toString()),
     CANNON_REGISTRY_ADDRESS: z
       .string()
       .optional()
-      .refine((v) => !v || viem.isAddress(v), 'must be address'),
+      .refine((v) => !v || viem.isAddress(v), 'must be address')
+      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_CONFIG[0].address),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
@@ -175,6 +197,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     CANNON_SETTINGS,
     CANNON_PROVIDER_URL,
     CANNON_PRIVATE_KEY,
+    CANNON_IPFS_TIMEOUT,
     CANNON_IPFS_RETRIES,
     CANNON_IPFS_URL,
     CANNON_PUBLISH_IPFS_URL,
@@ -194,6 +217,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       cannonSettings: CANNON_SETTINGS,
       providerUrl: CANNON_PROVIDER_URL,
       privateKey: CANNON_PRIVATE_KEY,
+      ipfsTimeout: CANNON_IPFS_TIMEOUT,
       ipfsRetries: CANNON_IPFS_RETRIES,
       ipfsUrl: CANNON_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
@@ -229,7 +253,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
     ];
   }
 
-  debug('final settings:', finalSettings);
+  debug('final settings:', filterSettings(finalSettings));
 
   return finalSettings;
 }

@@ -35,17 +35,19 @@ export const runSchema = z
         args: z.array(z.string()).describe('Arguments passed to the function (after the ChainBuilder object)'),
         /** Environment variables to be set on the script */
         env: z.array(z.string()).describe('Environment variables to be set on the script'),
-        /** List of steps that this action depends on */
+        /** List of operations that this action depends on */
         depends: z
           .array(
             z.string().refine(
               (val) => Boolean(val.match(stepRegex)),
               (val) => ({
-                message: `Bad format for "${val}". Must reference a previous step, example: 'contract.Storage'`,
+                message: `Bad format for "${val}". Must reference a previous operation, example: 'contract.Storage'`,
               })
             )
           )
-          .describe('List of steps that this action depends on'),
+          .describe(
+            'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
+          ),
       })
       .partial()
   );

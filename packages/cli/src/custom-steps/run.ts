@@ -60,7 +60,7 @@ export function hashFs(path: string): Buffer {
 }
 
 /**
- *  Available properties for run step
+ *  Available properties for run operation
  *  @public
  *  @group Run
 
@@ -82,7 +82,7 @@ const runAction = {
 
     const auxHashes = newConfig.modified.map((pathToScan: string) => {
       if (!fs.statSync(pathToScan).isFile() && !fs.statSync(pathToScan).isDirectory()) {
-        throw new Error(`Invalid element in "modified" for "run" step. Path ${pathToScan} not found.`);
+        throw new Error(`Invalid element in "modified" for "run" operation. Path ${pathToScan} not found.`);
       }
 
       try {
@@ -159,7 +159,7 @@ const runAction = {
     debug('exec', config);
 
     if (!fs.statSync(config.exec).isFile()) {
-      throw new Error(`Invalid "exec" value for "run" step. Path "${config.exec}" not found.`);
+      throw new Error(`Invalid "exec" value for "run" operation. Path "${config.exec}" not found.`);
     }
 
     const runfile = await importFrom(process.cwd(), config.exec);

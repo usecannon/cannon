@@ -7,6 +7,7 @@ import {
   FormLabel,
   Input,
 } from '@chakra-ui/react';
+import { CopyBlock, a11yDark } from 'react-code-blocks';
 import {
   Address,
   bytesToString,
@@ -103,6 +104,47 @@ export function DisplayedTransaction(props: {
     return val.toString();
   }
 
+  function renderInput(type: string, val: string): React.ReactElement {
+    if (type === 'tuple') {
+      return (
+        <CopyBlock
+          text={JSON.stringify(JSON.parse(encodeArg(type, val || '')), null, 2)}
+          language="json"
+          showLineNumbers={false}
+          codeBlock
+          theme={a11yDark}
+          customStyle={{ fontSize: '14px' }}
+        />
+      );
+    }
+
+    return (
+      <Input
+        type="text"
+        size="sm"
+        bg="black"
+        borderColor="whiteAlpha.400"
+        isReadOnly
+        _focus={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        _focusVisible={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        _hover={{
+          boxShadow: 'none !important',
+          outline: 'none !important',
+          borderColor: 'whiteAlpha.400 !important',
+        }}
+        value={encodeArg(type, (val as string) || '')}
+      />
+    );
+  }
+
   if (!props.contracts) {
     return <Text>{props.txn?.data}</Text>;
   }
@@ -140,32 +182,10 @@ export function DisplayedTransaction(props: {
                       </Text>
                     )}
                   </FormLabel>
-                  <Input
-                    type="text"
-                    size="sm"
-                    bg="black"
-                    borderColor="whiteAlpha.400"
-                    isReadOnly
-                    _focus={{
-                      boxShadow: 'none !important',
-                      outline: 'none !important',
-                      borderColor: 'whiteAlpha.400 !important',
-                    }}
-                    _focusVisible={{
-                      boxShadow: 'none !important',
-                      outline: 'none !important',
-                      borderColor: 'whiteAlpha.400 !important',
-                    }}
-                    _hover={{
-                      boxShadow: 'none !important',
-                      outline: 'none !important',
-                      borderColor: 'whiteAlpha.400 !important',
-                    }}
-                    value={encodeArg(
-                      execFuncFragment.inputs[i].type,
-                      (execFuncArgs[i] as string) || ''
-                    )}
-                  />
+                  {renderInput(
+                    execFuncFragment.inputs[i].type,
+                    execFuncArgs[i]
+                  )}
                 </FormControl>
               </Box>,
             ])}

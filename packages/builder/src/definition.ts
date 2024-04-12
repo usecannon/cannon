@@ -81,7 +81,7 @@ export class ChainDefinition {
     for (const [action, data] of Object.entries(actionsDef)) {
       for (const name of Object.keys(data as any)) {
         if (actionNames.includes(name)) {
-          throw new Error(`Duplicated step name found "${name}"`);
+          throw new Error(`Duplicated operation name found "${name}"`);
         }
 
         const fullActionName = `${action}.${name}`;
@@ -202,7 +202,7 @@ export class ChainDefinition {
 
   getConfig(n: string, ctx: ChainBuilderContext) {
     if (_.sortedIndexOf(this.allActionNames, n) === -1) {
-      throw new Error(`getConfig step name not found: ${n}`);
+      throw new Error(`getConfig operation name not found: ${n}`);
     }
 
     const kind = n.split('.')[0] as keyof typeof ActionKinds;
@@ -304,7 +304,7 @@ export class ChainDefinition {
         stepList.push(dep);
       });
 
-      throw new Error(`invalid dependency: ${node}. Available "${stepName}" steps:
+      throw new Error(`invalid dependency: ${node}. Available "${stepName}" operations:
           ${stepList.map((dep) => `\n - ${stepName}.${dep}`).join('')}
         `);
     }
@@ -338,7 +338,7 @@ export class ChainDefinition {
         if (this.dependencyFor.has(input)) {
           deps.push(this.dependencyFor.get(input)!);
         } else if (!input.startsWith('settings.')) {
-          debug(`WARNING: dependency ${input} not found for step ${node}`);
+          debug(`WARNING: dependency ${input} not found for operation ${node}`);
         }
       }
     }
@@ -504,7 +504,7 @@ export class ChainDefinition {
     const deps = [];
 
     if (!layers[n]) {
-      debug('WARN: layer dependency tree not computable for step because not found:', n);
+      debug('WARN: layer dependency tree not computable for operation because not found:', n);
       return [];
     }
 

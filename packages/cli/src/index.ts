@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import {
@@ -17,6 +16,7 @@ import {
 import { bold, gray, green, red, yellow } from 'chalk';
 import { Command } from 'commander';
 import Debug from 'debug';
+import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import pkg from '../package.json';
@@ -24,11 +24,11 @@ import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
 import {
   checkAndNormalizePrivateKey,
-  normalizePrivateKey,
   checkCannonVersion,
   checkForgeAstSupport,
   ensureChainIdConsistency,
   isPrivateKey,
+  normalizePrivateKey,
 } from './helpers';
 import { getMainLoader } from './loader';
 import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
@@ -59,7 +59,7 @@ export * from './constants';
 export * from './util/params';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
-export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
+export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
 export { alter } from './commands/alter';
 export { build } from './commands/build';
 export { clean } from './commands/clean';
@@ -226,14 +226,16 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
           } else {
             console.log(red('forge build failed'));
             console.log(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
-            reject(new Error(`forge build failed with exit code "${code}"`));
+            return reject(new Error(`forge build failed with exit code "${code}"`));
           }
+
           resolve(null);
         });
       });
     } else {
       console.log(yellow('Skipping forge build...'));
     }
+
     console.log(''); // Linebreak in CLI to signify end of compilation.
 
     // Override options with CLI settings
@@ -260,6 +262,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
   const { verify } = await import('./commands/verify');
+
+  // Override CLI settings with --api-key value
+  options.etherscanApiKey = options.apiKey;
 
   const cliSettings = resolveCliSettings(options);
 

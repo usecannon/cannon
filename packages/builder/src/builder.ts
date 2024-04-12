@@ -102,8 +102,8 @@ ${printChainDefinitionProblems(problems)}`);
 
         for (const dep of def.getDependencies(n)) {
           if (!built.has(dep)) {
-            debug(`skip ${n} because previous step incomplete`);
-            runtime.emit(Events.SkipDeploy, n, new Error(`dependency step not completed: ${dep}`), 0);
+            debug(`skip ${n} because previous operation incomplete`);
+            runtime.emit(Events.SkipDeploy, n, new Error(`dependency operation not completed: ${dep}`), 0);
             continue doActions;
           }
 
@@ -232,7 +232,7 @@ export async function buildLayer(
       if (isCompleteLayer) {
         debug('comparing layer states', state[action] ? state[action].hash : null, curHashes);
         if (!state[action] || (curHashes && !curHashes.includes(state[action].hash || ''))) {
-          debug('step', action, 'in layer needs to be rebuilt');
+          debug('operation', action, 'in layer needs to be rebuilt');
           isCompleteLayer = false;
           break;
         }
@@ -245,7 +245,7 @@ export async function buildLayer(
       debug('error', err);
 
       // now log a more friendly message
-      throw new Error(`Failure on step ${action}: ${(err as Error).toString()}`);
+      throw new Error(`Failure on operation ${action}: ${(err as Error).toString()}`);
     }
   }
 
@@ -321,7 +321,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
 
   runtime.emit(Events.PreStepExecute, type, label, cfg, 0);
 
-  debugVerbose('ctx for step', pkgState.currentLabel, ctx);
+  debugVerbose('ctx for operation', pkgState.currentLabel, ctx);
 
   // if there is an error then this will ensure the stack trace is printed with the latest
   runtime.updateProviderArtifacts(ctx);
