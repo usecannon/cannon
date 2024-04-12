@@ -42,6 +42,9 @@ const metadata = {
   gnosis: {
     color: '#3e6957',
   },
+  reyaNetwork: {
+    color: '#04f06a',
+  },
 };
 
 type ChainData = {
