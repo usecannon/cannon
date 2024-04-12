@@ -79,7 +79,8 @@ describe('build', () => {
   });
 
   describe('provider', () => {
-    let provider: viem.PublicClient;
+    let provider: viem.PublicClient & viem.WalletClient & viem.TestClient;
+
     beforeEach(() => {
       jest.spyOn(helpers, 'loadCannonfile').mockResolvedValue({} as any);
       provider = makeFakeProvider();

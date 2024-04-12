@@ -10,21 +10,24 @@ import {
   PackageReference,
   renderTrace,
 } from '@usecannon/builder';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
+import { TraceEntry } from '@usecannon/builder/src';
+import _ from 'lodash';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import _ from 'lodash';
+import { bold, gray, green, greenBright, yellow } from 'chalk';
+
 import { setupAnvil } from '../helpers';
 import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { getContractsRecursive } from '../util/contracts-recursive';
 import onKeypress from '../util/on-keypress';
+import { PackageSpecification } from '../types';
+import { resolveCliSettings } from '../settings';
+import { ANVIL_FIRST_ADDRESS } from '../constants';
+import { CannonRpcNode, getProvider } from '../rpc';
+import { createDefaultReadRegistry } from '../registry';
+import { getContractsRecursive } from '../util/contracts-recursive';
+
 import { build } from './build';
 import { interact } from './interact';
-import { TraceEntry } from '@usecannon/builder/src';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -69,6 +72,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   }
 
   const cliSettings = resolveCliSettings(options);
+
   const resolver = options.resolver || (await createDefaultReadRegistry(cliSettings));
 
   const buildOutputs: { pkg: PackageSpecification; outputs: ChainArtifacts }[] = [];
@@ -76,12 +80,10 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
   const signers: CannonSigner[] = [];
 
   // set up signers
-  const accounts = options.privateKey
-    ? options.privateKey
-        .split(',')
 
-        .map((pk) => privateKeyToAccount(pk as viem.Hex).address)
-    : (options.impersonate || '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266').split(',');
+  const accounts = cliSettings.privateKey
+    ? cliSettings.privateKey.split(',').map((pk) => privateKeyToAccount(pk as viem.Hex).address)
+    : (options.impersonate || ANVIL_FIRST_ADDRESS).split(',');
 
   for (const addr of accounts) {
     await provider.impersonateAccount({ address: addr as viem.Address });

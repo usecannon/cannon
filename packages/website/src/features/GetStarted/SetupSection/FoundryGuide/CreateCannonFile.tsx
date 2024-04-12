@@ -71,7 +71,7 @@ export const CreateCannonFile = () => {
             When building a protocol with Cannon, include methods like{' '}
             <Code>setConfiguration</Code> (instead of/in addition to
             <Code>addConfiguration</Code> or <Code>removeConfiguration</Code>)
-            such that changes to an <Code>invoke</Code> step will result in
+            such that changes to an <Code>invoke</Code> operation will result in
             predictable behavior.
           </AlertDescription>
         </Box>

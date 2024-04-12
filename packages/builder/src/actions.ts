@@ -25,12 +25,12 @@ export interface CannonAction {
   ) => Promise<any[] | null>;
 
   /**
-   * Returns a list of state keys that this step consumes (used for dependency inference)
+   * Returns a list of state keys that this operation consumes (used for dependency inference)
    */
   getInputs?: (config: any, packageState: PackageState) => AccessComputationResult;
 
   /**
-   * Returns a list of state keys this step produces (used for dependency inference)
+   * Returns a list of state keys this operation produces (used for dependency inference)
    */
   getOutputs?: (config: any, packageState: PackageState) => string[];
 

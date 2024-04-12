@@ -26,8 +26,6 @@ export interface State {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
     stagingUrl: string;
-    registryAddress: Address;
-    registryChainIds: string;
     customProviders: string[];
     pythUrl: string;
   };
@@ -71,8 +69,6 @@ export const initialState = {
     ipfsApiUrl: 'https://repo.usecannon.com/',
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
-    registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    registryChainIds: '1,10',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
   },
