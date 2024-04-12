@@ -29,7 +29,7 @@ export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
   return (
     <Flex flexDirection="column" width="100%" flex="1">
       {currentVariant ? (
-        <CodeExplorer variant={currentVariant} />
+        <CodeExplorer variant={currentVariant} name={name} />
       ) : (
         <CustomSpinner m="auto" />
       )}
