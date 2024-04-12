@@ -92,7 +92,8 @@ export async function build({
   const packageRef = PackageReference.from(packageDefinition.name, packageDefinition.version, packageDefinition.preset);
 
   const { name, version } = packageRef;
-  let { preset } = packageRef;
+  const preset = presetArg || packageRef.preset;
+  const { fullPackageRef } = PackageReference.from(name, version, preset);
 
   // Handle deprecated preset specification
   if (presetArg) {
@@ -103,13 +104,7 @@ export async function build({
         )
       )
     );
-    preset = presetArg;
   }
-
-  const { fullPackageRef } = packageRef;
-
-  let pkgName = name;
-  let pkgVersion = version;
 
   const cliSettings = resolveCliSettings({ registryPriority });
 
@@ -202,13 +197,8 @@ export async function build({
 
   const initialCtx = await createInitialContext(def, pkgInfo, chainId, resolvedSettings);
 
-  if (!pkgName) {
-    pkgName = def.getName(initialCtx);
-  }
-
-  if (!pkgVersion) {
-    pkgVersion = def.getVersion(initialCtx);
-  }
+  const pkgName = name || def.getName(initialCtx);
+  const pkgVersion = version || def.getVersion(initialCtx);
 
   console.log('');
   if (oldDeployData && wipe) {

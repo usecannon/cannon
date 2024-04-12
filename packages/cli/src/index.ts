@@ -253,6 +253,9 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
 applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(async function (packageName, options) {
   const { verify } = await import('./commands/verify');
 
+  // Override CLI settings with --api-key value
+  options.etherscanApiKey = options.apiKey;
+
   const cliSettings = resolveCliSettings(options);
 
   await verify(packageName, cliSettings, options.preset, parseInt(options.chainId));
