@@ -59,6 +59,21 @@ export type CliSettings = {
   }[];
 
   /**
+   * URL to use to write a package to the registry. Defaults to `frame,${DEFAULT_REGISTRY_PROVIDER_URL}`
+   */
+  registryProviderUrl?: string;
+
+  /**
+   * chain Id of the registry. Defaults to `1`.
+   */
+  registryChainId?: string;
+
+  /**
+   * Address of the registry.
+   */
+  registryAddress?: string;
+
+  /**
    * Which registry to read from first. Defaults to `onchain`
    */
   registryPriority: 'local' | 'onchain';
@@ -137,12 +152,20 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z.string().optional(),
-    CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
+    CANNON_REGISTRY_PROVIDER_URL: z
+      .string()
+      .url()
+      .optional()
+      .default(fileSettings.registryProviderUrl || DEFAULT_REGISTRY_CONFIG[0].providerUrl[0]),
+    CANNON_REGISTRY_CHAIN_ID: z
+      .string()
+      .optional()
+      .default(fileSettings.registryChainId || DEFAULT_REGISTRY_CONFIG[0].chainId.toString()),
     CANNON_REGISTRY_ADDRESS: z
       .string()
       .optional()
-      .refine((v) => !v || viem.isAddress(v), 'must be address'),
+      .refine((v) => !v || viem.isAddress(v), 'must be address')
+      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_CONFIG[0].address),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
@@ -210,7 +233,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID) {
+  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID && CANNON_REGISTRY_ADDRESS) {
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
       chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
