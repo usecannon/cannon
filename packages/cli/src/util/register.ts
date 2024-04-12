@@ -53,6 +53,7 @@ export const waitUntilPackageIsRegistered = () => {
       address: DEFAULT_REGISTRY_ADDRESS,
       event,
       onLogs: async (logs) => {
+        // TODO: check if the event is for the package we are waiting for
         console.log(green('The package is confirmed on OP Cannon Registry successfully.'));
         // unwatch the event
         unwatch();

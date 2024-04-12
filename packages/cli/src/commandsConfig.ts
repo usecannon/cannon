@@ -403,6 +403,14 @@ const commandsConfig = {
         description: 'RPC endpoint to publish to',
       },
       {
+        flags: '--registry-chain-id <number>',
+        description: 'Registry chain id to publish to',
+      },
+      {
+        flags: '--registry-address <address>',
+        description: 'Registry address to publish to',
+      },
+      {
         flags: '--private-key <key>',
         description: 'Private key to use for publishing the registry package',
       },

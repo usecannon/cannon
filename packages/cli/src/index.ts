@@ -344,8 +344,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     });
 
     if (!chainIdPrompt.value) {
-      console.log('Chain ID is required.');
-      process.exit(1);
+      throw new Error('A valid Chain Id  is required.');
     }
 
     options.chainId = Number(chainIdPrompt.value);
@@ -396,14 +395,6 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     console.log(
       `You are about to publish a package to a custom registry on: ${pickedRegistryProvider.provider.chain?.name}`
     );
-
-    const [customRegistryProvider] = cliSettings.registries;
-
-    if (!customRegistryProvider.chainId && !isURL(customRegistryProvider.providerUrl![0])) {
-      throw new Error('Please provide a valid --chain-id or --registry-provider-url value to publish a package.');
-    }
-
-    await ensureChainIdConsistency(customRegistryProvider.providerUrl![0], customRegistryProvider.chainId);
   }
 
   if (isDefaultSettings) {
@@ -438,7 +429,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 
       const { register } = await import('./commands/register');
 
-      await register({ cliSettings, options, packageRef });
+      await register({ cliSettings, options, packageRef, fromPublish: true });
     }
   }
 
@@ -490,7 +481,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  await register({ cliSettings, options, packageRef });
+  await register({ cliSettings, options, packageRef, fromPublish: false });
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {

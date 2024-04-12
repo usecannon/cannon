@@ -73,14 +73,19 @@ export type CliSettings = {
   etherscanApiUrl?: string;
 
   /**
-   * Provider used for `register` defaults to 'frame,direct' https://github.com/floating/eth-provider#presets
+   * Provider used for the registry
    */
   registryProviderUrl?: string;
 
   /**
-   * chain id used for `register`
+   * Chain id used for the registry
    */
   registryChainId?: number;
+
+  /**
+   * Address used for the registry
+   */
+  registryAddress?: viem.Address;
 
   /**
    * Etherscan API Key for verification
@@ -193,7 +198,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
       ipfsUrl: CANNON_IPFS_URL,
       publishIpfsUrl: CANNON_PUBLISH_IPFS_URL,
       registries:
-        CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID
+        CANNON_REGISTRY_ADDRESS && (CANNON_REGISTRY_PROVIDER_URL || CANNON_REGISTRY_CHAIN_ID)
           ? [
               {
                 providerUrl: CANNON_REGISTRY_PROVIDER_URL ? [CANNON_REGISTRY_PROVIDER_URL] : undefined,
@@ -214,15 +219,17 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (overrides.registryProviderUrl || overrides.registryChainId) {
+  if (overrides.registryAddress && (overrides.registryProviderUrl || overrides.registryChainId)) {
     finalSettings.registries = [
       {
         providerUrl: overrides.registryProviderUrl ? [overrides.registryProviderUrl] : undefined,
         chainId: overrides.registryChainId ? Number(overrides.registryChainId) : undefined,
-        address: CANNON_REGISTRY_ADDRESS as viem.Address,
+        address: overrides.registryAddress ? overrides.registryAddress : (CANNON_REGISTRY_ADDRESS as viem.Address),
       },
     ];
   }
+
+  debug('final settings:', finalSettings);
 
   return finalSettings;
 }

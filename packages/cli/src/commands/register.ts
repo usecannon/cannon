@@ -17,9 +17,16 @@ interface Params {
   options: any;
   packageRef: string;
   skipConfirm?: boolean;
+  fromPublish?: boolean;
 }
 
-export async function register({ cliSettings, options, packageRef }: Params) {
+export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
+  if (fromPublish) {
+    // if the command is called from the publish command
+    // we need to remove the version and preset from the package reference
+    packageRef = packageRef.split(':')[0];
+  }
+
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (isDefaultSettings) {
     // if the user has not set the registry settings, use mainnet as the default registry
@@ -124,8 +131,9 @@ export async function register({ cliSettings, options, packageRef }: Params) {
 
   if (isDefaultSettings) {
     console.log(
-      gray('Waiting for registration to be confirmed on the OP Mainnet network. It may take approximately 1-3 minutes. \n')
+      gray('Waiting for registration to be confirmed on the OP Mainnet network. It may take approximately 1-3 minutes.')
     );
+    console.log('');
     console.log(
       gray(
         'Once confirmed, you will be able to publish your package to the Mainnet Cannon Registry or the OP Cannon Registry.'
