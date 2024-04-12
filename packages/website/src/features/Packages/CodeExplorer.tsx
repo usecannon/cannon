@@ -57,9 +57,9 @@ const PackageButton: FC<{
               borderColor: 'teal.500',
             }
       }
-      mr={4}
-      height="48px"
-      px={2}
+      mr={3}
+      height="36px"
+      px={3}
       onClick={onClick}
     >
       <Box textAlign="left">
