@@ -201,7 +201,7 @@ export const CannonfileExplorer: FC<{
               <CannonfileGraph deploymentInfo={deploymentInfo} />
             </Flex>
             <Container
-              maxW="container.xl"
+              maxW="container.lg"
               py={14}
               display={displayMode == 2 ? 'block' : 'none'}
             >
@@ -296,6 +296,17 @@ export const CannonfileExplorer: FC<{
                       </>
                     )}
                   </Box>
+                </Box>
+              )}
+              {deploymentInfo?.def?.var && (
+                <Box mt={4}>
+                  <Heading size="md" mb={3}>
+                    Variable Setting
+                  </Heading>
+                  <ChainDefinitionSteps
+                    name="var"
+                    modules={deploymentInfo?.def?.var}
+                  />
                 </Box>
               )}
               {!isEmpty(pulls) && (
