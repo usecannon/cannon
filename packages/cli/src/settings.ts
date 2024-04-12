@@ -111,7 +111,6 @@ export type CliSettings = {
  */
 
 function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>) {
-  const repoUrl = getCannonRepoRegistryUrl();
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
@@ -132,12 +131,12 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .url()
       .optional()
-      .default(fileSettings.ipfsUrl || repoUrl),
+      .default(fileSettings.ipfsUrl || getCannonRepoRegistryUrl()),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
       .optional()
-      .default(fileSettings.publishIpfsUrl || repoUrl),
+      .default(fileSettings.publishIpfsUrl as string),
     CANNON_REGISTRY_PROVIDER_URL: z.string().optional(),
     CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
