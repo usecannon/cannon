@@ -112,6 +112,7 @@ teardown() {
   run build-hardhat.sh
   echo $output
   assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_1-main.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_13370-main.txt"
 }
 
@@ -128,7 +129,7 @@ teardown() {
   run build-router-live.sh
   echo $output
   assert_output --partial 'examples-router-architecture:0.0.1@main built on Ethereum (Chain ID: 1)'
-  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_13370-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_1-main.txt"
   assert_success
 }
 
@@ -140,6 +141,9 @@ teardown() {
   assert_output --partial "Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary."
   assert_file_exists "$CANNON_DIRECTORY/tags/oracle-manager_latest_1-with-owned-greeter.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/owned-greeter_1.0.0_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/mintable-token_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/trusted-multicall-forwarder_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/trusted-multicall-forwarder_latest_1-with-oracle-manager.txt"
 }
 
 @test "Verify - Verify greeter packages" {
