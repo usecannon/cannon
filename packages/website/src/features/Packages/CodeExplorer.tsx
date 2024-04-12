@@ -15,6 +15,7 @@ import { CodePreview } from '@/components/CodePreview';
 import { useQueryIpfsData } from '@/hooks/ipfs';
 import { DownloadIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { CustomSpinner } from '@/components/CustomSpinner';
+import { isEmpty } from 'lodash';
 
 const handleDownload = (content: JSON, filename: string) => {
   const blob = new Blob([JSON.stringify(content, null, 2)], {
@@ -233,12 +234,14 @@ export const CodeExplorer: FC<{
           borderColor="gray.800"
           flexWrap="nowrap"
         >
-          <PackageButton
-            key={-1}
-            name={name}
-            selected={isSelectedPackage({ name, key: -1 })}
-            onClick={() => handleSelectPackage({ name, key: -1 })}
-          />
+          {!isEmpty(miscData?.artifacts) && (
+            <PackageButton
+              key={-1}
+              name={name}
+              selected={isSelectedPackage({ name, key: -1 })}
+              onClick={() => handleSelectPackage({ name, key: -1 })}
+            />
+          )}
           {provisionedPackagesKeys.map((k: string, i: number) => (
             <PackageButton
               key={k}
