@@ -67,7 +67,7 @@ export type CliSettings = {
    * chain Id of the registry. Defaults to `1`.
    */
   registryChainId?: string;
-  
+
   /**
    * Address of the registry.
    */
