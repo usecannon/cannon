@@ -148,7 +148,11 @@ export class CliLoader implements CannonLoader {
   }
 
   static getCacheHash(url: string) {
-    return crypto.createHash('md5').update(url.replace(IPFSLoader.PREFIX, '')).digest('hex');
+    const qmhash = url.replace(IPFSLoader.PREFIX, '');
+    const md5 = crypto.createHash('md5').update(qmhash).digest('hex');
+    // Whe need to add an md5 to make sure that there are not collisions,
+    // And we CANNOT use directly the Qm... hash because files are not case sensitive.
+    return `${md5}-${qmhash.toLowerCase()}`;
   }
 }
 
