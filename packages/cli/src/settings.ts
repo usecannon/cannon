@@ -67,6 +67,11 @@ export type CliSettings = {
    * chain Id of the registry. Defaults to `1`.
    */
   registryChainId?: string;
+  
+  /**
+   * Address of the registry.
+   */
+  registryAddress?: string;
 
   /**
    * Which registry to read from first. Defaults to `onchain`
@@ -159,7 +164,8 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
     CANNON_REGISTRY_ADDRESS: z
       .string()
       .optional()
-      .refine((v) => !v || viem.isAddress(v), 'must be address'),
+      .refine((v) => !v || viem.isAddress(v), 'must be address')
+      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_CONFIG[0].address),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
@@ -227,7 +233,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   // Check and normalize private keys
   finalSettings.privateKey = checkAndNormalizePrivateKey(finalSettings.privateKey);
 
-  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID) {
+  if (CANNON_REGISTRY_PROVIDER_URL && CANNON_REGISTRY_CHAIN_ID && CANNON_REGISTRY_ADDRESS) {
     finalSettings.registries.push({
       providerUrl: [CANNON_REGISTRY_PROVIDER_URL],
       chainId: parseInt(CANNON_REGISTRY_CHAIN_ID),
