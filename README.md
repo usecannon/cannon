@@ -66,9 +66,9 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 1. To create a `stable` release, first checkout to a new branch (it can be called `release-stable` or something similar)
   * Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1` as a branch name is incorrect)
 2. Run `npm run version-*` where `*` can be patch, minor or major. 
-3. Run `npm run update-stables` to make sure that all the other private packages reference to new release.
-4. Create PR for the branch and merge when required tests are passing
-5. From the `main` branch, run `npm run publish` and follow the prompts.
+3. Create PR for the branch and merge when required tests are passing
+4. From the branch, run `npm run publish` and follow the prompts.
+5. Run `npm run update-stables` to make sure that all the other private packages reference to new release.
 
 #### Alpha Release 
 
