@@ -6,6 +6,7 @@ import { AddressInput } from '@/features/Packages/FunctionInput/AddressInput';
 import { NumberInput } from '@/features/Packages/FunctionInput/NumberInput';
 import { DefaultInput } from '@/features/Packages/FunctionInput/DefaultInput';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
+import TupleInput from './FunctionInput/TupleInput';
 
 export const FunctionInput: FC<{
   input: AbiParameter;
@@ -32,8 +33,9 @@ export const FunctionInput: FC<{
   };
 
   useEffect(() => {
+    if (!isArray) return;
     valueUpdated(dataArray.map((item) => item.val));
-  }, [dataArray]);
+  }, [dataArray, isArray]);
 
   const handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
@@ -53,6 +55,8 @@ export const FunctionInput: FC<{
         return <AddressInput handleUpdate={_handleUpdate} />;
       case input.type.startsWith('int') || input.type.startsWith('uint'):
         return <NumberInput handleUpdate={_handleUpdate} />;
+      case input.type === 'tuple':
+        return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
         return (
           <DefaultInput handleUpdate={_handleUpdate} inputType={input.type} />
