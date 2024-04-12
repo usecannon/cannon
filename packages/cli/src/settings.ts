@@ -9,6 +9,7 @@ import untildify from 'untildify';
 
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
 import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
+import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 
 const debug = Debug('cannon:cli:settings');
 
@@ -110,6 +111,7 @@ export type CliSettings = {
  */
 
 function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>) {
+  const repoUrl = getCannonRepoRegistryUrl();
   return {
     CANNON_DIRECTORY: z.string().default(DEFAULT_CANNON_DIRECTORY),
     CANNON_SETTINGS: z.string().optional(),
@@ -130,12 +132,12 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .string()
       .url()
       .optional()
-      .default(fileSettings.ipfsUrl as string),
+      .default(fileSettings.ipfsUrl || repoUrl),
     CANNON_PUBLISH_IPFS_URL: z
       .string()
       .url()
       .optional()
-      .default(fileSettings.publishIpfsUrl as string),
+      .default(fileSettings.publishIpfsUrl || repoUrl),
     CANNON_REGISTRY_PROVIDER_URL: z.string().optional(),
     CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
