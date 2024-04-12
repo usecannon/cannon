@@ -1,7 +1,7 @@
-name = "consumer"
+name = "greeter-consumer"
 version = "0.0.1"
 description = "Simple project to verify the functionality of cannon"
-keywords = ["sample", "consumer"]
+keywords = ["sample", "greeter", "consumer"]
 
 [var.change_greeting2]
 change_greeting2 = "new greeting!"
@@ -31,7 +31,7 @@ factory.cloned.artifact = "Greeter"
 # test for multiple event emmission and extras functionality
 
 
-# Change clone greeting lets use change greetings for greeter clones 
+# Change clone greeting lets use change greetings for greeter clones
 # At specified addresses
 [invoke.change_clone_greeting]
 target = ["greeters.greeter"]
@@ -53,7 +53,7 @@ func = "setGreeting"
 args = ["<%= settings.NewCloneGreeting %>"]
 
 # Clone 2 greeters iteratively (used to test multiple emissions of the same event)
-# Testing this using extras object instead of factory 
+# Testing this using extras object instead of factory
 [invoke.clone_iterative]
 target = ["greeters.greeter"]
 func = "doCloningIteratively"
