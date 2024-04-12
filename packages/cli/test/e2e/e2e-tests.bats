@@ -98,13 +98,19 @@ teardown() {
   assert_success
 }
 
-@test "Build - Building foundry greeter example" {
+@test "Build - Building foundry greeter example locally" {
+  run build-foundry-local.sh
+  echo $output
+  assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
+}
+
+@test "Build - Building foundry greeter example live" {
   set_custom_config
-  run build-foundry.sh
+  run build-foundry-live.sh
   echo $output
   assert_success
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
 }
 
 @test "Build - Building hardhat greeter example" {
