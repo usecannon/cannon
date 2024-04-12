@@ -38,6 +38,7 @@ const config: any = {
     },
     mainnet: {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.PRIVATE_KEY?.split(','),
       chainId: 1,
     },
     goerli: {
