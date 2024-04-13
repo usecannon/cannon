@@ -1,6 +1,7 @@
 import { Button, Flex, Image, useBreakpointValue } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
+import ChainSelectorModal from '@/components/ChainSelectorModal';
 
 const styleMap = {
   primary: {
@@ -55,6 +56,11 @@ const CustomButton = ({
 
 export const ConnectWallet: FC = () => {
   const isMobile = useBreakpointValue([true, true, false]);
+  const [showingChainModal, setShowingChainModal] = useState(false);
+
+  const handleOpenChainModal = () => {
+    setShowingChainModal(true);
+  };
 
   return (
     <ConnectButton.Custom>
@@ -62,7 +68,6 @@ export const ConnectWallet: FC = () => {
         account,
         chain,
         openAccountModal,
-        openChainModal,
         openConnectModal,
         authenticationStatus,
         mounted,
@@ -98,7 +103,7 @@ export const ConnectWallet: FC = () => {
 
               if (chain.unsupported) {
                 return (
-                  <CustomButton variant="danger" onClick={openChainModal}>
+                  <CustomButton variant="danger" onClick={handleOpenChainModal}>
                     Wrong Network
                   </CustomButton>
                 );
@@ -107,7 +112,10 @@ export const ConnectWallet: FC = () => {
               return (
                 <Flex gap={4}>
                   {!isMobile && (
-                    <CustomButton onClick={openChainModal} variant="default">
+                    <CustomButton
+                      onClick={handleOpenChainModal}
+                      variant="default"
+                    >
                       {chain.hasIcon && (
                         <div
                           style={{
@@ -143,6 +151,12 @@ export const ConnectWallet: FC = () => {
                 </Flex>
               );
             })()}
+            {
+              <ChainSelectorModal
+                onClose={() => setShowingChainModal(false)}
+                isOpen={showingChainModal}
+              />
+            }
           </div>
         );
       }}

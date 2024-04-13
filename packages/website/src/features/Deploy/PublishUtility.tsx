@@ -27,6 +27,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
+import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -81,7 +82,7 @@ export default function PublishUtility(props: {
     // TODO: This needs to check both registries? Should it just check subgraph?
     const targetRegistry = new OnChainRegistry({
       signer: { address: walletAddress, wallet: wc.data },
-      address: settings.registryAddress,
+      address: DEFAULT_REGISTRY_ADDRESS,
       provider: createPublicClient({
         chain: findChain(registryChainId) as Chain,
         transport: http(),
@@ -122,7 +123,6 @@ export default function PublishUtility(props: {
       includeProvisioned: true,
     });
   };
-
 
   const publishMainnetMutation = useMutation({
     mutationFn: async () => {
@@ -246,12 +246,13 @@ export default function PublishUtility(props: {
             </Button>
             <Text fontSize="xs" textAlign="center">
               <Link
-                isDisabled={
+                onClick={() =>
                   settings.isIpfsGateway ||
                   publishOptimismMutation.isPending ||
                   publishMainnetMutation.isPending
+                    ? false
+                    : publishMainnetMutation.mutate()
                 }
-                onClick={() => publishMainnetMutation.mutate()}
               >
                 {publishMainnetMutation.isPending
                   ? 'Publishing...'

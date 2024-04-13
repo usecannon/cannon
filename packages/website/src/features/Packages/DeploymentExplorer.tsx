@@ -60,6 +60,7 @@ export const DeploymentExplorer: FC<{
         // If the current object has both address and abi keys
         if (obj[key].address && obj[key].abi) {
           if (
+            obj[key].deployedOn.startsWith('deploy') ||
             obj[key].deployedOn.startsWith('contract') ||
             obj[key].deployedOn.includes('router')
           ) {
@@ -269,7 +270,7 @@ export const DeploymentExplorer: FC<{
               <Heading size="md" px={4} mb={3}>
                 Event Data{' '}
                 <Tooltip
-                  label="This includes event data captured during the build, to be referenced in dependent steps."
+                  label="This includes event data captured during the build, to be referenced in dependent operations."
                   placement="right"
                   hasArrow
                 >

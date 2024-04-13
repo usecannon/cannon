@@ -135,7 +135,7 @@ describe('steps/contract.ts', () => {
             args: ['<%= contracts.h %>', '<%= contracts.i %>'],
             salt: '<%= contracts.j %>',
           })
-          .sort()
+          .accesses.sort()
       ).toEqual([
         'contracts.a',
         'contracts.b',

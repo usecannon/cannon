@@ -7,6 +7,11 @@ const NoSSR = dynamic(() => import('@/features/Deploy/SignTransactionsPage'), {
 
 export const metadata: Metadata = {
   title: 'Cannon | Sign Transactions',
+  description: 'Sign Transactions',
+  openGraph: {
+    title: 'Cannon | Sign Transactions',
+    description: 'Sign Transactions',
+  },
 };
 
 export default function SignTransactions() {

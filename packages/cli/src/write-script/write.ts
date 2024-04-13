@@ -2,7 +2,7 @@ import { createWriteStream } from 'node:fs';
 import { finished } from 'node:stream/promises';
 import { ChainBuilderRuntime } from '@usecannon/builder';
 import { ensureFileSync } from 'fs-extra';
-import { timeout } from 'promise-timeout';
+import * as viem from 'viem';
 import { createStepsStream } from './stream-steps';
 import { DumpRenderer } from './types';
 
@@ -39,7 +39,11 @@ export async function createWriteScript(
       // The runtime does not have an event to notify when the build has finished
       // so, we have to manully stop listening to it and close the streams.
       events.stream.end();
-      await timeout(finished(stream), 10000);
+
+      await viem.withTimeout(() => finished(stream), {
+        timeout: 10000,
+        errorInstance: new Error('stream timed out'),
+      });
     },
   };
 }

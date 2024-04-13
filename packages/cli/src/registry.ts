@@ -5,6 +5,7 @@ import { yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
@@ -143,6 +144,20 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
+export class ReadOnlyOnChainRegistry extends OnChainRegistry {
+  async publish(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async publishMany(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async setPackageOwnership(): Promise<viem.Hash> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+}
+
 async function checkLocalRegistryOverride({
   fullPackageRef,
   chainId,
@@ -174,7 +189,7 @@ export async function createDefaultReadRegistry(
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new OnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
   );
 
   if (!(await isConnectedToInternet())) {

@@ -23,6 +23,7 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
+import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
 import _ from 'lodash';
 import { useEffect, useState, useMemo } from 'react';
 import {
@@ -77,15 +78,14 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
 }
 
 export function useCannonRegistry() {
-  const settings = useStore((s) => s.settings);
-
   return useMemo(() => {
-    const onChainRegistries = settings.registryChainIds.split(',').map(
-      (chainId: string) =>
+    const registryChainIds = [10, 1];
+    const onChainRegistries = registryChainIds.map(
+      (chainId: number) =>
         new OnChainRegistry({
-          address: settings.registryAddress,
+          address: DEFAULT_REGISTRY_ADDRESS,
           provider: createPublicClient({
-            chain: findChain(Number.parseInt(chainId)) as Chain,
+            chain: findChain(chainId) as Chain,
             transport: http(),
           }),
         })
@@ -95,7 +95,7 @@ export function useCannonRegistry() {
     // the locally built data
     const fallbackRegistry = new FallbackRegistry([inMemoryRegistry, ...onChainRegistries]);
     return fallbackRegistry;
-  }, [settings.registryAddress, settings.registryChainIds]);
+  }, []);
 }
 
 export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinition, prevDeploy?: DeploymentInfo) {
@@ -172,7 +172,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         getDefaultSigner,
         snapshots: false,
         allowPartialDeploy: true,
-        publicSourceCode: true,
       },
       fallbackRegistry,
       loaders
@@ -184,14 +183,16 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
     currentRuntime.on(
       Events.PostStepExecute,
       (stepType: string, stepLabel: string, stepConfig: any, stepCtx: ChainBuilderContext, stepOutput: ChainArtifacts) => {
-        addLog(`cannon.ts: on Events.PostStepExecute step ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`);
+        addLog(
+          `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
+        );
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
-      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the step ${stepName}`);
+      addLog(`cannon.ts: on Events.SkipDeploy error ${err.toString()} happened on the operation ${stepName}`);
       skippedSteps.push({ name: stepName, err });
     });
 
@@ -216,7 +217,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
     const steps = await Promise.all(
       simulatedTxs.map(async (executedTx) => {
-        if (!executedTx) throw new Error('Invalid step');
+        if (!executedTx) throw new Error('Invalid operation');
         const tx = await provider.getTransaction({ hash: executedTx.hash });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash });
         return {

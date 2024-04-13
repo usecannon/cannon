@@ -172,7 +172,7 @@ describe('builder.ts', () => {
       },
     },
   });
-  jest.mocked(deployStep.getInputs).mockReturnValue([]);
+  jest.mocked(deployStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(deployStep.getOutputs).mockReturnValue([]);
 
   jest.mocked(invokeStep.getState).mockResolvedValue([{}] as any);
@@ -181,7 +181,7 @@ describe('builder.ts', () => {
       smartFunc: { hash: '0x56785678', events: {}, deployedOn: 'invoke.smartFunc', gasCost: '0', gasUsed: 0, signer: '' },
     },
   });
-  jest.mocked(invokeStep.getInputs).mockReturnValue([]);
+  jest.mocked(invokeStep.getInputs).mockReturnValue({ accesses: [], unableToCompute: false });
   jest.mocked(invokeStep.getOutputs).mockReturnValue([]);
 
   describe('build()', () => {

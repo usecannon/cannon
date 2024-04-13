@@ -143,10 +143,20 @@ export function useWalletPublicSafes() {
         supportedChains.map(async (chain) => {
           const safeService = _createSafeApiKit(chain.id);
           if (!safeService) return;
-          const res = await safeService.getSafesByOwner(address);
-          if (!Array.isArray(res.safes)) return;
-          for (const safe of res.safes) {
-            results.push({ chainId: chain.id, address: safe as Address });
+          // This in order to avoid breaking the whole query if any chain fails
+          try {
+            const res = await safeService.getSafesByOwner(address);
+            if (!Array.isArray(res.safes)) return;
+            for (const safe of res.safes) {
+              results.push({ chainId: chain.id, address: safe as Address });
+            }
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(
+              `Error fetching safes for chain ${chain.id}
+            `,
+              e
+            );
           }
         })
       );

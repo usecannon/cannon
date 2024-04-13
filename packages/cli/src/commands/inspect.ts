@@ -4,7 +4,7 @@ import { bold, cyan, green, yellow } from 'chalk';
 import { PackageReference } from '@usecannon/builder/dist/package';
 import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
 import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
+import { CliSettings } from '../settings';
 import fs from 'fs-extra';
 import path from 'path';
 import { getMainLoader } from '../loader';
@@ -12,6 +12,7 @@ import { getContractsAndDetails, getSourceFromRegistry } from '../helpers';
 
 export async function inspect(
   packageRef: string,
+  cliSettings: CliSettings,
   chainId: number,
   presetArg: string,
   json: boolean,
@@ -32,9 +33,9 @@ export async function inspect(
 
   const { fullPackageRef } = new PackageReference(packageRef);
 
-  const resolver = await createDefaultReadRegistry(resolveCliSettings());
+  const resolver = await createDefaultReadRegistry(cliSettings);
 
-  const loader = getMainLoader(resolveCliSettings());
+  const loader = getMainLoader(cliSettings);
 
   const deployUrl = await resolver.getUrl(fullPackageRef, chainId);
 
@@ -83,7 +84,7 @@ export async function inspect(
     const metaUrl = await resolver.getMetaUrl(fullPackageRef, chainId);
     const packageOwner = deployData.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
-    const ipfsUrl = resolveCliSettings().ipfsUrl;
+    const ipfsUrl = cliSettings.ipfsUrl;
     const ipfsAvailabilityScore = await fetchIPFSAvailability(ipfsUrl, deployUrl.replace('ipfs://', ''));
     const contractsAndDetails = getContractsAndDetails(deployData.state);
     const miscData = await loader.ipfs.read(deployData.miscUrl);

@@ -2,7 +2,7 @@ import { yellow } from 'chalk';
 import Debug from 'debug';
 import _ from 'lodash';
 import { z } from 'zod';
-import { computeTemplateAccesses } from '../access-recorder';
+import { computeTemplateAccesses, mergeTemplateAccesses } from '../access-recorder';
 import { build, createInitialContext, getOutputs } from '../builder';
 import { CANNON_CHAIN_ID } from '../constants';
 import { ChainDefinition } from '../definition';
@@ -20,7 +20,7 @@ import {
 const debug = Debug('cannon:builder:clone');
 
 /**
- *  Available properties for clone step
+ *  Available properties for clone operation
  *  @public
  *  @group clone
  */
@@ -38,38 +38,9 @@ const cloneSpec = {
 
   validate: cloneSchema,
 
-  async getState(
-    runtime: ChainBuilderRuntime,
-    ctx: ChainBuilderContextWithHelpers,
-    config: Config,
-    packageState: PackageState
-  ) {
-    const importLabel = packageState.currentLabel?.split('.')[1] || '';
-    const cfg = this.configInject(ctx, config, packageState);
-
-    const source = cfg.source;
-    const chainId = cfg.chainId ?? CANNON_CHAIN_ID;
-
-    if (ctx.imports[importLabel]?.url) {
-      const prevUrl = ctx.imports[importLabel].url!;
-
-      if ((await runtime.readBlob(prevUrl))!.status === 'partial') {
-        // partial build always need to be re-evaluated
-        debug('forcing rebuild because deployment is partial');
-        // returning an empty array for force a rebuild because any provided state hash will never match
-        return [];
-      }
-    }
-
-    const srcUrl = await runtime.registry.getUrl(source, chainId);
-
-    return [
-      {
-        url: srcUrl,
-        options: cfg.var || cfg.options,
-        targetPreset: cfg.targetPreset,
-      },
-    ];
+  async getState() {
+    // Always re-run the operation
+    return [];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
@@ -104,18 +75,16 @@ const cloneSpec = {
   },
 
   getInputs(config: Config) {
-    const accesses: string[] = [];
-
-    accesses.push(...computeTemplateAccesses(config.source));
-    accesses.push(...computeTemplateAccesses(config.sourcePreset));
-    accesses.push(...computeTemplateAccesses(config.targetPreset));
+    let accesses = computeTemplateAccesses(config.source);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
 
     if (config.options) {
-      _.forEach(config.options, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => accesses.push(...computeTemplateAccesses(a)));
+      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
     }
 
     return accesses;
@@ -132,7 +101,7 @@ const cloneSpec = {
     packageState: PackageState
   ): Promise<ChainArtifacts> {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
-    debug('exec', config);
+    debug(`[clone.${importLabel}]`, 'exec', config);
 
     const targetPreset = config.targetPreset ?? 'main';
     const sourcePreset = config.sourcePreset;
@@ -153,7 +122,7 @@ const cloneSpec = {
 
     const importPkgOptions = { ...(deployInfo?.options || {}), ...(config.var || config.options || {}) };
 
-    debug('cloneing package options', importPkgOptions);
+    debug(`[clone.${importLabel}]`, 'cloning package options', importPkgOptions);
 
     const def = new ChainDefinition(deployInfo.def);
 
@@ -163,7 +132,7 @@ const cloneSpec = {
     let prevMiscUrl = null;
     if (ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
-      debug(`using state from previous deploy: ${prevUrl}`);
+      debug(`[clone.${importLabel}]`, `using state from previous deploy: ${prevUrl}`);
       const prevDeployInfo = await runtime.readBlob(prevUrl);
       prevState = prevDeployInfo!.state;
       prevMiscUrl = prevDeployInfo!.miscUrl;
@@ -172,13 +141,14 @@ const cloneSpec = {
       // if there is, we need to overwrite it. print out a warning.
       if (await runtime.readDeploy(source, runtime.chainId)) {
         debug(
+          `[clone.${importLabel}]`,
           yellow(
             'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
           )
         );
       }
 
-      debug('no previous state found, deploying from scratch');
+      debug(`[clone.${importLabel}]`, 'no previous state found, deploying from scratch');
     }
 
     // TODO: needs npm package from the manifest
@@ -201,21 +171,34 @@ const cloneSpec = {
 
     // need to import the misc data for the imported package
     if (prevMiscUrl) {
-      debug('load misc');
+      debug(`[clone.${importLabel}]`, 'load misc');
       await importRuntime.restoreMisc(prevMiscUrl);
     }
 
-    debug('start build');
+    debug(`[clone.${importLabel}]`, 'start build');
     const builtState = await build(importRuntime, def, prevState, initialCtx);
     if (importRuntime.isCancelled()) {
       partialDeploy = true;
     }
 
-    debug('finish build. is partial:', partialDeploy);
+    debug(`[clone.${importLabel}]`, 'finish build. is partial:', partialDeploy);
+
+    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+      debug(
+        `[clone.${importLabel}]`,
+        'built state is exactly equal to previous state. skip generation of new deploy url',
+        importLabel
+      );
+      return {
+        imports: {
+          [importLabel]: ctx.imports[importLabel],
+        },
+      };
+    }
 
     const newMiscUrl = await importRuntime.recordMisc();
 
-    debug('new misc:', newMiscUrl);
+    debug(`[clone.${importLabel}]`, 'new misc:', newMiscUrl);
 
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
@@ -232,7 +215,7 @@ const cloneSpec = {
     });
 
     if (!newSubDeployUrl) {
-      debug('warn: cannot record built state for import nested state');
+      debug(`[clone.${importLabel}]`, 'warn: cannot record built state for import nested state');
     } else {
       await runtime.registry.publish(
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
