@@ -1,0 +1,25 @@
+{
+  "name": "repo",
+  "version": "0.1.0",
+  "description": "Management of Cannon Artifacts Uploaded to IPFS",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usecannon/cannon.git"
+  },
+  "keywords": [
+    "ipfs"
+  ],
+  "author": "Daniel Beal <git@dbeal.dev>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/usecannon/cannon/issues"
+  },
+  "homepage": "https://github.com/usecannon/cannon#readme",
+  "devDependencies": {
+    "@types/express": "^4.17.21"
+  }
+}

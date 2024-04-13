@@ -26,7 +26,9 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
+    "@types/connect-busboy": "^1.0.3",
     "@types/mock-fs": "^4.13.4",
+    "@types/morgan": "^1.9.9",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^8.10.0",
@@ -48,6 +50,12 @@
   "license": "GNU GPL V3.0",
   "dependencies": {
     "@changesets/cli": "^2.26.2",
-    "concat-md": "^0.5.1"
+    "@usecannon/builder": "^2.12.1",
+    "concat-md": "^0.5.1",
+    "connect-busboy": "^1.0.0",
+    "morgan": "^1.10.0",
+    "pako": "^2.1.0",
+    "redis": "^4.6.13",
+    "typestub-ipfs-only-hash": "^4.0.0"
   }
 }
