@@ -35,8 +35,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
-  uint256 public _unused = 0 wei;
-  uint256 public _unused2 = 0 wei;
+  uint256 public unused = 0 wei;
+  uint256 public unused2 = 0 wei;
 
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
