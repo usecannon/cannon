@@ -30,7 +30,7 @@ const varSpec = {
   async getState(runtime: ChainBuilderRuntime, ctx: ChainBuilderContextWithHelpers, config: Config) {
     const cfg = this.configInject(ctx, config);
 
-    return [cfg];
+    return [_.omit(cfg, 'depends')];
   },
 
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config) {
