@@ -1,13 +1,13 @@
 import {
   Box,
-  Text,
   Flex,
-  Heading,
   FormControl,
   FormLabel,
+  Heading,
   Input,
+  Text,
 } from '@chakra-ui/react';
-import { CopyBlock, a11yDark } from 'react-code-blocks';
+import { a11yDark, CopyBlock } from 'react-code-blocks';
 import {
   Address,
   bytesToString,
@@ -17,6 +17,8 @@ import {
   TransactionRequestBase,
   trim,
 } from 'viem';
+
+import type { ReactElement } from 'react';
 
 export function DisplayedTransaction(props: {
   contracts?: { [key: string]: { address: Address; abi: any[] } };
@@ -104,7 +106,7 @@ export function DisplayedTransaction(props: {
     return val.toString();
   }
 
-  function renderInput(type: string, val: string): React.ReactElement {
+  function renderInput(type: string, val: string): ReactElement {
     if (type === 'tuple') {
       return (
         <CopyBlock
