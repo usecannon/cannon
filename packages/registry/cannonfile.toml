@@ -22,6 +22,10 @@ depends = ["contract.InitialImpl"]
 
 [contract.Implementation]
 artifact = "CannonRegistry"
+args = [ # Optimism messenger addresses, taken from: https://docs.optimism.io/chain/addresses
+  "0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1", # OptimismL1Sender
+  "0x4200000000000000000000000000000000000007", # OptimismL2Receiver
+]
 
 [invoke.upgrade_proxy]
 target = ["InitialProxy"]

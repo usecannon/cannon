@@ -9,9 +9,6 @@ import {IOptimismL1Sender} from "./IOptimismL1Sender.sol";
 import {IOptimismL2Receiver} from "./IOptimismL2Receiver.sol";
 
 contract CannonRegistry is EfficientStorage, OwnedUpgradable {
-  IOptimismL1Sender private constant _OPTIMISM_MESSENGER = IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
-  IOptimismL2Receiver private constant _OPTIMISM_RECEIVER = IOptimismL2Receiver(0x4200000000000000000000000000000000000007);
-
   using SetUtil for SetUtil.Bytes32Set;
 
   error Unauthorized();
@@ -40,6 +37,14 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
   uint256 public publishFee = 0 wei;
   uint256 public registerFee = 0 wei;
+
+  IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
+  IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
+
+  constructor(address _optimismMessenger, address _optimismtReceiver) {
+    _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
+    _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismtReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
+  }
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
     // each character must be in the supported charset

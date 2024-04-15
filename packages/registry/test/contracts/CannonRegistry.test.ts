@@ -39,7 +39,7 @@ describe('CannonRegistry', function () {
     )) as TMockOptimismBridge;
 
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
-    const Implementation = await CannonRegistryFactory.deploy();
+    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address);
     await Implementation.deployed();
 
     const ProxyFactory = await ethers.getContractFactory('Proxy');
@@ -60,7 +60,10 @@ describe('CannonRegistry', function () {
 
     before('deploy new implementation', async function () {
       const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
-      newImplementation = (await CannonRegistry.deploy()) as TCannonRegistry;
+      newImplementation = (await CannonRegistry.deploy(
+        MockOPSendBridge.address,
+        MockOPRecvBridge.address
+      )) as TCannonRegistry;
       await newImplementation.deployed();
     });
 
