@@ -1,5 +1,5 @@
 import { deepEqual, equal, ok } from 'assert/strict';
-import { BigNumber, Signer } from 'ethers';
+import { BigNumber, Signer, ContractTransaction } from 'ethers';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
@@ -396,8 +396,21 @@ describe('CannonRegistry', function () {
     });
 
     describe('successful invoke', function () {
+      let tx: ContractTransaction;
+
       before('invoke', async function () {
-        await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), [await user2.getAddress()]);
+        tx = await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), [
+          await user2.getAddress(),
+        ]);
+      });
+
+      it('should emit PackagePublisherChanged event', async function () {
+        const { events } = await tx.wait();
+        equal(events!.length, 1);
+        const [{ event, args }] = events!;
+        equal(event, 'PackagePublishersChanged');
+        equal(args!.name, toBytes32('some-module'));
+        deepEqual(args!.publisher, [await user2.getAddress()]);
       });
 
       it('returns the current list of deployers', async function () {
