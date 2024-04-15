@@ -30,7 +30,7 @@ depends = ["contract.InitialImpl"]
 [contract.Implementation]
 artifact = "CannonRegistry"
 args = [
-  "<%= settings.optimismL1Sender %>", # OptimismL1Sender
+  "<%= settings.optimismL1Sender %>",   # OptimismL1Sender
   "<%= settings.optimismL2Receiver %>", # OptimismL2Receiver
 ]
 
