@@ -25,6 +25,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   event PackageRegistered(bytes32 indexed name, address registrant);
   event PackageOwnerNominated(bytes32 indexed name, address currentOwner, address nominatedOwner);
   event PackageOwnerChanged(bytes32 indexed name, address owner);
+  event PackagePublishersChanged(bytes32 indexed name, address[] publisher);
   event PackagePublish(
     bytes32 indexed name,
     bytes32 indexed tag,
@@ -204,6 +205,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
 
     _p.additionalDeployersLength = _additionalDeployers.length;
+
+    emit PackagePublishersChanged(_packageName, _additionalDeployers);
   }
 
   function getAdditionalPublishers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
