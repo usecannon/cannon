@@ -1,16 +1,14 @@
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { blueBright, gray, green, bold } from 'chalk';
+import { blueBright, gray, green } from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
 import _ from 'lodash';
 
-import { getChainById } from '../chains';
 import { CliSettings } from '../settings';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { resolveRegistryProviders } from '../util/provider';
-import { waitUntilPackageIsRegistered } from '../util/register';
+import { waitForEvent } from '../util/register';
 import { DEFAULT_REGISTRY_CONFIG } from '../constants';
-import { privateKeyToAccount } from 'viem/accounts';
 
 interface Params {
   cliSettings: CliSettings;
@@ -33,13 +31,11 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     cliSettings.registries = cliSettings.registries.reverse();
   }
 
-  const chainName = getChainById(Number(cliSettings.registries[0].chainId)).name || 'Unknown Chain';
-
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: `Provide a private key with gas on ${chainName} to publish this package on the registry`,
+      message: 'Enter the private key for the signer that will publish packages',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
@@ -50,10 +46,6 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
-
-  console.log('');
-  console.log("You're using the following address:", bold(privateKeyToAccount(cliSettings.privateKey!).address));
-  console.log('');
 
   const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
@@ -82,12 +74,12 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const packageName = new PackageReference(packageRef).name;
   const packageOwner = await mainRegistry.getPackageOwner(packageName);
 
-  if (viem.isAddressEqual(packageOwner, userAddress)) {
-    throw new Error(`The package "${packageName}" is already registered by your address (${packageOwner}).`);
-  }
-
   if (!viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
     throw new Error(`The package "${packageName}" is already registered by "${packageOwner}".`);
+  }
+
+  if (viem.isAddressEqual(packageOwner, userAddress)) {
+    throw new Error(`The package "${packageName}" is already registered by your address (${packageOwner}).`);
   }
 
   const userBalance = await mainRegistryProvider.provider.getBalance({ address: userAddress });
@@ -97,6 +89,8 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   const registerFee = await mainRegistry.getRegisterFee();
+  // Note: for some reason, estimate gas is not accurate
+  // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
   const estimateGas = await mainRegistry.estimateGasForSetPackageOwnership(packageName);
 
   const cost = estimateGas + registerFee;
@@ -107,41 +101,60 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     );
   }
 
-  console.log(`Register fee: ${viem.formatEther(registerFee)} ETH`);
-  console.log(`Address balance: ${viem.formatEther(userBalance)} ETH`);
-  console.log(`Estimated gas for registering the package: ${viem.formatEther(estimateGas)} ETH`);
-
+  console.log('');
+  console.log(`This will cost ${estimateGas} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({
     type: 'confirm',
     name: 'confirmation',
-    message: 'Do you want to register this package?',
+    message: 'Proceed?',
   });
 
   if (!confirm.confirmation) {
     process.exit(0);
   }
 
-  const hash = await mainRegistry.setPackageOwnership(packageName);
-
-  console.log('');
-  console.log(`${green('You have registered your package successfully.')} ${blueBright('Transaction hash:')} ${hash}`);
-  console.log('');
+  console.log('Submitting transaction...');
 
   if (isDefaultSettings) {
-    console.log(
-      gray('Waiting for registration to be confirmed on the OP Mainnet network. It may take approximately 1-3 minutes.')
-    );
-    console.log('');
-    console.log(
-      gray(
-        'Once confirmed, you will be able to publish your package to the Mainnet Cannon Registry or the OP Cannon Registry.'
-      )
-    );
-    console.log('');
-    await waitUntilPackageIsRegistered();
-  }
+    const [hash] = await Promise.all([
+      (async () => {
+        const hash = await mainRegistry.setPackageOwnership(packageName);
 
-  return hash;
+        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        console.log('');
+        console.log(
+          gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+        );
+        console.log('');
+
+        return hash;
+      })(),
+      (async () => {
+        // this should always resolve after the first promise but we want to make sure it runs at the same time
+        await waitForEvent({
+          eventName: 'PackageOwnerChanged',
+          abi: mainRegistry.contract.abi,
+        });
+
+        console.log(green('Success!'));
+        console.log('');
+
+        if (fromPublish) {
+          console.log(gray('We will continue with the publishing process.'));
+        } else {
+          console.log(
+            gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
+          );
+        }
+      })(),
+    ]);
+
+    return hash;
+  } else {
+    const hash = await mainRegistry.setPackageOwnership(packageName);
+    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    return hash;
+  }
 }

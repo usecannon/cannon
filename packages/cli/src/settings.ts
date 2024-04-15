@@ -153,20 +153,12 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .url()
       .optional()
       .default(fileSettings.publishIpfsUrl as string),
-    CANNON_REGISTRY_PROVIDER_URL: z
-      .string()
-      .url()
-      .optional()
-      .default(fileSettings.registryProviderUrl || DEFAULT_REGISTRY_CONFIG[0].providerUrl[0]),
-    CANNON_REGISTRY_CHAIN_ID: z
-      .string()
-      .optional()
-      .default(fileSettings.registryChainId || DEFAULT_REGISTRY_CONFIG[0].chainId.toString()),
+    CANNON_REGISTRY_PROVIDER_URL: z.string().url().optional(),
+    CANNON_REGISTRY_CHAIN_ID: z.string().optional(),
     CANNON_REGISTRY_ADDRESS: z
       .string()
       .optional()
-      .refine((v) => !v || viem.isAddress(v), 'must be address')
-      .default(fileSettings.registryAddress || DEFAULT_REGISTRY_CONFIG[0].address),
+      .refine((v) => !v || viem.isAddress(v), 'must be address'),
     CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
@@ -179,7 +171,6 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
   };
 }
 
-// TODO: this function is ugly
 function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings {
   const cliSettingsStore = untildify(
     path.join(process.env.CANNON_DIRECTORY || DEFAULT_CANNON_DIRECTORY, CLI_SETTINGS_STORE)
