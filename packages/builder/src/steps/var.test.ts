@@ -1,4 +1,4 @@
-import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
+import { fixtureCtx } from '../../test/fixtures';
 import action from './var';
 import { fakeRuntime } from './utils.test.helper';
 
