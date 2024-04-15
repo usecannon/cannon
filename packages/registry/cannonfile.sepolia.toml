@@ -1,5 +1,8 @@
 include = ["cannonfile.toml"]
 
+[setting.initialOwner]
+defaultValue = "0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3"
+
 [setting.optimismL1Sender]
 defaultValue = "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef"
 

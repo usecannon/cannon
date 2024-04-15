@@ -27,6 +27,11 @@ const config: HardhatUserConfig = {
       accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
       chainId: 10,
     },
+    sepolia: {
+      url: process.env.PROVIDER_URL || `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
+      chainId: 11155111,
+    },
     mainnet: {
       url: process.env.PROVIDER_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: process.env.CANNON_PRIVATE_KEY?.split(','),
