@@ -1,0 +1,8 @@
+include = ["cannonfile.toml"]
+
+[contract.Implementation]
+artifact = "CannonRegistry"
+args = [ # Optimism messenger addresses, taken from: https://docs.optimism.io/chain/addresses
+  "0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef", # OptimismL1Sender
+  "0x4200000000000000000000000000000000000007", # OptimismL2Receiver
+]
