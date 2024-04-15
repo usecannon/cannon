@@ -65,6 +65,8 @@ export { build } from './commands/build';
 export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
+export { addPublisher } from './commands/add-publisher';
+export { removePublisher } from './commands/remove-publisher';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
@@ -359,7 +361,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Provide a private key with gas to publish this package on the registry',
+      message: 'Enter the private key for an address that has permission to publish',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
@@ -390,7 +392,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         {
           type: 'select',
           name: 'pickedRegistryProvider',
-          message: 'Please choose a registry to publish to:',
+          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
           choices,
         },
       ])
@@ -418,7 +420,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       console.log();
       console.log(
         gray(
-          `Package "${packageRef}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
+          `Package "${
+            packageRef.split(':')[0]
+          }" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
         )
       );
       console.log();
@@ -487,6 +491,30 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
   const cliSettings = resolveCliSettings(options);
 
   await register({ cliSettings, options, packageRef, fromPublish: false });
+});
+
+applyCommandsConfig(program.command('add-publisher'), commandsConfig['add-publisher']).action(async function (
+  packageRef,
+  publisher,
+  options
+) {
+  const { addPublisher } = await import('./commands/add-publisher');
+
+  const cliSettings = resolveCliSettings(options);
+
+  await addPublisher({ cliSettings, options, packageRef, publisher });
+});
+
+applyCommandsConfig(program.command('remove-publisher'), commandsConfig['remove-publisher']).action(async function (
+  packageRef,
+  publisher,
+  options
+) {
+  const { removePublisher } = await import('./commands/remove-publisher');
+
+  const cliSettings = resolveCliSettings(options);
+
+  await removePublisher({ cliSettings, options, packageRef, publisher });
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {

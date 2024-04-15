@@ -603,6 +603,38 @@ export class OnChainRegistry extends CannonRegistry {
     return rx.transactionHash;
   }
 
+  async setAdditionalPublisher(packageName: string, publishers: viem.Address[]) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+
+    const params = {
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'setAdditionalPublishers',
+      args: [packageHash, publishers],
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params as any);
+    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const cost = simulatedGas;
+    if (cost > userBalance) {
+      throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
+    }
+
+    const hash = await this.signer.wallet.writeContract(params as any);
+    const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    return rx.transactionHash;
+  }
+
   private async _logEstimatedGas(simulatedGas: bigint): Promise<void> {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
