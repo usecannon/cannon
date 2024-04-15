@@ -35,8 +35,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
 
   uint256 public constant MIN_PACKAGE_NAME_LENGTH = 3;
-  uint256 public publishFee = 0 wei;
-  uint256 public registerFee = 0 wei;
+  uint256 public _unused = 0 wei;
+  uint256 public _unused2 = 0 wei;
 
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
@@ -78,9 +78,18 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     return true;
   }
 
+  function publishFee() public view returns (uint256) {
+    return _store().publishFee;
+  }
+
+  function registerFee() public view returns (uint256) {
+    return _store().registerFee;
+  }
+
   function setFees(uint256 _publishFee, uint256 _registerFee) external onlyOwner {
-    publishFee = _publishFee;
-    registerFee = _registerFee;
+    Store storage store = _store();
+    store.publishFee = _publishFee;
+    store.registerFee = _registerFee;
   }
 
   function publish(
@@ -90,8 +99,10 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external payable {
-    if (msg.value != publishFee) {
-      revert FeeRequired(publishFee);
+    Store storage store = _store();
+
+    if (msg.value != store.publishFee) {
+      revert FeeRequired(store.publishFee);
     }
 
     if (_packageTags.length == 0 || _packageTags.length > 5) {
@@ -102,7 +113,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       revert InvalidUrl(_packageDeployUrl);
     }
 
-    Package storage _p = _store().packages[_packageName];
+    Package storage _p = store.packages[_packageName];
     address sender = ERC2771Context.msgSender();
 
     if (!_canPublishPackage(_p, sender)) {
@@ -144,7 +155,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   function setPackageOwnership(bytes32 _packageName, address _owner) external payable {
-    Package storage _p = _store().packages[_packageName];
+    Store storage store = _store();
+    Package storage _p = store.packages[_packageName];
     address sender = ERC2771Context.msgSender();
 
     if (sender == address(_OPTIMISM_RECEIVER)) {
@@ -157,8 +169,8 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       }
 
       // package new or old check
-      if (owner == address(0) && msg.value != registerFee) {
-        revert FeeRequired(registerFee);
+      if (owner == address(0) && msg.value != store.registerFee) {
+        revert FeeRequired(store.registerFee);
       } else if (owner == address(0)) {
         emit PackageRegistered(_packageName, sender);
       }
