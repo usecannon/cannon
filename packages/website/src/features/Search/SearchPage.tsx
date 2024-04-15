@@ -325,7 +325,7 @@ export const SearchPage = () => {
                     fontWeight={500}
                     href="https://thegraph.com/hosted-service/subgraph/noahlitvin/cannon-registry-mainnet"
                   >
-                    the subgraph
+                    the subgraphs
                   </Link>
                 </Text>
               </Flex>

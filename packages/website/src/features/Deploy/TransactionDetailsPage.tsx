@@ -269,6 +269,7 @@ const TransactionDetailsPage: FC<{
                 safe={safe}
                 safeTxn={safeTxn as any}
                 allowPublishing={allowPublishing}
+                showQueueSource={true}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>

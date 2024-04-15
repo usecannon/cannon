@@ -22,17 +22,26 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   error FeeRequired(uint256 amount);
   error WrongChain();
 
-  event PackageRegistered(bytes32 indexed name, address registrant);
+  event PackageRegistered(bytes32 indexed name, address registrant, uint256 feePaid);
   event PackageOwnerNominated(bytes32 indexed name, address currentOwner, address nominatedOwner);
   event PackageOwnerChanged(bytes32 indexed name, address owner);
-  event PackagePublish(
+  event PackagePublishWithFee(
     bytes32 indexed name,
     bytes32 indexed tag,
     bytes32 indexed variant,
     string deployUrl,
     string metaUrl,
-    address owner
+    address owner,
+    uint256 feePaid
   );
+
+  event PackageTagged(
+    bytes32 indexed name,
+    bytes32 indexed tag,
+    bytes32 indexed variant,
+    bytes32 associatedTag
+  );
+
   event PackageUnpublish(bytes32 indexed name, bytes32 indexed tag, bytes32 indexed variant, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
@@ -85,7 +94,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     string memory _packageDeployUrl,
     string memory _packageMetaUrl
   ) external payable {
-    if (msg.value != publishFee) {
+    if (msg.value < publishFee) {
       revert FeeRequired(publishFee);
     }
 
@@ -110,14 +119,14 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     bytes32 _firstTag = _packageTags[0];
     _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
     CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
-    emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender);
+    emit PackagePublishWithFee(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender, msg.value);
 
     if (_packageTags.length > 1) {
       for (uint256 i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
-        emit PackagePublish(_packageName, _tag, _variant, _packageDeployUrl, _packageMetaUrl, sender);
+        emit PackageTagged(_packageName, _tag, _variant, _firstTag);
       }
     }
   }
@@ -152,10 +161,10 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       }
 
       // package new or old check
-      if (owner == address(0) && msg.value != registerFee) {
+      if (owner == address(0) && msg.value < registerFee) {
         revert FeeRequired(registerFee);
       } else if (owner == address(0)) {
-        emit PackageRegistered(_packageName, sender);
+        emit PackageRegistered(_packageName, sender, msg.value);
       }
 
       // name must be valid in order to register package

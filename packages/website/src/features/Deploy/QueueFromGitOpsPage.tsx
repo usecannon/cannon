@@ -52,12 +52,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import {
-  useChainId,
-  useEstimateGas,
-  useSendTransaction,
-  useWriteContract,
-} from 'wagmi';
+import { useEstimateGas, useSendTransaction, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
@@ -162,7 +157,7 @@ function QueueFromGitOps() {
   };
 
   const settings = useStore((s) => s.settings);
-  const chainId = useChainId();
+  const chainId = currentSafe?.chainId;
 
   const previousName = useMemo(() => {
     if (previousPackageInput) {
@@ -285,6 +280,7 @@ function QueueFromGitOps() {
                     `${gitUrl}:${gitFile}`,
                     gitHash,
                     prevInfoQuery.data &&
+                    Array.isArray(prevInfoQuery.data?.[0].result) &&
                     (prevInfoQuery.data[0].result as any).length > 2
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
