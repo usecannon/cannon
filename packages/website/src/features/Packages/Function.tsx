@@ -184,7 +184,7 @@ export const Function: FC<{
                 _hover={{ textDecoration: 'underline' }}
                 href={getCodeUrl(f.name)}
               >
-                <FaCode color="#0092b4" />
+                <FaCode color="#fff" />
               </Link>
             )}
           </Heading>
