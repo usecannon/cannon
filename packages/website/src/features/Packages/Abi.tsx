@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import * as viem from 'viem';
 import NextLink from 'next/link';
-import { ChainArtifacts, ContractData } from '@usecannon/builder';
+import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
 import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
 
@@ -18,12 +18,12 @@ import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 
 export const Abi: FC<{
-  contract?: ContractData;
+  abi?: AbiType;
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ contract, address, cannonOutputs, chainId }) => {
-  const abi = contract?.abi;
+  contractSource?: string;
+}> = ({ abi, contractSource, address, cannonOutputs, chainId }) => {
   const functions = useMemo<AbiFunction[]>(
     () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
@@ -192,7 +192,7 @@ export const Abi: FC<{
               address={address}
               cannonOutputs={cannonOutputs}
               chainId={chainId}
-              contractSource={contract?.sourceName}
+              contractSource={contractSource}
             />
           ))}
         </Box>

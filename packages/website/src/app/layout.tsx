@@ -1,4 +1,5 @@
 'use client';
+import '@/styles/globals.css';
 
 import { Providers } from './providers';
 import GoogleAnalytics from '@/components/GoogleAnalytics';

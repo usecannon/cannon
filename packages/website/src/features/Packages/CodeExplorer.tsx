@@ -84,8 +84,8 @@ export const CodeExplorer: FC<{
   name: string;
   moduleName: string;
   source: string;
-  contractAddress: string;
-}> = ({ variant, name, moduleName, source }) => {
+  functionName?: string;
+}> = ({ variant, name, moduleName, source, functionName }) => {
   // For the main package, the key is -1
   const [selectedPackage, setSelectedPackage] = useState<{
     name: string;
@@ -199,18 +199,44 @@ export const CodeExplorer: FC<{
       // find the source code for the selected contract
       for (const s of availableSources) {
         if (s.sources[decodeURIComponent(source)]) {
-          setSelectedCode(
-            (s.sources[decodeURIComponent(source)] as any).content
-          );
+          const code = (s.sources[decodeURIComponent(source)] as any).content;
+          setSelectedCode(code);
           setSelectedLanguage('sol');
           setSelectedKey(decodeURIComponent(source));
+
+          const urlParams = new URLSearchParams({
+            source: decodeURIComponent(source),
+          });
+
+          // set the selected line if a function name is provided
+          const line = functionName
+            ? code
+                .split('\n')
+                // use regex to match the function name
+                .findIndex((l: string) => {
+                  const escapedFunctionName = functionName.replace(
+                    /[-/\\^$*+?.()|[\]{}]/g,
+                    '\\$&'
+                  );
+                  const reg = new RegExp(
+                    `\\bfunction\\s+${escapedFunctionName}\\b`,
+                    'i'
+                  );
+                  return reg.test(l);
+                })
+            : -1;
+
+          if (line > -1 && functionName) {
+            setSelectedLine(line);
+            urlParams.append('function', functionName);
+          }
 
           window.history.pushState(
             null,
             '',
             `/packages/${name}/${variant.tag.name}/${variant.name}/code/${
               selectedPackage.name
-            }?source=${encodeURIComponent(source)}`
+            }?${urlParams.toString()}`
           );
           return;
         }
@@ -251,6 +277,7 @@ export const CodeExplorer: FC<{
     source,
     isLoadingMiscData,
     isLoadingProvisionedMiscData,
+    functionName,
   ]);
 
   const isSmall = useBreakpointValue({
@@ -262,6 +289,7 @@ export const CodeExplorer: FC<{
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [selectedKey, setSelectedKey] = useState('');
+  const [selectedLine, setSelectedLine] = useState<undefined | number>();
 
   const artifacts =
     // If the selected package is the main package, use the misc data
@@ -516,11 +544,15 @@ export const CodeExplorer: FC<{
               maxHeight={['none', 'none', 'calc(100vh - 236px)']}
               background="gray.800"
             >
-              <CodePreview
-                code={selectedCode}
-                language={selectedLanguage}
-                height="100%"
-              />
+              {/* Make sure code preview is not rendered if function name exists but no selected line is set yet */}
+              {!selectedLine && functionName ? null : (
+                <CodePreview
+                  code={selectedCode}
+                  language={selectedLanguage}
+                  height="100%"
+                  line={selectedLine}
+                />
+              )}
             </Box>
           </Flex>
         </>

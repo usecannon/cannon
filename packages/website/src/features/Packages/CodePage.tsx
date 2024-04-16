@@ -15,13 +15,14 @@ export const CodePage: FC<{
   variant: string;
   moduleName: string;
   contractAddress: Address;
-}> = ({ name, tag, variant, moduleName, contractAddress }) => {
+}> = ({ name, tag, variant, moduleName }) => {
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
 
   const searchParams = useSearchParams();
   const source = searchParams.get('source') || '';
+  const functionName = searchParams.get('function') || '';
 
   useEffect(() => {
     if (data?.packages[0]) setPackage(data?.packages[0]);
@@ -41,7 +42,7 @@ export const CodePage: FC<{
           variant={currentVariant}
           moduleName={moduleName}
           source={source}
-          contractAddress={contractAddress}
+          functionName={functionName}
         />
       ) : (
         <CustomSpinner m="auto" />

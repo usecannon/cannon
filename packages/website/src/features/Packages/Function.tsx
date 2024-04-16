@@ -140,7 +140,7 @@ export const Function: FC<{
 
   const anchor = `selector-${toFunctionSelector(f)}`;
 
-  const getCodeUrl = () => {
+  const getCodeUrl = (functionName: string) => {
     const base = pathName.split('/interact')[0];
     const activeContractPath = pathName.split('interact/')[1];
     if (activeContractPath && contractSource) {
@@ -148,7 +148,7 @@ export const Function: FC<{
 
       return `${base}/code/${moduleName}?source=${encodeURIComponent(
         contractSource
-      )}`;
+      )}&function=${functionName}`;
     }
   };
 
@@ -182,7 +182,7 @@ export const Function: FC<{
                 ml={1}
                 textDecoration="none"
                 _hover={{ textDecoration: 'underline' }}
-                href={getCodeUrl()}
+                href={getCodeUrl(f.name)}
               >
                 <FaCode color="#0092b4" />
               </Link>
