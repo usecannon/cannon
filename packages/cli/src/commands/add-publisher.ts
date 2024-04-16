@@ -84,15 +84,13 @@ export async function addPublisher({ cliSettings, options, packageRef, publisher
   // throw an error if the address is already a publisher
   const isExistingPublisher = additionalPublishers.some((_publisher) => viem.isAddressEqual(_publisher, publisher));
   if (isExistingPublisher) {
-    throw new Error(
-      `The address "${options.additionalPublisher}" is already an additional publisher for "${packageName}" package.`
-    );
+    throw new Error(`The address "${options.additionalPublisher}" is already a publisher for "${packageName}" package.`);
   }
 
   const confirm = await prompts({
     type: 'confirm',
     name: 'confirmation',
-    message: `Do you want to add ${options.additionalPublisher} as a additional publisher?`,
+    message: `Do you want to add ${options.additionalPublisher} as a publisher?`,
   });
 
   if (!confirm.confirmation) {

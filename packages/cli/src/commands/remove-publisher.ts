@@ -97,7 +97,7 @@ export async function removePublisher({ cliSettings, options, packageRef, publis
     process.exit(0);
   }
 
-  // remove the new publisher to the list of publishers
+  // remove publisher from the list of publishers
   const publishers = additionalPublishers.filter((_publisher) => !viem.isAddressEqual(_publisher, publisher));
 
   if (isDefaultSettings) {

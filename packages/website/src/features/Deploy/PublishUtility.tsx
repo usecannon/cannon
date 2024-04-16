@@ -1,18 +1,22 @@
 import { useWalletClient } from 'wagmi';
 import { Chain, createPublicClient, http } from 'viem';
 import { useMutation } from '@tanstack/react-query';
-import { InfoOutlineIcon, QuestionOutlineIcon } from '@chakra-ui/icons';
+import {
+  InfoOutlineIcon,
+  QuestionOutlineIcon,
+  ExternalLinkIcon,
+} from '@chakra-ui/icons';
 import {
   Button,
   Link,
   Spinner,
   Text,
   useToast,
-  Flex,
   Tooltip,
   Image,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
-import * as chains from '@wagmi/core/chains';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
 import { IPFSBrowserLoader } from '@/helpers/ipfs';
@@ -23,7 +27,6 @@ import {
   OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { find } from 'lodash';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
 
 export default function PublishUtility(props: {
@@ -60,68 +63,70 @@ export default function PublishUtility(props: {
     resolvedVersion ? ':' + resolvedVersion : ''
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
 
-  const publishMutation = useMutation({
+  const prepareAndPublishPackage = async (registryChainId: number) => {
+    if (settings.isIpfsGateway) {
+      // TODO: prompt to connect wallet and switch to Chain ID registryChainId
+
+      // UI should prevent this from happening
+      throw new Error(
+        'You cannot publish on an IPFS gateway, only read operations can be done'
+      );
+    }
+
+    if (!wc.data) {
+      throw new Error('Wallet not connected');
+    }
+
+    const [walletAddress] = await wc.data.getAddresses();
+
+    // TODO: This needs to check both registries? Should it just check subgraph?
+    const targetRegistry = new OnChainRegistry({
+      signer: { address: walletAddress, wallet: wc.data },
+      address: DEFAULT_REGISTRY_ADDRESS,
+      provider: createPublicClient({
+        chain: findChain(registryChainId) as Chain,
+        transport: http(),
+      }),
+    });
+
+    const fakeLocalRegistry = new InMemoryRegistry();
+
+    // TODO: set meta url
+    await fakeLocalRegistry.publish(
+      [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
+      props.targetChainId,
+      props.deployUrl,
+      ''
+    );
+
+    const loader = new IPFSBrowserLoader(
+      settings.ipfsApiUrl || 'https://repo.usecannon.com/'
+    );
+
+    const fromStorage = new CannonStorage(
+      fakeLocalRegistry,
+      { ipfs: loader },
+      'ipfs'
+    );
+    const toStorage = new CannonStorage(
+      targetRegistry,
+      { ipfs: loader },
+      'ipfs'
+    );
+
+    await publishPackage({
+      packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
+      tags: ['latest'],
+      chainId: props.targetChainId,
+      fromStorage,
+      toStorage,
+      includeProvisioned: true,
+    });
+  };
+
+  const publishMainnetMutation = useMutation({
     mutationFn: async () => {
-      if (settings.isIpfsGateway) {
-        throw new Error(
-          'You cannot publish on an IPFS gateway, only read operations can be done'
-        );
-      }
-
-      if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-        throw new Error(
-          'Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.'
-        );
-      }
-
-      if (!wc.data) {
-        throw new Error('Wallet not connected');
-      }
-
-      const [walletAddress] = await wc.data.getAddresses();
-
-      const targetRegistry = new OnChainRegistry({
-        signer: { address: walletAddress, wallet: wc.data },
-        address: DEFAULT_REGISTRY_ADDRESS,
-        provider: createPublicClient({
-          chain: findChain(1) as Chain,
-          transport: http(),
-        }),
-      });
-
-      const fakeLocalRegistry = new InMemoryRegistry();
-
-      // TODO: set meta url
-      await fakeLocalRegistry.publish(
-        [`${resolvedName}:${resolvedVersion}@${resolvedPreset}`],
-        props.targetChainId,
-        props.deployUrl,
-        ''
-      );
-
-      const loader = new IPFSBrowserLoader(
-        settings.ipfsApiUrl || 'https://repo.usecannon.com/'
-      );
-
-      const fromStorage = new CannonStorage(
-        fakeLocalRegistry,
-        { ipfs: loader },
-        'ipfs'
-      );
-      const toStorage = new CannonStorage(
-        targetRegistry,
-        { ipfs: loader },
-        'ipfs'
-      );
-
-      await publishPackage({
-        packageRef: `${resolvedName}:${resolvedVersion}@${resolvedPreset}`,
-        tags: ['latest'],
-        chainId: props.targetChainId,
-        fromStorage,
-        toStorage,
-        includeProvisioned: true,
-      });
+      await prepareAndPublishPackage(1);
     },
     onSuccess() {
       void registryQuery.refetch();
@@ -129,8 +134,6 @@ export default function PublishUtility(props: {
     onError() {
       toast({
         title: 'Error Publishing Package',
-        description:
-          'Confirm that the connected wallet is allowed to publish this package and a valid IPFS URL for pinning is in your settings.',
         status: 'error',
         duration: 30000,
         isClosable: true,
@@ -138,9 +141,23 @@ export default function PublishUtility(props: {
     },
   });
 
-  const chainName = find(chains, (chain: any) => chain.id == 1)?.name;
+  const publishOptimismMutation = useMutation({
+    mutationFn: async () => {
+      await prepareAndPublishPackage(10);
+    },
+    onSuccess() {
+      void registryQuery.refetch();
+    },
+    onError() {
+      toast({
+        title: 'Error Publishing Package',
+        status: 'error',
+        duration: 30000,
+        isClosable: true,
+      });
+    },
+  });
 
-  // any difference means that this deployment is not technically published
   if (ipfsPkgQuery.isFetching || ipfsChkQuery.isFetching) {
     return (
       <Text textAlign="center">
@@ -148,6 +165,7 @@ export default function PublishUtility(props: {
       </Text>
     );
   } else if (existingRegistryUrl !== props.deployUrl) {
+    // Any difference means that this deployment is not technically published
     return (
       <>
         {props.deployUrl && (
@@ -157,7 +175,7 @@ export default function PublishUtility(props: {
             _hover={{ textDecoration: 'none' }}
             display="flex"
             alignItems="center"
-            mb={3}
+            mb={4}
           >
             <Image
               display="inline-block"
@@ -178,55 +196,73 @@ export default function PublishUtility(props: {
             </Text>
           </Link>
         )}
-        {wc.data?.chain?.id === 1 ? (
+
+        {!!existingRegistryUrl && (
+          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
+            <AlertIcon boxSize={4} mr={3} />
+            <Text>
+              A different package has already been published to {packageDisplay}
+              . Publishing again will overwrite it.
+            </Text>
+          </Alert>
+        )}
+
+        {settings.isIpfsGateway ? (
+          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
+            <AlertIcon boxSize={4} mr={3} />
+            <Text>
+              You cannot publish using an IPFS gateway. Please{' '}
+              <Link href="/settings" isExternal>
+                use a Kubo RPC API
+              </Link>
+              .
+            </Text>
+          </Alert>
+        ) : (
           <>
-            {!existingRegistryUrl ? (
-              <Text fontSize="sm" mb={3}>
-                The package resulting from this deployment has not been
-                published yet.
-              </Text>
-            ) : (
-              <Text fontSize="sm" mb={3}>
-                A different package has been published to the registry with a
-                matching name and version.
-              </Text>
-            )}
-            {settings.isIpfsGateway && (
-              <Text fontSize="sm" mb={3}>
-                You cannot publish on an IPFS gateway, only read operations can
-                be done.
-              </Text>
-            )}
-            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-              <Text fontSize="sm" mb={3}>
-                You cannot publish on an repo endpoint, only read operations can
-                be done.
-              </Text>
-            )}
             <Button
+              variant="outline"
+              colorScheme="white"
+              size="sm"
+              bg="teal.900"
+              borderColor="teal.500"
+              _hover={{ bg: 'teal.800' }}
+              textTransform="uppercase"
+              letterSpacing="1px"
+              fontFamily="var(--font-miriam)"
+              color="gray.200"
+              fontWeight={500}
               isDisabled={
                 settings.isIpfsGateway ||
-                settings.ipfsApiUrl.includes('https://repo.usecannon.com') ||
-                publishMutation.isPending
+                publishOptimismMutation.isPending ||
+                publishMainnetMutation.isPending
               }
-              colorScheme="teal"
-              size="sm"
-              onClick={() => publishMutation.mutate()}
-              leftIcon={
-                publishMutation.isPending ? <Spinner size="sm" /> : undefined
-              }
+              mb={2}
+              w="full"
+              onClick={() => publishOptimismMutation.mutate()}
+              isLoading={publishOptimismMutation.isPending}
             >
-              {publishMutation.isPending
-                ? 'Publishing...'
-                : 'Publish to Registry'}
+              Publish to Optimism
             </Button>
+            <Text fontSize="xs" textAlign="center">
+              <Link
+                onClick={() =>
+                  settings.isIpfsGateway ||
+                  publishOptimismMutation.isPending ||
+                  publishMainnetMutation.isPending
+                    ? false
+                    : publishMainnetMutation.mutate()
+                }
+              >
+                {publishMainnetMutation.isPending
+                  ? 'Publishing...'
+                  : 'Publish to Mainnet'}
+              </Link>{' '}
+              <Tooltip label="Cannon will detect packages published to Optimism or Mainnet.">
+                <InfoOutlineIcon />
+              </Tooltip>
+            </Text>
           </>
-        ) : (
-          <Flex fontSize="xs" fontWeight="medium" align="top">
-            <InfoOutlineIcon mt="3px" mr={1.5} />
-            Connect your wallet {chainName && `to ${chainName}`} to publish the
-            package with data about this deployment
-          </Flex>
         )}
       </>
     );
@@ -252,14 +288,24 @@ export default function PublishUtility(props: {
 
         <Button
           mt={2}
-          size="xs"
-          colorScheme="teal"
           as={Link}
           href={packageUrl}
+          variant="outline"
+          colorScheme="white"
+          size="sm"
+          bg="teal.900"
+          borderColor="teal.500"
+          _hover={{ bg: 'teal.800', textDecoration: 'none' }}
+          textTransform="uppercase"
+          letterSpacing="1px"
+          fontFamily="var(--font-miriam)"
+          color="gray.200"
+          fontWeight={500}
           textDecoration="none"
-          _hover={{ textDecoration: 'none' }}
+          isExternal
+          rightIcon={<ExternalLinkIcon transform="translateY(-1px)" />}
         >
-          {packageDisplay}
+          View Package
         </Button>
       </>
     );

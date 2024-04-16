@@ -8,6 +8,8 @@ contract EfficientStorage {
     mapping(bytes16 => string) strings;
     mapping(bytes32 => Package) packages;
     mapping(address => bool) verifiers;
+    uint256 publishFee;
+    uint256 registerFee;
   }
 
   struct Package {

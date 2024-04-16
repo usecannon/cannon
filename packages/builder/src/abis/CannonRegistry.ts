@@ -243,6 +243,25 @@ export default [
       },
       {
         indexed: false,
+        internalType: 'address[]',
+        name: 'publisher',
+        type: 'address[]',
+      },
+    ],
+    name: 'PackagePublishersChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
         internalType: 'address',
         name: 'registrant',
         type: 'address',

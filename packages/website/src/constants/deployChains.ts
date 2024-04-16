@@ -8,12 +8,6 @@ export const chains = [
     serviceUrl: 'https://safe-transaction-mainnet.safe.global',
   },
   {
-    id: 5,
-    name: 'Goerli Testnet',
-    shortName: 'gor',
-    serviceUrl: 'https://safe-transaction-goerli.safe.global',
-  },
-  {
     id: 10,
     name: 'Optimism',
     shortName: 'oeth',
@@ -60,12 +54,6 @@ export const chains = [
     name: 'Avalanche',
     shortName: 'avax',
     serviceUrl: 'https://safe-transaction-avalanche.safe.global',
-  },
-  {
-    id: 84531,
-    name: 'Base Goerli Testnet',
-    shortName: 'basegor',
-    serviceUrl: 'https://safe-transaction-base-testnet.safe.global',
   },
   {
     id: 11155111,

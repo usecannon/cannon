@@ -192,3 +192,9 @@ teardown() {
   echo $output
   assert_success
 }
+
+@test "Test - Basic Capabilities" {
+  run test.sh
+  echo $output
+  assert_success
+}
