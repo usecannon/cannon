@@ -130,7 +130,9 @@ const cloneSpec = {
     // if all else fails, we can load from scratch (aka this is first deployment)
     let prevState: DeploymentState = {};
     let prevMiscUrl = null;
-    if (ctx.imports[importLabel]?.url) {
+
+    // also do not restore previous state for any network that snapshots--its not possible to restore state snapshots, so we have to rebuild
+    if (!runtime.snapshots && ctx.imports[importLabel]?.url) {
       const prevUrl = ctx.imports[importLabel].url!;
       debug(`[clone.${importLabel}]`, `using state from previous deploy: ${prevUrl}`);
       const prevDeployInfo = await runtime.readBlob(prevUrl);
