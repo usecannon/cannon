@@ -96,7 +96,7 @@ function QueueFromGitOps() {
     return cannonfileUrlInput.split('/blob/')[0];
   }, [cannonfileUrlInput]);
 
-  const gitBranch = useMemo(() => {
+  const gitRef = useMemo(() => {
     if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
       return '';
     }
@@ -115,7 +115,7 @@ function QueueFromGitOps() {
       return '';
     }
 
-    return `refs/heads/${branchName}`;
+    return branchName;
   }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
@@ -137,7 +137,7 @@ function QueueFromGitOps() {
     return urlComponents.join('/');
   }, [cannonfileUrlInput]);
 
-  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
+  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
@@ -255,7 +255,12 @@ function QueueFromGitOps() {
   }, [buildInfo.buildResult?.steps]);
 
   const refsInfo = useGitRefsList(gitUrl);
-  const gitHash = refsInfo.refs?.find((r) => r.ref === gitBranch)?.oid;
+  const foundRef = refsInfo.refs?.find(
+    (r) =>
+      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
+      r.ref.endsWith(gitRef)
+  )?.oid;
+  const gitHash = gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
