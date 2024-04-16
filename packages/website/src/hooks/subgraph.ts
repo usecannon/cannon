@@ -17,20 +17,18 @@ export function useQueryCannonSubgraphData<TData = any, TVariables extends Opera
     const fetchSubgraphs = async () => {
       setLoading(true);
       try {
-        // Query mainnet
-        const { data: mainnetData } = await apolloClient.query<TData, TVariables>({
-          query,
-          variables: options?.variables,
-        });
+        const [mainnetData, optimismData] = await Promise.all([
+          apolloClient.query<TData, TVariables>({
+            query,
+            variables: options?.variables,
+          }),
+          apolloClientOptimism.query<TData, TVariables>({
+            query,
+            variables: options?.variables,
+          }),
+        ]);
 
-        // Query optimism
-        const { data: optimismData } = await apolloClientOptimism.query<TData, TVariables>({
-          query,
-          variables: options?.variables,
-        });
-
-        // Merge results, with optimism data taking precedence
-        const merged: TData = merge(mainnetData, optimismData);
+        const merged: TData = merge(mainnetData.data, optimismData.data);
         setMergedData(merged);
       } catch (e) {
         setError(e instanceof Error ? e : new Error('An error occurred'));

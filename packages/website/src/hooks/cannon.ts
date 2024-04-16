@@ -1,11 +1,18 @@
-import { inMemoryLoader, inMemoryRegistry, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
-import { createFork, findChain } from '@/helpers/rpc';
-import { SafeDefinition, useStore } from '@/helpers/store';
-import { useGitRepo } from '@/hooks/git';
-import { useLogs } from '@/providers/logsProvider';
+import _ from 'lodash';
+import { useChainId } from 'wagmi';
+import { useEffect, useState } from 'react';
 import { BaseTransaction } from '@safe-global/safe-apps-sdk';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { Abi, Address, createPublicClient, createWalletClient, custom, isAddressEqual, PublicClient } from 'viem';
+
+import { useGitRepo } from '@/hooks/git';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
+import { useLogs } from '@/providers/logsProvider';
+import { useCannonRegistry } from '@/hooks/registry';
+import { createFork, findChain } from '@/helpers/rpc';
+import { SafeDefinition, useStore } from '@/helpers/store';
+import { inMemoryLoader, loadCannonfile, StepExecutionError } from '@/helpers/cannon';
+
 import {
   build as cannonBuild,
   CannonStorage,
@@ -17,27 +24,10 @@ import {
   DeploymentInfo,
   DeploymentState,
   Events,
-  FallbackRegistry,
   getOutputs,
   InMemoryRegistry,
-  OnChainRegistry,
   publishPackage,
 } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
-import _ from 'lodash';
-import { useEffect, useState, useMemo } from 'react';
-import {
-  Abi,
-  Address,
-  Chain,
-  createPublicClient,
-  createWalletClient,
-  custom,
-  http,
-  isAddressEqual,
-  PublicClient,
-} from 'viem';
-import { useChainId } from 'wagmi';
 
 export type BuildState =
   | {
@@ -75,27 +65,6 @@ export function useLoadCannonDefinition(repo: string, ref: string, filepath: str
     def: loadDefinitionQuery.data?.def,
     filesList: loadDefinitionQuery.data?.filesList,
   };
-}
-
-export function useCannonRegistry() {
-  return useMemo(() => {
-    const registryChainIds = [10, 1];
-    const onChainRegistries = registryChainIds.map(
-      (chainId: number) =>
-        new OnChainRegistry({
-          address: DEFAULT_REGISTRY_ADDRESS,
-          provider: createPublicClient({
-            chain: findChain(chainId) as Chain,
-            transport: http(),
-          }),
-        })
-    );
-
-    // Create a regsitry that loads data first from Memory to be able to utilize
-    // the locally built data
-    const fallbackRegistry = new FallbackRegistry([inMemoryRegistry, ...onChainRegistries]);
-    return fallbackRegistry;
-  }, []);
 }
 
 export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinition, prevDeploy?: DeploymentInfo) {

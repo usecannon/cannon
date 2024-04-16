@@ -1,5 +1,6 @@
 import { useWalletClient } from 'wagmi';
-import { Chain, createPublicClient, http } from 'viem';
+import { mainnet, optimism } from 'viem/chains';
+import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { useMutation } from '@tanstack/react-query';
 import {
   InfoOutlineIcon,
@@ -16,6 +17,8 @@ import {
   Image,
   Alert,
   AlertIcon,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
@@ -28,6 +31,7 @@ import {
   publishPackage,
 } from '@usecannon/builder';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
+import { useCannonPackagePublishers } from '@/hooks/registry';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -62,6 +66,18 @@ export default function PublishUtility(props: {
   const packageDisplay = `${resolvedName}${
     resolvedVersion ? ':' + resolvedVersion : ''
   }${resolvedPreset ? '@' + resolvedPreset : ''}`;
+
+  const publishers = useCannonPackagePublishers(resolvedName!);
+
+  const canPublish = publishers.some(
+    (publisher) =>
+      wc.data?.account.address &&
+      isAddressEqual(publisher, wc.data?.account.address)
+  );
+
+  const etherscanUrl =
+    findChain(props.targetChainId).blockExplorers?.default?.url ??
+    'https://etherscan.io';
 
   const prepareAndPublishPackage = async (registryChainId: number) => {
     if (settings.isIpfsGateway) {
@@ -126,10 +142,10 @@ export default function PublishUtility(props: {
 
   const publishMainnetMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(1);
+      await prepareAndPublishPackage(mainnet.id);
     },
-    onSuccess() {
-      void registryQuery.refetch();
+    onSuccess: async () => {
+      await registryQuery.refetch();
     },
     onError() {
       toast({
@@ -143,16 +159,16 @@ export default function PublishUtility(props: {
 
   const publishOptimismMutation = useMutation({
     mutationFn: async () => {
-      await prepareAndPublishPackage(10);
+      await prepareAndPublishPackage(optimism.id);
     },
-    onSuccess() {
-      void registryQuery.refetch();
+    onSuccess: async () => {
+      await registryQuery.refetch();
     },
     onError() {
       toast({
         title: 'Error Publishing Package',
         status: 'error',
-        duration: 30000,
+        duration: 10000,
         isClosable: true,
       });
     },
@@ -207,7 +223,7 @@ export default function PublishUtility(props: {
           </Alert>
         )}
 
-        {settings.isIpfsGateway ? (
+        {settings.isIpfsGateway && (
           <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
             <AlertIcon boxSize={4} mr={3} />
             <Text>
@@ -218,7 +234,61 @@ export default function PublishUtility(props: {
               .
             </Text>
           </Alert>
-        ) : (
+        )}
+
+        {!settings.isIpfsGateway && !canPublish && (
+          <div>
+            <Text fontSize="xs" fontWeight="medium" mb={2}>
+              Connect{' '}
+              {publishers.length > 1
+                ? 'one of the following wallets'
+                : 'the following wallet'}{' '}
+              to Ethereum or OP Mainnet to publish this package:
+            </Text>
+            <UnorderedList mb={4}>
+              {publishers.map((publisher) => (
+                <ListItem key={publisher} mb={1}>
+                  <Text
+                    display="inline"
+                    fontFamily="mono"
+                    fontWeight={200}
+                    color="gray.200"
+                    key={`publisher-${publisher}`}
+                  >
+                    {`${publisher.substring(0, 8)}...${publisher.slice(-6)}`}
+                    <Link
+                      isExternal
+                      styleConfig={{ 'text-decoration': 'none' }}
+                      href={`${etherscanUrl}/address/${publisher}`}
+                      ml={1}
+                    >
+                      <ExternalLinkIcon transform="translateY(-1px)" />
+                    </Link>
+                  </Text>
+                </ListItem>
+              ))}
+            </UnorderedList>
+            <Button
+              variant="outline"
+              colorScheme="white"
+              size="sm"
+              bg="teal.900"
+              borderColor="teal.500"
+              _hover={{ bg: 'teal.800' }}
+              textTransform="uppercase"
+              letterSpacing="1px"
+              fontFamily="var(--font-miriam)"
+              color="gray.200"
+              fontWeight={500}
+              isDisabled
+              w="full"
+            >
+              Publish Package
+            </Button>
+          </div>
+        )}
+
+        {!settings.isIpfsGateway && canPublish && (
           <>
             <Button
               variant="outline"
