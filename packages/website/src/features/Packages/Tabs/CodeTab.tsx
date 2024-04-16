@@ -1,40 +1,11 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
-import { GET_PACKAGE } from '@/graphql/queries';
-import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
-import { Flex } from '@chakra-ui/react';
-import { CodeExplorer } from '@/features/Packages/CodeExplorer';
-import { CustomSpinner } from '@/components/CustomSpinner';
+import { FC, ReactNode } from 'react';
 
-export const CodeTab: FC<{ name: string; tag: string; variant: string }> = ({
-  name,
-  tag,
-  variant,
-}) => {
-  const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
-    variables: { name },
-  });
-
-  useEffect(() => {
-    if (data?.packages[0]) setPackage(data?.packages[0]);
-  }, [data]);
-
-  const [pkg, setPackage] = useState<any | null>(null);
-
-  const currentVariant = pkg?.variants.find(
-    (v: any) => v.name === variant && v.tag.name === tag
-  );
-
-  return (
-    <Flex flexDirection="column" width="100%" flex="1">
-      {currentVariant ? (
-        <CodeExplorer variant={currentVariant} name={name} />
-      ) : (
-        <CustomSpinner m="auto" />
-      )}
-    </Flex>
-  );
+export const CodeTab: FC<{
+  children?: ReactNode;
+}> = ({ children }) => {
+  return <>{children}</>;
 };
 
 export default CodeTab;

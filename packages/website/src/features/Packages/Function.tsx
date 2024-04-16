@@ -3,6 +3,7 @@ import { FunctionInput } from '@/features/Packages/FunctionInput';
 import { FunctionOutput } from '@/features/Packages/FunctionOutput';
 import { useContractCall, useContractTransaction } from '@/hooks/ethereum';
 import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
+import { FaCode } from 'react-icons/fa6';
 import {
   Alert,
   Box,
@@ -30,6 +31,7 @@ import {
   useSwitchChain,
   useWalletClient,
 } from 'wagmi';
+import { usePathname } from 'next/navigation';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -37,7 +39,9 @@ export const Function: FC<{
   address: Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ f, abi /*, cannonOutputs */, address, chainId }) => {
+  contractSource?: string;
+}> = ({ f, abi /*, cannonOutputs */, address, chainId, contractSource }) => {
+  const pathName = usePathname();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -136,12 +140,32 @@ export const Function: FC<{
 
   const anchor = `selector-${toFunctionSelector(f)}`;
 
+  const getCodeUrl = (functionName: string) => {
+    const base = pathName.split('/interact')[0];
+    const activeContractPath = pathName.split('interact/')[1];
+    if (activeContractPath && contractSource) {
+      const [moduleName] = activeContractPath.split('/');
+
+      return `${base}/code/${moduleName}?source=${encodeURIComponent(
+        contractSource
+      )}&function=${functionName}`;
+    }
+  };
+
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600">
       <span id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
-          <Heading size="sm" fontFamily="mono" fontWeight="semibold" mb={0}>
+          <Heading
+            size="sm"
+            fontFamily="mono"
+            fontWeight="semibold"
+            mb={0}
+            display="flex"
+            alignItems="center"
+            gap={2}
+          >
             {toFunctionSignature(f)}
             <Link
               color="gray.300"
@@ -152,6 +176,17 @@ export const Function: FC<{
             >
               #
             </Link>
+            {!!contractSource && (
+              <Link
+                color="gray.300"
+                ml={1}
+                textDecoration="none"
+                _hover={{ textDecoration: 'underline' }}
+                href={getCodeUrl(f.name)}
+              >
+                <FaCode color="#fff" />
+              </Link>
+            )}
           </Heading>
         </Flex>
         <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
