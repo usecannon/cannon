@@ -4,7 +4,9 @@ import { z } from 'zod';
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 
 // Different types that can be passed into the args schema property
-const argtype: z.ZodLazy<any> = z.lazy(() => z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), argtype), z.array(argtype)]));
+const argtype: z.ZodLazy<any> = z.lazy(() =>
+  z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), argtype), z.array(argtype)])
+);
 
 // Different regular expressions used to validate formats like
 // <%=  string interpolation %>, step.names or property.names, packages:versions
