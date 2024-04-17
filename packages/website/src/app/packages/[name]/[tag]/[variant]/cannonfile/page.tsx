@@ -10,8 +10,21 @@ const NoSSR = dynamic(
   }
 );
 export const metadata: Metadata = {
-  title: 'Cannon | Package',
-  description: 'Package',
+  title: 'Cannon | Package | Cannonfile',
+  description: 'Package | Cannonfile',
+  openGraph: {
+    title: 'Cannon | Package | Cannonfile',
+    description: 'Package | Cannonfile',
+    url: 'https://usecannon.com',
+    siteName: 'Cannon',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: 'https://usecannon.com/images/og.png',
+      },
+    ],
+  },
 };
 
 export default function Cannonfile({

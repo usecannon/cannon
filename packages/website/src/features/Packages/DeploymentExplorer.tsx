@@ -60,6 +60,7 @@ export const DeploymentExplorer: FC<{
         // If the current object has both address and abi keys
         if (obj[key].address && obj[key].abi) {
           if (
+            obj[key].deployedOn.startsWith('deploy') ||
             obj[key].deployedOn.startsWith('contract') ||
             obj[key].deployedOn.includes('router')
           ) {

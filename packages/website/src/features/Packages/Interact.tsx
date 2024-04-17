@@ -184,7 +184,8 @@ export const Interact: FC<{
             </Box>
           </Flex>
           <Abi
-            abi={contract?.abi as any}
+            abi={contract?.abi}
+            contractSource={contract?.sourceName}
             address={contractAddress}
             cannonOutputs={cannonOutputs}
             chainId={currentVariant?.chain_id}

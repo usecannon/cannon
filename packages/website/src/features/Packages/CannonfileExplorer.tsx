@@ -101,6 +101,21 @@ export const CannonfileExplorer: FC<{
     ? omitEmptyObjects(clonedDeploymentInfoDef)
     : null;
 
+  const pulls = {
+    ...(deploymentInfo?.def?.import || {}),
+    ...(deploymentInfo?.def?.pull || {}),
+  };
+
+  const clones = {
+    ...(deploymentInfo?.def?.provision || {}),
+    ...(deploymentInfo?.def?.clone || {}),
+  };
+
+  const deploys = {
+    ...(deploymentInfo?.def?.contract || {}),
+    ...(deploymentInfo?.def?.deploy || {}),
+  };
+
   return variant?.deploy_url ? (
     <Flex flex="1" direction="column">
       {deploymentData.isLoading ? (
@@ -186,7 +201,7 @@ export const CannonfileExplorer: FC<{
               <CannonfileGraph deploymentInfo={deploymentInfo} />
             </Flex>
             <Container
-              maxW="container.xl"
+              maxW="container.lg"
               py={14}
               display={displayMode == 2 ? 'block' : 'none'}
             >
@@ -283,26 +298,31 @@ export const CannonfileExplorer: FC<{
                   </Box>
                 </Box>
               )}
-              {deploymentInfo?.def?.import && (
+              {deploymentInfo?.def?.var && (
                 <Box mt={4}>
                   <Heading size="md" mb={3}>
-                    Package Data Imports
+                    Variable Setting
                   </Heading>
                   <ChainDefinitionSteps
-                    name="import"
-                    modules={deploymentInfo.def.import}
+                    name="var"
+                    modules={deploymentInfo?.def?.var}
                   />
                 </Box>
               )}
-              {deploymentInfo?.def?.provision && (
+              {!isEmpty(pulls) && (
                 <Box mt={4}>
                   <Heading size="md" mb={3}>
-                    Package Provisioning
+                    Pulled Packages
                   </Heading>
-                  <ChainDefinitionSteps
-                    name="provision"
-                    modules={deploymentInfo.def.provision}
-                  />
+                  <ChainDefinitionSteps name="pull" modules={pulls} />
+                </Box>
+              )}
+              {!isEmpty(clones) && (
+                <Box mt={4}>
+                  <Heading size="md" mb={3}>
+                    Cloned Package
+                  </Heading>
+                  <ChainDefinitionSteps name="clone" modules={clones} />
                 </Box>
               )}
               {deploymentInfo?.def?.router && (
@@ -316,15 +336,12 @@ export const CannonfileExplorer: FC<{
                   />
                 </Box>
               )}
-              {deploymentInfo?.def?.contract && (
+              {!isEmpty(deploys) && (
                 <Box mt={4} maxW="100%" overflowX="auto">
                   <Heading size="md" mb={3}>
                     Contract Deployments
                   </Heading>
-                  <ChainDefinitionSteps
-                    name="contract"
-                    modules={deploymentInfo.def.contract}
-                  />
+                  <ChainDefinitionSteps name="deploy" modules={deploys} />
                 </Box>
               )}
               {deploymentInfo?.def?.invoke && (

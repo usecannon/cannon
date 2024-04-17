@@ -52,12 +52,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import {
-  useChainId,
-  useEstimateGas,
-  useSendTransaction,
-  useWriteContract,
-} from 'wagmi';
+import { useEstimateGas, useSendTransaction, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
@@ -101,7 +96,7 @@ function QueueFromGitOps() {
     return cannonfileUrlInput.split('/blob/')[0];
   }, [cannonfileUrlInput]);
 
-  const gitBranch = useMemo(() => {
+  const gitRef = useMemo(() => {
     if (!cannonfileUrlRegex.test(cannonfileUrlInput)) {
       return '';
     }
@@ -120,7 +115,7 @@ function QueueFromGitOps() {
       return '';
     }
 
-    return `refs/heads/${branchName}`;
+    return branchName;
   }, [cannonfileUrlInput]);
 
   const gitFile = useMemo(() => {
@@ -142,7 +137,7 @@ function QueueFromGitOps() {
     return urlComponents.join('/');
   }, [cannonfileUrlInput]);
 
-  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitBranch, gitFile);
+  const cannonDefInfo = useLoadCannonDefinition(gitUrl, gitRef, gitFile);
 
   const cannonDefInfoError: string = gitUrl
     ? (cannonDefInfo.error as any)?.toString()
@@ -162,7 +157,7 @@ function QueueFromGitOps() {
   };
 
   const settings = useStore((s) => s.settings);
-  const chainId = useChainId();
+  const chainId = currentSafe?.chainId;
 
   const previousName = useMemo(() => {
     if (previousPackageInput) {
@@ -260,7 +255,12 @@ function QueueFromGitOps() {
   }, [buildInfo.buildResult?.steps]);
 
   const refsInfo = useGitRefsList(gitUrl);
-  const gitHash = refsInfo.refs?.find((r) => r.ref === gitBranch)?.oid;
+  const foundRef = refsInfo.refs?.find(
+    (r) =>
+      (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) &&
+      r.ref.endsWith(gitRef)
+  )?.oid;
+  const gitHash = gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;
 
   const prevInfoQuery = useGetPreviousGitInfoQuery(
     currentSafe as any,
@@ -285,6 +285,7 @@ function QueueFromGitOps() {
                     `${gitUrl}:${gitFile}`,
                     gitHash,
                     prevInfoQuery.data &&
+                    Array.isArray(prevInfoQuery.data?.[0].result) &&
                     (prevInfoQuery.data[0].result as any).length > 2
                       ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                       : '',
