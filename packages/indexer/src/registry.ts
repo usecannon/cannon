@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
   CannonStorage,
   ChainDefinition,
@@ -12,6 +13,7 @@ import {
 import { createClient, RedisClientType } from 'redis';
 /* eslint no-console: "off" */
 import * as viem from 'viem';
+import * as viemChains from 'viem/chains';
 import { mainnet } from 'viem/chains';
 
 const RKEY_LAST_IDX = 'reg:lastBlock';
@@ -37,6 +39,25 @@ const BLOCK_BATCH_SIZE = 5000;
 const MAX_FAIL = 3;
 
 type ActualRedisClientType = ReturnType<typeof createClient>;
+
+export const cannonChain: viem.Chain = {
+  id: 13370,
+  name: 'Cannon Local',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: { default: { http: ['http://localhost:8545'] } },
+};
+
+export const chains: viem.Chain[] = [cannonChain, ...Object.values(viemChains)];
+
+function sleep(t: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, t);
+  });
+}
 
 function addHexastoreToBatch(
   batch: ReturnType<RedisClientType['multi']>,
@@ -111,6 +132,38 @@ const recordDeployStep: {
   },
 };
 
+export async function notify(rawPackageRef: string, chainId: number) {
+  const packageRef = new PackageReference(rawPackageRef);
+  if (packageRef.version === 'latest') {
+    return;
+  }
+  const notifyPkgs = _.chunk((process.env.NOTIFY_PKGS || '').split(','), 2);
+  const notifyPkg = notifyPkgs.find((n) => n[0] === packageRef.name);
+  if (notifyPkg) {
+    // send notification for this built package
+    if (notifyPkg[1].includes('discord.com')) {
+      return fetch(notifyPkg[1], {
+        method: 'POST',
+        body: JSON.stringify({
+          content: `**${packageRef.fullPackageRef}** on **${
+            viem.extractChain({ chains, id: chainId })?.name || `unknown chain (${chainId})`
+          }** was published`,
+          embeds: [
+            {
+              title: packageRef.fullPackageRef,
+              description: 'Package published',
+              url: `https://usecannon.com/packages/${packageRef.name}/${packageRef.version}/${chainId}-${packageRef.preset}`,
+            },
+          ],
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+  }
+}
+
 export async function handleCannonPublish(
   ctx: CannonStorage,
   client: viem.PublicClient,
@@ -128,67 +181,83 @@ export async function handleCannonPublish(
     const [type] = actionName.split('.');
 
     if (recordDeployStep[type]) {
-      await recordDeployStep[type](redis, deployInfo.state[actionName], def, deployInfo.meta, packageRef, actionName);
+      try {
+        await recordDeployStep[type](redis, deployInfo.state[actionName], def, deployInfo.meta, packageRef, actionName);
+      } catch (err) {
+        console.log(`[warn] failed special handler for ${type} on action ${actionName}: ${err?.toString && err.toString()}`);
+      }
     } else {
       const batch = redis.multi();
       const state = deployInfo.state[actionName];
+
       // index: transaction/address resolve to package
-      // TODO: validate that this package is the authoritative source for all things
-      for (const contract of Object.values(state.artifacts.contracts || {})) {
-        // note: have to deal with chain id here
-        batch.zAdd(
-          RKEY_ADDRESS_TO_PACKAGE,
-          { score: timestamp, value: `${contract.address.toLowerCase()}:${chainId}` },
-          { NX: true }
-        );
+      if (state) {
+        // TODO: validate that this package is the authoritative source for all things
+        for (const contract of Object.values(state.artifacts.contracts || {})) {
+          // note: have to deal with chain id here
+          batch.zAdd(
+            RKEY_ADDRESS_TO_PACKAGE,
+            { score: timestamp, value: `${contract.address.toLowerCase()}:${chainId}` },
+            { NX: true }
+          );
 
-        batch.hSetNX(RKEY_ADDRESS_TO_PACKAGE + ':' + chainId, contract.address.toLowerCase(), packageRef);
+          batch.hSetNX(RKEY_ADDRESS_TO_PACKAGE + ':' + chainId, contract.address.toLowerCase(), packageRef);
 
-        if (contract.deployTxnHash) {
-          // note: we dont include chainId in the index here because transaction ids are almost always unique
-          batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, contract.deployTxnHash, packageRef);
+          if (contract.deployTxnHash) {
+            // note: we dont include chainId in the index here because transaction ids are almost always unique
+            batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, contract.deployTxnHash, packageRef);
+            batch.ts.incrBy(`${RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
+              TIMESTAMP: timestamp - (timestamp % 3600000),
+              LABELS: { chainId: `${chainId}`, kind: RKEY_TS_TRANSACTION_COUNT },
+            });
+          }
+          batch.ts.incrBy(`${RKEY_TS_CONTRACT_COUNT}:${chainId}`, 1, {
+            TIMESTAMP: timestamp - (timestamp % 3600000),
+            LABELS: { chainId: `${chainId}`, kind: RKEY_TS_CONTRACT_COUNT },
+          });
+
+          // process the contract abi as well
+          for (const abiItem of contract.abi) {
+            if (abiItem.type === 'function' || abiItem.type === 'error') {
+              const functionHash = viem.toFunctionHash(abiItem as viem.AbiFunction);
+              const selector = functionHash.slice(0, 10);
+              const functionSignature = viem.toFunctionSignature(abiItem as viem.AbiFunction);
+
+              batch.zAdd(RKEY_SELECTOR_LIST + ':' + abiItem.type, {
+                value: `${selector}:${timestamp}:${functionSignature}`,
+                score: 1,
+              });
+              batch.zAdd(
+                RKEY_SELECTOR_CONTRACT + ':' + abiItem.type,
+                [
+                  { score: timestamp, value: `${contract.address.toLowerCase()}:${functionSignature}` },
+                  { score: timestamp, value: `${functionSignature}:${contract.address.toLowerCase()}` },
+                ],
+                { NX: true }
+              );
+            }
+          }
+        }
+        for (const txn of Object.values(state.artifacts.txns || {})) {
+          batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, txn.hash, packageRef);
           batch.ts.incrBy(`${RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
             TIMESTAMP: timestamp - (timestamp % 3600000),
             LABELS: { chainId: `${chainId}`, kind: RKEY_TS_TRANSACTION_COUNT },
           });
         }
-        batch.ts.incrBy(`${RKEY_TS_CONTRACT_COUNT}:${chainId}`, 1, {
-          TIMESTAMP: timestamp - (timestamp % 3600000),
-          LABELS: { chainId: `${chainId}`, kind: RKEY_TS_CONTRACT_COUNT },
-        });
-
-        // process the contract abi as well
-        for (const abiItem of contract.abi) {
-          if (abiItem.type === 'function' || abiItem.type === 'error') {
-            const functionHash = viem.toFunctionHash(abiItem as viem.AbiFunction);
-            const selector = functionHash.slice(0, 10);
-            const functionSignature = viem.toFunctionSignature(abiItem as viem.AbiFunction);
-
-            batch.zAdd(RKEY_SELECTOR_LIST + ':' + abiItem.type, {
-              value: `${selector}:${timestamp}:${functionSignature}`,
-              score: 1,
-            });
-            batch.zAdd(
-              RKEY_SELECTOR_CONTRACT + ':' + abiItem.type,
-              [
-                { score: timestamp, value: `${contract.address.toLowerCase()}:${functionSignature}` },
-                { score: timestamp, value: `${functionSignature}:${contract.address.toLowerCase()}` },
-              ],
-              { NX: true }
-            );
-          }
-        }
+        batch.incr(`${RKEY_COUNTER_STEP_TYPE_PREFIX}:${type}`);
+      } else {
+        console.log('[warn] step data not found:', actionName);
       }
-      for (const txn of Object.values(state.artifacts.txns || {})) {
-        batch.hSetNX(RKEY_TRANSACTION_TO_PACKAGE, txn.hash, packageRef);
-        batch.ts.incrBy(`${RKEY_TS_TRANSACTION_COUNT}:${chainId}`, 1, {
-          TIMESTAMP: timestamp - (timestamp % 3600000),
-          LABELS: { chainId: `${chainId}`, kind: RKEY_TS_TRANSACTION_COUNT },
-        });
-      }
-      batch.incr(`${RKEY_COUNTER_STEP_TYPE_PREFIX}:${type}`);
+
       await batch.exec();
     }
+  }
+
+  try {
+    await notify(packageRef, chainId);
+  } catch (err) {
+    console.error('[warn] notify failed:', err);
   }
 }
 
@@ -230,7 +299,12 @@ export async function loop() {
     try {
       const currentBlock = Number(await client.getBlockNumber()) - 5;
       const lastIndexedBlock = Number(await redis.get(RKEY_LAST_IDX)) || 16490000;
-      console.log('[REG] scan block', lastIndexedBlock, lastIndexedBlock + BLOCK_BATCH_SIZE);
+      if (lastIndexedBlock === currentBlock) {
+        await sleep(12000); // ethereum block time
+        continue;
+      }
+
+      console.log('[REG] scan block', lastIndexedBlock, Math.min(lastIndexedBlock + BLOCK_BATCH_SIZE, currentBlock));
 
       const logs = await client.getLogs({
         address: registryContract.address,
@@ -278,6 +352,9 @@ export async function loop() {
       console.error('failure while scannong cannon publishes:', err);
       consecutiveFailures++;
     }
+
+    // prevent thrashing
+    await sleep(250);
   }
   console.error('error limit exceeded');
   process.exit(1);
