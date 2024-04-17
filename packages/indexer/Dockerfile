@@ -4,7 +4,7 @@ ENV REDIS_URL ""
 ENV IPFS_URL ""
 ENV MAINNET_PROVIDER_URL ""
 COPY --link . .
-RUN npm install
+RUN npm ci
 RUN npm run build
 
 FROM node:18-alpine
