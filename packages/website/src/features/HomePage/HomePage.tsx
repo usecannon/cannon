@@ -291,7 +291,7 @@ export default function HomePage() {
               single command.
             </Text>
             <CustomLinkButton href={links.GETSTARTED}>
-              Run Synthetix for Development
+              Run a Cannon Package
             </CustomLinkButton>
           </Box>
           <Box pl={[0, 0, 8]}>
