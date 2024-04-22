@@ -6,6 +6,7 @@ import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
+import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
@@ -23,35 +24,49 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           gap={8}
           alignItems="center"
           flexWrap="nowrap"
-          justifyContent="center"
-          overflowX="auto"
-          overflowY="hidden"
+          justifyContent="between"
           whiteSpace="nowrap"
         >
-          <NavLink
-            isSmall
-            href={links.DEPLOY}
-            isActive={
-              links.DEPLOY == pathname ||
-              pathname.startsWith(links.DEPLOY + '/txn')
-            }
+          <Box
+            p={3}
+            w="100%"
+            maxW={{ lg: 'container.sm' }}
+            mb={{ base: 2, lg: 0 }}
           >
-            {isMobile ? 'Sign' : 'Sign & Execute'}
-          </NavLink>
-          <NavLink
-            isSmall
-            href={links.QUEUEFROMGITOPS}
-            isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
+            <SafeAddressInput />
+          </Box>
+          <Flex
+            gap={4}
+            alignItems="center"
+            justifyContent="end"
+            grow={1}
+            px={4}
           >
-            {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
-          </NavLink>
-          <NavLink
-            isSmall
-            href={links.QUEUETXS}
-            isActive={pathname.startsWith(links.QUEUETXS)}
-          >
-            {isMobile ? 'Transactions' : 'Queue Transactions'}
-          </NavLink>
+            <NavLink
+              isSmall
+              href={links.DEPLOY}
+              isActive={
+                links.DEPLOY == pathname ||
+                pathname.startsWith(links.DEPLOY + '/txn')
+              }
+            >
+              {isMobile ? 'Sign' : 'Sign & Execute'}
+            </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUEFROMGITOPS}
+              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
+            >
+              {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
+            </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUETXS}
+              isActive={pathname.startsWith(links.QUEUETXS)}
+            >
+              {isMobile ? 'Transactions' : 'Queue Transactions'}
+            </NavLink>
+          </Flex>
         </Flex>
       </Box>
       <NoSSRWithSafe>{children}</NoSSRWithSafe>
