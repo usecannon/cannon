@@ -76,7 +76,7 @@ export type CliSettings = {
   /**
    * Which registry to read from first. Defaults to `onchain`
    */
-  registryPriority: 'local' | 'onchain';
+  registryPriority: 'local' | 'onchain' | 'offline';
 
   /**
    * Directory to load configurations from and for local registry
@@ -166,7 +166,7 @@ function cannonSettingsSchema(fileSettings: Omit<CliSettings, 'cannonDirectory'>
       .optional()
       .refine((v) => !v || viem.isAddress(v), 'must be address')
       .default(fileSettings.registryAddress || DEFAULT_REGISTRY_CONFIG[0].address),
-    CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local']).default(fileSettings.registryPriority || 'onchain'),
+    CANNON_REGISTRY_PRIORITY: z.enum(['onchain', 'local', 'offline']).default(fileSettings.registryPriority || 'onchain'),
     CANNON_ETHERSCAN_API_URL: z
       .string()
       .url()
