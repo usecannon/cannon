@@ -96,19 +96,35 @@ export function QueueTransaction({
   onChange,
   isDeletable,
   onDelete,
+  txn: tx,
+  fn,
+  params,
+  contractName,
 }: {
   contracts: { [key: string]: { address: Address; abi: any[] } };
-  onChange: (txn: Omit<TransactionRequestBase, 'from'> | null) => void;
+  onChange: (
+    txn: Omit<TransactionRequestBase, 'from'> | null,
+    fn: AbiFunction,
+    params: any[] | any,
+    contractName: string | null
+  ) => void;
   isDeletable: boolean;
   onDelete: () => void;
+  txn: Omit<TransactionRequestBase, 'from'> | null;
+  fn?: AbiFunction;
+  contractName?: string;
+  params?: any[] | any;
 }) {
   const [selectedContractName, setSelectedContractName] = useState<
     string | null
-  >();
-  const [selectedFunction, setSelectedFunction] =
-    useState<AbiFunction | null>();
-  const [selectedParams, setSelectedParams] = useState<any[]>([]);
-  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>();
+  >(contractName || null);
+  const [selectedFunction, setSelectedFunction] = useState<AbiFunction | null>(
+    fn || null
+  );
+  const [selectedParams, setSelectedParams] = useState<any[]>(params || []);
+  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>(
+    tx || null
+  );
   const [paramsEncodeError, setParamsEncodeError] = useState<string | null>();
 
   useEffect(() => {
@@ -154,7 +170,12 @@ export function QueueTransaction({
 
     setParamsEncodeError(error);
     setTxn(_txn);
-    onChange(_txn);
+    onChange(
+      _txn,
+      selectedFunction as any,
+      selectedParams,
+      selectedContractName
+    );
   }, [selectedContractName, selectedFunction, selectedParams]);
 
   const currentSafe = useStore((s) => s.currentSafe);
@@ -256,6 +277,7 @@ export function QueueTransaction({
                       params[index] = value;
                       setSelectedParams(params);
                     }}
+                    initialValue={params[index]}
                   />
                 </Box>
               ))}

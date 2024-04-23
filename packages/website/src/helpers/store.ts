@@ -1,12 +1,20 @@
 import merge from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 import uniqWith from 'lodash/uniqWith';
-import { Address } from 'viem';
+import { Address, TransactionRequestBase, AbiFunction } from 'viem';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { chains } from '@/constants/deployChains';
 import { BuildState } from '@/hooks/cannon';
 import { includes } from '@/helpers/array';
+
+type IdentifiableTxn = {
+  txn: Omit<TransactionRequestBase, 'from'>;
+  id: string;
+  fn?: AbiFunction;
+  params?: any[] | any;
+  contractName?: string;
+};
 
 export type ChainId = (typeof chains)[number]['id'];
 
@@ -52,8 +60,21 @@ export interface Actions {
   prependSafeAddress: (safeToPrepend: State['currentSafe']) => void;
 }
 
+export interface QueueTxsActions {
+  setQueuedIdentifiableTxns: (queuedIdentifiableTxns: QueueTxsState['queuedIdentifiableTxns']) => void;
+  setLastQueuedTxnsId: (lastQueuedTxnsId: Partial<QueueTxsState['lastQueuedTxnsId']>) => void;
+  setTarget: (target: Partial<QueueTxsState['target']>) => void;
+}
+
+export interface QueueTxsState {
+  target: string;
+  lastQueuedTxnsId: number;
+  queuedIdentifiableTxns: IdentifiableTxn[];
+}
+
 export type Store = State & Actions;
 export type IpfsStore = IpfsState & ipfsActions;
+export type QueueTxsStore = QueueTxsState & QueueTxsActions;
 
 export const initialState = {
   currentSafe: null,
@@ -80,6 +101,12 @@ export const initialIpfsState = {
   compression: false,
   format: 'text',
 } satisfies IpfsState;
+
+export const initialQueueTxsState = {
+  target: '',
+  lastQueuedTxnsId: 1,
+  queuedIdentifiableTxns: [{ txn: null as any, id: '1' }],
+} satisfies QueueTxsState;
 
 const useIpfsStore = create<IpfsStore>()(
   persist(
@@ -167,4 +194,19 @@ const useStore = create<Store>()(
   )
 );
 
-export { useStore, useIpfsStore };
+const useQueueTxsStore = create<QueueTxsStore>()(
+  persist(
+    (set) => ({
+      ...initialQueueTxsState,
+      setTarget: (target) => set({ target }),
+      setLastQueuedTxnsId: (lastQueuedTxnsId) => set({ lastQueuedTxnsId }),
+      setQueuedIdentifiableTxns: (queuedIdentifiableTxns) => set({ queuedIdentifiableTxns }),
+    }),
+    // Persist everything in local storage
+    {
+      name: 'queue-txs-state',
+    }
+  )
+);
+
+export { useStore, useIpfsStore, useQueueTxsStore };

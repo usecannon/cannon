@@ -1,7 +1,7 @@
 import React from 'react';
 import { links } from '@/constants/links';
 import { makeMultisend } from '@/helpers/multisend';
-import { useStore } from '@/helpers/store';
+import { useQueueTxsStore, useStore } from '@/helpers/store';
 import { useTxnStager } from '@/hooks/backend';
 import { useCannonPackageContracts } from '@/hooks/cannon';
 import { useSimulatedTxns } from '@/hooks/fork';
@@ -37,8 +37,9 @@ import {
   Icon,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
+  AbiFunction,
   encodeAbiParameters,
   Hex,
   isAddress,
@@ -50,22 +51,18 @@ import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import 'react-diff-view/style/index.css';
 
-type IdentifiableTxn = {
-  txn: Omit<TransactionRequestBase, 'from'>;
-  id: string;
-};
-
 const QueueDrawer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
-
-  const [target, setTarget] = useState('');
-
-  const [lastQueuedTxnsId, setLastQueuedTxnsId] = useState(0);
-  const [queuedIdentifiableTxns, setQueuedIdentifiableTxns] = useState<
-    IdentifiableTxn[]
-  >([{ txn: null as any, id: String(lastQueuedTxnsId) }]);
+  const {
+    queuedIdentifiableTxns,
+    setQueuedIdentifiableTxns,
+    lastQueuedTxnsId,
+    setLastQueuedTxnsId,
+    target,
+    setTarget,
+  } = useQueueTxsStore((s) => s);
 
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
@@ -132,29 +129,38 @@ const QueueDrawer = () => {
 
   function updateQueuedTxn(
     i: number,
-    txn: Omit<TransactionRequestBase, 'from'>
+    txn: Omit<TransactionRequestBase, 'from'>,
+    fn?: AbiFunction,
+    params?: any[] | any,
+    contractName?: string | null
   ) {
-    setQueuedIdentifiableTxns((prev) => {
-      const result = [...prev];
-      result[i].txn = txn;
-      return result;
-    });
+    setQueuedIdentifiableTxns(
+      queuedIdentifiableTxns.map((item, index) =>
+        index === i
+          ? {
+              ...item,
+              txn,
+              fn: fn || item.fn,
+              params: params || item.params,
+              contractName: contractName || item.contractName,
+            }
+          : item
+      )
+    );
   }
 
   const removeQueuedTxn = (i: number) => {
-    setQueuedIdentifiableTxns((prev) => {
-      const result = [...prev];
-      result.splice(i, 1);
-      return result;
-    });
+    setQueuedIdentifiableTxns(
+      queuedIdentifiableTxns.filter((_, index) => index !== i)
+    );
   };
 
   const addQueuedTxn = () => {
-    setQueuedIdentifiableTxns((prev) => [
-      ...prev,
+    setQueuedIdentifiableTxns([
+      ...queuedIdentifiableTxns,
       { txn: {}, id: String(lastQueuedTxnsId + 1) },
     ]);
-    setLastQueuedTxnsId((prev) => prev + 1);
+    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
   };
 
   const txnHasError = !!txnInfo.txnResults.filter((r) => r?.error).length;
@@ -162,14 +168,6 @@ const QueueDrawer = () => {
   const disableExecute =
     !targetTxn || txnHasError || !!stager.execConditionFailed;
 
-  useEffect(() => {
-    if (!cannonInfo.contracts) {
-      setQueuedIdentifiableTxns([
-        { txn: null as any, id: String(lastQueuedTxnsId + 1) },
-      ]);
-      setLastQueuedTxnsId((prev) => prev + 1);
-    }
-  }, [cannonInfo.contracts]);
   return (
     <>
       <IconButton
@@ -238,6 +236,7 @@ const QueueDrawer = () => {
                       borderColor="whiteAlpha.400"
                       background="black"
                       onChange={(event: any) => setTarget(event.target.value)}
+                      value={target}
                     />
                     {!isAddress(target) &&
                       target.length >= 3 &&
@@ -308,9 +307,21 @@ const QueueDrawer = () => {
                       <QueueTransaction
                         key={queuedIdentifiableTxn.id}
                         contracts={(cannonInfo.contracts ?? {}) as any}
-                        onChange={(txn) => updateQueuedTxn(i, txn as any)}
+                        onChange={(txn, fn, params, contractName) =>
+                          updateQueuedTxn(
+                            i,
+                            txn as any,
+                            fn,
+                            params,
+                            contractName
+                          )
+                        }
                         isDeletable={queuedIdentifiableTxns.length > 1}
                         onDelete={() => removeQueuedTxn(i)}
+                        txn={queuedIdentifiableTxn.txn}
+                        fn={queuedIdentifiableTxn.fn}
+                        params={queuedIdentifiableTxn.params}
+                        contractName={queuedIdentifiableTxn.contractName}
                       />
                     </Box>
                   ))}
