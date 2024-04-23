@@ -83,7 +83,7 @@ const TransactionDetailsPage: FC<{
 
   const { nonce: safeNonce, staged, stagedQuery } = useSafeTransactions(safe);
 
-  const verify = parsedNonce >= safeNonce;
+  const isTransactionExecuted = parsedNonce < safeNonce;
 
   const history = useExecutedTransactions(safe);
 
@@ -111,7 +111,7 @@ const TransactionDetailsPage: FC<{
 
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
-  const allowPublishing = hintData?.type == 'deploy';
+  const queuedWithGitOps = hintData?.type == 'deploy';
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
@@ -141,7 +141,7 @@ const TransactionDetailsPage: FC<{
   );
 
   let prevDeployGitHash: string;
-  if (allowPublishing) {
+  if (queuedWithGitOps) {
     prevDeployGitHash =
       (hintData?.prevGitRepoHash || hintData?.gitRepoHash) ?? '';
   } else {
@@ -181,7 +181,10 @@ const TransactionDetailsPage: FC<{
 
   useEffect(
     () => buildInfo.doBuild(),
-    [verify && (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)]
+    [
+      !isTransactionExecuted &&
+        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    ]
   );
 
   // compare proposed build info with expected transaction batch
@@ -251,7 +254,7 @@ const TransactionDetailsPage: FC<{
                     cannonPackage={cannonPackage}
                     safeTxn={safeTxn}
                     published={existingRegistryUrl == hintData?.cannonPackage}
-                    publishable={allowPublishing}
+                    publishable={queuedWithGitOps}
                     signers={signers}
                     threshold={threshold}
                   />
@@ -268,8 +271,9 @@ const TransactionDetailsPage: FC<{
               <TransactionDisplay
                 safe={safe}
                 safeTxn={safeTxn as any}
-                allowPublishing={allowPublishing}
+                queuedWithGitOps={queuedWithGitOps}
                 showQueueSource={true}
+                isTransactionExecuted={isTransactionExecuted}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
@@ -324,7 +328,7 @@ const TransactionDetailsPage: FC<{
                       </Box>
                     ))}
 
-                    {verify && remainingSignatures > 0 && (
+                    {!isTransactionExecuted && remainingSignatures > 0 && (
                       <Text fontWeight="bold" mt="3">
                         {remainingSignatures} additional{' '}
                         {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
@@ -332,12 +336,12 @@ const TransactionDetailsPage: FC<{
                       </Text>
                     )}
 
-                    {verify && stager.alreadySigned && (
+                    {!isTransactionExecuted && stager.alreadySigned && (
                       <Box mt={4}>
                         <Alert status="success">Transaction signed</Alert>
                       </Box>
                     )}
-                    {verify && !stager.alreadySigned && (
+                    {!isTransactionExecuted && !stager.alreadySigned && (
                       <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
@@ -400,7 +404,7 @@ const TransactionDetailsPage: FC<{
                     )}
                   </Box>
 
-                  {verify && allowPublishing && (
+                  {!isTransactionExecuted && queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}
@@ -492,7 +496,7 @@ const TransactionDetailsPage: FC<{
                     </Box>
                   )}
 
-                  {allowPublishing && (
+                  {queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}

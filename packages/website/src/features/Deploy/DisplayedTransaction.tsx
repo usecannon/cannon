@@ -1,13 +1,13 @@
 import {
   Box,
-  Text,
   Flex,
-  Heading,
   FormControl,
   FormLabel,
+  Heading,
   Input,
+  Text,
 } from '@chakra-ui/react';
-import { CopyBlock, a11yDark } from 'react-code-blocks';
+import { a11yDark, CopyBlock } from 'react-code-blocks';
 import {
   Address,
   bytesToString,
@@ -62,89 +62,6 @@ export function DisplayedTransaction(props: {
     ? parsedFunction?.args?.map((v) => v) || [props.txn.data?.slice(10)]
     : [];
 
-  function encodeArg(type: string, val: string): string {
-    if (Array.isArray(val)) {
-      if (!type.endsWith('[]')) {
-        throw Error(`Invalid arg type "${type}" and val "${val}"`);
-      }
-
-      return `["${val
-        .map((v) => encodeArg(type.slice(0, -2), v))
-        .join('", "')}"]`;
-    }
-
-    if (type.startsWith('bytes') && val.startsWith('0x')) {
-      try {
-        const b = hexToBytes(val as Hex);
-        const t = b.findIndex((v) => v < 0x20);
-        if (b[t] != 0 || b.slice(t).find((v) => v != 0)) {
-          // this doesn't look like a terminated ascii hex string. leave it as hex
-          return val;
-        }
-
-        if (t === 0) {
-          return '';
-        }
-
-        return bytesToString(trim(b, { dir: 'right' }));
-      } catch (err) {
-        return val.toString();
-      }
-    } else if (type == 'tuple') {
-      // TODO: use a lib?
-      return JSON.stringify(val, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    } else if (type == 'bool') {
-      return val ? 'true' : 'false';
-    } else if (type.startsWith('uint') || type.startsWith('int')) {
-      return val ? BigInt(val).toString() : '0';
-    }
-
-    return val.toString();
-  }
-
-  function renderInput(type: string, val: string): React.ReactElement {
-    if (type === 'tuple') {
-      return (
-        <CopyBlock
-          text={JSON.stringify(JSON.parse(encodeArg(type, val || '')), null, 2)}
-          language="json"
-          showLineNumbers={false}
-          codeBlock
-          theme={a11yDark}
-          customStyle={{ fontSize: '14px' }}
-        />
-      );
-    }
-
-    return (
-      <Input
-        type="text"
-        size="sm"
-        bg="black"
-        borderColor="whiteAlpha.400"
-        isReadOnly
-        _focus={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _focusVisible={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        _hover={{
-          boxShadow: 'none !important',
-          outline: 'none !important',
-          borderColor: 'whiteAlpha.400 !important',
-        }}
-        value={encodeArg(type, (val as string) || '')}
-      />
-    );
-  }
-
   if (!props.contracts) {
     return <Text>{props.txn?.data}</Text>;
   }
@@ -182,7 +99,7 @@ export function DisplayedTransaction(props: {
                       </Text>
                     )}
                   </FormLabel>
-                  {renderInput(
+                  {_renderInput(
                     execFuncFragment.inputs[i].type,
                     execFuncArgs[i]
                   )}
@@ -193,5 +110,88 @@ export function DisplayedTransaction(props: {
         </Flex>
       </Box>
     </Box>
+  );
+}
+
+function _encodeArg(type: string, val: string): string {
+  if (Array.isArray(val)) {
+    if (!type.endsWith('[]')) {
+      throw Error(`Invalid arg type "${type}" and val "${val}"`);
+    }
+
+    return `["${val
+      .map((v) => _encodeArg(type.slice(0, -2), v))
+      .join('", "')}"]`;
+  }
+
+  if (type.startsWith('bytes') && val.startsWith('0x')) {
+    try {
+      const b = hexToBytes(val as Hex);
+      const t = b.findIndex((v) => v < 0x20);
+      if (b[t] != 0 || b.slice(t).find((v) => v != 0)) {
+        // this doesn't look like a terminated ascii hex string. leave it as hex
+        return val;
+      }
+
+      if (t === 0) {
+        return '';
+      }
+
+      return bytesToString(trim(b, { dir: 'right' }));
+    } catch (err) {
+      return val.toString();
+    }
+  } else if (type == 'tuple') {
+    // TODO: use a lib?
+    return JSON.stringify(val, (_, v) =>
+      typeof v === 'bigint' ? v.toString() : v
+    );
+  } else if (type == 'bool') {
+    return val ? 'true' : 'false';
+  } else if (type.startsWith('uint') || type.startsWith('int')) {
+    return val ? BigInt(val).toString() : '0';
+  }
+
+  return val.toString();
+}
+
+function _renderInput(type: string, val: string) {
+  if (type === 'tuple') {
+    return (
+      <CopyBlock
+        text={JSON.stringify(JSON.parse(_encodeArg(type, val || '')), null, 2)}
+        language="json"
+        showLineNumbers={false}
+        codeBlock
+        theme={a11yDark}
+        customStyle={{ fontSize: '14px' }}
+      />
+    );
+  }
+
+  return (
+    <Input
+      type="text"
+      size="sm"
+      bg="black"
+      borderColor="whiteAlpha.400"
+      isReadOnly
+      _focus={{
+        boxShadow: 'none !important',
+        outline: 'none !important',
+        borderColor: 'whiteAlpha.400 !important',
+      }}
+      _focusVisible={{
+        boxShadow: 'none !important',
+        outline: 'none !important',
+        borderColor: 'whiteAlpha.400 !important',
+      }}
+      _hover={{
+        boxShadow: 'none !important',
+        outline: 'none !important',
+        borderColor: 'whiteAlpha.400 !important',
+      }}
+      value={_encodeArg(type, (val as string) || '')}
+    />
   );
 }

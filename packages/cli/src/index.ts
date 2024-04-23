@@ -611,7 +611,7 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
 
   const cliSettings = resolveCliSettings(options);
 
-  if (cliSettings.providerUrl) {
+  if (cliSettings.providerUrl.startsWith('https')) {
     options.dryRun = true;
   }
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import merge from 'deepmerge';
 import { ApolloError, DocumentNode, NoInfer, OperationVariables, QueryHookOptions, TypedDocumentNode } from '@apollo/client';
 import apolloClient, { apolloClientOptimism } from '@/graphql/ApolloClient';
 import { useLogs } from '@/providers/logsProvider';
-import { merge } from 'lodash';
 
 export function useQueryCannonSubgraphData<TData = any, TVariables extends OperationVariables = OperationVariables>(
   query: DocumentNode | TypedDocumentNode<TData, TVariables>,
@@ -30,7 +30,7 @@ export function useQueryCannonSubgraphData<TData = any, TVariables extends Opera
         });
 
         // Merge results, with optimism data taking precedence
-        const merged = merge({}, mainnetData, optimismData);
+        const merged: TData = merge(mainnetData, optimismData);
         setMergedData(merged);
       } catch (e) {
         setError(e instanceof Error ? e : new Error('An error occurred'));

@@ -12,17 +12,18 @@ import * as viem from 'viem';
 import NextLink from 'next/link';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
-import { Abi as AbiType, AbiFunction } from 'abitype/src/abi';
+import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
 
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 
 export const Abi: FC<{
-  abi: AbiType;
+  abi?: AbiType;
   address: viem.Address;
   cannonOutputs: ChainArtifacts;
   chainId: number;
-}> = ({ abi, address, cannonOutputs, chainId }) => {
+  contractSource?: string;
+}> = ({ abi, contractSource, address, cannonOutputs, chainId }) => {
   const functions = useMemo<AbiFunction[]>(
     () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
@@ -187,10 +188,11 @@ export const Abi: FC<{
             <Function
               key={index}
               f={f}
-              abi={abi}
+              abi={abi as AbiType}
               address={address}
               cannonOutputs={cannonOutputs}
               chainId={chainId}
+              contractSource={contractSource}
             />
           ))}
         </Box>
