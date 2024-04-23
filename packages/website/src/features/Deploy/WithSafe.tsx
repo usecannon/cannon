@@ -2,15 +2,22 @@ import { ReactNode } from 'react';
 import { useStore } from '@/helpers/store';
 import { Flex, Text, Image, Link } from '@chakra-ui/react';
 import { useAccount } from 'wagmi';
+import PrepareNetwork from './PrepareNetwork';
 
 export default function WithSafe({ children }: { children: ReactNode }) {
   const currentSafe = useStore((s) => s.currentSafe);
   const { isConnected } = useAccount();
 
+  const isNetworkPrepared = false; // TODO
+
   return (
     <Flex direction="column" flex="1">
       {currentSafe ? (
-        children
+        isNetworkPrepared ? (
+          children
+        ) : (
+          <PrepareNetwork />
+        )
       ) : (
         <Flex
           alignItems="center"
