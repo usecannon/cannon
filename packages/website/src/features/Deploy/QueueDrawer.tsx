@@ -50,6 +50,7 @@ import { useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import 'react-diff-view/style/index.css';
+import { SafeAddressInput } from './SafeAddressInput';
 
 const QueueDrawer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -209,9 +210,17 @@ const QueueDrawer = () => {
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader bg="gray.800">Queue Transactions to a Safe</DrawerHeader>
+          <DrawerHeader bg="gray.800">
+            Queue Transactions to a Safe
+          </DrawerHeader>
           <DrawerBody bg="gray.800">
             <Container maxWidth="container.md">
+              <Box mt={6} mb={6} display="block">
+                <Heading size="md" mb={3}>
+                  Safe
+                </Heading>
+                <SafeAddressInput />
+              </Box>
               <Box mb={6}>
                 <Text color="gray.300">
                   Transactions queued here will not generate a Cannon package
@@ -248,17 +257,12 @@ const QueueDrawer = () => {
                   </InputGroup>
 
                   {!isAddress(target) &&
-                  target.length >= 3 &&
-                  cannonInfo.registryQuery.status === 'error' ? (
-                    <FormHelperText color="red.500">
-                      Failed to find this package on the registry.
-                    </FormHelperText>
-                  ) : (
-                    <FormHelperText color="gray.300">
-                      A package must have deployment data for the same network
-                      as your connected wallet.
-                    </FormHelperText>
-                  )}
+                    target.length >= 3 &&
+                    cannonInfo.registryQuery.status === 'error' && (
+                      <FormHelperText color="red.500">
+                        Failed to find this package on the registry.
+                      </FormHelperText>
+                    )}
                 </FormControl>
               </Box>
               {!isAddress(target) &&
