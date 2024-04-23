@@ -22,6 +22,7 @@ import * as viem from 'viem';
 import pkg from '../package.json';
 import { interact } from './commands/interact';
 import commandsConfig from './commandsConfig';
+import { DEFAULT_REGISTRY_CONFIG } from './constants';
 import {
   checkAndNormalizePrivateKey,
   checkCannonVersion,
@@ -41,18 +42,16 @@ import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
 import {
-  resolveRegistryProviders,
-  resolveProviderAndSigners,
-  resolveWriteProvider,
   getChainIdFromProviderUrl,
   isURL,
   ProviderOrigin,
+  resolveProviderAndSigners,
+  resolveRegistryProviders,
+  resolveWriteProvider,
 } from './util/provider';
+import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
-
-import { isPackageRegistered } from './util/register';
-import { DEFAULT_REGISTRY_CONFIG } from './constants';
 
 export * from './types';
 export * from './constants';
@@ -351,7 +350,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     });
 
     if (!chainIdPrompt.value) {
-      throw new Error('A valid Chain Id  is required.');
+      throw new Error('A valid Chain Id is required.');
     }
 
     options.chainId = Number(chainIdPrompt.value);
@@ -434,7 +433,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
         initial: true,
       });
 
-      if (!registerPrompt.value) return process.exit(0);
+      if (!registerPrompt.value) {
+        return process.exit(0);
+      }
 
       const { register } = await import('./commands/register');
 

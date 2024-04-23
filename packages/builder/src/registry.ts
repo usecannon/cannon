@@ -536,8 +536,7 @@ export class OnChainRegistry extends CannonRegistry {
     const registerFee = await this.getRegisterFee();
 
     const params = {
-      abi: this.contract.abi,
-      address: this.contract.address,
+      ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
@@ -575,8 +574,7 @@ export class OnChainRegistry extends CannonRegistry {
     const registerFee = await this.getRegisterFee();
 
     const params = {
-      abi: this.contract.abi,
-      address: this.contract.address,
+      ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
@@ -611,8 +609,7 @@ export class OnChainRegistry extends CannonRegistry {
     const packageHash = viem.stringToHex(packageName, { size: 32 });
 
     const params = {
-      abi: this.contract.abi,
-      address: this.contract.address,
+      ...this.contract,
       functionName: 'setAdditionalPublishers',
       args: [packageHash, publishers],
       account: this.signer.wallet.account || this.signer.address,

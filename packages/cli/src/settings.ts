@@ -1,16 +1,14 @@
-import _ from 'lodash';
-import { z } from 'zod';
-import path from 'path';
+import { getCannonRepoRegistryUrl } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
+import _ from 'lodash';
+import path from 'path';
+import untildify from 'untildify';
 import * as viem from 'viem';
 import { parseEnv } from 'znv';
-import untildify from 'untildify';
-
+import { z } from 'zod';
 import { CLI_SETTINGS_STORE, DEFAULT_CANNON_DIRECTORY, DEFAULT_REGISTRY_CONFIG } from './constants';
-
-import { filterSettings, checkAndNormalizePrivateKey } from './helpers';
-import { getCannonRepoRegistryUrl } from '@usecannon/builder';
+import { checkAndNormalizePrivateKey, filterSettings } from './helpers';
 
 const debug = Debug('cannon:cli:settings');
 

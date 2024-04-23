@@ -1,14 +1,13 @@
 import { OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { blueBright, gray, green } from 'chalk';
+import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import _ from 'lodash';
-
-import { CliSettings } from '../settings';
+import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
 import { waitForEvent } from '../util/register';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 
 interface Params {
   cliSettings: CliSettings;
@@ -22,10 +21,8 @@ export async function removePublisher({ cliSettings, options, packageRef, publis
   if (!viem.isAddress(publisher)) throw new Error('Invalid address');
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (isDefaultSettings) {
-    // if the user has not set the registry settings, use mainnet as the default registry
-    cliSettings.registries = cliSettings.registries.reverse();
-  }
+  // if the user has not set the registry settings, use mainnet as the default registry
+  const registryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
 
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
@@ -62,7 +59,7 @@ export async function removePublisher({ cliSettings, options, packageRef, publis
   const mainRegistry = new OnChainRegistry({
     signer: mainRegistryProvider.signers[0],
     provider: mainRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
+    address: registryConfig.address,
     overrides,
   });
 
