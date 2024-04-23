@@ -29,7 +29,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           whiteSpace="nowrap"
         >
           <Box
-            p={3}
+            p={2}
             w="100%"
             maxW={{ lg: 'container.sm' }}
             mb={{ base: 2, lg: 0 }}
@@ -38,11 +38,19 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           </Box>
           <Flex
             gap={4}
-            alignItems="center"
+            alignItems="end"
             justifyContent="end"
             grow={1}
             px={4}
+            pt={4}
           >
+            <NavLink
+              isSmall
+              href={links.QUEUEFROMGITOPS}
+              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
+            >
+              Stage
+            </NavLink>
             <NavLink
               isSmall
               href={links.DEPLOY}
@@ -51,14 +59,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
                 pathname.startsWith(links.DEPLOY + '/txn')
               }
             >
-              {isMobile ? 'Sign' : 'Sign & Execute'}
-            </NavLink>
-            <NavLink
-              isSmall
-              href={links.QUEUEFROMGITOPS}
-              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
-            >
-              {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
+              Sign
             </NavLink>
           </Flex>
         </Flex>
