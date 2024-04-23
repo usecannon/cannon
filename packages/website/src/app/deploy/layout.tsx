@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { SafeAddressInput } from '@/features/Deploy/SafeAddressInput';
+import QueueDrawer from '@/features/Deploy/QueueDrawer';
 
 const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
   ssr: false,
@@ -59,17 +60,13 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             >
               {isMobile ? 'Cannonfile' : 'Queue Cannonfile'}
             </NavLink>
-            <NavLink
-              isSmall
-              href={links.QUEUETXS}
-              isActive={pathname.startsWith(links.QUEUETXS)}
-            >
-              {isMobile ? 'Transactions' : 'Queue Transactions'}
-            </NavLink>
           </Flex>
         </Flex>
       </Box>
-      <NoSSRWithSafe>{children}</NoSSRWithSafe>
+      <NoSSRWithSafe>
+        {children}
+        <QueueDrawer />
+      </NoSSRWithSafe>
     </Flex>
   );
 }
