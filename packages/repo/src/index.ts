@@ -115,11 +115,14 @@ app.post('/api/v0/cat', async (req, res) => {
 
   if (hashisRepod) {
     try {
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Transfer-Encoding', 'chunked');
+      res.setHeader('Content-Length', upstreamRes.headers.get('content-length') || '');
+
       // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
       for await (const chunk of upstreamRes.body! as any) {
-        res.send(Buffer.from(chunk));
+        res.write(Buffer.from(chunk));
       }
-
       return res.end();
     } catch (err) {
       console.log('cannon package download from IPFS fail', err);
@@ -129,7 +132,9 @@ app.post('/api/v0/cat', async (req, res) => {
     // compute resulting IPFS hash from the uploaded data
     try {
       const rawData = await upstreamRes.arrayBuffer();
-      JSON.parse(pako.inflate(rawData, { to: 'string' }));
+      const uint8Data = new Uint8Array(rawData);
+      const decompressedData = pako.inflate(uint8Data, { to: 'string' });
+      JSON.parse(decompressedData);
 
       // appears to be a cannon package. sendit back
       return res.end(Buffer.from(rawData));
@@ -148,4 +153,3 @@ void getDb(process.env.REDIS_URL!).then(async (createdRdb) => {
     console.log(`listening on port ${port}`);
   });
 });
-// IPFS
