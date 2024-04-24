@@ -15,6 +15,12 @@ setup_file() {
   # Fork Mainnet to run tests against forked node
   anvil --fork-url https://ethereum.publicnode.com --port 9545 --silent --accounts 1 &
   export ANVIL_PID="$!"
+
+  export IPFS_URL="http://127.0.0.1:4001"
+  export PUBLISH_IPFS_URL="http://127.0.0.1:4001"
+  ipfs daemon &
+  
+  export IPFS_PID="$!"
 }
 
 # File post-run hook
@@ -23,6 +29,7 @@ teardown_file() {
   _teardown_file
 
   kill -15 "$ANVIL_PID"
+  kill -15 "$IPFS_PID"
 }
 
 # Test pre-hook
