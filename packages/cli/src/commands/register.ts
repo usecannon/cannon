@@ -20,7 +20,9 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
 
   // if the user has not set the registry settings, use mainnet as the default registry
-  const registryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
+  if (isDefaultSettings) {
+    cliSettings.registries = cliSettings.registries.reverse();
+  }
 
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
@@ -57,7 +59,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const mainRegistry = new OnChainRegistry({
     signer: mainRegistryProvider.signers[0],
     provider: mainRegistryProvider.provider,
-    address: registryConfig.address,
+    address: cliSettings.registries[0].address,
     overrides,
   });
 
@@ -85,7 +87,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   console.log('');
-  console.log(`This will cost ${estimateGas} ETH on Ethereum Mainnet.`);
+  console.log(`This will cost ${viem.formatEther(estimateGas)} ETH on Ethereum Mainnet.`);
   console.log('');
 
   const confirm = await prompts({
