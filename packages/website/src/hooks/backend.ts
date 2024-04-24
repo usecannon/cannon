@@ -195,7 +195,6 @@ export function useTxnStager(
 
   // must not have already signed in order to sign
   const existingSigsCount = alreadyStaged ? alreadyStaged.sigs.length : 0;
-  const currentNonce = safeTxn._nonce != null && nonce == BigInt(safeTxn._nonce);
   const isSigner =
     reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![2].result as unknown as boolean) : false;
   const alreadySigned = existingSigsCount >= requiredSigs;
