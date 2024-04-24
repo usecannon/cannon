@@ -17,13 +17,6 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-
-  // if the user has not set the registry settings, use mainnet as the default registry
-  if (isDefaultSettings) {
-    cliSettings.registries = cliSettings.registries.reverse();
-  }
-
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
@@ -40,7 +33,14 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const mainRegistryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
+
+  const [mainRegistryProvider] = await resolveRegistryProviders({
+    ...cliSettings,
+    // if the user has not set the registry settings, use mainnet as the default registry
+    registries: isDefaultSettings ? cliSettings.registries.reverse() : cliSettings.registries,
+  });
 
   const overrides: any = {};
 
@@ -59,7 +59,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   const mainRegistry = new OnChainRegistry({
     signer: mainRegistryProvider.signers[0],
     provider: mainRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
+    address: mainRegistryConfig.address,
     overrides,
   });
 
