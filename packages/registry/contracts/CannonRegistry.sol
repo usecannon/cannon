@@ -32,12 +32,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     address owner,
     uint256 feePaid
   );
-  event TagPublish(
-    bytes32 indexed name,
-    bytes32 indexed variant,
-    bytes32 indexed tag,
-    bytes32 versionOfTag
-  );
+  event TagPublish(bytes32 indexed name, bytes32 indexed variant, bytes32 indexed tag, bytes32 versionOfTag);
   event PackageUnpublish(bytes32 indexed name, bytes32 indexed tag, bytes32 indexed variant, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
