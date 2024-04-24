@@ -41,14 +41,7 @@ import { pickAnvilOptions } from './util/anvil';
 import { doBuild } from './util/build';
 import { getContractsRecursive } from './util/contracts-recursive';
 import { parsePackageArguments, parsePackagesArguments } from './util/params';
-import {
-  getChainIdFromProviderUrl,
-  isURL,
-  ProviderOrigin,
-  resolveProviderAndSigners,
-  resolveRegistryProviders,
-  resolveWriteProvider,
-} from './util/provider';
+import { getChainIdFromProviderUrl, isURL, resolveRegistryProviders, resolveWriteProvider } from './util/provider';
 import { isPackageRegistered } from './util/register';
 import { writeModuleDeployments } from './util/write-deployments';
 import './custom-steps/run';
@@ -406,13 +399,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     // Check if the package is already registered on Mainnet registry
     const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const mainnetProvider = await resolveProviderAndSigners({
-      chainId: mainnet.chainId,
-      checkProviders: mainnet.providerUrl,
-      origin: ProviderOrigin.Registry,
-    });
+    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered(mainnetProvider, packageRef, mainnet.address);
+    const isRegistered = await isPackageRegistered([optimismProvider, mainnetProvider], packageRef, mainnet.address);
 
     if (!isRegistered) {
       console.log();
@@ -489,6 +478,14 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
   const { register } = await import('./commands/register');
 
   const cliSettings = resolveCliSettings(options);
+
+  const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+  const registryProviders = await resolveRegistryProviders(cliSettings);
+  const isRegistered = await isPackageRegistered(registryProviders, packageRef, mainnet.address);
+
+  if (isRegistered) {
+    throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
+  }
 
   await register({ cliSettings, options, packageRef, fromPublish: false });
 });

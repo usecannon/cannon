@@ -1,7 +1,6 @@
+import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import * as viem from 'viem';
 import { optimism } from 'viem/chains';
-import { CannonSigner, OnChainRegistry, PackageReference } from '@usecannon/builder';
-
 import { DEFAULT_REGISTRY_ADDRESS } from '../constants';
 
 /**
@@ -13,20 +12,25 @@ import { DEFAULT_REGISTRY_ADDRESS } from '../constants';
  * @returns {Promise<boolean[]>} - A promise that resolves to an array of booleans, each indicating if the package is registered in the corresponding registry.
  */
 export const isPackageRegistered = async (
-  registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] },
+  registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
   contractAddress: viem.Address
 ) => {
-  const onChainRegistry = new OnChainRegistry({
-    signer: registryProviders.signers[0],
-    provider: registryProviders.provider,
-    address: contractAddress,
+  const packageName = new PackageReference(packageRef).name;
+
+  const onChainRegistries = registryProviders.map(({ provider, signers }) => {
+    return new OnChainRegistry({
+      signer: signers[0],
+      provider,
+      address: contractAddress,
+    });
   });
 
-  const packageName = new PackageReference(packageRef).name;
-  const packageOwner = await onChainRegistry.getPackageOwner(packageName);
+  const packageOwners = await Promise.all(
+    onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))
+  );
 
-  return !viem.isAddressEqual(packageOwner, viem.zeroAddress);
+  return !packageOwners.some((address) => viem.isAddressEqual(address, viem.zeroAddress));
 };
 
 /**

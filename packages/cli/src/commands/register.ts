@@ -13,17 +13,10 @@ interface Params {
   cliSettings: CliSettings;
   options: any;
   packageRef: string;
-  skipConfirm?: boolean;
-  fromPublish?: boolean;
+  fromPublish: boolean;
 }
 
 export async function register({ cliSettings, options, packageRef, fromPublish }: Params) {
-  if (fromPublish) {
-    // if the command is called from the publish command
-    // we need to remove the version and preset from the package reference
-    packageRef = packageRef.split(':')[0];
-  }
-
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
 
   // if the user has not set the registry settings, use mainnet as the default registry
@@ -70,15 +63,6 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const userAddress = mainRegistryProvider.signers[0].address;
   const packageName = new PackageReference(packageRef).name;
-  const packageOwner = await mainRegistry.getPackageOwner(packageName);
-
-  if (!viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
-    throw new Error(`The package "${packageName}" is already registered by "${packageOwner}".`);
-  }
-
-  if (viem.isAddressEqual(packageOwner, userAddress)) {
-    throw new Error(`The package "${packageName}" is already registered by your address (${packageOwner}).`);
-  }
 
   const userBalance = await mainRegistryProvider.provider.getBalance({ address: userAddress });
 
