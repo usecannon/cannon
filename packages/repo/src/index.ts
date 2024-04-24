@@ -129,11 +129,13 @@ app.post('/api/v0/cat', async (req, res) => {
     try {
       const rawData = await upstreamRes.arrayBuffer();
       const pkgData: DeploymentInfo = JSON.parse(pako.inflate(rawData, { to: 'string' }));
-      //const def = new ChainDefinition(pkgData.def);
+      new ChainDefinition(pkgData.def);
 
       // appears to be a cannon package. sendit back
       return res.end(Buffer.from(rawData));
-    } catch (err) {}
+    } catch (err) {
+      // intentionally do nothing
+    }
   }
 
   // otherwise dont return
