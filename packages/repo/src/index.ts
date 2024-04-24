@@ -102,6 +102,9 @@ app.post('/api/v0/cat', async (req, res) => {
   });
 
   const ipfsHash = req.query.arg as string;
+  if (!ipfsHash || ipfsHash.length === 0) {
+    return res.status(400).end('no ipfs hash');
+  }
   // if the IPFS hash is in our database, go ahead and proxy the request
   const batch = rdb.multi();
   batch.zScore(RKEY_FRESH_UPLOAD_HASHES, ipfsHash);
