@@ -39,7 +39,8 @@ export function setAxiosRetries(totalRetries = 3) {
   });
 }
 
-export async function isIpfsGateway(ipfsUrl: string) {
+// eslint-disable-next-line
+export async function isIpfsGateway(ipfsUrl: string, _customHeaders: any) {
   debug(`is-gateway ${ipfsUrl}`);
 
   debug(`is-gateway ${ipfsUrl} true`);
