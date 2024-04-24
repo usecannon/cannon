@@ -43,9 +43,9 @@ export function setAxiosRetries(totalRetries = 3) {
 export async function isIpfsGateway(ipfsUrl: string, _customHeaders: any) {
   debug(`is-gateway ${ipfsUrl}`);
 
-  debug(`is-gateway ${ipfsUrl} true`);
+  debug(`is-gateway ${ipfsUrl} false`);
 
-  return true;
+  return false;
 }
 
 export async function readIpfs(
