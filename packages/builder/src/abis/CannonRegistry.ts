@@ -1,4 +1,4 @@
-import * as viem from 'viem';
+import type { Abi } from 'viem';
 
 export default [
   {
@@ -819,4 +819,4 @@ export default [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-] satisfies viem.Abi;
+] satisfies Abi;
