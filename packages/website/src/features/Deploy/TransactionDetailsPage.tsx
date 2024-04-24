@@ -22,19 +22,18 @@ import {
   WarningIcon,
 } from '@chakra-ui/icons';
 import {
-  Alert,
   Box,
   Button,
   Container,
+  Flex,
   Grid,
   Heading,
+  Image,
   Link,
   Spinner,
   Text,
   Tooltip,
   useToast,
-  Image,
-  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
@@ -48,10 +47,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useAccount, useChainId, useWriteContract } from 'wagmi';
+import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import PublishUtility from './PublishUtility';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -62,15 +61,8 @@ const TransactionDetailsPage: FC<{
   const walletChainId = useChainId();
   const account = useAccount();
 
-  let parsedChainId = 0;
-  let parsedNonce = 0;
-
-  try {
-    parsedChainId = parseInt(chainId ?? '');
-    parsedNonce = parseInt(nonce ?? '');
-  } catch (e) {
-    // nothing
-  }
+  const parsedChainId = parseInt(chainId ?? '0') || 0;
+  const parsedNonce = parseInt(nonce ?? '0') || 0;
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
@@ -336,12 +328,7 @@ const TransactionDetailsPage: FC<{
                       </Text>
                     )}
 
-                    {!isTransactionExecuted && stager.alreadySigned && (
-                      <Box mt={4}>
-                        <Alert status="success">Transaction signed</Alert>
-                      </Box>
-                    )}
-                    {!isTransactionExecuted && !stager.alreadySigned && (
+                    {!isTransactionExecuted && (
                       <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
@@ -352,8 +339,9 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.signConditionFailed) as any
+                                  stager.alreadySigned ||
+                                  ((safeTxn &&
+                                    !!stager.signConditionFailed) as any)
                                 }
                                 onClick={() => stager.sign()}
                               >
@@ -365,12 +353,19 @@ const TransactionDetailsPage: FC<{
                                 colorScheme="teal"
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.execConditionFailed) as any
+                                  !stager.executeTxnConfig ||
+                                  ((safeTxn &&
+                                    !!stager.execConditionFailed) as any)
                                 }
                                 onClick={() => {
+                                  if (!stager.executeTxnConfig) {
+                                    throw new Error(
+                                      'Missing execution tx configuration'
+                                    );
+                                  }
+
                                   execTxn.writeContract(
-                                    stager.executeTxnConfig!,
+                                    stager.executeTxnConfig,
                                     {
                                       onSuccess: () => {
                                         router.push(links.DEPLOY);

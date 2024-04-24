@@ -1,4 +1,4 @@
-import { deepmerge } from 'deepmerge-ts';
+import merge from 'deepmerge';
 import deepEqual from 'fast-deep-equal';
 import uniqWith from 'lodash/uniqWith';
 import { Address } from 'viem';
@@ -162,7 +162,7 @@ const useStore = create<Store>()(
         currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
       }),
-      merge: (persisted, initial) => deepmerge(initial, persisted) as Store,
+      merge: (persisted, initial) => merge(initial, persisted as Store) as Store,
     }
   )
 );

@@ -20,18 +20,16 @@ export function getChainById(id: number): viem.Chain {
     id,
   });
 
-  if (chain?.id !== id) {
-    return {
-      id,
-      name: 'Unknown Network',
-      nativeCurrency: {
-        name: 'Ether',
-        symbol: 'ETH',
-        decimals: 18,
-      },
-      rpcUrls: { default: { http: [] } },
-    };
-  }
+  if (chain) return chain;
 
-  return chain;
+  return {
+    id,
+    name: 'Unknown Network',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+    rpcUrls: { default: { http: [] } },
+  };
 }

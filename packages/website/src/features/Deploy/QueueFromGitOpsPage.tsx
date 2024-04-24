@@ -375,13 +375,6 @@ function QueueFromGitOps() {
         <Link href="/settings">settings</Link>.
       </>
     );
-  } else if (settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-    alertMessage = (
-      <>
-        Update your IPFS URL to an API endpoint where you can pin files in{' '}
-        <Link href="/settings">settings</Link>.
-      </>
-    );
   }
 
   if (

@@ -79,9 +79,9 @@ We bump and publish manually using lerna's [version and publish](https://lerna.j
 
 - Note, DO NOT use the version name as the branch name as this can cause conflicts with tags. (eg `v2.12.1-alpha.0` as a branch name is incorrect)
 
-2. Run `npm run version-prerelease` to bump package versions to an alpha version.
+2. Run `npm run version-alpha` to bump package versions to an alpha version.
 3. Create PR for the branch and merge when required tests are passing
-4. From the `main` branch, run `npm run publish` and follow the prompts.
+4. From the `main` branch, run `npm run publish-alpha` and follow the prompts.
 
 #### Changesets
 

@@ -1,6 +1,22 @@
-import * as viem from 'viem';
+import type { Abi } from 'viem';
 
 export default [
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_optimismMessenger',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_optimismtReceiver',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
   {
     inputs: [
       {
@@ -720,6 +736,32 @@ export default [
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'unused',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'unused2',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'bytes32',
@@ -777,4 +819,4 @@ export default [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-] satisfies viem.Abi;
+] satisfies Abi;
