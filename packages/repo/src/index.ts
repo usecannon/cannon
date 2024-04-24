@@ -6,7 +6,7 @@ import pako from 'pako';
 import consumers from 'stream/consumers';
 import Hash from 'typestub-ipfs-only-hash';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
+import { DeploymentInfo } from '@usecannon/builder';
 
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
 
@@ -128,8 +128,7 @@ app.post('/api/v0/cat', async (req, res) => {
     // compute resulting IPFS hash from the uploaded data
     try {
       const rawData = await upstreamRes.arrayBuffer();
-      const pkgData: DeploymentInfo = JSON.parse(pako.inflate(rawData, { to: 'string' }));
-      new ChainDefinition(pkgData.def);
+      JSON.parse(pako.inflate(rawData, { to: 'string' }));
 
       // appears to be a cannon package. sendit back
       return res.end(Buffer.from(rawData));
