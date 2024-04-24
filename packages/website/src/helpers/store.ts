@@ -14,6 +14,9 @@ type IdentifiableTxn = {
   fn?: AbiFunction;
   params?: any[] | any;
   contractName?: string;
+  contractAddress?: Address;
+  target: string;
+  chainId: number;
 };
 
 export type ChainId = (typeof chains)[number]['id'];
@@ -63,11 +66,9 @@ export interface Actions {
 export interface QueueTxsActions {
   setQueuedIdentifiableTxns: (queuedIdentifiableTxns: QueueTxsState['queuedIdentifiableTxns']) => void;
   setLastQueuedTxnsId: (lastQueuedTxnsId: Partial<QueueTxsState['lastQueuedTxnsId']>) => void;
-  setTarget: (target: Partial<QueueTxsState['target']>) => void;
 }
 
 export interface QueueTxsState {
-  target: string;
   lastQueuedTxnsId: number;
   queuedIdentifiableTxns: IdentifiableTxn[];
 }
@@ -103,9 +104,8 @@ export const initialIpfsState = {
 } satisfies IpfsState;
 
 export const initialQueueTxsState = {
-  target: '',
-  lastQueuedTxnsId: 1,
-  queuedIdentifiableTxns: [{ txn: null as any, id: '1' }],
+  lastQueuedTxnsId: 0,
+  queuedIdentifiableTxns: [],
 } satisfies QueueTxsState;
 
 const useIpfsStore = create<IpfsStore>()(
@@ -198,7 +198,6 @@ const useQueueTxsStore = create<QueueTxsStore>()(
   persist(
     (set) => ({
       ...initialQueueTxsState,
-      setTarget: (target) => set({ target }),
       setLastQueuedTxnsId: (lastQueuedTxnsId) => set({ lastQueuedTxnsId }),
       setQueuedIdentifiableTxns: (queuedIdentifiableTxns) => set({ queuedIdentifiableTxns }),
     }),

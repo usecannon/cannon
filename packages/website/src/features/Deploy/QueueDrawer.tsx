@@ -61,9 +61,9 @@ const QueueDrawer = () => {
     setQueuedIdentifiableTxns,
     lastQueuedTxnsId,
     setLastQueuedTxnsId,
-    target,
-    setTarget,
   } = useQueueTxsStore((s) => s);
+
+  const [target, setTarget] = useState<string>('');
 
   const [pickedNonce, setPickedNonce] = useState<number | null>(null);
 
@@ -113,6 +113,7 @@ const QueueDrawer = () => {
     {
       safe: currentSafe!,
       onSignComplete() {
+        onClose();
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
@@ -120,6 +121,9 @@ const QueueDrawer = () => {
           duration: 5000,
           isClosable: true,
         });
+
+        setQueuedIdentifiableTxns([]);
+        setLastQueuedTxnsId(0);
       },
     }
   );
@@ -133,7 +137,9 @@ const QueueDrawer = () => {
     txn: Omit<TransactionRequestBase, 'from'>,
     fn?: AbiFunction,
     params?: any[] | any,
-    contractName?: string | null
+    contractName?: string | null,
+    target?: string | null,
+    chainId?: number | null
   ) {
     setQueuedIdentifiableTxns(
       queuedIdentifiableTxns.map((item, index) =>
@@ -144,6 +150,8 @@ const QueueDrawer = () => {
               fn: fn || item.fn,
               params: params || item.params,
               contractName: contractName || item.contractName,
+              target: target || item.target,
+              chainId: chainId || item.chainId,
             }
           : item
       )
@@ -159,7 +167,12 @@ const QueueDrawer = () => {
   const addQueuedTxn = () => {
     setQueuedIdentifiableTxns([
       ...queuedIdentifiableTxns,
-      { txn: {}, id: String(lastQueuedTxnsId + 1) },
+      {
+        txn: {},
+        id: String(lastQueuedTxnsId + 1),
+        chainId: currentSafe?.chainId as number,
+        target,
+      },
     ]);
     setLastQueuedTxnsId(lastQueuedTxnsId + 1);
   };
@@ -291,12 +304,12 @@ const QueueDrawer = () => {
                     </Box>
                   </Alert>
                 )}
-              {!isAddress(target) && cannonInfo.contracts && (
-                <Box mt={6} mb={6} display="block">
-                  <Heading size="md" mb={3}>
-                    Transactions
-                  </Heading>
-                  {queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+              <Box mt={6} mb={6} display="block">
+                <Heading size="md" mb={3}>
+                  Queued Transactions
+                </Heading>
+                {queuedIdentifiableTxns.length > 0 ? (
+                  queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
                     <Box
                       key={i}
                       mb={8}
@@ -310,25 +323,41 @@ const QueueDrawer = () => {
                     >
                       <QueueTransaction
                         key={queuedIdentifiableTxn.id}
-                        contracts={(cannonInfo.contracts ?? {}) as any}
-                        onChange={(txn, fn, params, contractName) =>
+                        onChange={(
+                          txn,
+                          fn,
+                          params,
+                          contractName,
+                          target,
+                          chainId
+                        ) =>
                           updateQueuedTxn(
                             i,
                             txn as any,
                             fn,
                             params,
-                            contractName
+                            contractName,
+                            target,
+                            chainId
                           )
                         }
-                        isDeletable={queuedIdentifiableTxns.length > 1}
                         onDelete={() => removeQueuedTxn(i)}
                         txn={queuedIdentifiableTxn.txn}
                         fn={queuedIdentifiableTxn.fn}
                         params={queuedIdentifiableTxn.params}
                         contractName={queuedIdentifiableTxn.contractName}
+                        target={queuedIdentifiableTxn.target}
+                        chainId={queuedIdentifiableTxn.chainId}
+                        isDeletable
                       />
                     </Box>
-                  ))}
+                  ))
+                ) : (
+                  <Text color="gray.300" py={3}>
+                    No queued transactions.
+                  </Text>
+                )}
+                {!isAddress(target) && cannonInfo.contracts && (
                   <Button
                     variant="outline"
                     size="xs"
@@ -340,129 +369,126 @@ const QueueDrawer = () => {
                   >
                     Add Transaction
                   </Button>
-                </Box>
-              )}
-              {(isAddress(target) || cannonInfo.contracts) && (
-                <Box>
-                  {isAddress(target) && (
-                    <Box mb="6">
-                      {funcIsPayable && (
-                        <FormControl>
-                          <FormLabel>Value</FormLabel>
-                          <Input
-                            type="text"
-                            borderColor="whiteAlpha.400"
-                            background="black"
-                            onChange={(event: any) =>
-                              updateQueuedTxn(0, {
-                                ...queuedTxns[0],
-                                value: BigInt(event.target.value),
-                              })
-                            }
-                          />
-                          <FormHelperText>
-                            Amount of ETH to send as part of transaction
-                          </FormHelperText>
-                        </FormControl>
-                      )}
-
-                      <FormControl mb="4">
-                        <FormLabel>Transaction Data</FormLabel>
+                )}
+              </Box>
+              <Box>
+                {isAddress(target) && (
+                  <Box mb="6">
+                    {funcIsPayable && (
+                      <FormControl>
+                        <FormLabel>Value</FormLabel>
                         <Input
                           type="text"
                           borderColor="whiteAlpha.400"
                           background="black"
-                          placeholder="0x"
                           onChange={(event: any) =>
                             updateQueuedTxn(0, {
                               ...queuedTxns[0],
-                              data: (event.target.value as Hex) || '0x',
+                              value: BigInt(event.target.value),
                             })
                           }
                         />
                         <FormHelperText>
-                          0x prefixed hex code data to send with transaction
+                          Amount of ETH to send as part of transaction
                         </FormHelperText>
                       </FormControl>
-                    </Box>
-                  )}
+                    )}
 
-                  {cannonInfo.contracts && (
-                    <Box>
-                      {stager.signConditionFailed && (
-                        <Alert bg="gray.800" status="error" mb={4}>
-                          <AlertIcon />
-                          <Box>
-                            <AlertTitle>Can’t Sign</AlertTitle>
-                            <AlertDescription fontSize="sm">
-                              {stager.signConditionFailed}
-                            </AlertDescription>
-                          </Box>
-                        </Alert>
-                      )}
-                      {stager.execConditionFailed && (
-                        <Alert bg="gray.800" status="error" mb={4}>
-                          <AlertIcon />
-                          <Box>
-                            <AlertTitle>Can’t Execute</AlertTitle>
-                            <AlertDescription fontSize="sm">
-                              {stager.execConditionFailed}
-                            </AlertDescription>
-                          </Box>
-                        </Alert>
-                      )}
-                      <NoncePicker
-                        safe={currentSafe as any}
-                        onPickedNonce={setPickedNonce}
+                    <FormControl mb="4">
+                      <FormLabel>Transaction Data</FormLabel>
+                      <Input
+                        type="text"
+                        borderColor="whiteAlpha.400"
+                        background="black"
+                        placeholder="0x"
+                        onChange={(event: any) =>
+                          updateQueuedTxn(0, {
+                            ...queuedTxns[0],
+                            data: (event.target.value as Hex) || '0x',
+                          })
+                        }
                       />
-                      <HStack gap="6">
-                        {disableExecute ? (
-                          <Tooltip label={stager.signConditionFailed}>
-                            <Button
-                              size="lg"
-                              colorScheme="teal"
-                              w="100%"
-                              isDisabled={
-                                !targetTxn ||
-                                txnHasError ||
-                                !!stager.signConditionFailed
-                              }
-                              onClick={() => stager.sign()}
-                            >
-                              Queue &amp; Sign
-                            </Button>
-                          </Tooltip>
-                        ) : null}
-                        <Tooltip label={stager.execConditionFailed}>
-                          <Button
-                            size="lg"
-                            colorScheme="teal"
-                            w="100%"
-                            isDisabled={disableExecute}
-                            onClick={() => {
-                              execTxn.writeContract(stager.executeTxnConfig!, {
-                                onSuccess: () => {
-                                  router.push(links.DEPLOY);
+                      <FormHelperText>
+                        0x prefixed hex code data to send with transaction
+                      </FormHelperText>
+                    </FormControl>
+                  </Box>
+                )}
 
-                                  toast({
-                                    title:
-                                      'You successfully executed the transaction.',
-                                    status: 'success',
-                                    duration: 5000,
-                                    isClosable: true,
-                                  });
-                                },
-                              });
-                            }}
-                          >
-                            Execute
-                          </Button>
-                        </Tooltip>
-                      </HStack>
-                    </Box>
+                <Box>
+                  {stager.signConditionFailed && (
+                    <Alert bg="gray.800" status="error" mb={4}>
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle>Can’t Sign</AlertTitle>
+                        <AlertDescription fontSize="sm">
+                          {stager.signConditionFailed}
+                        </AlertDescription>
+                      </Box>
+                    </Alert>
                   )}
+                  {stager.execConditionFailed && (
+                    <Alert bg="gray.800" status="error" mb={4}>
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle>Can’t Execute</AlertTitle>
+                        <AlertDescription fontSize="sm">
+                          {stager.execConditionFailed}
+                        </AlertDescription>
+                      </Box>
+                    </Alert>
+                  )}
+                  <NoncePicker
+                    safe={currentSafe as any}
+                    onPickedNonce={setPickedNonce}
+                  />
+                  <HStack gap="6">
+                    {disableExecute ? (
+                      <Tooltip label={stager.signConditionFailed}>
+                        <Button
+                          size="lg"
+                          colorScheme="teal"
+                          w="100%"
+                          isDisabled={
+                            !targetTxn ||
+                            txnHasError ||
+                            !!stager.signConditionFailed ||
+                            queuedIdentifiableTxns.length === 0
+                          }
+                          onClick={() => stager.sign()}
+                        >
+                          Queue &amp; Sign
+                        </Button>
+                      </Tooltip>
+                    ) : null}
+                    <Tooltip label={stager.execConditionFailed}>
+                      <Button
+                        size="lg"
+                        colorScheme="teal"
+                        w="100%"
+                        isDisabled={disableExecute}
+                        onClick={() => {
+                          execTxn.writeContract(stager.executeTxnConfig!, {
+                            onSuccess: () => {
+                              router.push(links.DEPLOY);
+
+                              toast({
+                                title:
+                                  'You successfully executed the transaction.',
+                                status: 'success',
+                                duration: 5000,
+                                isClosable: true,
+                              });
+                            },
+                          });
+                        }}
+                      >
+                        Execute
+                      </Button>
+                    </Tooltip>
+                  </HStack>
                 </Box>
-              )}
+              </Box>
             </Container>
           </DrawerBody>
         </DrawerContent>
