@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { Buffer } from 'buffer';
 import Debug from 'debug';
 import FormData from 'form-data';
@@ -39,26 +39,12 @@ export function setAxiosRetries(totalRetries = 3) {
   });
 }
 
-export async function isIpfsGateway(ipfsUrl: string, customHeaders: Headers = {}) {
+export async function isIpfsGateway(ipfsUrl: string) {
   debug(`is-gateway ${ipfsUrl}`);
 
-  let isGateway = true;
-  try {
-    await axios.post(ipfsUrl + '/api/v0/cat', null, { headers: customHeaders, timeout: 15 * 1000 });
-  } catch (err: unknown) {
-    if (
-      err instanceof AxiosError &&
-      err.response?.status === 400 &&
-      typeof err.response?.data === 'string' &&
-      err.response.data.includes('argument "ipfs-path" is required')
-    ) {
-      isGateway = false;
-    }
-  }
+  debug(`is-gateway ${ipfsUrl} true`);
 
-  debug(`is-gateway ${ipfsUrl} ${isGateway}`);
-
-  return isGateway;
+  return true;
 }
 
 export async function readIpfs(
