@@ -6,8 +6,9 @@ import pako from 'pako';
 import consumers from 'stream/consumers';
 import Hash from 'typestub-ipfs-only-hash';
 import { getDb, RKEY_FRESH_UPLOAD_HASHES, RKEY_PKG_HASHES, RKEY_EXTRA_HASHES } from './db';
-import { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
+import { DeploymentInfo } from '@usecannon/builder';
 
+let rdb: Awaited<ReturnType<typeof getDb>>;
 const RKEY_FRESH_GRACE_PERIOD = 5 * 60; // 5 minutes, or else we delete any uploaded artifacts from fresh
 
 if (!process.env.REDIS_URL) {
@@ -37,8 +38,6 @@ app.post('/api/v0/add', async (req, res) => {
       const ipfsHash = await Hash.of(rawData);
 
       const now = Math.floor(Date.now() / 1000) + RKEY_FRESH_GRACE_PERIOD;
-
-      const rdb = await getDb(process.env.REDIS_URL!);
 
       let isSavable =
         (await rdb.zScore(RKEY_FRESH_UPLOAD_HASHES, ipfsHash)) !== null ||
@@ -104,7 +103,6 @@ app.post('/api/v0/cat', async (req, res) => {
 
   const ipfsHash = req.query.arg as string;
   // if the IPFS hash is in our database, go ahead and proxy the request
-  const rdb = await getDb(process.env.REDIS_URL!);
   const batch = rdb.multi();
   batch.zScore(RKEY_FRESH_UPLOAD_HASHES, ipfsHash);
   batch.zScore(RKEY_PKG_HASHES, ipfsHash);
@@ -128,8 +126,7 @@ app.post('/api/v0/cat', async (req, res) => {
     // compute resulting IPFS hash from the uploaded data
     try {
       const rawData = await upstreamRes.arrayBuffer();
-      const pkgData: DeploymentInfo = JSON.parse(pako.inflate(rawData, { to: 'string' }));
-      new ChainDefinition(pkgData.def);
+      JSON.parse(pako.inflate(rawData, { to: 'string' }));
 
       // appears to be a cannon package. sendit back
       return res.end(Buffer.from(rawData));
@@ -142,8 +139,10 @@ app.post('/api/v0/cat', async (req, res) => {
   return res.status(404).end('unregistered ipfs data');
 });
 
-app.listen(port, () => {
-  console.log(`listening on port ${port}`);
+void getDb(process.env.REDIS_URL!).then(async (createdRdb) => {
+  rdb = createdRdb;
+  app.listen(port, () => {
+    console.log(`listening on port ${port}`);
+  });
 });
-
 // IPFS
