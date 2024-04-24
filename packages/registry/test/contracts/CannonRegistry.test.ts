@@ -221,7 +221,7 @@ describe('CannonRegistry', function () {
           'ipfs://some-module-meta@0.0.1',
           { value: 80 }
         );
-      }, `FeeRequired(100)`);
+      }, 'FeeRequired(100)');
       await CannonRegistry.setFees(0, 0);
     });
 
