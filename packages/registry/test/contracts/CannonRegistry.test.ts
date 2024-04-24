@@ -210,7 +210,8 @@ describe('CannonRegistry', function () {
       await CannonRegistry.setFees(0, 0);
     });
 
-    it('should fail when paying wrong amount of fee', async function () {
+    it('should fail when paying insufficient amount of fee', async function () {
+      await CannonRegistry.setFees(100, 0);
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module-'),
@@ -218,9 +219,10 @@ describe('CannonRegistry', function () {
           [toBytes32('0.0.1')],
           '',
           'ipfs://some-module-meta@0.0.1',
-          { value: fee.add(20) }
+          { value: 80 }
         );
-      }, `FeeRequired(${fee})`);
+      }, 'FeeRequired(100)');
+      await CannonRegistry.setFees(0, 0);
     });
 
     it('should not allow to publish empty url', async function () {
@@ -275,7 +277,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
+      equal(events![0].event, 'PackagePublishWithFee');
 
       const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
@@ -305,7 +307,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
+      equal(events![0].event, 'PackagePublishWithFee');
     });
 
     it('pushes tags', async function () {
@@ -320,14 +322,20 @@ describe('CannonRegistry', function () {
         { value: fee }
       );
 
-      const expectedEvents = tags.map((tagName) => [
-        toBytes32('some-module'),
-        toBytes32(tagName),
-        toBytes32('1337-main'),
-        'ipfs://updated-module-hash@0.0.3',
-        'ipfs://updated-module-meta@0.0.3',
-        ownerAddress,
-      ]);
+      const expectedEvents = [
+        [
+          toBytes32('some-module'),
+          toBytes32('0.0.3'),
+          toBytes32('1337-main'),
+          'ipfs://updated-module-hash@0.0.3',
+          'ipfs://updated-module-meta@0.0.3',
+          ownerAddress,
+          BigNumber.from(0),
+        ],
+        ...tags
+          .slice(1)
+          .map((tagName) => [toBytes32('some-module'), toBytes32('1337-main'), toBytes32(tagName), toBytes32('0.0.3')]),
+      ];
 
       const { events } = await tx.wait();
       ok(Array.isArray(events));
