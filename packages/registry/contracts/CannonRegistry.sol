@@ -19,7 +19,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   error FeeRequired(uint256 amount);
   error WrongChain();
 
-  event PackageRegistered(bytes32 indexed name, address registrant, uint256 feePaid);
+  event PackageRegistered(bytes32 indexed name, address registrant);
   event PackageOwnerNominated(bytes32 indexed name, address currentOwner, address nominatedOwner);
   event PackageOwnerChanged(bytes32 indexed name, address owner);
   event PackagePublishersChanged(bytes32 indexed name, address[] publisher);
@@ -32,9 +32,12 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     address owner,
     uint256 feePaid
   );
-
-  event PackageTagged(bytes32 indexed name, bytes32 indexed tag, bytes32 indexed variant, bytes32 associatedTag);
-
+  event TagPublish(
+    bytes32 indexed name,
+    bytes32 indexed variant,
+    bytes32 indexed tag,
+    bytes32 versionOfTag
+  );
   event PackageUnpublish(bytes32 indexed name, bytes32 indexed tag, bytes32 indexed variant, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
@@ -138,7 +141,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
-        emit PackageTagged(_packageName, _tag, _variant, _firstTag);
+        emit TagPublish(_packageName, _variant, _tag, _firstTag);
       }
     }
   }
@@ -177,7 +180,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       if (owner == address(0) && msg.value < store.registerFee) {
         revert FeeRequired(store.registerFee);
       } else if (owner == address(0)) {
-        emit PackageRegistered(_packageName, sender, msg.value);
+        emit PackageRegistered(_packageName, sender);
       }
 
       // name must be valid in order to register package
