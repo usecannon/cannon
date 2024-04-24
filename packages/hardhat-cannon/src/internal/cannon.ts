@@ -17,7 +17,7 @@ interface BuildOptions {
   cannonfile: string;
   preset: string;
   settings: PackageSettings;
-  registryPriority?: 'local' | 'onchain';
+  registryPriority?: 'local' | 'onchain' | 'offline';
 }
 
 export async function cannonBuild(options: BuildOptions) {
