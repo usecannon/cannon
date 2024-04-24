@@ -196,7 +196,8 @@ teardown() {
   assert_success
 }
 
-@test "Trace - Trace Verify Parsing" {
+@test "Trace - Trace Verify Parsing" {\
+  set_custom_config
   run trace-output.sh
   echo $output
   assert_success
