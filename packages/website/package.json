@@ -65,7 +65,7 @@
     "simple-url": "^1.1.8",
     "styled-components": "^6.0.7",
     "typescript": "^5.3.3",
-    "viem": "^2.9.3",
+    "viem": "^2.9.26",
     "wagmi": "^2.5.13",
     "zod-to-json-schema": "^3.21.4",
     "zustand": "^4.4.1"
