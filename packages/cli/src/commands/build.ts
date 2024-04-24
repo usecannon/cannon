@@ -47,7 +47,7 @@ interface Params {
   plugins?: boolean;
   publicSourceCode?: boolean;
   providerUrl?: string;
-  registryPriority?: 'local' | 'onchain';
+  registryPriority?: 'local' | 'onchain' | 'offline';
   gasPrice?: string;
   gasFee?: string;
   priorityGasFee?: string;

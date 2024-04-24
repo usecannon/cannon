@@ -192,7 +192,10 @@ export async function createDefaultReadRegistry(
     (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
   );
 
-  if (!(await isConnectedToInternet())) {
+  if (settings.registryPriority === 'offline') {
+    debug('running in offline mode, using local registry only');
+    return new FallbackRegistry([...additionalRegistries, localRegistry]);
+  } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
