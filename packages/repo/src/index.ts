@@ -68,24 +68,40 @@ app.post('/api/v0/add', async (req, res) => {
         // ensure the file is marked as a fresh upload
         await rdb.zAdd(RKEY_FRESH_UPLOAD_HASHES, { score: now, value: ipfsHash }, { NX: true });
 
-        // TODO: do we need to sanitize the upstream upload ipfs url?
-        await fetch(upstreamIpfs + req.url, {
-          method: 'POST',
-          body: req.body,
-        });
+        const form = new FormData();
+        form.set('file', new File([rawData], 'file.txt'));
+        try {
+          const upstreamRes = await fetch(upstreamIpfs + req.url, {
+            method: 'POST',
+            body: form,
+          });
+
+          const upstreamBody = new TextDecoder().decode(await upstreamRes.arrayBuffer());
+          return res.status(200).end(upstreamBody);
+        } catch (err) {
+          console.log('cannon package upload to IPFS fail', err);
+          return res.status(500).end('ipfs write error');
+        }
+      } else {
+        return res.status(400).end('ipfs artifact not accepted');
       }
     });
     req.busboy.on('finish', () => {
       if (!fileReceived) {
-        res.status(400).end('no upload data');
+        return res.status(400).end('no upload data');
       }
     });
   } else {
-    res.status(400).end('no upload data');
+    return res.status(400).end('no upload data');
   }
 });
 
-app.post('/api/v0/get', async (req, res) => {
+app.post('/api/v0/cat', async (req, res) => {
+  // optimistically, start the upstream request immediately to save time
+  const upstreamRes = await fetch(upstreamIpfs + req.url, {
+    method: 'POST',
+  });
+
   const ipfsHash = req.query.arg as string;
   // if the IPFS hash is in our database, go ahead and proxy the request
   const rdb = await getDb(process.env.REDIS_URL!);
@@ -94,22 +110,34 @@ app.post('/api/v0/get', async (req, res) => {
   batch.zScore(RKEY_PKG_HASHES, ipfsHash);
   batch.zScore(RKEY_EXTRA_HASHES, ipfsHash);
   const existsResult = await batch.exec();
-  const hashIsSaved = _.some(existsResult, _.isNumber());
-  if (hashIsSaved) {
-    const upstreamRes = await fetch(upstreamIpfs + req.url, {
-      method: 'POST',
-    });
+  const hashisRepod = _.some(existsResult, _.isNumber);
 
-    // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
-    for await (const chunk of upstreamRes.body! as any) {
-      res.send(chunk);
+  if (hashisRepod) {
+    try {
+      // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
+      for await (const chunk of upstreamRes.body! as any) {
+        res.send(Buffer.from(chunk));
+      }
+
+      return res.end();
+    } catch (err) {
+      console.log('cannon package download from IPFS fail', err);
+      return res.status(500).end('cannon package download ipfs fail');
     }
+  } else {
+    // compute resulting IPFS hash from the uploaded data
+    try {
+      const rawData = await upstreamRes.arrayBuffer();
+      const pkgData: DeploymentInfo = JSON.parse(pako.inflate(rawData, { to: 'string' }));
+      //const def = new ChainDefinition(pkgData.def);
 
-    res.end();
+      // appears to be a cannon package. sendit back
+      return res.end(Buffer.from(rawData));
+    } catch (err) {}
   }
 
   // otherwise dont return
-  res.status(404).end('unregistered ipfs data');
+  return res.status(404).end('unregistered ipfs data');
 });
 
 app.listen(port, () => {
