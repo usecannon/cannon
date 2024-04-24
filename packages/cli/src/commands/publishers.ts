@@ -38,12 +38,6 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  // if the user has not set the registry settings, use mainnet as the default registry
-  if (isDefaultSettings) {
-    cliSettings.registries = cliSettings.registries.reverse();
-  }
-
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
       type: 'text',
@@ -60,7 +54,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+
+  const [mainnetRegistryProvider] = await resolveRegistryProviders({
+    ...cliSettings,
+    // if the user has not set the registry settings, use mainnet as the default registry
+    registries: isDefaultSettings ? cliSettings.registries.reverse() : cliSettings.registries,
+  });
 
   const overrides: any = {};
 
