@@ -210,12 +210,16 @@ export function useTxnStager(
   }
 
   let execConditionFailed = '';
-  if (!reads.isSuccess || reads.isFetching || reads.isRefetching || !currentNonce) {
+  if (reads.isError) {
+    execConditionFailed = `Prepare error: ${reads.failureReason}`;
+  } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching || !currentNonce) {
     execConditionFailed = 'loading transaction data, please wait...';
   } else if (!isSigner) {
     execConditionFailed = `current wallet ${account.address} not signer of this safe`;
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
     execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
+  } else if (stageTxnMutate.isError) {
+    execConditionFailed = `Simluation error: ${stageTxnMutate.failureReason}`;
   }
 
   return {

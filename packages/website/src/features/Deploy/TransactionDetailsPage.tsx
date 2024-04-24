@@ -353,8 +353,9 @@ const TransactionDetailsPage: FC<{
                                 colorScheme="teal"
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.execConditionFailed) as any
+                                  !stager.executeTxnConfig ||
+                                  ((safeTxn &&
+                                    !!stager.execConditionFailed) as any)
                                 }
                                 onClick={() => {
                                   if (!stager.executeTxnConfig) {
