@@ -23,14 +23,16 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   event PackageOwnerNominated(bytes32 indexed name, address currentOwner, address nominatedOwner);
   event PackageOwnerChanged(bytes32 indexed name, address owner);
   event PackagePublishersChanged(bytes32 indexed name, address[] publisher);
-  event PackagePublish(
+  event PackagePublishWithFee(
     bytes32 indexed name,
     bytes32 indexed tag,
     bytes32 indexed variant,
     string deployUrl,
     string metaUrl,
-    address owner
+    address owner,
+    uint256 feePaid
   );
+  event TagPublish(bytes32 indexed name, bytes32 indexed variant, bytes32 indexed tag, bytes32 versionOfTag);
   event PackageUnpublish(bytes32 indexed name, bytes32 indexed tag, bytes32 indexed variant, address owner);
   event PackageVerify(bytes32 indexed name, address indexed verifier);
   event PackageUnverify(bytes32 indexed name, address indexed verifier);
@@ -102,7 +104,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   ) external payable {
     Store storage store = _store();
 
-    if (msg.value != store.publishFee) {
+    if (msg.value < store.publishFee) {
       revert FeeRequired(store.publishFee);
     }
 
@@ -127,14 +129,14 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     bytes32 _firstTag = _packageTags[0];
     _p.deployments[_firstTag][_variant] = CannonDeployInfo({deploy: packageDeployString, meta: packageMetaString});
     CannonDeployInfo storage _deployInfo = _p.deployments[_firstTag][_variant];
-    emit PackagePublish(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender);
+    emit PackagePublishWithFee(_packageName, _firstTag, _variant, _packageDeployUrl, _packageMetaUrl, sender, msg.value);
 
     if (_packageTags.length > 1) {
       for (uint256 i = 1; i < _packageTags.length; i++) {
         bytes32 _tag = _packageTags[i];
         _p.deployments[_tag][_variant] = _deployInfo;
 
-        emit PackagePublish(_packageName, _tag, _variant, _packageDeployUrl, _packageMetaUrl, sender);
+        emit TagPublish(_packageName, _variant, _tag, _firstTag);
       }
     }
   }
@@ -170,7 +172,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       }
 
       // package new or old check
-      if (owner == address(0) && msg.value != store.registerFee) {
+      if (owner == address(0) && msg.value < store.registerFee) {
         revert FeeRequired(store.registerFee);
       } else if (owner == address(0)) {
         emit PackageRegistered(_packageName, sender);

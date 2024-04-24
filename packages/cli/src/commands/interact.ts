@@ -7,6 +7,7 @@ import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } fro
 
 import { formatAbiFunction } from '../helpers';
 import { PackageSpecification } from '../types';
+import { getChainById } from '../chains';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -344,9 +345,10 @@ async function execTxn({
 
   // estimate gas
   try {
+    const chain = getChainById(await provider.getChainId());
     txn = (await provider.prepareTransactionRequest({
       account: signer.wallet.account || signer.address,
-      chain: provider.chain,
+      chain,
       to: contract.address,
       data: callData,
       value: viem.parseEther(value.toString() || '0'),
