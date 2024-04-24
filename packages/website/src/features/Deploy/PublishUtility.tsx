@@ -1,29 +1,27 @@
-import { useWalletClient } from 'wagmi';
-import { mainnet, optimism } from 'viem/chains';
-import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
-import { useMutation } from '@tanstack/react-query';
-import {
-  InfoOutlineIcon,
-  QuestionOutlineIcon,
-  ExternalLinkIcon,
-} from '@chakra-ui/icons';
-import {
-  Button,
-  Link,
-  Spinner,
-  Text,
-  useToast,
-  Tooltip,
-  Image,
-  Alert,
-  AlertIcon,
-  UnorderedList,
-  ListItem,
-} from '@chakra-ui/react';
+import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { findChain } from '@/helpers/rpc';
 import { useStore } from '@/helpers/store';
-import { IPFSBrowserLoader } from '@/helpers/ipfs';
 import { useCannonPackage } from '@/hooks/cannon';
+import { useCannonPackagePublishers } from '@/hooks/registry';
+import {
+  ExternalLinkIcon,
+  InfoOutlineIcon,
+  QuestionOutlineIcon,
+} from '@chakra-ui/icons';
+import {
+  Alert,
+  AlertIcon,
+  Button,
+  Image,
+  Link,
+  ListItem,
+  Spinner,
+  Text,
+  Tooltip,
+  UnorderedList,
+  useToast,
+} from '@chakra-ui/react';
+import { useMutation } from '@tanstack/react-query';
 import {
   CannonStorage,
   InMemoryRegistry,
@@ -31,7 +29,9 @@ import {
   publishPackage,
 } from '@usecannon/builder';
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
-import { useCannonPackagePublishers } from '@/hooks/registry';
+import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
+import { mainnet, optimism } from 'viem/chains';
+import { useWalletClient } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -80,15 +80,6 @@ export default function PublishUtility(props: {
     'https://etherscan.io';
 
   const prepareAndPublishPackage = async (registryChainId: number) => {
-    if (settings.isIpfsGateway) {
-      // TODO: prompt to connect wallet and switch to Chain ID registryChainId
-
-      // UI should prevent this from happening
-      throw new Error(
-        'You cannot publish on an IPFS gateway, only read operations can be done'
-      );
-    }
-
     if (!wc.data) {
       throw new Error('Wallet not connected');
     }
@@ -223,20 +214,7 @@ export default function PublishUtility(props: {
           </Alert>
         )}
 
-        {settings.isIpfsGateway && (
-          <Alert mb={4} status="warning" bg="gray.700" fontSize="sm">
-            <AlertIcon boxSize={4} mr={3} />
-            <Text>
-              You cannot publish using an IPFS gateway. Please{' '}
-              <Link href="/settings" isExternal>
-                use a Kubo RPC API
-              </Link>
-              .
-            </Text>
-          </Alert>
-        )}
-
-        {!settings.isIpfsGateway && !canPublish && (
+        {!canPublish && (
           <div>
             <Text fontSize="xs" fontWeight="medium" mb={2}>
               Connect{' '}
@@ -288,7 +266,7 @@ export default function PublishUtility(props: {
           </div>
         )}
 
-        {!settings.isIpfsGateway && canPublish && (
+        {canPublish && (
           <>
             <Button
               variant="outline"
@@ -303,7 +281,6 @@ export default function PublishUtility(props: {
               color="gray.200"
               fontWeight={500}
               isDisabled={
-                settings.isIpfsGateway ||
                 publishOptimismMutation.isPending ||
                 publishMainnetMutation.isPending
               }
@@ -317,7 +294,6 @@ export default function PublishUtility(props: {
             <Text fontSize="xs" textAlign="center">
               <Link
                 onClick={() =>
-                  settings.isIpfsGateway ||
                   publishOptimismMutation.isPending ||
                   publishMainnetMutation.isPending
                     ? false

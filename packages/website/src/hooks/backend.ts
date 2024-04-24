@@ -212,7 +212,7 @@ export function useTxnStager(
   let execConditionFailed = '';
   if (reads.isError) {
     execConditionFailed = `Prepare error: ${reads.failureReason}`;
-  } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching || !currentNonce) {
+  } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching) {
     execConditionFailed = 'loading transaction data, please wait...';
   } else if (!isSigner) {
     execConditionFailed = `current wallet ${account.address} not signer of this safe`;
