@@ -495,19 +495,23 @@ const commandsConfig = {
       },
     ],
   },
-  'add-publisher': {
+  publishers: {
     description: 'Add a new publisher to your Cannon package',
     arguments: [
       {
         flags: '<packageRef>',
-        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
-      },
-      {
-        flags: '<address>',
-        description: 'Address of the new publisher',
+        description: 'Name, version and preset of the Cannon package (name:version@preset)',
       },
     ],
     options: [
+      {
+        flags: '-a --add <address>',
+        description: 'Specify a comma separated list of addresses to add as publishers',
+      },
+      {
+        flags: '-r --remove <address>',
+        description: 'Specify a comma separated list of addresses to add as publishers',
+      },
       {
         flags: '-n --registry-provider-url [url]',
         description: 'RPC endpoint to add a publisher to your package',
@@ -515,49 +519,6 @@ const commandsConfig = {
       {
         flags: '-c --registry-chain-id <chainId>',
         description: 'Chain ID of the package to add a publisher to',
-      },
-      {
-        flags: '--private-key <key>',
-        description: 'Private key of the package owner',
-      },
-      {
-        flags: '--gas-limit <gasLimit>',
-        description: 'The maximum units of gas spent for the registration transaction',
-      },
-      {
-        flags: '--value <value>',
-        description: 'Value in wei to send with the transaction (defaults to registerFee)',
-      },
-      {
-        flags: '--max-fee-per-gas <maxFeePerGas>',
-        description: 'The maximum value (in gwei) for the base fee when submitting the registry transaction',
-      },
-      {
-        flags: '--max-priority-fee-per-gas <maxPriorityFeePerGas>',
-        description: 'The maximum value (in gwei) for the miner tip when submitting the registry transaction',
-      },
-    ],
-  },
-  'remove-publisher': {
-    description: 'Remove an existing publisher from your Cannon package',
-    arguments: [
-      {
-        flags: '<packageRef>',
-        description: 'Name, version and preset of the Cannon package to publish (name:version@preset)',
-      },
-      {
-        flags: '<address>',
-        description: 'Address of an existing publisher',
-      },
-    ],
-    options: [
-      {
-        flags: '-n --registry-provider-url [url]',
-        description: 'RPC endpoint to remove the publisher of your package',
-      },
-      {
-        flags: '-c --registry-chain-id <chainId>',
-        description: 'Chain ID of the package to remove the publisher to',
       },
       {
         flags: '--private-key <key>',

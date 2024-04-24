@@ -13,12 +13,31 @@ interface Params {
   cliSettings: CliSettings;
   options: any;
   packageRef: string;
-  publisher: viem.Address;
   skipConfirm?: boolean;
 }
 
-export async function addPublisher({ cliSettings, options, packageRef, publisher }: Params) {
-  if (!viem.isAddress(publisher)) throw new Error('Invalid address');
+export async function publishers({ cliSettings, options, packageRef }: Params) {
+  const publisherToAdd = options.add;
+  const publishersToRemove = options.remove;
+
+  // throw an error if the user has not provided any address
+  if (!publisherToAdd && !publishersToRemove) {
+    throw new Error('Please provide either --add or --remove option');
+  }
+
+  // throw an error if the user has provided invalid address
+  if (publisherToAdd && !viem.isAddress(publisherToAdd)) {
+    throw new Error('Invalid address provided for --add option');
+  }
+
+  if (publishersToRemove && !viem.isAddress(publishersToRemove)) {
+    throw new Error('Invalid address provided for --remove option');
+  }
+
+  // Check if both options provided and addresses are the same
+  if (publisherToAdd && publishersToRemove && viem.isAddressEqual(publisherToAdd, publishersToRemove)) {
+    throw new Error('Cannot add and remove the same address in one operation');
+  }
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   // if the user has not set the registry settings, use mainnet as the default registry
@@ -76,26 +95,20 @@ export async function addPublisher({ cliSettings, options, packageRef, publisher
     throw new Error(`Unauthorized: The package "${packageName}" is already registered by "${packageOwner}".`);
   }
 
-  const additionalPublishers = await mainRegistry.getAdditionalPublishers(packageName);
+  const currentPublishers = await mainRegistry.getAdditionalPublishers(packageName);
 
-  // throw an error if the address is already a publisher
-  const isExistingPublisher = additionalPublishers.some((_publisher) => viem.isAddressEqual(_publisher, publisher));
-  if (isExistingPublisher) {
-    throw new Error(`The address "${options.additionalPublisher}" is already a publisher for "${packageName}" package.`);
+  // copy the current publishers
+  let publishers = [...currentPublishers];
+
+  // remove publisher if specified
+  if (publishersToRemove && currentPublishers.some((p) => viem.isAddressEqual(p, publishersToRemove))) {
+    publishers = publishers.filter((p) => !viem.isAddressEqual(p, publishersToRemove));
   }
 
-  const confirm = await prompts({
-    type: 'confirm',
-    name: 'confirmation',
-    message: `Do you want to add ${options.additionalPublisher} as a publisher?`,
-  });
-
-  if (!confirm.confirmation) {
-    process.exit(0);
+  // add new publisher if specified
+  if (publisherToAdd && !currentPublishers.some((p) => viem.isAddressEqual(p, publisherToAdd))) {
+    publishers.push(publisherToAdd);
   }
-
-  // Add the new publisher to the list of publishers
-  const publishers = Array.from(new Set([...additionalPublishers, publisher]));
 
   if (isDefaultSettings) {
     const [hash] = await Promise.all([

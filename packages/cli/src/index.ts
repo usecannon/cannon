@@ -64,8 +64,7 @@ export { build } from './commands/build';
 export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
-export { addPublisher } from './commands/add-publisher';
-export { removePublisher } from './commands/remove-publisher';
+export { publishers } from './commands/publishers';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { setup } from './commands/setup';
@@ -494,28 +493,12 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
   await register({ cliSettings, options, packageRef, fromPublish: false });
 });
 
-applyCommandsConfig(program.command('add-publisher'), commandsConfig['add-publisher']).action(async function (
-  packageRef,
-  publisher,
-  options
-) {
-  const { addPublisher } = await import('./commands/add-publisher');
+applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
+  const { publishers } = await import('./commands/publishers');
 
   const cliSettings = resolveCliSettings(options);
 
-  await addPublisher({ cliSettings, options, packageRef, publisher });
-});
-
-applyCommandsConfig(program.command('remove-publisher'), commandsConfig['remove-publisher']).action(async function (
-  packageRef,
-  publisher,
-  options
-) {
-  const { removePublisher } = await import('./commands/remove-publisher');
-
-  const cliSettings = resolveCliSettings(options);
-
-  await removePublisher({ cliSettings, options, packageRef, publisher });
+  await publishers({ cliSettings, options, packageRef });
 });
 
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageName, options) {
