@@ -29,7 +29,6 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   if (publisherToAdd && !viem.isAddress(publisherToAdd)) {
     throw new Error('Invalid address provided for --add option');
   }
-
   if (publishersToRemove && !viem.isAddress(publishersToRemove)) {
     throw new Error('Invalid address provided for --remove option');
   }
@@ -41,7 +40,9 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   // if the user has not set the registry settings, use mainnet as the default registry
-  const registryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
+  if (isDefaultSettings) {
+    cliSettings.registries = cliSettings.registries.reverse();
+  }
 
   if (!cliSettings.privateKey) {
     const keyPrompt = await prompts({
@@ -59,7 +60,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     cliSettings.privateKey = checkAndNormalizePrivateKey(keyPrompt.value);
   }
 
-  const [mainRegistryProvider] = await resolveRegistryProviders(cliSettings);
+  const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   const overrides: any = {};
 
@@ -76,13 +77,13 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   }
 
   const mainRegistry = new OnChainRegistry({
-    signer: mainRegistryProvider.signers[0],
-    provider: mainRegistryProvider.provider,
-    address: registryConfig.address,
+    signer: mainnetRegistryProvider.signers[0],
+    provider: mainnetRegistryProvider.provider,
+    address: cliSettings.registries[0].address,
     overrides,
   });
 
-  const userAddress = mainRegistryProvider.signers[0].address;
+  const userAddress = mainnetRegistryProvider.signers[0].address;
   const packageName = new PackageReference(packageRef).name;
   const packageOwner = await mainRegistry.getPackageOwner(packageName);
 
