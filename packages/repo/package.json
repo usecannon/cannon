@@ -22,6 +22,7 @@
   "homepage": "https://github.com/usecannon/cannon#readme",
   "dependencies": {
     "@usecannon/builder": "^2.12.1",
+    "@usecannon/indexer": "^2.12.1",
     "connect-busboy": "^1.0.0",
     "morgan": "^1.10.0",
     "pako": "^2.1.0",
