@@ -261,25 +261,14 @@ export default function SettingsPage() {
             IPFS
           </Heading>
           <Text fontSize="md" mb={4}>
-            Cannon works with an{' '}
-            <Link
-              isExternal
-              href="https://docs.ipfs.tech/reference/http/gateway/"
-            >
-              IPFS HTTP Gateway URL
-            </Link>{' '}
-            or a{' '}
+            Enter a{' '}
             <Link isExternal href="https://docs.ipfs.tech/reference/kubo/rpc/">
               Kubo RPC API URL
-            </Link>
-            . It must be a Kubo RPC API URL to publish packages using the{' '}
-            <Link as={NextLink} href="/deploy">
-              deployer
-            </Link>
-            .
+            </Link>{' '}
+            to download packages and publish them using the deployer.
           </Text>
           <FormControl mb={4}>
-            <FormLabel>HTTP API URL</FormLabel>
+            <FormLabel>Kubo RPC API URL</FormLabel>
             <Input
               bg="black"
               borderColor="whiteAlpha.400"
@@ -290,19 +279,6 @@ export default function SettingsPage() {
                 setSettings({ ipfsApiUrl: evt.target.value });
               }}
             />
-            {settings.isIpfsGateway && (
-              <FormHelperText color="gray.200">
-                ⚠️ This appears to be an IPFS gateway. You must change this to a
-                Kubo RPC API URL to publish packages using the deployer.
-              </FormHelperText>
-            )}
-            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
-              <FormHelperText color="gray.200">
-                ⚠️ Currently, the Cannon IPFS Repo only supports downloading
-                files from IPFS. You must change this to a Kubo RPC API URL to
-                publish packages using the deployer.
-              </FormHelperText>
-            )}
           </FormControl>
           {settings.ipfsApiUrl.length ? (
             <Button
