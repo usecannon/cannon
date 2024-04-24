@@ -182,6 +182,7 @@ teardown() {
 }
 
 @test "Inspect - Inspect Synthetix Sandbox" {
+  set_custom_config
   run inspect.sh
   echo $output
   assert_file_exists "$CANNON_DIRECTORY/deployments/synthetix/CoreProxy.json"
@@ -189,6 +190,7 @@ teardown() {
 }
 
 @test "Trace - Trace Transaction Data" {
+  set_custom_config
   run trace.sh
   echo $output
   assert_success
