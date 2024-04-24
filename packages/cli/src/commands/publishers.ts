@@ -111,6 +111,10 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     publishers.push(publisherToAdd);
   }
 
+  if (_.isEqual(currentPublishers, publishers)) {
+    throw new Error('The publishers list is already up to date.');
+  }
+
   if (isDefaultSettings) {
     const [hash] = await Promise.all([
       (async () => {
