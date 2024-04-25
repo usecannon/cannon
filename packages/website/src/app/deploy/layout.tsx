@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
-import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
@@ -15,8 +15,6 @@ const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-
-  const isMobile = useBreakpointValue([true, true, false]);
 
   return (
     <Flex flexDir="column" width="100%">

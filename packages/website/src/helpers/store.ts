@@ -14,7 +14,6 @@ type IdentifiableTxn = {
   fn?: AbiFunction;
   params?: any[] | any;
   contractName?: string;
-  contractAddress?: Address;
   target: string;
   chainId: number;
 };
