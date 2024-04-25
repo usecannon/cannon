@@ -102,6 +102,9 @@ app.post('/api/v0/cat', async (req, res) => {
   });
 
   const ipfsHash = req.query.arg as string;
+  if (!ipfsHash || ipfsHash.length === 0) {
+    return res.status(400).end('no ipfs hash');
+  }
   // if the IPFS hash is in our database, go ahead and proxy the request
   const batch = rdb.multi();
   batch.zScore(RKEY_FRESH_UPLOAD_HASHES, ipfsHash);
@@ -112,11 +115,18 @@ app.post('/api/v0/cat', async (req, res) => {
 
   if (hashisRepod) {
     try {
-      // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
-      for await (const chunk of upstreamRes.body! as any) {
-        res.send(Buffer.from(chunk));
+      const contentLength = upstreamRes.headers.get('content-length') || '' || upstreamRes.headers.get('x-content-length');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      // NOTE: transfer-encoding apparently cant be sent at same time as content-length. and content length is better
+      //res.setHeader('Transfer-Encoding', 'chunked');
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
       }
 
+      // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
+      for await (const chunk of upstreamRes.body! as any) {
+        res.write(Buffer.from(chunk));
+      }
       return res.end();
     } catch (err) {
       console.log('cannon package download from IPFS fail', err);
@@ -126,7 +136,9 @@ app.post('/api/v0/cat', async (req, res) => {
     // compute resulting IPFS hash from the uploaded data
     try {
       const rawData = await upstreamRes.arrayBuffer();
-      JSON.parse(pako.inflate(rawData, { to: 'string' }));
+      const uint8Data = new Uint8Array(rawData);
+      const decompressedData = pako.inflate(uint8Data, { to: 'string' });
+      JSON.parse(decompressedData);
 
       // appears to be a cannon package. sendit back
       return res.end(Buffer.from(rawData));
@@ -145,4 +157,3 @@ void getDb(process.env.REDIS_URL!).then(async (createdRdb) => {
     console.log(`listening on port ${port}`);
   });
 });
-// IPFS
