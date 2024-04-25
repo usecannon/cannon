@@ -51,9 +51,9 @@ import NoncePicker from './NoncePicker';
 import { QueueTransaction } from './QueueTransaction';
 import 'react-diff-view/style/index.css';
 import { SafeAddressInput } from './SafeAddressInput';
+import WithSafe from '@/features/Deploy/WithSafe';
 
-const QueueDrawer = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
   const {
@@ -113,7 +113,7 @@ const QueueDrawer = () => {
     {
       safe: currentSafe!,
       onSignComplete() {
-        onClose();
+        onDrawerClose();
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
@@ -184,6 +184,263 @@ const QueueDrawer = () => {
 
   return (
     <>
+      <Box mb={6}>
+        <Text color="gray.300">
+          Transactions queued here will not generate a Cannon package after
+          execution.
+        </Text>
+      </Box>
+      <Box
+        mb={8}
+        p={6}
+        bg="gray.800"
+        display="block"
+        borderWidth="1px"
+        borderStyle="solid"
+        borderColor="gray.600"
+        borderRadius="4px"
+      >
+        <FormControl>
+          <FormLabel>Cannon Package or Contract Address</FormLabel>
+          <InputGroup>
+            <Input
+              type="text"
+              borderColor="whiteAlpha.400"
+              background="black"
+              onChange={(event: any) => setTarget(event.target.value)}
+              value={target}
+            />
+            {!isAddress(target) &&
+              target.length >= 3 &&
+              cannonInfo.registryQuery.status === 'pending' && (
+                <InputRightElement>
+                  <Spinner />
+                </InputRightElement>
+              )}
+          </InputGroup>
+
+          {!isAddress(target) &&
+            target.length >= 3 &&
+            cannonInfo.registryQuery.status === 'error' && (
+              <FormHelperText color="red.500">
+                Failed to find this package on the registry.
+              </FormHelperText>
+            )}
+        </FormControl>
+      </Box>
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'pending' && (
+          <Alert bg="gray.800" status="info" mt={6}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Downloading {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      {!isAddress(target) &&
+        cannonInfo.pkgUrl &&
+        cannonInfo.ipfsQuery.status === 'error' && (
+          <Alert bg="gray.800" status="error" mt={6}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Cannon Package Detected</AlertTitle>
+              <AlertDescription fontSize="sm">
+                Failed to load {cannonInfo.pkgUrl}
+              </AlertDescription>
+            </Box>
+          </Alert>
+        )}
+      <Box mt={6} mb={6} display="block">
+        <Heading size="md" mb={3}>
+          Queued Transactions
+        </Heading>
+        {queuedIdentifiableTxns.length > 0 ? (
+          queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+            <Box
+              key={i}
+              mb={8}
+              p={6}
+              bg="gray.800"
+              display="block"
+              borderWidth="1px"
+              borderStyle="solid"
+              borderColor="gray.600"
+              borderRadius="4px"
+            >
+              <QueueTransaction
+                key={queuedIdentifiableTxn.id}
+                onChange={(txn, fn, params, contractName, target, chainId) =>
+                  updateQueuedTxn(
+                    i,
+                    txn as any,
+                    fn,
+                    params,
+                    contractName,
+                    target,
+                    chainId
+                  )
+                }
+                onDelete={() => removeQueuedTxn(i)}
+                txn={queuedIdentifiableTxn.txn}
+                fn={queuedIdentifiableTxn.fn}
+                params={queuedIdentifiableTxn.params}
+                contractName={queuedIdentifiableTxn.contractName}
+                target={queuedIdentifiableTxn.target}
+                chainId={queuedIdentifiableTxn.chainId}
+                isDeletable
+              />
+            </Box>
+          ))
+        ) : (
+          <Text color="gray.300" py={3}>
+            No queued transactions.
+          </Text>
+        )}
+        {!isAddress(target) && cannonInfo.contracts && (
+          <Button
+            variant="outline"
+            size="xs"
+            colorScheme="green"
+            color="green.400"
+            borderColor="green.400"
+            _hover={{ bg: 'green.900' }}
+            onClick={() => addQueuedTxn()}
+          >
+            Add Transaction
+          </Button>
+        )}
+      </Box>
+      <Box>
+        {isAddress(target) && (
+          <Box mb="6">
+            {funcIsPayable && (
+              <FormControl>
+                <FormLabel>Value</FormLabel>
+                <Input
+                  type="text"
+                  borderColor="whiteAlpha.400"
+                  background="black"
+                  onChange={(event: any) =>
+                    updateQueuedTxn(0, {
+                      ...queuedTxns[0],
+                      value: BigInt(event.target.value),
+                    })
+                  }
+                />
+                <FormHelperText>
+                  Amount of ETH to send as part of transaction
+                </FormHelperText>
+              </FormControl>
+            )}
+
+            <FormControl mb="4">
+              <FormLabel>Transaction Data</FormLabel>
+              <Input
+                type="text"
+                borderColor="whiteAlpha.400"
+                background="black"
+                placeholder="0x"
+                onChange={(event: any) =>
+                  updateQueuedTxn(0, {
+                    ...queuedTxns[0],
+                    data: (event.target.value as Hex) || '0x',
+                  })
+                }
+              />
+              <FormHelperText>
+                0x prefixed hex code data to send with transaction
+              </FormHelperText>
+            </FormControl>
+          </Box>
+        )}
+
+        {queuedIdentifiableTxns.length > 0 && (
+          <Box>
+            {stager.signConditionFailed && (
+              <Alert bg="gray.800" status="error" mb={4}>
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>Can’t Sign</AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    {stager.signConditionFailed}
+                  </AlertDescription>
+                </Box>
+              </Alert>
+            )}
+            {stager.execConditionFailed && (
+              <Alert bg="gray.800" status="error" mb={4}>
+                <AlertIcon />
+                <Box>
+                  <AlertTitle>Can’t Execute</AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    {stager.execConditionFailed}
+                  </AlertDescription>
+                </Box>
+              </Alert>
+            )}
+            <NoncePicker
+              safe={currentSafe as any}
+              onPickedNonce={setPickedNonce}
+            />
+            <HStack gap="6">
+              {disableExecute ? (
+                <Tooltip label={stager.signConditionFailed}>
+                  <Button
+                    size="lg"
+                    colorScheme="teal"
+                    w="100%"
+                    isDisabled={
+                      !targetTxn ||
+                      txnHasError ||
+                      !!stager.signConditionFailed ||
+                      queuedIdentifiableTxns.length === 0
+                    }
+                    onClick={() => stager.sign()}
+                  >
+                    Queue &amp; Sign
+                  </Button>
+                </Tooltip>
+              ) : null}
+              <Tooltip label={stager.execConditionFailed}>
+                <Button
+                  size="lg"
+                  colorScheme="teal"
+                  w="100%"
+                  isDisabled={disableExecute}
+                  onClick={() => {
+                    execTxn.writeContract(stager.executeTxnConfig!, {
+                      onSuccess: () => {
+                        router.push(links.DEPLOY);
+
+                        toast({
+                          title: 'You successfully executed the transaction.',
+                          status: 'success',
+                          duration: 5000,
+                          isClosable: true,
+                        });
+                      },
+                    });
+                  }}
+                >
+                  Execute
+                </Button>
+              </Tooltip>
+            </HStack>
+          </Box>
+        )}
+      </Box>
+    </>
+  );
+};
+
+const QueueDrawer = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  return (
+    <>
       <IconButton
         onClick={onOpen}
         size="sm"
@@ -234,263 +491,9 @@ const QueueDrawer = () => {
                 </Heading>
                 <SafeAddressInput />
               </Box>
-              <Box mb={6}>
-                <Text color="gray.300">
-                  Transactions queued here will not generate a Cannon package
-                  after execution.
-                </Text>
-              </Box>
-              <Box
-                mb={8}
-                p={6}
-                bg="gray.800"
-                display="block"
-                borderWidth="1px"
-                borderStyle="solid"
-                borderColor="gray.600"
-                borderRadius="4px"
-              >
-                <FormControl>
-                  <FormLabel>Cannon Package or Contract Address</FormLabel>
-                  <InputGroup>
-                    <Input
-                      type="text"
-                      borderColor="whiteAlpha.400"
-                      background="black"
-                      onChange={(event: any) => setTarget(event.target.value)}
-                      value={target}
-                    />
-                    {!isAddress(target) &&
-                      target.length >= 3 &&
-                      cannonInfo.registryQuery.status === 'pending' && (
-                        <InputRightElement>
-                          <Spinner />
-                        </InputRightElement>
-                      )}
-                  </InputGroup>
-
-                  {!isAddress(target) &&
-                    target.length >= 3 &&
-                    cannonInfo.registryQuery.status === 'error' && (
-                      <FormHelperText color="red.500">
-                        Failed to find this package on the registry.
-                      </FormHelperText>
-                    )}
-                </FormControl>
-              </Box>
-              {!isAddress(target) &&
-                cannonInfo.pkgUrl &&
-                cannonInfo.ipfsQuery.status === 'pending' && (
-                  <Alert bg="gray.800" status="info" mt={6}>
-                    <AlertIcon />
-                    <Box>
-                      <AlertTitle>Cannon Package Detected</AlertTitle>
-                      <AlertDescription fontSize="sm">
-                        Downloading {cannonInfo.pkgUrl}
-                      </AlertDescription>
-                    </Box>
-                  </Alert>
-                )}
-              {!isAddress(target) &&
-                cannonInfo.pkgUrl &&
-                cannonInfo.ipfsQuery.status === 'error' && (
-                  <Alert bg="gray.800" status="error" mt={6}>
-                    <AlertIcon />
-                    <Box>
-                      <AlertTitle>Cannon Package Detected</AlertTitle>
-                      <AlertDescription fontSize="sm">
-                        Failed to load {cannonInfo.pkgUrl}
-                      </AlertDescription>
-                    </Box>
-                  </Alert>
-                )}
-              <Box mt={6} mb={6} display="block">
-                <Heading size="md" mb={3}>
-                  Queued Transactions
-                </Heading>
-                {queuedIdentifiableTxns.length > 0 ? (
-                  queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
-                    <Box
-                      key={i}
-                      mb={8}
-                      p={6}
-                      bg="gray.800"
-                      display="block"
-                      borderWidth="1px"
-                      borderStyle="solid"
-                      borderColor="gray.600"
-                      borderRadius="4px"
-                    >
-                      <QueueTransaction
-                        key={queuedIdentifiableTxn.id}
-                        onChange={(
-                          txn,
-                          fn,
-                          params,
-                          contractName,
-                          target,
-                          chainId
-                        ) =>
-                          updateQueuedTxn(
-                            i,
-                            txn as any,
-                            fn,
-                            params,
-                            contractName,
-                            target,
-                            chainId
-                          )
-                        }
-                        onDelete={() => removeQueuedTxn(i)}
-                        txn={queuedIdentifiableTxn.txn}
-                        fn={queuedIdentifiableTxn.fn}
-                        params={queuedIdentifiableTxn.params}
-                        contractName={queuedIdentifiableTxn.contractName}
-                        target={queuedIdentifiableTxn.target}
-                        chainId={queuedIdentifiableTxn.chainId}
-                        isDeletable
-                      />
-                    </Box>
-                  ))
-                ) : (
-                  <Text color="gray.300" py={3}>
-                    No queued transactions.
-                  </Text>
-                )}
-                {!isAddress(target) && cannonInfo.contracts && (
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    colorScheme="green"
-                    color="green.400"
-                    borderColor="green.400"
-                    _hover={{ bg: 'green.900' }}
-                    onClick={() => addQueuedTxn()}
-                  >
-                    Add Transaction
-                  </Button>
-                )}
-              </Box>
-              <Box>
-                {isAddress(target) && (
-                  <Box mb="6">
-                    {funcIsPayable && (
-                      <FormControl>
-                        <FormLabel>Value</FormLabel>
-                        <Input
-                          type="text"
-                          borderColor="whiteAlpha.400"
-                          background="black"
-                          onChange={(event: any) =>
-                            updateQueuedTxn(0, {
-                              ...queuedTxns[0],
-                              value: BigInt(event.target.value),
-                            })
-                          }
-                        />
-                        <FormHelperText>
-                          Amount of ETH to send as part of transaction
-                        </FormHelperText>
-                      </FormControl>
-                    )}
-
-                    <FormControl mb="4">
-                      <FormLabel>Transaction Data</FormLabel>
-                      <Input
-                        type="text"
-                        borderColor="whiteAlpha.400"
-                        background="black"
-                        placeholder="0x"
-                        onChange={(event: any) =>
-                          updateQueuedTxn(0, {
-                            ...queuedTxns[0],
-                            data: (event.target.value as Hex) || '0x',
-                          })
-                        }
-                      />
-                      <FormHelperText>
-                        0x prefixed hex code data to send with transaction
-                      </FormHelperText>
-                    </FormControl>
-                  </Box>
-                )}
-
-                {queuedIdentifiableTxns.length > 0 && (
-                  <Box>
-                    {stager.signConditionFailed && (
-                      <Alert bg="gray.800" status="error" mb={4}>
-                        <AlertIcon />
-                        <Box>
-                          <AlertTitle>Can’t Sign</AlertTitle>
-                          <AlertDescription fontSize="sm">
-                            {stager.signConditionFailed}
-                          </AlertDescription>
-                        </Box>
-                      </Alert>
-                    )}
-                    {stager.execConditionFailed && (
-                      <Alert bg="gray.800" status="error" mb={4}>
-                        <AlertIcon />
-                        <Box>
-                          <AlertTitle>Can’t Execute</AlertTitle>
-                          <AlertDescription fontSize="sm">
-                            {stager.execConditionFailed}
-                          </AlertDescription>
-                        </Box>
-                      </Alert>
-                    )}
-                    <NoncePicker
-                      safe={currentSafe as any}
-                      onPickedNonce={setPickedNonce}
-                    />
-                    <HStack gap="6">
-                      {disableExecute ? (
-                        <Tooltip label={stager.signConditionFailed}>
-                          <Button
-                            size="lg"
-                            colorScheme="teal"
-                            w="100%"
-                            isDisabled={
-                              !targetTxn ||
-                              txnHasError ||
-                              !!stager.signConditionFailed ||
-                              queuedIdentifiableTxns.length === 0
-                            }
-                            onClick={() => stager.sign()}
-                          >
-                            Queue &amp; Sign
-                          </Button>
-                        </Tooltip>
-                      ) : null}
-                      <Tooltip label={stager.execConditionFailed}>
-                        <Button
-                          size="lg"
-                          colorScheme="teal"
-                          w="100%"
-                          isDisabled={disableExecute}
-                          onClick={() => {
-                            execTxn.writeContract(stager.executeTxnConfig!, {
-                              onSuccess: () => {
-                                router.push(links.DEPLOY);
-
-                                toast({
-                                  title:
-                                    'You successfully executed the transaction.',
-                                  status: 'success',
-                                  duration: 5000,
-                                  isClosable: true,
-                                });
-                              },
-                            });
-                          }}
-                        >
-                          Execute
-                        </Button>
-                      </Tooltip>
-                    </HStack>
-                  </Box>
-                )}
-              </Box>
+              <WithSafe>
+                <QueuedTxns onDrawerClose={onClose} />
+              </WithSafe>
             </Container>
           </DrawerBody>
         </DrawerContent>
