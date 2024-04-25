@@ -26,7 +26,7 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
-  getFunctionSelector,
+  toFunctionSelector,
   Hex,
   TransactionRequestBase,
 } from 'viem';
@@ -159,7 +159,7 @@ export function QueueTransaction({
           to: contracts
             ? contracts[selectedContractName].address
             : (tx?.to as Address),
-          data: getFunctionSelector(selectedFunction),
+          data: toFunctionSelector(selectedFunction),
         };
       } else {
         try {
@@ -269,14 +269,14 @@ export function QueueTransaction({
                   ? {
                       value: selectedFunction,
                       label: selectedFunction.name,
-                      secondary: getFunctionSelector(selectedFunction),
+                      secondary: toFunctionSelector(selectedFunction),
                     }
                   : null
               }
               placeholder="Choose a function..."
               options={
                 contracts && selectedContractName
-                  ? contracts[selectedContractName].abi
+                  ? (contracts[selectedContractName].abi as AbiFunction[])
                       .filter(
                         (abi) =>
                           abi.type === 'function' &&
@@ -285,14 +285,14 @@ export function QueueTransaction({
                       .map((abi: AbiFunction) => ({
                         value: abi,
                         label: abi.name,
-                        secondary: getFunctionSelector(abi),
+                        secondary: toFunctionSelector(abi),
                       }))
                   : selectedFunction
                   ? [
                       {
                         value: selectedFunction,
                         label: selectedFunction.name,
-                        secondary: getFunctionSelector(selectedFunction),
+                        secondary: toFunctionSelector(selectedFunction),
                       },
                     ]
                   : []
