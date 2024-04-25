@@ -1,8 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { ReactNode } from 'react';
-import { Box, Flex } from '@chakra-ui/react';
+import { ReactNode, Suspense } from 'react';
+import { Box, Flex, Spinner } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
@@ -32,7 +32,9 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             maxW={{ lg: 'container.sm' }}
             mb={{ base: 2, lg: 0 }}
           >
-            <SafeAddressInput />
+            <Suspense fallback={<Spinner />}>
+              <SafeAddressInput />
+            </Suspense>
           </Box>
           <Flex
             gap={4}

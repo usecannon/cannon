@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { Suspense } from 'react';
 import { links } from '@/constants/links';
 import { makeMultisend } from '@/helpers/multisend';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
@@ -489,7 +491,9 @@ const QueueDrawer = () => {
                 <Heading size="md" mb={3}>
                   Safe
                 </Heading>
-                <SafeAddressInput />
+                <Suspense fallback={<Spinner />}>
+                  <SafeAddressInput />
+                </Suspense>
               </Box>
               <WithSafe>
                 <QueuedTxns onDrawerClose={onClose} />
