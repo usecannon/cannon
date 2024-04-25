@@ -415,79 +415,81 @@ const QueueDrawer = () => {
                   </Box>
                 )}
 
-                <Box>
-                  {stager.signConditionFailed && (
-                    <Alert bg="gray.800" status="error" mb={4}>
-                      <AlertIcon />
-                      <Box>
-                        <AlertTitle>Can’t Sign</AlertTitle>
-                        <AlertDescription fontSize="sm">
-                          {stager.signConditionFailed}
-                        </AlertDescription>
-                      </Box>
-                    </Alert>
-                  )}
-                  {stager.execConditionFailed && (
-                    <Alert bg="gray.800" status="error" mb={4}>
-                      <AlertIcon />
-                      <Box>
-                        <AlertTitle>Can’t Execute</AlertTitle>
-                        <AlertDescription fontSize="sm">
-                          {stager.execConditionFailed}
-                        </AlertDescription>
-                      </Box>
-                    </Alert>
-                  )}
-                  <NoncePicker
-                    safe={currentSafe as any}
-                    onPickedNonce={setPickedNonce}
-                  />
-                  <HStack gap="6">
-                    {disableExecute ? (
-                      <Tooltip label={stager.signConditionFailed}>
+                {queuedIdentifiableTxns.length > 0 && (
+                  <Box>
+                    {stager.signConditionFailed && (
+                      <Alert bg="gray.800" status="error" mb={4}>
+                        <AlertIcon />
+                        <Box>
+                          <AlertTitle>Can’t Sign</AlertTitle>
+                          <AlertDescription fontSize="sm">
+                            {stager.signConditionFailed}
+                          </AlertDescription>
+                        </Box>
+                      </Alert>
+                    )}
+                    {stager.execConditionFailed && (
+                      <Alert bg="gray.800" status="error" mb={4}>
+                        <AlertIcon />
+                        <Box>
+                          <AlertTitle>Can’t Execute</AlertTitle>
+                          <AlertDescription fontSize="sm">
+                            {stager.execConditionFailed}
+                          </AlertDescription>
+                        </Box>
+                      </Alert>
+                    )}
+                    <NoncePicker
+                      safe={currentSafe as any}
+                      onPickedNonce={setPickedNonce}
+                    />
+                    <HStack gap="6">
+                      {disableExecute ? (
+                        <Tooltip label={stager.signConditionFailed}>
+                          <Button
+                            size="lg"
+                            colorScheme="teal"
+                            w="100%"
+                            isDisabled={
+                              !targetTxn ||
+                              txnHasError ||
+                              !!stager.signConditionFailed ||
+                              queuedIdentifiableTxns.length === 0
+                            }
+                            onClick={() => stager.sign()}
+                          >
+                            Queue &amp; Sign
+                          </Button>
+                        </Tooltip>
+                      ) : null}
+                      <Tooltip label={stager.execConditionFailed}>
                         <Button
                           size="lg"
                           colorScheme="teal"
                           w="100%"
-                          isDisabled={
-                            !targetTxn ||
-                            txnHasError ||
-                            !!stager.signConditionFailed ||
-                            queuedIdentifiableTxns.length === 0
-                          }
-                          onClick={() => stager.sign()}
+                          isDisabled={disableExecute}
+                          onClick={() => {
+                            execTxn.writeContract(stager.executeTxnConfig!, {
+                              onSuccess: () => {
+                                router.push(links.DEPLOY);
+
+                                toast({
+                                  title:
+                                    'You successfully executed the transaction.',
+                                  status: 'success',
+                                  duration: 5000,
+                                  isClosable: true,
+                                });
+                              },
+                            });
+                          }}
                         >
-                          Queue &amp; Sign
+                          Execute
                         </Button>
                       </Tooltip>
-                    ) : null}
-                    <Tooltip label={stager.execConditionFailed}>
-                      <Button
-                        size="lg"
-                        colorScheme="teal"
-                        w="100%"
-                        isDisabled={disableExecute}
-                        onClick={() => {
-                          execTxn.writeContract(stager.executeTxnConfig!, {
-                            onSuccess: () => {
-                              router.push(links.DEPLOY);
-
-                              toast({
-                                title:
-                                  'You successfully executed the transaction.',
-                                status: 'success',
-                                duration: 5000,
-                                isClosable: true,
-                              });
-                            },
-                          });
-                        }}
-                      >
-                        Execute
-                      </Button>
-                    </Tooltip>
-                  </HStack>
-                </Box>
+                    </HStack>
+                  </Box>
+                )}
               </Box>
             </Container>
           </DrawerBody>
