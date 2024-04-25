@@ -117,7 +117,6 @@ app.post('/api/v0/cat', async (req, res) => {
     try {
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader('Transfer-Encoding', 'chunked');
-      res.setHeader('Content-Length', upstreamRes.headers.get('content-length') || '');
 
       // TODO: wtp does typescript think this doesn't work. literally on mdn example https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#async_iteration_of_a_stream_using_for_await...of
       for await (const chunk of upstreamRes.body! as any) {
