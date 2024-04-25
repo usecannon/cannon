@@ -167,6 +167,20 @@ export const Function: FC<{
   };
 
   const handleQueueTransaction = () => {
+    // Prevent queuing transactions across different chains
+    if (queuedIdentifiableTxns.length > 0) {
+      const lastTxn = queuedIdentifiableTxns.slice(-1)[0];
+      if (lastTxn.chainId !== chainId) {
+        toast({
+          title: 'Cannot queue transactions across different chains',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
 
     if (f.inputs.length === 0) {
