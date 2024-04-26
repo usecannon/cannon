@@ -8,6 +8,13 @@ import {
   useBreakpointValue,
   Tag,
   Icon,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalOverlay,
+  useDisclosure,
+  Center,
+  Input,
 } from '@chakra-ui/react';
 import { Link } from '@chakra-ui/next-js';
 import NextLink from 'next/link';
@@ -15,6 +22,7 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
 import { usePathname } from 'next/navigation';
+import { SearchIcon } from '@chakra-ui/icons';
 
 const NavLinks = () => {
   const pathname = usePathname();
@@ -70,6 +78,60 @@ const SettingsButton = () => {
   );
 };
 
+const SearchButton = () => {
+  const pathname = usePathname();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [query, setQuery] = React.useState('');
+
+  return (
+    <>
+      <IconButton
+        onClick={onOpen}
+        size="sm"
+        variant="outline"
+        background={pathname.startsWith('/search') ? 'teal.900' : 'black'}
+        borderColor={pathname.startsWith('/search') ? 'teal.700' : 'gray.500'}
+        aria-label="Search"
+        _hover={{
+          background: pathname.startsWith('/search') ? 'teal.900' : 'teal.900',
+          borderColor: pathname.startsWith('/search') ? 'teal.700' : 'teal.500',
+        }}
+        icon={<SearchIcon color="gray.200" />}
+      />
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent bg="gray.900" width="100%"  maxW="container.md">
+          <Flex pos="relative" align="stretch">
+            <Input
+              aria-autocomplete="list"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
+              maxLength={64}
+              w="100%"
+              h="68px"
+              pl="68px"
+              fontWeight="medium"
+              outline="0"
+              placeholder="Search for packages, addresses, and transactions..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+              }}
+              borderColor="gray.800"
+            />
+            <Center pos="absolute" left={7} h="68px">
+              <SearchIcon color="teal.500" boxSize="20px" />
+            </Center>
+          </Flex>
+          <ModalBody>Results here...</ModalBody>
+        </ModalContent>
+      </Modal>
+    </>
+  );
+};
+
 export const Header = () => {
   const isMobile = useBreakpointValue([true, true, false]);
 
@@ -111,6 +173,9 @@ export const Header = () => {
         </Box>
         {isMobile && <NavLinks />}
         <Box ml={['auto', 'auto', 3]}>
+          <SearchButton />
+        </Box>
+        <Box ml={3}>
           <SettingsButton />
         </Box>
       </Flex>
