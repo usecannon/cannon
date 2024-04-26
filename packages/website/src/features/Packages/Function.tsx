@@ -15,7 +15,6 @@ import {
   Link,
   Text,
   useToast,
-  Tooltip,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
