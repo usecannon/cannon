@@ -236,14 +236,14 @@ export function QueueTransaction({
                   ? Object.entries(contracts).map(([name, contract]) => ({
                       value: name,
                       label: name,
-                      secondary: contract.address,
+                      secondary: `${chainId}:${contract.address}`,
                     }))
                   : selectedContractName && txn?.to
                   ? [
                       {
                         value: selectedContractName,
                         label: selectedContractName,
-                        secondary: txn.to,
+                        secondary: `${chainId}:${txn.to}`,
                       },
                     ]
                   : []

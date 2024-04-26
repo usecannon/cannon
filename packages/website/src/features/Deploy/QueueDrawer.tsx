@@ -10,10 +10,6 @@ import { useSimulatedTxns } from '@/hooks/fork';
 import { SafeTransaction } from '@/types/SafeTransaction';
 import {
   IconButton,
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
   Box,
   FormControl,
   FormHelperText,
@@ -53,8 +49,13 @@ import { QueueTransaction } from './QueueTransaction';
 import 'react-diff-view/style/index.css';
 import { SafeAddressInput } from './SafeAddressInput';
 import WithSafe from '@/features/Deploy/WithSafe';
+import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
+  const account = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   const currentSafe = useStore((s) => s.currentSafe);
   const router = useRouter();
   const {
@@ -185,7 +186,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
 
   return (
     <>
-      <Box mt={6} mb={6} display="block">
+      <Box mt={6} mb={8} display="block">
         {queuedIdentifiableTxns.length > 0
           ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
               <Box
@@ -228,7 +229,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
 
         <FormControl>
           <FormLabel>
-            Add a transaction to a Cannon package or contract address
+            Add a transaction from a Cannon package or contract address
           </FormLabel>
           <InputGroup>
             <Input
@@ -280,7 +281,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
             )}
         </FormControl>
       </Box>
-      <Box>
+      <Box mb={4}>
         {isAddress(target) && (
           <Box mb="6">
             {funcIsPayable && (
@@ -326,80 +327,87 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
 
         {queuedIdentifiableTxns.length > 0 && (
           <Box>
-            {stager.signConditionFailed && (
-              <Alert bg="gray.800" status="error" mb={4}>
-                <AlertIcon />
-                <Box>
-                  <AlertTitle>Can’t Sign</AlertTitle>
-                  <AlertDescription fontSize="sm">
-                    {stager.signConditionFailed}
-                  </AlertDescription>
-                </Box>
-              </Alert>
-            )}
-            {stager.execConditionFailed && (
-              <Alert bg="gray.800" status="error" mb={4}>
-                <AlertIcon />
-                <Box>
-                  <AlertTitle>Can’t Execute</AlertTitle>
-                  <AlertDescription fontSize="sm">
-                    {stager.execConditionFailed}
-                  </AlertDescription>
-                </Box>
-              </Alert>
-            )}
-            <NoncePicker
-              safe={currentSafe as any}
-              onPickedNonce={setPickedNonce}
-            />
-            <HStack gap="6">
-              {disableExecute ? (
-                <Tooltip label={stager.signConditionFailed}>
-                  <Button
-                    size="lg"
-                    colorScheme="teal"
-                    w="100%"
-                    isDisabled={
-                      !targetTxn ||
-                      txnHasError ||
-                      !!stager.signConditionFailed ||
-                      queuedIdentifiableTxns.length === 0
-                    }
-                    onClick={() => stager.sign()}
-                  >
-                    Queue &amp; Sign
-                  </Button>
-                </Tooltip>
-              ) : null}
-              <Tooltip label={stager.execConditionFailed}>
+            <>
+              {!account.isConnected ? (
                 <Button
+                  onClick={openConnectModal}
                   size="lg"
                   colorScheme="teal"
-                  w="100%"
-                  isDisabled={disableExecute}
-                  onClick={() => {
-                    execTxn.writeContract(stager.executeTxnConfig!, {
-                      onSuccess: () => {
-                        router.push(links.DEPLOY);
-
-                        toast({
-                          title: 'You successfully executed the transaction.',
-                          status: 'success',
-                          duration: 5000,
-                          isClosable: true,
-                        });
-                      },
-                    });
-                  }}
+                  w="full"
                 >
-                  Execute
+                  Connect Wallet
                 </Button>
-              </Tooltip>
-            </HStack>
-            <Text my={4} fontSize="sm" color="gray.300">
-              <InfoOutlineIcon transform="translateY(-1px)" /> Transactions
-              queued here will not generate a Cannon package after execution.
-            </Text>
+              ) : (
+                <>
+                  <NoncePicker
+                    safe={currentSafe as any}
+                    onPickedNonce={setPickedNonce}
+                  />
+                  <HStack gap="6">
+                    {disableExecute ? (
+                      <Tooltip label={stager.signConditionFailed}>
+                        <Button
+                          size="lg"
+                          colorScheme="teal"
+                          w="100%"
+                          isDisabled={
+                            !targetTxn ||
+                            txnHasError ||
+                            !!stager.signConditionFailed ||
+                            queuedIdentifiableTxns.length === 0
+                          }
+                          onClick={() => stager.sign()}
+                        >
+                          Stage &amp; Sign
+                        </Button>
+                      </Tooltip>
+                    ) : null}
+                    <Tooltip label={stager.execConditionFailed}>
+                      <Button
+                        size="lg"
+                        colorScheme="teal"
+                        w="100%"
+                        isDisabled={disableExecute}
+                        onClick={() => {
+                          execTxn.writeContract(stager.executeTxnConfig!, {
+                            onSuccess: () => {
+                              router.push(links.DEPLOY);
+
+                              toast({
+                                title:
+                                  'You successfully executed the transaction.',
+                                status: 'success',
+                                duration: 5000,
+                                isClosable: true,
+                              });
+                            },
+                          });
+                        }}
+                      >
+                        Execute
+                      </Button>
+                    </Tooltip>
+                  </HStack>
+
+                  {stager.signConditionFailed && (
+                    <Text fontSize="sm" mt={2} color="gray.300">
+                      Can’t Sign: {stager.signConditionFailed}
+                    </Text>
+                  )}
+                  {stager.execConditionFailed && (
+                    <Text fontSize="sm" mt={2} color="gray.300">
+                      Can’t Execute: {stager.execConditionFailed}
+                    </Text>
+                  )}
+
+                  <Text mt={2} fontSize="sm" color="gray.300">
+                    <InfoOutlineIcon transform="translateY(-1px)" />{' '}
+                    Transactions queued here will not generate a Cannon package
+                    after execution.
+                  </Text>
+                </>
+              )}
+            </>
           </Box>
         )}
       </Box>
@@ -453,7 +461,7 @@ const QueueDrawer = () => {
           <DrawerHeader bg="gray.800">
             Stage Transactions to a Safe
           </DrawerHeader>
-          <DrawerBody bg="gray.800" pt={6}>
+          <DrawerBody bg="gray.800" pt={4}>
             <Suspense fallback={<Spinner />}>
               <SafeAddressInput />
             </Suspense>

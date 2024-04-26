@@ -20,13 +20,18 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
     <Flex flexDir="column" width="100%">
       <Box bg="black" borderBottom="1px solid" borderColor="gray.700">
         <Flex
-          gap={8}
           alignItems="center"
           flexWrap="nowrap"
           justifyContent="between"
           whiteSpace="nowrap"
+          direction={['column', 'column', 'column', 'row']}
         >
-          <Box w="100%" maxW={{ lg: 'container.sm' }} mb={{ base: 2, lg: 0 }} pl={1.5}>
+          <Box
+            w="100%"
+            maxW={{ lg: 'container.sm' }}
+            mb={{ base: 2, lg: 0 }}
+            p={1.5}
+          >
             <Suspense fallback={<Spinner />}>
               <SafeAddressInput />
             </Suspense>
