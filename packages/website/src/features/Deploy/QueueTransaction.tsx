@@ -209,14 +209,9 @@ export function QueueTransaction({
           w={['100%', '100%', '50%']}
           gap="10px"
         >
-          <Flex>
-            <Text fontSize="sm" color="gray.500">
-              Target: {target}
-            </Text>
-            <Text fontSize="sm" color="gray.500" ml="auto">
-              Chain ID: {chainId}
-            </Text>
-          </Flex>
+          <Text fontSize="sm" color="gray.300">
+            {chainId}:{target}
+          </Text>
           <FormControl mb={2}>
             <FormLabel>Contract</FormLabel>
             <Select

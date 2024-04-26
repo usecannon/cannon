@@ -15,11 +15,9 @@ import {
   AlertIcon,
   AlertTitle,
   Box,
-  Container,
   FormControl,
   FormHelperText,
   FormLabel,
-  Heading,
   HStack,
   Input,
   InputGroup,
@@ -38,6 +36,7 @@ import {
   Button,
   Icon,
 } from '@chakra-ui/react';
+import { AddIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -186,24 +185,50 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
 
   return (
     <>
-      <Box mb={6}>
-        <Text color="gray.300">
-          Transactions queued here will not generate a Cannon package after
-          execution.
-        </Text>
-      </Box>
-      <Box
-        mb={8}
-        p={6}
-        bg="gray.800"
-        display="block"
-        borderWidth="1px"
-        borderStyle="solid"
-        borderColor="gray.600"
-        borderRadius="4px"
-      >
+      <Box mt={6} mb={6} display="block">
+        {queuedIdentifiableTxns.length > 0
+          ? queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
+              <Box
+                key={i}
+                mb={8}
+                p={6}
+                bg="gray.800"
+                display="block"
+                borderWidth="1px"
+                borderStyle="solid"
+                borderColor="gray.600"
+                borderRadius="4px"
+              >
+                <QueueTransaction
+                  key={queuedIdentifiableTxn.id}
+                  onChange={(txn, fn, params, contractName, target, chainId) =>
+                    updateQueuedTxn(
+                      i,
+                      txn as any,
+                      fn,
+                      params,
+                      contractName,
+                      target,
+                      chainId
+                    )
+                  }
+                  onDelete={() => removeQueuedTxn(i)}
+                  txn={queuedIdentifiableTxn.txn}
+                  fn={queuedIdentifiableTxn.fn}
+                  params={queuedIdentifiableTxn.params}
+                  contractName={queuedIdentifiableTxn.contractName}
+                  target={queuedIdentifiableTxn.target}
+                  chainId={queuedIdentifiableTxn.chainId}
+                  isDeletable
+                />
+              </Box>
+            ))
+          : null}
+
         <FormControl>
-          <FormLabel>Cannon Package or Contract Address</FormLabel>
+          <FormLabel>
+            Add a transaction to a Cannon package or contract address
+          </FormLabel>
           <InputGroup>
             <Input
               type="text"
@@ -219,102 +244,40 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
                   <Spinner />
                 </InputRightElement>
               )}
+            {!isAddress(target) && cannonInfo.contracts && (
+              <InputRightElement>
+                <IconButton
+                  size="xs"
+                  colorScheme="teal"
+                  onClick={() => addQueuedTxn()}
+                  icon={<AddIcon />}
+                  aria-label="Add Transaction"
+                />
+              </InputRightElement>
+            )}
           </InputGroup>
-
           {!isAddress(target) &&
             target.length >= 3 &&
             cannonInfo.registryQuery.status === 'error' && (
-              <FormHelperText color="red.500">
+              <FormHelperText color="gray.300">
                 Failed to find this package on the registry.
               </FormHelperText>
             )}
-        </FormControl>
-      </Box>
-      {!isAddress(target) &&
-        cannonInfo.pkgUrl &&
-        cannonInfo.ipfsQuery.status === 'pending' && (
-          <Alert bg="gray.800" status="info" mt={6}>
-            <AlertIcon />
-            <Box>
-              <AlertTitle>Cannon Package Detected</AlertTitle>
-              <AlertDescription fontSize="sm">
+          {!isAddress(target) &&
+            cannonInfo.pkgUrl &&
+            cannonInfo.ipfsQuery.status === 'pending' && (
+              <FormHelperText color="gray.300">
                 Downloading {cannonInfo.pkgUrl}
-              </AlertDescription>
-            </Box>
-          </Alert>
-        )}
-      {!isAddress(target) &&
-        cannonInfo.pkgUrl &&
-        cannonInfo.ipfsQuery.status === 'error' && (
-          <Alert bg="gray.800" status="error" mt={6}>
-            <AlertIcon />
-            <Box>
-              <AlertTitle>Cannon Package Detected</AlertTitle>
-              <AlertDescription fontSize="sm">
+              </FormHelperText>
+            )}
+          {!isAddress(target) &&
+            cannonInfo.pkgUrl &&
+            cannonInfo.ipfsQuery.status === 'error' && (
+              <FormHelperText color="gray.300">
                 Failed to load {cannonInfo.pkgUrl}
-              </AlertDescription>
-            </Box>
-          </Alert>
-        )}
-      <Box mt={6} mb={6} display="block">
-        <Heading size="md" mb={3}>
-          Queued Transactions
-        </Heading>
-        {queuedIdentifiableTxns.length > 0 ? (
-          queuedIdentifiableTxns.map((queuedIdentifiableTxn, i) => (
-            <Box
-              key={i}
-              mb={8}
-              p={6}
-              bg="gray.800"
-              display="block"
-              borderWidth="1px"
-              borderStyle="solid"
-              borderColor="gray.600"
-              borderRadius="4px"
-            >
-              <QueueTransaction
-                key={queuedIdentifiableTxn.id}
-                onChange={(txn, fn, params, contractName, target, chainId) =>
-                  updateQueuedTxn(
-                    i,
-                    txn as any,
-                    fn,
-                    params,
-                    contractName,
-                    target,
-                    chainId
-                  )
-                }
-                onDelete={() => removeQueuedTxn(i)}
-                txn={queuedIdentifiableTxn.txn}
-                fn={queuedIdentifiableTxn.fn}
-                params={queuedIdentifiableTxn.params}
-                contractName={queuedIdentifiableTxn.contractName}
-                target={queuedIdentifiableTxn.target}
-                chainId={queuedIdentifiableTxn.chainId}
-                isDeletable
-              />
-            </Box>
-          ))
-        ) : (
-          <Text color="gray.300" py={3}>
-            No queued transactions.
-          </Text>
-        )}
-        {!isAddress(target) && cannonInfo.contracts && (
-          <Button
-            variant="outline"
-            size="xs"
-            colorScheme="green"
-            color="green.400"
-            borderColor="green.400"
-            _hover={{ bg: 'green.900' }}
-            onClick={() => addQueuedTxn()}
-          >
-            Add Transaction
-          </Button>
-        )}
+              </FormHelperText>
+            )}
+        </FormControl>
       </Box>
       <Box>
         {isAddress(target) && (
@@ -432,6 +395,10 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
                 </Button>
               </Tooltip>
             </HStack>
+            <Text my={4} fontSize="sm" color="gray.300">
+              <InfoOutlineIcon transform="translateY(-1px)" /> Transactions
+              queued here will not generate a Cannon package after execution.
+            </Text>
           </Box>
         )}
       </Box>
@@ -481,24 +448,17 @@ const QueueDrawer = () => {
       <Drawer onClose={onClose} isOpen={isOpen} size={'lg'} placement="right">
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton />
+          <DrawerCloseButton mt={1} />
           <DrawerHeader bg="gray.800">
-            Queue Transactions to a Safe
+            Stage Transactions to a Safe
           </DrawerHeader>
-          <DrawerBody bg="gray.800">
-            <Container maxWidth="container.md">
-              <Box mt={6} mb={6} display="block">
-                <Heading size="md" mb={3}>
-                  Safe
-                </Heading>
-                <Suspense fallback={<Spinner />}>
-                  <SafeAddressInput />
-                </Suspense>
-              </Box>
-              <WithSafe>
-                <QueuedTxns onDrawerClose={onClose} />
-              </WithSafe>
-            </Container>
+          <DrawerBody bg="gray.800" pt={6}>
+            <Suspense fallback={<Spinner />}>
+              <SafeAddressInput />
+            </Suspense>
+            <WithSafe>
+              <QueuedTxns onDrawerClose={onClose} />
+            </WithSafe>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
