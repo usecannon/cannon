@@ -11,7 +11,8 @@ import TupleInput from './FunctionInput/TupleInput';
 export const FunctionInput: FC<{
   input: AbiParameter;
   valueUpdated: (value: any) => void;
-}> = ({ input, valueUpdated }) => {
+  initialValue?: any;
+}> = ({ input, valueUpdated, initialValue }) => {
   const getDefaultValue = () => {
     if (input.type.startsWith('int')) return '0';
     if (input.type.startsWith('uint')) return '0';
@@ -37,6 +38,12 @@ export const FunctionInput: FC<{
     valueUpdated(dataArray.map((item) => item.val));
   }, [dataArray, isArray]);
 
+  useEffect(() => {
+    if (initialValue) {
+      valueUpdated(initialValue);
+    }
+  }, []);
+
   const handleUpdate = (index: number | null, value: any) => {
     if (isArray) {
       const updatedArray = [...dataArray];
@@ -50,16 +57,25 @@ export const FunctionInput: FC<{
   const getInputComponent = (_handleUpdate: (value: any) => void) => {
     switch (true) {
       case input.type.startsWith('bool'):
-        return <BoolInput handleUpdate={_handleUpdate} />;
+        return <BoolInput handleUpdate={_handleUpdate} value={initialValue} />;
       case input.type.startsWith('address'):
-        return <AddressInput handleUpdate={_handleUpdate} />;
+        return (
+          <AddressInput handleUpdate={_handleUpdate} value={initialValue} />
+        );
       case input.type.startsWith('int') || input.type.startsWith('uint'):
-        return <NumberInput handleUpdate={_handleUpdate} />;
+        return (
+          <NumberInput handleUpdate={_handleUpdate} value={initialValue} />
+        );
       case input.type === 'tuple':
+        // TODO: implement value prop for TupleInput
         return <TupleInput input={input} handleUpdate={_handleUpdate} />;
       default:
         return (
-          <DefaultInput handleUpdate={_handleUpdate} inputType={input.type} />
+          <DefaultInput
+            handleUpdate={_handleUpdate}
+            inputType={input.type}
+            value={initialValue}
+          />
         );
     }
   };

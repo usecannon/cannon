@@ -6,12 +6,14 @@ import {
   AlertIcon,
   AlertTitle,
   Box,
-  Button,
+  IconButton,
   Flex,
   FormControl,
   FormLabel,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
+import { CloseIcon } from '@chakra-ui/icons';
 import { AbiFunction } from 'abitype/src/abi';
 import {
   chakraComponents,
@@ -26,12 +28,13 @@ import {
   Address,
   decodeErrorResult,
   encodeFunctionData,
-  getFunctionSelector,
+  toFunctionSelector,
   Hex,
   TransactionRequestBase,
 } from 'viem';
 import { FunctionInput } from '../Packages/FunctionInput';
 import 'react-diff-view/style/index.css';
+import { useCannonPackageContracts } from '@/hooks/cannon';
 
 type OptionData = {
   value: any;
@@ -92,23 +95,47 @@ function decodeError(err: Hex, abi: Abi) {
 }
 
 export function QueueTransaction({
-  contracts,
   onChange,
   isDeletable,
   onDelete,
+  txn: tx,
+  fn,
+  params,
+  contractName,
+  contractAddress,
+  target,
+  chainId,
 }: {
-  contracts: { [key: string]: { address: Address; abi: any[] } };
-  onChange: (txn: Omit<TransactionRequestBase, 'from'> | null) => void;
+  onChange: (
+    txn: Omit<TransactionRequestBase, 'from'> | null,
+    fn: AbiFunction,
+    params: any[] | any,
+    contractName: string | null,
+    target?: string,
+    chainId?: number
+  ) => void;
   isDeletable: boolean;
   onDelete: () => void;
+  txn: Omit<TransactionRequestBase, 'from'> | null;
+  fn?: AbiFunction;
+  contractName?: string;
+  contractAddress?: string;
+  params?: any[] | any;
+  target: string;
+  chainId: number;
 }) {
+  const { contracts } = useCannonPackageContracts(target, chainId);
+
   const [selectedContractName, setSelectedContractName] = useState<
     string | null
-  >();
-  const [selectedFunction, setSelectedFunction] =
-    useState<AbiFunction | null>();
-  const [selectedParams, setSelectedParams] = useState<any[]>([]);
-  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>();
+  >(contractName || null);
+  const [selectedFunction, setSelectedFunction] = useState<AbiFunction | null>(
+    fn || null
+  );
+  const [selectedParams, setSelectedParams] = useState<any[]>(params || []);
+  const [txn, setTxn] = useState<Omit<TransactionRequestBase, 'from'> | null>(
+    tx || null
+  );
   const [paramsEncodeError, setParamsEncodeError] = useState<string | null>();
 
   useEffect(() => {
@@ -131,13 +158,17 @@ export function QueueTransaction({
     if (selectedContractName && selectedFunction) {
       if (selectedFunction.inputs.length === 0) {
         _txn = {
-          to: contracts[selectedContractName].address,
-          data: getFunctionSelector(selectedFunction),
+          to: contracts
+            ? contracts[selectedContractName].address
+            : (tx?.to as Address),
+          data: toFunctionSelector(selectedFunction),
         };
       } else {
         try {
           _txn = {
-            to: contracts[selectedContractName].address,
+            to: contracts
+              ? contracts[selectedContractName].address
+              : (tx?.to as Address),
             data: encodeFunctionData({
               abi: [selectedFunction],
               args: selectedParams,
@@ -154,8 +185,19 @@ export function QueueTransaction({
 
     setParamsEncodeError(error);
     setTxn(_txn);
-    onChange(_txn);
-  }, [selectedContractName, selectedFunction, selectedParams]);
+    onChange(
+      _txn,
+      selectedFunction as any,
+      selectedParams,
+      selectedContractName
+    );
+  }, [
+    selectedContractName,
+    selectedFunction,
+    selectedParams,
+    contractAddress,
+    txn?.to,
+  ]);
 
   const currentSafe = useStore((s) => s.currentSafe);
   const txnInfo = useSimulatedTxns(currentSafe as any, txn ? [txn] : []);
@@ -180,56 +222,83 @@ export function QueueTransaction({
                   ? {
                       value: selectedContractName,
                       label: selectedContractName,
-                      secondary: contracts[selectedContractName].address,
+                      secondary: `${chainId}:${
+                        contracts
+                          ? contracts[selectedContractName].address
+                          : (txn?.to as Address)
+                      }`,
                     }
                   : null
               }
               placeholder="Choose a contract..."
-              options={Object.entries(contracts).map(([name, contract]) => ({
-                value: name,
-                label: name,
-                secondary: contract.address,
-              }))}
+              options={
+                contracts
+                  ? Object.entries(contracts).map(([name, contract]) => ({
+                      value: name,
+                      label: name,
+                      secondary: `${chainId}:${contract.address}`,
+                    }))
+                  : selectedContractName && txn?.to
+                  ? [
+                      {
+                        value: selectedContractName,
+                        label: selectedContractName,
+                        secondary: `${chainId}:${txn.to}`,
+                      },
+                    ]
+                  : []
+              }
               onChange={(selected: any) =>
                 setSelectedContractName(selected?.value || null)
               }
               components={{ Option: Option }}
             ></Select>
           </FormControl>
-          {selectedContractName && (
-            <FormControl mb={2}>
-              <FormLabel>Function</FormLabel>
-              <Select
-                instanceId={'function-name'}
-                chakraStyles={chakraStyles}
-                isClearable
-                value={
-                  selectedFunction
-                    ? {
+          <FormControl mb={2}>
+            <FormLabel>Function</FormLabel>
+            <Select
+              instanceId={'function-name'}
+              chakraStyles={chakraStyles}
+              isClearable
+              value={
+                selectedFunction
+                  ? {
+                      value: selectedFunction,
+                      label: selectedFunction.name,
+                      secondary: toFunctionSelector(selectedFunction),
+                    }
+                  : null
+              }
+              placeholder="Choose a function..."
+              options={
+                contracts && selectedContractName
+                  ? (contracts[selectedContractName].abi as AbiFunction[])
+                      .filter(
+                        (abi) =>
+                          abi.type === 'function' &&
+                          abi.stateMutability !== 'view'
+                      )
+                      .map((abi: AbiFunction) => ({
+                        value: abi,
+                        label: abi.name,
+                        secondary: toFunctionSelector(abi),
+                      }))
+                  : selectedFunction
+                  ? [
+                      {
                         value: selectedFunction,
                         label: selectedFunction.name,
-                        secondary: getFunctionSelector(selectedFunction),
-                      }
-                    : null
-                }
-                placeholder="Choose a function..."
-                options={contracts[selectedContractName].abi
-                  .filter(
-                    (abi) =>
-                      abi.type === 'function' && abi.stateMutability !== 'view'
-                  )
-                  .map((abi) => ({
-                    value: abi,
-                    label: abi.name,
-                    secondary: getFunctionSelector(abi),
-                  }))}
-                onChange={(selected: any) =>
-                  setSelectedFunction(selected?.value || null)
-                }
-                components={{ Option: Option }}
-              ></Select>
-            </FormControl>
-          )}
+                        secondary: toFunctionSelector(selectedFunction),
+                      },
+                    ]
+                  : []
+              }
+              onChange={(selected: any) =>
+                setSelectedFunction(selected?.value || null)
+              }
+              components={{ Option: Option }}
+            ></Select>
+          </FormControl>
           {!!selectedFunction?.inputs?.length && (
             <FormControl mb={2}>
               <FormLabel>Parameters</FormLabel>
@@ -256,6 +325,7 @@ export function QueueTransaction({
                       params[index] = value;
                       setSelectedParams(params);
                     }}
+                    initialValue={params[index]}
                   />
                 </Box>
               ))}
@@ -274,7 +344,8 @@ export function QueueTransaction({
           )}
           {txnInfo.txnResults &&
             txnInfo.txnResults[0] &&
-            txnInfo.txnResults[0]?.error && (
+            txnInfo.txnResults[0]?.error &&
+            contracts && (
               <Alert bg="gray.900" status="error">
                 <AlertIcon />
                 <Box>
@@ -291,20 +362,22 @@ export function QueueTransaction({
               </Alert>
             )}
           {isDeletable && (
-            <Box>
-              <Button
-                mt="3"
+            <Tooltip label="Remove transaction">
+              <IconButton
+                position="absolute"
+                top={3}
+                right={3}
                 variant="outline"
+                border="none"
+                _hover={{ bg: 'gray.700' }}
                 size="xs"
                 colorScheme="red"
                 color="red.400"
-                borderColor="red.400"
-                _hover={{ bg: 'red.900' }}
                 onClick={onDelete}
-              >
-                Remove Transaction
-              </Button>
-            </Box>
+                aria-label="Remove transaction"
+                icon={<CloseIcon />}
+              />
+            </Tooltip>
           )}
         </Flex>
       </Flex>

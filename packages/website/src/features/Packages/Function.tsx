@@ -14,6 +14,7 @@ import {
   Heading,
   Link,
   Text,
+  useToast,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -24,6 +25,8 @@ import {
   toFunctionSelector,
   toFunctionSignature,
   zeroAddress,
+  encodeFunctionData,
+  TransactionRequestBase,
 } from 'viem';
 import {
   useAccount,
@@ -32,6 +35,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
+import { useQueueTxsStore } from '@/helpers/store';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -46,6 +50,14 @@ export const Function: FC<{
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
+  const toast = useToast();
+
+  const {
+    queuedIdentifiableTxns,
+    setQueuedIdentifiableTxns,
+    lastQueuedTxnsId,
+    setLastQueuedTxnsId,
+  } = useQueueTxsStore((s) => s);
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -150,6 +162,68 @@ export const Function: FC<{
         contractSource
       )}&function=${functionName}`;
     }
+  };
+
+  const handleQueueTransaction = () => {
+    // Prevent queuing transactions across different chains
+    if (queuedIdentifiableTxns.length > 0) {
+      const lastTxn = queuedIdentifiableTxns.slice(-1)[0];
+      if (lastTxn.chainId !== chainId) {
+        toast({
+          title: 'Cannot queue transactions across different chains',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
+    let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
+
+    if (f.inputs.length === 0) {
+      _txn = {
+        to: address,
+        data: toFunctionSelector(f),
+      };
+    } else {
+      try {
+        _txn = {
+          to: address,
+          data: encodeFunctionData({
+            abi: [f],
+            args: params,
+          }),
+        };
+      } catch (err: any) {
+        setError(err.message);
+        return;
+      }
+    }
+
+    const regex = /\/([^/]+)\.sol$/;
+    const contractName = contractSource?.match(regex)?.[1] || 'Unknown';
+
+    setQueuedIdentifiableTxns([
+      ...queuedIdentifiableTxns,
+      {
+        txn: _txn,
+        id: `${lastQueuedTxnsId + 1}`,
+        contractName,
+        target: address,
+        fn: f,
+        params,
+        chainId,
+      },
+    ]);
+    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+
+    toast({
+      title: 'Transaction queued',
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
   };
 
   return (
@@ -268,6 +342,18 @@ export const Function: FC<{
                   }}
                 >
                   Submit using wallet {!simulated && statusIcon}
+                </Button>
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={handleQueueTransaction}
+                >
+                  Stage to Safe
                 </Button>
               </>
             )}
