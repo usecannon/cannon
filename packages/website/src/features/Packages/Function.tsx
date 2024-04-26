@@ -60,7 +60,6 @@ export const Function: FC<{
     setLastQueuedTxnsId,
   } = useQueueTxsStore((s) => s);
 
-  const currentSafe = useStore((s) => s.currentSafe);
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
   const publicClient = usePublicClient({
@@ -228,8 +227,6 @@ export const Function: FC<{
     });
   };
 
-  const queueTxIsDisabled = !currentSafe?.address || !isConnected;
-
   return (
     <Box p={6} borderTop="1px solid" borderColor="gray.600">
       <span id={anchor} />
@@ -347,13 +344,6 @@ export const Function: FC<{
                 >
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
-                <Tooltip
-                  label={
-                    queueTxIsDisabled
-                      ? 'Connect a wallet and select a Safe to queue transactions'
-                      : ''
-                  }
-                >
                   <Button
                     isLoading={loading}
                     colorScheme="teal"
@@ -363,11 +353,9 @@ export const Function: FC<{
                     size="xs"
                     mr={3}
                     onClick={handleQueueTransaction}
-                    isDisabled={!currentSafe?.address || !isConnected}
                   >
-                    Queue transaction
+                    Stage to Safe
                   </Button>
-                </Tooltip>
               </>
             )}
 

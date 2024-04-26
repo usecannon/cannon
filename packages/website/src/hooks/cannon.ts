@@ -87,10 +87,6 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
   const fallbackRegistry = useCannonRegistry();
 
   const buildFn = async () => {
-    if (settings.isIpfsGateway || settings.ipfsApiUrl.includes('https://repo.usecannon.com')) {
-      throw new Error('Update your IPFS URL to a Kubo RPC API URL to publish in the settings page.');
-    }
-
     if (!safe || !def || !prevDeploy) {
       throw new Error('Missing required parameters');
     }
