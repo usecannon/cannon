@@ -343,18 +343,18 @@ export const Function: FC<{
                 >
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
-                  <Button
-                    isLoading={loading}
-                    colorScheme="teal"
-                    bg="teal.900"
-                    _hover={{ bg: 'teal.800' }}
-                    variant="outline"
-                    size="xs"
-                    mr={3}
-                    onClick={handleQueueTransaction}
-                  >
-                    Stage to Safe
-                  </Button>
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={handleQueueTransaction}
+                >
+                  Stage to Safe
+                </Button>
               </>
             )}
 
