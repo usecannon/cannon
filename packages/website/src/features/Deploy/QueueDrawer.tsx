@@ -192,12 +192,13 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
                 key={i}
                 mb={8}
                 p={6}
-                bg="gray.800"
+                bg="gray.900"
                 display="block"
                 borderWidth="1px"
                 borderStyle="solid"
-                borderColor="gray.600"
+                borderColor="gray.700"
                 borderRadius="4px"
+                position="relative"
               >
                 <QueueTransaction
                   key={queuedIdentifiableTxn.id}

@@ -6,12 +6,14 @@ import {
   AlertIcon,
   AlertTitle,
   Box,
-  Button,
+  IconButton,
   Flex,
   FormControl,
   FormLabel,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
+import { CloseIcon } from '@chakra-ui/icons';
 import { AbiFunction } from 'abitype/src/abi';
 import {
   chakraComponents,
@@ -209,9 +211,6 @@ export function QueueTransaction({
           w={['100%', '100%', '50%']}
           gap="10px"
         >
-          <Text fontSize="sm" color="gray.300">
-            {chainId}:{target}
-          </Text>
           <FormControl mb={2}>
             <FormLabel>Contract</FormLabel>
             <Select
@@ -223,9 +222,11 @@ export function QueueTransaction({
                   ? {
                       value: selectedContractName,
                       label: selectedContractName,
-                      secondary: contracts
-                        ? contracts[selectedContractName].address
-                        : (txn?.to as Address),
+                      secondary: `${chainId}:${
+                        contracts
+                          ? contracts[selectedContractName].address
+                          : (txn?.to as Address)
+                      }`,
                     }
                   : null
               }
@@ -361,20 +362,22 @@ export function QueueTransaction({
               </Alert>
             )}
           {isDeletable && (
-            <Box>
-              <Button
-                mt="3"
+            <Tooltip label="Remove transaction">
+              <IconButton
+                position="absolute"
+                top={3}
+                right={3}
                 variant="outline"
+                border="none"
+                _hover={{ bg: 'gray.700' }}
                 size="xs"
                 colorScheme="red"
                 color="red.400"
-                borderColor="red.400"
-                _hover={{ bg: 'red.900' }}
                 onClick={onDelete}
-              >
-                Remove Transaction
-              </Button>
-            </Box>
+                aria-label="Remove transaction"
+                icon={<CloseIcon />}
+              />
+            </Tooltip>
           )}
         </Flex>
       </Flex>
