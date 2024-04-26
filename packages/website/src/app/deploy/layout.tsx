@@ -26,30 +26,18 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           justifyContent="between"
           whiteSpace="nowrap"
         >
-          <Box
-            p={2}
-            w="100%"
-            maxW={{ lg: 'container.sm' }}
-            mb={{ base: 2, lg: 0 }}
-          >
+          <Box w="100%" maxW={{ lg: 'container.sm' }} mb={{ base: 2, lg: 0 }} pl={1.5}>
             <Suspense fallback={<Spinner />}>
               <SafeAddressInput />
             </Suspense>
           </Box>
-          <Flex
-            gap={4}
-            alignItems="end"
-            justifyContent="end"
-            grow={1}
-            px={4}
-            pt={4}
-          >
+          <Flex gap={6} alignItems="end" justifyContent="end" grow={1} px={4}>
             <NavLink
               isSmall
               href={links.QUEUEFROMGITOPS}
               isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
             >
-              Stage
+              Stage Transactions
             </NavLink>
             <NavLink
               isSmall
@@ -59,7 +47,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
                 pathname.startsWith(links.DEPLOY + '/txn')
               }
             >
-              Sign
+              Sign Transactions
             </NavLink>
           </Flex>
         </Flex>

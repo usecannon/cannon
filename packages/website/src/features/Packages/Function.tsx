@@ -35,7 +35,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
-import { useQueueTxsStore, useStore } from '@/helpers/store';
+import { useQueueTxsStore } from '@/helpers/store';
 
 export const Function: FC<{
   f: AbiFunction;
