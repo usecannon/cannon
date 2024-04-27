@@ -163,6 +163,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
     setQueuedIdentifiableTxns(
       queuedIdentifiableTxns.filter((_, index) => index !== i)
     );
+    setLastQueuedTxnsId(lastQueuedTxnsId - 1);
   };
 
   const addQueuedTxn = () => {
