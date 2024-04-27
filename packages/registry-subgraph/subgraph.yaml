@@ -23,4 +23,8 @@ dataSources:
       eventHandlers:
         - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32,string,string,address)
           handler: handlePublish
+        - event: PackagePublishWithFee(indexed bytes32,indexed bytes32,indexed bytes32,string,string,address,uint256)
+          handler: handlePublishWithFee
+        - event: TagPublish(indexed bytes32,indexed bytes32,indexed bytes32,bytes32)
+          handler: handlePublishTag
       file: ./src/mapping.ts
