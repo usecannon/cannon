@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { ReactNode, Suspense } from 'react';
-import { Box, Flex, Spinner } from '@chakra-ui/react';
+import { Box, Flex, Spinner, useDisclosure } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
@@ -15,6 +15,7 @@ const NoSSRWithSafe = dynamic(() => import('@/features/Deploy/WithSafe'), {
 
 export default function DeployLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <Flex flexDir="column" width="100%">
@@ -59,7 +60,7 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
       </Box>
       <NoSSRWithSafe>
         {children}
-        <QueueDrawer />
+        <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
       </NoSSRWithSafe>
     </Flex>
   );
