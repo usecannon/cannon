@@ -43,10 +43,12 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
   IOptimismL1Sender private immutable _OPTIMISM_MESSENGER;
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
+  uint256 private immutable _L1_CHAIN_ID;
 
-  constructor(address _optimismMessenger, address _optimismtReceiver) {
+  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
-    _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismtReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
+    _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
+    _L1_CHAIN_ID = _l1ChainId; // 1
   }
 
   function validatePackageName(bytes32 _name) public pure returns (bool) {
@@ -164,7 +166,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     if (sender == address(_OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
-    } else if (block.chainid == 1) {
+    } else if (block.chainid == _L1_CHAIN_ID) {
       address owner = _p.owner;
       // we cannot change owner if its already owned and the nominated owner is incorrect
       if (owner != address(0) && (sender != _owner || _owner != _p.nominatedOwner)) {
@@ -209,7 +211,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
     if (ERC2771Context.msgSender() == address(_OPTIMISM_RECEIVER)) {
       _checkCrossDomainSender();
-    } else if (block.chainid == 1) {
+    } else if (block.chainid == _L1_CHAIN_ID) {
       if (owner != ERC2771Context.msgSender()) {
         revert Unauthorized();
       }
@@ -228,7 +230,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
       revert Unauthorized();
     }
 
-    address[] memory additionalPublishers = block.chainid == 1
+    address[] memory additionalPublishers = block.chainid == _L1_CHAIN_ID
       ? _additionalPublishersEthereum
       : _additionalPublishersOptimism;
 
@@ -312,7 +314,7 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   function _canPublishPackage(Package storage _package, address _publisher) internal view returns (bool) {
-    if (block.chainid == 1 && _package.owner == _publisher) return true;
+    if (block.chainid == _L1_CHAIN_ID && _package.owner == _publisher) return true;
 
     uint256 additionalPublishersLength = _package.additionalPublishersLength;
     for (uint256 i = 0; i < additionalPublishersLength; i++) {
