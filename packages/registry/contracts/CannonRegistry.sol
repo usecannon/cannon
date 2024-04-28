@@ -199,7 +199,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     emit PackageOwnerChanged(_packageName, _owner);
   }
 
-  function setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalPublishersEthereum, address[] memory _additionalPublishersOptimism) external {
+  function setAdditionalPublishers(
+    bytes32 _packageName,
+    address[] memory _additionalPublishersEthereum,
+    address[] memory _additionalPublishersOptimism
+  ) external {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
@@ -212,14 +216,21 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
       _OPTIMISM_MESSENGER.sendMessage(
         address(this),
-        abi.encodeWithSelector(this.setAdditionalPublishers.selector, _packageName, new address[](0), _additionalPublishersOptimism),
+        abi.encodeWithSelector(
+          this.setAdditionalPublishers.selector,
+          _packageName,
+          new address[](0),
+          _additionalPublishersOptimism
+        ),
         uint32(30000 * _additionalPublishersOptimism.length + 200000)
       );
     } else {
       revert Unauthorized();
     }
 
-    address[] memory additionalPublishers = block.chainid == 1 ? _additionalPublishersEthereum : _additionalPublishersOptimism;
+    address[] memory additionalPublishers = block.chainid == 1
+      ? _additionalPublishersEthereum
+      : _additionalPublishersOptimism;
 
     for (uint256 i = 0; i < additionalPublishers.length; i++) {
       _p.additionalPublishers[i] = additionalPublishers[i];
