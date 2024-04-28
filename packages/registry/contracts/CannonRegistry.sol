@@ -45,9 +45,9 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   IOptimismL2Receiver private immutable _OPTIMISM_RECEIVER;
   uint256 private immutable _L1_CHAIN_ID;
 
-  constructor(address _optimismMessenger, address _optimismtReceiver, uint256 _l1ChainId) {
+  constructor(address _optimismMessenger, address _optimismReceiver, uint256 _l1ChainId) {
     _OPTIMISM_MESSENGER = IOptimismL1Sender(_optimismMessenger); // IOptimismL1Sender(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1)
-    _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismtReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
+    _OPTIMISM_RECEIVER = IOptimismL2Receiver(_optimismReceiver); // IOptimismL2Receiver(0x4200000000000000000000000000000000000007)
     _L1_CHAIN_ID = _l1ChainId; // 1
   }
 
