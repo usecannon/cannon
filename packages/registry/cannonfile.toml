@@ -35,6 +35,7 @@ artifact = "CannonRegistry"
 args = [
   "<%= settings.optimismL1Sender %>",   # OptimismL1Sender
   "<%= settings.optimismL2Receiver %>", # OptimismL2Receiver
+  "<%= settings.l1ChainId %>", # _L1_CHAIN_ID
 ]
 
 [invoke.upgrade_proxy]
