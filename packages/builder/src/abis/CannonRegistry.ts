@@ -244,8 +244,14 @@ export default [
         name: 'owner',
         type: 'address',
       },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'feePaid',
+        type: 'uint256',
+      },
     ],
-    name: 'PackagePublish',
+    name: 'PackagePublishWithFee',
     type: 'event',
   },
   {
@@ -360,6 +366,37 @@ export default [
     inputs: [
       {
         indexed: true,
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'variant',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'tag',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'bytes32',
+        name: 'versionOfTag',
+        type: 'bytes32',
+      },
+    ],
+    name: 'TagPublish',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: 'address',
         name: 'self',
         type: 'address',
@@ -406,7 +443,7 @@ export default [
     outputs: [
       {
         internalType: 'address[]',
-        name: 'additionalDeployers',
+        name: 'additionalPublishers',
         type: 'address[]',
       },
     ],
@@ -654,7 +691,12 @@ export default [
       },
       {
         internalType: 'address[]',
-        name: '_additionalDeployers',
+        name: '_additionalPublishersEthereum',
+        type: 'address[]',
+      },
+      {
+        internalType: 'address[]',
+        name: '_additionalPublishersOptimism',
         type: 'address[]',
       },
     ],
