@@ -8,6 +8,7 @@ import assertRevert from '../helpers/assert-revert';
 const toBytes32 = ethers.utils.formatBytes32String;
 
 describe('CannonRegistry', function () {
+  let l1ChainId: number;
   let CannonRegistry: TCannonRegistry;
   let MockOPSendBridge: TMockOptimismBridge;
   let MockOPRecvBridge: TMockOptimismBridge;
@@ -21,6 +22,7 @@ describe('CannonRegistry', function () {
   });
 
   before('deploy contract', async function () {
+    l1ChainId = (await ethers.provider.getNetwork()).chainId;
     const MockOptimismBridge = await ethers.getContractFactory('MockOptimismBridge');
     const MockOPBridgeImpl = await MockOptimismBridge.deploy();
     await MockOPBridgeImpl.deployed();
@@ -39,7 +41,7 @@ describe('CannonRegistry', function () {
     )) as TMockOptimismBridge;
 
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
-    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address);
+    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address, l1ChainId);
     await Implementation.deployed();
 
     const ProxyFactory = await ethers.getContractFactory('Proxy');
@@ -62,7 +64,8 @@ describe('CannonRegistry', function () {
       const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
       newImplementation = (await CannonRegistry.deploy(
         MockOPSendBridge.address,
-        MockOPRecvBridge.address
+        MockOPRecvBridge.address,
+        l1ChainId
       )) as TCannonRegistry;
       await newImplementation.deployed();
     });
