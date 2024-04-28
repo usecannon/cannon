@@ -193,13 +193,17 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
     }
 
     _p.owner = _owner;
-    _p.additionalDeployersLength = 0;
+    _p.additionalPublishersLength = 0;
     _p.nominatedOwner = address(0);
 
     emit PackageOwnerChanged(_packageName, _owner);
   }
 
-  function setAdditionalPublishers(bytes32 _packageName, address[] memory _additionalDeployers) external {
+  function setAdditionalPublishers(
+    bytes32 _packageName,
+    address[] memory _additionalPublishersEthereum,
+    address[] memory _additionalPublishersOptimism
+  ) external {
     Package storage _p = _store().packages[_packageName];
     address owner = _p.owner;
 
@@ -212,28 +216,37 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
 
       _OPTIMISM_MESSENGER.sendMessage(
         address(this),
-        abi.encodeWithSelector(this.setAdditionalPublishers.selector, _packageName, _additionalDeployers),
-        uint32(30000 * _additionalDeployers.length + 200000)
+        abi.encodeWithSelector(
+          this.setAdditionalPublishers.selector,
+          _packageName,
+          new address[](0),
+          _additionalPublishersOptimism
+        ),
+        uint32(30000 * _additionalPublishersOptimism.length + 200000)
       );
     } else {
       revert Unauthorized();
     }
 
-    for (uint256 i = 0; i < _additionalDeployers.length; i++) {
-      _p.additionalDeployers[i] = _additionalDeployers[i];
+    address[] memory additionalPublishers = block.chainid == 1
+      ? _additionalPublishersEthereum
+      : _additionalPublishersOptimism;
+
+    for (uint256 i = 0; i < additionalPublishers.length; i++) {
+      _p.additionalPublishers[i] = additionalPublishers[i];
     }
 
-    _p.additionalDeployersLength = _additionalDeployers.length;
+    _p.additionalPublishersLength = additionalPublishers.length;
 
-    emit PackagePublishersChanged(_packageName, _additionalDeployers);
+    emit PackagePublishersChanged(_packageName, additionalPublishers);
   }
 
-  function getAdditionalPublishers(bytes32 _packageName) external view returns (address[] memory additionalDeployers) {
+  function getAdditionalPublishers(bytes32 _packageName) external view returns (address[] memory additionalPublishers) {
     Package storage _p = _store().packages[_packageName];
-    additionalDeployers = new address[](_p.additionalDeployersLength);
+    additionalPublishers = new address[](_p.additionalPublishersLength);
 
-    for (uint256 i = 0; i < additionalDeployers.length; i++) {
-      additionalDeployers[i] = _p.additionalDeployers[i];
+    for (uint256 i = 0; i < additionalPublishers.length; i++) {
+      additionalPublishers[i] = _p.additionalPublishers[i];
     }
   }
 
@@ -299,11 +312,11 @@ contract CannonRegistry is EfficientStorage, OwnedUpgradable {
   }
 
   function _canPublishPackage(Package storage _package, address _publisher) internal view returns (bool) {
-    if (_package.owner == _publisher) return true;
+    if (block.chainid == 1 && _package.owner == _publisher) return true;
 
-    uint256 additionalDeployersLength = _package.additionalDeployersLength;
-    for (uint256 i = 0; i < additionalDeployersLength; i++) {
-      if (_package.additionalDeployers[i] == _publisher) return true;
+    uint256 additionalPublishersLength = _package.additionalPublishersLength;
+    for (uint256 i = 0; i < additionalPublishersLength; i++) {
+      if (_package.additionalPublishers[i] == _publisher) return true;
     }
 
     return false;
