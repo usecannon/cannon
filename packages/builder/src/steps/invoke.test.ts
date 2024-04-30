@@ -124,16 +124,19 @@ describe('steps/invoke.ts', () => {
     it('detects all usages', async () => {
       expect(
         action
-          .getInputs({
-            target: ['a'],
-            abi: '<%= contracts.b %>',
-            from: '<%= contracts.c %>',
-            func: '<%= contracts.d %>',
-            value: '<%= contracts.e %>',
-            factory: { whop: { event: '<%= contracts.f %>', arg: 0, artifact: '<%= contracts.g %>' } },
-            args: ['<%= contracts.h %>', '<%= contracts.i %>'],
-            overrides: { gasLimit: '<%= contracts.j %>' },
-          })
+          .getInputs(
+            {
+              target: ['a'],
+              abi: '<%= contracts.b %>',
+              from: '<%= contracts.c %>',
+              func: '<%= contracts.d %>',
+              value: '<%= contracts.e %>',
+              factory: { whop: { event: '<%= contracts.f %>', arg: 0, artifact: '<%= contracts.g %>' } },
+              args: ['<%= contracts.h %>', '<%= contracts.i %>'],
+              overrides: { gasLimit: '<%= contracts.j %>' },
+            },
+            []
+          )
           .accesses.sort()
       ).toEqual([
         'contracts.a',
