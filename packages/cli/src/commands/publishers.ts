@@ -60,12 +60,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const keyPrompt = await prompts({
     type: 'select',
     name: 'value',
-    message: 'Where do you want to add or remove the publishers?',
+    message: 'Where do you want to add or remove publishers?',
     choices: [
-      { title: 'Optimism', description: 'This option has a description', value: 'OP' },
+      { title: 'Optimism', value: 'OP' },
       { title: 'Ethereum Mainnet', value: 'ETH' },
     ],
-    initial: 1,
+    initial: 0,
   });
 
   const isMainnet = keyPrompt.value === 'ETH';
@@ -135,6 +135,26 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   // throw an error if the publishers list is already up to date
   if (_.isEqual(currentPublishers, publishers)) {
     throw new Error('The publishers list is already up to date.');
+  }
+
+  console.log();
+  console.log('The publishers list will be updated as follows:');
+  publishers.forEach((publisher) => console.log(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
+  (!isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers).forEach((publisher) =>
+    console.log(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`)
+  );
+  console.log();
+
+  const verification = await prompts({
+    type: 'confirm',
+    name: 'confirmation',
+    message: 'Proceed?',
+    initial: true,
+  });
+
+  if (!verification.confirmation) {
+    console.log('Cancelled');
+    process.exit(1);
   }
 
   const [hash] = await Promise.all([

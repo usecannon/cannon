@@ -7,7 +7,7 @@ import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 import { CliSettings } from '../settings';
 import { resolveRegistryProviders } from '../util/provider';
-import { waitForEvent } from '../util/register';
+import { isPackageRegistered, waitForEvent } from '../util/register';
 
 interface Params {
   cliSettings: CliSettings;
@@ -21,7 +21,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Enter the private key for the signer that will publish packages',
+      message: 'Enter the private key for the signer that will register packages',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
@@ -38,6 +38,11 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
   const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+
+  const [mainnet] = cliSettings.registries;
+  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnet.address);
+
+  if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
 
   const overrides: any = {};
 

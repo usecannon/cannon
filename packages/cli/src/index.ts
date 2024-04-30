@@ -483,14 +483,6 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
   const cliSettings = resolveCliSettings(options);
 
-  const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
-  const registryProviders = await resolveRegistryProviders(cliSettings);
-  const isRegistered = await isPackageRegistered(registryProviders, packageRef, mainnet.address);
-
-  if (isRegistered) {
-    throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
-  }
-
   await register({ cliSettings, options, packageRef, fromPublish: false });
 });
 
