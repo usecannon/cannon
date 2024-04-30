@@ -132,7 +132,6 @@ export async function inspect(
       console.log('Contract Info:');
       console.log('-------------------');
       for (const contractName in contractsAndDetails) {
-        g;
         const { sourceName, highlight } = contractsAndDetails[contractName];
         if (sourceName) {
           const displayName = highlight ? bold(contractName) : contractName;
