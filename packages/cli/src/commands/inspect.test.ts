@@ -6,13 +6,13 @@ import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
 import { getMainLoader, CliLoader, LocalLoader } from '../loader';
 import { ContractData } from '@usecannon/builder';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
 
 jest.mock('../registry');
 jest.mock('../settings');
 jest.mock('../loader');
 jest.mock('../helpers');
-jest.mock('@usecannon/builder/dist/ipfs');
+jest.mock('@usecannon/builder/dist/src/ipfs');
 jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({ ipfsUrl: 'ipfsUrl' }),
 }));

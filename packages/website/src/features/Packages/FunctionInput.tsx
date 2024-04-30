@@ -19,18 +19,18 @@ export const FunctionInput: FC<{
     return '';
   };
   const isArray = useMemo(() => !!input?.type?.endsWith('[]'), [input]);
-  const [dataArray, setDataArray] = useState<{ id: number; val: any | null }[]>(
-    [{ id: Date.now(), val: getDefaultValue() }]
-  );
+  const [dataArray, setDataArray] = useState<{ val: any | null }[]>([
+    { val: getDefaultValue() },
+  ]);
 
   // const getValue = (index: number) => (isArray ? dataArray[index] : input);
 
   const add = () => {
-    setDataArray([...dataArray, { id: Date.now(), val: getDefaultValue() }]);
+    setDataArray([...dataArray, { val: getDefaultValue() }]);
   };
 
   const remove = (index: number) => {
-    setDataArray(dataArray.splice(index, 1));
+    setDataArray(dataArray.slice(0, index).concat(dataArray.slice(index + 1)));
   };
 
   useEffect(() => {
@@ -39,8 +39,14 @@ export const FunctionInput: FC<{
   }, [dataArray, isArray]);
 
   useEffect(() => {
-    if (initialValue) {
+    if (initialValue && !isArray) {
       valueUpdated(initialValue);
+    } else if (initialValue && isArray) {
+      setDataArray(
+        initialValue.map((val: any) => {
+          return { val };
+        })
+      );
     }
   }, []);
 
@@ -54,17 +60,24 @@ export const FunctionInput: FC<{
     }
   };
 
-  const getInputComponent = (_handleUpdate: (value: any) => void) => {
+  const getInputComponent = (
+    _handleUpdate: (value: any) => void,
+    index?: number
+  ) => {
+    const _initialValue =
+      initialValue && isArray && index !== undefined
+        ? initialValue[index]
+        : initialValue;
     switch (true) {
       case input.type.startsWith('bool'):
-        return <BoolInput handleUpdate={_handleUpdate} value={initialValue} />;
+        return <BoolInput handleUpdate={_handleUpdate} value={_initialValue} />;
       case input.type.startsWith('address'):
         return (
-          <AddressInput handleUpdate={_handleUpdate} value={initialValue} />
+          <AddressInput handleUpdate={_handleUpdate} value={_initialValue} />
         );
       case input.type.startsWith('int') || input.type.startsWith('uint'):
         return (
-          <NumberInput handleUpdate={_handleUpdate} value={initialValue} />
+          <NumberInput handleUpdate={_handleUpdate} value={_initialValue} />
         );
       case input.type === 'tuple':
         // TODO: implement value prop for TupleInput
@@ -74,7 +87,7 @@ export const FunctionInput: FC<{
           <DefaultInput
             handleUpdate={_handleUpdate}
             inputType={input.type}
-            value={initialValue}
+            value={_initialValue}
           />
         );
     }
@@ -96,8 +109,11 @@ export const FunctionInput: FC<{
         <Box>
           {dataArray.map((inp, index) => {
             return (
-              <Flex flex="1" alignItems="center" mb="4" key={inp.id}>
-                {getInputComponent((value: any) => handleUpdate(index, value))}
+              <Flex flex="1" alignItems="center" mb="4" key={index}>
+                {getInputComponent(
+                  (value: any) => handleUpdate(index, value),
+                  index
+                )}
                 {dataArray.length > 1 && (
                   <Box onClick={() => remove(index)} ml="4">
                     <CloseIcon name="close" color="red.500" />{' '}

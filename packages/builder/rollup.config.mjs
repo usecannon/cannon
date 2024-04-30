@@ -6,7 +6,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 export default [
   // Minified browser module
   {
-    input: 'dist/index.js',
+    input: 'dist/src/index.js',
     plugins: [
       commonjs(),
       json(),

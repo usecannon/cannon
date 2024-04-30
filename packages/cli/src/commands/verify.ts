@@ -5,7 +5,7 @@ import { createDefaultReadRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { CliSettings } from '../settings';
 import Debug from 'debug';
-import { forPackageTree, PackageReference } from '@usecannon/builder/dist/package';
+import { forPackageTree, PackageReference } from '@usecannon/builder/dist/src/package';
 import { getMainLoader } from '../loader';
 
 import { bold, yellow } from 'chalk';
