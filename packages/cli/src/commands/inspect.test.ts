@@ -6,7 +6,7 @@ import { IPFSLoader } from '@usecannon/builder';
 import fs from 'fs-extra';
 import { getMainLoader, CliLoader, LocalLoader } from '../loader';
 import { ContractData } from '@usecannon/builder';
-import { fetchIPFSAvailability } from '@usecannon/builder/dist/ipfs';
+import { fetchIPFSAvailability } from '@usecannon/builder/dist/src/ipfs';
 
 jest.mock('../registry');
 jest.mock('../settings');
