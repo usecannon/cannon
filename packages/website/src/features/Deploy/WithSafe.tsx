@@ -1,9 +1,8 @@
 import { ReactNode } from 'react';
 import { useStore } from '@/helpers/store';
-import { Flex, Text, Image, Link } from '@chakra-ui/react';
+import { Flex, Text, Image, Link, Spinner } from '@chakra-ui/react';
 import { useAccount, useBytecode } from 'wagmi';
 import PrepareNetwork from './PrepareNetwork';
-
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
 
@@ -25,10 +24,15 @@ export default function WithSafe({ children }: { children: ReactNode }) {
     (onchainStoreBytecode?.data?.length || 0) > 0 &&
     (multicallForwarderBytecode?.data?.length || 0) > 0;
 
+  const isLoadingNetworkPrepared =
+    onchainStoreBytecode.isPending || multicallForwarderBytecode.isPending;
+
   return (
     <Flex direction="column" flex="1">
       {currentSafe ? (
-        isNetworkPrepared ? (
+        isLoadingNetworkPrepared ? (
+          <Spinner m="auto" size="lg" />
+        ) : isNetworkPrepared ? (
           children
         ) : (
           <PrepareNetwork />
