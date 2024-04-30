@@ -98,20 +98,27 @@ teardown() {
   assert_success
 }
 
-@test "Build - Building foundry greeter example" {
-  set_custom_config # Uses custom settings.json
-  run build-foundry.sh
+@test "Build - Building foundry greeter example locally" {
+  run build-foundry-local.sh
   echo $output
   assert_success
-  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_13370-main.txt"
 }
 
+@test "Build - Building foundry greeter example live" {
+  set_custom_config
+  run build-foundry-live.sh
+  echo $output
+  assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter-foundry_latest_1-main.txt"
+}
+
 @test "Build - Building hardhat greeter example" {
-  set_custom_config # Uses custom settings.json
+  set_custom_config
   run build-hardhat.sh
   echo $output
   assert_success
+  assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_1-main.txt"
   assert_file_exists "$CANNON_DIRECTORY/tags/greeter_latest_13370-main.txt"
 }
 
@@ -124,16 +131,29 @@ teardown() {
 }
 
 @test "Build - Building hardhat router example live network" {
-  set_custom_config # Uses custom settings.json
+  set_custom_config
   run build-router-live.sh
   echo $output
   assert_output --partial 'examples-router-architecture:0.0.1@main built on Ethereum (Chain ID: 1)'
-  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_13370-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/examples-router-architecture_latest_1-main.txt"
   assert_success
 }
 
+@test "Partial Build - Ensure integrity of cloned packages in partial deployment state" {
+  set_custom_config
+  run build-foundry-partial.sh
+  echo $output
+  assert_success
+  assert_output --partial "Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary."
+  assert_file_exists "$CANNON_DIRECTORY/tags/oracle-manager_latest_1-with-owned-greeter.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/owned-greeter_1.0.0_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/mintable-token_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/trusted-multicall-forwarder_latest_1-main.txt"
+  assert_file_exists "$CANNON_DIRECTORY/tags/trusted-multicall-forwarder_latest_1-with-oracle-manager.txt"
+}
+
 @test "Verify - Verify greeter packages" {
-  set_custom_config # Uses custom settings.json
+  set_custom_config
   run verify.sh
   echo $output
   assert_success
@@ -148,7 +168,7 @@ teardown() {
 }
 
 @test "Publish - Publishing greeter package" {
-  set_custom_config # Uses custom settings.json
+  set_custom_config
   run publish.sh
   echo $output
   assert_success
@@ -161,8 +181,20 @@ teardown() {
   assert_success
 }
 
-@test "Trace - Trace transaction Data" {
+@test "Trace - Trace Transaction Data" {
   run trace.sh
+  echo $output
+  assert_success
+}
+
+@test "Trace - Trace Verify Parsing" {
+  run trace-output.sh
+  echo $output
+  assert_success
+}
+
+@test "Test - Basic Capabilities" {
+  run test.sh
   echo $output
   assert_success
 }

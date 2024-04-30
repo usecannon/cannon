@@ -22,19 +22,18 @@ import {
   WarningIcon,
 } from '@chakra-ui/icons';
 import {
-  Alert,
   Box,
   Button,
   Container,
+  Flex,
   Grid,
   Heading,
+  Image,
   Link,
   Spinner,
   Text,
   Tooltip,
   useToast,
-  Image,
-  Flex,
 } from '@chakra-ui/react';
 import * as chains from '@wagmi/core/chains';
 import _, { find } from 'lodash';
@@ -48,10 +47,10 @@ import {
   zeroAddress,
 } from 'viem';
 import { useAccount, useChainId, useWriteContract } from 'wagmi';
+import PublishUtility from './PublishUtility';
 import { TransactionDisplay } from './TransactionDisplay';
 import { TransactionStepper } from './TransactionStepper';
 import 'react-diff-view/style/index.css';
-import PublishUtility from './PublishUtility';
 
 const TransactionDetailsPage: FC<{
   safeAddress: string;
@@ -62,15 +61,8 @@ const TransactionDetailsPage: FC<{
   const walletChainId = useChainId();
   const account = useAccount();
 
-  let parsedChainId = 0;
-  let parsedNonce = 0;
-
-  try {
-    parsedChainId = parseInt(chainId ?? '');
-    parsedNonce = parseInt(nonce ?? '');
-  } catch (e) {
-    // nothing
-  }
+  const parsedChainId = parseInt(chainId ?? '0') || 0;
+  const parsedNonce = parseInt(nonce ?? '0') || 0;
 
   if (!isAddress(safeAddress ?? '')) {
     safeAddress = zeroAddress;
@@ -83,7 +75,7 @@ const TransactionDetailsPage: FC<{
 
   const { nonce: safeNonce, staged, stagedQuery } = useSafeTransactions(safe);
 
-  const verify = parsedNonce >= safeNonce;
+  const isTransactionExecuted = parsedNonce < safeNonce;
 
   const history = useExecutedTransactions(safe);
 
@@ -111,7 +103,7 @@ const TransactionDetailsPage: FC<{
 
   const hintData = parseHintedMulticall(safeTxn?.data as any);
 
-  const allowPublishing = hintData?.type == 'deploy';
+  const queuedWithGitOps = hintData?.type == 'deploy';
 
   const cannonPackage = useCannonPackage(
     hintData?.cannonPackage
@@ -141,7 +133,7 @@ const TransactionDetailsPage: FC<{
   );
 
   let prevDeployGitHash: string;
-  if (allowPublishing) {
+  if (queuedWithGitOps) {
     prevDeployGitHash =
       (hintData?.prevGitRepoHash || hintData?.gitRepoHash) ?? '';
   } else {
@@ -181,7 +173,10 @@ const TransactionDetailsPage: FC<{
 
   useEffect(
     () => buildInfo.doBuild(),
-    [verify && (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched)]
+    [
+      !isTransactionExecuted &&
+        (!prevDeployGitHash || prevCannonDeployInfo.ipfsQuery.isFetched),
+    ]
   );
 
   // compare proposed build info with expected transaction batch
@@ -251,7 +246,7 @@ const TransactionDetailsPage: FC<{
                     cannonPackage={cannonPackage}
                     safeTxn={safeTxn}
                     published={existingRegistryUrl == hintData?.cannonPackage}
-                    publishable={allowPublishing}
+                    publishable={queuedWithGitOps}
                     signers={signers}
                     threshold={threshold}
                   />
@@ -268,7 +263,9 @@ const TransactionDetailsPage: FC<{
               <TransactionDisplay
                 safe={safe}
                 safeTxn={safeTxn as any}
-                allowPublishing={allowPublishing}
+                queuedWithGitOps={queuedWithGitOps}
+                showQueueSource={true}
+                isTransactionExecuted={isTransactionExecuted}
               />
               <Box position="relative">
                 <Box position="sticky" top={8}>
@@ -323,7 +320,7 @@ const TransactionDetailsPage: FC<{
                       </Box>
                     ))}
 
-                    {verify && remainingSignatures > 0 && (
+                    {!isTransactionExecuted && remainingSignatures > 0 && (
                       <Text fontWeight="bold" mt="3">
                         {remainingSignatures} additional{' '}
                         {remainingSignatures === 1 ? 'signature' : 'signatures'}{' '}
@@ -331,12 +328,7 @@ const TransactionDetailsPage: FC<{
                       </Text>
                     )}
 
-                    {verify && stager.alreadySigned && (
-                      <Box mt={4}>
-                        <Alert status="success">Transaction signed</Alert>
-                      </Box>
-                    )}
-                    {verify && !stager.alreadySigned && (
+                    {!isTransactionExecuted && (
                       <Flex mt={4} gap={4}>
                         {account.isConnected &&
                         walletChainId === safe.chainId ? (
@@ -347,8 +339,9 @@ const TransactionDetailsPage: FC<{
                                 mb={3}
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.signConditionFailed) as any
+                                  stager.alreadySigned ||
+                                  ((safeTxn &&
+                                    !!stager.signConditionFailed) as any)
                                 }
                                 onClick={() => stager.sign()}
                               >
@@ -360,12 +353,19 @@ const TransactionDetailsPage: FC<{
                                 colorScheme="teal"
                                 w="100%"
                                 isDisabled={
-                                  (safeTxn &&
-                                    !!stager.execConditionFailed) as any
+                                  !stager.executeTxnConfig ||
+                                  ((safeTxn &&
+                                    !!stager.execConditionFailed) as any)
                                 }
                                 onClick={() => {
+                                  if (!stager.executeTxnConfig) {
+                                    throw new Error(
+                                      'Missing execution tx configuration'
+                                    );
+                                  }
+
                                   execTxn.writeContract(
-                                    stager.executeTxnConfig!,
+                                    stager.executeTxnConfig,
                                     {
                                       onSuccess: () => {
                                         router.push(links.DEPLOY);
@@ -399,7 +399,7 @@ const TransactionDetailsPage: FC<{
                     )}
                   </Box>
 
-                  {verify && allowPublishing && (
+                  {!isTransactionExecuted && queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}
@@ -491,7 +491,7 @@ const TransactionDetailsPage: FC<{
                     </Box>
                   )}
 
-                  {allowPublishing && (
+                  {queuedWithGitOps && (
                     <Box
                       background="gray.800"
                       p={4}

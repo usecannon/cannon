@@ -58,7 +58,6 @@ export function useTxnStager(
   const walletClient = useWalletClient();
   const safeAddress = useSafeAddress();
 
-  const [alreadySigned] = useState(false);
   const [alreadyStagedSigners, setAlreadyStagedSigners] = useState<viem.Address[]>([]);
 
   const queryChainId = options.safe?.chainId || chainId.toString();
@@ -196,9 +195,9 @@ export function useTxnStager(
 
   // must not have already signed in order to sign
   const existingSigsCount = alreadyStaged ? alreadyStaged.sigs.length : 0;
-  const currentNonce = safeTxn._nonce != null && nonce == BigInt(safeTxn._nonce);
   const isSigner =
     reads.isSuccess && !reads.isFetching && !reads.isRefetching ? (reads.data![2].result as unknown as boolean) : false;
+  const alreadySigned = existingSigsCount >= requiredSigs;
 
   let signConditionFailed = '';
   if (!isSigner) {
@@ -210,12 +209,16 @@ export function useTxnStager(
   }
 
   let execConditionFailed = '';
-  if (!reads.isSuccess || reads.isFetching || reads.isRefetching || !currentNonce) {
+  if (reads.isError) {
+    execConditionFailed = `Prepare error: ${reads.failureReason}`;
+  } else if (!reads.isSuccess || reads.isFetching || reads.isRefetching) {
     execConditionFailed = 'loading transaction data, please wait...';
   } else if (!isSigner) {
     execConditionFailed = `current wallet ${account.address} not signer of this safe`;
   } else if (existingSigsCount < requiredSigs && (signConditionFailed || existingSigsCount + 1 < requiredSigs)) {
     execConditionFailed = `insufficient signers to execute (required: ${requiredSigs})`;
+  } else if (stageTxnMutate.isError) {
+    execConditionFailed = `Simluation error: ${stageTxnMutate.failureReason}`;
   }
 
   return {

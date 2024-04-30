@@ -1,10 +1,11 @@
-import os from 'node:os';
-import path from 'node:path';
 import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
 import { yellowBright } from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import os from 'os';
+import path from 'path';
+import * as viem from 'viem';
 import { CliSettings } from './settings';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
 import { resolveRegistryProviders } from './util/provider';
@@ -143,6 +144,20 @@ export class LocalRegistry extends CannonRegistry {
   }
 }
 
+export class ReadOnlyOnChainRegistry extends OnChainRegistry {
+  async publish(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async publishMany(): Promise<string[]> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+
+  async setPackageOwnership(): Promise<viem.Hash> {
+    throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
+  }
+}
+
 async function checkLocalRegistryOverride({
   fullPackageRef,
   chainId,
@@ -174,10 +189,13 @@ export async function createDefaultReadRegistry(
 
   const localRegistry = new LocalRegistry(settings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new OnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: settings.registries[i].address })
   );
 
-  if (!(await isConnectedToInternet())) {
+  if (settings.registryPriority === 'offline') {
+    debug('running in offline mode, using local registry only');
+    return new FallbackRegistry([...additionalRegistries, localRegistry]);
+  } else if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));

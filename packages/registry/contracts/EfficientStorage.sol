@@ -8,14 +8,16 @@ contract EfficientStorage {
     mapping(bytes16 => string) strings;
     mapping(bytes32 => Package) packages;
     mapping(address => bool) verifiers;
+    uint256 publishFee;
+    uint256 registerFee;
   }
 
   struct Package {
     mapping(bytes32 => mapping(bytes32 => CannonDeployInfo)) deployments;
     address owner;
     address nominatedOwner;
-    uint256 additionalDeployersLength;
-    mapping(uint256 => address) additionalDeployers;
+    uint256 additionalPublishersLength;
+    mapping(uint256 => address) additionalPublishers;
   }
 
   struct CannonDeployInfo {

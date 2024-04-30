@@ -18,6 +18,7 @@ import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Address } from 'viem';
 import { HasSubnavContext } from './Tabs/InteractTab';
+import QueueDrawer from '@/features/Deploy/QueueDrawer';
 
 export const Interact: FC<{
   name: string;
@@ -184,11 +185,13 @@ export const Interact: FC<{
             </Box>
           </Flex>
           <Abi
-            abi={contract?.abi as any}
+            abi={contract?.abi}
+            contractSource={contract?.sourceName}
             address={contractAddress}
             cannonOutputs={cannonOutputs}
             chainId={currentVariant?.chain_id}
           />
+          <QueueDrawer />
         </>
       )}
     </>

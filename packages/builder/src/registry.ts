@@ -525,7 +525,7 @@ export class OnChainRegistry extends CannonRegistry {
     });
   }
 
-  async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+  async estimateGasForSetPackageOwnership(packageName: string, packageOwner?: viem.Address) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -533,15 +533,10 @@ export class OnChainRegistry extends CannonRegistry {
     const packageHash = viem.stringToHex(packageName, { size: 32 });
     const owner = packageOwner || this.signer.address;
 
-    const registerFee = (await this.provider.readContract({
-      abi: this.contract.abi,
-      address: this.contract.address,
-      functionName: 'registerFee',
-    })) as bigint;
+    const registerFee = await this.getRegisterFee();
 
     const params = {
-      abi: this.contract.abi,
-      address: this.contract.address,
+      ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
@@ -550,6 +545,44 @@ export class OnChainRegistry extends CannonRegistry {
     };
 
     const simulatedGas = await this.provider.estimateContractGas(params as any);
+
+    return simulatedGas;
+  }
+
+  async getRegisterFee() {
+    if (!this.provider) {
+      throw new Error('Missing provider for executing registry operations');
+    }
+
+    const registerFee = (await this.provider.readContract({
+      abi: this.contract.abi,
+      address: this.contract.address,
+      functionName: 'registerFee',
+    })) as bigint;
+
+    return registerFee;
+  }
+
+  async setPackageOwnership(packageName: string, packageOwner?: viem.Address) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+    const owner = packageOwner || this.signer.address;
+
+    const registerFee = await this.getRegisterFee();
+
+    const params = {
+      ...this.contract,
+      functionName: 'setPackageOwnership',
+      value: registerFee,
+      args: [packageHash, owner],
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.estimateGasForSetPackageOwnership(packageName);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
     const cost = simulatedGas + registerFee;
@@ -560,6 +593,37 @@ export class OnChainRegistry extends CannonRegistry {
           cost
         )} ETH for gas and registration fee`
       );
+    }
+
+    const hash = await this.signer.wallet.writeContract(params as any);
+    const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    return rx.transactionHash;
+  }
+
+  async setAdditionalPublisher(packageName: string, publishers: viem.Address[]) {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const packageHash = viem.stringToHex(packageName, { size: 32 });
+
+    const params = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      args: [packageHash, publishers],
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    };
+
+    const simulatedGas = await this.provider.estimateContractGas(params as any);
+    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+
+    await this._logEstimatedGas(simulatedGas);
+
+    const cost = simulatedGas;
+    if (cost > userBalance) {
+      throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
     }
 
     const hash = await this.signer.wallet.writeContract(params as any);

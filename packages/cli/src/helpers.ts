@@ -1,6 +1,3 @@
-import { exec, spawnSync } from 'node:child_process';
-import os from 'node:os';
-import path from 'node:path';
 import toml from '@iarna/toml';
 import {
   CANNON_CHAIN_ID,
@@ -14,17 +11,20 @@ import {
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
 import { bold, magentaBright, red, yellow, yellowBright } from 'chalk';
+import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import os from 'os';
+import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { cannonChain, chains } from './chains';
 import { resolveCliSettings } from './settings';
-import { isURL, getChainIdFromProviderUrl } from './util/provider';
 import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { getChainIdFromProviderUrl, isURL } from './util/provider';
 
 const debug = Debug('cannon:cli:helpers');
 

@@ -146,6 +146,7 @@ describe('publish command', () => {
     // jest spy on fs readdir which return string[] of package.json
     await publish({
       packageRef: fullPackageRef,
+      cliSettings: resolveCliSettings(),
       onChainRegistry,
       tags,
       chainId,
@@ -166,6 +167,7 @@ describe('publish command', () => {
     tags = [];
     await publish({
       packageRef: fullPackageRef,
+      cliSettings: resolveCliSettings(),
       onChainRegistry,
       tags,
       chainId,
@@ -199,6 +201,7 @@ describe('publish command', () => {
     it('should only find single deploy file on chainId and preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId,
@@ -217,6 +220,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on chainId set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId,
@@ -235,6 +239,7 @@ describe('publish command', () => {
     it('should find multiple deploy files on preset set', async () => {
       await publish({
         packageRef: fullPackageRef,
+        cliSettings: resolveCliSettings(),
         onChainRegistry,
         tags,
         chainId: 0,

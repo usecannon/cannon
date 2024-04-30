@@ -1,5 +1,5 @@
 import { deepEqual, equal, ok } from 'assert/strict';
-import { BigNumber, Signer } from 'ethers';
+import { BigNumber, ContractTransaction, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { CannonRegistry as TCannonRegistry } from '../../typechain-types/contracts/CannonRegistry';
 import { MockOptimismBridge as TMockOptimismBridge } from '../../typechain-types/contracts/MockOptimismBridge';
@@ -8,6 +8,7 @@ import assertRevert from '../helpers/assert-revert';
 const toBytes32 = ethers.utils.formatBytes32String;
 
 describe('CannonRegistry', function () {
+  let l1ChainId: number;
   let CannonRegistry: TCannonRegistry;
   let MockOPSendBridge: TMockOptimismBridge;
   let MockOPRecvBridge: TMockOptimismBridge;
@@ -21,6 +22,7 @@ describe('CannonRegistry', function () {
   });
 
   before('deploy contract', async function () {
+    l1ChainId = (await ethers.provider.getNetwork()).chainId;
     const MockOptimismBridge = await ethers.getContractFactory('MockOptimismBridge');
     const MockOPBridgeImpl = await MockOptimismBridge.deploy();
     await MockOPBridgeImpl.deployed();
@@ -39,7 +41,7 @@ describe('CannonRegistry', function () {
     )) as TMockOptimismBridge;
 
     const CannonRegistryFactory = await ethers.getContractFactory('CannonRegistry');
-    const Implementation = await CannonRegistryFactory.deploy();
+    const Implementation = await CannonRegistryFactory.deploy(MockOPSendBridge.address, MockOPRecvBridge.address, l1ChainId);
     await Implementation.deployed();
 
     const ProxyFactory = await ethers.getContractFactory('Proxy');
@@ -60,7 +62,11 @@ describe('CannonRegistry', function () {
 
     before('deploy new implementation', async function () {
       const CannonRegistry = await ethers.getContractFactory('CannonRegistry');
-      newImplementation = (await CannonRegistry.deploy()) as TCannonRegistry;
+      newImplementation = (await CannonRegistry.deploy(
+        MockOPSendBridge.address,
+        MockOPRecvBridge.address,
+        l1ChainId
+      )) as TCannonRegistry;
       await newImplementation.deployed();
     });
 
@@ -207,7 +213,8 @@ describe('CannonRegistry', function () {
       await CannonRegistry.setFees(0, 0);
     });
 
-    it('should fail when paying wrong amount of fee', async function () {
+    it('should fail when paying insufficient amount of fee', async function () {
+      await CannonRegistry.setFees(100, 0);
       await assertRevert(async () => {
         await CannonRegistry.publish(
           toBytes32('some-module-'),
@@ -215,9 +222,10 @@ describe('CannonRegistry', function () {
           [toBytes32('0.0.1')],
           '',
           'ipfs://some-module-meta@0.0.1',
-          { value: fee.add(20) }
+          { value: 80 }
         );
-      }, `FeeRequired(${fee})`);
+      }, 'FeeRequired(100)');
+      await CannonRegistry.setFees(0, 0);
     });
 
     it('should not allow to publish empty url', async function () {
@@ -272,7 +280,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
+      equal(events![0].event, 'PackagePublishWithFee');
 
       const resultUrl = await CannonRegistry.getPackageUrl(
         toBytes32('some-module'),
@@ -302,7 +310,7 @@ describe('CannonRegistry', function () {
       const { events } = await tx.wait();
 
       equal(events!.length, 1);
-      equal(events![0].event, 'PackagePublish');
+      equal(events![0].event, 'PackagePublishWithFee');
     });
 
     it('pushes tags', async function () {
@@ -317,14 +325,20 @@ describe('CannonRegistry', function () {
         { value: fee }
       );
 
-      const expectedEvents = tags.map((tagName) => [
-        toBytes32('some-module'),
-        toBytes32(tagName),
-        toBytes32('1337-main'),
-        'ipfs://updated-module-hash@0.0.3',
-        'ipfs://updated-module-meta@0.0.3',
-        ownerAddress,
-      ]);
+      const expectedEvents = [
+        [
+          toBytes32('some-module'),
+          toBytes32('0.0.3'),
+          toBytes32('1337-main'),
+          'ipfs://updated-module-hash@0.0.3',
+          'ipfs://updated-module-meta@0.0.3',
+          ownerAddress,
+          BigNumber.from(0),
+        ],
+        ...tags
+          .slice(1)
+          .map((tagName) => [toBytes32('some-module'), toBytes32('1337-main'), toBytes32(tagName), toBytes32('0.0.3')]),
+      ];
 
       const { events } = await tx.wait();
       ok(Array.isArray(events));
@@ -388,13 +402,28 @@ describe('CannonRegistry', function () {
   describe('setAdditionalPublishers()', function () {
     it('only works for owner', async function () {
       await assertRevert(async () => {
-        await CannonRegistry.connect(user2).setAdditionalPublishers(toBytes32('some-module'), []);
+        await CannonRegistry.connect(user2).setAdditionalPublishers(toBytes32('some-module'), [], []);
       }, 'Unauthorized()');
     });
 
     describe('successful invoke', function () {
+      let tx: ContractTransaction;
+
       before('invoke', async function () {
-        await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), [await user2.getAddress()]);
+        tx = await CannonRegistry.connect(owner).setAdditionalPublishers(
+          toBytes32('some-module'),
+          [await user2.getAddress()],
+          [await user3.getAddress()]
+        );
+      });
+
+      it('should emit PackagePublisherChanged event', async function () {
+        const { events } = await tx.wait();
+        equal(events!.length, 1);
+        const [{ event, args }] = events!;
+        equal(event, 'PackagePublishersChanged');
+        equal(args!.name, toBytes32('some-module'));
+        deepEqual(args!.publisher, [await user2.getAddress()]);
       });
 
       it('returns the current list of deployers', async function () {
@@ -413,15 +442,19 @@ describe('CannonRegistry', function () {
       });
 
       it('sends cross chain message', async function () {
-        equal(
-          await MockOPSendBridge.lastCrossChainMessage(),
-          '0xb63e6b15736f6d652d6d6f64756c650000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8'
-        );
+        const functionName = 'setAdditionalPublishers';
+        const expectedArgs = [toBytes32('some-module'), [], [await user3.getAddress()]];
+        const functionSelector = CannonRegistry.interface.getSighash(functionName);
+        const encodedParameters = CannonRegistry.interface.encodeFunctionData(functionName, expectedArgs).slice(10); // Remove the first 10 characters (0x + selector)
+
+        const data = functionSelector + encodedParameters;
+
+        equal(await MockOPSendBridge.lastCrossChainMessage(), data);
       });
 
       describe('remove', function () {
         before('invoke', async function () {
-          await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), []);
+          await CannonRegistry.connect(owner).setAdditionalPublishers(toBytes32('some-module'), [], []);
         });
 
         it('returns the current list of deployers', async function () {
@@ -450,6 +483,7 @@ describe('CannonRegistry', function () {
             CannonRegistry.interface.encodeFunctionData('setAdditionalPublishers' as any, [
               toBytes32('some-module'),
               [await user3.getAddress()],
+              [],
             ])
           );
         }, 'Unauthorized()');
@@ -462,6 +496,7 @@ describe('CannonRegistry', function () {
           CannonRegistry.interface.encodeFunctionData('setAdditionalPublishers' as any, [
             toBytes32('some-module'),
             [await user3.getAddress()],
+            [],
           ])
         );
         await MockOPRecvBridge.setXDomainMessageSender(await user2.getAddress());

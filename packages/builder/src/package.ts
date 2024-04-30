@@ -209,7 +209,9 @@ export async function publishPackage({
 
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
+    const checkKey =
+      deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.def.preset + ':' + deployInfo.timestamp;
+
     if (alreadyCopiedIpfs.has(checkKey)) {
       return alreadyCopiedIpfs.get(checkKey);
     }
