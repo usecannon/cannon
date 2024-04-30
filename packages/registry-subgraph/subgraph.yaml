@@ -23,4 +23,6 @@ dataSources:
       eventHandlers:
         - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32,string,string,address)
           handler: handlePublish
+        - event: PackageUnpublish(indexed bytes32,indexed bytes32,indexed bytes32,address)
+          handler: handleUnpublish
       file: ./src/mapping.ts
