@@ -8,39 +8,28 @@ import {
   useSendTransaction,
   useBytecode,
   useAccount,
+  useSwitchChain,
 } from 'wagmi';
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useStore } from '@/helpers/store';
+import { useEffect, useState } from 'react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 export default function PrepareNetwork() {
-  const { isConnected } = useAccount();
-  const currentSafe = useStore((s) => s.currentSafe);
-
-  const onchainStoreBytecode = useBytecode({
-    chainId: currentSafe?.chainId,
-    address: onchainStore.deployAddress,
-  });
-  const onchainStoreDeployed = (onchainStoreBytecode?.data?.length || 0) > 0;
-  const deployKvStore = usePrepareTransactionRequest(onchainStore.deployTxn);
-
-  const multicallForwarderBytecode = useBytecode({
-    chainId: currentSafe?.chainId,
-    address: multicallForwarder.deployAddress,
-  });
-  const multicallForwarderDeployed =
-    (multicallForwarderBytecode?.data?.length || 0) > 0;
-  const deployMulticallForwarder = usePrepareTransactionRequest(
-    multicallForwarder.deployTxn
-  );
+  const [step, setStep] = useState(0);
+  const { isConnected, chainId } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { switchChain } = useSwitchChain();
+  const [contractToDeploy, setContractToDeploy] = useState('');
+  const currentSafe = { chainId: 31337 }; //useStore((s) => s.currentSafe);
 
   const arachnidBytecode = useBytecode({
     chainId: currentSafe?.chainId,
     address: '0x4e59b44847b379578588920ca78fbf26c0b4956c',
   });
-  const arachnidDeployed =
-    (arachnidBytecode?.data?.length || 0) > 0;
+  const arachnidDeployed = (arachnidBytecode?.data?.length || 0) > 0;
 
   const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
   const arachnidCreatorBalance = useBalance({
@@ -67,7 +56,44 @@ export default function PrepareNetwork() {
     },
   });
 
+  const onchainStoreBytecode = useBytecode({
+    chainId: currentSafe?.chainId,
+    address: onchainStore.deployAddress,
+  });
+  const onchainStoreDeployed = (onchainStoreBytecode?.data?.length || 0) > 0;
+  const deployOnchainStore = usePrepareTransactionRequest(
+    onchainStore.deployTxn
+  );
+
+  const multicallForwarderBytecode = useBytecode({
+    chainId: currentSafe?.chainId,
+    address: multicallForwarder.deployAddress,
+  });
+  const multicallForwarderDeployed =
+    (multicallForwarderBytecode?.data?.length || 0) > 0;
+  const deployMulticallForwarder = usePrepareTransactionRequest(
+    multicallForwarder.deployTxn
+  );
+
   const execTxn = useSendTransaction();
+
+  useEffect(() => {
+    if (step === 1 && openConnectModal) {
+      isConnected ? setStep(2) : openConnectModal();
+    } else if (step == 2) {
+      chainId === currentSafe.chainId
+        ? setStep(3)
+        : switchChain({ chainId: currentSafe.chainId });
+    } else if (step == 3) {
+      if (contractToDeploy === 'arachnid') {
+        execTxnArachnid.sendTransaction(deployArachnidCreate2.data as any);
+      } else if (contractToDeploy === 'onchainstore') {
+        execTxn.sendTransaction(deployOnchainStore.data as any);
+      } else if (contractToDeploy === 'multicallForwarder') {
+        execTxn.sendTransaction(deployMulticallForwarder.data as any);
+      }
+    }
+  }, [openConnectModal, step, isConnected, chainId, contractToDeploy]);
 
   return (
     <Flex height="100%" bg="black">
@@ -105,16 +131,14 @@ export default function PrepareNetwork() {
               <CustomLinkButton
                 href="#"
                 disabled={arachnidDeployed}
-                // NOTE: seems wagmi types are borked again
-                onClick={() =>
-                  execTxnArachnid.sendTransaction(
-                    deployArachnidCreate2.data as any
-                  )
-                }
+                onClick={() => {
+                  setContractToDeploy('arachnid');
+                  setStep(1);
+                }}
               >
                 {arachnidDeployed ? 'Deployed' : 'Deploy Contract'}
               </CustomLinkButton>
-              <Tooltip label="This contract is deployed by sending a small amount of ETH to a dedicated deployment address. The contract will be deployed immediately after funds are sent.">
+              <Tooltip label="This contract is deployed by sending a small amount of ETH to an EOA with a known private key. Then the contract is deployed from that address.">
                 <InfoOutlineIcon color="gray.400" />
               </Tooltip>
             </Flex>
@@ -137,8 +161,10 @@ export default function PrepareNetwork() {
             <CustomLinkButton
               href="#"
               disabled={!arachnidDeployed || onchainStoreDeployed}
-              // NOTE: seems wagmi types are borked again
-              onClick={() => execTxn.sendTransaction(deployKvStore.data as any)}
+              onClick={() => {
+                setContractToDeploy('onchainstore');
+                setStep(1);
+              }}
             >
               {onchainStoreDeployed ? 'Deployed' : 'Deploy Contract'}
             </CustomLinkButton>
@@ -161,10 +187,10 @@ export default function PrepareNetwork() {
             <CustomLinkButton
               href="#"
               disabled={!arachnidDeployed || multicallForwarderDeployed}
-              // NOTE: seems wagmi types are borked again
-              onClick={() =>
-                execTxn.sendTransaction(deployMulticallForwarder.data as any)
-              }
+              onClick={() => {
+                setContractToDeploy('multicallForwarder');
+                setStep(1);
+              }}
             >
               {multicallForwarderDeployed ? 'Deployed' : 'Deploy Contract'}
             </CustomLinkButton>
