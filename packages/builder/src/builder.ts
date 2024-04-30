@@ -2,7 +2,7 @@ import Debug from 'debug';
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import _ from 'lodash';
 import * as viem from 'viem';
-import { ContractMap, DeploymentState, TransactionMap } from './';
+import { BundledOutput, ContractMap, DeploymentState, TransactionMap } from './';
 import { ActionKinds } from './actions';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
@@ -390,45 +390,23 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
   }
 
   //helper function for recursively adding simplified imports notation
-  function addImports(ctx: ChainBuilderContext, imports: any, parentObject: any = null): void {
-    Object.keys(imports).forEach((key) => {
-      const currentImport = imports[key];
-      let targetObject = parentObject;
+  function addSimplifiedAccessSyntax(ctx: ChainArtifacts) {
+    const simplifiedAccessObject: ContractMap | { [v: string]: any } = {};
+    for (const contractName in ctx.contracts) {
+      //also add simplified address syntax
+      simplifiedAccessObject[contractName] = ctx.contracts[contractName];
+    }
 
-      if (!targetObject) {
-        targetObject = ctx;
-      }
+    for (const importName in ctx.imports) {
+      simplifiedAccessObject[importName] = addSimplifiedAccessSyntax(ctx.imports[importName]);
+    }
 
-      if (!targetObject[key]) {
-        targetObject[key] = { url: currentImport.url };
-      } else {
-        targetObject[key].url = currentImport.url;
-      }
-
-      if (currentImport.imports && Object.keys(currentImport.imports).length > 0) {
-        addImports(ctx, currentImport.imports, targetObject[key]);
-      }
-
-      if (currentImport.contracts && Object.keys(currentImport.contracts).length > 0) {
-        targetObject[key].contracts = currentImport.contracts;
-      }
-    });
-  }
-
-  //add simplified imports syntax
-  if (imports) {
-    addImports(ctx, outputs.imports);
+    return simplifiedAccessObject;
   }
 
   const contracts = outputs.contracts as ContractMap;
   for (const contractName in contracts) {
     ctx.contracts[contractName] = contracts[contractName];
-    //also add simplified address syntax
-    const contractData = contracts[contractName];
-    if (contractData && contractData.address) {
-      const simplifiedPath = `${contractName}.address`;
-      ctx[simplifiedPath] = contractData.address;
-    }
   }
 
   const txns = outputs.txns as TransactionMap;
@@ -455,4 +433,6 @@ export function addOutputsToContext(ctx: ChainBuilderContext, outputs: ChainArti
   for (const n in ctx.settings) {
     ctx.extras[n] = ctx.settings[n];
   }
+
+  ctx = Object.assign(ctx, addSimplifiedAccessSyntax(ctx));
 }

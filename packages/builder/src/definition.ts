@@ -320,7 +320,16 @@ export class ChainDefinition {
     if (ActionKinds[n].getInputs) {
       const possibleFields: string[] = [];
       for (const k of this.dependencyFor.keys()) {
-        possibleFields.push(k.split('.')[0]);
+        const baseName = k.split('.')[0];
+        if (
+          baseName !== 'contracts' &&
+          baseName !== 'imports' &&
+          baseName !== 'settings' &&
+          baseName !== 'extras' &&
+          baseName !== 'txns'
+        ) {
+          possibleFields.push(baseName);
+        }
       }
       const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
         name: '',

@@ -94,7 +94,11 @@ export function computeTemplateAccesses(str?: string, possibleNames: string[] = 
 
   for (const recorder of _.difference(Object.keys(recorders), Object.keys(CannonHelperContext))) {
     if (recorders[recorder] instanceof AccessRecorder) {
-      accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
+      if (possibleNames.includes(recorder) && recorders[recorder].accessed.size > 0) {
+        accesses.push(recorder);
+      } else {
+        accesses.push(...Array.from(recorders[recorder].accessed.keys()).map((a: string) => `${recorder}.${a}`));
+      }
     }
   }
 
