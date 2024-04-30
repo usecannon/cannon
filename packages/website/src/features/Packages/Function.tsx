@@ -15,6 +15,7 @@ import {
   Link,
   Text,
   useToast,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -36,6 +37,7 @@ import {
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
 import { useQueueTxsStore, useStore } from '@/helpers/store';
+import { HiArrowNarrowRight, HiArrowNarrowDown } from 'react-icons/hi';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -45,6 +47,7 @@ export const Function: FC<{
   chainId: number;
   contractSource?: string;
   onDrawerOpen?: () => void;
+  collapsible?: boolean;
 }> = ({
   f,
   abi /*, cannonOutputs */,
@@ -52,7 +55,9 @@ export const Function: FC<{
   chainId,
   contractSource,
   onDrawerOpen,
+  collapsible,
 }) => {
+  const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
   const pathName = usePathname();
   const [loading, setLoading] = useState(false);
@@ -244,8 +249,16 @@ export const Function: FC<{
     onDrawerOpen?.();
   };
 
-  return (
-    <Box p={6} borderTop="1px solid" borderColor="gray.600">
+  const renderFunctionContent = () => (
+    <Box
+      p={6}
+      borderTop={collapsible ? 'none' : '1px solid'}
+      borderBottom={collapsible ? '1px solid' : 'none'}
+      borderBottomRadius={collapsible ? 'md' : 'none'}
+      borderRight={collapsible ? '1px solid' : 'none'}
+      borderLeft={collapsible ? '1px solid' : 'none'}
+      borderColor="gray.600"
+    >
       <span id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
@@ -446,5 +459,71 @@ export const Function: FC<{
         </Flex>
       </Box>
     </Box>
+  );
+
+  return (
+    <>
+      {collapsible ? (
+        <Flex flexDirection="column">
+          <Flex
+            flexDirection="row"
+            px="2"
+            py="2"
+            alignItems="center"
+            mb="1.5"
+            justifyContent="space-between"
+            border="1px solid"
+            borderColor="gray.600"
+            borderTopRadius={'md'}
+            borderBottomRadius={isOpen ? 'none' : 'md'}
+          >
+            {f.name && (
+              <Heading
+                size="sm"
+                fontFamily="mono"
+                fontWeight="semibold"
+                mb={0}
+                display="flex"
+                alignItems="center"
+                gap={2}
+              >
+                {toFunctionSignature(f)}
+                <Link
+                  color="gray.300"
+                  ml={1}
+                  textDecoration="none"
+                  _hover={{ textDecoration: 'underline' }}
+                  href={`#${anchor}`}
+                >
+                  #
+                </Link>
+                {!!contractSource && (
+                  <Link
+                    color="gray.300"
+                    ml={1}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'underline' }}
+                    href={getCodeUrl(f.name)}
+                  >
+                    <FaCode color="#fff" />
+                  </Link>
+                )}
+              </Heading>
+            )}
+            <Button
+              onClick={onToggle}
+              variant="outline"
+              colorScheme="teal"
+              size="xs"
+            >
+              {isOpen ? <HiArrowNarrowDown /> : <HiArrowNarrowRight />}
+            </Button>
+          </Flex>
+          {isOpen && renderFunctionContent()}
+        </Flex>
+      ) : (
+        renderFunctionContent()
+      )}
+    </>
   );
 };
