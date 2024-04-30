@@ -13,6 +13,7 @@ import {
   Link,
   Text,
   useBreakpointValue,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { ChainArtifacts, ContractData } from '@usecannon/builder/src';
 import { FC, useContext, useEffect, useState } from 'react';
@@ -28,6 +29,7 @@ export const Interact: FC<{
   contractName: string;
   contractAddress: Address;
 }> = ({ name, tag, variant, moduleName, contractName, contractAddress }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { data } = useQueryCannonSubgraphData<any, any>(GET_PACKAGE, {
     variables: { name },
   });
@@ -190,8 +192,9 @@ export const Interact: FC<{
             address={contractAddress}
             cannonOutputs={cannonOutputs}
             chainId={currentVariant?.chain_id}
+            onDrawerOpen={onOpen}
           />
-          <QueueDrawer />
+          <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
         </>
       )}
     </>
