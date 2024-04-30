@@ -33,7 +33,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Invalid address provided for --remove option');
   }
 
-  // Check if both options provided and addresses are the same
+  // check if both options provided and addresses are the same
   if (publisherToAdd && publishersToRemove && viem.isAddressEqual(publisherToAdd, publishersToRemove)) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
@@ -55,15 +55,24 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   }
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const [mainnetRegistryProvider] = await resolveRegistryProviders({
-    ...cliSettings,
-    // if the user has not set the registry settings, use mainnet as the default registry
-    registries: isDefaultSettings ? cliSettings.registries.reverse() : cliSettings.registries,
+  const keyPrompt = await prompts({
+    type: 'select',
+    name: 'value',
+    message: 'Where do you want to add or remove the publishers?',
+    choices: [
+      { title: 'Optimism', description: 'This option has a description', value: 'OP' },
+      { title: 'Ethereum Mainnet', value: 'ETH' },
+    ],
+    initial: 1,
   });
 
-  const overrides: any = {};
+  const isMainnet = keyPrompt.value === 'ETH';
+  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
+  const [mainnetRegistryProvider, optimismRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
+  const overrides: any = {};
   if (options.maxFeePerGas) {
     overrides.maxFeePerGas = viem.parseGwei(options.maxFeePerGas);
   }
@@ -76,16 +85,23 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     overrides.value = options.value;
   }
 
-  const mainRegistry = new OnChainRegistry({
+  const mainnetRegistry = new OnChainRegistry({
     signer: mainnetRegistryProvider.signers[0],
     provider: mainnetRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
+    address: mainnetRegistryConfig.address,
+    overrides,
+  });
+
+  const optimismRegistry = new OnChainRegistry({
+    signer: optimismRegistryProvider.signers[0],
+    provider: optimismRegistryProvider.provider,
+    address: optimismRegistryConfig.address,
     overrides,
   });
 
   const userAddress = mainnetRegistryProvider.signers[0].address;
   const packageName = new PackageReference(packageRef).name;
-  const packageOwner = await mainRegistry.getPackageOwner(packageName);
+  const packageOwner = await mainnetRegistry.getPackageOwner(packageName);
 
   // throw an error if the package is not registered
   if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
@@ -96,7 +112,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error(`Unauthorized: The package "${packageName}" is already registered by "${packageOwner}".`);
   }
 
-  const currentPublishers = await mainRegistry.getAdditionalPublishers(packageName);
+  const [mainnetCurrentPublishers, optimismCurrentPublishers] = await Promise.all([
+    mainnetRegistry.getAdditionalPublishers(packageName),
+    optimismRegistry.getAdditionalPublishers(packageName),
+  ]);
+
+  const currentPublishers = isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers;
 
   // copy the current publishers
   let publishers = [...currentPublishers];
@@ -111,37 +132,38 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     publishers.push(publisherToAdd);
   }
 
+  // throw an error if the publishers list is already up to date
   if (_.isEqual(currentPublishers, publishers)) {
     throw new Error('The publishers list is already up to date.');
   }
 
-  if (isDefaultSettings) {
-    const [hash] = await Promise.all([
-      (async () => {
-        const hash = await mainRegistry.setAdditionalPublisher(packageName, publishers);
+  const [hash] = await Promise.all([
+    (async () => {
+      const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
+      const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
+      const hash = await mainnetRegistry.setAdditionalPublisher(packageName, mainnetPublishers, optimismPublishers);
 
-        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-        console.log('');
-        console.log(
-          gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
-        );
-        console.log('');
+      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      console.log('');
+      console.log(
+        gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+      );
+      console.log('');
 
-        return hash;
-      })(),
-      (async () => {
-        // this should always resolve after the first promise but we want to make sure it runs at the same time
-        await waitForEvent({ eventName: 'PackagePublishersChanged', abi: mainRegistry.contract.abi });
+      return hash;
+    })(),
+    (async () => {
+      // this should always resolve after the first promise but we want to make sure it runs at the same time
+      await waitForEvent({
+        eventName: 'PackagePublishersChanged',
+        abi: optimismRegistry.contract.abi,
+        chainId: optimismRegistryConfig.chainId!,
+      });
 
-        console.log(green('Success!'));
-        console.log('');
-      })(),
-    ]);
+      console.log(green('Success!'));
+      console.log('');
+    })(),
+  ]);
 
-    return hash;
-  } else {
-    const hash = await mainRegistry.setPackageOwnership(packageName);
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-    return hash;
-  }
+  return hash;
 }

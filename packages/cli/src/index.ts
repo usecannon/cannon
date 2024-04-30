@@ -372,14 +372,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (isDefaultSettings) {
-    const choices = registryProviders.map((p) => ({
+    const choices = registryProviders.reverse().map((p) => ({
       title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
       value: p,
     }));
 
     // Override pickedRegistryProvider with the selected provider
     pickedRegistryProvider = (
-      await prompts.prompt([
+      await prompts([
         {
           type: 'select',
           name: 'pickedRegistryProvider',
@@ -396,12 +396,12 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   }
 
   if (isDefaultSettings) {
-    // Check if the package is already registered on Mainnet registry
-    const [, mainnet] = DEFAULT_REGISTRY_CONFIG;
+    // Check if the package is already registered
+    const [mainnet] = DEFAULT_REGISTRY_CONFIG;
 
-    const [optimismProvider, mainnetProvider] = await resolveRegistryProviders(cliSettings);
+    const [mainnetProvider, optimismProvider] = await resolveRegistryProviders(cliSettings);
 
-    const isRegistered = await isPackageRegistered([optimismProvider, mainnetProvider], packageRef, mainnet.address);
+    const isRegistered = await isPackageRegistered([mainnetProvider, optimismProvider], packageRef, mainnet.address);
 
     if (!isRegistered) {
       console.log();
@@ -445,10 +445,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     overrides.value = options.value;
   }
 
+  const registryAddress =
+    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    DEFAULT_REGISTRY_CONFIG[0].address;
+
   const onChainRegistry = new OnChainRegistry({
     signer: pickedRegistryProvider.signers[0],
     provider: pickedRegistryProvider.provider,
-    address: cliSettings.registries[0].address,
+    address: registryAddress,
     overrides,
   });
 

@@ -34,13 +34,10 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  const mainRegistryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
+  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const [mainRegistryProvider] = await resolveRegistryProviders({
-    ...cliSettings,
-    // if the user has not set the registry settings, use mainnet as the default registry
-    registries: isDefaultSettings ? cliSettings.registries.reverse() : cliSettings.registries,
-  });
+  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
+  const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   const overrides: any = {};
 
@@ -56,27 +53,27 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     overrides.value = options.value;
   }
 
-  const mainRegistry = new OnChainRegistry({
-    signer: mainRegistryProvider.signers[0],
-    provider: mainRegistryProvider.provider,
-    address: mainRegistryConfig.address,
+  const mainnetRegistry = new OnChainRegistry({
+    signer: mainnetRegistryProvider.signers[0],
+    provider: mainnetRegistryProvider.provider,
+    address: mainnetRegistryConfig.address,
     overrides,
   });
 
-  const userAddress = mainRegistryProvider.signers[0].address;
+  const userAddress = mainnetRegistryProvider.signers[0].address;
   const packageName = new PackageReference(packageRef).name;
 
-  const userBalance = await mainRegistryProvider.provider.getBalance({ address: userAddress });
+  const userBalance = await mainnetRegistryProvider.provider.getBalance({ address: userAddress });
 
   if (userBalance === BigInt(0)) {
     throw new Error(`Account "${userAddress}" does not have any funds to pay for gas.`);
   }
 
-  const registerFee = await mainRegistry.getRegisterFee();
+  const registerFee = await mainnetRegistry.getRegisterFee();
 
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainRegistry.estimateGasForSetPackageOwnership(packageName);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName);
 
   const cost = estimateGas + registerFee;
 
@@ -102,44 +99,39 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
-  if (isDefaultSettings) {
-    const [hash] = await Promise.all([
-      (async () => {
-        const hash = await mainRegistry.setPackageOwnership(packageName);
+  const [hash] = await Promise.all([
+    (async () => {
+      const hash = await mainnetRegistry.setPackageOwnership(packageName);
 
-        console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-        console.log('');
+      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      console.log('');
+      console.log(
+        gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+      );
+      console.log('');
+
+      return hash;
+    })(),
+    (async () => {
+      // this should always resolve after the first promise but we want to make sure it runs at the same time
+      await waitForEvent({
+        eventName: 'PackageOwnerChanged',
+        abi: mainnetRegistry.contract.abi, //note: should be the same as OP registry contract
+        chainId: optimismRegistryConfig.chainId!,
+      });
+
+      console.log(green('Success!'));
+      console.log('');
+
+      if (fromPublish) {
+        console.log(gray('We will continue with the publishing process.'));
+      } else {
         console.log(
-          gray('Waiting for the transaction to propagate to Optimism Mainnet... It may take approximately 1-3 minutes.')
+          gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
         );
-        console.log('');
+      }
+    })(),
+  ]);
 
-        return hash;
-      })(),
-      (async () => {
-        // this should always resolve after the first promise but we want to make sure it runs at the same time
-        await waitForEvent({
-          eventName: 'PackageOwnerChanged',
-          abi: mainRegistry.contract.abi,
-        });
-
-        console.log(green('Success!'));
-        console.log('');
-
-        if (fromPublish) {
-          console.log(gray('We will continue with the publishing process.'));
-        } else {
-          console.log(
-            gray(`Run 'cannon publish ${packageName}' (after building a ${packageName} deployment) to publish a package.`)
-          );
-        }
-      })(),
-    ]);
-
-    return hash;
-  } else {
-    const hash = await mainRegistry.setPackageOwnership(packageName);
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-    return hash;
-  }
+  return hash;
 }
