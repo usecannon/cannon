@@ -35,7 +35,7 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
-import { useQueueTxsStore } from '@/helpers/store';
+import { useQueueTxsStore, useStore } from '@/helpers/store';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -44,7 +44,16 @@ export const Function: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractSource?: string;
-}> = ({ f, abi /*, cannonOutputs */, address, chainId, contractSource }) => {
+  onDrawerOpen?: () => void;
+}> = ({
+  f,
+  abi /*, cannonOutputs */,
+  address,
+  chainId,
+  contractSource,
+  onDrawerOpen,
+}) => {
+  const currentSafe = useStore((s) => s.currentSafe);
   const pathName = usePathname();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
@@ -165,18 +174,26 @@ export const Function: FC<{
   };
 
   const handleQueueTransaction = () => {
+    if (!currentSafe) {
+      toast({
+        title: 'Please select a Safe first',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      onDrawerOpen?.();
+      return;
+    }
     // Prevent queuing transactions across different chains
-    if (queuedIdentifiableTxns.length > 0) {
-      const lastTxn = queuedIdentifiableTxns.slice(-1)[0];
-      if (lastTxn.chainId !== chainId) {
-        toast({
-          title: 'Cannot queue transactions across different chains',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-        return;
-      }
+    if (currentSafe?.chainId !== chainId) {
+      toast({
+        title: `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
+        status: 'error',
+        duration: 10000,
+        isClosable: true,
+      });
+      onDrawerOpen?.();
+      return;
     }
 
     let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
@@ -224,6 +241,7 @@ export const Function: FC<{
       duration: 5000,
       isClosable: true,
     });
+    onDrawerOpen?.();
   };
 
   return (

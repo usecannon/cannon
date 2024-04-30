@@ -23,7 +23,15 @@ export const Abi: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractSource?: string;
-}> = ({ abi, contractSource, address, cannonOutputs, chainId }) => {
+  onDrawerOpen?: () => void;
+}> = ({
+  abi,
+  contractSource,
+  address,
+  cannonOutputs,
+  chainId,
+  onDrawerOpen,
+}) => {
   const functions = useMemo<AbiFunction[]>(
     () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
@@ -193,6 +201,7 @@ export const Abi: FC<{
               cannonOutputs={cannonOutputs}
               chainId={chainId}
               contractSource={contractSource}
+              onDrawerOpen={onDrawerOpen}
             />
           ))}
         </Box>
