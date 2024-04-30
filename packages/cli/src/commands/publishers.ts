@@ -141,7 +141,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     (async () => {
       const mainnetPublishers = isMainnet ? publishers : mainnetCurrentPublishers;
       const optimismPublishers = isMainnet ? optimismCurrentPublishers : publishers;
-      const hash = await mainnetRegistry.setAdditionalPublisher(packageName, mainnetPublishers, optimismPublishers);
+      const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
       console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
       console.log('');
