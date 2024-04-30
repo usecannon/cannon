@@ -28,7 +28,6 @@ import {
   DrawerCloseButton,
   DrawerHeader,
   DrawerBody,
-  useDisclosure,
   Button,
   Icon,
 } from '@chakra-ui/react';
@@ -164,6 +163,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
     setQueuedIdentifiableTxns(
       queuedIdentifiableTxns.filter((_, index) => index !== i)
     );
+    setLastQueuedTxnsId(lastQueuedTxnsId - 1);
   };
 
   const addQueuedTxn = () => {
@@ -415,8 +415,15 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
   );
 };
 
-const QueueDrawer = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+const QueueDrawer = ({
+  isOpen,
+  onOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+}) => {
   return (
     <>
       <IconButton

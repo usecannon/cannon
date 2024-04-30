@@ -1,6 +1,33 @@
 {
-  "address": "0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba",
+  "address": "0xEdBD749779272F4Bb8bb57B74404Ab9AfA680DE6",
   "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_optimismMessenger",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_optimismtReceiver",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FeeRequired",
+      "type": "error"
+    },
     {
       "inputs": [
         {
@@ -94,7 +121,7 @@
     },
     {
       "inputs": [],
-      "name": "ValueAlreadyInSet",
+      "name": "WrongChain",
       "type": "error"
     },
     {
@@ -132,6 +159,50 @@
         }
       ],
       "name": "OwnerNominated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "PackageOwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "currentOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "nominatedOwner",
+          "type": "address"
+        }
+      ],
+      "name": "PackageOwnerNominated",
       "type": "event"
     },
     {
@@ -188,6 +259,124 @@
         },
         {
           "indexed": true,
+          "internalType": "bytes32",
+          "name": "tag",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "variant",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "deployUrl",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "metaUrl",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "feePaid",
+          "type": "uint256"
+        }
+      ],
+      "name": "PackagePublishWithFee",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "publisher",
+          "type": "address[]"
+        }
+      ],
+      "name": "PackagePublishersChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "registrant",
+          "type": "address"
+        }
+      ],
+      "name": "PackageRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "tag",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "variant",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "PackageUnpublish",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "verifier",
           "type": "address"
@@ -213,6 +402,37 @@
         }
       ],
       "name": "PackageVerify",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "name",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "variant",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "tag",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "versionOfTag",
+          "type": "bytes32"
+        }
+      ],
+      "name": "TagPublish",
       "type": "event"
     },
     {
@@ -262,9 +482,15 @@
           "type": "bytes32"
         }
       ],
-      "name": "acceptPackageOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "getAdditionalPublishers",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "additionalPublishers",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -379,25 +605,6 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "_packageName",
-          "type": "bytes32"
-        }
-      ],
-      "name": "getPackageVersions",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "address",
           "name": "newNominatedOwner",
           "type": "address"
@@ -471,7 +678,7 @@
         },
         {
           "internalType": "string",
-          "name": "_packageVersionUrl",
+          "name": "_packageDeployUrl",
           "type": "string"
         },
         {
@@ -482,7 +689,33 @@
       ],
       "name": "publish",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "publishFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registerFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -490,6 +723,65 @@
       "name": "renounceNomination",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_packageName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address[]",
+          "name": "_additionalPublishersEthereum",
+          "type": "address[]"
+        },
+        {
+          "internalType": "address[]",
+          "name": "_additionalPublishersOptimism",
+          "type": "address[]"
+        }
+      ],
+      "name": "setAdditionalPublishers",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_publishFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_registerFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFees",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_packageName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "setPackageOwnership",
+      "outputs": [],
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -503,6 +795,55 @@
       "name": "simulateUpgradeTo",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_packageName",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_variant",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "_packageTags",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "unpublish",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unused",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unused2",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -567,5 +908,9 @@
   "deployTxnHash": "",
   "sourceName": "",
   "contractName": "",
-  "deployedOn": "invoke.upgrade_proxy"
+  "deployedOn": "invoke.upgrade_proxy",
+  "gasUsed": 0,
+  "gasCost": "0",
+  "highlight": true
 }
+

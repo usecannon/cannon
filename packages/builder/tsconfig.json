@@ -10,7 +10,7 @@
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "resolveJsonModule": false,
+    "resolveJsonModule": true,
     "rootDirs": ["./src"],
     "skipLibCheck": true
   },

@@ -1,5 +1,5 @@
 import { CannonLoader, getCannonRepoRegistryUrl, IPFSLoader } from '@usecannon/builder';
-import { compress, getContentCID } from '@usecannon/builder/dist/ipfs';
+import { compress, getContentCID } from '@usecannon/builder/dist/src/ipfs';
 import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';

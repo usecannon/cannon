@@ -601,7 +601,7 @@ export class OnChainRegistry extends CannonRegistry {
     return rx.transactionHash;
   }
 
-  async setAdditionalPublisher(packageName: string, publishers: viem.Address[]) {
+  async setAdditionalPublishers(packageName: string, mainnetPublishers: viem.Address[], optimismPublishers: viem.Address[]) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -611,7 +611,7 @@ export class OnChainRegistry extends CannonRegistry {
     const params = {
       ...this.contract,
       functionName: 'setAdditionalPublishers',
-      args: [packageHash, publishers],
+      args: [packageHash, mainnetPublishers, optimismPublishers],
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
     };
