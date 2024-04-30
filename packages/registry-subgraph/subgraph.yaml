@@ -27,4 +27,6 @@ dataSources:
           handler: handlePublishWithFee
         - event: TagPublish(indexed bytes32,indexed bytes32,indexed bytes32,bytes32)
           handler: handlePublishTag
+        - event: PackageUnpublish(indexed bytes32,indexed bytes32,indexed bytes32,address)
+          handler: handleUnpublish
       file: ./src/mapping.ts

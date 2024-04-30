@@ -1,6 +1,13 @@
-import { Package, Variant, Tag } from '../generated/schema';
-import { PackagePublish, PackagePublishWithFee, TagPublish } from '../generated/CannonRegistry/CannonRegistry';
+import { store } from '@graphprotocol/graph-ts';
 import { Address, BigInt, Bytes } from '@graphprotocol/graph-ts';
+
+import { Package, Variant, Tag } from '../generated/schema';
+import {
+  PackagePublish,
+  PackageUnpublish,
+  PackagePublishWithFee,
+  TagPublish,
+} from '../generated/CannonRegistry/CannonRegistry';
 
 class PublishEntry {
   name: Bytes;
@@ -104,5 +111,37 @@ function _savePublishEntry(entry: PublishEntry, timestamp: BigInt): void {
     variant.chain_id = <i32>parseInt(variant_name.split('-')[0]);
     variant.preset = variant_name.split('-').slice(1).join('-');
     variant.save();
+  }
+}
+
+export function handleUnpublish(event: PackageUnpublish): void {
+  const package_name = event.params.name.toString();
+  const tag_name = event.params.tag.toString();
+  const variant_name = event.params.variant.toString();
+
+  let variant = Variant.load(package_name + ':' + tag_name + ':' + variant_name);
+  if (variant) {
+    store.remove('Variant', variant.id);
+  }
+
+  // Check if the tag has other variants
+  let tagId = package_name + ':' + tag_name;
+  let tag = Tag.load(tagId);
+  if (tag) {
+    let variants = tag.variants.load();
+    if (variants.length === 0) {
+      // If no variants are associated with this tag, delete the tag
+      store.remove('Tag', tag.id);
+    }
+  }
+
+  // Check if the package has other tags
+  let pkg = Package.load(package_name);
+  if (pkg) {
+    let tags = pkg.tags.load();
+    if (tags.length === 0) {
+      // If no tags are associated with this package, delete the package
+      store.remove('Package', pkg.id);
+    }
   }
 }
