@@ -18,8 +18,6 @@ export * from './types';
   return this.toString();
 };
 
-console.log('THE BASE');
-
 export { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from './registry';
 export { publishPackage, PackageReference, getProvisionedPackages } from './package';
 export { CANNON_CHAIN_ID, getCannonRepoRegistryUrl, BUILD_VERSION } from './constants';

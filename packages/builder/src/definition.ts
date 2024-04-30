@@ -318,7 +318,11 @@ export class ChainDefinition {
     }
 
     if (ActionKinds[n].getInputs) {
-      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), {
+      const possibleFields: string[] = [];
+      for (const k of this.dependencyFor.keys()) {
+        possibleFields.push(k.split('.')[0]);
+      }
+      const accessComputationResults = ActionKinds[n].getInputs!(_.get(this.raw, node), possibleFields, {
         name: '',
         version: '',
         currentLabel: node,

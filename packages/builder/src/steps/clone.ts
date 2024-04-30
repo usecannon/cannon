@@ -76,17 +76,23 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
+  getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
     if (config.options) {
-      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.options,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.tags,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     return accesses;

@@ -190,31 +190,37 @@ const deploySpec = {
     return config;
   },
 
-  getInputs(config: Config) {
+  getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.from);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.abi));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.nonce, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.artifact, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.value, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.abi, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.salt, possibleFields));
 
     if (config.abiOf) {
-      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v))));
+      _.forEach(
+        config.abiOf,
+        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
+      );
     }
 
     if (config.args) {
       _.forEach(
         config.args,
-        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v))))
+        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(JSON.stringify(v), possibleFields)))
       );
     }
 
     if (config.libraries) {
-      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v))));
+      _.forEach(
+        config.libraries,
+        (v) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(v, possibleFields)))
+      );
     }
 
     if (config?.overrides?.gasLimit) {
-      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit));
+      accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.overrides.gasLimit, possibleFields));
     }
 
     return accesses;
