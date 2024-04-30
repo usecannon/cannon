@@ -1,4 +1,4 @@
-import { Flex, Container, Heading, Text, Box, Button } from '@chakra-ui/react';
+import { Flex, Container, Heading, Text, Box, Tooltip } from '@chakra-ui/react';
 import { CustomLinkButton } from '../HomePage/HomePage';
 import {
   useBalance,
@@ -6,12 +6,32 @@ import {
   usePrepareTransactionRequest,
   usePublicClient,
   useSendTransaction,
+  useBytecode,
+  useAccount,
 } from 'wagmi';
-
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { useStore } from '@/helpers/store';
 
 export default function PrepareNetwork() {
+  const { isConnected } = useAccount();
+  const currentSafe = useStore((s) => s.currentSafe);
+
+  const onchainStoreBytecode = useBytecode({
+    chainId: currentSafe?.chainId,
+    address: onchainStore.deployAddress,
+  });
+
+  const multicallForwarderBytecode = useBytecode({
+    chainId: currentSafe?.chainId,
+    address: multicallForwarder.deployAddress,
+  });
+
+  const isNetworkPrepared =
+    (onchainStoreBytecode?.data?.length || 0) > 0 &&
+    (multicallForwarderBytecode?.data?.length || 0) > 0;
+
   const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
 
   const arachnidCreatorBalance = useBalance({
@@ -80,23 +100,23 @@ export default function PrepareNetwork() {
             </Heading>
             <Text fontSize="sm" color="gray.300" mb={3}>
               This allows contracts to be deployed at consistent addresses,
-              determined based on their source code. NOTE: this contract is
-              deployed by sending a small amount of ETH to a dedicated
-              deployment address. The contract will be deployed immediately
-              after funds are sent.
+              determined based on their source code.
             </Text>
-            <CustomLinkButton
-              href="#"
-              size="sm"
-              colorScheme="teal"
-              disabled
-              // NOTE: seems wagmi types are borked again
-              onClick={execTxnArachnid.sendTransaction(
-                deployArachnidCreate2.data as any
-              )}
-            >
-              Deployed
-            </CustomLinkButton>
+            <Flex gap={3} alignItems="center">
+              <CustomLinkButton
+                href="#"
+                disabled
+                // NOTE: seems wagmi types are borked again
+                // onClick={execTxnArachnid.sendTransaction(
+                //   deployArachnidCreate2.data as any
+                // )}
+              >
+                Deployed
+              </CustomLinkButton>
+              <Tooltip label="This contract is deployed by sending a small amount of ETH to a dedicated deployment address. The contract will be deployed immediately after funds are sent.">
+                <InfoOutlineIcon color="gray.400" />
+              </Tooltip>
+            </Flex>
           </Box>
           <Box
             bg="gray.800"
@@ -115,10 +135,8 @@ export default function PrepareNetwork() {
             </Text>
             <CustomLinkButton
               href="#"
-              size="sm"
-              colorScheme="teal"
               // NOTE: seems wagmi types are borked again
-              onClick={execTxn.sendTransaction(deployKvStore.data as any)}
+              // onClick={execTxn.sendTransaction(deployKvStore.data as any)}
             >
               Deploy Contract
             </CustomLinkButton>
@@ -140,12 +158,10 @@ export default function PrepareNetwork() {
             </Text>
             <CustomLinkButton
               href="#"
-              size="sm"
-              colorScheme="teal"
               // NOTE: seems wagmi types are borked again
-              onClick={execTxn.sendTransaction(
-                deployMulticallForwarder.data as any
-              )}
+              // onClick={execTxn.sendTransaction(
+              //  deployMulticallForwarder.data as any
+              // )}
             >
               Deploy Contract
             </CustomLinkButton>
