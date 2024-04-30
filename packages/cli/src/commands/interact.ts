@@ -30,7 +30,7 @@ export async function interact(ctx: InteractTaskArgs) {
   let pickedContract: string | null = null;
   let pickedFunction: viem.AbiFunction | null = null;
   let currentArgs: any[] | null = null;
-  let txnValue: bigint = BigInt(0);
+  let txnValue = BigInt(0);
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
