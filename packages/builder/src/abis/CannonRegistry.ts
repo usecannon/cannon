@@ -10,8 +10,13 @@ export default [
       },
       {
         internalType: 'address',
-        name: '_optimismtReceiver',
+        name: '_optimismReceiver',
         type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_l1ChainId',
+        type: 'uint256',
       },
     ],
     stateMutability: 'nonpayable',
