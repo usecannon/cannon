@@ -283,7 +283,6 @@ const deploySpec = {
 
       if (bytecode && bytecode !== '0x') {
         debug('create2 contract already completed');
-        deployAddress = addr;
         // our work is done for us. unfortunately, its not easy to figure out what the transaction hash was
       } else {
         const signer = config.from
@@ -296,9 +295,9 @@ const deploySpec = {
         const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
         const hash = await signer.wallet.sendTransaction(preparedTxn as any);
         receipt = await runtime.provider.waitForTransactionReceipt({ hash });
-        deployAddress = receipt.contractAddress!;
         debug('arachnid create2 complete', receipt);
       }
+      deployAddress = addr;
     } else {
       const curAccountNonce = config.from
         ? await runtime.provider.getTransactionCount({ address: config.from as viem.Address })
