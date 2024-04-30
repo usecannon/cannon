@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
 import { RawChainDefinition } from './actions';
-import { build, createInitialContext, getOutputs, runStep, addOutputsToContext } from './builder';
+import { build, createInitialContext, getOutputs, runStep } from './builder';
 import { BUILD_VERSION } from './constants';
 import { ChainDefinition } from './definition';
 import { IPFSLoader } from './loader';
