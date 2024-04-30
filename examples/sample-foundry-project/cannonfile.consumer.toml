@@ -37,7 +37,7 @@ factory.cloned.artifact = "Greeter"
 [invoke.change_clone_greeting]
 target = ["greeters.greeter"]
 func = "changeCloneGreeting"
-args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String('New Greeting!') %>"]
+args = ["<%= contracts.cloned.address %>", "<%= formatBytes32String(settings.change_greeting2) %>"]
 
 var.NewCloneGreeting.event = "NewGreetingAdded"
 var.NewCloneGreeting.arg = 0

@@ -57,15 +57,15 @@ const pullSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
-    let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset));
+  getInputs(config: Config, possibleFields: string[]) {
+    let accesses = computeTemplateAccesses(config.source, possibleFields);
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.preset, possibleFields));
 
     return accesses;
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`imports.${packageState.currentLabel.split('.')[1]}`];
+    return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
