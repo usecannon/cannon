@@ -165,7 +165,7 @@ describe('steps/invoke.ts', () => {
           },
           { name: '', version: '', currentLabel: 'invoke.Hello' }
         )
-      ).toEqual(['txns.Hello', 'contracts.something', 'settings.else', 'extras.else']);
+      ).toEqual(['txns.Hello', 'contracts.something', 'something', 'settings.else', 'extras.else']);
     });
   });
 

@@ -158,6 +158,7 @@ describe('steps/contract.ts', () => {
     it('returns the contract that is outputted', () => {
       expect(action.getOutputs({ artifact: 'hello' }, { name: '', version: '', currentLabel: 'contract.Hello' })).toEqual([
         'contracts.Hello',
+        'Hello',
       ]);
     });
   });
