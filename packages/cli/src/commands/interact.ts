@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import * as viem from 'viem';
 import prompts, { Choice } from 'prompts';
-import Wei, { wei } from '@synthetixio/wei';
 import { red, bold, gray, green, yellow, cyan } from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
@@ -31,7 +30,7 @@ export async function interact(ctx: InteractTaskArgs) {
   let pickedContract: string | null = null;
   let pickedFunction: viem.AbiFunction | null = null;
   let currentArgs: any[] | null = null;
-  let txnValue: Wei = wei(0);
+  let txnValue: bigint = BigInt(0);
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -76,7 +75,7 @@ export async function interact(ctx: InteractTaskArgs) {
         pickedFunction = null;
       } else {
         currentArgs = argData.args;
-        txnValue = wei(argData.value.toString());
+        txnValue = argData.value;
       }
     } else {
       const contract = ctx.contracts[pickedPackage][pickedContract!];
@@ -103,7 +102,7 @@ export async function interact(ctx: InteractTaskArgs) {
           contract,
           functionAbi: pickedFunction,
           args: currentArgs,
-          value: txnValue.toBN(),
+          value: txnValue,
         });
 
         if (receipt?.status === 'success') {
@@ -351,7 +350,7 @@ async function execTxn({
       chain,
       to: contract.address,
       data: callData,
-      value: viem.parseEther(value.toString() || '0'),
+      value: value.toString() || '0',
     })) as any;
 
     console.log(gray(`  > calldata: ${txn!.data}`));
