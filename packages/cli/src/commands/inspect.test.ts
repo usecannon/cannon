@@ -12,7 +12,7 @@ jest.mock('../registry');
 jest.mock('../settings');
 jest.mock('../loader');
 jest.mock('../helpers');
-jest.mock('@usecannon/builder/dist/ipfs');
+jest.mock('@usecannon/builder/dist/src/ipfs');
 jest.mock('../settings', () => ({
   resolveCliSettings: jest.fn().mockReturnValue({ ipfsUrl: 'ipfsUrl' }),
 }));
