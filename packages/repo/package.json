@@ -1,5 +1,6 @@
 {
   "name": "repo",
+  "private": true,
   "version": "2.13.0",
   "description": "Management of Cannon Artifacts Uploaded to IPFS",
   "main": "dist/index.js",
