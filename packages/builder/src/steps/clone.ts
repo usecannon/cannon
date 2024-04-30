@@ -93,7 +93,7 @@ const cloneSpec = {
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`imports.${packageState.currentLabel.split('.')[1]}`];
+    return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(

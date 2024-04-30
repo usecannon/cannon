@@ -44,6 +44,7 @@ export function computeTemplateAccesses(str?: string): AccessComputationResult {
   if (!str) {
     return { accesses: [], unableToCompute: false };
   }
+  console.log('HELP ME');
   //const recorder = new AccessRecorder();
   const recorders: { [k: string]: AccessRecorder } = {
     contracts: new AccessRecorder(),
@@ -54,12 +55,7 @@ export function computeTemplateAccesses(str?: string): AccessComputationResult {
   };
 
   const baseTemplate = _.template(str, {
-    imports: {
-      ...recorders,
-      // TODO: replace with cannon "standard template library" after the refactor
-      // for now we are just using ethers so its fine to just put here
-      ...CannonHelperContext,
-    },
+    imports: new AccessRecorder(),
   });
 
   let unableToCompute = false;

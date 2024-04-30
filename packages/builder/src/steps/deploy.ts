@@ -221,7 +221,7 @@ const deploySpec = {
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`contracts.${packageState.currentLabel.split('.')[1]}`];
+    return [`contracts.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(

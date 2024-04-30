@@ -463,9 +463,11 @@ const invokeSpec = {
         if ((config.factory[k].expectCount || 1) > 1) {
           for (let i = 0; i < config.factory[k].expectCount!; i++) {
             outputs.push(`contracts.${k}_${i}`);
+            outputs.push(`${k}_${i}`);
           }
         } else {
           outputs.push(`contracts.${k}`);
+          outputs.push(k);
         }
       }
     }
