@@ -103,7 +103,8 @@ app.post('/api/v0/cat', async (req, res) => {
 
   const ipfsHash = req.query.arg as string;
   if (!ipfsHash || ipfsHash.length === 0) {
-    return res.status(400).end('no ipfs hash');
+    // the exact error message for this 400 error is necessary for backwards compatibility
+    return res.status(400).end('argument "ipfs-path" is required');
   }
   // if the IPFS hash is in our database, go ahead and proxy the request
   const batch = rdb.multi();
