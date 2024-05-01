@@ -40,13 +40,6 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
           <Flex gap={6} alignItems="end" justifyContent="end" grow={1} px={4}>
             <NavLink
               isSmall
-              href={links.QUEUEFROMGITOPS}
-              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
-            >
-              Stage Transactions
-            </NavLink>
-            <NavLink
-              isSmall
               href={links.DEPLOY}
               isActive={
                 links.DEPLOY == pathname ||
@@ -55,13 +48,24 @@ export default function DeployLayout({ children }: { children: ReactNode }) {
             >
               Sign Transactions
             </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUEFROMGITOPS}
+              isActive={pathname.startsWith(links.QUEUEFROMGITOPS)}
+            >
+              Queue Cannonfile
+            </NavLink>
+            <NavLink
+              isSmall
+              href={links.QUEUETXS}
+              isActive={pathname.startsWith(links.QUEUETXS)}
+            >
+              Queue Transactions
+            </NavLink>
           </Flex>
         </Flex>
       </Box>
-      <NoSSRWithSafe>
-        {children}
-        <QueueDrawer isOpen={isOpen} onClose={onClose} onOpen={onOpen} />
-      </NoSSRWithSafe>
+      <NoSSRWithSafe>{children}</NoSSRWithSafe>
     </Flex>
   );
 }
