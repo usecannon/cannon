@@ -6,21 +6,14 @@ export interface ApiPagination {
   per_page: number;
 }
 
-export interface ApiPackageTag {
+export interface ApiPackage {
+  type: 'package';
+  name: string;
+  publisher: string;
   version: string;
   preset: string;
   chainId: number;
   deployUrl: IpfsUrl;
   metaUrl: IpfsUrl;
   timestamp: number;
-}
-
-export interface ApiPackage {
-  name: string;
-  owner: string;
-  publishers: `0x${string}`[];
-  last_published: number;
-  tags: ApiPagination & {
-    results: ApiPackageTag[];
-  };
 }

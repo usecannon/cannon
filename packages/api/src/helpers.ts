@@ -1,7 +1,7 @@
-import { Router } from 'express';
 import * as viem from 'viem';
 import { ApiError, BadRequestError } from './errors';
 
+// TODO: replace this function by one exported by @usecannon/builder
 function _validatePackageName(n: string) {
   if (n.length < 3) {
     throw new Error('package name must be at least 3 characters long');
