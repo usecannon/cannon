@@ -207,7 +207,7 @@ export async function handleCannonPublish(
 ) {
   const deployInfo = (await ctx.readBlob(publishEvent.args.deployUrl)) as DeploymentInfo;
 
-  await redis.hSet(`${rkey.RKEY_TEXT_SEARCHABLE}:${packageRef}`, {
+  await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}`, {
     miscUrl: deployInfo.miscUrl,
   });
 
@@ -263,18 +263,16 @@ export async function handleCannonPublish(
               const selector = functionHash.slice(0, 10);
               const functionSignature = viem.toFunctionSignature(abiItem as viem.AbiFunction);
 
-              batch.zAdd(rkey.RKEY_SELECTOR_LIST + ':' + abiItem.type, {
-                value: `${selector}:${timestamp}:${functionSignature}`,
-                score: 1,
+              batch.hSet(`${rkey.RKEY_ABI_SEARCHABLE}:${chainId}:${contract.address}:${functionSignature}`, {
+                name: abiItem.name,
+                signature: functionSignature,
+                selector: selector,
+                type: abiItem.type,
+                package: packageRef,
+                address: contract.address,
+                chainId: chainId,
+                timestamp,
               });
-              batch.zAdd(
-                rkey.RKEY_SELECTOR_CONTRACT + ':' + abiItem.type,
-                [
-                  { score: timestamp, value: `${contract.address.toLowerCase()}:${functionSignature}` },
-                  { score: timestamp, value: `${functionSignature}:${contract.address.toLowerCase()}` },
-                ],
-                { NX: true }
-              );
             }
           }
         }
@@ -303,16 +301,33 @@ export async function handleCannonPublish(
 
 export async function createIndexesIfNedeed(redis: RedisClientType) {
   if (!(await redis.ft._list()).length) {
-    console.log('[REG] create index', rkey.RKEY_TEXT_SEARCHABLE);
+    console.log('[REG] create index', rkey.RKEY_PACKAGE_SEARCHABLE);
     await redis.ft.create(
-      rkey.RKEY_TEXT_SEARCHABLE,
+      rkey.RKEY_PACKAGE_SEARCHABLE,
       {
-        name: { type: SchemaFieldTypes.TEXT },
+        name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
         type: { type: SchemaFieldTypes.TAG },
         timestamp: { type: SchemaFieldTypes.NUMERIC },
         chainId: { type: SchemaFieldTypes.NUMERIC },
       },
       { PREFIX: 'reg:search:' }
+    );
+
+    await redis.ft.alter(rkey.RKEY_PACKAGE_SEARCHABLE, {
+      name: { type: SchemaFieldTypes.TAG, AS: 'exactName' },
+    });
+
+    console.log('[REG] create index', rkey.RKEY_ABI_SEARCHABLE);
+    await redis.ft.create(
+      rkey.RKEY_ABI_SEARCHABLE,
+      {
+        name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
+        selector: { type: SchemaFieldTypes.TAG },
+        timestamp: { type: SchemaFieldTypes.NUMERIC },
+        chainId: { type: SchemaFieldTypes.NUMERIC },
+        contract: { type: SchemaFieldTypes.TAG },
+      },
+      { PREFIX: 'reg:abi:' }
     );
   }
 }
@@ -375,7 +390,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
     new OnChainRegistry({ address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba', provider: optimismClient }),
     {
       // shorter than usual timeout becuase we need to move on if its not resolving well
-      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 45000),
+      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 15000),
     }
   );
 
@@ -390,6 +405,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
       if (mainnetScan.scanToBlock === mainnetScan.currentBlock && optimismScan.scanToBlock === mainnetScan.currentBlock) {
         console.log('[REG] checking indexes');
         await createIndexesIfNedeed(redis as any);
+        await sleep(12000); // mainnet block time (optimism can wait a little)
       }
 
       // remove any events older than the latest block scanned on either chain
@@ -436,10 +452,10 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
       // for now process logs sequentially. In the future this could be paralellized
       for (const event of _.sortBy(usableEvents, 'timestamp') as any[]) {
         try {
-          const packageRef = `${viem.hexToString(event.args.name, { size: 32 })}:${viem.hexToString(event.args.tag, {
+          const packageRef = `${viem.hexToString(event.args.name, { size: 32 })}:${viem.hexToString(event.args.tag || '0x', {
             size: 32,
-          })}@${viem.hexToString(event.args.variant, { size: 32 }).split('-')[1]}`;
-          const chainId = parseInt(viem.hexToString(event.args.variant, { size: 32 }).split('-')[0]);
+          })}@${viem.hexToString(event.args.variant || '0x', { size: 32 }).split('-')[1]}`;
+          const chainId = parseInt(viem.hexToString(event.args.variant || '0x', { size: 32 }).split('-')[0]);
           const feePaid = event.args.feePaid || 0n;
 
           const batch = redis.multi();
@@ -447,7 +463,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
             case 'PackagePublish':
             case 'PackagePublishWithFee':
               // general package name list: used for finding packages by name
-              batch.hSet(`${rkey.RKEY_TEXT_SEARCHABLE}:${packageRef}#${chainId}`, {
+              batch.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 version: viem.hexToString(event.args.tag, { size: 32 }),
                 preset: viem.hexToString(event.args.variant, { size: 32 }).split('-')[1],
@@ -508,7 +524,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
 
               break;
             case 'TagPublish':
-              await redis.hSet(`${rkey.RKEY_TEXT_SEARCHABLE}:${packageRef}#${chainId}`, {
+              await redis.hSet(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`, {
                 name: viem.hexToString(event.args.name, { size: 32 }),
                 tag: viem.hexToString(event.args.tag, { size: 32 }),
                 preset: viem.hexToString(event.args.variant, { size: 32 }).split('-')[1],
@@ -539,7 +555,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
                 event.transactionHash
               );
 
-              await redis.del(`${rkey.RKEY_TEXT_SEARCHABLE}:${packageRef}#${chainId}`);
+              await redis.del(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`);
 
               break;
             default:
@@ -590,7 +606,7 @@ export async function loop() {
     new OnChainRegistry({ address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba', provider: optimismClient as any }),
     {
       // shorter than usual timeout becuase we need to move on if its not resolving well
-      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 45000),
+      ipfs: new IPFSLoader(process.env.IPFS_URL!, {}, 15000),
     }
   );
 
