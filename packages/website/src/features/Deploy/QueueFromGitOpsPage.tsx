@@ -52,7 +52,7 @@ import {
   TransactionRequestBase,
   zeroAddress,
 } from 'viem';
-import { useEstimateGas, useSendTransaction, useWriteContract } from 'wagmi';
+import { useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
@@ -66,16 +66,6 @@ export default function QueueFromGitOpsPage() {
 function QueueFromGitOps() {
   const router = useRouter();
   const currentSafe = useStore((s) => s.currentSafe);
-
-  const { data: gasData, refetch } = useEstimateGas(onchainStore.deployTxn);
-
-  const deployOnChainStore = useSendTransaction({
-    mutation: {
-      onSuccess: async () => {
-        await refetch();
-      },
-    },
-  });
 
   const [cannonfileUrlInput, setCannonfileUrlInput] = useState('');
   const [previousPackageInput, setPreviousPackageInput] = useState('');
@@ -378,43 +368,6 @@ function QueueFromGitOps() {
         Update your IPFS URL to an API endpoint where you can pin files in{' '}
         <Link href="/settings">settings</Link>.
       </>
-    );
-  }
-
-  if (
-    deployOnChainStore.isSuccess &&
-    !deployOnChainStore.isPending &&
-    !deployOnChainStore.isError
-  ) {
-    return (
-      <Container maxWidth="container.sm">
-        <Box
-          bg="blackAlpha.600"
-          border="1px solid"
-          borderColor="gray.900"
-          borderRadius="md"
-          p={6}
-          my={16}
-        >
-          <Text mb={4}>
-            To use this tool, you need to deploy the on-chain store contract.
-            This is a one time (per network) operation and will cost a small
-            amount of gas.
-          </Text>
-          <Button
-            colorScheme="teal"
-            w="100%"
-            onClick={() =>
-              deployOnChainStore.sendTransaction({
-                gas: gasData,
-                ...onchainStore.deployTxn,
-              })
-            }
-          >
-            Deploy On-Chain Store Contract
-          </Button>
-        </Box>
-      </Container>
     );
   }
 
