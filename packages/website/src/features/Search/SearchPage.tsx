@@ -23,7 +23,7 @@ import { debounce } from 'lodash';
 import { ChainFilter } from './ChainFilter';
 import chains from '@/helpers/chains';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { getChains, getPackages } from '@/helpers/api';
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -48,35 +48,12 @@ export const SearchPage = () => {
   };
   const debouncedHandleSearch = debounce(handleSearch, 300);
 
-  const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
-    // queryKey[1] is searchTerm, queryKey[2] is selectedChains
-    const [, searchTerm, selectedChains] = queryKey;
-    try {
-      const response = await axios.get('https://api.usecannon.com/search', {
-        params: {
-          query: searchTerm,
-          chainIds: selectedChains.join(','),
-        },
-      });
-      return response.data; // Assuming the API returns data directly
-    } catch (error) {
-      throw new Error('Failed to fetch packages', error as Error);
-    }
-  };
   const packagesQuery = useQuery({
     queryKey: ['packages', searchTerm, selectedChains],
     queryFn: getPackages,
   });
 
   // Chain filter stuff
-  const getChains = async () => {
-    try {
-      const response = await axios.get('https://api.usecannon.com/chains');
-      return response.data; // Assuming the API returns data directly
-    } catch (error) {
-      throw new Error('Failed to fetch chains', error as Error);
-    }
-  };
   const chainsQuery = useQuery({ queryKey: ['chains'], queryFn: getChains });
 
   const getAllChainIds = (
@@ -112,6 +89,7 @@ export const SearchPage = () => {
     sortedMainnetChainIds.unshift(13370);
   }
 
+  console.log(packagesQuery, chainsQuery);
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>
