@@ -17,24 +17,33 @@ interface Params {
 }
 
 export async function publishers({ cliSettings, options, packageRef }: Params) {
-  const publisherToAdd = options.add;
-  const publishersToRemove = options.remove;
-
-  // throw an error if the user has not provided any address
-  if (!publisherToAdd && !publishersToRemove) {
+  // throw an error if the user has not provided any addresses
+  if (!options.add && !options.remove) {
     throw new Error('Please provide either --add or --remove option');
   }
 
-  // throw an error if the user has provided invalid address
-  if (publisherToAdd && !viem.isAddress(publisherToAdd)) {
+  const publishersToAdd: viem.Address[] = options.add
+    ? options.add.split(',').map((p: string) => viem.getAddress(p.trim()))
+    : undefined;
+
+  const publishersToRemove: viem.Address[] = options.remove
+    ? options.remove.split(',').map((p: string) => viem.getAddress(p.trim()))
+    : undefined;
+
+  // throw an error if the user has provided invalid addresses
+  if (publishersToAdd && !publishersToAdd.every((p) => viem.isAddress(p))) {
     throw new Error('Invalid address provided for --add option');
   }
-  if (publishersToRemove && !viem.isAddress(publishersToRemove)) {
+  if (publishersToRemove && !publishersToRemove.every((p) => viem.isAddress(p))) {
     throw new Error('Invalid address provided for --remove option');
   }
 
-  // check if both options provided and addresses are the same
-  if (publisherToAdd && publishersToRemove && viem.isAddressEqual(publisherToAdd, publishersToRemove)) {
+  // Check if both options provided and addresses are the repeated
+  if (
+    publishersToAdd &&
+    publishersToRemove &&
+    publishersToAdd.some((p) => publishersToRemove.some((p1) => viem.isAddressEqual(p, p1)))
+  ) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
@@ -123,13 +132,17 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   let publishers = [...currentPublishers];
 
   // remove publisher if specified
-  if (publishersToRemove && currentPublishers.some((p) => viem.isAddressEqual(p, publishersToRemove))) {
-    publishers = publishers.filter((p) => !viem.isAddressEqual(p, publishersToRemove));
+  if (publishersToRemove) {
+    publishers = publishers.filter((p) => !publishersToRemove.some((toRemove) => viem.isAddressEqual(p, toRemove)));
   }
 
   // add new publisher if specified
-  if (publisherToAdd && !currentPublishers.some((p) => viem.isAddressEqual(p, publisherToAdd))) {
-    publishers.push(publisherToAdd);
+  if (publishersToAdd) {
+    publishersToAdd.forEach((p) => {
+      if (!publishers.some((p1) => viem.isAddressEqual(p, p1))) {
+        publishers.push(p);
+      }
+    });
   }
 
   // throw an error if the publishers list is already up to date
@@ -140,7 +153,8 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   console.log();
   console.log('The publishers list will be updated as follows:');
   publishers.forEach((publisher) => console.log(` - ${publisher} (${isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`));
-  (!isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers).forEach((publisher) =>
+  const restOfPublishers = !isMainnet ? mainnetCurrentPublishers : optimismCurrentPublishers;
+  restOfPublishers.forEach((publisher) =>
     console.log(` - ${publisher} (${!isMainnet ? 'Ethereum Mainnet' : 'OP Mainnet'})`)
   );
   console.log();
