@@ -13,7 +13,6 @@ interface Params {
   cliSettings: CliSettings;
   options: any;
   packageRef: string;
-  skipConfirm?: boolean;
 }
 
 export async function publishers({ cliSettings, options, packageRef }: Params) {
