@@ -307,10 +307,10 @@ export async function createIndexesIfNedeed(redis: RedisClientType) {
       {
         name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
         type: { type: SchemaFieldTypes.TAG },
-        timestamp: { type: SchemaFieldTypes.NUMERIC },
+        timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
         chainId: { type: SchemaFieldTypes.NUMERIC },
       },
-      { PREFIX: 'reg:search:' }
+      { PREFIX: rkey.RKEY_PACKAGE_SEARCHABLE + ':' }
     );
 
     await redis.ft.alter(rkey.RKEY_PACKAGE_SEARCHABLE, {
@@ -323,11 +323,11 @@ export async function createIndexesIfNedeed(redis: RedisClientType) {
       {
         name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
         selector: { type: SchemaFieldTypes.TAG },
-        timestamp: { type: SchemaFieldTypes.NUMERIC },
+        timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
         chainId: { type: SchemaFieldTypes.NUMERIC },
         contract: { type: SchemaFieldTypes.TAG },
       },
-      { PREFIX: 'reg:abi:' }
+      { PREFIX: rkey.RKEY_ABI_SEARCHABLE + ':' }
     );
   }
 }
@@ -402,7 +402,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
         await getNewEvents(optimismClient, 10, redis as RedisClientType, registryContract),
       ]);
 
-      if (mainnetScan.scanToBlock === mainnetScan.currentBlock && optimismScan.scanToBlock === mainnetScan.currentBlock) {
+      if (mainnetScan.scanToBlock === mainnetScan.currentBlock && optimismScan.scanToBlock === optimismScan.currentBlock) {
         console.log('[REG] checking indexes');
         await createIndexesIfNedeed(redis as any);
         await sleep(12000); // mainnet block time (optimism can wait a little)
@@ -539,7 +539,7 @@ export async function scanChain(mainnetClient: viem.PublicClient, optimismClient
               break;
             case 'PackagePublishersChanged':
               await redis.hSet(
-                rkey.RKEY_PACKAGE_PUBLISHERS,
+                rkey.RKEY_PACKAGE_PUBLISHERS + ':' + chainId,
                 viem.hexToString(event.args.name, { size: 32 }),
                 event.args.publisher.join(' ')
               );
