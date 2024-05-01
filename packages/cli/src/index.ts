@@ -57,6 +57,7 @@ export { build } from './commands/build';
 export { clean } from './commands/clean';
 export { inspect } from './commands/inspect';
 export { publish } from './commands/publish';
+export { unpublish } from './commands/unpublish';
 export { publishers } from './commands/publishers';
 export { run } from './commands/run';
 export { verify } from './commands/verify';

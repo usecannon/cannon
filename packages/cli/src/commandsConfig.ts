@@ -486,10 +486,6 @@ const commandsConfig = {
         description: 'The chain ID of the package to unpublish',
       },
       {
-        flags: '--preset <preset>',
-        description: 'The preset of the packages to unpublish',
-      },
-      {
         flags: '-t --tags <tags>',
         description: 'Comma separated list of labels for your package',
       },
