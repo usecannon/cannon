@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { BadRequestError } from './errors';
+import * as viem from 'viem';
+import { ApiError, BadRequestError } from './errors';
 
 export function validatePackageName(n: string) {
   if (n.length < 3) {
@@ -29,4 +30,25 @@ export function packageNameValidator(app: Router) {
 
     next();
   });
+}
+
+export function parsePage(page: any) {
+  const parsed = Number.parseInt(page || '1', 10);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 1) {
+    throw new BadRequestError('Invalid page parameter');
+  }
+
+  return parsed;
+}
+
+export function parseAddresses(addresses: any) {
+  if (typeof addresses !== 'string') return [] as viem.Address[];
+  const result = addresses.split(',');
+
+  if (result.some((val) => !viem.isAddress(val))) {
+    throw new ApiError(`Invalid publishers "${addresses}"`);
+  }
+
+  return result as viem.Address[];
 }

@@ -1,9 +1,9 @@
 export type IpfsUrl = `ipfs://${string}`;
 
 export interface ApiPagination {
-  total_count: number;
+  total: number;
+  page: number;
   per_page: number;
-  current_page: number;
 }
 
 export interface ApiPackageTag {

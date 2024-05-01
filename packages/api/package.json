@@ -8,7 +8,7 @@
     "db-prepare": "cp ../indexer/src/db.ts ./src/",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "NODE_ENV=development ts-node-dev src/index.ts"
   },
   "author": "",
   "license": "MIT",

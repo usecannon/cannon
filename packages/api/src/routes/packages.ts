@@ -1,62 +1,76 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
+import * as viem from 'viem';
+import * as db from '../db';
+import { packageNameValidator, parseAddresses, parsePage } from '../helpers';
 import { useRedis } from '../redis';
-import { ApiPackage } from '../types';
-import { packageNameValidator } from '../validators';
+import { ApiPackage, ApiPackageTag } from '../types';
 
 const routes = express.Router();
 
 packageNameValidator(routes);
 
-routes.get('/packages/:packageName', async (req, res) => {
+routes.get('/packages/:packageName', async (req: Request, res: Response) => {
   const redis = await useRedis();
   const { packageName } = req.params;
+  const page = parsePage(req.query.page);
+  const per_page = 2;
 
-  const packages = await redis.ft.search('reg:search', `@name:${packageName}`);
+  const batch = redis.multi();
 
-  // eslint-disable-next-line no-console
-  console.log(JSON.stringify(packages, null, 2));
+  batch.ft.search(db.RKEY_PACKAGE_SEARCHABLE, `@name:${packageName}`, {
+    SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
+    LIMIT: { from: 0, size: 1 },
+  });
+  batch.ft.search(db.RKEY_PACKAGE_SEARCHABLE, `@name:${packageName}`, {
+    SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
+    LIMIT: { from: page * per_page, size: per_page },
+  });
+  batch.hGet(db.RKEY_PACKAGE_OWNERS, packageName);
+  batch.hGet(`${db.RKEY_PACKAGE_PUBLISHERS}:1`, packageName);
+  batch.hGet(`${db.RKEY_PACKAGE_PUBLISHERS}:10`, packageName);
+
+  const [resultNewestPackage, resultPackages, resultOwner, resultPublishers1, resultPublishers10] =
+    (await batch.exec()) as any[];
+
+  const total = (resultPackages?.total as number) || 0;
+  const last_updated = total > 0 ? resultNewestPackage?.documents?.[0].timestamp : 0 || 0;
+  const owner = resultOwner?.toString() || resultNewestPackage?.documents?.[0]?.owner || viem.zeroAddress;
+  const publishers: viem.Address[] = [];
+
+  for (const publisher of parseAddresses(resultPublishers1)) {
+    if (!publishers.includes(publisher)) publishers.push(publisher);
+  }
+
+  for (const publisher of parseAddresses(resultPublishers10)) {
+    if (!publishers.includes(publisher)) publishers.push(publisher);
+  }
+
+  const results: ApiPackageTag[] =
+    total === 0
+      ? []
+      : resultPackages.documents.map(
+          (tag: any) =>
+            ({
+              version: tag.value.version,
+              preset: tag.value.preset,
+              chainId: Number.parseInt(tag.value.chainId),
+              deployUrl: tag.value.deployUrl,
+              metaUrl: tag.value.metaUrl,
+            } satisfies ApiPackageTag)
+        );
 
   res.json({
     status: 200,
     content: {
       name: packageName,
-      owner: '0xca7777aB932E8F0b930dE9F0d96f4E9a2a00DdD3',
-      publishers: ['0x3852C9fdc6a5C0A4A6230c1d2d954ccCB9b90465'],
-      last_updated: Date.now(),
+      owner,
+      publishers,
+      last_updated,
       tags: {
-        total_count: 2,
-        per_page: 10,
-        current_page: 1,
-        results: [
-          {
-            version: 'latest',
-            preset: 'main',
-            chainId: 11155111,
-            deployUrl: 'ipfs://QmTZMDY72h31HGJnHVVtDP81RUdXX3g8sPqTfu8aW34WRP',
-            metaUrl: 'ipfs://QmNg2R3moWLsMLAVKYYzzoHUHjjmXBDnYqphvSCBSBXWsm',
-          },
-          {
-            version: '0.0.1',
-            preset: 'main',
-            chainId: 11155111,
-            deployUrl: 'ipfs://QmTZMDY72h31HGJnHVVtDP81RUdXX3g8sPqTfu8aW34WRP',
-            metaUrl: 'ipfs://QmNg2R3moWLsMLAVKYYzzoHUHjjmXBDnYqphvSCBSBXWsm',
-          },
-          {
-            version: 'latest',
-            preset: 'main',
-            chainId: 13370,
-            deployUrl: 'ipfs://QmTZMDY72h31HGJnHVVtDP81RUdXX3g8sPqTfu8aW34WRP',
-            metaUrl: 'ipfs://QmNg2R3moWLsMLAVKYYzzoHUHjjmXBDnYqphvSCBSBXWsm',
-          },
-          {
-            version: '0.0.1',
-            preset: 'main',
-            chainId: 13370,
-            deployUrl: 'ipfs://QmTZMDY72h31HGJnHVVtDP81RUdXX3g8sPqTfu8aW34WRP',
-            metaUrl: 'ipfs://QmNg2R3moWLsMLAVKYYzzoHUHjjmXBDnYqphvSCBSBXWsm',
-          },
-        ],
+        total,
+        page,
+        per_page,
+        results: results,
       },
     } satisfies ApiPackage,
   });

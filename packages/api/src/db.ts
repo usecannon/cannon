@@ -22,4 +22,5 @@ export const RKEY_TS_CONTRACT_COUNT = 'reg:artifacts:contracts:ts';
 export const RKEY_TS_TRANSACTION_COUNT = 'reg:artifacts:txns:ts';
 export const RKEY_TS_FEES_PAID = 'reg:feesPaid:ts';
 
-export const RKEY_TEXT_SEARCHABLE = 'reg:search';
+export const RKEY_PACKAGE_SEARCHABLE = 'reg:packages';
+export const RKEY_ABI_SEARCHABLE = 'reg:abi';

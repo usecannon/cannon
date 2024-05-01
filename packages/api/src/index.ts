@@ -12,6 +12,10 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 
+if (config.NODE_ENV !== 'production') {
+  app.set('json spaces', 2);
+}
+
 app.use(
   rateLimit({
     windowMs: 1 * 60 * 1000,
