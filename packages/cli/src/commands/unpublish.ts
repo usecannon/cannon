@@ -52,7 +52,10 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   console.log();
 
-  const { fullPackageRef, name: packageName } = new PackageReference(packageRef);
+  const fullPackageRef = new PackageReference(packageRef).fullPackageRef;
+
+  // Get the package name, version, and preset without being defaulted
+  const { name: packageName, version: packageVersion, preset: packagePreset } = PackageReference.parse(packageRef);
 
   const overrides: any = {};
 
@@ -73,122 +76,123 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
 
   // if it's using the default config, prompt the user to choose a registry provider
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  if (isDefaultSettings) {
-    const choices = registryProviders.reverse().map((p) => ({
-      title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
-      value: p,
-    }));
+  if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
 
-    // Override pickedRegistryProvider with the selected provider
-    pickedRegistryProvider = (
-      await prompts([
-        {
-          type: 'select',
-          name: 'pickedRegistryProvider',
-          message: 'Which registry would you like to use? (Cannon will find the package on either.):',
-          choices,
-        },
-      ])
-    ).pickedRegistryProvider;
+  const choices = registryProviders.reverse().map((p) => ({
+    title: `${p.provider.chain?.name ?? 'Unknown Network'} (Chain ID: ${p.provider.chain?.id})`,
+    value: p,
+  }));
 
-    const registryAddress =
-      cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
-      DEFAULT_REGISTRY_CONFIG[0].address;
+  // Override pickedRegistryProvider with the selected provider
+  pickedRegistryProvider = (
+    await prompts([
+      {
+        type: 'select',
+        name: 'pickedRegistryProvider',
+        message: 'Which registry would you like to use? (Cannon will find the package on either.):',
+        choices,
+      },
+    ])
+  ).pickedRegistryProvider;
 
-    const onChainRegistry = new OnChainRegistry({
-      signer: pickedRegistryProvider.signers[0],
-      provider: pickedRegistryProvider.provider,
-      address: registryAddress,
-      overrides,
+  const registryAddress =
+    cliSettings.registries.find((registry) => registry.chainId === pickedRegistryProvider.provider.chain?.id)?.address ||
+    DEFAULT_REGISTRY_CONFIG[0].address;
+
+  const onChainRegistry = new OnChainRegistry({
+    signer: pickedRegistryProvider.signers[0],
+    provider: pickedRegistryProvider.provider,
+    address: registryAddress,
+    overrides,
+  });
+
+  const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
+
+  let deploys;
+  if (packageName && packageVersion && packagePreset) {
+    // if user has specified a full package ref, use it to fetch the deployment
+    deploys = [{ name: fullPackageRef, chainId: options.chainId }];
+  } else {
+    // Check for deployments that are relevant to the provided packageRef
+    deploys = await localRegistry.scanDeploys(packageRef, options.chainId);
+  }
+
+  if (!deploys || deploys.length === 0) {
+    throw new Error(
+      `Could not find any deployments for ${fullPackageRef} with chain id ${options.chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+    );
+  }
+
+  const onChainResults = await Promise.all(
+    deploys.map(async (d) => {
+      return [await onChainRegistry.getUrl(d.name, d.chainId), await onChainRegistry.getMetaUrl(d.name, d.chainId)];
+    })
+  );
+
+  const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
+    const [url, metaUrl] = onChainResults[index];
+    if (url && metaUrl) {
+      // note: name should be an array to be used in _preparePackageData function
+      acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
+    }
+    return acc;
+  }, []);
+
+  if (publishedDeploys.length === 0) {
+    throw new Error(`Package ${packageName} has no published deployments.`);
+  }
+
+  let selectedDeploys;
+  if (publishedDeploys.length > 1) {
+    console.log();
+
+    const prompt = await prompts({
+      type: 'multiselect',
+      message: 'Select the packages you want to unpublish:\n',
+      name: 'value',
+      instructions: false,
+      hint: '- Space to select. Enter to submit',
+      choices: publishedDeploys.map((d) => {
+        const { fullPackageRef } = new PackageReference(d.name[0]);
+
+        return {
+          title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
+          description: '',
+          value: d,
+        };
+      }),
     });
 
-    const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
-
-    let deploys;
-    if (packageRef.startsWith('@')) {
-      deploys = [{ name: packageRef, chainId: 13370 }];
-    } else {
-      // Check for deployments that are relevant to the provided packageRef
-      deploys = await localRegistry.scanDeploys(packageRef, options.chainId);
+    if (!prompt.value) {
+      console.log('You must select a package to unpublish');
+      process.exit(1);
     }
 
-    if (!deploys || deploys.length === 0) {
-      throw new Error(
-        `Could not find any deployments for ${fullPackageRef} with chain id ${options.chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
-      );
-    }
+    selectedDeploys = prompt.value;
+  }
+  console.log();
+  console.log(
+    `\nSettings:\n - Max Fee Per Gas: ${
+      overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
+    }\n - Max Priority Fee Per Gas: ${
+      overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
+    }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
+      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+  );
+  console.log();
 
-    const onChainResults = await Promise.all(
-      deploys.map(async (d) => {
-        return [await onChainRegistry.getUrl(d.name, d.chainId), await onChainRegistry.getMetaUrl(d.name, d.chainId)];
-      })
+  if (selectedDeploys.length > 1) {
+    const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
+
+    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+  } else {
+    const hash = await onChainRegistry.unpublish(
+      selectedDeploys[0].name,
+      selectedDeploys[0].chainId,
+      selectedDeploys[0].url,
+      selectedDeploys[0].metaUrl
     );
 
-    const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
-      const [url, metaUrl] = onChainResults[index];
-      if (url && metaUrl) {
-        // note: name should be an array to be used in _preparePackageData function
-        acc.push({ ...deploy, name: [deploy.name], url, metaUrl });
-      }
-      return acc;
-    }, []);
-
-    if (publishedDeploys.length === 0) {
-      throw new Error(`Package ${packageName} has no published deployments.`);
-    }
-
-    let selectedDeploys;
-    if (publishedDeploys.length > 1) {
-      console.log();
-
-      const prompt = await prompts({
-        type: 'multiselect',
-        message: 'Select the packages you want to unpublish:\n',
-        name: 'value',
-        instructions: false,
-        hint: '- Space to select. Enter to submit',
-        choices: publishedDeploys.map((d) => {
-          const { fullPackageRef } = new PackageReference(d.name[0]);
-
-          return {
-            title: `${fullPackageRef} (Chain ID: ${d.chainId})`,
-            description: '',
-            value: d,
-          };
-        }),
-      });
-
-      if (!prompt.value) {
-        console.log('You must select a package to unpublish');
-        process.exit(1);
-      }
-
-      selectedDeploys = prompt.value;
-    }
-    console.log();
-    console.log(
-      `\nSettings:\n - Max Fee Per Gas: ${
-        overrides.maxFeePerGas ? overrides.maxFeePerGas.toString() : 'default'
-      }\n - Max Priority Fee Per Gas: ${
-        overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
-      }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
-    );
-    console.log();
-
-    if (selectedDeploys.length > 1) {
-      const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
-
-      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-    } else {
-      const hash = await onChainRegistry.unpublish(
-        selectedDeploys[0].name,
-        selectedDeploys[0].chainId,
-        selectedDeploys[0].url,
-        selectedDeploys[0].metaUrl
-      );
-
-      console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-    }
+    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
   }
 }
