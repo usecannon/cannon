@@ -9,7 +9,11 @@ export const NumberInput: FC<{
 }> = ({ handleUpdate, value = '0', positiveOnly = false }) => {
   // TODO: Doesn't look a solid approach (parseEther if it has dot)
   const parseValue = (_value = '0'): bigint =>
-    _value.includes('.') ? parseEther(_value) : BigInt(_value);
+    _value
+      ? _value.includes('.')
+        ? parseEther(_value)
+        : BigInt(_value)
+      : BigInt(0);
 
   const [updateValue, setUpdateValue] = useState<bigint>(parseValue(value));
   useEffect(() => handleUpdate(updateValue), [updateValue]);
