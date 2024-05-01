@@ -51,7 +51,11 @@ import WithSafe from '@/features/Deploy/WithSafe';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
+export const QueuedTxns = ({
+  onDrawerClose,
+}: {
+  onDrawerClose?: () => void;
+}) => {
   const account = useAccount();
   const { openConnectModal } = useConnectModal();
 
@@ -114,7 +118,7 @@ const QueuedTxns = ({ onDrawerClose }: { onDrawerClose: () => void }) => {
     {
       safe: currentSafe!,
       onSignComplete() {
-        onDrawerClose();
+        if (onDrawerClose) onDrawerClose();
         router.push(links.DEPLOY);
         toast({
           title: 'You successfully signed the transaction.',
