@@ -14,18 +14,28 @@ import {
   useWalletPublicSafes,
 } from '@/hooks/safe';
 import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { FormControl, IconButton, Link, Spacer, Text } from '@chakra-ui/react';
+import {
+  FormControl,
+  IconButton,
+  Link,
+  Text,
+  Flex,
+  Tooltip,
+} from '@chakra-ui/react';
 import {
   chakraComponents,
   ChakraStylesConfig,
   CreatableSelect,
   GroupBase,
   OptionProps,
+  SingleValueProps,
 } from 'chakra-react-select';
 import deepEqual from 'fast-deep-equal';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSwitchChain } from 'wagmi';
+import Chain from '@/features/Search/PackageCard/Chain';
+import { truncateAddress } from '@/helpers/ethereum';
 
 type SafeOption = {
   value: SafeString;
@@ -230,7 +240,11 @@ export function SafeAddressInput() {
           isValidNewOption={(input: any) => {
             return isValidSafeString(input);
           }}
-          components={{ Option: DeletableOption }}
+          components={{
+            Option: DeletableOption,
+            SingleValue: SelectedOption,
+            MenuList: CustomMenuList,
+          }}
         />
       </FormControl>
       {currentSafe && pendingServiceTransactions.count > 0 && (
@@ -255,33 +269,81 @@ export function SafeAddressInput() {
   );
 }
 
+function SelectedOption({
+  ...props
+}: SingleValueProps<SafeOption> & { selectProps?: { onDeleteOption?: any } }) {
+  return (
+    <chakraComponents.SingleValue {...props}>
+      <Flex justifyContent="space-between">
+        {/* @notice: Tooltip is not working for this component */}
+        <Tooltip
+          label={props.data.value}
+          aria-label="Safe Address"
+          maxW="fit-content"
+        >
+          <Text letterSpacing="1px" fontFamily="monospace">
+            {truncateAddress(props.data.value.split(':')[1], 10)}
+          </Text>
+        </Tooltip>
+        <Chain id={parseInt(props.data.value.split(':')[0])} />
+      </Flex>
+    </chakraComponents.SingleValue>
+  );
+}
+
 function DeletableOption({
-  children,
   ...props
 }: OptionProps<SafeOption> & {
   selectProps?: { onDeleteOption?: (value: SafeOption) => void };
 }) {
   const onDelete = props.selectProps?.onDeleteOption;
+  const chainId = parseInt(props.data.value.split(':')[0]);
+  const address = props.data.value.split(':')[1];
   return (
     <chakraComponents.Option {...props}>
-      {children}
-      {onDelete && props.data.isDeletable && (
-        <>
-          <Spacer />
-          <IconButton
-            size="xs"
-            variant="ghost"
-            aria-label="Delete Option"
-            icon={<CloseIcon />}
-            onClick={(evt) => {
-              evt.preventDefault();
-              evt.stopPropagation();
-              onDelete(props.data);
-            }}
-          />
-        </>
-      )}
+      <Flex alignItems="center" width="100%">
+        <Tooltip label={address} aria-label="Safe Address" maxW="fit-content">
+          <Text letterSpacing="1px" fontFamily="monospace">
+            {truncateAddress(address, 10)}
+          </Text>
+        </Tooltip>
+        <Flex grow={1} justifyContent="flex-end">
+          <Chain id={chainId} hideId />
+          {onDelete && props.data.isDeletable && (
+            <IconButton
+              _hover={{ bg: 'gray.300' }}
+              ml={2}
+              size="xs"
+              variant="ghost"
+              aria-label="Delete Option"
+              icon={<CloseIcon color={'white'} />}
+              onClick={(evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                onDelete(props.data);
+              }}
+            />
+          )}
+        </Flex>
+      </Flex>
     </chakraComponents.Option>
+  );
+}
+
+function CustomMenuList({ children, ...props }: any) {
+  return (
+    <chakraComponents.MenuList {...props}>
+      {children}
+      <Text
+        color="gray.400"
+        fontSize="sm"
+        textAlign="center"
+        mt={2}
+        letterSpacing="1px"
+      >
+        Add a safe in the format chainId:safeAddress
+      </Text>
+    </chakraComponents.MenuList>
   );
 }
 
