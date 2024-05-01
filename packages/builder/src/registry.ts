@@ -432,7 +432,7 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const { result: url } = await this.provider.readContract({
+    const url = await this.provider.readContract({
       ...this.contract,
       functionName: 'getPackageMeta',
       args: [
