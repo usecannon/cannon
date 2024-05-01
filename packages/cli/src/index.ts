@@ -478,6 +478,14 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   });
 });
 
+applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
+  const { unpublish } = await import('./commands/unpublish');
+
+  const cliSettings = resolveCliSettings(options);
+
+  await unpublish({ cliSettings, options, packageRef });
+});
+
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
   const { register } = await import('./commands/register');
 

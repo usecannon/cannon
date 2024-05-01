@@ -6,6 +6,6 @@ interface Params {
   packageRef: string;
 }
 
-export async function unpublish({ cliSettings, packageRef, options }: Params) {
-  // noop
+export async function unpublish({ cliSettings, options, packageRef }: Params) {
+  // todo: implement
 }
