@@ -604,10 +604,10 @@ export class OnChainRegistry extends CannonRegistry {
       ...this.overrides,
     };
 
-    // increase the gas limit by 2x the estimated gas
-    params.gas = simulatedGas * BigInt(2);
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
 
-    await this._logEstimatedGas(simulatedGas);
+    await this._logEstimatedGas(params.gas);
 
     const tx = await this.provider.simulateContract(params);
 
@@ -640,10 +640,8 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    // increase the gas limit by 2x the estimated gas
-    params.gas = simulatedGas * BigInt(2);
-    console.log('params.gas: ', params.gas);
-    console.log('simulatedGas: ', simulatedGas);
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
 
     await this._logEstimatedGas(params.gas);
 
