@@ -594,8 +594,14 @@ export class OnChainRegistry extends CannonRegistry {
       );
     }
 
+    params.gas = simulatedGas * BigInt(2);
+
     const hash = await this.signer.wallet.writeContract(params as any);
     const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (rx.status !== 'success') {
+      throw new Error(`something went wrong and the transaction failed after submitting (${rx.transactionHash})`);
+    }
 
     return rx.transactionHash;
   }
@@ -625,8 +631,14 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
     }
 
+    params.gas = simulatedGas * BigInt(2);
+
     const hash = await this.signer.wallet.writeContract(params as any);
     const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (rx.status !== 'success') {
+      throw new Error(`something went wrong and the transaction failed after submitting (${rx.transactionHash})`);
+    }
 
     return rx.transactionHash;
   }
