@@ -89,7 +89,6 @@ export const SearchPage = () => {
     sortedMainnetChainIds.unshift(13370);
   }
 
-  console.log(packagesQuery, chainsQuery);
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
       <Flex flex="1" direction={['column', 'column', 'row']}>

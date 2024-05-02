@@ -10,6 +10,7 @@ import { getPackage } from '@/helpers/api';
 export const PackagePage: FC<{
   name: string;
 }> = ({ name }) => {
+  // TODO: Handle pagination
   const packagesQuery = useQuery({
     queryKey: ['package', name],
     queryFn: getPackage,
@@ -19,7 +20,7 @@ export const PackagePage: FC<{
     <Flex flexDirection="column" width="100%">
       {!packagesQuery.isPending ? (
         <Container maxW="container.xl" my={[4, 4, 16]}>
-          <PackageCard pkg={packagesQuery?.data?.content} />
+          <PackageCard pkgs={packagesQuery?.data?.data} />
         </Container>
       ) : (
         <CustomSpinner m="auto" />

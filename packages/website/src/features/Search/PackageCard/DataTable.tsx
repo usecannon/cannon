@@ -36,7 +36,6 @@ export type DataTableProps<Data extends object> = {
 };
 
 const formatIPFS = (input: string, partLength: number): string => {
-  console.log(input)
   const prefix = 'ipfs://';
   const hash = input.substring(prefix.length);
 
@@ -69,7 +68,6 @@ export function DataTable<Data extends object>({
     },
   });
   const router = useRouter();
-
   return (
     <Table size="sm">
       <Thead>
@@ -136,7 +134,7 @@ export function DataTable<Data extends object>({
             onClick={() => {
               const variant = `${row.original.chain}-${row.original.preset}`;
               router.push(
-                `/packages/${packageName}/${row.original.tag}/${variant}`
+                `/packages/${packageName}/${row.original.version}/${variant}`
               );
             }}
           >

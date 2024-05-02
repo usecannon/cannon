@@ -8,15 +8,16 @@ import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
 
 const PackageTable: FC<{
-  pkg: any;
+  pkgs: any;
   latestOnly: boolean;
-}> = ({ pkg, latestOnly }) => {
-  let data = pkg.tags.results.map((v: any) => {
+}> = ({ pkgs, latestOnly }) => {
+  let data = pkgs.map((v: any) => {
     return {
-      chain: v.chain_id,
+      version: v.version,
+      chain: v.chainId,
       preset: v.preset,
-      deployUrl: v.deploy_url,
-      metaUrl: v.meta_url,
+      deployUrl: v.deployUrl,
+      metaUrl: v.metaUrl,
       published: v.timestamp,
     };
   });
@@ -24,7 +25,7 @@ const PackageTable: FC<{
   const columnHelper = createColumnHelper();
 
   const columns = [
-    columnHelper.accessor('tag', {
+    columnHelper.accessor('version', {
       cell: (info) => info.getValue(),
       header: 'Version',
     }),
@@ -63,7 +64,7 @@ const PackageTable: FC<{
 
   return data.length ? (
     <Box borderTop="1px solid" borderColor="gray.600">
-      <DataTable packageName={pkg.name} columns={columns} data={data} />
+      <DataTable packageName={pkgs[0].name} columns={columns} data={data} />
     </Box>
   ) : (
     <></>
