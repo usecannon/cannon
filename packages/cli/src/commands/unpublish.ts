@@ -169,7 +169,10 @@ export async function unpublish({ cliSettings, options, packageRef }: Params) {
     }
 
     selectedDeploys = prompt.value;
+  } else {
+    selectedDeploys = publishedDeploys;
   }
+
   console.log();
   console.log(
     `\nSettings:\n - Max Fee Per Gas: ${
