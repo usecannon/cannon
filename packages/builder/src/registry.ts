@@ -598,13 +598,18 @@ export class OnChainRegistry extends CannonRegistry {
       ...this.overrides,
     });
 
-    await this._logEstimatedGas(simulatedGas);
-
-    const tx = await this.provider.simulateContract({
+    const params = {
       ...txData,
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
-    });
+    };
+
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+
+    await this._logEstimatedGas(params.gas);
+
+    const tx = await this.provider.simulateContract(params);
 
     const hash = await this.signer.wallet.writeContract(tx.request as any);
 
@@ -635,15 +640,25 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    await this._logEstimatedGas(simulatedGas);
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+
+    await this._logEstimatedGas(params.gas);
 
     const cost = simulatedGas;
     if (cost > userBalance) {
       throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
     }
 
-    const hash = await this.signer.wallet.writeContract(params as any);
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
     const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (rx.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${rx.transactionHash}`);
+    }
 
     return rx.transactionHash;
   }
