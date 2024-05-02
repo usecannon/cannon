@@ -16,12 +16,12 @@ import {
   ChevronUpIcon,
   ArrowUpDownIcon,
   ArrowRightIcon,
+  QuestionOutlineIcon,
 } from '@chakra-ui/icons';
 import {
   useReactTable,
   flexRender,
   getCoreRowModel,
-  ColumnDef,
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
@@ -31,7 +31,7 @@ import { useRouter } from 'next/navigation';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
-  columns: ColumnDef<Data, any>[];
+  columns: any[];
   packageName: string;
 };
 
@@ -68,7 +68,6 @@ export function DataTable<Data extends object>({
     },
   });
   const router = useRouter();
-
   return (
     <Table size="sm">
       <Thead>
@@ -120,6 +119,11 @@ export function DataTable<Data extends object>({
                       )}
                     </chakra.span>
                   )}
+                  {header.column.columnDef.accessorKey == 'preset' && (
+                    <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
+                      <QuestionOutlineIcon ml={1.5} opacity={0.8} />
+                    </Tooltip>
+                  )}
                 </Th>
               );
             })}
@@ -135,7 +139,7 @@ export function DataTable<Data extends object>({
             onClick={() => {
               const variant = `${row.original.chain}-${row.original.preset}`;
               router.push(
-                `/packages/${packageName}/${row.original.tag}/${variant}`
+                `/packages/${packageName}/${row.original.version}/${variant}`
               );
             }}
           >
@@ -172,14 +176,14 @@ export function DataTable<Data extends object>({
                       case 'chain': {
                         return <Chain id={cell.row.original.chain} />;
                       }
-                      case 'deploymentData': {
+                      case 'deployUrl': {
                         return (
                           <Text
                             fontFamily="mono"
                             fontSize="12px"
                             transform="translateY(1px)"
                           >
-                            {formatIPFS(cell.row.original.deploymentData, 10)}
+                            {formatIPFS(cell.row.original.deployUrl, 10)}
                           </Text>
                         );
                       }
