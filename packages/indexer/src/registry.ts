@@ -308,7 +308,7 @@ export async function createIndexesIfNedeed(redis: RedisClientType) {
         name: { type: SchemaFieldTypes.TEXT, NOSTEM: true },
         type: { type: SchemaFieldTypes.TAG },
         timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
-        chainId: { type: SchemaFieldTypes.NUMERIC },
+        chainId: { type: SchemaFieldTypes.TAG },
       },
       { PREFIX: rkey.RKEY_PACKAGE_SEARCHABLE + ':' }
     );
