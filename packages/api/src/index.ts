@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import packageJson from '../package.json';
 import { config } from './config';
 import { apiErrorHandler } from './errors';
-import * as routes from './routes/packages';
+import * as routes from './routes';
 
 const app = express();
 

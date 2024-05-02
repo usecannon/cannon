@@ -16,6 +16,6 @@ const clientGetter = new Promise<RedisClient>((resolve) => {
   });
 });
 
-export async function useRedis() {
+export async function useRedis(): Promise<RedisClient> {
   return await clientGetter;
 }

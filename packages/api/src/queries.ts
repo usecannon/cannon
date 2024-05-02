@@ -4,23 +4,17 @@ import { parsePackageName, parsePage } from './helpers';
 import { useRedis } from './redis';
 import { ApiPackage, ApiPagination } from './types';
 
-export async function findPackagesByName(params: { packageName: string; page: any }) {
-  const packageName = parsePackageName(params.packageName);
+export async function queryPackages(params: { query: string; page: any }) {
   const page = parsePage(params.page);
-
   const redis = await useRedis();
   const per_page = 300;
 
-  const results = await redis.ft.search(db.RKEY_PACKAGE_SEARCHABLE, `@name:${packageName}`, {
+  const results = await redis.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
     LIMIT: { from: (page - 1) * per_page, size: per_page },
   });
 
-  if (!results || !results.total) {
-    throw new NotFoundError(`Package "${packageName}" not found`);
-  }
-
-  const data: ApiPackage[] = results.documents.map(
+  const data: ApiPackage[] = (results.documents || []).map(
     (tag: any) =>
       ({
         type: 'package',
@@ -43,4 +37,18 @@ export async function findPackagesByName(params: { packageName: string; page: an
   } satisfies ApiPagination & { data: ApiPackage[] };
 }
 
-// export async function searchPackages(params: { packageName: string; page: any }) {}
+export async function findPackagesByName(params: { packageName: string; page: any }) {
+  const packageName = parsePackageName(params.packageName);
+  const results = await queryPackages({ query: `@name:${packageName}`, page: params.page });
+
+  if (!results.total) {
+    throw new NotFoundError(`Package "${packageName}" not found`);
+  }
+
+  return results;
+}
+
+export async function searchPackages(params: { query: string; page: any }) {
+  const query = `@name:*${params.query}*`;
+  return queryPackages({ query, page: params.page });
+}

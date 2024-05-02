@@ -2,19 +2,16 @@ import { PackageReference } from '@usecannon/builder';
 import express from 'express';
 import { isAddress, isHash } from 'viem';
 import { BadRequestError } from '../errors';
-import { useRedis } from '../redis';
+import { searchPackages } from '../queries';
 
 const search = express.Router();
 
 search.get('/search', async (req, res) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const redis = await useRedis();
-
-  const { query } = req.query;
-
-  if (typeof query !== 'string') {
-    throw new BadRequestError(`Invalid "query" parameter ${query}`);
+  if (typeof req.query.query !== 'string') {
+    throw new BadRequestError('Missing or invalid "query" param');
   }
+
+  const query = req.query.query;
 
   const response = {
     status: 200,
@@ -22,7 +19,6 @@ search.get('/search', async (req, res) => {
     isAddress: false,
     isTx: false,
     isPackage: false,
-    results: [],
   };
 
   if (isAddress(query)) {
@@ -32,6 +28,13 @@ search.get('/search', async (req, res) => {
   } else if (PackageReference.isValid(query)) {
     response.isPackage = true;
   }
+
+  const results = await searchPackages({
+    query,
+    page: req.query.page,
+  });
+
+  Object.assign(response, results);
 
   // TODO: search both reg:package and reg:abi for query texts, and abi function selector
 
