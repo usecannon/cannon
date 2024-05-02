@@ -8,7 +8,7 @@ import { searchPackages } from '../queries';
 const search = express.Router();
 
 search.get('/search', async (req, res) => {
-  const chainIds = parseChainIds(req.query.chainId);
+  const chainIds = parseChainIds(req.query.chainIds);
 
   if (req.query.query && typeof req.query.query !== 'string') {
     throw new BadRequestError('Invalid "query" param');
