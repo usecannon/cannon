@@ -29,12 +29,14 @@ search.get('/search', async (req, res) => {
     response.isPackage = true;
   }
 
-  const results = await searchPackages({
-    query,
-    page: req.query.page,
-  });
+  if (/[a-zA-Z-_0-9]*/.test(query)) {
+    const results = await searchPackages({
+      query,
+      page: req.query.page,
+    });
 
-  Object.assign(response, results);
+    Object.assign(response, results);
+  }
 
   // TODO: search both reg:package and reg:abi for query texts, and abi function selector
 

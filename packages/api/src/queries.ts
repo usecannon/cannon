@@ -49,6 +49,6 @@ export async function findPackagesByName(params: { packageName: string; page: an
 }
 
 export async function searchPackages(params: { query: string; page: any }) {
-  const query = `@name:*${params.query}*`;
+  const query = params.query ? `@name:*${params.query}*` : '*';
   return queryPackages({ query, page: params.page });
 }
