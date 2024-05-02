@@ -6,7 +6,6 @@ import * as viem from 'viem';
 
 import { CliSettings } from '../settings';
 import { DEFAULT_REGISTRY_CONFIG } from '../constants';
-import { prepareMulticall, TxData } from '@usecannon/builder/src/multicall';
 import { resolveRegistryProviders } from '../util/provider';
 import { isPackageRegistered, waitForEvent } from '../util/register';
 import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
