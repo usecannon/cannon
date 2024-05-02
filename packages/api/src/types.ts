@@ -15,5 +15,6 @@ export interface ApiPackage {
   chainId: number;
   deployUrl: IpfsUrl;
   metaUrl: IpfsUrl;
+  miscUrl: IpfsUrl;
   timestamp: number;
 }
