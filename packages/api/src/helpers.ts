@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as viem from 'viem';
 import { ApiError, BadRequestError } from './errors';
 
-export function validatePackageName(n: string) {
+function _validatePackageName(n: string) {
   if (n.length < 3) {
     throw new Error('package name must be at least 3 characters long');
   }
@@ -20,23 +20,20 @@ export function validatePackageName(n: string) {
   }
 }
 
-export function packageNameValidator(app: Router) {
-  app.param('packageName', (req, res, next) => {
-    try {
-      validatePackageName(req.params.packageName);
-    } catch (err) {
-      throw new BadRequestError('Invalid package name');
-    }
-
-    next();
-  });
+export function parsePackageName(packageName: string) {
+  try {
+    _validatePackageName(packageName);
+    return packageName;
+  } catch (err) {
+    throw new BadRequestError('Invalid package name');
+  }
 }
 
 export function parsePage(page: any) {
   const parsed = Number.parseInt(page || '1', 10);
 
   if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new BadRequestError('Invalid page parameter');
+    throw new BadRequestError('Invalid page number');
   }
 
   return parsed;

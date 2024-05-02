@@ -12,13 +12,14 @@ export interface ApiPackageTag {
   chainId: number;
   deployUrl: IpfsUrl;
   metaUrl: IpfsUrl;
+  timestamp: number;
 }
 
 export interface ApiPackage {
   name: string;
   owner: string;
   publishers: `0x${string}`[];
-  last_updated: number;
+  last_published: number;
   tags: ApiPagination & {
     results: ApiPackageTag[];
   };
