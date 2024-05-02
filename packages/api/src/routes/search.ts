@@ -2,41 +2,43 @@ import { PackageReference } from '@usecannon/builder';
 import express from 'express';
 import { isAddress, isHash } from 'viem';
 import { BadRequestError } from '../errors';
+import { parseChainIds } from '../helpers';
 import { searchPackages } from '../queries';
 
 const search = express.Router();
 
 search.get('/search', async (req, res) => {
-  if (typeof req.query.query !== 'string') {
-    throw new BadRequestError('Missing or invalid "query" param');
-  }
+  const chainIds = parseChainIds(req.query.chainId);
 
-  const query = req.query.query;
+  if (req.query.query && typeof req.query.query !== 'string') {
+    throw new BadRequestError('Invalid "query" param');
+  }
 
   const response = {
     status: 200,
-    query,
+    query: req.query.query,
     isAddress: false,
     isTx: false,
     isPackage: false,
   };
 
-  if (isAddress(query)) {
-    response.isAddress = true;
-  } else if (isHash(query)) {
-    response.isTx = true;
-  } else if (PackageReference.isValid(query)) {
-    response.isPackage = true;
+  if (req.query.query) {
+    if (isAddress(req.query.query)) {
+      response.isAddress = true;
+    } else if (isHash(req.query.query)) {
+      response.isTx = true;
+    } else if (PackageReference.isValid(req.query.query)) {
+      response.isPackage = true;
+    }
   }
 
-  if (/[a-zA-Z-_0-9]*/.test(query)) {
-    const results = await searchPackages({
-      query,
-      page: req.query.page,
-    });
+  const results = await searchPackages({
+    query: req.query.query,
+    page: req.query.page,
+    chainIds,
+  });
 
-    Object.assign(response, results);
-  }
+  Object.assign(response, results);
 
   // TODO: search both reg:package and reg:abi for query texts, and abi function selector
 

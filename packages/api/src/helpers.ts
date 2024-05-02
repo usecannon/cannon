@@ -23,7 +23,7 @@ function _validatePackageName(n: string) {
 export function parsePackageName(packageName: string) {
   try {
     _validatePackageName(packageName);
-    return packageName;
+    return packageName.replace(/-/g, '\\-');
   } catch (err) {
     throw new BadRequestError('Invalid package name');
   }
@@ -37,6 +37,28 @@ export function parsePage(page: any) {
   }
 
   return parsed;
+}
+
+const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
+export function parseChainIds(chainIds: any): number[] {
+  if (!chainIds) return [];
+
+  if (typeof chainIds !== 'string' || !chainIdListRegex.test(chainIds)) {
+    throw new BadRequestError('Invalid chainId number');
+  }
+
+  return chainIds.split(',').map((chainId) => Number.parseInt(chainId, 10));
+}
+
+const queryRegex = /^[a-zA-Z0-9]+[a-zA-Z0-9-]*(?<!-)$/;
+export function parseQuery(query: any): string {
+  if (!query) return '';
+
+  if (typeof query !== 'string' || !queryRegex.test(query)) {
+    throw new BadRequestError('Invalid query parameter');
+  }
+
+  return query.replace(/-/g, '%-%');
 }
 
 export function parseAddresses(addresses: any) {

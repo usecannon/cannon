@@ -1,7 +1,7 @@
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as db from './db';
 import { NotFoundError } from './errors';
-import { parsePackageName, parsePage } from './helpers';
+import { parsePackageName, parsePage, parseQuery } from './helpers';
 import { useRedis } from './redis';
 import { ApiPackage, ApiPagination, IpfsUrl } from './types';
 
@@ -10,7 +10,7 @@ import type { Address } from 'viem';
 export async function queryPackages(params: { query: string; page: any; per_page?: number }) {
   const page = parsePage(params.page);
   const redis = await useRedis();
-  const per_page = params.per_page || 300;
+  const per_page = params.per_page || 1000;
 
   const results = await redis.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
@@ -43,7 +43,8 @@ export async function queryPackages(params: { query: string; page: any; per_page
       );
 
       if (!pkg) {
-        // TODO: notify us somewhere
+        // eslint-disable-next-line no-console
+        console.error(new Error(`Package not found for tag "${JSON.stringify(value)}"`));
         continue;
       }
 
@@ -81,19 +82,23 @@ export async function findPackagesByName(params: { packageName: string; page: an
   return results;
 }
 
-export async function searchPackages(params: { query: string; page: any }) {
-  const query = params.query ? `@name:*${params.query}*` : '*';
+export async function searchPackages(params: { query: any; chainIds?: number[]; page: any }) {
+  const q = parseQuery(params.query);
+
+  let redisQuery = q ? `@name:%${q}%` : '*';
+
+  if (params.chainIds?.length) {
+    redisQuery += `,@chainId:{${params.chainIds.join('|')}}`;
+  }
 
   return queryPackages({
-    query,
+    query: redisQuery,
     page: params.page,
-    per_page: 100,
   });
 }
 
 export async function getChaindIds() {
   const redis = await useRedis();
-  // ft.aggregate reg:packages '*' groupby 1 @chainId
 
   const results = (await redis.ft.aggregate(db.RKEY_PACKAGE_SEARCHABLE, '*', {
     STEPS: [
