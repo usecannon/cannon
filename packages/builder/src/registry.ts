@@ -572,38 +572,52 @@ export class OnChainRegistry extends CannonRegistry {
 
     const registerFee = await this.getRegisterFee();
 
-    const params = {
+    const setPackageOwnershipParams = {
       ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
       account: this.signer.wallet.account || this.signer.address,
-      ...this.overrides,
     };
 
-    const simulatedGas = await this.estimateGasForSetPackageOwnership(packageName);
-    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+    const setAdditionalPublishersParams = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      // mainnet is empty, owner is set as publisher for optimism
+      args: [packageHash, [], [owner]],
+      account: this.signer.wallet.account || this.signer.address,
+    };
 
-    const cost = simulatedGas + registerFee;
+    const txs: TxData[] = [setPackageOwnershipParams, setAdditionalPublishersParams];
 
-    if (cost > userBalance) {
-      throw new Error(
-        `Account "${this.signer.address}" does not have the required ${viem.formatEther(
-          cost
-        )} ETH for gas and registration fee`
-      );
-    }
-
+    const txData = prepareMulticall(txs);
+    
+    // increase the gas x2
     params.gas = simulatedGas * BigInt(2);
 
-    const hash = await this.signer.wallet.writeContract(params as any);
-    const rx = await this.provider.waitForTransactionReceipt({ hash });
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
 
-    if (rx.status !== 'success') {
-      throw new Error(`something went wrong and the transaction failed after submitting (${rx.transactionHash})`);
+    await this._logEstimatedGas(simulatedGas);
+
+    const tx = await this.provider.simulateContract({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (receipt.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${receipt.transactionHash}`);
     }
 
-    return rx.transactionHash;
+    return receipt.transactionHash;
   }
 
   async setAdditionalPublishers(packageName: string, mainnetPublishers: viem.Address[], optimismPublishers: viem.Address[]) {
