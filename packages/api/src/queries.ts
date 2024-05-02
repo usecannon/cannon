@@ -85,14 +85,13 @@ export async function findPackagesByName(params: { packageName: string; page: an
 export async function searchPackages(params: { query: any; chainIds?: number[]; page: any }) {
   const q = parseQuery(params.query);
 
-  let redisQuery = q ? `@name:%${q}%` : '*';
+  const queries: string[] = [];
 
-  if (params.chainIds?.length) {
-    redisQuery += `,@chainId:{${params.chainIds.join('|')}}`;
-  }
+  if (q) queries.push(`@name:%${q}%`);
+  if (params.chainIds?.length) queries.push(`@chainId:{${params.chainIds.join('|')}}`);
 
   return queryPackages({
-    query: redisQuery,
+    query: queries.join(',') || '*',
     page: params.page,
   });
 }
