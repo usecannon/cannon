@@ -36,6 +36,7 @@ export type DataTableProps<Data extends object> = {
 };
 
 const formatIPFS = (input: string, partLength: number): string => {
+  console.log(input)
   const prefix = 'ipfs://';
   const hash = input.substring(prefix.length);
 
@@ -172,14 +173,14 @@ export function DataTable<Data extends object>({
                       case 'chain': {
                         return <Chain id={cell.row.original.chain} />;
                       }
-                      case 'deploymentData': {
+                      case 'deployUrl': {
                         return (
                           <Text
                             fontFamily="mono"
                             fontSize="12px"
                             transform="translateY(1px)"
                           >
-                            {formatIPFS(cell.row.original.deploymentData, 10)}
+                            {formatIPFS(cell.row.original.deployUrl, 10)}
                           </Text>
                         );
                       }

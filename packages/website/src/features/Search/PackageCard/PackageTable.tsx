@@ -1,4 +1,3 @@
-import { Package, Variant } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-json';
@@ -9,29 +8,20 @@ import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
 
 const PackageTable: FC<{
-  pkg: Package;
+  pkg: any;
   latestOnly: boolean;
 }> = ({ pkg, latestOnly }) => {
-  type VariantRow = {
-    chain: number;
-    tag: string;
-    preset: string;
-    deploymentData: string;
-    published: number;
-    arrow?: string;
-  };
-
-  let data: VariantRow[] = pkg.variants.map((v: Variant) => {
+  let data = pkg.tags.results.map((v: any) => {
     return {
-      tag: v.tag.name,
       chain: v.chain_id,
       preset: v.preset,
-      deploymentData: v.deploy_url,
-      published: v.last_updated,
+      deployUrl: v.deploy_url,
+      metaUrl: v.meta_url,
+      published: v.timestamp,
     };
   });
 
-  const columnHelper = createColumnHelper<VariantRow>();
+  const columnHelper = createColumnHelper();
 
   const columns = [
     columnHelper.accessor('tag', {
@@ -46,7 +36,7 @@ const PackageTable: FC<{
       cell: (info) => info.getValue(),
       header: 'Chain',
     }),
-    columnHelper.accessor('deploymentData', {
+    columnHelper.accessor('deployUrl', {
       cell: (info) => info.getValue(),
       header: 'Deployment Data',
     }),
@@ -61,9 +51,9 @@ const PackageTable: FC<{
   ];
 
   if (latestOnly) {
-    data = data.filter((row) => row.tag === 'latest');
+    data = data.filter((row: any) => row.tag === 'latest');
 
-    data = data.filter((row) => {
+    data = data.filter((row: any) => {
       const matchingChain = Object.values(chains).find((chain) => {
         return chain.id === row.chain;
       });
