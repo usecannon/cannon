@@ -64,7 +64,8 @@ export const SearchPage = () => {
 
     ids.forEach((id) => {
       // Check if the chain_id exists in the chains object and if it's a testnet
-      const chain = Object.values(chains).find((chain) => chain.id === id);
+      const chain = Object.values(chains).find((chain) => chain.id == id);
+
       if ((chain as any)?.testnet) {
         testnetChainIds.add(id);
       } else {
@@ -80,7 +81,7 @@ export const SearchPage = () => {
 
   // Get all chain IDs using the function
   const { mainnet: sortedMainnetChainIds, testnet: sortedTestnetChainIds } =
-    getAllChainIds(chainsQuery?.data?.results || []);
+    getAllChainIds(chainsQuery?.data?.data || []);
 
   // Ensure 13370 is at the front of the mainnetChainIds array
   const index13370 = sortedMainnetChainIds.indexOf(13370);
@@ -189,18 +190,22 @@ export const SearchPage = () => {
             >
               <CustomSpinner />
             </Flex>
+          ) : Object.values(groupedPackages).length == 0 ? (
+            <Flex w="100%" h="100%">
+              <Text m="auto" color="gray.400">
+                No results
+              </Text>
+            </Flex>
           ) : (
-            Object.values(groupedPackages).length && (
-              <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
-                <Container ml={0} maxWidth="container.xl">
-                  {Object.values(groupedPackages).map((pkgs: any) => (
-                    <Box mb="8" key={pkgs[0].name}>
-                      <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
-                    </Box>
-                  ))}
-                </Container>
-              </Box>
-            )
+            <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
+              <Container ml={0} maxWidth="container.xl">
+                {Object.values(groupedPackages).map((pkgs: any) => (
+                  <Box mb="8" key={pkgs[0].name}>
+                    <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
+                  </Box>
+                ))}
+              </Container>
+            </Box>
           )}
         </Box>
       </Flex>

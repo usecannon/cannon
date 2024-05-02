@@ -52,7 +52,7 @@ const PackageTable: FC<{
   ];
 
   if (latestOnly) {
-    data = data.filter((row: any) => row.tag === 'latest');
+    data = data.filter((row: any) => row.version === 'latest');
 
     data = data.filter((row: any) => {
       const matchingChain = Object.values(chains).find((chain) => {
