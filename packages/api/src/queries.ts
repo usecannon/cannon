@@ -13,7 +13,7 @@ export async function findPackagesByName(params: { packageName: string; page: an
 
   const results = await redis.ft.search(db.RKEY_PACKAGE_SEARCHABLE, `@name:${packageName}`, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
-    LIMIT: { from: page * per_page, size: per_page },
+    LIMIT: { from: (page - 1) * per_page, size: per_page },
   });
 
   if (!results || !results.total) {
