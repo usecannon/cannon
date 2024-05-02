@@ -7,7 +7,7 @@ export const getPackages = async ({ queryKey }: { queryKey: any[] }) => {
     const response = await axios.get('https://api.usecannon.com/search', {
       params: {
         query: searchTerm,
-        chainIds: selectedChains,
+        chainIds: selectedChains.join(','),
       },
     });
     return response.data; // Assuming the API returns data directly
