@@ -31,7 +31,7 @@ import {
 import { DEFAULT_REGISTRY_ADDRESS } from '@usecannon/cli/src/constants';
 import { Chain, createPublicClient, http, isAddressEqual } from 'viem';
 import { mainnet, optimism } from 'viem/chains';
-import { useWalletClient } from 'wagmi';
+import { useWalletClient, useSwitchChain } from 'wagmi';
 
 export default function PublishUtility(props: {
   deployUrl: string;
@@ -40,6 +40,7 @@ export default function PublishUtility(props: {
   const settings = useStore((s) => s.settings);
 
   const wc = useWalletClient();
+  const { switchChainAsync } = useSwitchChain();
   const toast = useToast();
 
   // get the package referenced by this ipfs package
@@ -285,7 +286,11 @@ export default function PublishUtility(props: {
               }
               mb={2}
               w="full"
-              onClick={() => publishOptimismMutation.mutate()}
+              onClick={() =>
+                switchChainAsync({ chainId: 10 }).then(() =>
+                  publishOptimismMutation.mutate()
+                )
+              }
               isLoading={publishOptimismMutation.isPending}
             >
               Publish to Optimism
@@ -296,7 +301,9 @@ export default function PublishUtility(props: {
                   publishOptimismMutation.isPending ||
                   publishMainnetMutation.isPending
                     ? false
-                    : publishMainnetMutation.mutate()
+                    : switchChainAsync({ chainId: 1 }).then(() =>
+                        publishMainnetMutation.mutate()
+                      )
                 }
               >
                 {publishMainnetMutation.isPending
