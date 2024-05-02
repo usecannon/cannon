@@ -16,6 +16,7 @@ import {
   ChevronUpIcon,
   ArrowUpDownIcon,
   ArrowRightIcon,
+  QuestionOutlineIcon,
 } from '@chakra-ui/icons';
 import {
   useReactTable,
@@ -118,6 +119,11 @@ export function DataTable<Data extends object>({
                         />
                       )}
                     </chakra.span>
+                  )}
+                  {header.column.columnDef.accessorKey == 'preset' && (
+                    <Tooltip label="Presets are useful for distinguishing multiple deployments of the same protocol on the same chain.">
+                      <QuestionOutlineIcon ml={1.5} opacity={0.8} />
+                    </Tooltip>
                   )}
                 </Th>
               );
