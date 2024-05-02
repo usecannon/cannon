@@ -408,7 +408,6 @@ export class OnChainRegistry extends CannonRegistry {
     }
 
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
@@ -439,7 +438,7 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const { result: url } = await this.provider.simulateContract({
+    const url = await this.provider.readContract({
       ...this.contract,
       functionName: 'getPackageMeta',
       args: [
