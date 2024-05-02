@@ -19,7 +19,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { PackageCardExpandable } from './PackageCard/PackageCardExpandable';
 import { CustomSpinner } from '@/components/CustomSpinner';
-import { debounce } from 'lodash';
+import { debounce, groupBy } from 'lodash';
 import { ChainFilter } from './ChainFilter';
 import chains from '@/helpers/chains';
 import { useQuery } from '@tanstack/react-query';
@@ -88,6 +88,8 @@ export const SearchPage = () => {
     sortedMainnetChainIds.splice(index13370, 1);
     sortedMainnetChainIds.unshift(13370);
   }
+
+  const groupedPackages = groupBy(packagesQuery?.data?.data, 'name');
 
   return (
     <Flex flex="1" direction="column" maxHeight="100%" maxWidth="100%">
@@ -188,12 +190,12 @@ export const SearchPage = () => {
               <CustomSpinner />
             </Flex>
           ) : (
-            packagesQuery?.data?.results && (
+            Object.values(groupedPackages).length && (
               <Box px={[0, 0, 4]} pt={isSmall ? 4 : 8}>
                 <Container ml={0} maxWidth="container.xl">
-                  {packagesQuery.data.results.map((pkg: any) => (
-                    <Box mb="8" key={pkg.id}>
-                      <PackageCardExpandable pkg={pkg} key={pkg.name} />
+                  {Object.values(groupedPackages).map((pkgs: any) => (
+                    <Box mb="8" key={pkgs[0].name}>
+                      <PackageCardExpandable pkgs={pkgs} key={pkgs[0].name} />
                     </Box>
                   ))}
                 </Container>
