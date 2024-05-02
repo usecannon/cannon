@@ -22,7 +22,6 @@ import {
   useReactTable,
   flexRender,
   getCoreRowModel,
-  ColumnDef,
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
@@ -32,7 +31,7 @@ import { useRouter } from 'next/navigation';
 
 export type DataTableProps<Data extends object> = {
   data: Data[];
-  columns: ColumnDef<Data, any>[];
+  columns: any[];
   packageName: string;
 };
 

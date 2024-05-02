@@ -84,7 +84,9 @@ export const SearchPage = () => {
     getAllChainIds(chainsQuery?.data?.data || []);
 
   // Ensure 13370 is at the front of the mainnetChainIds array
-  const index13370 = sortedMainnetChainIds.indexOf('13370');
+  const index13370 = sortedMainnetChainIds.indexOf(
+    '13370' as unknown as number
+  );
   if (index13370 > -1) {
     sortedMainnetChainIds.splice(index13370, 1);
     sortedMainnetChainIds.unshift(13370);
