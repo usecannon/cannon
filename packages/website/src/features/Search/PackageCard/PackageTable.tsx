@@ -1,4 +1,3 @@
-import { Package, Variant } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import 'prismjs';
 import 'prismjs/components/prism-json';
@@ -9,32 +8,24 @@ import chains from '@/helpers/chains';
 import { Box } from '@chakra-ui/react';
 
 const PackageTable: FC<{
-  pkg: Package;
+  pkgs: any;
   latestOnly: boolean;
-}> = ({ pkg, latestOnly }) => {
-  type VariantRow = {
-    chain: number;
-    tag: string;
-    preset: string;
-    deploymentData: string;
-    published: number;
-    arrow?: string;
-  };
-
-  let data: VariantRow[] = pkg.variants.map((v: Variant) => {
+}> = ({ pkgs, latestOnly }) => {
+  let data = pkgs.map((v: any) => {
     return {
-      tag: v.tag.name,
-      chain: v.chain_id,
+      version: v.version,
+      chain: v.chainId,
       preset: v.preset,
-      deploymentData: v.deploy_url,
-      published: v.last_updated,
+      deployUrl: v.deployUrl,
+      metaUrl: v.metaUrl,
+      published: v.timestamp,
     };
   });
 
-  const columnHelper = createColumnHelper<VariantRow>();
+  const columnHelper = createColumnHelper();
 
   const columns = [
-    columnHelper.accessor('tag', {
+    columnHelper.accessor('version', {
       cell: (info) => info.getValue(),
       header: 'Version',
     }),
@@ -46,7 +37,7 @@ const PackageTable: FC<{
       cell: (info) => info.getValue(),
       header: 'Chain',
     }),
-    columnHelper.accessor('deploymentData', {
+    columnHelper.accessor('deployUrl', {
       cell: (info) => info.getValue(),
       header: 'Deployment Data',
     }),
@@ -61,9 +52,9 @@ const PackageTable: FC<{
   ];
 
   if (latestOnly) {
-    data = data.filter((row) => row.tag === 'latest');
+    data = data.filter((row: any) => row.version === 'latest');
 
-    data = data.filter((row) => {
+    data = data.filter((row: any) => {
       const matchingChain = Object.values(chains).find((chain) => {
         return chain.id === row.chain;
       });
@@ -73,7 +64,7 @@ const PackageTable: FC<{
 
   return data.length ? (
     <Box borderTop="1px solid" borderColor="gray.600">
-      <DataTable packageName={pkg.name} columns={columns} data={data} />
+      <DataTable packageName={pkgs[0].name} columns={columns} data={data} />
     </Box>
   ) : (
     <></>
