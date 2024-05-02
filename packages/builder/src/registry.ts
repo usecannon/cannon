@@ -460,6 +460,9 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error('provider not given to getUrl');
     }
 
+    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
+    if (baseResolved) return baseResolved;
+
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
@@ -481,6 +484,9 @@ export class OnChainRegistry extends CannonRegistry {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
     }
+
+    const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
+    if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
