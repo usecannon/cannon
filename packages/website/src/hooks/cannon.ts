@@ -237,7 +237,7 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
 
 export function useCannonWriteDeployToIpfs(
   runtime?: ChainBuilderRuntime,
-  deployInfo?: DeploymentInfo,
+  deployInfo?: DeploymentInfo | undefined,
   metaUrl?: string,
   mutationOptions: Partial<UseMutationOptions> = {}
 ) {

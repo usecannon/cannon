@@ -473,7 +473,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     chainId: options.chainId ? options.chainId : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
-    includeProvisioned: options.includeProvisioned,
+    includeProvisioned: !options.excludeCloned,
     skipConfirm: options.skipConfirm,
   });
 });
@@ -645,11 +645,11 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     process.stderr.write(data);
   });
 
-  await new Promise((resolve) => {
+  await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
-      resolve({});
+      process.exit(code);
     });
   });
 });
