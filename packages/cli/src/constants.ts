@@ -9,16 +9,16 @@ export const DEFAULT_ETHERSCAN_API_URL = '';
 // Production settings (ETH Mainnet & OP Mainnet)
 export const DEFAULT_REGISTRY_ADDRESS: viem.Address = '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba';
 export const DEFAULT_REGISTRY_CONFIG = [
-  // Ethereum Mainnet
-  {
-    chainId: 1,
-    providerUrl: ['https://ethereum-rpc.publicnode.com'],
-    address: DEFAULT_REGISTRY_ADDRESS,
-  },
   // OP Mainnet
   {
     chainId: 10,
     providerUrl: ['https://optimism-rpc.publicnode.com'],
+    address: DEFAULT_REGISTRY_ADDRESS,
+  },
+  // Ethereum Mainnet
+  {
+    chainId: 1,
+    providerUrl: ['https://ethereum-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];
