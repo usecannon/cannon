@@ -48,6 +48,7 @@ export const Function: FC<{
   contractSource?: string;
   onDrawerOpen?: () => void;
   collapsible?: boolean;
+  showFunctionSelector: boolean;
 }> = ({
   f,
   abi /*, cannonOutputs */,
@@ -56,6 +57,7 @@ export const Function: FC<{
   contractSource,
   onDrawerOpen,
   collapsible,
+  showFunctionSelector,
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const currentSafe = useStore((s) => s.currentSafe);
@@ -164,7 +166,7 @@ export const Function: FC<{
     </Box>
   ) : null;
 
-  const anchor = `selector-${toFunctionSelector(f)}`;
+  const anchor = `#selector-${toFunctionSelector(f)}`;
 
   const getCodeUrl = (functionName: string) => {
     const base = pathName.split('/interact')[0];
@@ -259,40 +261,41 @@ export const Function: FC<{
       borderLeft={collapsible ? '1px solid' : 'none'}
       borderColor="gray.600"
     >
-      <span id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
-          <Heading
-            size="sm"
-            fontFamily="mono"
-            fontWeight="semibold"
-            mb={0}
-            display="flex"
-            alignItems="center"
-            gap={2}
-          >
-            {toFunctionSignature(f)}
-            <Link
-              color="gray.300"
-              ml={1}
-              textDecoration="none"
-              _hover={{ textDecoration: 'underline' }}
-              href={`#${anchor}`}
+          {showFunctionSelector && (
+            <Heading
+              size="sm"
+              fontFamily="mono"
+              fontWeight="semibold"
+              mb={0}
+              display="flex"
+              alignItems="center"
+              gap={2}
             >
-              #
-            </Link>
-            {!!contractSource && (
+              {toFunctionSignature(f)}
               <Link
                 color="gray.300"
                 ml={1}
                 textDecoration="none"
                 _hover={{ textDecoration: 'underline' }}
-                href={getCodeUrl(f.name)}
+                href={anchor}
               >
-                <FaCode color="#fff" />
+                #
               </Link>
-            )}
-          </Heading>
+              {!!contractSource && (
+                <Link
+                  color="gray.300"
+                  ml={1}
+                  textDecoration="none"
+                  _hover={{ textDecoration: 'underline' }}
+                  href={getCodeUrl(f.name)}
+                >
+                  <FaCode color="#fff" />
+                </Link>
+              )}
+            </Heading>
+          )}
         </Flex>
         <Flex flexDirection={['column', 'column', 'row']} gap={8} height="100%">
           <Box flex="1" w={['100%', '100%', '50%']}>
@@ -476,6 +479,7 @@ export const Function: FC<{
             borderColor="gray.600"
             borderTopRadius={'md'}
             borderBottomRadius={isOpen ? 'none' : 'md'}
+            id={anchor}
           >
             {f.name && (
               <Heading
@@ -493,7 +497,7 @@ export const Function: FC<{
                   ml={1}
                   textDecoration="none"
                   _hover={{ textDecoration: 'underline' }}
-                  href={`#${anchor}`}
+                  href={anchor}
                 >
                   #
                 </Link>
