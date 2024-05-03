@@ -221,6 +221,12 @@ export async function findContractsByAddress(address: viem.Address) {
 
     const contractName = contractNameResults[index as any]?.results?.[0]?.contractName || 'Contract';
 
+    if (!contractName) {
+      // eslint-disable-next-line no-console
+      console.error(new Error(`ContractName not found for tag "${packageRef.toString()}#${chainId}"`));
+      continue;
+    }
+
     data.push({
       type: 'contract',
       address: contractAddress,
