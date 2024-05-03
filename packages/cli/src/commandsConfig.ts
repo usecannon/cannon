@@ -448,7 +448,11 @@ const commandsConfig = {
       },
       {
         flags: '--include-provisioned',
-        description: 'Includes provisioned packages when publishing to the registry',
+        description: '(DEPRECATED) Includes provisioned packages when publishing to the registry',
+      },
+      {
+        flags: '--exclude-provisioned',
+        description: 'Excludes provisioned packages when publishing to the registry',
       },
       {
         flags: '--skip-confirm',

@@ -473,7 +473,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
     chainId: options.chainId ? options.chainId : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
-    includeProvisioned: options.includeProvisioned,
+    includeProvisioned: !options.excludeProvisioned,
     skipConfirm: options.skipConfirm,
   });
 });
