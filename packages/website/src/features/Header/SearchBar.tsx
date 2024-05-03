@@ -32,6 +32,8 @@ import {
 } from 'react';
 import { GoPackage } from 'react-icons/go';
 import { BsBoxes } from 'react-icons/bs';
+import { FaRegFileCode } from 'react-icons/fa';
+import { FaCode } from 'react-icons/fa6';
 import MultiRef from 'react-multi-ref';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import Chain from '../Search/PackageCard/Chain';
@@ -47,10 +49,10 @@ const generateLink = (result: any) => {
     case 'namespace':
       return `/packages/${result.name}`;
     case 'contract':
+      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/`;
     case 'function':
-    case 'address':
     default:
-      return '/';
+      return '/'; // #selector-SELECTOR
   }
 };
 
@@ -320,8 +322,59 @@ export const SearchBar = () => {
                           </Flex>
                         );
                       case 'contract':
+                        return (
+                          <Flex
+                            border="1px solid"
+                            bg={index === active ? 'teal.900' : 'gray.800'}
+                            borderColor={
+                              index === active ? 'teal.500' : 'gray.700'
+                            }
+                            borderRadius="md"
+                            mb={4}
+                            p={4}
+                            gap={4}
+                            alignItems="center"
+                          >
+                            <Icon
+                              as={FaRegFileCode}
+                              boxSize="8"
+                              color="gray.300"
+                            />
+                            <Box>
+                              <Heading fontWeight={600} size="sm" mb={0.5}>
+                                CONTRACT NAME
+                              </Heading>
+                              <Text fontSize="xs" color="gray.400">
+                                ADDRESS on <Chain id={result.chainId} />
+                              </Text>
+                            </Box>
+                          </Flex>
+                        );
                       case 'function':
-                      case 'address':
+                        return (
+                          <Flex
+                            border="1px solid"
+                            bg={index === active ? 'teal.900' : 'gray.800'}
+                            borderColor={
+                              index === active ? 'teal.500' : 'gray.700'
+                            }
+                            borderRadius="md"
+                            mb={4}
+                            p={4}
+                            gap={4}
+                            alignItems="center"
+                          >
+                            <Icon as={FaCode} boxSize="8" color="gray.300" />
+                            <Box>
+                              <Heading fontWeight={600} size="sm" mb={0.5}>
+                                FUNCTION NAME
+                              </Heading>
+                              <Text fontSize="xs" color="gray.400">
+                                CONTRACT NAME on <Chain id={result.chainId} />
+                              </Text>
+                            </Box>
+                          </Flex>
+                        );
                       default:
                         return null;
                     }
