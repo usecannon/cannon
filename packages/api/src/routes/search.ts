@@ -1,4 +1,3 @@
-import { PackageReference } from '@usecannon/builder';
 import express from 'express';
 import { Address, isAddress, isHash } from 'viem';
 import { BadRequestError } from '../errors';
