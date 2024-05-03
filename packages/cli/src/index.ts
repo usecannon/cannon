@@ -645,11 +645,11 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     process.stderr.write(data);
   });
 
-  await new Promise((resolve) => {
+  await new Promise(() => {
     forgeProcess.on('close', (code: number) => {
       console.log(`forge exited with code ${code}`);
       node?.kill();
-      resolve({});
+      process.exit(code);
     });
   });
 });
