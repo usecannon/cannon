@@ -51,8 +51,9 @@ const generateLink = (result: any) => {
     case 'contract':
       return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/${result.name}/${result.contractName}/${result.address}`;
     case 'function':
+      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/${result.name}/${result.contractName}/${result.address}/selector-${result.selector}`;
     default:
-      return '/'; // #selector-SELECTOR
+      return '/';
   }
 };
 
@@ -370,10 +371,12 @@ export const SearchBar = () => {
                             <Icon as={FaCode} boxSize="8" color="gray.300" />
                             <Box>
                               <Heading fontWeight={600} size="sm" mb={0.5}>
-                                FUNCTION NAME
+                                {result.contractName}.{result.functionName}
                               </Heading>
                               <Text fontSize="xs" color="gray.400">
-                                CONTRACT NAME on <Chain id={result.chainId} />
+                              {result.address} in {result.name}:
+                                {result.version}@{result.preset} on{' '}
+                                <Chain id={result.chainId} />
                               </Text>
                             </Box>
                           </Flex>
