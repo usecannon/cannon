@@ -263,7 +263,6 @@ export const Function: FC<{
     >
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
-<<<<<<< HEAD
           {showFunctionSelector && (
             <Heading
               size="sm"
@@ -273,24 +272,6 @@ export const Function: FC<{
               display="flex"
               alignItems="center"
               gap={2}
-=======
-          <Heading
-            size="sm"
-            fontFamily="mono"
-            fontWeight="semibold"
-            mb={0}
-            display="flex"
-            alignItems="center"
-            gap={2}
-          >
-            {toFunctionSignature(f)}
-            <Link
-              color="gray.300"
-              ml={1}
-              textDecoration="none"
-              _hover={{ textDecoration: 'underline' }}
-              href={anchor}
->>>>>>> main
             >
               {toFunctionSignature(f)}
               <Link
