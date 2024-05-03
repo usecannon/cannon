@@ -1,9 +1,11 @@
+import type { Address } from 'viem';
+
 export type IpfsUrl = `ipfs://${string}`;
 
-export interface ApiPagination {
-  total: number;
-  page: number;
-  per_page: number;
+export interface ApiNamespace {
+  type: 'namespace';
+  name: string;
+  count: number;
 }
 
 export interface ApiPackage {
@@ -18,3 +20,18 @@ export interface ApiPackage {
   miscUrl: IpfsUrl;
   timestamp: number;
 }
+
+export interface ApiContract {
+  type: 'contract';
+  address: Address;
+  contractName: string;
+  name: string;
+  chainId: number;
+  preset: string;
+  version: string;
+}
+
+type ExtractType<T> = T extends { type: infer U } ? U : never;
+
+export type ApiDocument = ApiNamespace | ApiPackage;
+export type ApiDocumentType = ExtractType<ApiDocument>;
