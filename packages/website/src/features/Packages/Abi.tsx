@@ -14,7 +14,7 @@ import NextLink from 'next/link';
 import { useParams } from 'next/navigation';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
-import { Abi as AbiType } from 'abitype/src/abi';
+import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 
@@ -34,16 +34,16 @@ export const Abi: FC<{
   onDrawerOpen,
 }) => {
   const params = useParams();
-  const functions = useMemo(
+
+  const functions = useMemo<AbiFunction[]>(
     () =>
-      _.sortBy(
-        abi?.filter((a) => a.type === 'function'),
-        ['name']
-      ),
+      _.sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
+        'name',
+      ]),
     [abi]
   );
 
-  const readFunctions = useMemo(
+  const readFunctions = useMemo<AbiFunction[]>(
     () =>
       _.sortBy(
         functions?.filter((func) =>
@@ -54,7 +54,7 @@ export const Abi: FC<{
     [functions]
   );
 
-  const writeFunctions = useMemo(
+  const writeFunctions = useMemo<AbiFunction[]>(
     () =>
       _.sortBy(
         functions?.filter(
@@ -82,8 +82,6 @@ export const Abi: FC<{
 
         const topOffset =
           section.getBoundingClientRect().top + window.scrollY - adjust;
-
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 
         const button = section.querySelector('button');
 
@@ -242,6 +240,7 @@ export const Abi: FC<{
                 contractSource={contractSource}
                 onDrawerOpen={onDrawerOpen}
                 collapsible
+                showFunctionSelector={false}
               />
             ))}
           </Flex>
