@@ -42,7 +42,7 @@ export function findPackageByTag(documents: { value: RedisDocument }[], tag: Red
   return result.value as RedisPackage;
 }
 
-export function transformPackage(value: RedisPackage) {
+export function transformPackage(value: RedisPackage): ApiPackage {
   return {
     type: 'package',
     name: value.name as string,
@@ -54,10 +54,10 @@ export function transformPackage(value: RedisPackage) {
     miscUrl: value.miscUrl as IpfsUrl,
     timestamp: Number.parseInt(value.timestamp as string),
     publisher: value.owner as Address,
-  } satisfies ApiPackage;
+  };
 }
 
-export function transformPackageWithTag(pkg: RedisPackage, tag: RedisTag) {
+export function transformPackageWithTag(pkg: RedisPackage, tag: RedisTag): ApiPackage {
   return {
     type: 'package',
     name: tag.name as string,
@@ -69,5 +69,5 @@ export function transformPackageWithTag(pkg: RedisPackage, tag: RedisTag) {
     miscUrl: pkg.miscUrl as IpfsUrl,
     timestamp: Number.parseInt(tag.timestamp as string),
     publisher: pkg.owner as Address,
-  } satisfies ApiPackage;
+  };
 }

@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@isaacs/ttlcache": "^1.4.1",
     "@usecannon/builder": "^2.13.0",
     "cors": "^2.8.5",
     "envalid": "^8.0.0",

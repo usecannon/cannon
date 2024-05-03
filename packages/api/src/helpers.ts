@@ -1,4 +1,5 @@
 import * as viem from 'viem';
+import { RedisPackage, RedisTag } from './db/transformers';
 import { BadRequestError, ServerError } from './errors';
 
 // TODO: replace this function by one exported by @usecannon/builder
@@ -27,6 +28,11 @@ export function parsePackageName(packageName: string) {
   } catch (err) {
     throw new BadRequestError('Invalid package name');
   }
+}
+
+const packageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+(?:@[^\s]+)?$/;
+export function isPackageRef(packageName: string) {
+  return packageRefRegex.test(packageName);
 }
 
 const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
@@ -66,4 +72,8 @@ export function parseAddresses(addresses: any) {
   }
 
   return result as viem.Address[];
+}
+
+export function isRedisTagOfPackage(a: RedisPackage, b: RedisTag) {
+  return a.name === b.name && a.version === b.versionOfTag && a.preset === b.preset && a.chainId === b.chainId;
 }

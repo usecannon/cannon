@@ -1,9 +1,9 @@
 import { PackageReference } from '@usecannon/builder';
 import express from 'express';
 import { Address, isAddress, isHash } from 'viem';
-import { searchByAddress, searchPackages } from '../db/queries';
 import { BadRequestError } from '../errors';
-import { parseChainIds } from '../helpers';
+import { isPackageRef, parseChainIds } from '../helpers';
+import { findContractsByAddress, findPackagesByRef, searchPackages } from '../queries/packages';
 import { ApiDocument, ApiDocumentType } from '../types';
 
 const search = express.Router();
@@ -23,16 +23,22 @@ search.get('/search', async (req, res) => {
     query,
     isAddress: isAddress(query),
     isTx: isHash(query),
-    isPackage: PackageReference.isValid(query),
+    isPackageRef: isPackageRef(query),
     total: 0,
     data: [] as ApiDocument[],
   };
 
   if (response.isAddress) {
-    const result = await searchByAddress(query as Address);
+    const result = await findContractsByAddress(query as Address);
     Object.assign(response, result);
   } else if (response.isTx) {
     // empty
+  } else if (response.isPackageRef) {
+    const result = await findPackagesByRef({
+      packageRef: query,
+    });
+
+    Object.assign(response, result);
   } else {
     const result = await searchPackages({
       query,
@@ -44,8 +50,6 @@ search.get('/search', async (req, res) => {
     Object.assign(response, result);
   }
 
-  // TODO: contractName or address, responds contract (reg:addressToPackage, reg:abi?)
-  // TODO: fullPackageRef respond packages
   // TODO: fnNames or Selectors (reg: abi), responds with 'function'
   // TODO: tx (look for package names) reg:transactionToPackage
 

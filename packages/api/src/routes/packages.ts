@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { findPackagesByName } from '../db/queries';
+import { findPackagesByName } from '../queries/packages';
 
 const packages = express.Router();
 
