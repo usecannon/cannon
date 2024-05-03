@@ -26,7 +26,7 @@ export class NotFoundError extends ApiError {
 export const apiErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);
 
-  if (!(err instanceof ApiError) || err.status >= 400) {
+  if (!(err instanceof ApiError) || err.status >= 500) {
     // eslint-disable-next-line no-console
     console.error(err);
   }
