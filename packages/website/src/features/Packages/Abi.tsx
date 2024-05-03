@@ -34,6 +34,7 @@ export const Abi: FC<{
   onDrawerOpen,
 }) => {
   const params = useParams();
+
   const functions = useMemo<AbiFunction[]>(
     () =>
       _.sortBy(abi?.filter((a) => a.type === 'function') as AbiFunction[], [
