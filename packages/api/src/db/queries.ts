@@ -1,74 +1,81 @@
 import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
-import * as db from './db';
-import { NotFoundError } from './errors';
-import { parsePackageName, parsePage, parseTextQuery } from './helpers';
-import { useRedis } from './redis';
-import { ApiPackage, ApiPagination, IpfsUrl } from './types';
+import { NotFoundError, ServerError } from '../errors';
+import { parsePackageName, parsePage, parseTextQuery } from '../helpers';
+import { useRedis } from '../redis';
+import { ApiDocument, ApiNamespace, ApiPackage, ApiPagination } from '../types';
+import * as db from './keys';
+import { findPackageByTag, RedisDocument, transformPackage, transformPackageWithTag } from './transformers';
 
-import type { Address } from 'viem';
-export async function queryPackages(params: { query: string; page: any; per_page?: number }) {
+export async function queryPackages(params: { query: string; page: any; per_page?: number; includeNamespaces?: boolean }) {
   const page = parsePage(params.page);
   const redis = await useRedis();
   const per_page = params.per_page || 1000;
 
-  const results = await redis.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
+  const batch = redis.multi();
+
+  batch.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
     LIMIT: { from: (page - 1) * per_page, size: per_page },
   });
 
-  const data: ApiPackage[] = [];
+  if (params.includeNamespaces) {
+    batch.ft.aggregate(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
+      STEPS: [
+        {
+          type: AggregateSteps.GROUPBY,
+          properties: '@name',
+          REDUCE: {
+            type: AggregateGroupByReducers.COUNT,
+            AS: 'count',
+          },
+        },
+      ],
+    });
+  }
 
-  for (const { value } of results.documents) {
-    if (value.type === 'package') {
+  const [packagesResults, namespacesResults] = (await batch.exec()) as any[];
+
+  const data: ApiDocument[] = [];
+
+  if (!packagesResults) {
+    throw new ServerError('Could not connect to packages');
+  }
+
+  if (namespacesResults) {
+    for (const namespace of namespacesResults.results) {
       data.push({
-        type: 'package',
-        name: value.name as string,
-        version: value.version as string,
-        preset: value.preset as string,
-        chainId: Number.parseInt(value.chainId as string),
-        deployUrl: value.deployUrl as IpfsUrl,
-        metaUrl: value.metaUrl as IpfsUrl,
-        miscUrl: value.miscUrl as IpfsUrl,
-        timestamp: Number.parseInt(value.timestamp as string),
-        publisher: value.owner as Address,
-      } satisfies ApiPackage);
-    } else if (value.type === 'tag') {
-      const pkg = results.documents.find(
-        (item) =>
-          item.value.name === value.name &&
-          item.value.preset === value.preset &&
-          item.value.chainId === value.chainId &&
-          item.value.version === value.versionOfTag
-      );
+        type: 'namespace',
+        name: namespace.name,
+        count: namespace.count,
+      } satisfies ApiNamespace);
+    }
+  }
+
+  for (const { value } of packagesResults.documents) {
+    const item = value as unknown as RedisDocument;
+
+    if (item.type === 'package') {
+      data.push(transformPackage(item));
+    } else if (item.type === 'tag') {
+      const pkg = findPackageByTag(packagesResults.documents as any, item);
 
       if (!pkg) {
         // eslint-disable-next-line no-console
-        console.error(new Error(`Package not found for tag "${JSON.stringify(value)}"`));
+        console.error(new Error(`Package not found for tag "${JSON.stringify(item)}"`));
         continue;
       }
 
-      data.push({
-        type: 'package',
-        name: value.name as string,
-        version: value.tag as string,
-        preset: value.preset as string,
-        chainId: Number.parseInt(value.chainId as string),
-        deployUrl: pkg.value.deployUrl as IpfsUrl,
-        metaUrl: pkg.value.metaUrl as IpfsUrl,
-        miscUrl: pkg.value.miscUrl as IpfsUrl,
-        timestamp: Number.parseInt(value.timestamp as string),
-        publisher: pkg.value.owner as Address,
-      } satisfies ApiPackage);
+      data.push(transformPackageWithTag(pkg, item));
     }
   }
 
   return {
-    total: results.total,
+    total: packagesResults.total + (namespacesResults?.total || 0),
     page,
     per_page,
     data,
-  } satisfies ApiPagination & { data: ApiPackage[] };
+  } satisfies ApiPagination & { data: ApiDocument[] };
 }
 
 export async function findPackagesByName(params: { packageName: string; page: any }) {
@@ -97,6 +104,7 @@ export async function searchPackages(params: { query: any; chainIds?: number[]; 
   const result = await queryPackages({
     query: queries.join(',') || '*',
     page: params.page,
+    includeNamespaces: true,
   });
 
   // Sort results by showing first the more close ones to the expected one

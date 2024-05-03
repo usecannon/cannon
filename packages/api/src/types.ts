@@ -6,6 +6,12 @@ export interface ApiPagination {
   per_page: number;
 }
 
+export interface ApiNamespace {
+  type: 'namespace';
+  name: string;
+  count: number;
+}
+
 export interface ApiPackage {
   type: 'package';
   name: string;
@@ -18,3 +24,5 @@ export interface ApiPackage {
   miscUrl: IpfsUrl;
   timestamp: number;
 }
+
+export type ApiDocument = ApiNamespace | ApiPackage;

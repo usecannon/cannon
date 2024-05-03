@@ -1,5 +1,5 @@
 import express from 'express';
-import { getChaindIds } from '../queries';
+import { getChaindIds } from '../db/queries';
 
 const chains = express.Router();
 

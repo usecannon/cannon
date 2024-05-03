@@ -5,7 +5,7 @@
   "main": "dist/src/index.js",
   "private": true,
   "scripts": {
-    "db-prepare": "cp ../indexer/src/db.ts ./src/",
+    "db-prepare": "cp ../indexer/src/db.ts ./src/db/keys.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "dev": "NODE_ENV=development ts-node-dev src/index.ts"

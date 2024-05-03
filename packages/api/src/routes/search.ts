@@ -1,9 +1,9 @@
 import { PackageReference } from '@usecannon/builder';
 import express from 'express';
 import { isAddress, isHash } from 'viem';
+import { searchPackages } from '../db/queries';
 import { BadRequestError } from '../errors';
 import { parseChainIds } from '../helpers';
-import { searchPackages } from '../queries';
 
 const search = express.Router();
 

@@ -1,5 +1,5 @@
 import * as viem from 'viem';
-import { ApiError, BadRequestError } from './errors';
+import { BadRequestError, ServerError } from './errors';
 
 // TODO: replace this function by one exported by @usecannon/builder
 function _validatePackageName(n: string) {
@@ -72,7 +72,7 @@ export function parseAddresses(addresses: any) {
   const result = addresses.split(',');
 
   if (result.some((val) => !viem.isAddress(val))) {
-    throw new ApiError(`Invalid publishers "${addresses}"`);
+    throw new ServerError(`Invalid publishers "${addresses}"`);
   }
 
   return result as viem.Address[];
