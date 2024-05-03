@@ -77,7 +77,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   });
 
   const isMainnet = keyPrompt.value === 'ETH';
-  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
+  const [optimismRegistryConfig, mainnetRegistryConfig] = cliSettings.registries;
   const [mainnetRegistryProvider, optimismRegistryProvider] = await resolveRegistryProviders(cliSettings);
 
   const overrides: any = {};
