@@ -191,17 +191,26 @@ export async function findContractsByAddress(address: viem.Address) {
 
   const results = await batch.exec();
 
-  // const contractNameBatch = redis.multi();
+  const contractNameBatch = redis.multi();
 
-  // for (const [index, packageRef] of Object.entries(results)) {
-  //   if (!packageRef) continue;
-  //   const chainId = chainIds[index];
-  //   contractNameBatch.ft.search(db.RKEY_ABI_SEARCHABLE, `@address:{${contractAddress}} @chainId:{${chainId}}`);
-  // }
+  for (const [index, packageRef] of Object.entries(results)) {
+    if (!packageRef) continue;
+    const chainId = chainIds[index as any];
+    contractNameBatch.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, `@address:{${contractAddress}} @chainId:{${chainId}}`, {
+      STEPS: [
+        {
+          type: AggregateSteps.GROUPBY,
+          properties: '@contractName',
+          REDUCE: {
+            type: AggregateGroupByReducers.COUNT_DISTINCT,
+            property: '@contractName',
+          },
+        },
+      ],
+    });
+  }
 
-  // const contractNameResults = await contractNameBatch.exec();
-
-  // console.log(JSON.stringify(contractNameResults, null, 2));
+  const contractNameResults = (await contractNameBatch.exec()) as any;
 
   const data: ApiContract[] = [];
 
@@ -210,10 +219,12 @@ export async function findContractsByAddress(address: viem.Address) {
     const chainId = chainIds[index as any];
     const { name, preset, version } = new PackageReference(packageRef.toString());
 
+    const contractName = contractNameResults[index as any]?.results?.[0]?.contractName || 'Contract';
+
     data.push({
       type: 'contract',
       address: contractAddress,
-      contractName: 'Contract',
+      contractName,
       chainId,
       name,
       preset,
