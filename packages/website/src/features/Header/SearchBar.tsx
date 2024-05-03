@@ -49,7 +49,7 @@ const generateLink = (result: any) => {
     case 'namespace':
       return `/packages/${result.name}`;
     case 'contract':
-      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/`;
+      return `/packages/${result.name}/${result.version}/${result.chainId}-${result.preset}/interact/${result.name}/${result.contractName}/${result.address}`;
     case 'function':
     default:
       return '/'; // #selector-SELECTOR
@@ -343,10 +343,12 @@ export const SearchBar = () => {
                             />
                             <Box>
                               <Heading fontWeight={600} size="sm" mb={0.5}>
-                                CONTRACT NAME
+                                {result.contractName}
                               </Heading>
                               <Text fontSize="xs" color="gray.400">
-                                ADDRESS on <Chain id={result.chainId} />
+                                {result.address} in {result.name}:
+                                {result.version}@{result.preset} on{' '}
+                                <Chain id={result.chainId} />
                               </Text>
                             </Box>
                           </Flex>
