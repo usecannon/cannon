@@ -1,7 +1,7 @@
 'use client';
 
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import { Console } from '@/features/Console/Console';
+// import { Console } from '@/features/Console/Console';
 import { Footer } from '@/features/Footer/Footer';
 import { Header } from '@/features/Header/Header';
 import { Flex } from '@chakra-ui/react';
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Header />
             <Flex flex="1">{children}</Flex>
             <Footer />
-            <Console />
+            {/*<Console />*/}
           </Flex>
         </Providers>
         <Analytics />

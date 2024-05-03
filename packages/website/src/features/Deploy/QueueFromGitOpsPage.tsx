@@ -38,7 +38,7 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { ChainBuilderContext, DeploymentInfo } from '@usecannon/builder';
+import { ChainBuilderContext } from '@usecannon/builder';
 import _ from 'lodash';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -56,6 +56,8 @@ import { useEstimateGas, useSendTransaction, useWriteContract } from 'wagmi';
 import NoncePicker from './NoncePicker';
 import { TransactionDisplay } from './TransactionDisplay';
 import 'react-diff-view/style/index.css';
+
+import pkg from '../../../package.json';
 
 export default function QueueFromGitOpsPage() {
   return <QueueFromGitOps />;
@@ -237,13 +239,15 @@ function QueueFromGitOps() {
   const uploadToPublishIpfs = useCannonWriteDeployToIpfs(
     buildInfo.buildResult?.runtime,
     cannonDefInfo.def
-      ? ({
+      ? {
+          generator: `cannon website ${pkg.version}`,
+          timestamp: Math.floor(Date.now() / 1000),
           def: cannonDefInfo.def?.toJson(),
-          state: buildInfo.buildResult?.state,
-          options: prevCannonDeployInfo.pkg?.options,
+          state: buildInfo.buildResult?.state || {},
+          options: prevCannonDeployInfo.pkg?.options || {},
           meta: prevCannonDeployInfo.pkg?.meta,
-          miscUrl: prevCannonDeployInfo.pkg?.miscUrl,
-        } as DeploymentInfo)
+          miscUrl: prevCannonDeployInfo.pkg?.miscUrl || '',
+        }
       : undefined,
     prevCannonDeployInfo.metaUrl || undefined
   );
