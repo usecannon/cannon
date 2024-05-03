@@ -171,6 +171,7 @@ export const SearchBar = () => {
         border="1px solid"
         background={pathname.startsWith('/search') ? 'teal.900' : 'black'}
         borderColor={pathname.startsWith('/search') ? 'teal.700' : 'gray.500'}
+        transition="all 0.2s"
         _hover={{
           background: pathname.startsWith('/search') ? 'teal.900' : 'teal.900',
           borderColor: pathname.startsWith('/search') ? 'teal.700' : 'teal.500',
