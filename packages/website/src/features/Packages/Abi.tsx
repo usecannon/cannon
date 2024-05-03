@@ -83,8 +83,6 @@ export const Abi: FC<{
         const topOffset =
           section.getBoundingClientRect().top + window.scrollY - adjust;
 
-        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-
         const button = section.querySelector('button');
 
         if (button) {
@@ -242,6 +240,7 @@ export const Abi: FC<{
                 contractSource={contractSource}
                 onDrawerOpen={onDrawerOpen}
                 collapsible
+                showFunctionSelector={false}
               />
             ))}
           </Flex>
