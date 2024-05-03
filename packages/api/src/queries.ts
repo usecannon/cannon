@@ -2,7 +2,7 @@ import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as db from './db';
 import { NotFoundError } from './errors';
-import { parsePackageName, parsePage, parseQuery } from './helpers';
+import { parsePackageName, parsePage, parseTextQuery } from './helpers';
 import { useRedis } from './redis';
 import { ApiPackage, ApiPagination, IpfsUrl } from './types';
 
@@ -83,7 +83,7 @@ export async function findPackagesByName(params: { packageName: string; page: an
 }
 
 export async function searchPackages(params: { query: any; chainIds?: number[]; page: any }) {
-  const q = parseQuery(params.query);
+  const q = parseTextQuery(params.query);
 
   const queries: string[] = [];
 

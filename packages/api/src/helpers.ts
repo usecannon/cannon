@@ -50,18 +50,21 @@ export function parseChainIds(chainIds: any): number[] {
   return chainIds.split(',').map((chainId) => Number.parseInt(chainId, 10));
 }
 
-export function parseQuery(query: any): string {
+export function parseTextQuery(query: any): string {
   if (!query) return '';
 
   if (typeof query !== 'string' || query.length > 256) {
     throw new BadRequestError('Invalid query parameter');
   }
 
-  return query
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '') // only leave calid characters
-    .replace(/^[-]+|[-]+$/g, ''); // remove starting or ending '-'
+  return (
+    query
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      // only leave valid characters and remove starting or ending '-'s
+      .replace(/^[-]+|[^a-z0-9-]|[-]+$/g, '')
+  );
 }
 
 export function parseAddresses(addresses: any) {

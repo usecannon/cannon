@@ -40,11 +40,11 @@ search.get('/search', async (req, res) => {
 
   Object.assign(response, results);
 
-  // TODO: clean query
-  // TODO: namespaces
-  // TODO: fullPackageRef
-  // TODO: contractNames and fnNames and Selectors reg:abi
-  // TODO: address (look for package names) reg:addressToPackage
+  // TODO: fix "reya omnibus" should find "reya-omnibus" at least
+  // TODO: packageName, respond namespaces with amount of packages
+  // TODO: fullPackageRef respond packages
+  // TODO: contractName or address, responds contract (reg:addressToPackage, reg:abi?)
+  // TODO: fnNames or Selectors (reg: abi), responds with 'function'
   // TODO: tx (look for package names) reg:transactionToPackage
 
   res.json(response);
