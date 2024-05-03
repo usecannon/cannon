@@ -32,7 +32,7 @@ import {
 } from 'react';
 import { GoPackage } from 'react-icons/go';
 import { BsBoxes } from 'react-icons/bs';
-import { FaRegFileCode } from 'react-icons/fa';
+import { PiFileCode } from 'react-icons/pi';
 import { FaCode } from 'react-icons/fa6';
 import MultiRef from 'react-multi-ref';
 import scrollIntoView from 'scroll-into-view-if-needed';
@@ -338,7 +338,7 @@ export const SearchBar = () => {
                             alignItems="center"
                           >
                             <Icon
-                              as={FaRegFileCode}
+                              as={PiFileCode}
                               boxSize="8"
                               color="gray.300"
                             />
@@ -346,8 +346,14 @@ export const SearchBar = () => {
                               <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.contractName}
                               </Heading>
-                              <Text fontSize="xs" color="gray.400">
-                                {result.address} in {result.name}:
+                              <Text
+                                fontSize="xs"
+                                color="gray.400"
+                                as={Flex}
+                                gap={1.5}
+                              >
+                                {result.address.substring(0, 6)}...
+                                {result.address.slice(-4)} in {result.name}:
                                 {result.version}@{result.preset} on{' '}
                                 <Chain id={result.chainId} />
                               </Text>
@@ -373,8 +379,14 @@ export const SearchBar = () => {
                               <Heading fontWeight={600} size="sm" mb={0.5}>
                                 {result.contractName}.{result.functionName}
                               </Heading>
-                              <Text fontSize="xs" color="gray.400">
-                              {result.address} in {result.name}:
+                              <Text
+                                fontSize="xs"
+                                color="gray.400"
+                                as={Flex}
+                                gap={1.5}
+                              >
+                                {result.address.substring(0, 6)}...
+                                {result.address.slice(-4)} in {result.name}:
                                 {result.version}@{result.preset} on{' '}
                                 <Chain id={result.chainId} />
                               </Text>
