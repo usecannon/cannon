@@ -69,7 +69,7 @@ export const SearchBar = () => {
   const router = useRouter();
 
   const handleSearch = (value: string) => {
-    setSearchTerm(value);
+    setSearchTerm(value.trim());
   };
   const debouncedHandleSearch = debounce(handleSearch, 300);
 
