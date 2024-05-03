@@ -188,7 +188,7 @@ export const SearchBar = () => {
           icon={<SearchIcon color="gray.400" />}
         />
         <Text
-          pr={3}
+          pr={2}
           fontSize="sm"
           color="gray.500"
           display={['none', 'none', 'none', 'none', 'inline-block']}
