@@ -322,7 +322,6 @@ export const SearchBar = () => {
                       case 'contract':
                       case 'function':
                       case 'address':
-                        return <Box key={index}>coming soon</Box>;
                       default:
                         return null;
                     }
