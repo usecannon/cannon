@@ -1,4 +1,3 @@
-import { Package } from '@/types/graphql/graphql';
 import { FC } from 'react';
 import {
   Button,
@@ -12,12 +11,19 @@ import {
 import { ArrowUpDownIcon } from '@chakra-ui/icons';
 import { PackageCard } from '@/features/Search/PackageCard/PackageCard';
 import Chain from '@/features/Search/PackageCard/Chain';
+import { useQuery } from '@tanstack/react-query';
+import { getPackage } from '@/helpers/api';
 
 export const VersionSelect: FC<{
-  pkg: Package;
   currentVariant: any;
-}> = ({ pkg, currentVariant }) => {
+}> = ({ currentVariant }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // TODO: Handle pagination
+  const packagesQuery = useQuery({
+    queryKey: ['package', currentVariant?.tag?.id?.split(':')[0]],
+    queryFn: getPackage,
+  });
 
   return (
     <>
@@ -41,7 +47,7 @@ export const VersionSelect: FC<{
       <Modal isCentered isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent maxW="container.lg">
-          <PackageCard pkg={pkg} maxHeight={'75vh'} />
+          <PackageCard pkgs={packagesQuery?.data?.data} maxHeight={'75vh'} />
         </ModalContent>
       </Modal>
     </>

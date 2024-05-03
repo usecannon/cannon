@@ -125,16 +125,19 @@ describe('steps/contract.ts', () => {
     it('detects all usages', async () => {
       expect(
         action
-          .getInputs({
-            artifact: '<%= contracts.a %>',
-            abi: '<%= contracts.b %>',
-            from: '<%= contracts.c %>',
-            nonce: '<%= contracts.d %>',
-            value: '<%= contracts.e %>',
-            abiOf: ['<%= contracts.f %>', '<%= contracts.g %>'],
-            args: ['<%= contracts.h %>', '<%= contracts.i %>'],
-            salt: '<%= contracts.j %>',
-          })
+          .getInputs(
+            {
+              artifact: '<%= contracts.a %>',
+              abi: '<%= contracts.b %>',
+              from: '<%= contracts.c %>',
+              nonce: '<%= contracts.d %>',
+              value: '<%= contracts.e %>',
+              abiOf: ['<%= contracts.f %>', '<%= contracts.g %>'],
+              args: ['<%= contracts.h %>', '<%= contracts.i %>'],
+              salt: '<%= contracts.j %>',
+            },
+            []
+          )
           .accesses.sort()
       ).toEqual([
         'contracts.a',
@@ -155,6 +158,7 @@ describe('steps/contract.ts', () => {
     it('returns the contract that is outputted', () => {
       expect(action.getOutputs({ artifact: 'hello' }, { name: '', version: '', currentLabel: 'contract.Hello' })).toEqual([
         'contracts.Hello',
+        'Hello',
       ]);
     });
   });

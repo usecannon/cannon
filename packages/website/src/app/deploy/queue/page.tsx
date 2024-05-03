@@ -1,14 +1,6 @@
+import { QueuedTxns } from '@/features/Deploy/QueueDrawer';
+import { Box, Container, Heading } from '@chakra-ui/react';
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-
-const NoSSR = dynamic(
-  async () => {
-    return import('@/features/Deploy/QueueTransactionsPage');
-  },
-  {
-    ssr: false,
-  }
-);
 
 export const metadata: Metadata = {
   title: 'Cannon | Queue Transactions',
@@ -19,6 +11,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function QueueTransactions() {
-  return <NoSSR />;
-}
+const QueueTransactions = () => {
+  return (
+    <Container maxWidth="container.md" py={8}>
+      <Box mb={6}>
+        <Heading size="lg" mb={2}>
+          Queue Transactions
+        </Heading>
+      </Box>
+      <QueuedTxns />
+    </Container>
+  );
+};
+
+export default QueueTransactions;

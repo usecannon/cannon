@@ -408,7 +408,6 @@ export class OnChainRegistry extends CannonRegistry {
     }
 
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
-
     if (baseResolved) return baseResolved;
 
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
@@ -439,7 +438,7 @@ export class OnChainRegistry extends CannonRegistry {
     const { name, version, preset } = new PackageReference(packageOrServiceRef);
     const variant = `${chainId}-${preset}`;
 
-    const { result: url } = await this.provider.simulateContract({
+    const url = await this.provider.readContract({
       ...this.contract,
       functionName: 'getPackageMeta',
       args: [
@@ -573,35 +572,57 @@ export class OnChainRegistry extends CannonRegistry {
 
     const registerFee = await this.getRegisterFee();
 
-    const params = {
+    const setPackageOwnershipParams = {
       ...this.contract,
       functionName: 'setPackageOwnership',
       value: registerFee,
       args: [packageHash, owner],
       account: this.signer.wallet.account || this.signer.address,
+    };
+
+    const setAdditionalPublishersParams = {
+      ...this.contract,
+      functionName: 'setAdditionalPublishers',
+      // mainnet is empty, owner is set as publisher for optimism
+      args: [packageHash, [], [owner]],
+      account: this.signer.wallet.account || this.signer.address,
+    };
+
+    const txs: TxData[] = [setPackageOwnershipParams, setAdditionalPublishersParams];
+
+    const txData = prepareMulticall(txs);
+
+    const simulatedGas = await this.provider.estimateContractGas({
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
+      ...this.overrides,
+    });
+
+    const params = {
+      ...txData,
+      account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
     };
 
-    const simulatedGas = await this.estimateGasForSetPackageOwnership(packageName);
-    const userBalance = await this.provider.getBalance({ address: this.signer.address });
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
 
-    const cost = simulatedGas + registerFee;
+    await this._logEstimatedGas(params.gas);
 
-    if (cost > userBalance) {
-      throw new Error(
-        `Account "${this.signer.address}" does not have the required ${viem.formatEther(
-          cost
-        )} ETH for gas and registration fee`
-      );
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
+    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (receipt.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${receipt.transactionHash}`);
     }
 
-    const hash = await this.signer.wallet.writeContract(params as any);
-    const rx = await this.provider.waitForTransactionReceipt({ hash });
-
-    return rx.transactionHash;
+    return receipt.transactionHash;
   }
 
-  async setAdditionalPublisher(packageName: string, publishers: viem.Address[]) {
+  async setAdditionalPublishers(packageName: string, mainnetPublishers: viem.Address[], optimismPublishers: viem.Address[]) {
     if (!this.signer || !this.provider) {
       throw new Error('Missing signer for executing registry operations');
     }
@@ -611,7 +632,7 @@ export class OnChainRegistry extends CannonRegistry {
     const params = {
       ...this.contract,
       functionName: 'setAdditionalPublishers',
-      args: [packageHash, publishers],
+      args: [packageHash, mainnetPublishers, optimismPublishers],
       account: this.signer.wallet.account || this.signer.address,
       ...this.overrides,
     };
@@ -619,15 +640,25 @@ export class OnChainRegistry extends CannonRegistry {
     const simulatedGas = await this.provider.estimateContractGas(params as any);
     const userBalance = await this.provider.getBalance({ address: this.signer.address });
 
-    await this._logEstimatedGas(simulatedGas);
+    // increase the gas limit by 10% the estimated gas
+    params.gas = (simulatedGas * BigInt(10)) / BigInt(9);
+
+    await this._logEstimatedGas(params.gas);
 
     const cost = simulatedGas;
     if (cost > userBalance) {
       throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
     }
 
-    const hash = await this.signer.wallet.writeContract(params as any);
+    const tx = await this.provider.simulateContract(params);
+
+    const hash = await this.signer.wallet.writeContract(tx.request as any);
+
     const rx = await this.provider.waitForTransactionReceipt({ hash });
+
+    if (rx.status !== 'success') {
+      throw new Error(`Something went wrong. Transaction failed: ${rx.transactionHash}`);
+    }
 
     return rx.transactionHash;
   }

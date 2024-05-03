@@ -23,7 +23,15 @@ export const Abi: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractSource?: string;
-}> = ({ abi, contractSource, address, cannonOutputs, chainId }) => {
+  onDrawerOpen?: () => void;
+}> = ({
+  abi,
+  contractSource,
+  address,
+  cannonOutputs,
+  chainId,
+  onDrawerOpen,
+}) => {
   const functions = useMemo<AbiFunction[]>(
     () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
     [abi]
@@ -184,17 +192,28 @@ export const Abi: FC<{
             </Text>
           </Alert>
 
-          {functions?.map((f, index) => (
-            <Function
-              key={index}
-              f={f}
-              abi={abi as AbiType}
-              address={address}
-              cannonOutputs={cannonOutputs}
-              chainId={chainId}
-              contractSource={contractSource}
-            />
-          ))}
+          <Flex
+            direction="column"
+            px={4}
+            py={4}
+            borderBottom="1px solid"
+            borderColor="gray.700"
+            gap={4}
+          >
+            {functions?.map((f, index) => (
+              <Function
+                key={index}
+                f={f}
+                abi={abi as AbiType}
+                address={address}
+                cannonOutputs={cannonOutputs}
+                chainId={chainId}
+                contractSource={contractSource}
+                onDrawerOpen={onDrawerOpen}
+                collapsible
+              />
+            ))}
+          </Flex>
         </Box>
       </Flex>
     </Flex>

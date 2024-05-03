@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: CannonRegistry
-    network: mainnet
+    network: optimism
     source:
-      address: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba'
       abi: CannonRegistry
-      startBlock: 16512800
+      address: "0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba"
+      startBlock: 106756348
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -21,6 +21,14 @@ dataSources:
         - name: CannonRegistry
           file: ./deployments/Implementation.json
       eventHandlers:
-        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed bytes32,string,string,address)
+        - event: PackagePublish(indexed bytes32,indexed bytes32,indexed
+            bytes32,string,string,address)
           handler: handlePublish
+        - event: PackagePublishWithFee(indexed bytes32,indexed bytes32,indexed
+            bytes32,string,string,address,uint256)
+          handler: handlePublishWithFee
+        - event: TagPublish(indexed bytes32,indexed bytes32,indexed bytes32,bytes32)
+          handler: handlePublishTag
+        - event: PackageUnpublish(indexed bytes32,indexed bytes32,indexed bytes32,address)
+          handler: handleUnpublish
       file: ./src/mapping.ts

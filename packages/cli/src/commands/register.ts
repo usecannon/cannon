@@ -3,11 +3,12 @@ import { blueBright, gray, green } from 'chalk';
 import _ from 'lodash';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { DEFAULT_REGISTRY_CONFIG } from '../constants';
-import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
+
 import { CliSettings } from '../settings';
+import { DEFAULT_REGISTRY_CONFIG } from '../constants';
 import { resolveRegistryProviders } from '../util/provider';
-import { waitForEvent } from '../util/register';
+import { isPackageRegistered, waitForEvent } from '../util/register';
+import { checkAndNormalizePrivateKey, isPrivateKey, normalizePrivateKey } from '../helpers';
 
 interface Params {
   cliSettings: CliSettings;
@@ -21,7 +22,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     const keyPrompt = await prompts({
       type: 'text',
       name: 'value',
-      message: 'Enter the private key for the signer that will publish packages',
+      message: 'Enter the private key for the signer that will register packages',
       style: 'password',
       validate: (key) => isPrivateKey(normalizePrivateKey(key)) || 'Private key is not valid',
     });
@@ -34,13 +35,15 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
   }
 
   const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
-  const mainRegistryConfig = isDefaultSettings ? cliSettings.registries[1] : cliSettings.registries[0];
+  if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
-  const [mainRegistryProvider] = await resolveRegistryProviders({
-    ...cliSettings,
-    // if the user has not set the registry settings, use mainnet as the default registry
-    registries: isDefaultSettings ? cliSettings.registries.reverse() : cliSettings.registries,
-  });
+  const [mainnetRegistryConfig, optimismRegistryConfig] = cliSettings.registries;
+  const [mainnetRegistryProvider] = await resolveRegistryProviders(cliSettings);
+
+  const [mainnet] = cliSettings.registries;
+  const isRegistered = await isPackageRegistered([mainnetRegistryProvider], packageRef, mainnet.address);
+
+  if (isRegistered) throw new Error(`The package "${new PackageReference(packageRef).name}" is already registered.`);
 
   const overrides: any = {};
 
@@ -56,27 +59,27 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     overrides.value = options.value;
   }
 
-  const mainRegistry = new OnChainRegistry({
-    signer: mainRegistryProvider.signers[0],
-    provider: mainRegistryProvider.provider,
-    address: mainRegistryConfig.address,
+  const mainnetRegistry = new OnChainRegistry({
+    signer: mainnetRegistryProvider.signers[0],
+    provider: mainnetRegistryProvider.provider,
+    address: mainnetRegistryConfig.address,
     overrides,
   });
 
-  const userAddress = mainRegistryProvider.signers[0].address;
+  const userAddress = mainnetRegistryProvider.signers[0].address;
   const packageName = new PackageReference(packageRef).name;
 
-  const userBalance = await mainRegistryProvider.provider.getBalance({ address: userAddress });
+  const userBalance = await mainnetRegistryProvider.provider.getBalance({ address: userAddress });
 
   if (userBalance === BigInt(0)) {
     throw new Error(`Account "${userAddress}" does not have any funds to pay for gas.`);
   }
 
-  const registerFee = await mainRegistry.getRegisterFee();
+  const registerFee = await mainnetRegistry.getRegisterFee();
 
   // Note: for some reason, estimate gas is not accurate
   // Note: if the user does not have enough gas, the estimateGasForSetPackageOwnership will throw an error
-  const estimateGas = await mainRegistry.estimateGasForSetPackageOwnership(packageName);
+  const estimateGas = await mainnetRegistry.estimateGasForSetPackageOwnership(packageName);
 
   const cost = estimateGas + registerFee;
 
@@ -102,10 +105,10 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
 
   console.log('Submitting transaction...');
 
-  if (isDefaultSettings) {
+  try {
     const [hash] = await Promise.all([
       (async () => {
-        const hash = await mainRegistry.setPackageOwnership(packageName);
+        const hash = await mainnetRegistry.setPackageOwnership(packageName);
 
         console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
         console.log('');
@@ -118,10 +121,18 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
       })(),
       (async () => {
         // this should always resolve after the first promise but we want to make sure it runs at the same time
-        await waitForEvent({
-          eventName: 'PackageOwnerChanged',
-          abi: mainRegistry.contract.abi,
-        });
+        await Promise.all([
+          waitForEvent({
+            eventName: 'PackageOwnerChanged',
+            abi: mainnetRegistry.contract.abi,
+            chainId: optimismRegistryConfig.chainId!,
+          }),
+          waitForEvent({
+            eventName: 'PackagePublishersChanged',
+            abi: mainnetRegistry.contract.abi,
+            chainId: optimismRegistryConfig.chainId!,
+          }),
+        ]);
 
         console.log(green('Success!'));
         console.log('');
@@ -137,9 +148,7 @@ export async function register({ cliSettings, options, packageRef, fromPublish }
     ]);
 
     return hash;
-  } else {
-    const hash = await mainRegistry.setPackageOwnership(packageName);
-    console.log(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
-    return hash;
+  } catch (e) {
+    throw new Error(`Failed to register package: ${(e as Error).message}`);
   }
 }

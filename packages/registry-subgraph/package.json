@@ -5,14 +5,14 @@
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry-mainnet",
-    "deploy-optimism": "graph deploy --node https://api.thegraph.com/deploy/ noahlitvin/cannon-registry-optimism --network optimism",
+    "deploy": "graph deploy --studio --access-token XXX cannon-registry-mainnet",
+    "deploy-optimism": "graph deploy --studio --network optimism --access-token XXX cannon-registry-optimism ",
     "create-local": "graph create --node http://localhost:8020/ noahlitvin/cannon-registry-mainnet",
     "remove-local": "graph remove --node http://localhost:8020/ noahlitvin/cannon-registry-mainnet",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 noahlitvin/cannon-registry-mainnet"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.51.0",
-    "@graphprotocol/graph-ts": "0.31.0"
+    "@graphprotocol/graph-cli": "0.71.0",
+    "@graphprotocol/graph-ts": "0.35.1"
   }
 }

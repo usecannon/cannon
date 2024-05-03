@@ -14,6 +14,8 @@ import {
   Heading,
   Link,
   Text,
+  useToast,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { ChainArtifacts } from '@usecannon/builder';
@@ -24,6 +26,8 @@ import {
   toFunctionSelector,
   toFunctionSignature,
   zeroAddress,
+  encodeFunctionData,
+  TransactionRequestBase,
 } from 'viem';
 import {
   useAccount,
@@ -32,6 +36,8 @@ import {
   useWalletClient,
 } from 'wagmi';
 import { usePathname } from 'next/navigation';
+import { useQueueTxsStore, useStore } from '@/helpers/store';
+import { HiArrowNarrowRight, HiArrowNarrowDown } from 'react-icons/hi';
 
 export const Function: FC<{
   f: AbiFunction;
@@ -40,12 +46,32 @@ export const Function: FC<{
   cannonOutputs: ChainArtifacts;
   chainId: number;
   contractSource?: string;
-}> = ({ f, abi /*, cannonOutputs */, address, chainId, contractSource }) => {
+  onDrawerOpen?: () => void;
+  collapsible?: boolean;
+}> = ({
+  f,
+  abi /*, cannonOutputs */,
+  address,
+  chainId,
+  contractSource,
+  onDrawerOpen,
+  collapsible,
+}) => {
+  const { isOpen, onToggle } = useDisclosure();
+  const currentSafe = useStore((s) => s.currentSafe);
   const pathName = usePathname();
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const [error, setError] = useState<any>(null);
   const [params, setParams] = useState<any[] | any>([]);
+  const toast = useToast();
+
+  const {
+    queuedIdentifiableTxns,
+    setQueuedIdentifiableTxns,
+    lastQueuedTxnsId,
+    setLastQueuedTxnsId,
+  } = useQueueTxsStore((s) => s);
 
   const { isConnected, address: from, chain: connectedChain } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -152,8 +178,87 @@ export const Function: FC<{
     }
   };
 
-  return (
-    <Box p={6} borderTop="1px solid" borderColor="gray.600">
+  const handleQueueTransaction = () => {
+    if (!currentSafe) {
+      toast({
+        title: 'Please select a Safe first',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      onDrawerOpen?.();
+      return;
+    }
+    // Prevent queuing transactions across different chains
+    if (currentSafe?.chainId !== chainId) {
+      toast({
+        title: `Cannot queue transactions across different chains, current Safe is on chain ${currentSafe?.chainId} and function is on chain ${chainId}`,
+        status: 'error',
+        duration: 10000,
+        isClosable: true,
+      });
+      onDrawerOpen?.();
+      return;
+    }
+
+    let _txn: Omit<TransactionRequestBase, 'from'> | null = null;
+
+    if (f.inputs.length === 0) {
+      _txn = {
+        to: address,
+        data: toFunctionSelector(f),
+      };
+    } else {
+      try {
+        _txn = {
+          to: address,
+          data: encodeFunctionData({
+            abi: [f],
+            args: params,
+          }),
+        };
+      } catch (err: any) {
+        setError(err.message);
+        return;
+      }
+    }
+
+    const regex = /\/([^/]+)\.sol$/;
+    const contractName = contractSource?.match(regex)?.[1] || 'Unknown';
+
+    setQueuedIdentifiableTxns([
+      ...queuedIdentifiableTxns,
+      {
+        txn: _txn,
+        id: `${lastQueuedTxnsId + 1}`,
+        contractName,
+        target: address,
+        fn: f,
+        params,
+        chainId,
+      },
+    ]);
+    setLastQueuedTxnsId(lastQueuedTxnsId + 1);
+
+    toast({
+      title: 'Transaction queued',
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+    onDrawerOpen?.();
+  };
+
+  const renderFunctionContent = () => (
+    <Box
+      p={6}
+      borderTop={collapsible ? 'none' : '1px solid'}
+      borderBottom={collapsible ? '1px solid' : 'none'}
+      borderBottomRadius={collapsible ? 'md' : 'none'}
+      borderRight={collapsible ? '1px solid' : 'none'}
+      borderLeft={collapsible ? '1px solid' : 'none'}
+      borderColor="gray.600"
+    >
       <span id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
@@ -269,6 +374,18 @@ export const Function: FC<{
                 >
                   Submit using wallet {!simulated && statusIcon}
                 </Button>
+                <Button
+                  isLoading={loading}
+                  colorScheme="teal"
+                  bg="teal.900"
+                  _hover={{ bg: 'teal.800' }}
+                  variant="outline"
+                  size="xs"
+                  mr={3}
+                  onClick={handleQueueTransaction}
+                >
+                  Stage to Safe
+                </Button>
               </>
             )}
 
@@ -342,5 +459,71 @@ export const Function: FC<{
         </Flex>
       </Box>
     </Box>
+  );
+
+  return (
+    <>
+      {collapsible ? (
+        <Flex flexDirection="column">
+          <Flex
+            flexDirection="row"
+            px="2"
+            py="2"
+            alignItems="center"
+            mb="1.5"
+            justifyContent="space-between"
+            border="1px solid"
+            borderColor="gray.600"
+            borderTopRadius={'md'}
+            borderBottomRadius={isOpen ? 'none' : 'md'}
+          >
+            {f.name && (
+              <Heading
+                size="sm"
+                fontFamily="mono"
+                fontWeight="semibold"
+                mb={0}
+                display="flex"
+                alignItems="center"
+                gap={2}
+              >
+                {toFunctionSignature(f)}
+                <Link
+                  color="gray.300"
+                  ml={1}
+                  textDecoration="none"
+                  _hover={{ textDecoration: 'underline' }}
+                  href={`#${anchor}`}
+                >
+                  #
+                </Link>
+                {!!contractSource && (
+                  <Link
+                    color="gray.300"
+                    ml={1}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'underline' }}
+                    href={getCodeUrl(f.name)}
+                  >
+                    <FaCode color="#fff" />
+                  </Link>
+                )}
+              </Heading>
+            )}
+            <Button
+              onClick={onToggle}
+              variant="outline"
+              colorScheme="teal"
+              size="xs"
+            >
+              {isOpen ? <HiArrowNarrowDown /> : <HiArrowNarrowRight />}
+            </Button>
+          </Flex>
+          {isOpen && renderFunctionContent()}
+        </Flex>
+      ) : (
+        renderFunctionContent()
+      )}
+    </>
   );
 };

@@ -205,8 +205,11 @@
     }
   ],
   "constructorArgs": [],
-  "deployTxnHash": "",
+  "linkedLibraries": {},
+  "deployTxnHash": "0x59bbc4e7046fff40b600a30a39b9b875d75dd66fe35d9a2725f0fab2a36fce17",
   "sourceName": "contracts/OwnedUpgradable.sol",
   "contractName": "OwnedUpgradable",
-  "deployedOn": "contract.InitialImpl"
+  "deployedOn": "contract.InitialImpl",
+  "gasUsed": 949717,
+  "gasCost": "2819405233"
 }

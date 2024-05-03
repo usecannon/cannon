@@ -17,6 +17,8 @@ import {
   PackageState,
 } from '../types';
 
+import pkg from '../../package.json';
+
 const debug = Debug('cannon:builder:clone');
 
 /**
@@ -74,24 +76,30 @@ const cloneSpec = {
     return config;
   },
 
-  getInputs(config: Config) {
+  getInputs(config: Config, possibleFields: string[]) {
     let accesses = computeTemplateAccesses(config.source);
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset));
-    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.sourcePreset, possibleFields));
+    accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(config.targetPreset, possibleFields));
 
     if (config.options) {
-      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.options,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a))));
+      _.forEach(
+        config.tags,
+        (a) => (accesses = mergeTemplateAccesses(accesses, computeTemplateAccesses(a, possibleFields)))
+      );
     }
 
     return accesses;
   },
 
   getOutputs(_: Config, packageState: PackageState) {
-    return [`imports.${packageState.currentLabel.split('.')[1]}`];
+    return [`imports.${packageState.currentLabel.split('.')[1]}`, `${packageState.currentLabel.split('.')[1]}`];
   },
 
   async exec(
@@ -205,7 +213,7 @@ const cloneSpec = {
     // need to save state to IPFS now so we can access it in future builds
     const newSubDeployUrl = await runtime.putDeploy({
       // TODO: add cannon version number?
-      generator: 'cannon clone',
+      generator: `cannon clone ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
       def: def.toJson(),
       miscUrl: newMiscUrl || '',
