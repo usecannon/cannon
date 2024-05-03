@@ -451,8 +451,8 @@ const commandsConfig = {
         description: '(DEPRECATED) Includes provisioned packages when publishing to the registry',
       },
       {
-        flags: '--exclude-provisioned',
-        description: 'Excludes provisioned packages when publishing to the registry',
+        flags: '--exclude-cloned',
+        description: 'Excludes cloned packages when publishing to the registry',
       },
       {
         flags: '--skip-confirm',
