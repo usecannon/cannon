@@ -4,6 +4,7 @@ import { isAddress, isHash } from 'viem';
 import { searchPackages } from '../db/queries';
 import { BadRequestError } from '../errors';
 import { parseChainIds } from '../helpers';
+import { ApiDocument, ApiDocumentType } from '../types';
 
 const search = express.Router();
 
@@ -14,36 +15,36 @@ search.get('/search', async (req, res) => {
     throw new BadRequestError('Invalid "query" param');
   }
 
+  const { query = '' } = req.query;
+  const types = (typeof req.query.types === 'string' ? req.query.types.split(',') : []) as ApiDocumentType[];
+
   const response = {
     status: 200,
     query: req.query.query,
-    isAddress: false,
-    isTx: false,
-    isPackage: false,
+    isAddress: isAddress(query),
+    isTx: isHash(query),
+    isPackage: PackageReference.isValid(query),
+    total: 0,
+    data: [] as ApiDocument[],
   };
 
-  if (req.query.query) {
-    if (isAddress(req.query.query)) {
-      response.isAddress = true;
-    } else if (isHash(req.query.query)) {
-      response.isTx = true;
-    } else if (PackageReference.isValid(req.query.query)) {
-      response.isPackage = true;
-    }
+  if (response.isAddress) {
+    // empty
+  } else if (response.isTx) {
+    // empty
+  } else {
+    const result = await searchPackages({
+      query,
+      chainIds,
+      includeNamespaces: !types.length || types.includes('namespace'),
+    });
+
+    response.total = result.total;
+    response.data = result.data;
   }
 
-  const results = await searchPackages({
-    query: req.query.query,
-    page: req.query.page,
-    chainIds,
-  });
-
-  Object.assign(response, results);
-
-  // TODO: fix "reya omnibus" should find "reya-omnibus" at least
-  // TODO: packageName, respond namespaces with amount of packages
-  // TODO: fullPackageRef respond packages
   // TODO: contractName or address, responds contract (reg:addressToPackage, reg:abi?)
+  // TODO: fullPackageRef respond packages
   // TODO: fnNames or Selectors (reg: abi), responds with 'function'
   // TODO: tx (look for package names) reg:transactionToPackage
 

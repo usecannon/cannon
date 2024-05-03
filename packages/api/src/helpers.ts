@@ -29,16 +29,6 @@ export function parsePackageName(packageName: string) {
   }
 }
 
-export function parsePage(page: any) {
-  const parsed = Number.parseInt(page || '1', 10);
-
-  if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new BadRequestError('Invalid page number');
-  }
-
-  return parsed;
-}
-
 const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
 export function parseChainIds(chainIds: any): number[] {
   if (!chainIds) return [];

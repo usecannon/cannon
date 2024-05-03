@@ -1,22 +1,23 @@
 import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import { NotFoundError, ServerError } from '../errors';
-import { parsePackageName, parsePage, parseTextQuery } from '../helpers';
+import { parsePackageName, parseTextQuery } from '../helpers';
 import { useRedis } from '../redis';
-import { ApiDocument, ApiNamespace, ApiPackage, ApiPagination } from '../types';
+import { ApiDocument, ApiNamespace } from '../types';
 import * as db from './keys';
 import { findPackageByTag, RedisDocument, transformPackage, transformPackageWithTag } from './transformers';
 
-export async function queryPackages(params: { query: string; page: any; per_page?: number; includeNamespaces?: boolean }) {
-  const page = parsePage(params.page);
-  const redis = await useRedis();
-  const per_page = params.per_page || 1000;
+import type { Address } from 'viem';
 
+const PER_PAGE = 500;
+
+export async function queryPackages(params: { query: string; includeNamespaces?: boolean }) {
+  const redis = await useRedis();
   const batch = redis.multi();
 
   batch.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
-    LIMIT: { from: (page - 1) * per_page, size: per_page },
+    LIMIT: { from: 0, size: PER_PAGE },
   });
 
   if (params.includeNamespaces) {
@@ -72,15 +73,13 @@ export async function queryPackages(params: { query: string; page: any; per_page
 
   return {
     total: packagesResults.total + (namespacesResults?.total || 0),
-    page,
-    per_page,
     data,
-  } satisfies ApiPagination & { data: ApiDocument[] };
+  } satisfies { total: number; data: ApiDocument[] };
 }
 
-export async function findPackagesByName(params: { packageName: string; page: any }) {
+export async function findPackagesByName(params: { packageName: string }) {
   const packageName = parsePackageName(params.packageName);
-  const results = await queryPackages({ query: `@exactName:{${packageName}}`, page: params.page });
+  const results = await queryPackages({ query: `@exactName:{${packageName}}` });
 
   if (!results.total) {
     throw new NotFoundError(`Package "${packageName}" not found`);
@@ -89,7 +88,7 @@ export async function findPackagesByName(params: { packageName: string; page: an
   return results;
 }
 
-export async function searchPackages(params: { query: any; chainIds?: number[]; page: any }) {
+export async function searchPackages(params: { query: any; chainIds?: number[]; includeNamespaces: boolean }) {
   const q = parseTextQuery(params.query);
 
   const queries: string[] = [];
@@ -103,8 +102,7 @@ export async function searchPackages(params: { query: any; chainIds?: number[]; 
 
   const result = await queryPackages({
     query: queries.join(',') || '*',
-    page: params.page,
-    includeNamespaces: true,
+    includeNamespaces: params.includeNamespaces,
   });
 
   // Sort results by showing first the more close ones to the expected one
@@ -136,4 +134,8 @@ export async function getChaindIds() {
     total: results.total as number,
     data: results.results.map((result: any) => result.chainId).filter(Boolean) as number[],
   };
+}
+
+export async function searchByAddress(address: Address) {
+  // empty
 }
