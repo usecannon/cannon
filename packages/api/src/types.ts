@@ -1,3 +1,5 @@
+import type { Address } from 'viem';
+
 export type IpfsUrl = `ipfs://${string}`;
 
 export interface ApiNamespace {
@@ -17,6 +19,16 @@ export interface ApiPackage {
   metaUrl: IpfsUrl;
   miscUrl: IpfsUrl;
   timestamp: number;
+}
+
+export interface ApiContract {
+  type: 'contract';
+  address: Address;
+  contractName: string;
+  name: string;
+  chainId: number;
+  preset: string;
+  version: string;
 }
 
 type ExtractType<T> = T extends { type: infer U } ? U : never;

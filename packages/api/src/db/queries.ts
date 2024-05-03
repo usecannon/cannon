@@ -1,23 +1,23 @@
+import { PackageReference } from '@usecannon/builder';
 import { distance } from 'fastest-levenshtein';
 import { AggregateGroupByReducers, AggregateSteps } from 'redis';
+import * as viem from 'viem';
 import { NotFoundError, ServerError } from '../errors';
 import { parsePackageName, parseTextQuery } from '../helpers';
 import { useRedis } from '../redis';
-import { ApiDocument, ApiNamespace } from '../types';
+import { ApiContract, ApiDocument, ApiNamespace } from '../types';
 import * as db from './keys';
 import { findPackageByTag, RedisDocument, transformPackage, transformPackageWithTag } from './transformers';
 
-import type { Address } from 'viem';
+const DEFAULT_LIMIT = 500;
 
-const PER_PAGE = 500;
-
-export async function queryPackages(params: { query: string; includeNamespaces?: boolean }) {
+export async function queryPackages(params: { query: string; limit?: number; includeNamespaces?: boolean }) {
   const redis = await useRedis();
   const batch = redis.multi();
 
   batch.ft.search(db.RKEY_PACKAGE_SEARCHABLE, params.query, {
     SORTBY: { BY: 'timestamp', DIRECTION: 'DESC' },
-    LIMIT: { from: 0, size: PER_PAGE },
+    LIMIT: { from: 0, size: params.limit || DEFAULT_LIMIT },
   });
 
   if (params.includeNamespaces) {
@@ -37,8 +37,6 @@ export async function queryPackages(params: { query: string; includeNamespaces?:
 
   const [packagesResults, namespacesResults] = (await batch.exec()) as any[];
 
-  console.log(JSON.stringify(packagesResults, null, 2));
-
   const data: ApiDocument[] = [];
 
   if (!packagesResults) {
@@ -47,6 +45,8 @@ export async function queryPackages(params: { query: string; includeNamespaces?:
 
   if (namespacesResults) {
     for (const namespace of namespacesResults.results) {
+      if (!namespace.name) continue;
+
       data.push({
         type: 'namespace',
         name: namespace.name,
@@ -76,7 +76,10 @@ export async function queryPackages(params: { query: string; includeNamespaces?:
   return {
     total: packagesResults.total + (namespacesResults?.total || 0),
     data,
-  } satisfies { total: number; data: ApiDocument[] };
+  } satisfies {
+    total: number;
+    data: ApiDocument[];
+  };
 }
 
 export async function findPackagesByName(params: { packageName: string }) {
@@ -90,7 +93,12 @@ export async function findPackagesByName(params: { packageName: string }) {
   return results;
 }
 
-export async function searchPackages(params: { query: any; chainIds?: number[]; includeNamespaces: boolean }) {
+export async function searchPackages(params: {
+  query: any;
+  limit?: number;
+  chainIds?: number[];
+  includeNamespaces: boolean;
+}) {
   const q = parseTextQuery(params.query);
 
   const queries: string[] = [];
@@ -104,6 +112,7 @@ export async function searchPackages(params: { query: any; chainIds?: number[]; 
 
   const result = await queryPackages({
     query: queries.join(',') || '*',
+    limit: params.limit,
     includeNamespaces: params.includeNamespaces,
   });
 
@@ -138,6 +147,68 @@ export async function getChaindIds() {
   };
 }
 
-export async function searchByAddress(address: Address) {
-  // empty
+export async function searchByAddress(address: viem.Address) {
+  const redis = await useRedis();
+  const contractAddress = viem.getAddress(address);
+
+  const chainsResults = (await redis.ft.aggregate(db.RKEY_PACKAGE_SEARCHABLE, '*', {
+    STEPS: [
+      {
+        type: AggregateSteps.GROUPBY,
+        properties: '@chainId',
+        REDUCE: {
+          type: AggregateGroupByReducers.COUNT_DISTINCT,
+          property: '@chainId',
+        },
+      },
+    ],
+  })) as any;
+
+  const chainIds = chainsResults.results.map((r: any) => r.chainId as string).filter(Boolean);
+
+  const batch = redis.multi();
+
+  for (const chainId of chainIds) {
+    batch.hGet(`${db.RKEY_ADDRESS_TO_PACKAGE}:${chainId}`, contractAddress.toLowerCase());
+  }
+
+  const results = await batch.exec();
+
+  // const contractNameBatch = redis.multi();
+
+  // for (const [index, packageRef] of Object.entries(results)) {
+  //   if (!packageRef) continue;
+  //   const chainId = chainIds[index];
+  //   contractNameBatch.ft.search(db.RKEY_ABI_SEARCHABLE, `@address:{${contractAddress}} @chainId:{${chainId}}`);
+  // }
+
+  // const contractNameResults = await contractNameBatch.exec();
+
+  // console.log(JSON.stringify(contractNameResults, null, 2));
+
+  const data: ApiContract[] = [];
+
+  for (const [index, packageRef] of Object.entries(results)) {
+    if (!packageRef) continue;
+    const chainId = chainIds[index];
+    const { name, preset, version } = new PackageReference(packageRef.toString());
+
+    data.push({
+      type: 'contract',
+      address: contractAddress,
+      contractName: 'Contract',
+      chainId,
+      name,
+      preset,
+      version,
+    });
+  }
+
+  return {
+    total: 0,
+    data,
+  } satisfies {
+    total: number;
+    data: ApiContract[];
+  };
 }

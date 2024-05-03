@@ -1,7 +1,7 @@
 import { PackageReference } from '@usecannon/builder';
 import express from 'express';
-import { isAddress, isHash } from 'viem';
-import { searchPackages } from '../db/queries';
+import { Address, isAddress, isHash } from 'viem';
+import { searchByAddress, searchPackages } from '../db/queries';
 import { BadRequestError } from '../errors';
 import { parseChainIds } from '../helpers';
 import { ApiDocument, ApiDocumentType } from '../types';
@@ -20,7 +20,7 @@ search.get('/search', async (req, res) => {
 
   const response = {
     status: 200,
-    query: req.query.query,
+    query,
     isAddress: isAddress(query),
     isTx: isHash(query),
     isPackage: PackageReference.isValid(query),
@@ -29,18 +29,19 @@ search.get('/search', async (req, res) => {
   };
 
   if (response.isAddress) {
-    // empty
+    const result = await searchByAddress(query as Address);
+    Object.assign(response, result);
   } else if (response.isTx) {
     // empty
   } else {
     const result = await searchPackages({
       query,
       chainIds,
+      limit: types.length ? 500 : 20,
       includeNamespaces: !types.length || types.includes('namespace'),
     });
 
-    response.total = result.total;
-    response.data = result.data;
+    Object.assign(response, result);
   }
 
   // TODO: contractName or address, responds contract (reg:addressToPackage, reg:abi?)
