@@ -28,14 +28,18 @@ export interface RedisTag {
 export type RedisDocument = RedisPackage | RedisTag;
 
 export function findPackageByTag(documents: { value: RedisDocument }[], tag: RedisTag) {
-  return documents.find(
+  const result = documents.find(
     (item) =>
       item.value.type === 'package' &&
       item.value.name === tag.name &&
       item.value.preset === tag.preset &&
       item.value.chainId === tag.chainId &&
       item.value.version === tag.versionOfTag
-  ) as RedisPackage | undefined;
+  );
+
+  if (!result) return undefined;
+
+  return result.value as RedisPackage;
 }
 
 export function transformPackage(value: RedisPackage) {

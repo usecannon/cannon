@@ -37,6 +37,8 @@ export async function queryPackages(params: { query: string; includeNamespaces?:
 
   const [packagesResults, namespacesResults] = (await batch.exec()) as any[];
 
+  console.log(JSON.stringify(packagesResults, null, 2));
+
   const data: ApiDocument[] = [];
 
   if (!packagesResults) {
