@@ -39,7 +39,7 @@ import Chain from '../Search/PackageCard/Chain';
 // Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
 
 const PLACEHOLDER =
-  'Search for packages, contracts, functions, an addresses...';
+  'Search for packages, contracts, functions, and addresses...';
 
 const generateLink = (result: any) => {
   switch (result.type) {
