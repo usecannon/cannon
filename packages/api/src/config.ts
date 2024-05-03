@@ -14,5 +14,6 @@ export const config = cleanEnv(process.env, {
   PORT: int({ default: 8080 }),
   REDIS_URL: str({ devDefault: 'redis://localhost:6379' }),
   NODE_ENV: str({ choices: ['development', 'test', 'production', 'staging'], default: 'production' }),
-  METRICS_PATH: str({ devDefault: 'show' }),
+  METRICS_USER: str({ devDefault: 'admin' }),
+  METRICS_PASSWORD: str({ devDefault: 'admin' }),
 });

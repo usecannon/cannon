@@ -1,5 +1,6 @@
 import * as viem from 'viem';
-import { ApiError, BadRequestError } from './errors';
+import { RedisPackage, RedisTag } from './db/transformers';
+import { BadRequestError, ServerError } from './errors';
 
 // TODO: replace this function by one exported by @usecannon/builder
 function _validatePackageName(n: string) {
@@ -29,14 +30,9 @@ export function parsePackageName(packageName: string) {
   }
 }
 
-export function parsePage(page: any) {
-  const parsed = Number.parseInt(page || '1', 10);
-
-  if (!Number.isSafeInteger(parsed) || parsed < 1) {
-    throw new BadRequestError('Invalid page number');
-  }
-
-  return parsed;
+const packageRefRegex = /^[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9]:[^@]+(?:@[^\s]+)?$/;
+export function isPackageRef(packageName: string) {
+  return packageRefRegex.test(packageName);
 }
 
 const chainIdListRegex = /^[0-9][0-9,]*(?<!,)$/;
@@ -50,15 +46,21 @@ export function parseChainIds(chainIds: any): number[] {
   return chainIds.split(',').map((chainId) => Number.parseInt(chainId, 10));
 }
 
-const queryRegex = /^[a-zA-Z0-9]+[a-zA-Z0-9-]*(?<!-)$/;
-export function parseQuery(query: any): string {
+export function parseTextQuery(query: any): string {
   if (!query) return '';
 
-  if (typeof query !== 'string' || !queryRegex.test(query)) {
+  if (typeof query !== 'string' || query.length > 256) {
     throw new BadRequestError('Invalid query parameter');
   }
 
-  return query.replace(/-/g, '%-%');
+  return (
+    query
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      // only leave valid characters and remove starting or ending '-'s
+      .replace(/^[-]+|[^a-z0-9-]|[-]+$/g, '')
+  );
 }
 
 export function parseAddresses(addresses: any) {
@@ -66,8 +68,12 @@ export function parseAddresses(addresses: any) {
   const result = addresses.split(',');
 
   if (result.some((val) => !viem.isAddress(val))) {
-    throw new ApiError(`Invalid publishers "${addresses}"`);
+    throw new ServerError(`Invalid publishers "${addresses}"`);
   }
 
   return result as viem.Address[];
+}
+
+export function isRedisTagOfPackage(a: RedisPackage, b: RedisTag) {
+  return a.name === b.name && a.version === b.versionOfTag && a.preset === b.preset && a.chainId === b.chainId;
 }
