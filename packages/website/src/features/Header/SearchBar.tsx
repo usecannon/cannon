@@ -54,7 +54,7 @@ const generateLink = (result: any) => {
   }
 };
 
-export const SearchButton = () => {
+export const SearchBar = () => {
   const pathname = usePathname();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchTerm, setSearchTerm] = useState<string>('');

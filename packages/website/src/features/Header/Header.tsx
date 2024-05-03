@@ -16,7 +16,7 @@ import { links } from '@/constants/links';
 import { NavLink } from '@/components/NavLink';
 import { ConnectWallet } from './ConnectWallet';
 import { usePathname } from 'next/navigation';
-import { SearchButton } from './SearchButton';
+import { SearchBar } from './SearchBar';
 
 const NavLinks = () => {
   const pathname = usePathname();
@@ -108,7 +108,7 @@ export const Header = () => {
         {(breakpoint == 'xl' || breakpoint == '2xl') && (
           <>
             <Box ml="auto">
-              <SearchButton />
+              <SearchBar />
             </Box>
             <Box ml="auto" mr="8">
               <NavLinks />
@@ -126,7 +126,7 @@ export const Header = () => {
             </Box>
             <ConnectWallet />
             <Box ml={3}>
-              <SearchButton />
+              <SearchBar />
             </Box>
             <Box ml={3}>
               <SettingsButton />
@@ -141,7 +141,7 @@ export const Header = () => {
             <Flex w="100%" alignItems="center">
               <NavLinks />
               <Box ml="auto">
-                <SearchButton />
+                <SearchBar />
               </Box>
               <Box ml={3}>
                 <SettingsButton />
