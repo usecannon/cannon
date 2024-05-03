@@ -53,6 +53,8 @@
   "license": "GNU GPL V3.0",
   "dependencies": {
     "@changesets/cli": "^2.26.2",
-    "concat-md": "^0.5.1"
+    "concat-md": "^0.5.1",
+    "react-multi-ref": "^1.0.2",
+    "scroll-into-view-if-needed": "^3.1.0"
   }
 }

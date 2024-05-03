@@ -1,3 +1,5 @@
+'use client';
+
 import { getSearch } from '@/helpers/api';
 import { SearchIcon } from '@chakra-ui/icons';
 import {
@@ -14,12 +16,26 @@ import {
   Heading,
   Text,
   useEventListener,
+  useUpdateEffect,
+  Box,
+  Link,
 } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { debounce } from 'lodash';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import router from 'next/router';
+import {
+  KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { GoPackage } from 'react-icons/go';
+import MultiRef from 'react-multi-ref';
+import scrollIntoView from 'scroll-into-view-if-needed';
+
+// Borrowing some code from https://github.com/chakra-ui/chakra-ui/blob/main/website/src/components/omni-search.tsx
 
 const PLACEHOLDER =
   'Search for packages, contracts, functions, addresses, and transactions...';
@@ -28,6 +44,11 @@ export const SearchButton = () => {
   const pathname = usePathname();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [active, setActive] = useState<number>(0);
+  const eventRef = useRef<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [shouldCloseModal, setShouldCloseModal] = useState(true);
+  const [menuNodes] = useState(() => new MultiRef<number, HTMLElement>());
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -38,6 +59,13 @@ export const SearchButton = () => {
     queryKey: ['search', searchTerm],
     queryFn: getSearch,
   });
+  const results = searchQuery?.data?.data || [];
+
+  useEffect(() => {
+    if (isOpen && searchTerm.length > 0) {
+      setSearchTerm('');
+    }
+  }, [isOpen]);
 
   useEventListener('keydown', (event) => {
     const isMac = /(Mac|iPhone|iPod|iPad)/i.test(navigator?.platform);
@@ -47,6 +75,75 @@ export const SearchButton = () => {
       isOpen ? onClose() : onOpen();
     }
   });
+
+  const onKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
+    (e: any) => {
+      eventRef.current = 'keyboard';
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault();
+          if (active + 1 < results.length) {
+            setActive(active + 1);
+          }
+          break;
+        }
+        case 'ArrowUp': {
+          e.preventDefault();
+          if (active - 1 >= 0) {
+            setActive(active - 1);
+          }
+          break;
+        }
+        case 'Control':
+        case 'Alt':
+        case 'Shift': {
+          e.preventDefault();
+          setShouldCloseModal(true);
+          break;
+        }
+        case 'Enter': {
+          if (results?.length <= 0) {
+            break;
+          }
+
+          onClose();
+          void router.push(results[active].url);
+          break;
+        }
+      }
+    },
+    [active, results, router]
+  );
+
+  const onKeyUp = useCallback((e: any) => {
+    eventRef.current = 'keyboard';
+    switch (e.key) {
+      case 'Control':
+      case 'Alt':
+      case 'Shift': {
+        e.preventDefault();
+        setShouldCloseModal(false);
+      }
+    }
+  }, []);
+
+  useUpdateEffect(() => {
+    setActive(0);
+  }, [searchTerm]);
+
+  useUpdateEffect(() => {
+    if (!menuRef.current || eventRef.current === 'mouse') return;
+
+    const node = menuNodes.map.get(active);
+    if (!node) return;
+
+    scrollIntoView(node, {
+      scrollMode: 'if-needed',
+      block: 'nearest',
+      inline: 'nearest',
+      boundary: menuRef.current,
+    });
+  }, [active]);
 
   return (
     <>
@@ -84,7 +181,12 @@ export const SearchButton = () => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent bg="gray.900" width="100%" maxW="container.md" mx={4}>
+        <ModalContent
+          bg="gray.900"
+          width="100%"
+          maxW="container.md"
+          mx={4}
+        >
           <Flex pos="relative" align="stretch">
             <Input
               maxLength={256}
@@ -100,46 +202,78 @@ export const SearchButton = () => {
               placeholder={PLACEHOLDER}
               onChange={(e) => debouncedHandleSearch(e.target.value)}
               borderColor="gray.800"
+              onKeyDown={onKeyDown}
+              onKeyUp={onKeyUp}
+              _focus={{ boxShadow: 'none', border: 'none' }}
             />
             <Center pos="absolute" left={7} h="68px">
               <SearchIcon color="teal.500" boxSize="20px" />
             </Center>
           </Flex>
-          {searchTerm.length > 0 && searchQuery?.data?.data?.length > 0 && (
-            <ModalBody pt={6}>
-              {searchQuery?.data?.data?.map((result: any, index: number) => {
-                switch (result.type) {
-                  case 'package':
-                    return (
-                      <Flex
-                        bg="gray.800"
-                        borderRadius="md"
-                        mb={4}
-                        p={4}
-                        key={index}
-                        gap={4}
-                        alignItems="middle"
-                      >
-                        <Icon as={GoPackage} boxSize="6" color="gray.300" />
-                        <Heading fontWeight={600} size="sm">
-                          {result.name}
-                        </Heading>
-                      </Flex>
-                    );
-                  case 'namespace':
-                    return <>coming soon</>;
-                  case 'contract':
-                    return <>coming soon</>;
-                  case 'function':
-                    return <>coming soon</>;
-                  case 'address':
-                    return <>coming soon</>;
-                  case 'transaction':
-                    return <>coming soon</>;
-                  default:
-                    return null;
-                }
-              })}
+          {searchTerm.length > 0 && results.length > 0 && (
+            <ModalBody
+              pt={6}
+              maxH="66vh"
+              overflow="hidden"
+              ref={menuRef}
+              borderTop="1px solid"
+              borderColor="gray.800"
+            >
+              {results.map((result: any, index: number) => (
+                <Link
+                  textDecoration="none"
+                  _hover={{ textDecoration: 'none' }}
+                  key={index}
+                  ref={menuNodes.ref(index)}
+                  onMouseEnter={() => {
+                    setActive(index);
+                    eventRef.current = 'mouse';
+                  }}
+                  onClick={() => {
+                    if (shouldCloseModal) {
+                      onClose();
+                    }
+                  }}
+                >
+                  {(() => {
+                    switch (result.type) {
+                      case 'package':
+                        return (
+                          <Flex
+                            border="1px solid"
+                            bg={index === active ? 'teal.900' : 'gray.800'}
+                            borderColor={
+                              index === active ? 'teal.500' : 'gray.700'
+                            }
+                            borderRadius="md"
+                            mb={4}
+                            p={4}
+                            gap={4}
+                            alignItems="center"
+                          >
+                            <Icon as={GoPackage} boxSize="8" color="gray.300" />
+                            <Box>
+                              <Heading fontWeight={600} size="sm">
+                                {result.name}
+                              </Heading>
+                              <Text fontSize="xs" color="gray.400">
+                                more info here
+                              </Text>
+                            </Box>
+                          </Flex>
+                        );
+                      case 'namespace':
+                      case 'contract':
+                      case 'function':
+                      case 'address':
+                      case 'transaction':
+                        return <Box key={index}>coming soon</Box>;
+                      default:
+                        return null;
+                    }
+                  })()}
+                </Link>
+              ))}
             </ModalBody>
           )}
         </ModalContent>
