@@ -8,12 +8,13 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
+import _ from 'lodash';
 import * as viem from 'viem';
 import NextLink from 'next/link';
+import { useParams } from 'next/navigation';
 import { ChainArtifacts } from '@usecannon/builder';
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
-import { AbiFunction, Abi as AbiType } from 'abitype/src/abi';
-
+import { Abi as AbiType } from 'abitype/src/abi';
 import { Function } from '@/features/Packages/Function';
 import { HasSubnavContext } from './Tabs/InteractTab';
 
@@ -32,57 +33,85 @@ export const Abi: FC<{
   chainId,
   onDrawerOpen,
 }) => {
-  const functions = useMemo<AbiFunction[]>(
-    () => abi?.filter((a) => a.type === 'function') as AbiFunction[],
+  const params = useParams();
+  const functions = useMemo(
+    () =>
+      _.sortBy(
+        abi?.filter((a) => a.type === 'function'),
+        ['name']
+      ),
     [abi]
   );
 
-  const readFunctions = functions
-    ?.filter((func) => ['view', 'pure'].includes(func.stateMutability))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const readFunctions = useMemo(
+    () =>
+      _.sortBy(
+        functions?.filter((func) =>
+          ['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [functions]
+  );
 
-  const writeFunctions = functions
-    ?.filter((func) => !['view', 'pure'].includes(func.stateMutability))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const writeFunctions = useMemo(
+    () =>
+      _.sortBy(
+        functions?.filter(
+          (func) => !['view', 'pure'].includes(func.stateMutability)
+        ),
+        ['name']
+      ),
+    [functions]
+  );
 
-  const isSmall = useBreakpointValue({
-    base: true,
-    sm: true,
-    md: false,
-  });
+  const isSmall = useBreakpointValue([true, true, false]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const hasSubnav = useContext(HasSubnavContext);
 
-  useEffect(() => {
-    function handleHashChange() {
-      const hash = window.location.hash.substring(1);
-      if (hash) {
-        const section = document.querySelector(
-          `#${hash}`
-        ) as HTMLElement | null;
-        if (section) {
-          const topOffset =
-            section.getBoundingClientRect().top +
-            window.pageYOffset -
-            (isSmall ? 24 : 102);
-          // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+  const handleHashChange = (firstRender: boolean) => {
+    const hash = window.location.hash;
 
-          window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
+    if (hash) {
+      const section = document.getElementById(`${hash}`);
+
+      if (section) {
+        const adjust = firstRender ? 162 : 102;
+
+        const topOffset =
+          section.getBoundingClientRect().top + window.scrollY - adjust;
+
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+
+        const button = section.querySelector('button');
+
+        if (button) {
+          // open the collapsible
+          button.click();
         }
+
+        window.scrollTo(0, topOffset - (hasSubnav ? 65 : 0));
       }
     }
+  };
 
-    window.addEventListener('hashchange', handleHashChange, false);
+  // hash changed
+  useEffect(() => {
+    handleHashChange(false);
+  }, [params]);
 
-    const timerId = setTimeout(handleHashChange, 100); // Delay by 100ms
+  // first render
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleHashChange(true);
+    }, 1000);
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange, false);
-      clearTimeout(timerId); // Clear the timeout when the component unmounts
+      clearTimeout(timeoutId);
     };
-  }, [functions]);
+  }, []);
 
   return (
     <Flex flex="1" direction="column" maxWidth="100%">
@@ -133,6 +162,7 @@ export const Abi: FC<{
                   textOverflow="ellipsis"
                   key={index}
                   href={`#selector-${viem.toFunctionSelector(f)}`}
+                  scroll={false}
                   textDecoration="none"
                 >
                   {f.name}(
@@ -170,6 +200,7 @@ export const Abi: FC<{
                   textOverflow="ellipsis"
                   key={index}
                   href={`#selector-${viem.toFunctionSelector(f)}`}
+                  scroll={false}
                   textDecoration="none"
                 >
                   {f.name}(

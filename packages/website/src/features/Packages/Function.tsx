@@ -164,7 +164,7 @@ export const Function: FC<{
     </Box>
   ) : null;
 
-  const anchor = `selector-${toFunctionSelector(f)}`;
+  const anchor = `#selector-${toFunctionSelector(f)}`;
 
   const getCodeUrl = (functionName: string) => {
     const base = pathName.split('/interact')[0];
@@ -259,7 +259,6 @@ export const Function: FC<{
       borderLeft={collapsible ? '1px solid' : 'none'}
       borderColor="gray.600"
     >
-      <span id={anchor} />
       <Box maxW="container.xl">
         <Flex alignItems="center" mb="4">
           <Heading
@@ -277,7 +276,7 @@ export const Function: FC<{
               ml={1}
               textDecoration="none"
               _hover={{ textDecoration: 'underline' }}
-              href={`#${anchor}`}
+              href={anchor}
             >
               #
             </Link>
@@ -476,6 +475,7 @@ export const Function: FC<{
             borderColor="gray.600"
             borderTopRadius={'md'}
             borderBottomRadius={isOpen ? 'none' : 'md'}
+            id={anchor}
           >
             {f.name && (
               <Heading
@@ -493,7 +493,7 @@ export const Function: FC<{
                   ml={1}
                   textDecoration="none"
                   _hover={{ textDecoration: 'underline' }}
-                  href={`#${anchor}`}
+                  href={anchor}
                 >
                   #
                 </Link>
