@@ -1,7 +1,14 @@
-import { Flex, Container, Heading, Text, Box, Tooltip } from '@chakra-ui/react';
-import { CustomLinkButton } from '../HomePage/HomePage';
 import {
-  useBalance,
+  Flex,
+  Container,
+  Heading,
+  Text,
+  Box,
+  Tooltip,
+  useToast,
+} from '@chakra-ui/react';
+import CustomButton from './CustomButton';
+import {
   useGasPrice,
   usePrepareTransactionRequest,
   usePublicClient,
@@ -13,57 +20,109 @@ import {
 import * as onchainStore from '../../helpers/onchain-store';
 import * as multicallForwarder from '../../helpers/trusted-multicall-forwarder';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
-import { useStore } from '@/helpers/store';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
+const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
+const DETERMINISTIC_DEPLOYER = '0x4e59b44847b379578588920ca78fbf26c0b4956c';
+
 export default function PrepareNetwork() {
-  const [step, setStep] = useState(0);
   const { isConnected, chainId } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChain } = useSwitchChain();
-  const [contractToDeploy, setContractToDeploy] = useState('');
   const currentSafe = { chainId: 31337 }; //useStore((s) => s.currentSafe);
+  const toast = useToast();
 
-  const arachnidBytecode = useBytecode({
+  useEffect(() => {
+    if (!isConnected && openConnectModal) {
+      openConnectModal();
+    }
+
+    if (chainId !== currentSafe.chainId) {
+      switchChain({ chainId: currentSafe.chainId });
+    }
+  }, [openConnectModal, isConnected, chainId]);
+
+  const deterministicDeployerBytecode = useBytecode({
     chainId: currentSafe?.chainId,
-    address: '0x4e59b44847b379578588920ca78fbf26c0b4956c',
+    address: DETERMINISTIC_DEPLOYER,
   });
-  const arachnidDeployed = (arachnidBytecode?.data?.length || 0) > 0;
+  const arachnidDeployed =
+    (deterministicDeployerBytecode?.data?.length || 0) > 0;
 
-  const ARACHNID_CREATOR = '0x3fab184622dc19b6109349b94811493bf2a45362';
-  const arachnidCreatorBalance = useBalance({
-    address: ARACHNID_CREATOR,
-  });
   const gasPrice = useGasPrice();
   const publicClient = usePublicClient();
-  const deployArachnidCreate2 = usePrepareTransactionRequest({
-    to: ARACHNID_CREATOR,
-    value:
-      (gasPrice.data ?? BigInt(0)) * BigInt(110000) -
-      (arachnidCreatorBalance.data?.value ?? BigInt(0)),
-  });
   const execTxnArachnid = useSendTransaction({
     mutation: {
       onSuccess: async () => {
         const hash = await publicClient!.sendRawTransaction({
           serializedTransaction:
-            '0x604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3',
+            '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222',
         });
 
         await publicClient!.waitForTransactionReceipt({ hash });
+
+        await deterministicDeployerBytecode.refetch();
+
+        toast({
+          title: 'Deterministic Deployer Deployed',
+          description: 'The deterministic deployer has been deployed.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       },
     },
   });
+
+  const handleDeployArachnid = useCallback(() => {
+    execTxnArachnid.sendTransaction({
+      to: ARACHNID_CREATOR,
+      // TODO: What is the right value here?
+      value: BigInt(10000000000000000),
+    });
+  }, [
+    isConnected,
+    openConnectModal,
+    chainId,
+    currentSafe,
+    switchChain,
+    execTxnArachnid,
+    gasPrice,
+  ]);
 
   const onchainStoreBytecode = useBytecode({
     chainId: currentSafe?.chainId,
     address: onchainStore.deployAddress,
   });
   const onchainStoreDeployed = (onchainStoreBytecode?.data?.length || 0) > 0;
-  const deployOnchainStore = usePrepareTransactionRequest(
-    onchainStore.deployTxn
-  );
+  const deployOnchainStore = usePrepareTransactionRequest({
+    ...onchainStore.deployTxn,
+    gasPrice: gasPrice.data,
+    // TODO: What is the right value here?
+    gas: BigInt(2000000),
+  });
+  const deployOnchainStoreTransaction = useSendTransaction({
+    mutation: {
+      onSuccess: async () => {
+        await onchainStoreBytecode.refetch();
+
+        toast({
+          title: 'Onchain Store Deployed',
+          description: 'The onchain store has been deployed.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      },
+    },
+  });
+
+  const handleDeployOnchainStore = () => {
+    deployOnchainStoreTransaction.sendTransaction(
+      deployOnchainStore.data as any
+    );
+  };
 
   const multicallForwarderBytecode = useBytecode({
     chainId: currentSafe?.chainId,
@@ -71,29 +130,33 @@ export default function PrepareNetwork() {
   });
   const multicallForwarderDeployed =
     (multicallForwarderBytecode?.data?.length || 0) > 0;
-  const deployMulticallForwarder = usePrepareTransactionRequest(
-    multicallForwarder.deployTxn
-  );
+  const deployMulticallForwarder = usePrepareTransactionRequest({
+    ...multicallForwarder.deployTxn,
+    gasPrice: gasPrice.data,
+    // TODO: What is the right value here?
+    gas: BigInt(30000000),
+  });
+  const deployMulticallForwarderTransaction = useSendTransaction({
+    mutation: {
+      onSuccess: async () => {
+        await multicallForwarderBytecode.refetch();
 
-  const execTxn = useSendTransaction();
+        toast({
+          title: 'Multicall Forwarder Deployed',
+          description: 'The multicall forwarder has been deployed.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      },
+    },
+  });
 
-  useEffect(() => {
-    if (step === 1 && openConnectModal) {
-      isConnected ? setStep(2) : openConnectModal();
-    } else if (step == 2) {
-      chainId === currentSafe.chainId
-        ? setStep(3)
-        : switchChain({ chainId: currentSafe.chainId });
-    } else if (step == 3) {
-      if (contractToDeploy === 'arachnid') {
-        execTxnArachnid.sendTransaction(deployArachnidCreate2.data as any);
-      } else if (contractToDeploy === 'onchainstore') {
-        execTxn.sendTransaction(deployOnchainStore.data as any);
-      } else if (contractToDeploy === 'multicallForwarder') {
-        execTxn.sendTransaction(deployMulticallForwarder.data as any);
-      }
-    }
-  }, [openConnectModal, step, isConnected, chainId, contractToDeploy]);
+  const handleDeployMulticallForwarder = () => {
+    deployMulticallForwarderTransaction.sendTransaction(
+      deployMulticallForwarder.data as any
+    );
+  };
 
   return (
     <Flex height="100%" bg="black">
@@ -128,16 +191,13 @@ export default function PrepareNetwork() {
               determined based on their source code.
             </Text>
             <Flex gap={3} alignItems="center">
-              <CustomLinkButton
+              <CustomButton
                 href="#"
-                disabled={arachnidDeployed}
-                onClick={() => {
-                  setContractToDeploy('arachnid');
-                  setStep(1);
-                }}
+                disabled={arachnidDeployed || execTxnArachnid.isPending}
+                onClick={handleDeployArachnid}
               >
                 {arachnidDeployed ? 'Deployed' : 'Deploy Contract'}
-              </CustomLinkButton>
+              </CustomButton>
               <Tooltip label="This contract is deployed by sending a small amount of ETH to an EOA with a known private key. Then the contract is deployed from that address.">
                 <InfoOutlineIcon color="gray.400" />
               </Tooltip>
@@ -158,16 +218,17 @@ export default function PrepareNetwork() {
               This allows the deployer to record IPFS and git hashes onchain to
               verify the integrity of upgrades.
             </Text>
-            <CustomLinkButton
+            <CustomButton
               href="#"
-              disabled={!arachnidDeployed || onchainStoreDeployed}
-              onClick={() => {
-                setContractToDeploy('onchainstore');
-                setStep(1);
-              }}
+              disabled={
+                !arachnidDeployed ||
+                onchainStoreDeployed ||
+                deployOnchainStore.isPending
+              }
+              onClick={handleDeployOnchainStore}
             >
               {onchainStoreDeployed ? 'Deployed' : 'Deploy Contract'}
-            </CustomLinkButton>
+            </CustomButton>
           </Box>
           <Box
             bg="gray.800"
@@ -184,16 +245,17 @@ export default function PrepareNetwork() {
               This allows users to create atomic batch transactions across
               integrated protocols, like the Cannon Registry.
             </Text>
-            <CustomLinkButton
+            <CustomButton
               href="#"
-              disabled={!arachnidDeployed || multicallForwarderDeployed}
-              onClick={() => {
-                setContractToDeploy('multicallForwarder');
-                setStep(1);
-              }}
+              disabled={
+                !arachnidDeployed ||
+                multicallForwarderDeployed ||
+                deployMulticallForwarder.isPending
+              }
+              onClick={handleDeployMulticallForwarder}
             >
               {multicallForwarderDeployed ? 'Deployed' : 'Deploy Contract'}
-            </CustomLinkButton>
+            </CustomButton>
           </Box>
         </Flex>
       </Container>
