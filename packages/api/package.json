@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "envalid": "^8.0.0",
     "express": "^5.0.0-beta.3",
+    "express-basic-auth": "^1.2.1",
     "express-prom-bundle": "^7.0.0",
     "express-rate-limit": "^7.2.0",
     "fastest-levenshtein": "^1.0.16",
