@@ -36,6 +36,7 @@ export type DataTableProps<Data extends object> = {
 };
 
 const formatIPFS = (input: string, partLength: number): string => {
+  if (!input) return '';
   const prefix = 'ipfs://';
   const hash = input.substring(prefix.length);
 
