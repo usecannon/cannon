@@ -151,6 +151,12 @@ export function useCannonBuild(safe: SafeDefinition | null, def?: ChainDefinitio
         addLog(
           `cannon.ts: on Events.PostStepExecute operation ${stepType}.${stepLabel} output: ${JSON.stringify(stepOutput)}`
         );
+
+        for (const txn in stepOutput.txns || {}) {
+          // clean out txn hash
+          stepOutput.txns![txn].hash = '';
+        }
+
         simulatedSteps.push(stepOutput);
         setBuildStatus(`Building ${stepType}.${stepLabel}...`);
       }
