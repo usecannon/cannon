@@ -224,7 +224,7 @@ export const SearchBar = () => {
             <ModalBody
               pt={6}
               maxH="66vh"
-              overflow="hidden"
+              overflowY="auto"
               ref={menuRef}
               borderTop="1px solid"
               borderColor="gray.800"
